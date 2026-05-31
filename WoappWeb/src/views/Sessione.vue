@@ -1,370 +1,328 @@
 <template>
   <v-container class="px-3 py-4 max-width-container min-height-screen pb-12">
     <!-- Barra Superiore con pulsante indietro -->
-    <div class="d-flex align-center justify-space-between mb-4 appsheet-top-bar">
-      <v-btn icon color="orange-darken-3" variant="text" @click="tornaIndietro" id="btn-sessione-indietro">
-        <v-icon size="28">mdi-arrow-left</v-icon>
+    <div class="d-flex align-center justify-space-between mb-4 appsheet-top-bar pb-2">
+      <v-btn icon color="orange-darken-3" variant="text" @click="tornaIndietro" id="btn-sessione-indietro" size="small">
+        <v-icon size="26">mdi-arrow-left</v-icon>
       </v-btn>
-      <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate">
+      <h3 class="text-subtitle-2 font-weight-black text-slate-dark text-truncate">
         Dettaglio Sessione
       </h3>
-      <v-btn icon color="slate-dark" variant="text" @click="caricaDati"><v-icon>mdi-refresh</v-icon></v-btn>
+      <v-btn icon color="slate-dark" variant="text" @click="caricaDati" size="small"><v-icon size="18">mdi-refresh</v-icon></v-btn>
     </div>
 
     <!-- Stato di caricamento -->
     <div v-if="caricamento" class="text-center my-12">
-      <v-progress-circular indeterminate color="orange" size="48"></v-progress-circular>
+      <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
       <p class="mt-2 text-caption text-muted">Caricamento sessione...</p>
     </div>
 
     <!-- Errore o non trovato -->
     <div v-else-if="!workout" class="text-center my-12 py-12 card-glass rounded-xl">
-      <v-icon size="64" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
-      <h3 class="text-h6 font-weight-bold text-slate-dark">Sessione non trovata</h3>
+      <v-icon size="50" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
+      <h3 class="text-caption font-weight-bold text-slate-dark">Sessione non trovata</h3>
     </div>
 
-    <!-- Contenuto Principale -->
+    <!-- Contenuto Principale (Spazioso, Intuitivo, Flusso Lineare) -->
     <div v-else class="session-detail-area">
-      <!-- 1. Grande Lettera 3D / GIF -->
-      <v-card class="image-premium-frame rounded-2xl overflow-hidden mb-5 elevation-3 mx-auto" max-width="180">
-        <v-img
-          :src="getGifUrl(workout.UrlNormal) || 'https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png'"
-          cover
-          class="bg-grey-lighten-4"
-        >
-          <template v-slot:placeholder>
-            <div class="fill-height d-flex align-center justify-center bg-slate-100">
-              <v-progress-circular indeterminate color="orange"></v-progress-circular>
-            </div>
-          </template>
-        </v-img>
-      </v-card>
-
-      <!-- 2. Titoli e Volumi Formattati Premium in Sessione -->
-      <div class="mb-6 text-center">
-        <!-- Titolo principale o giorno -->
-        <h2 v-if="parseDayHeader(workout.des_esercizio)" class="text-h5 font-weight-black text-orange-darken-4 leading-tight px-2 mb-3">
-          Sessione di Allenamento - Giorno {{ parseDayHeader(workout.des_esercizio).giorno }}
-        </h2>
-        <h2 v-else class="text-h5 font-weight-black text-slate-dark leading-tight px-2">
-          {{ workout.des_esercizio }}
-        </h2>
-
-        <!-- Dashboard Tempi, Densità e Calorie in Sessione -->
-        <div v-if="parseDayHeader(workout.des_esercizio)" class="rmt-premium-card pa-3 rounded-xl card-glass border-orange-darken-3-op max-width-rmt mx-auto mb-3">
-          <div class="d-flex align-center justify-space-between mb-3 px-1">
-            <span class="text-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">Statistiche Sessione</span>
-            <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem;">
-              🔥 {{ parseDayHeader(workout.des_esercizio).calorie }} kcal stimate
-            </span>
-          </div>
-
-          <v-row dense class="text-center mb-3">
-            <v-col cols="4">
-              <div class="prescription-chip-box px-2 py-1.5 rounded-lg">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 1</span>
-                <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ parseDayHeader(workout.des_esercizio).tempo1 }}</span>
-                <span class="text-super-caption text-orange-lighten-1 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(workout.des_esercizio).densita1 }}%</span>
+      
+      <!-- 1. Header Compatto: Mini GIF e Titoli Uniti su una riga -->
+      <v-card class="compact-header-card rounded-2xl pa-3 mb-4 card-glass border d-flex align-center" elevation="2">
+        <div class="thumbnail-frame mr-3 rounded-xl overflow-hidden bg-black flex-shrink-0" style="width: 52px; height: 52px; border: 1px solid rgba(255,255,255,0.08);">
+          <v-img
+            :src="getGifUrl(workout.UrlNormal) || 'https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png'"
+            cover
+            height="100%"
+            width="100%"
+          >
+            <template v-slot:placeholder>
+              <div class="fill-height d-flex align-center justify-center bg-slate-800">
+                <v-icon color="grey" size="16">mdi-dumbbell</v-icon>
               </div>
-            </v-col>
-            <v-col cols="4">
-              <div class="prescription-chip-box px-2 py-1.5 rounded-lg border-orange-darken-3-op bg-orange-darken-3-op">
-                <span class="text-super-caption text-orange-darken-3 uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Media</span>
-                <span class="text-body-2 font-weight-black text-orange-darken-3 d-block mb-0.5">⏱️ {{ parseDayHeader(workout.des_esercizio).tempoMedia }}</span>
-                <span class="text-super-caption text-orange-darken-3 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(workout.des_esercizio).densitaMedia }}%</span>
-              </div>
-            </v-col>
-            <v-col cols="4">
-              <div class="prescription-chip-box px-2 py-1.5 rounded-lg">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 6</span>
-                <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ parseDayHeader(workout.des_esercizio).tempo2 }}</span>
-                <span class="text-super-caption text-orange-lighten-1 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(workout.des_esercizio).densita2 }}%</span>
-              </div>
-            </v-col>
-          </v-row>
-
-          <!-- Sezione Volumi (VOL A, B, C) in Sessione -->
-          <div v-if="parseVolumes(workout.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left mt-2">
-            <div class="d-flex align-center justify-space-between mb-1.5 px-1">
-              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">
-                📊 Distribuzione Volumi (Serie Totali: {{ parseVolumes(workout.ins_esercizio).totale }})
-              </span>
-            </div>
-            <v-row dense class="text-center font-weight-bold text-caption">
-              <v-col :cols="parseVolumes(workout.ins_esercizio).centrale > 0 ? 4 : 6">
-                <div class="pa-1 bg-slate-800 rounded">
-                  <span class="text-muted d-block" style="font-size: 0.6rem;">Alta (A)</span>
-                  <span class="text-blue-lighten-2">{{ parseVolumes(workout.ins_esercizio).alta }} serie</span>
-                  <v-progress-linear
-                    :model-value="parseVolumes(workout.ins_esercizio).totale > 0 ? (parseVolumes(workout.ins_esercizio).alta / parseVolumes(workout.ins_esercizio).totale) * 100 : 0"
-                    color="blue-lighten-2"
-                    height="3"
-                    rounded
-                    class="mt-1"
-                  ></v-progress-linear>
-                </div>
-              </v-col>
-              <v-col :cols="parseVolumes(workout.ins_esercizio).centrale > 0 ? 4 : 6">
-                <div class="pa-1 bg-slate-800 rounded">
-                  <span class="text-muted d-block" style="font-size: 0.6rem;">Bassa (B)</span>
-                  <span class="text-orange-lighten-2">{{ parseVolumes(workout.ins_esercizio).bassa }} serie</span>
-                  <v-progress-linear
-                    :model-value="parseVolumes(workout.ins_esercizio).totale > 0 ? (parseVolumes(workout.ins_esercizio).bassa / parseVolumes(workout.ins_esercizio).totale) * 100 : 0"
-                    color="orange-lighten-2"
-                    height="3"
-                    rounded
-                    class="mt-1"
-                  ></v-progress-linear>
-                </div>
-              </v-col>
-              <v-col v-if="parseVolumes(workout.ins_esercizio).centrale > 0" cols="4">
-                <div class="pa-1 bg-slate-800 rounded">
-                  <span class="text-muted d-block" style="font-size: 0.6rem;">Centrale (C)</span>
-                  <span class="text-green-lighten-2">{{ parseVolumes(workout.ins_esercizio).centrale }} serie</span>
-                  <v-progress-linear
-                    :model-value="parseVolumes(workout.ins_esercizio).totale > 0 ? (parseVolumes(workout.ins_esercizio).centrale / parseVolumes(workout.ins_esercizio).totale) * 100 : 0"
-                    color="green-lighten-2"
-                    height="3"
-                    rounded
-                    class="mt-1"
-                  ></v-progress-linear>
-                </div>
-              </v-col>
-            </v-row>
-          </div>
-        </div>
-
-        <!-- Sezione Volumi standalone se parseDayHeader fallisce ma parseVolumes riesce -->
-        <div v-if="!parseDayHeader(workout.des_esercizio) && parseVolumes(workout.ins_esercizio)" class="rmt-premium-card pa-3 rounded-xl card-glass border-orange-darken-3-op max-width-rmt mx-auto mb-3">
-          <div class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left">
-            <div class="d-flex align-center justify-space-between mb-1.5 px-1">
-              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">
-                📊 Distribuzione Volumi (Serie Totali: {{ parseVolumes(workout.ins_esercizio).totale }})
-              </span>
-            </div>
-            <v-row dense class="text-center font-weight-bold text-caption">
-              <v-col :cols="parseVolumes(workout.ins_esercizio).centrale > 0 ? 4 : 6">
-                <div class="pa-1 bg-slate-800 rounded">
-                  <span class="text-muted d-block" style="font-size: 0.6rem;">Alta (A)</span>
-                  <span class="text-blue-lighten-2">{{ parseVolumes(workout.ins_esercizio).alta }} serie</span>
-                  <v-progress-linear
-                    :model-value="parseVolumes(workout.ins_esercizio).totale > 0 ? (parseVolumes(workout.ins_esercizio).alta / parseVolumes(workout.ins_esercizio).totale) * 100 : 0"
-                    color="blue-lighten-2"
-                    height="3"
-                    rounded
-                    class="mt-1"
-                  ></v-progress-linear>
-                </div>
-              </v-col>
-              <v-col :cols="parseVolumes(workout.ins_esercizio).centrale > 0 ? 4 : 6">
-                <div class="pa-1 bg-slate-800 rounded">
-                  <span class="text-muted d-block" style="font-size: 0.6rem;">Bassa (B)</span>
-                  <span class="text-orange-lighten-2">{{ parseVolumes(workout.ins_esercizio).bassa }} serie</span>
-                  <v-progress-linear
-                    :model-value="parseVolumes(workout.ins_esercizio).totale > 0 ? (parseVolumes(workout.ins_esercizio).bassa / parseVolumes(workout.ins_esercizio).totale) * 100 : 0"
-                    color="orange-lighten-2"
-                    height="3"
-                    rounded
-                    class="mt-1"
-                  ></v-progress-linear>
-                </div>
-              </v-col>
-              <v-col v-if="parseVolumes(workout.ins_esercizio).centrale > 0" cols="4">
-                <div class="pa-1 bg-slate-800 rounded">
-                  <span class="text-muted d-block" style="font-size: 0.6rem;">Centrale (C)</span>
-                  <span class="text-green-lighten-2">{{ parseVolumes(workout.ins_esercizio).centrale }} serie</span>
-                  <v-progress-linear
-                    :model-value="parseVolumes(workout.ins_esercizio).totale > 0 ? (parseVolumes(workout.ins_esercizio).centrale / parseVolumes(workout.ins_esercizio).totale) * 100 : 0"
-                    color="green-lighten-2"
-                    height="3"
-                    rounded
-                    class="mt-1"
-                  ></v-progress-linear>
-                </div>
-              </v-col>
-            </v-row>
-          </div>
-        </div>
-
-        <!-- RMT Formattata Premium Gamified in Sessione -->
-        <div v-if="parsedRmt(workout.des_esercizio_2)" class="rmt-premium-card mt-3 pa-3 rounded-xl card-glass border-orange-darken-3-op max-width-rmt mx-auto">
-          <div class="d-flex align-center justify-space-between mb-2 px-1">
-            <div class="d-flex align-center gap-1">
-              <span class="text-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.65rem;">Livello Forza:</span>
-              <v-icon
-                v-for="i in parsedRmt(workout.des_esercizio_2).stelle"
-                :key="i"
-                color="amber-darken-2"
-                size="16"
-              >
-                mdi-star
-              </v-icon>
-            </div>
-            <span class="text-super-caption text-muted font-weight-bold">
-              Valutazione: {{ parsedRmt(workout.des_esercizio_2).data }}
-            </span>
-          </div>
-
-          <v-row dense class="align-center">
-            <v-col cols="6" class="border-right-soft">
-              <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block">Target 1RM (1RMT)</span>
-                <span class="text-h6 font-weight-black text-orange-darken-3">
-                  {{ parsedRmt(workout.des_esercizio_2).massimale }} <span class="text-caption text-muted">KG</span>
-                </span>
-              </div>
-            </v-col>
-            <v-col cols="6">
-              <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block">Target Livello Successivo</span>
-                <span class="text-h6 font-weight-black text-slate-dark">
-                  ~{{ parsedRmt(workout.des_esercizio_2).prossimoLivello }} <span class="text-caption text-muted">KG</span>
-                </span>
-              </div>
-            </v-col>
-          </v-row>
-
-          <!-- RPG Level-up Progress Bar -->
-          <div class="mt-3 px-1 border-top-soft pt-2">
-            <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Progresso Prossima Stella</span>
-              <span class="text-super-caption text-amber-darken-2 font-weight-black" style="font-size: 0.6rem;">
-                {{ getRmtProgress(parsedRmt(workout.des_esercizio_2)) }}% completato
-              </span>
-            </div>
-            <v-progress-linear
-              :model-value="getRmtProgress(parsedRmt(workout.des_esercizio_2))"
-              color="amber-darken-2"
-              height="5"
-              rounded
-              striped
-              active
-              class="elevation-1"
-            ></v-progress-linear>
-            <span class="text-super-caption text-muted font-weight-bold d-block mt-1 text-right" style="font-size: 0.58rem;">
-              Carica ancora <span class="text-amber-lighten-2 font-weight-black">~{{ parsedRmt(workout.des_esercizio_2).prossimoLivello }} KG</span> per salire di livello!
-            </span>
-          </div>
+            </template>
+          </v-img>
         </div>
         
-        <!-- Fallback standard -->
-        <p v-else-if="workout.des_esercizio_2" class="text-subtitle-1 font-weight-black text-orange-darken-3 mt-2">
-          {{ workout.des_esercizio_2 }}
-        </p>
+        <div class="text-left min-width-0 flex-grow-1">
+          <div class="d-flex align-center justify-space-between">
+            <h2 v-if="parseDayHeader(workout.des_esercizio)" class="text-subtitle-2 font-weight-black text-orange-darken-3 leading-none truncate">
+              Giorno {{ parseDayHeader(workout.des_esercizio).giorno }} • Allenamento
+            </h2>
+            <h2 v-else class="text-subtitle-2 font-weight-black text-slate-dark leading-none truncate">
+              {{ workout.des_esercizio }}
+            </h2>
+            <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase ml-2 flex-shrink-0" style="font-size: 0.58rem;">
+              🔥 {{ parseDayHeader(workout.des_esercizio)?.calorie || 350 }} kcal
+            </span>
+          </div>
+          
+          <div class="d-flex align-center mt-1.5 text-super-caption text-muted font-weight-medium compact-header-metrics flex-wrap gap-x-2">
+            <span>⏱️ Target: {{ parseDayHeader(workout.des_esercizio)?.tempoMedia || '60 min' }}</span>
+            <span class="text-muted">•</span>
+            <span>⚡ Densità: {{ parseDayHeader(workout.des_esercizio)?.densitaMedia || '60' }}%</span>
+            <span class="text-muted">•</span>
+            <span>🏋️ Vol: {{ parseVolumes(workout.ins_esercizio)?.totale || '20' }} serie</span>
+          </div>
+        </div>
+      </v-card>
+
+      <!-- RMT Massimale Gamified se presente (Compatto) -->
+      <div v-if="parsedRmt(workout.des_esercizio_2)" class="rmt-compact-card pa-2.5 rounded-2xl card-glass border-orange-darken-3-op mb-4 text-left">
+        <div class="d-flex align-center justify-space-between mb-1">
+          <div class="d-flex align-center">
+            <span class="text-super-caption text-muted font-weight-black uppercase mr-1.5" style="font-size: 0.58rem;">Livello Forza:</span>
+            <v-icon v-for="i in parsedRmt(workout.des_esercizio_2).stelle" :key="i" color="amber-darken-2" size="12">mdi-star</v-icon>
+          </div>
+          <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">
+            1RMT: {{ parsedRmt(workout.des_esercizio_2).massimale }} kg
+          </span>
+        </div>
+        <v-progress-linear
+          :model-value="getRmtProgress(parsedRmt(workout.des_esercizio_2))"
+          color="amber-darken-2"
+          height="3"
+          rounded
+          class="elevation-1"
+        ></v-progress-linear>
       </div>
 
-      <!-- 3. Lista delle 6 Settimane con Toggle ed Inputs speciali per la prima non completata -->
-      <h3 class="text-subtitle-2 font-weight-black text-slate-dark mb-4 text-left d-flex align-center">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-calendar-check</v-icon>
-        Completamento Settimanale
-      </h3>
+      <!-- 2. Selettore Orizzontale delle 6 Settimane -->
+      <div class="week-selector-section mb-4 text-left">
+        <div class="text-super-caption text-muted font-weight-black uppercase tracking-wider mb-2" style="font-size: 0.62rem; letter-spacing: 0.05em;">
+          Seleziona Settimana da Visualizzare
+        </div>
+        
+        <div class="d-flex justify-space-between gap-2.5 pb-2 overflow-x-auto">
+          <button
+            v-for="sett in [1, 2, 3, 4, 5, 6]"
+            :key="sett"
+            class="week-chip-btn flex-grow-1 py-2.5"
+            :class="{
+              'week-chip-active': selectedWeek === sett,
+              'week-chip-completed': isWeekCompleted(sett) && selectedWeek !== sett,
+              'week-chip-pending': !isWeekCompleted(sett) && selectedWeek !== sett
+            }"
+            @click="selectedWeek = sett"
+          >
+            <div class="d-flex align-center justify-center font-weight-black">
+              <span>W{{ sett }}</span>
+              <v-icon v-if="isWeekCompleted(sett)" size="11" class="ml-1" color="green-accent-4">mdi-check-bold</v-icon>
+              <span v-else-if="sett === activeUncompletedWeek" class="active-dot-orange ml-1"></span>
+            </div>
+          </button>
+        </div>
+      </div>
 
-      <div class="weeks-stacked-list mb-6">
-        <v-card
-          v-for="sett in 6"
-          :key="sett"
-          class="week-log-card rounded-2xl pa-4 mb-4 border text-left"
-          :class="{ 'week-active-border': sett === activeUncompletedWeek }"
-          elevation="1"
-        >
-          <!-- Intestazione Week con Switch -->
-          <div class="d-flex align-center justify-space-between">
-            <span class="text-subtitle-2 font-weight-black" :class="sett === activeUncompletedWeek ? 'text-orange-darken-3' : 'text-slate-dark'">
-              Week {{ sett }} completata
+      <!-- 3. Scheda Unica Focalizzata sulla Settimana Selezionata (Spaziosa ed Estremamente Intuitiva) -->
+      <v-card class="focused-week-card rounded-2xl pa-5 mb-4 border text-left" elevation="2">
+        <!-- Titolo Settimana -->
+        <div class="mb-4">
+          <span class="text-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">LOG SCHEDA</span>
+          <h3 class="text-h6 font-weight-black text-slate-dark leading-tight mt-1">
+            Settimana {{ selectedWeek }}
+          </h3>
+        </div>
+
+        <!-- Success Banner se completata -->
+        <v-fade-transition>
+          <div v-if="isWeekCompleted(selectedWeek)" class="success-banner-spacious text-caption font-weight-bold mb-4 pa-3 rounded-xl d-flex align-center justify-center">
+            <v-icon size="16" color="green" class="mr-2">mdi-check-circle-outline</v-icon>
+            Settimana completata con successo! ⚡
+          </div>
+        </v-fade-transition>
+
+        <!-- STEP 1: REGISTRAZIONE ORE -->
+        <div class="step-container mb-5">
+          <div class="d-flex align-center justify-space-between mb-2.5">
+            <span class="text-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+              1. Registro Ore Sessione
             </span>
+            <span class="text-super-caption text-green-lighten-2 font-weight-bold d-flex align-center" style="font-size: 0.58rem;">
+              <v-icon size="11" color="green" class="mr-1">mdi-cloud-check</v-icon>
+              Auto-save attivo
+            </span>
+          </div>
+          
+          <v-row dense class="mb-3 gap-2">
+            <!-- Record Start -->
+            <v-col cols="6" class="flex-grow-1">
+              <div class="d-flex flex-column text-center">
+                <v-btn
+                  :color="inputStart ? 'green-darken-3' : 'orange-darken-3'"
+                  variant="tonal"
+                  rounded="lg"
+                  class="font-weight-black text-none py-2 btn-quick-log"
+                  @click="registraInizioOra(selectedWeek)"
+                  height="44"
+                >
+                  <v-icon size="16" class="mr-1">mdi-play-circle-outline</v-icon>
+                  Inizio Wo
+                </v-btn>
+                <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputStart ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
+                  {{ inputStart ? formattaOraLeggibile(inputStart) : 'Non registrato' }}
+                </span>
+              </div>
+            </v-col>
+            
+            <!-- Record End -->
+            <v-col cols="6" class="flex-grow-1">
+              <div class="d-flex flex-column text-center">
+                <v-btn
+                  :color="inputEnd ? 'green-darken-3' : 'orange-darken-3'"
+                  variant="tonal"
+                  rounded="lg"
+                  class="font-weight-black text-none py-2 btn-quick-log"
+                  @click="registraFineOra(selectedWeek)"
+                  height="44"
+                  :disabled="!inputStart"
+                >
+                  <v-icon size="16" class="mr-1">mdi-stop-circle-outline</v-icon>
+                  Fine Wo
+                </v-btn>
+                <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputEnd ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
+                  {{ inputEnd ? formattaOraLeggibile(inputEnd) : 'Non registrato' }}
+                </span>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Durata stimata -->
+          <div class="text-caption font-weight-bold text-slate d-flex align-center mt-2 pl-1">
+            <v-icon size="14" color="grey" class="mr-1.5">mdi-timer-sand</v-icon>
+            Durata Calcolata: <span class="text-orange-lighten-2 ml-1 font-weight-black">{{ calcolaDurata(inputStart, inputEnd) }}</span>
+          </div>
+        </div>
+
+        <!-- STEP 2: NOTE E COMMENTI -->
+        <div class="step-container mb-5">
+          <div class="text-caption text-orange-lighten-2 font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+            2. Note & Commenti
+          </div>
+          <v-text-field
+            v-model="inputNote"
+            label="Note sull'allenamento..."
+            variant="outlined"
+            density="comfortable"
+            rounded="lg"
+            color="orange-darken-3"
+            prepend-inner-icon="mdi-pencil-outline"
+            class="notes-field-spacious"
+            @blur="salvaDato('ins_week' + selectedWeek, inputNote)"
+            hide-details
+          ></v-text-field>
+        </div>
+
+        <!-- STEP 3: STATO COMPLETAMENTO (Ora al centro e vicinissimo al testo/flussi) -->
+        <div class="step-container pt-3 border-top-soft">
+          <div class="text-caption text-orange-lighten-2 font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+            3. Stato Settimana
+          </div>
+          
+          <div class="d-flex align-center justify-space-between pa-3 rounded-xl bg-slate-900-op border border-soft">
+            <div class="text-left">
+              <span class="text-body-2 font-weight-black text-slate-dark d-block">Marca come Completata</span>
+              <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
+                {{ isWeekCompleted(selectedWeek) ? 'Settimana completata con successo ✓' : 'Attiva lo switch per chiudere la settimana' }}
+              </span>
+            </div>
+            
             <v-switch
-              :model-value="isWeekCompleted(sett)"
-              @update:model-value="(val) => setWeekCompleted(sett, val)"
-              color="orange-darken-3"
+              :model-value="isWeekCompleted(selectedWeek)"
+              @update:model-value="(val) => setWeekCompleted(selectedWeek, val)"
+              color="green-accent-4"
               hide-details
-              density="compact"
+              density="comfortable"
+              class="scale-switch"
             ></v-switch>
           </div>
+        </div>
 
-          <!-- Dettagli della settimana inseribili solo se è la prima settimana non completata -->
-          <div v-if="sett === activeUncompletedWeek" class="mt-4 pt-3 border-top-soft">
-            <v-text-field
-              v-model="inputNote"
-              label="Note week"
-              variant="outlined"
-              density="compact"
-              class="mb-3"
-              rounded="lg"
-              color="orange-darken-3"
-              prepend-inner-icon="mdi-pencil-outline"
-              @blur="salvaDato('ins_week' + sett, inputNote)"
-            ></v-text-field>
-
-            <v-row dense>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="inputStart"
-                  type="datetime-local"
-                  label="Inizio wo"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  color="orange-darken-3"
-                  @change="salvaDato(getStartField(sett), inputStart)"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="inputEnd"
-                  type="datetime-local"
-                  label="Fine wo"
-                  variant="outlined"
-                  density="compact"
-                  rounded="lg"
-                  color="orange-darken-3"
-                  @change="salvaDato(getEndField(sett), inputEnd)"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <div class="text-caption font-weight-bold text-slate d-flex align-center mt-1">
-              <v-icon size="14" color="grey" class="mr-1">mdi-clock-outline</v-icon>
-              Durata Wo{{ sett }}: <span class="text-orange-darken-3 ml-1">{{ calcolaDurata(inputStart, inputEnd) }}</span>
-            </div>
+        <!-- Manual Adjustments -->
+        <div class="mt-4">
+          <div
+            class="d-flex align-center justify-space-between cursor-pointer py-2 px-3 rounded-lg manual-toggle bg-slate-900-op border-soft"
+            @click="mostraManuale = !mostraManuale"
+          >
+            <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem;">
+              {{ mostraManuale ? '✓ Nascondi Ora Manuale' : '⚙️ Regola Data/Ora Manualmente' }}
+            </span>
+            <v-icon size="12" color="grey">{{ mostraManuale ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
           </div>
-        </v-card>
-      </div>
-
-      <!-- 4. Resoconto Durate e Media in fondo -->
-      <h3 class="text-subtitle-2 font-weight-black text-slate-dark mb-4 text-left d-flex align-center">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-clipboard-pulse-outline</v-icon>
-        Riepilogo Durate Sessioni
-      </h3>
-
-      <v-card class="premium-card rounded-2xl pa-4 mb-6 text-left" elevation="2">
-        <v-list class="bg-transparent py-0" density="comfortable">
-          <v-list-item v-for="sett in 6" :key="sett" class="px-0 py-1 border-bottom-soft">
-            <template v-slot:prepend>
-              <v-icon size="18" :color="isWeekCompleted(sett) ? 'green' : 'grey'">mdi-timer-outline</v-icon>
-            </template>
-            <div class="d-flex align-center justify-space-between w-100">
-              <span class="text-body-2 font-weight-bold text-slate-dark">Durata Week {{ sett }}</span>
-              <span class="text-body-2 font-weight-black text-slate">{{ getFormattedDurationForWeek(sett) }}</span>
+          
+          <v-expand-transition>
+            <div v-show="mostraManuale" class="mt-3 pt-3 border-top-soft">
+              <v-row dense>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="inputStart"
+                    type="datetime-local"
+                    label="Data/Ora Inizio"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    color="orange-darken-3"
+                    @change="salvaDato(getStartField(selectedWeek), inputStart)"
+                    hide-details
+                    style="font-size: 0.8rem;"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="inputEnd"
+                    type="datetime-local"
+                    label="Data/Ora Fine"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    color="orange-darken-3"
+                    @change="salvaDato(getEndField(selectedWeek), inputEnd)"
+                    hide-details
+                    style="font-size: 0.8rem;"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
             </div>
-          </v-list-item>
+          </v-expand-transition>
+        </div>
+      </v-card>
 
-          <v-list-item class="px-0 py-2">
-            <template v-slot:prepend>
-              <v-icon size="20" color="orange-darken-3">mdi-chart-line-stacked</v-icon>
-            </template>
-            <div class="d-flex align-center justify-space-between w-100 font-weight-black text-subtitle-1 text-orange-darken-3">
-              <span>Media</span>
-              <span>{{ getMediaFormatted() }}</span>
+      <!-- 4. Resoconto Durate & Coerenza (Spazioso ed elegante) -->
+      <v-card class="premium-card rounded-2xl pa-4 text-left" elevation="2">
+        <v-row dense class="align-center">
+          <!-- Circular progress ring -->
+          <v-col cols="3" class="text-center d-flex flex-column align-center justify-center">
+            <v-progress-circular
+              :model-value="percentualeCompletamento"
+              color="orange-darken-2"
+              size="56"
+              width="6.5"
+              class="ring-glow-orange"
+            >
+              <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.68rem;">
+                {{ settimaneCompletateCount }}/6
+              </span>
+            </v-progress-circular>
+          </v-col>
+          
+          <!-- Statistics description -->
+          <v-col cols="9" class="pl-4 border-left-soft text-left">
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">Coerenza Periodizzazione</span>
+              <span class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.6rem;">{{ percentualeCompletamento }}%</span>
             </div>
-          </v-list-item>
-        </v-list>
+            <div class="d-flex align-center justify-space-between text-body-2 font-weight-bold text-slate-dark">
+              <span>Durata Media:</span>
+              <span class="text-orange-lighten-2 font-weight-black">⏱️ {{ getMediaFormatted() }}</span>
+            </div>
+          </v-col>
+        </v-row>
       </v-card>
 
     </div>
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" color="success" timeout="2000" rounded="xl">
-      Sincronizzazione in tempo reale completata!
+      Sincronizzazione completata!
     </v-snackbar>
   </v-container>
 </template>
@@ -384,8 +342,10 @@ const routeId = route.params.id;
 const workout = ref(null);
 const caricamento = ref(true);
 const snackbar = ref(false);
+const mostraManuale = ref(false);
+const selectedWeek = ref(1);
 
-// Inputs per la settimana in corso
+// Inputs per la settimana selezionata
 const inputNote = ref('');
 const inputStart = ref('');
 const inputEnd = ref('');
@@ -437,11 +397,8 @@ const caricaDati = async () => {
     if (docSnap.exists()) {
       workout.value = docSnap.data();
       
-      // Inizializza gli input per la settimana attiva
-      const activeWeek = activeUncompletedWeek.value;
-      inputNote.value = workout.value['ins_week' + activeWeek] || '';
-      inputStart.value = workout.value[getStartField(activeWeek)] || '';
-      inputEnd.value = workout.value[getEndField(activeWeek)] || '';
+      // Default sulla prima settimana incompleta all'avvio
+      selectedWeek.value = activeUncompletedWeek.value;
     }
   } catch (error) {
     console.error("Errore caricamento sessione:", error);
@@ -449,6 +406,16 @@ const caricaDati = async () => {
     caricamento.value = false;
   }
 };
+
+// Aggiorna gli input quando cambia la settimana selezionata o cambiano i dati della scheda
+watch([selectedWeek, workout], () => {
+  if (workout.value) {
+    const w = selectedWeek.value;
+    inputNote.value = workout.value['ins_week' + w] || '';
+    inputStart.value = workout.value[getStartField(w)] || '';
+    inputEnd.value = workout.value[getEndField(w)] || '';
+  }
+}, { immediate: true, deep: true });
 
 onMounted(() => {
   caricaDati();
@@ -462,13 +429,63 @@ const activeUncompletedWeek = computed(() => {
       return w;
     }
   }
-  return 6; // Se tutte completate, rimaniamo alla 6
+  return 6;
 });
 
 // Controlla se la settimana w è completata
 const isWeekCompleted = (w) => {
   if (!workout.value) return false;
   return workout.value['cmp' + w] === 'true';
+};
+
+// Conteggio settimane completate
+const settimaneCompletateCount = computed(() => {
+  let count = 0;
+  for (let w = 1; w <= 6; w++) {
+    if (isWeekCompleted(w)) count++;
+  }
+  return count;
+});
+
+// Percentuale di completamento
+const percentualeCompletamento = computed(() => {
+  return Math.round((settimaneCompletateCount.value / 6) * 100);
+});
+
+// Funzione per ottenere la data e ora locale formattata per datetime-local
+const getLocalDatetimeString = () => {
+  const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+  const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
+  return localISOTime;
+};
+
+// Registrazione ora immediata
+const registraInizioOra = (w) => {
+  const localNow = getLocalDatetimeString();
+  inputStart.value = localNow;
+  salvaDato(getStartField(w), localNow);
+};
+
+const registraFineOra = (w) => {
+  const localNow = getLocalDatetimeString();
+  inputEnd.value = localNow;
+  salvaDato(getEndField(w), localNow);
+};
+
+// Formattazione data leggibile sotto i bottoni (DD/MM alle HH:MM)
+const formattaOraLeggibile = (datetimeStr) => {
+  if (!datetimeStr) return '';
+  const parts = datetimeStr.split('T');
+  if (parts.length === 2) {
+    const datePart = parts[0];
+    const timePart = parts[1];
+    const dateSubparts = datePart.split('-');
+    if (dateSubparts.length === 3) {
+      return `${dateSubparts[2]}/${dateSubparts[1]} alle ${timePart}`;
+    }
+    return timePart;
+  }
+  return datetimeStr;
 };
 
 const parsedRmt = (str) => {
@@ -603,12 +620,6 @@ const setWeekCompleted = async (w, val) => {
     if (atletaId) {
       localStorage.setItem('settimanaAttiva_' + atletaId, nuovaSettimanaAttiva);
     }
-    
-    // Aggiorna gli input locali della settimana attiva
-    const activeWeek = activeUncompletedWeek.value;
-    inputNote.value = workout.value['ins_week' + activeWeek] || '';
-    inputStart.value = workout.value[getStartField(activeWeek)] || '';
-    inputEnd.value = workout.value[getEndField(activeWeek)] || '';
 
   } catch (error) {
     console.error("Errore aggiornamento completamento week:", error);
@@ -674,12 +685,18 @@ const getFormattedDurationForWeek = (w) => {
 const getMediaFormatted = () => {
   if (!workout.value) return '0:00';
   let sum = 0;
+  let countWeeks = 0;
   for (let w = 1; w <= 6; w++) {
     const start = workout.value[getStartField(w)];
     const end = workout.value[getEndField(w)];
-    sum += getDurataMinuti(start, end);
+    const mins = getDurataMinuti(start, end);
+    if (mins > 0) {
+      sum += mins;
+      countWeeks++;
+    }
   }
-  const mediaMins = sum / 6;
+  if (countWeeks === 0) return '0:00';
+  const mediaMins = sum / countWeeks;
   const hours = Math.floor(mediaMins / 60);
   const mins = Math.floor(mediaMins % 60);
   return `${hours}:${String(mins).padStart(2, '0')}`;
@@ -703,7 +720,6 @@ const tornaIndietro = () => {
 
 .appsheet-top-bar {
   border-bottom: 2px solid #f97316;
-  padding-bottom: 8px;
 }
 
 .text-slate-dark {
@@ -730,27 +746,18 @@ const tornaIndietro = () => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
+.border-left-soft {
+  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
 .premium-card {
   background: rgba(15, 23, 42, 0.65) !important;
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.image-premium-frame {
-  border: 4px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5) !important;
-}
-
-.week-log-card {
-  background: rgba(15, 23, 42, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.2s ease;
-}
-
-.week-active-border {
-  border: 2px solid #f97316 !important;
-  background-color: rgba(249, 115, 22, 0.03) !important;
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.15) !important;
+.compact-header-card {
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 .card-glass {
@@ -758,42 +765,147 @@ const tornaIndietro = () => {
   backdrop-filter: blur(10px);
 }
 
-.leading-tight {
-  line-height: 1.25;
+.leading-none {
+  line-height: 1 !important;
 }
 
-.max-width-rmt {
-  max-width: 450px;
+/* Horizontal Week selector chips */
+.week-chip-btn {
+  background: rgba(30, 41, 59, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 8px 0;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-align: center;
 }
-.border-right-soft {
-  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+.week-chip-btn:hover {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(249, 115, 22, 0.25);
 }
-.text-super-caption {
-  font-size: 0.65rem !important;
-  letter-spacing: 0.05em;
+
+.week-chip-active {
+  background: linear-gradient(135deg, #ea580c, #f97316) !important;
+  border-color: #f97316 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
 }
-.border-orange-darken-3-op {
+
+.week-chip-completed {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  background: rgba(16, 185, 129, 0.06) !important;
+  color: #10b981 !important;
+}
+
+.week-chip-pending {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.active-dot-orange {
+  width: 5px;
+  height: 5px;
+  background: #f97316;
+  border-radius: 50%;
+  box-shadow: 0 0 5px #f97316;
+  animation: pulse-dot 1.5s infinite alternate;
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* Focused Week Card */
+.focused-week-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(3, 7, 18, 0.85) 100%) !important;
   border: 1px solid rgba(249, 115, 22, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
+}
+
+.btn-quick-log {
+  height: 44px !important;
+  border: 1px solid rgba(249, 115, 22, 0.25) !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.85rem !important;
+}
+
+.btn-quick-log:hover {
+  background: rgba(249, 115, 22, 0.08) !important;
+  border-color: #f97316 !important;
+}
+
+.btn-quick-log:active {
+  transform: scale(0.96);
+}
+
+.btn-logged-success {
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+}
+.btn-logged-success:hover {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: #10b981 !important;
+}
+
+.notes-field-spacious {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.manual-toggle {
+  background: rgba(30, 41, 59, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.2s ease;
+}
+
+.manual-toggle:hover {
+  background: rgba(30, 41, 59, 0.5);
 }
 
 .border-soft {
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-.bg-slate-900 {
+.bg-slate-900-op {
   background: rgba(15, 23, 42, 0.5) !important;
 }
 
-.bg-slate-800 {
-  background: rgba(30, 41, 59, 0.4) !important;
+.ring-glow-orange {
+  filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.2));
 }
 
-.prescription-chip-box {
-  background: rgba(30, 41, 59, 0.35) !important;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+.bg-green-lighten-5 {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  color: #10b981 !important;
 }
 
-.bg-orange-darken-3-op {
-  background: rgba(249, 115, 22, 0.08) !important;
+.rmt-compact-card {
+  border: 1px solid rgba(250, 204, 21, 0.15) !important;
+}
+
+.scale-switch {
+  transform: scale(0.85);
+  transform-origin: right center;
+}
+
+.success-banner-spacious {
+  background: rgba(16, 185, 129, 0.06) !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+  font-size: 0.75rem !important;
+}
+
+.compact-header-metrics span {
+  font-size: 0.58rem !important;
+  white-space: nowrap;
 }
 </style>

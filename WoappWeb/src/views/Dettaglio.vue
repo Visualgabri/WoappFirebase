@@ -495,9 +495,18 @@ const toggleAltreDinamiche = () => {
 const settimaneVisualizzate = computed(() => {
   if (modalitaSettimane.value === 'dinamica') {
     if (mostraAltreDinamica.value) {
-      // Week attiva proposta per prima, seguita dalle altre in ordine
-      const altre = [1, 2, 3, 4, 5, 6].filter(w => w !== settimanaAttiva.value);
-      return [settimanaAttiva.value, ...altre];
+      // La settimana attiva deve rimanere sempre per prima.
+      // Sotto di essa mostriamo le passate in ordine decrescente (es. 2, 1 per la week 3).
+      // A seguire mostriamo le future in ordine crescente (es. 4, 5, 6 per la week 3).
+      const pastWeeks = [];
+      for (let w = settimanaAttiva.value - 1; w >= 1; w--) {
+        pastWeeks.push(w);
+      }
+      const futureWeeks = [];
+      for (let w = settimanaAttiva.value + 1; w <= 6; w++) {
+        futureWeeks.push(w);
+      }
+      return [settimanaAttiva.value, ...pastWeeks, ...futureWeeks];
     } else {
       // Mostra solo la settimana attiva
       return [settimanaAttiva.value];

@@ -28,61 +28,6 @@
     <!-- Contenuto Principale -->
     <div v-else>
       
-      <!-- Attività Settimanale Premium (Stile Apple Activity) -->
-      <v-card class="premium-card rounded-2xl pa-4 mb-4 text-left border" elevation="2">
-        <div class="d-flex align-center justify-space-between mb-3 px-1">
-          <span class="text-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">Resoconto Week {{ settimanaAttiva }}</span>
-          <v-chip color="orange-darken-3" size="x-small" class="font-weight-black" variant="tonal">LIVE STATS</v-chip>
-        </div>
-
-        <v-row dense class="align-center justify-space-around">
-          <!-- 1. Calorie Consumate (Orange) -->
-          <v-col cols="4" class="text-center">
-            <v-progress-circular
-              :model-value="statisticheSettimanali.caloriePerc"
-              color="orange-darken-2"
-              size="64"
-              width="6.5"
-              class="mb-2 ring-glow-orange"
-            >
-              <v-icon color="orange-darken-2" size="20">mdi-fire</v-icon>
-            </v-progress-circular>
-            <span class="text-super-caption text-muted font-weight-black d-block uppercase" style="font-size: 0.6rem;">Calorie</span>
-            <span class="text-caption font-weight-black text-slate-dark">{{ statisticheSettimanali.calorie }} <span style="font-size: 0.6rem;" class="text-muted">kcal</span></span>
-          </v-col>
-
-          <!-- 2. Allenamenti Completati (Green) -->
-          <v-col cols="4" class="text-center border-left-soft border-right-soft">
-            <v-progress-circular
-              :model-value="statisticheSettimanali.giorniPerc"
-              color="green-darken-2"
-              size="64"
-              width="6.5"
-              class="mb-2 ring-glow-green"
-            >
-              <v-icon color="green-darken-2" size="20">mdi-calendar-check</v-icon>
-            </v-progress-circular>
-            <span class="text-super-caption text-muted font-weight-black d-block uppercase" style="font-size: 0.6rem;">Workout</span>
-            <span class="text-caption font-weight-black text-slate-dark">{{ statisticheSettimanali.giorni }} / 4 <span style="font-size: 0.6rem;" class="text-muted">gg</span></span>
-          </v-col>
-
-          <!-- 3. Tempo di Attività (Blue/Cyan) -->
-          <v-col cols="4" class="text-center">
-            <v-progress-circular
-              :model-value="statisticheSettimanali.tempoPerc"
-              color="blue-darken-2"
-              size="64"
-              width="6.5"
-              class="mb-2 ring-glow-blue"
-            >
-              <v-icon color="blue-darken-2" size="20">mdi-clock-outline</v-icon>
-            </v-progress-circular>
-            <span class="text-super-caption text-muted font-weight-black d-block uppercase" style="font-size: 0.6rem;">Tempo</span>
-            <span class="text-caption font-weight-black text-slate-dark">{{ statisticheSettimanali.tempo }} <span style="font-size: 0.6rem;" class="text-muted">min</span></span>
-          </v-col>
-        </v-row>
-      </v-card>
-      
       <!-- Selettore del Giorno (A, B, C, D) in alto stile AppSheet -->
       <v-tabs
         v-model="giornoSelezionato"
@@ -362,7 +307,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -394,70 +339,6 @@ const avviaTimerRecupero = (recStr, label) => {
   startGlobalTimer(seconds, label);
 };
 
-const getStartField = (w) => {
-  return w === 1 ? 'start_wo' : `start${w}_wo`;
-};
-
-const getEndField = (w) => {
-  return w === 1 ? 'end_wo' : `end${w}_wo`;
-};
-
-const parseTimeToMinsStandalone = (tStr) => {
-  if (!tStr) return 0;
-  const clean = tStr.toLowerCase().replace('min', '').replace('m', '').trim();
-  if (clean.includes(':')) {
-    const parts = clean.split(':');
-    if (parts.length === 2) {
-      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
-    }
-  }
-  return parseInt(clean, 10) || 0;
-};
-
-const statisticheSettimanali = computed(() => {
-  let calorieTotaliSettimanali = 0;
-  let giorniCompletati = 0;
-  let tempoTotale = 0;
-  
-  listaAllenamenti.value.forEach(item => {
-    if ((parseInt(item.num_riga_giorno) === 0 || item.num_riga_giorno === '0') && item.des_esercizio) {
-      const dayInfo = parseDayHeader(item.des_esercizio);
-      if (dayInfo) {
-        const isCompleted = item['cmp' + settimanaAttiva.value] === 'true';
-        if (isCompleted) {
-          calorieTotaliSettimanali += dayInfo.calorie || 0;
-          giorniCompletati++;
-          
-          const start = item[getStartField(settimanaAttiva.value)];
-          const end = item[getEndField(settimanaAttiva.value)];
-          if (start && end) {
-            const startD = new Date(start);
-            const endD = new Date(end);
-            if (!isNaN(startD) && !isNaN(endD)) {
-              tempoTotale += Math.max(0, Math.floor((endD - startD) / (1000 * 60)));
-            }
-          } else {
-            const mins = parseTimeToMinsStandalone(dayInfo.tempo1) || 60;
-            tempoTotale += mins;
-          }
-        }
-      }
-    }
-  });
-  
-  const targetCalorie = 1000;
-  const targetGiorni = 4;
-  const targetTempo = 180;
-  
-  return {
-    calorie: calorieTotaliSettimanali,
-    caloriePerc: Math.min(100, Math.round((calorieTotaliSettimanali / targetCalorie) * 100)),
-    giorni: giorniCompletati,
-    giorniPerc: Math.min(100, Math.round((giorniCompletati / targetGiorni) * 100)),
-    tempo: tempoTotale,
-    tempoPerc: Math.min(100, Math.round((tempoTotale / targetTempo) * 100))
-  };
-});
 
 // Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77%)
 const parsePrescription = (str) => {

@@ -65,7 +65,28 @@
                   <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4">
                     Workout Giorno {{ giornoSelezionato }}
                   </h3>
-                  <div class="text-caption text-muted font-weight-bold d-flex align-center" style="font-size: 0.7rem;">
+                  <!-- Visualizzazione Settimana Attiva e Progresso -->
+                  <div class="d-flex align-center mt-1 gap-2 flex-wrap">
+                    <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
+                      SETTIMANA {{ settimanaAttiva }} DI 6
+                    </v-chip>
+                    <div class="d-flex gap-1 align-center mini-weeks-progression">
+                      <div
+                        v-for="w in [1, 2, 3, 4, 5, 6]"
+                        :key="w"
+                        class="mini-week-capsule"
+                        :class="{
+                          'capsule-completed': headerGiorno['cmp' + w] === 'true',
+                          'capsule-active': w === settimanaAttiva && headerGiorno['cmp' + w] !== 'true',
+                          'capsule-pending': w !== settimanaAttiva && headerGiorno['cmp' + w] !== 'true'
+                        }"
+                      >
+                        <span class="capsule-num">W{{ w }}</span>
+                        <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-caption text-muted font-weight-bold d-flex align-center mt-1" style="font-size: 0.7rem;">
                     <v-icon size="13" color="orange" class="mr-1">mdi-fire</v-icon>
                     Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
                   </div>
@@ -163,7 +184,28 @@
               <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 text-truncate">
                 {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
               </h3>
-              <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-1 d-flex align-center text-truncate">
+              <!-- Visualizzazione Settimana Attiva e Progresso -->
+              <div class="d-flex align-center mt-1 gap-2 flex-wrap">
+                <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
+                  SETTIMANA {{ settimanaAttiva }} DI 6
+                </v-chip>
+                <div class="d-flex gap-1 align-center mini-weeks-progression">
+                  <div
+                    v-for="w in [1, 2, 3, 4, 5, 6]"
+                    :key="w"
+                    class="mini-week-capsule"
+                    :class="{
+                      'capsule-completed': headerGiorno['cmp' + w] === 'true',
+                      'capsule-active': w === settimanaAttiva && headerGiorno['cmp' + w] !== 'true',
+                      'capsule-pending': w !== settimanaAttiva && headerGiorno['cmp' + w] !== 'true'
+                    }"
+                  >
+                    <span class="capsule-num">W{{ w }}</span>
+                    <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
+                  </div>
+                </div>
+              </div>
+              <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-1.5 d-flex align-center text-truncate">
                 <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
                 {{ formattaRmtSemplice(headerGiorno.des_esercizio_2) }}
               </div>
@@ -526,8 +568,48 @@ const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
 
-// Settimana Attiva importata da localStorage
-const settimanaAttiva = ref(2);
+// Settimana Attiva importata da localStorage (placeholder iniziale)
+const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
+
+// Helper per applicare le modifiche salvate offline nel localStorage
+const applicaModificheLocali = (item) => {
+  if (!item) return item;
+  const key1 = `offline_storyboard_${item.id}`;
+  const key2 = `offline_storyboard_${item.num_riga}`;
+  const localData1 = localStorage.getItem(key1);
+  const localData2 = localStorage.getItem(key2);
+  
+  let updates = {};
+  if (localData1) {
+    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+  }
+  if (localData2) {
+    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+  }
+  
+  return { ...item, ...updates };
+};
+
+// Ricalcola la settimana attiva globale (prima settimana non completamente completata)
+const calcolaSettimanaAttivaGlobale = (exercises) => {
+  const giorni = ['A', 'B', 'C', 'D'];
+  for (let w = 1; w <= 6; w++) {
+    let tuttiCompletati = true;
+    for (const g of giorni) {
+      const header = exercises.find(
+        item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0
+      );
+      if (!header || header['cmp' + w] !== 'true') {
+        tuttiCompletati = false;
+        break;
+      }
+    }
+    if (!tuttiCompletati) {
+      return w;
+    }
+  }
+  return 6; // Se tutte completate, ritorna l'ultima
+};
 
 // Carica tutti gli allenamenti della scheda attiva
 const caricaAllenamenti = async () => {
@@ -536,8 +618,7 @@ const caricaAllenamenti = async () => {
   atletaSelezionato.value = selectedAthlete.value;
   schedaSelezionata.value = selectedSheet.value;
   
-  // Ottieni settimana attiva configurata nella Home
-  settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2;
+  // Ottieni il giorno attivo configurato
   const salvatoGiorno = localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'A';
   giornoSelezionato.value = salvatoGiorno;
 
@@ -552,13 +633,63 @@ const caricaAllenamenti = async () => {
     
     let temporanei = [];
     querySnapshot.forEach((doc) => {
-      temporanei.push({ id: doc.id, ...doc.data() });
+      temporanei.push(applicaModificheLocali({ id: doc.id, ...doc.data() }));
     });
 
+    // CONTROLLO DI SICUREZZA: se mancano le righe 0 in Firestore, carichiamole dal backup!
+    const giorni = ['A', 'B', 'C', 'D'];
+    let haMancanti = giorni.some(g => !temporanei.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0));
+    if (haMancanti) {
+      try {
+        const res = await fetch('/storyboard_backup.json');
+        const allData = await res.json();
+        giorni.forEach(g => {
+          const giaPresente = temporanei.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0);
+          if (!giaPresente) {
+            const backupHeader = allData.find(
+              item => String(item.ID_cliente) === String(selectedAthlete.value) &&
+              String(item.num_scheda) === String(selectedSheet.value) &&
+              (item.des_giorno || '').trim() === g &&
+              parseInt(item.num_riga_giorno) === 0
+            );
+            if (backupHeader) {
+              temporanei.push(applicaModificheLocali(backupHeader));
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Errore caricamento righe 0 da backup in try block:", err);
+      }
+    }
+
     listaAllenamenti.value = temporanei;
+
+    // Ricalcola la settimana attiva globale
+    const activeW = calcolaSettimanaAttivaGlobale(temporanei);
+    settimanaAttiva.value = activeW;
+    localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+
     filtraEserciziPerGiorno();
   } catch (error) {
-    console.error("Errore caricamento allenamenti:", error);
+    console.warn("Errore caricamento allenamenti da Firestore (quota esaurita), provo da backup locale:", error);
+    try {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      const rawFiltrati = allData.filter(
+        item => String(item.ID_cliente) === String(selectedAthlete.value) && String(item.num_scheda) === String(selectedSheet.value)
+      );
+      const filtrati = rawFiltrati.map(applicaModificheLocali);
+      listaAllenamenti.value = filtrati;
+
+      // Ricalcola la settimana attiva globale
+      const activeW = calcolaSettimanaAttivaGlobale(filtrati);
+      settimanaAttiva.value = activeW;
+      localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+
+      filtraEserciziPerGiorno();
+    } catch (errBackup) {
+      console.error("Errore nel caricamento del backup locale:", errBackup);
+    }
   } finally {
     caricamento.value = false;
   }
@@ -749,5 +880,50 @@ const vibraTattile = (ms = 12) => {
 }
 .border-top-soft {
   border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Segmenti capsule per il progresso delle settimane */
+.mini-weeks-progression {
+  margin-top: 2px !important;
+}
+
+.mini-week-capsule {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  min-width: 25px;
+  height: 15px;
+}
+
+.capsule-completed {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border: 1px solid rgba(16, 185, 129, 0.45) !important;
+  color: #10b981 !important;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.12);
+}
+
+.capsule-active {
+  background: linear-gradient(135deg, #ea580c, #f97316) !important;
+  color: white !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+  transform: scale(1.05);
+}
+
+.capsule-pending {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+  opacity: 0.75;
+}
+
+.capsule-num {
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
 }
 </style>

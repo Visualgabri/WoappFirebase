@@ -90,13 +90,12 @@
               <div
                 v-for="w in [1, 2, 3, 4, 5, 6]"
                 :key="w"
-                class="progression-step-node d-flex flex-column align-center position-relative cursor-pointer"
+                class="progression-step-node d-flex flex-column align-center position-relative"
                 :class="{
                   'step-completed': w < settimanaAttiva,
                   'step-active': w === settimanaAttiva,
                   'step-future': w > settimanaAttiva
                 }"
-                @click="salvaSettimanaConfig(w)"
               >
                 <div class="step-ring d-flex align-center justify-center">
                   <v-icon v-if="w < settimanaAttiva" size="14" color="white">mdi-check</v-icon>
@@ -119,53 +118,6 @@
               </span>
             </div>
           </v-card>
-          
-          <!-- Sezione Journey Track: Avanzamento Settimanale (Stile Apple Fitness) -->
-          <div class="journey-section mb-6">
-            <div class="d-flex align-center justify-space-between mb-3 px-1">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.62rem;">
-                Allenamenti della Settimana
-              </span>
-              <v-chip size="x-small" color="orange" class="font-weight-black" variant="tonal">JOURNEY TRACK</v-chip>
-            </div>
-            
-            <v-row dense class="px-1 justify-space-between">
-              <v-col
-                v-for="giorno in ['A', 'B', 'C', 'D']"
-                :key="giorno"
-                cols="3"
-                class="journey-col text-center"
-              >
-                <div
-                  class="journey-day-card rounded-xl pa-3 cursor-pointer d-flex flex-column align-center justify-space-between position-relative"
-                  :class="{
-                    'active-day-border': giornoAttivo === giorno,
-                    'completed-day-bg': getDayCompletion(giorno),
-                    'pending-day-bg': giornoAttivo !== giorno && !getDayCompletion(giorno)
-                  }"
-                  @click="selezionaGiornoRapido(giorno)"
-                >
-                  <!-- Lettera e spunta completato -->
-                  <div class="day-badge-wrapper position-relative">
-                    <div class="day-letter">{{ giorno }}</div>
-                    <v-icon
-                      v-if="getDayCompletion(giorno)"
-                      size="16"
-                      color="green-accent-4"
-                      class="completed-checkmark position-absolute"
-                    >
-                      mdi-check-circle
-                    </v-icon>
-                  </div>
-                  
-                  <!-- Focus muscolare -->
-                  <span class="text-super-caption text-muted font-weight-black d-block mt-2 text-truncate w-100 uppercase" style="font-size: 0.52rem; line-height: 1.1;">
-                    {{ getFocusSectors(giorno) }}
-                  </span>
-                </div>
-              </v-col>
-            </v-row>
-          </div>
 
           <!-- Card Allenamento Attivo (Gamified Hero Card con bagliore neon) -->
           <v-card class="premium-hero-card rounded-2xl pa-5 mb-6 text-left border position-relative overflow-hidden" elevation="3">
@@ -396,32 +348,26 @@
               Configura Scheda Attiva
             </h3>
             
-            <!-- Settimana segment selector -->
-            <div class="text-subtitle-2 font-weight-black text-slate-dark mb-3">Imposta Settimana Corrente</div>
-            <div class="d-flex gap-2 flex-wrap mb-6">
-              <button
-                v-for="w in [1, 2, 3, 4, 5, 6]"
-                :key="w"
-                class="chip-select-btn"
-                :class="{ 'chip-select-btn-active': settimanaAttiva === w }"
-                @click="salvaSettimanaConfig(w)"
-              >
-                W{{ w }}
-              </button>
-            </div>
-
-            <!-- Giorno segment selector -->
-            <div class="text-subtitle-2 font-weight-black text-slate-dark mb-3">Imposta Giorno di Allenamento</div>
-            <div class="d-flex gap-2 flex-wrap mb-6">
-              <button
-                v-for="g in ['A', 'B', 'C', 'D']"
-                :key="g"
-                class="chip-select-btn day-chip"
-                :class="{ 'chip-select-btn-active': giornoAttivo === g }"
-                @click="salvaGiornoConfig(g)"
-              >
-                Giorno {{ g }}
-              </button>
+            <!-- Pannello di Stato dell'Automazione -->
+            <div class="mb-6 pa-4 rounded-xl card-glass border text-left">
+              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase tracking-widest d-block mb-2" style="font-size: 0.6rem;">
+                STATO AUTOMATICO RILEVATO
+              </span>
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-body-2 text-slate font-weight-bold">Settimana Attiva:</span>
+                <v-chip color="orange-darken-3" size="small" class="font-weight-black" variant="flat">
+                  SETTIMANA {{ settimanaAttiva }}
+                </v-chip>
+              </div>
+              <div class="d-flex align-center justify-space-between">
+                <span class="text-body-2 text-slate font-weight-bold">Allenamento Suggerito:</span>
+                <v-chip color="green-accent-4" size="small" class="font-weight-black text-white" variant="flat">
+                  GIORNO {{ giornoAttivo }}
+                </v-chip>
+              </div>
+              <div class="text-super-caption text-muted mt-3" style="font-size: 0.65rem; line-height: 1.3;">
+                ℹ️ La settimana attiva e il giorno di allenamento vengono calcolati automaticamente in base ai flag di completamento salvati nel database.
+              </div>
             </div>
 
             <!-- Caution Reset Panel -->
@@ -614,6 +560,46 @@ const giornoConsigliato = computed(() => {
   return 'A'; // Default
 });
 
+// Helper per applicare le modifiche salvate offline nel localStorage
+const applicaModificheLocali = (item) => {
+  if (!item) return item;
+  const key1 = `offline_storyboard_${item.id}`;
+  const key2 = `offline_storyboard_${item.num_riga}`;
+  const localData1 = localStorage.getItem(key1);
+  const localData2 = localStorage.getItem(key2);
+  
+  let updates = {};
+  if (localData1) {
+    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+  }
+  if (localData2) {
+    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+  }
+  
+  return { ...item, ...updates };
+};
+
+// Ricalcola la settimana attiva globale (prima settimana non completamente completata)
+const calcolaSettimanaAttivaGlobale = (exercises) => {
+  const giorni = ['A', 'B', 'C', 'D'];
+  for (let w = 1; w <= 6; w++) {
+    let tuttiCompletati = true;
+    for (const g of giorni) {
+      const header = exercises.find(
+        item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0
+      );
+      if (!header || header['cmp' + w] !== 'true') {
+        tuttiCompletati = false;
+        break;
+      }
+    }
+    if (!tuttiCompletati) {
+      return w;
+    }
+  }
+  return 6; // Se tutte completate, ritorna l'ultima
+};
+
 // Caricamento
 const caricaDatiScheda = async () => {
   if (!selectedAthlete.value || !selectedSheet.value) return;
@@ -647,25 +633,51 @@ const caricaDatiScheda = async () => {
 
     snapEx.forEach(d => {
       const data = d.data();
-      const mappedEx = { id: d.id, ...data };
+      const mappedEx = applicaModificheLocali({ id: d.id, ...data });
       tempExercises.push(mappedEx);
       
       // Esercizi da filmare (flg_video === 'true')
-      if (data.flg_video === 'true') {
+      if (mappedEx.flg_video === 'true') {
         tempFilmati.push(mappedEx);
       }
 
       // Esercizi da testare (ad es. AMRAP o test in des_qta_report o tecnica)
-      const qta = (data.des_qta_report || '').toLowerCase();
+      const qta = (mappedEx.des_qta_report || '').toLowerCase();
       if (qta.includes('amrap') || qta.includes('test') || qta.includes('ramp')) {
         tempTest.push(mappedEx);
       }
 
       // Estrai le note generali del coach
-      if (data.des_note && !noteScheda) {
-        noteScheda = data.des_note;
+      if (mappedEx.des_note && !noteScheda) {
+        noteScheda = mappedEx.des_note;
       }
     });
+
+    // CONTROLLO DI SICUREZZA: se mancano le righe 0 in Firestore, carichiamole dal backup!
+    const giorniHeader = ['A', 'B', 'C', 'D'];
+    let haMancantiHome = giorniHeader.some(g => !tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0));
+    if (haMancantiHome) {
+      try {
+        const res = await fetch('/storyboard_backup.json');
+        const allData = await res.json();
+        giorniHeader.forEach(g => {
+          const giaPresente = tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0);
+          if (!giaPresente) {
+            const backupHeader = allData.find(
+              item => String(item.ID_cliente) === String(selectedAthlete.value) &&
+              String(item.num_scheda) === String(selectedSheet.value) &&
+              (item.des_giorno || '').trim() === g &&
+              parseInt(item.num_riga_giorno) === 0
+            );
+            if (backupHeader) {
+              tempExercises.push(applicaModificheLocali(backupHeader));
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Errore caricamento righe 0 da backup in Home try block:", err);
+      }
+    }
 
     allExercises.value = tempExercises;
     filmatiList.value = tempFilmati;
@@ -676,6 +688,11 @@ const caricaDatiScheda = async () => {
 
     coachMessage.value = noteScheda;
 
+    // Calcola e aggiorna la settimana attiva globale
+    const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
+    settimanaAttiva.value = activeW;
+    localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+
     // Auto-seleziona il primo giorno non completato per la settimana attiva
     const giorni = ['A', 'B', 'C', 'D'];
     let giornoDaFare = '';
@@ -683,7 +700,7 @@ const caricaDatiScheda = async () => {
       const header = tempExercises.find(
         item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
       );
-      const completato = header ? (header['cmp' + settimanaAttiva.value] === 'true') : false;
+      const completato = header ? (header['cmp' + activeW] === 'true') : false;
       if (!completato) {
         giornoDaFare = g;
         break;
@@ -695,7 +712,65 @@ const caricaDatiScheda = async () => {
     }
 
   } catch (error) {
-    console.error("Errore caricamento dettagli Home Wo:", error);
+    console.warn("Errore caricamento dettagli Home da Firestore (quota esaurita), provo da backup locale:", error);
+    try {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      const rawExercises = allData.filter(
+        item => String(item.ID_cliente) === String(selectedAthlete.value) && String(item.num_scheda) === String(selectedSheet.value)
+      );
+      const tempExercises = rawExercises.map(applicaModificheLocali);
+      
+      let tempFilmati = [];
+      let tempTest = [];
+      let noteScheda = '';
+
+      tempExercises.forEach(data => {
+        if (data.flg_video === 'true') {
+          tempFilmati.push(data);
+        }
+        const qta = (data.des_qta_report || '').toLowerCase();
+        if (qta.includes('amrap') || qta.includes('test') || qta.includes('ramp')) {
+          tempTest.push(data);
+        }
+        if (data.des_note && !noteScheda) {
+          noteScheda = data.des_note;
+        }
+      });
+
+      allExercises.value = tempExercises;
+      filmatiList.value = tempFilmati;
+      countFilmati.value = tempFilmati.length;
+
+      testList.value = tempTest;
+      countTest.value = tempTest.length;
+
+      coachMessage.value = noteScheda;
+
+      // Calcola e aggiorna la settimana attiva globale
+      const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
+      settimanaAttiva.value = activeW;
+      localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+
+      const giorni = ['A', 'B', 'C', 'D'];
+      let giornoDaFare = '';
+      for (const g of giorni) {
+        const header = tempExercises.find(
+          item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
+        );
+        const completato = header ? (header['cmp' + activeW] === 'true') : false;
+        if (!completato) {
+          giornoDaFare = g;
+          break;
+        }
+      }
+      if (giornoDaFare) {
+        giornoAttivo.value = giornoDaFare;
+        localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
+      }
+    } catch (errBackup) {
+      console.error("Errore nel caricamento del backup locale in Home:", errBackup);
+    }
   }
 };
 

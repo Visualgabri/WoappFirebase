@@ -92,7 +92,7 @@
           Seleziona Settimana da Visualizzare
         </div>
         
-        <div class="d-flex justify-space-between gap-2.5 pb-2 overflow-x-auto">
+        <div class="d-flex justify-space-between gap-2.5 pb-2 overflow-x-auto mb-2">
           <button
             v-for="sett in [1, 2, 3, 4, 5, 6]"
             :key="sett"
@@ -110,6 +110,27 @@
               <span v-else-if="sett === activeUncompletedWeek" class="active-dot-orange ml-1"></span>
             </div>
           </button>
+        </div>
+
+        <!-- Interruttore Completamento Rapido (Sotto le Settimane per massima intuitività) -->
+        <div class="d-flex align-center justify-space-between pa-3 rounded-xl card-glass border border-soft mt-1">
+          <div class="text-left">
+            <span class="text-body-2 font-weight-black text-slate-dark d-block">
+              Marca W{{ selectedWeek }} come Completata
+            </span>
+            <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
+              {{ isWeekCompleted(selectedWeek) ? 'Ottimo lavoro! Settimana completata ✓' : 'Attiva per chiudere l\'allenamento di questa settimana' }}
+            </span>
+          </div>
+          
+          <v-switch
+            :model-value="isWeekCompleted(selectedWeek)"
+            @update:model-value="(val) => setWeekCompleted(selectedWeek, val)"
+            color="green-accent-4"
+            hide-details
+            density="comfortable"
+            class="scale-switch"
+          ></v-switch>
         </div>
       </div>
 
@@ -212,30 +233,7 @@
           ></v-text-field>
         </div>
 
-        <!-- STEP 3: STATO COMPLETAMENTO (Ora al centro e vicinissimo al testo/flussi) -->
-        <div class="step-container pt-3 border-top-soft">
-          <div class="text-caption text-orange-lighten-2 font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-            3. Stato Settimana
-          </div>
-          
-          <div class="d-flex align-center justify-space-between pa-3 rounded-xl bg-slate-900-op border border-soft">
-            <div class="text-left">
-              <span class="text-body-2 font-weight-black text-slate-dark d-block">Marca come Completata</span>
-              <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
-                {{ isWeekCompleted(selectedWeek) ? 'Settimana completata con successo ✓' : 'Attiva lo switch per chiudere la settimana' }}
-              </span>
-            </div>
-            
-            <v-switch
-              :model-value="isWeekCompleted(selectedWeek)"
-              @update:model-value="(val) => setWeekCompleted(selectedWeek, val)"
-              color="green-accent-4"
-              hide-details
-              density="comfortable"
-              class="scale-switch"
-            ></v-switch>
-          </div>
-        </div>
+
 
         <!-- Manual Adjustments -->
         <div class="mt-4">
@@ -338,6 +336,38 @@ const route = useRoute();
 const router = useRouter();
 const routeId = route.params.id;
 
+// Helper per applicare le modifiche salvate offline nel localStorage
+const applicaModificheLocali = (item) => {
+  if (!item) return item;
+  const key1 = `offline_storyboard_${item.id}`;
+  const key2 = `offline_storyboard_${item.num_riga}`;
+  const localData1 = localStorage.getItem(key1);
+  const localData2 = localStorage.getItem(key2);
+  
+  let updates = {};
+  if (localData1) {
+    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+  }
+  if (localData2) {
+    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+  }
+  
+  return { ...item, ...updates };
+};
+
+// Helper per salvare una modifica offline nel localStorage
+const salvaModificaLocale = (campo, valore) => {
+  const key1 = `offline_storyboard_${routeId}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates[campo] = valore;
+  updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  localStorage.setItem(key1, JSON.stringify(updates));
+};
+
 // Stato
 const workout = ref(null);
 const caricamento = ref(true);
@@ -395,15 +425,33 @@ const caricaDati = async () => {
     const docRef = doc(db, 'STORYBOARD', routeId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      workout.value = docSnap.data();
+      workout.value = applicaModificheLocali({ id: docSnap.id, ...docSnap.data() });
       
       // Default sulla prima settimana incompleta all'avvio
       selectedWeek.value = activeUncompletedWeek.value;
+    } else {
+      console.warn("Documento sessione non trovato su Firestore, provo da backup locale.");
+      await caricaDatiDaBackup();
     }
   } catch (error) {
-    console.error("Errore caricamento sessione:", error);
+    console.warn("Errore caricamento sessione da Firestore (quota esaurita), provo da backup locale:", error);
+    await caricaDatiDaBackup();
   } finally {
     caricamento.value = false;
+  }
+};
+
+const caricaDatiDaBackup = async () => {
+  try {
+    const res = await fetch('/storyboard_backup.json');
+    const allData = await res.json();
+    const found = allData.find(item => String(item.id) === String(routeId) || String(item.num_riga) === String(routeId));
+    if (found) {
+      workout.value = applicaModificheLocali(found);
+      selectedWeek.value = activeUncompletedWeek.value;
+    }
+  } catch (errBackup) {
+    console.error("Errore nel caricamento del backup locale in Sessione:", errBackup);
   }
 };
 
@@ -603,6 +651,19 @@ const setWeekCompleted = async (w, val) => {
   const valString = val ? 'true' : 'false';
   const campo = 'cmp' + w;
   
+  // 1. Aggiorna lo stato locale e il localStorage immediatamente (Optimistic Update)
+  workout.value[campo] = valString;
+  salvaModificaLocale(campo, valString);
+  snackbar.value = true;
+
+  // 2. Ricalcola la settimana attiva globale per l'atleta ed aggiorna il localStorage
+  const nuovaSettimanaAttiva = calcolaSettimanaAttivaG();
+  const atletaId = selectedAthlete.value || '';
+  if (atletaId) {
+    localStorage.setItem('settimanaAttiva_' + atletaId, nuovaSettimanaAttiva);
+  }
+
+  // 3. Prova ad aggiornare Firestore in background
   try {
     const docRef = doc(db, 'STORYBOARD', routeId);
     const payload = {
@@ -611,18 +672,9 @@ const setWeekCompleted = async (w, val) => {
     };
     
     await updateDoc(docRef, payload);
-    workout.value[campo] = valString;
-    snackbar.value = true;
-
-    // Ricalcola la settimana attiva globale per l'atleta ed aggiorna il localStorage
-    const nuovaSettimanaAttiva = calcolaSettimanaAttivaG();
-    const atletaId = selectedAthlete.value || '';
-    if (atletaId) {
-      localStorage.setItem('settimanaAttiva_' + atletaId, nuovaSettimanaAttiva);
-    }
-
+    console.log("Firestore completamento week sincronizzato con successo!");
   } catch (error) {
-    console.error("Errore aggiornamento completamento week:", error);
+    console.warn("Firestore offline/quota esaurita. Dati salvati localmente:", error);
   }
 };
 
@@ -643,6 +695,13 @@ const salvaDato = async (campo, valore) => {
   if (valoreOriginale !== valore) {
     try {
       vibraTattile(20);
+      
+      // 1. Aggiorna lo stato locale e il localStorage immediatamente
+      workout.value[campo] = valore;
+      salvaModificaLocale(campo, valore);
+      snackbar.value = true;
+
+      // 2. Prova ad aggiornare Firestore in background
       const docRef = doc(db, 'STORYBOARD', routeId);
       const payload = {
         [campo]: valore,
@@ -650,20 +709,47 @@ const salvaDato = async (campo, valore) => {
       };
       
       await updateDoc(docRef, payload);
-      workout.value[campo] = valore;
-      snackbar.value = true;
+      console.log("Firestore dato sincronizzato con successo!");
     } catch (error) {
-      console.error("Errore salvataggio dato sessione:", error);
+      console.warn("Firestore offline/quota esaurita. Dati salvati localmente:", error);
     }
   }
+};
+
+// Robust date parser for both standard ISO/datetime-local and DD/MM/YYYY formats
+const parseCustomDate = (dateStr) => {
+  if (!dateStr) return null;
+  
+  // standard ISO or datetime-local
+  if (dateStr.includes('T') || dateStr.includes('-')) {
+    const d = new Date(dateStr);
+    if (!isNaN(d)) return d;
+  }
+  
+  // DD/MM/YYYY HH:mm:ss
+  const match = dateStr.trim().match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1; // 0-indexed
+    const year = parseInt(match[3], 10);
+    const hour = parseInt(match[4], 10);
+    const minute = parseInt(match[5], 10);
+    const second = match[6] ? parseInt(match[6], 10) : 0;
+    
+    const d = new Date(year, month, day, hour, minute, second);
+    if (!isNaN(d)) return d;
+  }
+  
+  const dFallback = new Date(dateStr);
+  return isNaN(dFallback) ? null : dFallback;
 };
 
 // Calcoli delle durate
 const getDurataMinuti = (start, end) => {
   if (!start || !end) return 0;
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  if (isNaN(startDate) || isNaN(endDate)) return 0;
+  const startDate = parseCustomDate(start);
+  const endDate = parseCustomDate(end);
+  if (!startDate || !endDate) return 0;
   const diffMs = endDate - startDate;
   return diffMs > 0 ? Math.floor(diffMs / (1000 * 60)) : 0;
 };

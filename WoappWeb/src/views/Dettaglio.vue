@@ -705,11 +705,64 @@ const caricaDatiEsercizio = async () => {
         await caricaRiga0(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
         await caricaListaEserciziGiorno(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
       }
+    } else {
+      console.warn("Documento esercizio non trovato su Firestore, provo da backup locale.");
+      await caricaEsercizioDaBackup();
     }
   } catch (error) {
-    console.error("Errore caricamento dettagli esercizio:", error);
+    console.warn("Errore caricamento dettagli esercizio da Firestore (quota esaurita), provo da backup locale:", error);
+    await caricaEsercizioDaBackup();
   } finally {
     caricamento.value = false;
+  }
+};
+
+const caricaEsercizioDaBackup = async () => {
+  try {
+    const res = await fetch('/storyboard_backup.json');
+    const allData = await res.json();
+    const found = allData.find(item => String(item.id) === String(routeIdLocal.value) || String(item.num_riga) === String(routeIdLocal.value));
+    if (found) {
+      workout.value = found;
+      const keyIdCliente = Object.keys(found).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+      const atletaId = found[keyIdCliente] || '';
+      settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+
+      for (let w = 1; w <= 6; w++) {
+        inputSettimane.value[w].ins = found['ins_week' + w] || '';
+        inputSettimane.value[w].reps = found['reps_week' + w] || '';
+      }
+      
+      noteAttrezzo.value = found.des_note_attrezzo || '';
+      noteEsercizio.value = found.ins_esercizio || '';
+      commentiAtleta.value = found.des_commenti || '';
+
+      if (atletaId && found.num_scheda && found.des_giorno) {
+        // Riga 0 locale da backup
+        const riga0Trovata = allData.find(
+          item => String(item.ID_cliente) === String(atletaId) &&
+          String(item.num_scheda) === String(found.num_scheda) &&
+          String(item.des_giorno) === String(found.des_giorno) &&
+          parseInt(item.num_riga_giorno) === 0
+        );
+        if (riga0Trovata) {
+          riga0.value = riga0Trovata;
+        }
+
+        // Lista per swipe da backup
+        const filtratiEsercizi = allData.filter(
+          item => String(item.ID_cliente) === String(atletaId) &&
+          String(item.num_scheda) === String(found.num_scheda) &&
+          String(item.des_giorno) === String(found.des_giorno) &&
+          parseInt(item.num_riga_giorno) > 0
+        );
+        filtratiEsercizi.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
+        listaIdEsercizi.value = filtratiEsercizi.map(item => item.id);
+        indexCorrente.value = listaIdEsercizi.value.indexOf(routeIdLocal.value);
+      }
+    }
+  } catch (errBackup) {
+    console.error("Errore nel caricamento del backup locale in Dettaglio:", errBackup);
   }
 };
 

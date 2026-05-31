@@ -272,7 +272,33 @@ const caricaSchedeAtleta = async () => {
       setSelectedSheet('');
     }
   } catch (error) {
-    console.error("Errore caricamento schede atleta:", error);
+    console.warn("Errore caricamento schede atleta da Firestore (quota esaurita), provo da backup locale:", error);
+    try {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      const filtrati = allData.filter(
+        item => String(item.ID_cliente) === String(atletaSelezionato.value)
+      );
+      let schedeSet = new Set();
+      filtrati.forEach((item) => {
+        if (item.num_scheda) {
+          schedeSet.add(item.num_scheda.trim());
+        }
+      });
+      listaSchede.value = Array.from(schedeSet).sort((a, b) => Number(a) - Number(b));
+      
+      if (selectedSheet.value && listaSchede.value.includes(selectedSheet.value)) {
+        schedaSelezionata.value = selectedSheet.value;
+      } else if (listaSchede.value.length > 0) {
+        schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
+        setSelectedSheet(schedaSelezionata.value);
+      } else {
+        schedaSelezionata.value = null;
+        setSelectedSheet('');
+      }
+    } catch (errBackup) {
+      console.error("Errore nel caricamento del backup locale in Ricerca:", errBackup);
+    }
   } finally {
     caricamentoSchede.value = false;
   }

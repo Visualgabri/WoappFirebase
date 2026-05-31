@@ -460,7 +460,27 @@ const caricaDati = async () => {
     const docRef = doc(db, 'STORYBOARD', routeId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      workout.value = applicaModificheLocali({ id: docSnap.id, ...docSnap.data() });
+      const dati = docSnap.data();
+      workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });
+      
+      // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
+      if (!workout.value.UrlNormal || !workout.value.UrlNormal.startsWith('http')) {
+        try {
+          const res = await fetch('/storyboard_backup.json');
+          const allData = await res.json();
+          const matched = allData.find(b => 
+            String(b.ID_cliente) === String(workout.value.ID_cliente) &&
+            String(b.num_scheda) === String(workout.value.num_scheda) &&
+            String(b.des_giorno).trim() === String(workout.value.des_giorno).trim() &&
+            parseInt(b.num_riga_giorno) === parseInt(workout.value.num_riga_giorno)
+          );
+          if (matched && matched.UrlNormal && matched.UrlNormal.startsWith('http')) {
+            workout.value.UrlNormal = matched.UrlNormal;
+          }
+        } catch (errBackup) {
+          console.warn("Impossibile applicare patch UrlNormal da backup in Sessione:", errBackup);
+        }
+      }
       
       // Default sulla prima settimana incompleta all'avvio
       selectedWeek.value = activeUncompletedWeek.value;

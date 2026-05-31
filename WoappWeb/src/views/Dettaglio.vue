@@ -725,6 +725,25 @@ const caricaDatiEsercizio = async () => {
       const atletaId = dati[keyIdCliente] || '';
       settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
 
+      // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
+      if (!workout.value.UrlNormal || !workout.value.UrlNormal.startsWith('http')) {
+        try {
+          const res = await fetch('/storyboard_backup.json');
+          const allData = await res.json();
+          const matched = allData.find(b => 
+            String(b.ID_cliente) === String(atletaId) &&
+            String(b.num_scheda) === String(dati.num_scheda) &&
+            String(b.des_giorno).trim() === String(dati.des_giorno).trim() &&
+            parseInt(b.num_riga_giorno) === parseInt(dati.num_riga_giorno)
+          );
+          if (matched && matched.UrlNormal && matched.UrlNormal.startsWith('http')) {
+            workout.value.UrlNormal = matched.UrlNormal;
+          }
+        } catch (errBackup) {
+          console.warn("Impossibile applicare patch UrlNormal da backup in Dettaglio:", errBackup);
+        }
+      }
+
       // Inizializza gli input settimanali
       for (let w = 1; w <= 6; w++) {
         inputSettimane.value[w].ins = dati['ins_week' + w] || '';

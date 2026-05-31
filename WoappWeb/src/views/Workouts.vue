@@ -656,6 +656,35 @@ const caricaAllenamenti = async () => {
   giornoSelezionato.value = salvatoGiorno;
 
   caricamento.value = true;
+  
+  // 1. Carica preventivamente il backup JSON per le patch di sicurezza GIF
+  let backupList = [];
+  try {
+    const res = await fetch('/storyboard_backup.json');
+    backupList = await res.json();
+  } catch (errBackup) {
+    console.warn("Impossibile caricare backup locale in anticipo:", errBackup);
+  }
+
+  const patchMissingUrls = (records) => {
+    if (!backupList || backupList.length === 0) return records;
+    return records.map(ex => {
+      // Se UrlNormal è mancante o non valido (es. vuoto o relativo WORKOUT_R_Images)
+      if (!ex.UrlNormal || !ex.UrlNormal.startsWith('http')) {
+        const matched = backupList.find(b => 
+          String(b.ID_cliente) === String(ex.ID_cliente) &&
+          String(b.num_scheda) === String(ex.num_scheda) &&
+          String(b.des_giorno).trim() === String(ex.des_giorno).trim() &&
+          parseInt(b.num_riga_giorno) === parseInt(ex.num_riga_giorno)
+        );
+        if (matched && matched.UrlNormal && matched.UrlNormal.startsWith('http')) {
+          ex.UrlNormal = matched.UrlNormal;
+        }
+      }
+      return ex;
+    });
+  };
+
   try {
      const q = query(
       collection(db, 'STORYBOARD'),
@@ -669,30 +698,27 @@ const caricaAllenamenti = async () => {
       temporanei.push(applicaModificheLocali({ id: doc.id, ...doc.data() }));
     });
 
+    // Applica la patch per ripristinare le URL delle GIF mancanti o corrotte da Firestore
+    temporanei = patchMissingUrls(temporanei);
+
     // CONTROLLO DI SICUREZZA: se mancano le righe 0 in Firestore, carichiamole dal backup!
     const giorni = ['A', 'B', 'C', 'D'];
     let haMancanti = giorni.some(g => !temporanei.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0));
     if (haMancanti) {
-      try {
-        const res = await fetch('/storyboard_backup.json');
-        const allData = await res.json();
-        giorni.forEach(g => {
-          const giaPresente = temporanei.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0);
-          if (!giaPresente) {
-            const backupHeader = allData.find(
-              item => String(item.ID_cliente) === String(selectedAthlete.value) &&
-              String(item.num_scheda) === String(selectedSheet.value) &&
-              (item.des_giorno || '').trim() === g &&
-              parseInt(item.num_riga_giorno) === 0
-            );
-            if (backupHeader) {
-              temporanei.push(applicaModificheLocali(backupHeader));
-            }
+      giorni.forEach(g => {
+        const giaPresente = temporanei.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0);
+        if (!giaPresente) {
+          const backupHeader = backupList.find(
+            item => String(item.ID_cliente) === String(selectedAthlete.value) &&
+            String(item.num_scheda) === String(selectedSheet.value) &&
+            (item.des_giorno || '').trim() === g &&
+            parseInt(item.num_riga_giorno) === 0
+          );
+          if (backupHeader) {
+            temporanei.push(applicaModificheLocali(backupHeader));
           }
-        });
-      } catch (err) {
-        console.error("Errore caricamento righe 0 da backup in try block:", err);
-      }
+        }
+      });
     }
 
     listaAllenamenti.value = temporanei;
@@ -705,24 +731,18 @@ const caricaAllenamenti = async () => {
     filtraEserciziPerGiorno();
   } catch (error) {
     console.warn("Errore caricamento allenamenti da Firestore (quota esaurita), provo da backup locale:", error);
-    try {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
-      const rawFiltrati = allData.filter(
-        item => String(item.ID_cliente) === String(selectedAthlete.value) && String(item.num_scheda) === String(selectedSheet.value)
-      );
-      const filtrati = rawFiltrati.map(applicaModificheLocali);
-      listaAllenamenti.value = filtrati;
+    const rawFiltrati = backupList.filter(
+      item => String(item.ID_cliente) === String(selectedAthlete.value) && String(item.num_scheda) === String(selectedSheet.value)
+    );
+    const filtrati = rawFiltrati.map(applicaModificheLocali);
+    listaAllenamenti.value = filtrati;
 
-      // Ricalcola la settimana attiva globale
-      const activeW = calcolaSettimanaAttivaGlobale(filtrati);
-      settimanaAttiva.value = activeW;
-      localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+    // Ricalcola la settimana attiva globale
+    const activeW = calcolaSettimanaAttivaGlobale(filtrati);
+    settimanaAttiva.value = activeW;
+    localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
 
-      filtraEserciziPerGiorno();
-    } catch (errBackup) {
-      console.error("Errore nel caricamento del backup locale:", errBackup);
-    }
+    filtraEserciziPerGiorno();
   } finally {
     caricamento.value = false;
   }

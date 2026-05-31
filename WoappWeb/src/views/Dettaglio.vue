@@ -65,18 +65,28 @@
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center gap-1">
               <span class="text-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.65rem;">Livello Forza:</span>
-              <v-icon
-                v-for="i in parsedRmt(workout.des_esercizio_2).stelle"
-                :key="i"
-                color="amber-darken-2"
-                size="16"
-              >
-                mdi-star
-              </v-icon>
+              <div class="d-flex align-center position-relative">
+                <v-icon
+                  v-for="i in parsedRmt(workout.des_esercizio_2).stelle"
+                  :key="i"
+                  color="amber-darken-2"
+                  size="16"
+                >
+                  mdi-star
+                </v-icon>
+                <span v-if="parsedRmt(workout.des_esercizio_2).subLivello" class="text-orange-lighten-2 font-weight-black ml-0.5 text-caption font-italic" style="font-size: 0.8rem; vertical-align: super; line-height: 1;">
+                  {{ parsedRmt(workout.des_esercizio_2).subLivello }}
+                </span>
+              </div>
             </div>
-            <span class="text-super-caption text-muted font-weight-bold">
-              Aggiornato il {{ parsedRmt(workout.des_esercizio_2).data }}
-            </span>
+            <div class="d-flex align-center gap-2">
+              <span v-if="parsedRmt(workout.des_esercizio_2).variazione" class="text-super-caption font-weight-black px-1.5 py-0.5 rounded-lg d-flex align-center animate-pulse" :style="{ backgroundColor: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)', color: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '#f87171' : '#34d399', fontSize: '0.62rem', border: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)' }">
+                {{ parsedRmt(workout.des_esercizio_2).variazione }}
+              </span>
+              <span class="text-super-caption text-muted font-weight-bold">
+                Aggiornato il {{ parsedRmt(workout.des_esercizio_2).data }}
+              </span>
+            </div>
           </div>
 
           <v-row dense class="align-center">
@@ -819,13 +829,21 @@ const parsedPrescription = (str) => {
 
 const parsedRmt = (str) => {
   if (!str) return null;
-  const match = str.trim().match(/(?:\(+)?\s*(\*+)\s*1RMT?:\s*([\d,.]+)\s*KG\s*~([\d,.]+)\s*(?:del|del\s+)?\s*([\d/]+)\s*(?:\)+)?/i);
+  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*)\s*1RMT?:\s*([\d,.]+)\s*KG\s*~([\d,.]+)(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
+  const match = str.trim().match(regex);
   if (match) {
+    const rawStelle = match[1];
+    const starsCount = (rawStelle.match(/\*/g) || []).length;
+    const subLevel = rawStelle.replace(/\*/g, ''); // Estrae il superscript (es. '⁴')
+    
     return {
-      stelle: match[1].length,
+      stelle: starsCount,
+      livelloEsteso: rawStelle,
+      subLivello: subLevel,
       massimale: match[2],
       prossimoLivello: match[3],
-      data: match[4]
+      data: match[4],
+      variazione: match[5] || ''
     };
   }
   return null;

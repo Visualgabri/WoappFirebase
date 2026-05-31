@@ -254,10 +254,10 @@
               </v-col>
             </v-row>
 
-            <!-- Rigo Secondario con Peso per Lato e Percentuali -->
+            <!-- Rigo Secondario con Peso per Lato e Percentuali (Coerente con presenza o assenza di pesi per lato) -->
             <v-row dense>
-              <!-- Peso per Lato -->
-              <v-col cols="4">
+              <!-- Peso per Lato (solo se presente) -->
+              <v-col v-if="parsedPrescription(workout['des_week' + sett]).side" cols="4">
                 <div class="prescription-chip-box px-2 py-2 rounded-lg text-left">
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">Per Lato</span>
                   <span class="text-body-2 font-weight-black text-blue-lighten-2">
@@ -266,20 +266,20 @@
                 </div>
               </v-col>
               <!-- % Massimale -->
-              <v-col cols="4">
+              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 4 : 6">
                 <div class="prescription-chip-box px-2 py-2 rounded-lg text-left">
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">% 1RM</span>
                   <span class="text-body-2 font-weight-black text-orange-lighten-2">
-                    {{ parsedPrescription(workout['des_week' + sett]).max }}
+                    {{ parsedPrescription(workout['des_week' + sett]).max || '-' }}
                   </span>
                 </div>
               </v-col>
               <!-- % Sforzo -->
-              <v-col cols="4">
+              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 4 : 6">
                 <div class="prescription-chip-box px-2 py-2 rounded-lg text-left">
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">Sforzo</span>
                   <span class="text-body-2 font-weight-black text-green-lighten-2">
-                    {{ parsedPrescription(workout['des_week' + sett]).effort }}
+                    {{ parsedPrescription(workout['des_week' + sett]).effort || '-' }}
                   </span>
                 </div>
               </v-col>
@@ -793,36 +793,65 @@ onBeforeUnmount(() => {
   window.removeEventListener('touchend', handleTouchEnd);
 });
 
-// Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77%)
+// Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77% o 3x12(60%)|95KG 86%)
 const parsePrescription = (str) => {
   if (!str) return null;
   const cleanStr = str.trim();
   
   // Split by "|"
   const parts = cleanStr.split('|');
-  if (parts.length === 3) {
+  if (parts.length >= 2) {
     const part1 = parts[0].trim();
-    const part2 = parts[1].trim();
-    const part3 = parts[2].trim();
     
-    // Parse Part 1: e.g. "5x2(75%)"
-    const m1 = part1.match(/^([0-9xX\s]+)\s*\(([^)]+)\)$/);
+    // Parse Part 1: reps and optional max (e.g. "5x2(75%)" or "3x12(60%)")
+    const m1 = part1.match(/^([0-9xX\s-]+)\s*\(([^)]+)\)$/);
     const repsInfo = m1 ? m1[1].trim() : part1;
     const maxInfo = m1 ? m1[2].trim() : '';
     
-    // Parse Part 2: e.g. "87,5KG"
-    const totalWeight = part2.replace(/KG/i, '').trim();
+    let totalWeight = '';
+    let sideWeight = '';
+    let effortInfo = '';
     
-    // Parse Part 3: e.g. "33,75L 77%"
-    const m3 = part3.match(/^([\d,.]+)\s*L\s+(.+)$/i);
-    const sideWeight = m3 ? m3[1].trim() : part3.replace(/L/i, '').trim();
-    const effortInfo = m3 ? m3[2].trim() : '';
+    if (parts.length === 3) {
+      // 3 Parts: e.g. reps | total | side effort
+      const part2 = parts[1].trim();
+      const part3 = parts[2].trim();
+      
+      totalWeight = part2.replace(/KG/i, '').trim();
+      
+      // Check if part 3 has "L"
+      const m3 = part3.match(/^([\d,.]+)\s*L\s*(.+)?$/i);
+      if (m3) {
+        sideWeight = m3[1].trim();
+        effortInfo = m3[2] ? m3[2].trim() : '';
+      } else {
+        if (part3.toUpperCase().includes('L')) {
+          sideWeight = part3.replace(/L/i, '').trim();
+        } else {
+          effortInfo = part3;
+        }
+      }
+    } else if (parts.length === 2) {
+      // 2 Parts: e.g. reps | total effort (without side weight)
+      const part2 = parts[1].trim();
+      
+      // Look for effort (e.g. "86%")
+      const m2Effort = part2.match(/(\d+(?:,\d+)?\s*%)$/);
+      if (m2Effort) {
+        effortInfo = m2Effort[1].trim();
+        totalWeight = part2.substring(0, part2.lastIndexOf(m2Effort[1])).trim();
+      } else {
+        totalWeight = part2;
+      }
+      
+      totalWeight = totalWeight.replace(/KG/i, '').trim();
+    }
     
     return {
       reps: repsInfo,
       max: maxInfo ? (maxInfo.includes('%') ? maxInfo : maxInfo + '%') : '',
       total: totalWeight,
-      side: sideWeight,
+      side: sideWeight || null,
       effort: effortInfo ? (effortInfo.includes('%') ? effortInfo : effortInfo + '%') : ''
     };
   }

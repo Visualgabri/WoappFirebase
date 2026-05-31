@@ -40,73 +40,95 @@ async function svuotaCollezione() {
 }
 
 async function importaRecordValidi() {
-  console.log(`\n--- FASE 2: Lettura e validazione del CSV...`);
+  console.log(`\n--- FASE 2: Lettura e validazione del CSV (Riga per Riga)...`);
   const tutteLeRigheValide = [];
   
-  return new Promise((resolve, reject) => {
-    fs.createReadStream('WOAPP_STORYBOARD.csv')
-      .pipe(csv({ separator: ';' }))
-      .on('data', (riga) => {
-        // Cerca i campi ID_cliente e num_scheda gestendo caratteri speciali / BOM
-        let idCliente = null;
-        let numScheda = null;
+  try {
+    const content = fs.readFileSync('WOAPP_STORYBOARD.csv', 'utf8');
+    const lines = content.split('\n');
+    
+    const headers = lines[0].replace(/"/g, '').split(';').map(h => h.replace(/^\uFEFF/, '').trim());
+    
+    const urlNormalIndices = [];
+    headers.forEach((h, idx) => {
+      if (h === 'UrlNormal') {
+        urlNormalIndices.push(idx);
+      }
+    });
+    
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const cells = line.split(';');
+      const record = {};
+      
+      headers.forEach((header, idx) => {
+        let cellVal = cells[idx] ? cells[idx].replace(/^"/, '').replace(/"$/, '').trim() : '';
         
-        for (const key of Object.keys(riga)) {
-          if (key.includes('ID_cliente')) idCliente = riga[key];
-          if (key.includes('num_scheda')) numScheda = riga[key];
-        }
-        
-        // Se i dati sono validi e non vuoti
-        if (idCliente && idCliente.trim() !== '' && numScheda && numScheda.trim() !== '') {
-          // Pulizia chiavi: rimuovi virgolette se presenti nei valori
-          const pulita = {};
-          for (const [k, v] of Object.entries(riga)) {
-            // Rimuoviamo la BOM o le virgolette dal nome delle chiavi per uniformità
-            let cleanKey = k.replace(/^\uFEFF/, '').replace(/^"/, '').replace(/"$/, '');
-            let cleanVal = typeof v === 'string' ? v.replace(/^"/, '').replace(/"$/, '').trim() : v;
-            pulita[cleanKey] = cleanVal;
-          }
-          tutteLeRigheValide.push(pulita);
-        }
-      })
-      .on('end', async () => {
-        const totaleDaImportare = tutteLeRigheValide.length;
-        console.log(`\nCSV letto con successo: trovate ${totaleDaImportare} righe valide da importare!`);
-        
-        let currentBatch = db.batch();
-        let operationCounter = 0;
-        let batchCounter = 0;
-        
-        for (let i = 0; i < totaleDaImportare; i++) {
-          const docRef = db.collection(NOME_COLLEZIONE).doc(); // Nuovo ID casuale
-          currentBatch.set(docRef, tutteLeRigheValide[i]);
-          operationCounter++;
+        if (header === 'UrlNormal') {
+          const firstUrlVal = cells[urlNormalIndices[0]] ? cells[urlNormalIndices[0]].replace(/^"/, '').replace(/"$/, '').trim() : '';
+          const secondUrlVal = cells[urlNormalIndices[1]] ? cells[urlNormalIndices[1]].replace(/^"/, '').replace(/"$/, '').trim() : '';
           
-          if (operationCounter === 500 || i === totaleDaImportare - 1) {
-            batchCounter++;
-            console.log(`Caricamento blocco #${batchCounter}... (salvati ${i + 1} di ${totaleDaImportare})`);
-            
-            try {
-              await currentBatch.commit();
-            } catch (error) {
-              console.error(`Errore nel blocco ${batchCounter}:`, error);
-              // Riprova una volta se fallisce
-              await sleep(1000);
-              await currentBatch.commit();
-            }
-            
-            currentBatch = db.batch();
-            operationCounter = 0;
-            // Pausa di 300ms tra i blocchi per stabilità dell'API
-            await sleep(300);
+          if (firstUrlVal.startsWith('http')) {
+            cellVal = firstUrlVal;
+          } else if (secondUrlVal.startsWith('http')) {
+            cellVal = secondUrlVal;
+          } else {
+            cellVal = firstUrlVal || secondUrlVal || '';
           }
         }
         
-        console.log(`\n🎉 IMPORTAZIONE COMPLETATA! ${totaleDaImportare} record validi caricati con successo in Firebase!`);
-        resolve();
-      })
-      .on('error', reject);
-  });
+        if (header && cellVal !== '') {
+          record[header] = cellVal;
+        }
+      });
+      
+      const idCliente = record['ID_cliente'];
+      const numScheda = record['num_scheda'];
+      
+      if (idCliente && idCliente.trim() !== '' && numScheda && numScheda.trim() !== '') {
+        tutteLeRigheValide.push(record);
+      }
+    }
+    
+    const totaleDaImportare = tutteLeRigheValide.length;
+    console.log(`\nCSV letto con successo: trovate ${totaleDaImportare} righe valide da importare!`);
+    
+    let currentBatch = db.batch();
+    let operationCounter = 0;
+    let batchCounter = 0;
+    
+    for (let i = 0; i < totaleDaImportare; i++) {
+      const docRef = db.collection(NOME_COLLEZIONE).doc(); // Nuovo ID casuale
+      currentBatch.set(docRef, tutteLeRigheValide[i]);
+      operationCounter++;
+      
+      if (operationCounter === 500 || i === totaleDaImportare - 1) {
+        batchCounter++;
+        console.log(`Caricamento blocco #${batchCounter}... (salvati ${i + 1} di ${totaleDaImportare})`);
+        
+        try {
+          await currentBatch.commit();
+        } catch (error) {
+          console.error(`Errore nel blocco ${batchCounter}:`, error);
+          // Riprova una volta se fallisce
+          await sleep(1000);
+          await currentBatch.commit();
+        }
+        
+        currentBatch = db.batch();
+        operationCounter = 0;
+        // Pausa di 300ms tra i blocchi per stabilità dell'API
+        await sleep(300);
+      }
+    }
+    
+    console.log(`\n🎉 IMPORTAZIONE COMPLETATA! ${totaleDaImportare} record validi caricati con successo in Firebase!`);
+  } catch (err) {
+    console.error("Errore durante l'importazione:", err);
+    throw err;
+  }
 }
 
 async function esegui() {

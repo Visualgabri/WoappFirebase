@@ -63,9 +63,9 @@
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
         <div v-if="parsedRmt(workout.des_esercizio_2)" class="rmt-premium-card mt-3 pa-3 rounded-xl card-glass border-orange-darken-3-op">
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="d-flex align-center gap-1">
+            <div class="d-flex align-center gap-1.5 flex-wrap">
               <span class="text-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.65rem;">Livello Forza:</span>
-              <div class="d-flex align-center position-relative">
+              <div class="d-flex align-center gap-0.5">
                 <v-icon
                   v-for="i in parsedRmt(workout.des_esercizio_2).stelle"
                   :key="i"
@@ -74,10 +74,16 @@
                 >
                   mdi-star
                 </v-icon>
-                <span v-if="parsedRmt(workout.des_esercizio_2).subLivello" class="text-orange-lighten-2 font-weight-black ml-0.5 text-caption font-italic" style="font-size: 0.8rem; vertical-align: super; line-height: 1;">
-                  {{ parsedRmt(workout.des_esercizio_2).subLivello }}
-                </span>
               </div>
+              <v-chip
+                :color="parsedRmt(workout.des_esercizio_2).livelloColore"
+                size="x-small"
+                class="font-weight-black uppercase text-super-caption px-2 py-0.5 ml-1.5 elevation-1"
+                variant="flat"
+                style="letter-spacing: 0.05em;"
+              >
+                {{ parsedRmt(workout.des_esercizio_2).livelloTesto }}
+              </v-chip>
             </div>
             <div class="d-flex align-center gap-2">
               <span v-if="parsedRmt(workout.des_esercizio_2).variazione" class="text-super-caption font-weight-black px-1.5 py-0.5 rounded-lg d-flex align-center animate-pulse" :style="{ backgroundColor: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)', color: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '#f87171' : '#34d399', fontSize: '0.62rem', border: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)' }">
@@ -834,10 +840,41 @@ const parsedRmt = (str) => {
   if (match) {
     const rawStelle = match[1];
     const starsCount = (rawStelle.match(/\*/g) || []).length;
-    const subLevel = rawStelle.replace(/\*/g, ''); // Estrae il superscript (es. '⁴')
+    const subLevel = rawStelle.replace(/\*/g, '').trim(); // Estrae il superscript (es. '⁴')
+    
+    // Mappa l'esponente al numero effettivo di stelle da mostrare
+    const mapSup = {
+      '¹': 1, '²': 2, '³': 3, '⁴': 4, '⁵': 5, '⁶': 6, '⁷': 7, '⁸': 8, '⁹': 9,
+      '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9
+    };
+    const stelleCalcolate = subLevel ? (mapSup[subLevel] || starsCount) : starsCount;
+    
+    const getLivelloTesto = (s) => {
+      if (s <= 1) return 'Neofita';
+      if (s === 2) return 'Principiante';
+      if (s === 3) return 'Intermedio';
+      if (s === 4) return 'Avanzato';
+      return 'Elite';
+    };
+    
+    const getLivelloColore = (testo) => {
+      const colori = {
+        'Neofita': 'grey-darken-1',
+        'Principiante': 'blue-darken-2',
+        'Intermedio': 'teal-darken-2',
+        'Avanzato': 'orange-darken-3',
+        'Elite': 'deep-purple-darken-2'
+      };
+      return colori[testo] || 'orange-darken-3';
+    };
+    
+    const livelloTesto = getLivelloTesto(stelleCalcolate);
+    const livelloColore = getLivelloColore(livelloTesto);
     
     return {
-      stelle: starsCount,
+      stelle: stelleCalcolate,
+      livelloTesto,
+      livelloColore,
       livelloEsteso: rawStelle,
       subLivello: subLevel,
       massimale: match[2],

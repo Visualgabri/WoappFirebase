@@ -1,0 +1,872 @@
+<template>
+  <v-container class="px-3 py-6 max-width-container min-height-screen">
+    <!-- Header Premium -->
+    <div class="appsheet-header mb-6 d-flex align-center justify-space-between">
+      <div class="d-flex align-center">
+        <v-avatar size="44" class="mr-3 bg-white elevation-1">
+          <v-img src="https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png" alt="Superman G"></v-img>
+        </v-avatar>
+        <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight">WORKOUTS</h1>
+      </div>
+      <div class="header-actions">
+        <v-btn icon color="slate-dark" variant="text" @click="caricaAllenamenti"><v-icon>mdi-refresh</v-icon></v-btn>
+      </div>
+    </div>
+
+    <!-- Stato vuoto se non selezionati atleta e scheda -->
+    <div v-if="!atletaSelezionato || !schedaSelezionata" class="empty-state text-center my-12 py-12 card-glass rounded-xl">
+      <v-icon size="80" color="orange-lighten-3" class="mb-4 animate-bounce">mdi-clipboard-text-search-outline</v-icon>
+      <h3 class="text-h5 font-weight-bold text-slate-dark">Seleziona Atleta e Scheda</h3>
+      <p class="text-body-1 text-muted mt-2">
+        Scegli l'atleta e la scheda attiva nella scheda **Ricerca Wo** per sbloccare la lista allenamenti.
+      </p>
+      <v-btn to="/ricerca" color="orange-darken-3" class="font-weight-bold text-none mt-6" rounded="lg">
+        Vai a Ricerca Wo
+      </v-btn>
+    </div>
+
+    <!-- Contenuto Principale -->
+    <div v-else>
+      
+      <!-- Attività Settimanale Premium (Stile Apple Activity) -->
+      <v-card class="premium-card rounded-2xl pa-4 mb-4 text-left border" elevation="2">
+        <div class="d-flex align-center justify-space-between mb-3 px-1">
+          <span class="text-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">Resoconto Week {{ settimanaAttiva }}</span>
+          <v-chip color="orange-darken-3" size="x-small" class="font-weight-black" variant="tonal">LIVE STATS</v-chip>
+        </div>
+
+        <v-row dense class="align-center justify-space-around">
+          <!-- 1. Calorie Consumate (Orange) -->
+          <v-col cols="4" class="text-center">
+            <v-progress-circular
+              :model-value="statisticheSettimanali.caloriePerc"
+              color="orange-darken-2"
+              size="64"
+              width="6.5"
+              class="mb-2 ring-glow-orange"
+            >
+              <v-icon color="orange-darken-2" size="20">mdi-fire</v-icon>
+            </v-progress-circular>
+            <span class="text-super-caption text-muted font-weight-black d-block uppercase" style="font-size: 0.6rem;">Calorie</span>
+            <span class="text-caption font-weight-black text-slate-dark">{{ statisticheSettimanali.calorie }} <span style="font-size: 0.6rem;" class="text-muted">kcal</span></span>
+          </v-col>
+
+          <!-- 2. Allenamenti Completati (Green) -->
+          <v-col cols="4" class="text-center border-left-soft border-right-soft">
+            <v-progress-circular
+              :model-value="statisticheSettimanali.giorniPerc"
+              color="green-darken-2"
+              size="64"
+              width="6.5"
+              class="mb-2 ring-glow-green"
+            >
+              <v-icon color="green-darken-2" size="20">mdi-calendar-check</v-icon>
+            </v-progress-circular>
+            <span class="text-super-caption text-muted font-weight-black d-block uppercase" style="font-size: 0.6rem;">Workout</span>
+            <span class="text-caption font-weight-black text-slate-dark">{{ statisticheSettimanali.giorni }} / 4 <span style="font-size: 0.6rem;" class="text-muted">gg</span></span>
+          </v-col>
+
+          <!-- 3. Tempo di Attività (Blue/Cyan) -->
+          <v-col cols="4" class="text-center">
+            <v-progress-circular
+              :model-value="statisticheSettimanali.tempoPerc"
+              color="blue-darken-2"
+              size="64"
+              width="6.5"
+              class="mb-2 ring-glow-blue"
+            >
+              <v-icon color="blue-darken-2" size="20">mdi-clock-outline</v-icon>
+            </v-progress-circular>
+            <span class="text-super-caption text-muted font-weight-black d-block uppercase" style="font-size: 0.6rem;">Tempo</span>
+            <span class="text-caption font-weight-black text-slate-dark">{{ statisticheSettimanali.tempo }} <span style="font-size: 0.6rem;" class="text-muted">min</span></span>
+          </v-col>
+        </v-row>
+      </v-card>
+      
+      <!-- Selettore del Giorno (A, B, C, D) in alto stile AppSheet -->
+      <v-tabs
+        v-model="giornoSelezionato"
+        color="orange-darken-3"
+        align-tabs="center"
+        grow
+        class="card-glass border-bottom mb-4 rounded-xl elevation-1"
+        @update:model-value="salvaGiornoSelezionato"
+      >
+        <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6">
+          {{ giorno }}
+        </v-tab>
+      </v-tabs>
+
+      <!-- Indicatore di Caricamento -->
+      <div v-if="caricamento" class="text-center my-10">
+        <v-progress-circular indeterminate color="orange" size="48"></v-progress-circular>
+        <p class="mt-2 text-caption text-muted">Caricamento esercizi giorno {{ giornoSelezionato }}...</p>
+      </div>
+
+      <div v-else>
+        <!-- Intestazione del Giorno Attivo (Riga 0) stile AppSheet (cliccabile per completamento) -->
+        <v-card
+          v-if="headerGiorno"
+          class="day-header-card pa-4 rounded-xl mb-6 elevation-2 clickable-header"
+          border="left"
+          @click="vaiAlDettaglioSessione(headerGiorno.id)"
+        >
+          <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
+          <div v-if="parseDayHeader(headerGiorno.des_esercizio)" class="w-100">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <div class="d-flex align-center">
+                <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
+                <div class="text-left">
+                  <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4">
+                    Workout Giorno {{ giornoSelezionato }}
+                  </h3>
+                  <div class="text-caption text-muted font-weight-bold d-flex align-center" style="font-size: 0.7rem;">
+                    <v-icon size="13" color="orange" class="mr-1">mdi-fire</v-icon>
+                    Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
+                  </div>
+                </div>
+              </div>
+              <v-icon color="orange-darken-3">mdi-chevron-right</v-icon>
+            </div>
+
+            <!-- Griglia dei Tempi e Densità con Medie -->
+            <v-row dense class="mb-3 text-center">
+              <v-col cols="4">
+                <div class="prescription-chip-box px-2 py-1.5 rounded-lg">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 1</span>
+                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ parseDayHeader(headerGiorno.des_esercizio).tempo1 }}</span>
+                  <span class="text-super-caption text-orange-lighten-1 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita1 }}%</span>
+                </div>
+              </v-col>
+              <v-col cols="4">
+                <div class="prescription-chip-box px-2 py-1.5 rounded-lg border-orange-darken-3-op bg-orange-darken-3-op">
+                  <span class="text-super-caption text-orange-darken-3 uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Media</span>
+                  <span class="text-body-2 font-weight-black text-orange-darken-3 d-block mb-0.5">⏱️ {{ parseDayHeader(headerGiorno.des_esercizio).tempoMedia }}</span>
+                  <span class="text-super-caption text-orange-darken-3 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%</span>
+                </div>
+              </v-col>
+              <v-col cols="4">
+                <div class="prescription-chip-box px-2 py-1.5 rounded-lg">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 6</span>
+                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ parseDayHeader(headerGiorno.des_esercizio).tempo2 }}</span>
+                  <span class="text-super-caption text-orange-lighten-1 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita2 }}%</span>
+                </div>
+              </v-col>
+            </v-row>
+
+            <!-- Sezione Volumi (VOL A, B, C) -->
+            <div v-if="parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left">
+              <div class="d-flex align-center justify-space-between mb-1.5 px-1">
+                <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">
+                  📊 Distribuzione Volumi (Serie Totali: {{ parseVolumes(headerGiorno.ins_esercizio).totale }})
+                </span>
+              </div>
+              <v-row dense class="text-center font-weight-bold text-caption">
+                <v-col :cols="parseVolumes(headerGiorno.ins_esercizio).centrale > 0 ? 4 : 6">
+                  <div class="pa-1 bg-slate-800 rounded">
+                    <span class="text-muted d-block" style="font-size: 0.6rem;">Parte Alta (A)</span>
+                    <span class="text-blue-lighten-2">{{ parseVolumes(headerGiorno.ins_esercizio).alta }} serie</span>
+                    <v-progress-linear
+                      :model-value="parseVolumes(headerGiorno.ins_esercizio).totale > 0 ? (parseVolumes(headerGiorno.ins_esercizio).alta / parseVolumes(headerGiorno.ins_esercizio).totale) * 100 : 0"
+                      color="blue-lighten-2"
+                      height="3"
+                      rounded
+                      class="mt-1"
+                    ></v-progress-linear>
+                  </div>
+                </v-col>
+                <v-col :cols="parseVolumes(headerGiorno.ins_esercizio).centrale > 0 ? 4 : 6">
+                  <div class="pa-1 bg-slate-800 rounded">
+                    <span class="text-muted d-block" style="font-size: 0.6rem;">Parte Bassa (B)</span>
+                    <span class="text-orange-lighten-2">{{ parseVolumes(headerGiorno.ins_esercizio).bassa }} serie</span>
+                    <v-progress-linear
+                      :model-value="parseVolumes(headerGiorno.ins_esercizio).totale > 0 ? (parseVolumes(headerGiorno.ins_esercizio).bassa / parseVolumes(headerGiorno.ins_esercizio).totale) * 100 : 0"
+                      color="orange-lighten-2"
+                      height="3"
+                      rounded
+                      class="mt-1"
+                    ></v-progress-linear>
+                  </div>
+                </v-col>
+                <v-col v-if="parseVolumes(headerGiorno.ins_esercizio).centrale > 0" cols="4">
+                  <div class="pa-1 bg-slate-800 rounded">
+                    <span class="text-muted d-block" style="font-size: 0.6rem;">Centrale (C)</span>
+                    <span class="text-green-lighten-2">{{ parseVolumes(headerGiorno.ins_esercizio).centrale }} serie</span>
+                    <v-progress-linear
+                      :model-value="parseVolumes(headerGiorno.ins_esercizio).totale > 0 ? (parseVolumes(headerGiorno.ins_esercizio).centrale / parseVolumes(headerGiorno.ins_esercizio).totale) * 100 : 0"
+                      color="green-lighten-2"
+                      height="3"
+                      rounded
+                      class="mt-1"
+                    ></v-progress-linear>
+                  </div>
+                </v-col>
+              </v-row>
+            </div>
+
+            <!-- Informazioni RMT se presenti -->
+            <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-2 pt-2 border-top-soft text-left d-flex align-center text-truncate">
+              <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
+              {{ formattaRmtSemplice(headerGiorno.des_esercizio_2) }}
+            </div>
+          </div>
+
+          <!-- Fallback se non si può parsare -->
+          <div v-else class="d-flex align-center w-100">
+            <div class="giorno-big-letter mr-4">{{ giornoSelezionato }}</div>
+            <div class="flex-grow-1 text-left min-width-0">
+              <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 text-truncate">
+                {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
+              </h3>
+              <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-1 d-flex align-center text-truncate">
+                <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
+                {{ formattaRmtSemplice(headerGiorno.des_esercizio_2) }}
+              </div>
+              
+              <!-- Sezione Volumi (VOL A, B, C) in fallback -->
+              <div v-if="parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left mt-2">
+                <div class="d-flex align-center justify-space-between mb-1.5 px-1">
+                  <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">
+                    📊 Distribuzione Volumi (Serie Totali: {{ parseVolumes(headerGiorno.ins_esercizio).totale }})
+                  </span>
+                </div>
+                <v-row dense class="text-center font-weight-bold text-caption">
+                  <v-col :cols="parseVolumes(headerGiorno.ins_esercizio).centrale > 0 ? 4 : 6">
+                    <div class="pa-1 bg-slate-800 rounded">
+                      <span class="text-muted d-block" style="font-size: 0.6rem;">Parte Alta (A)</span>
+                      <span class="text-blue-lighten-2">{{ parseVolumes(headerGiorno.ins_esercizio).alta }} serie</span>
+                      <v-progress-linear
+                        :model-value="parseVolumes(headerGiorno.ins_esercizio).totale > 0 ? (parseVolumes(headerGiorno.ins_esercizio).alta / parseVolumes(headerGiorno.ins_esercizio).totale) * 100 : 0"
+                        color="blue-lighten-2"
+                        height="3"
+                        rounded
+                        class="mt-1"
+                      ></v-progress-linear>
+                    </div>
+                  </v-col>
+                  <v-col :cols="parseVolumes(headerGiorno.ins_esercizio).centrale > 0 ? 4 : 6">
+                    <div class="pa-1 bg-slate-800 rounded">
+                      <span class="text-muted d-block" style="font-size: 0.6rem;">Parte Bassa (B)</span>
+                      <span class="text-orange-lighten-2">{{ parseVolumes(headerGiorno.ins_esercizio).bassa }} serie</span>
+                      <v-progress-linear
+                        :model-value="parseVolumes(headerGiorno.ins_esercizio).totale > 0 ? (parseVolumes(headerGiorno.ins_esercizio).bassa / parseVolumes(headerGiorno.ins_esercizio).totale) * 100 : 0"
+                        color="orange-lighten-2"
+                        height="3"
+                        rounded
+                        class="mt-1"
+                      ></v-progress-linear>
+                    </div>
+                  </v-col>
+                  <v-col v-if="parseVolumes(headerGiorno.ins_esercizio).centrale > 0" cols="4">
+                    <div class="pa-1 bg-slate-800 rounded">
+                      <span class="text-muted d-block" style="font-size: 0.6rem;">Centrale (C)</span>
+                      <span class="text-green-lighten-2">{{ parseVolumes(headerGiorno.ins_esercizio).centrale }} serie</span>
+                      <v-progress-linear
+                        :model-value="parseVolumes(headerGiorno.ins_esercizio).totale > 0 ? (parseVolumes(headerGiorno.ins_esercizio).centrale / parseVolumes(headerGiorno.ins_esercizio).totale) * 100 : 0"
+                        color="green-lighten-2"
+                        height="3"
+                        rounded
+                        class="mt-1"
+                      ></v-progress-linear>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+              <div v-else-if="headerGiorno.ins_esercizio" class="text-caption text-muted mt-1 leading-tight text-truncate">
+                {{ headerGiorno.ins_esercizio }}
+              </div>
+            </div>
+            <v-icon color="orange-darken-3" class="ml-2">mdi-chevron-right</v-icon>
+          </div>
+        </v-card>
+
+        <!-- Stato Vuoto se nessun esercizio -->
+        <div v-if="eserciziFiltrati.length === 0" class="text-center my-10 py-6">
+          <v-icon color="grey-lighten-1" size="48">mdi-dumbbell-off</v-icon>
+          <p class="mt-2 text-caption text-muted">Nessun esercizio presente per il giorno {{ giornoSelezionato }} in questa scheda.</p>
+        </div>
+
+        <!-- Lista Esercizi con Miniature a Sinistra stile AppSheet -->
+        <div v-else class="exercise-list">
+          <v-card
+            v-for="ex in eserciziFiltrati"
+            :key="ex.id"
+            class="exercise-item-card rounded-xl pa-3 mb-4 elevation-1 d-flex align-center"
+            @click="vaiAlDettaglio(ex.id)"
+          >
+            <!-- Miniatura GIF/Immagine sulla Sinistra -->
+            <div class="thumbnail-wrapper mr-4 rounded-lg overflow-hidden">
+              <v-img
+                :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
+                width="84"
+                height="84"
+                cover
+                alt="Esercizio"
+                class="bg-grey-lighten-4"
+              >
+                <template v-slot:placeholder>
+                  <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                    <v-icon color="grey-lighten-1">mdi-dumbbell</v-icon>
+                  </div>
+                </template>
+              </v-img>
+            </div>
+
+            <!-- Dettagli Centrali -->
+            <div class="flex-grow-1 text-left min-width-0">
+              <!-- Titolo Esercizio -->
+              <h4 class="text-body-1 font-weight-black text-slate-dark text-truncate leading-tight mb-1">
+                {{ ex.des_esercizio || 'Esercizio' }}
+              </h4>
+
+              <!-- Settore e Emoji Sforzo -->
+              <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
+                <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
+                <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
+              </div>
+
+              <!-- Prescrizione della settimana attiva -->
+              <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
+                {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttiva]) || ex.des_qta_report || 'Prescrizione non definita' }}
+              </div>
+
+              <!-- Timer Recupero Clickable -->
+              <div v-if="ex.des_rec_report" class="mt-1">
+                <v-chip
+                  color="orange-darken-3"
+                  variant="tonal"
+                  size="x-small"
+                  class="font-weight-black clickable-timer-chip"
+                  prepend-icon="mdi-clock-outline"
+                  @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
+                >
+                  ⏱️ Recupero: {{ ex.des_rec_report }}
+                </v-chip>
+              </div>
+            </div>
+
+            <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
+            <div class="d-flex flex-column align-end justify-center pl-2">
+              <div class="text-caption font-weight-black text-slate-dark mb-2">
+                {{ ex.num_riga_giorno }}
+              </div>
+              <v-icon color="orange-darken-3">mdi-book-open-outline</v-icon>
+            </div>
+          </v-card>
+        </div>
+
+      </div>
+
+    </div>
+  </v-container>
+</template>
+
+<script setup>
+import { ref, onMounted, watch, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer } from '../authStore.js';
+
+const router = useRouter();
+
+const parseTimeToSeconds = (tStr) => {
+  if (!tStr) return 90;
+  const clean = tStr.toLowerCase().replace('rec', '').replace('⏱️', '').trim();
+  if (clean.includes(':')) {
+    const parts = clean.split(':');
+    return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+  }
+  if (clean.includes("'")) {
+    const parts = clean.split("'");
+    const mins = parseInt(parts[0], 10) || 0;
+    const secs = parseInt(parts[1].replace('"', ''), 10) || 0;
+    return mins * 60 + secs;
+  }
+  if (clean.includes('"')) {
+    return parseInt(clean.replace('"', ''), 10) || 90;
+  }
+  return parseInt(clean.replace('s', ''), 10) || 90;
+};
+
+const avviaTimerRecupero = (recStr, label) => {
+  const seconds = parseTimeToSeconds(recStr);
+  startGlobalTimer(seconds, label);
+};
+
+const getStartField = (w) => {
+  return w === 1 ? 'start_wo' : `start${w}_wo`;
+};
+
+const getEndField = (w) => {
+  return w === 1 ? 'end_wo' : `end${w}_wo`;
+};
+
+const parseTimeToMinsStandalone = (tStr) => {
+  if (!tStr) return 0;
+  const clean = tStr.toLowerCase().replace('min', '').replace('m', '').trim();
+  if (clean.includes(':')) {
+    const parts = clean.split(':');
+    if (parts.length === 2) {
+      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    }
+  }
+  return parseInt(clean, 10) || 0;
+};
+
+const statisticheSettimanali = computed(() => {
+  let calorieTotaliSettimanali = 0;
+  let giorniCompletati = 0;
+  let tempoTotale = 0;
+  
+  listaAllenamenti.value.forEach(item => {
+    if ((parseInt(item.num_riga_giorno) === 0 || item.num_riga_giorno === '0') && item.des_esercizio) {
+      const dayInfo = parseDayHeader(item.des_esercizio);
+      if (dayInfo) {
+        const isCompleted = item['cmp' + settimanaAttiva.value] === 'true';
+        if (isCompleted) {
+          calorieTotaliSettimanali += dayInfo.calorie || 0;
+          giorniCompletati++;
+          
+          const start = item[getStartField(settimanaAttiva.value)];
+          const end = item[getEndField(settimanaAttiva.value)];
+          if (start && end) {
+            const startD = new Date(start);
+            const endD = new Date(end);
+            if (!isNaN(startD) && !isNaN(endD)) {
+              tempoTotale += Math.max(0, Math.floor((endD - startD) / (1000 * 60)));
+            }
+          } else {
+            const mins = parseTimeToMinsStandalone(dayInfo.tempo1) || 60;
+            tempoTotale += mins;
+          }
+        }
+      }
+    }
+  });
+  
+  const targetCalorie = 1000;
+  const targetGiorni = 4;
+  const targetTempo = 180;
+  
+  return {
+    calorie: calorieTotaliSettimanali,
+    caloriePerc: Math.min(100, Math.round((calorieTotaliSettimanali / targetCalorie) * 100)),
+    giorni: giorniCompletati,
+    giorniPerc: Math.min(100, Math.round((giorniCompletati / targetGiorni) * 100)),
+    tempo: tempoTotale,
+    tempoPerc: Math.min(100, Math.round((tempoTotale / targetTempo) * 100))
+  };
+});
+
+// Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77%)
+const parsePrescription = (str) => {
+  if (!str) return null;
+  const cleanStr = str.trim();
+  
+  // Split by "|"
+  const parts = cleanStr.split('|');
+  if (parts.length === 3) {
+    const part1 = parts[0].trim();
+    const part2 = parts[1].trim();
+    const part3 = parts[2].trim();
+    
+    // Parse Part 1: e.g. "5x2(75%)"
+    const m1 = part1.match(/^([0-9xX\s]+)\s*\(([^)]+)\)$/);
+    const repsInfo = m1 ? m1[1].trim() : part1;
+    const maxInfo = m1 ? m1[2].trim() : '';
+    
+    // Parse Part 2: e.g. "87,5KG"
+    const totalWeight = part2.replace(/KG/i, '').trim();
+    
+    // Parse Part 3: e.g. "33,75L 77%"
+    const m3 = part3.match(/^([\d,.]+)\s*L\s+(.+)$/i);
+    const sideWeight = m3 ? m3[1].trim() : part3.replace(/L/i, '').trim();
+    const effortInfo = m3 ? m3[2].trim() : '';
+    
+    return {
+      reps: repsInfo,
+      max: maxInfo ? (maxInfo.includes('%') ? maxInfo : maxInfo + '%') : '',
+      total: totalWeight,
+      side: sideWeight,
+      effort: effortInfo ? (effortInfo.includes('%') ? effortInfo : effortInfo + '%') : ''
+    };
+  }
+  return null;
+};
+
+const formattaPrescrizioneSemplice = (str) => {
+  if (!str) return '';
+  const parsed = parsePrescription(str);
+  if (parsed) {
+    return `${parsed.reps} @ ${parsed.total} kg (${parsed.side} kg per lato) • ${parsed.max} Max • ${parsed.effort} Sforzo`;
+  }
+  return str;
+};
+
+const parseRmtString = (str) => {
+  if (!str) return null;
+  const match = str.trim().match(/(?:\(+)?\s*(\*+)\s*1RMT?:\s*([\d,.]+)\s*KG\s*~([\d,.]+)\s*(?:del|del\s+)?\s*([\d/]+)\s*(?:\)+)?/i);
+  if (match) {
+    return {
+      stelle: match[1],
+      massimale: match[2],
+      prossimo: match[3],
+      data: match[4]
+    };
+  }
+  return null;
+};
+
+const formattaRmtSemplice = (str) => {
+  if (!str) return '';
+  const parsed = parseRmtString(str);
+  if (parsed) {
+    return `Livello Forza: ${parsed.stelle} • 1RMT: ${parsed.massimale} kg (Target: ~${parsed.prossimo} kg)`;
+  }
+  return str;
+};
+
+const parseDayHeader = (str) => {
+  if (!str) return null;
+  const cleanStr = str.trim();
+  const regex = /WO\s+([A-D])\s*\[\s*([^%]+?)\s+(\d+)\s*%\s*\/\s*([^%]+?)\s+(\d+)\s*%\s*\]\s*K:\s*(\d+)/i;
+  const match = cleanStr.match(regex);
+  if (match) {
+    const giorno = match[1];
+    const t1 = match[2];
+    const d1 = parseInt(match[3]);
+    const t2 = match[4];
+    const d2 = parseInt(match[5]);
+    const calorie = parseInt(match[6]);
+    
+    const parseTimeToMins = (tStr) => {
+      if (!tStr) return 0;
+      const clean = tStr.toLowerCase().replace('min', '').replace('m', '').trim();
+      if (clean.includes(':')) {
+        const parts = clean.split(':');
+        if (parts.length === 2) {
+          return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+        }
+      }
+      return parseInt(clean, 10) || 0;
+    };
+    
+    const formatMinsToTime = (totalMins) => {
+      const hours = Math.floor(totalMins / 60);
+      const mins = Math.round(totalMins % 60);
+      if (hours > 0) {
+        return `${hours}:${String(mins).padStart(2, '0')}`;
+      }
+      return `${mins} min`;
+    };
+    
+    const m1 = parseTimeToMins(t1);
+    const m2 = parseTimeToMins(t2);
+    const mediaMins = Math.round((m1 + m2) / 2);
+    const tempoMedia = formatMinsToTime(mediaMins);
+    
+    const densitaMedia = Math.round((d1 + d2) / 2);
+    
+    return {
+      giorno,
+      tempo1: t1.trim(),
+      densita1: d1,
+      tempo2: t2.trim(),
+      densita2: d2,
+      tempoMedia,
+      densitaMedia,
+      calorie
+    };
+  }
+  return null;
+};
+
+const parseVolumes = (str) => {
+  if (!str) return null;
+  const cleanStr = str.trim();
+  const regex = /VOL:\s*([\d,.]+)\s+A:\s*([\d,.]+)\s+B:\s*([\d,.]+)(?:\s+C:\s*([\d,.]+))?/i;
+  const match = cleanStr.match(regex);
+  if (match) {
+    const cleanFloat = (valStr) => {
+      if (!valStr) return 0;
+      const clean = valStr.replace(',', '.');
+      return parseFloat(clean) || 0;
+    };
+    return {
+      totale: cleanFloat(match[1]),
+      alta: cleanFloat(match[2]),
+      bassa: cleanFloat(match[3]),
+      centrale: match[4] ? cleanFloat(match[4]) : 0
+    };
+  }
+  return null;
+};
+
+// Funzione per rimappare gli URL delle GIF dal dominio scaduto a GitHub Pages
+const getGifUrl = (url) => {
+  if (!url) return '';
+  if (url.includes('definizionemuscolareestrema.com')) {
+    let mapped = url.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
+    const mappings = {
+      'PectoralSternal_file': 'PettoBasso',
+      'BackGeneral_file': 'DorsaliBack',
+      'Obliques_file': 'Obliqui',
+      'Ischiocrurali_file': 'Femorali',
+      'PectoralClavicular_file': 'PettoAlto',
+      'DeltoidPosterior_file': 'DeltoidiPosteriori',
+      'Triceps_file': 'Tricipiti',
+      'Quadriceps_file': 'Quadricipiti',
+      'GluteusMaximus_file': 'Glutei',
+      'DeltoidLateral_file': 'DeltoidiLaterali',
+      'DeltoidAnterior_file': 'DeltoidiAnteriori',
+      'LatissimusDorsi_file': 'DorsaliLat',
+      'Biceps_file': 'Bicipiti'
+    };
+    for (const [expiredFolder, githubFolder] of Object.entries(mappings)) {
+      if (mapped.includes(expiredFolder)) {
+        mapped = mapped.replace(expiredFolder, githubFolder);
+        break;
+      }
+    }
+    return mapped;
+  }
+  return url;
+};
+
+// Stato
+const atletaSelezionato = ref(selectedAthlete.value);
+const schedaSelezionata = ref(selectedSheet.value);
+const giornoSelezionato = ref('A');
+const listaGiorniDisponibili = ref(['A', 'B', 'C', 'D']);
+
+const caricamento = ref(true);
+const listaAllenamenti = ref([]);
+const headerGiorno = ref(null);
+const eserciziFiltrati = ref([]);
+
+// Settimana Attiva importata da localStorage
+const settimanaAttiva = ref(2);
+
+// Carica tutti gli allenamenti della scheda attiva
+const caricaAllenamenti = async () => {
+  if (!selectedAthlete.value || !selectedSheet.value) return;
+
+  atletaSelezionato.value = selectedAthlete.value;
+  schedaSelezionata.value = selectedSheet.value;
+  
+  // Ottieni settimana attiva configurata nella Home
+  settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2;
+  const salvatoGiorno = localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'A';
+  giornoSelezionato.value = salvatoGiorno;
+
+  caricamento.value = true;
+  try {
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where('\uFEFF"ID_cliente"', '==', selectedAthlete.value),
+      where('num_scheda', '==', selectedSheet.value)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    let temporanei = [];
+    querySnapshot.forEach((doc) => {
+      temporanei.push({ id: doc.id, ...doc.data() });
+    });
+
+    listaAllenamenti.value = temporanei;
+    filtraEserciziPerGiorno();
+  } catch (error) {
+    console.error("Errore caricamento allenamenti:", error);
+  } finally {
+    caricamento.value = false;
+  }
+};
+
+// Filtra ed ordina gli esercizi in base al giorno selezionato
+const filtraEserciziPerGiorno = () => {
+  const giorno = giornoSelezionato.value;
+
+  // Cerca la riga di intestazione (num_riga_giorno === 0 oppure '0')
+  headerGiorno.value = listaAllenamenti.value.find(
+    item => (item.des_giorno || '').trim() === giorno && (parseInt(item.num_riga_giorno) === 0)
+  ) || null;
+
+  // Cerca gli esercizi reali del giorno (num_riga_giorno > 0)
+  const filtrati = listaAllenamenti.value.filter(
+    item => (item.des_giorno || '').trim() === giorno && (parseInt(item.num_riga_giorno) > 0)
+  );
+
+  // Ordina per num_riga_giorno numerico
+  filtrati.sort((a, b) => {
+    const rigaA = parseInt(a.num_riga_giorno) || 0;
+    const rigaB = parseInt(b.num_riga_giorno) || 0;
+    return rigaA - rigaB;
+  });
+
+  eserciziFiltrati.value = filtrati;
+};
+
+// Salva e filtra quando si cambia scheda/giorno
+const salvaGiornoSelezionato = (giorno) => {
+  localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giorno);
+  filtraEserciziPerGiorno();
+};
+
+onMounted(() => {
+  caricaAllenamenti();
+});
+
+// Ascolta cambiamenti globali
+watch([selectedAthlete, selectedSheet], () => {
+  caricaAllenamenti();
+});
+
+// Naviga al dettaglio dell'esercizio
+const vaiAlDettaglio = (id) => {
+  vibraTattile(10);
+  router.push({ name: 'DettaglioWorkout', params: { id } });
+};
+
+const vaiAlDettaglioSessione = (id) => {
+  if (id) {
+    vibraTattile(12);
+    router.push({ name: 'DettaglioSessione', params: { id } });
+  }
+};
+
+const vibraTattile = (ms = 12) => {
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+  }
+};
+</script>
+
+<style scoped>
+.max-width-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.min-height-screen {
+  min-height: calc(100vh - 140px);
+}
+
+.appsheet-header {
+  border-bottom: 2px solid #f97316;
+  padding-bottom: 12px;
+}
+
+.text-slate-dark {
+  color: #f8fafc !important;
+}
+
+.text-slate {
+  color: #cbd5e1 !important;
+}
+
+.text-muted {
+  color: #94a3b8 !important;
+}
+
+.border-bottom {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Card del Giorno (Riga 0) stile AppSheet */
+.day-header-card {
+  border-left: 6px solid #f97316 !important;
+  background: rgba(249, 115, 22, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.clickable-header {
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+}
+
+.clickable-header:hover {
+  transform: translateY(-2px);
+  border-color: rgba(249, 115, 22, 0.4) !important;
+}
+
+.giorno-big-letter {
+  background: linear-gradient(135deg, #e65100, #ff8f00);
+  color: white;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 10px rgba(230, 81, 0, 0.3);
+  flex-shrink: 0;
+}
+
+/* Card Esercizio */
+.exercise-item-card {
+  /* Eredita Glassmorphism globale da style.css */
+  cursor: pointer;
+}
+
+.thumbnail-wrapper {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.leading-tight {
+  line-height: 1.25;
+}
+
+.min-width-0 {
+  min-width: 0;
+}
+
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Stili per il box telemetria */
+.bg-orange-darken-3-op {
+  background: rgba(249, 115, 22, 0.08) !important;
+}
+.border-orange-darken-3-op {
+  border: 1px solid rgba(249, 115, 22, 0.2) !important;
+}
+.border-soft {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.bg-slate-900 {
+  background: rgba(15, 23, 42, 0.5) !important;
+}
+.bg-slate-800 {
+  background: rgba(30, 41, 59, 0.4) !important;
+}
+.prescription-chip-box {
+  background: rgba(30, 41, 59, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.text-super-caption {
+  font-size: 0.65rem !important;
+  letter-spacing: 0.04em;
+}
+.border-top-soft {
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+</style>

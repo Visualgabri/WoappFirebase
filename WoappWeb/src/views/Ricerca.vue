@@ -245,7 +245,7 @@ const caricaSchedeAtleta = async () => {
   try {
     const q = query(
       collection(db, 'STORYBOARD'),
-      where('\uFEFF"ID_cliente"', '==', atletaSelezionato.value)
+      where('ID_cliente', '==', atletaSelezionato.value)
     );
     const querySnapshot = await getDocs(q);
     

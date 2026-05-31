@@ -192,7 +192,7 @@ const caricaDatiGrafici = async () => {
     // Recupera TUTTI i workout storici dell'atleta
     const q = query(
       collection(db, 'STORYBOARD'),
-      where('\uFEFF"ID_cliente"', '==', selectedAthlete.value)
+      where('ID_cliente', '==', selectedAthlete.value)
     );
     const querySnapshot = await getDocs(q);
 

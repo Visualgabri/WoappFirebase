@@ -543,9 +543,9 @@ const caricaAllenamenti = async () => {
 
   caricamento.value = true;
   try {
-    const q = query(
+     const q = query(
       collection(db, 'STORYBOARD'),
-      where('\uFEFF"ID_cliente"', '==', selectedAthlete.value),
+      where('ID_cliente', '==', selectedAthlete.value),
       where('num_scheda', '==', selectedSheet.value)
     );
     const querySnapshot = await getDocs(q);

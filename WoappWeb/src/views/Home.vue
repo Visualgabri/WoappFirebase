@@ -635,7 +635,7 @@ const caricaDatiScheda = async () => {
     // Carica gli esercizi per estrarre i test, i video e le note
     const qEx = query(
       collection(db, 'STORYBOARD'),
-      where('\uFEFF"ID_cliente"', '==', selectedAthlete.value),
+      where('ID_cliente', '==', selectedAthlete.value),
       where('num_scheda', '==', selectedSheet.value)
     );
     const snapEx = await getDocs(qEx);
@@ -891,7 +891,7 @@ const eseguiResetDGrid = async () => {
     vibraTattile(35); // Vibrazione forte di allerta
     const qEx = query(
       collection(db, 'STORYBOARD'),
-      where('\uFEFF"ID_cliente"', '==', selectedAthlete.value),
+      where('ID_cliente', '==', selectedAthlete.value),
       where('num_scheda', '==', selectedSheet.value)
     );
     const snapEx = await getDocs(qEx);

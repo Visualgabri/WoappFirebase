@@ -403,11 +403,16 @@ const vibraTattile = (ms = 12) => {
   }
 };
 
-// Rimappatore GIF a GitHub Pages
+// Rimappatore GIF a GitHub Pages con cartelle corrette
 const getGifUrl = (url) => {
   if (!url) return '';
+  
+  let mapped = url;
   if (url.includes('definizionemuscolareestrema.com')) {
-    let mapped = url.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
+    mapped = url.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
+  }
+  
+  if (mapped.includes('visualgabri.github.io')) {
     const mappings = {
       'PectoralSternal_file': 'PettoBasso',
       'BackGeneral_file': 'DorsaliBack',
@@ -419,9 +424,23 @@ const getGifUrl = (url) => {
       'Quadriceps_file': 'Quadricipiti',
       'GluteusMaximus_file': 'Glutei',
       'DeltoidLateral_file': 'DeltoidiLaterali',
-      'DeltoidAnterior_file': 'DeltoidiAnteriori',
       'LatissimusDorsi_file': 'DorsaliLat',
-      'Biceps_file': 'Bicipiti'
+      'HipAbductor_file': 'GluteiMed',
+      'DeltoidAnterior_file': 'DeltoidiAnteriori',
+      'Biceps_file': 'Bicipiti',
+      'Soleus_file': 'Soleo',
+      'HipAdductors_file': 'Adduttori',
+      'RectusAbdomis_file': 'Addome',
+      'Brachioradialis_file': 'Brachioradiali',
+      'Gastrocnemius_file': 'Gastrocnemio',
+      'Brachialis_file': 'Brachiali',
+      'HipFlexors_file': 'FlessoriAnca',
+      'ErectorSpinae_file': 'ErettoriSpinali',
+      'Intrarotatori_file': 'Intrarotatori',
+      'Cardio_file': 'Cardio',
+      'Mobility_file': 'Mobilita',
+      'Infraspinatus_file': 'Sovraspinato',
+      'TrapeziusUpper_file': 'Trapezio'
     };
     for (const [expiredFolder, githubFolder] of Object.entries(mappings)) {
       if (mapped.includes(expiredFolder)) {

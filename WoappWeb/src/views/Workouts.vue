@@ -343,8 +343,34 @@
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-                    <h4 class="text-body-1 font-weight-black text-slate-dark text-truncate leading-tight mb-1">
-                      {{ ex.des_esercizio || 'Esercizio' }}
+                    <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1 d-flex align-center justify-space-between flex-wrap gap-1.5 w-100">
+                      <span class="text-truncate flex-grow-1 mr-1" style="max-width: calc(100% - 90px);">
+                        {{ ex.des_esercizio || 'Esercizio' }}
+                      </span>
+                      
+                      <!-- Badge Carico Inserito (Completato) -->
+                      <v-chip
+                        v-if="ex['ins_week' + settimanaAttiva] && ex['ins_week' + settimanaAttiva].trim()"
+                        color="green-darken-3"
+                        size="x-small"
+                        class="font-weight-black uppercase text-white animate-pulse"
+                        variant="flat"
+                        style="font-size: 0.58rem; height: 18px; padding: 0 6px;"
+                      >
+                        ✔️ {{ ex['ins_week' + settimanaAttiva].trim() }}
+                      </v-chip>
+                      
+                      <!-- Badge Pendente (Da fare) -->
+                      <v-chip
+                        v-else
+                        color="grey-darken-2"
+                        size="x-small"
+                        class="font-weight-bold uppercase text-slate"
+                        variant="outlined"
+                        style="font-size: 0.58rem; height: 18px; padding: 0 6px; border-style: dashed !important; opacity: 0.65;"
+                      >
+                        ❌ DA FARE
+                      </v-chip>
                     </h4>
 
                     <!-- Settore e Emoji Sforzo -->
@@ -422,8 +448,34 @@
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-                <h4 class="text-body-1 font-weight-black text-slate-dark text-truncate leading-tight mb-1">
-                  {{ block.exercise.des_esercizio || 'Esercizio' }}
+                <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1 d-flex align-center justify-space-between flex-wrap gap-1.5 w-100">
+                  <span class="text-truncate flex-grow-1 mr-1" style="max-width: calc(100% - 90px);">
+                    {{ block.exercise.des_esercizio || 'Esercizio' }}
+                  </span>
+                  
+                  <!-- Badge Carico Inserito (Completato) -->
+                  <v-chip
+                    v-if="block.exercise['ins_week' + settimanaAttiva] && block.exercise['ins_week' + settimanaAttiva].trim()"
+                    color="green-darken-3"
+                    size="x-small"
+                    class="font-weight-black uppercase text-white animate-pulse"
+                    variant="flat"
+                    style="font-size: 0.58rem; height: 18px; padding: 0 6px;"
+                  >
+                    ✔️ {{ block.exercise['ins_week' + settimanaAttiva].trim() }}
+                  </v-chip>
+                  
+                  <!-- Badge Pendente (Da fare) -->
+                  <v-chip
+                    v-else
+                    color="grey-darken-2"
+                    size="x-small"
+                    class="font-weight-bold uppercase text-slate"
+                    variant="outlined"
+                    style="font-size: 0.58rem; height: 18px; padding: 0 6px; border-style: dashed !important; opacity: 0.65;"
+                  >
+                    ❌ DA FARE
+                  </v-chip>
                 </h4>
 
                 <!-- Settore e Emoji Sforzo -->

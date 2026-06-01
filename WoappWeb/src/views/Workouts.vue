@@ -384,6 +384,29 @@
                       {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttiva]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
 
+                    <!-- Cronologia Carichi Settimanali -->
+                    <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                      <span class="text-super-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.58rem; letter-spacing: 0.05em;">Week tracker:</span>
+                      <div class="d-flex gap-1 align-center flex-wrap">
+                        <div
+                          v-for="w in [1, 2, 3, 4, 5, 6]"
+                          :key="w"
+                          class="mini-week-capsule d-inline-flex align-center"
+                          :class="{
+                            'capsule-completed': ex['ins_week' + w] && ex['ins_week' + w].trim(),
+                            'capsule-active': w === settimanaAttiva && !(ex['ins_week' + w] && ex['ins_week' + w].trim()),
+                            'capsule-pending': w !== settimanaAttiva && !(ex['ins_week' + w] && ex['ins_week' + w].trim())
+                          }"
+                          style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
+                        >
+                          <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
+                          <span class="ml-1 font-weight-black" style="font-size: 0.55rem;">
+                            {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
                     <!-- Timer Recupero / Chaining Clickable -->
                     <div class="mt-1">
                       <v-chip
@@ -487,6 +510,29 @@
                 <!-- Prescrizione della settimana attiva -->
                 <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
                   {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttiva]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
+                </div>
+
+                <!-- Cronologia Carichi Settimanali -->
+                <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                  <span class="text-super-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.58rem; letter-spacing: 0.05em;">Week tracker:</span>
+                  <div class="d-flex gap-1 align-center flex-wrap">
+                    <div
+                      v-for="w in [1, 2, 3, 4, 5, 6]"
+                      :key="w"
+                      class="mini-week-capsule d-inline-flex align-center"
+                      :class="{
+                        'capsule-completed': block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim(),
+                        'capsule-active': w === settimanaAttiva && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim()),
+                        'capsule-pending': w !== settimanaAttiva && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim())
+                      }"
+                      style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
+                    >
+                      <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
+                      <span class="ml-1 font-weight-black" style="font-size: 0.55rem;">
+                        {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Timer Recupero Clickable -->
@@ -638,6 +684,18 @@ const formattaPrescrizioneSemplice = (str) => {
     return res;
   }
   return str;
+};
+
+const formattaCaricoCompatto = (val) => {
+  if (!val) return '-';
+  let clean = val.trim();
+  // Rimuove 'kg' o 'KG' con spazi opzionali
+  clean = clean.replace(/\s*kg/i, '');
+  // Tronca se troppo lungo per mantenere l'interfaccia compatta
+  if (clean.length > 5) {
+    return clean.substring(0, 4) + '..';
+  }
+  return clean;
 };
 
 const parseRmtString = (str) => {

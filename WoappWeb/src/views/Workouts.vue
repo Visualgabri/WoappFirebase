@@ -80,7 +80,7 @@
                   <!-- Visualizzazione Settimana Attiva e Progresso -->
                   <div class="d-flex align-center mt-1 gap-2 flex-wrap">
                     <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
-                      SETTIMANA {{ settimanaAttiva }} DI 6
+                      SETTIMANA {{ settimanaAttivaGiorno }} DI 6
                     </v-chip>
                     <div class="d-flex gap-1 align-center mini-weeks-progression">
                       <div
@@ -89,8 +89,8 @@
                         class="mini-week-capsule"
                         :class="{
                           'capsule-completed': headerGiorno['cmp' + w] === 'true',
-                          'capsule-active': w === settimanaAttiva && headerGiorno['cmp' + w] !== 'true',
-                          'capsule-pending': w !== settimanaAttiva && headerGiorno['cmp' + w] !== 'true'
+                          'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
+                          'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
                         }"
                       >
                         <span class="capsule-num">W{{ w }}</span>
@@ -199,7 +199,7 @@
               <!-- Visualizzazione Settimana Attiva e Progresso -->
               <div class="d-flex align-center mt-1 gap-2 flex-wrap">
                 <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
-                  SETTIMANA {{ settimanaAttiva }} DI 6
+                  SETTIMANA {{ settimanaAttivaGiorno }} DI 6
                 </v-chip>
                 <div class="d-flex gap-1 align-center mini-weeks-progression">
                   <div
@@ -208,8 +208,8 @@
                     class="mini-week-capsule"
                     :class="{
                       'capsule-completed': headerGiorno['cmp' + w] === 'true',
-                      'capsule-active': w === settimanaAttiva && headerGiorno['cmp' + w] !== 'true',
-                      'capsule-pending': w !== settimanaAttiva && headerGiorno['cmp' + w] !== 'true'
+                      'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
+                      'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
                     }"
                   >
                     <span class="capsule-num">W{{ w }}</span>
@@ -350,14 +350,14 @@
                       
                       <!-- Badge Carico Inserito (Completato) -->
                       <v-chip
-                        v-if="ex['ins_week' + settimanaAttiva] && ex['ins_week' + settimanaAttiva].trim()"
+                        v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno].trim()"
                         color="green-darken-3"
                         size="x-small"
                         class="font-weight-black uppercase text-white animate-pulse"
                         variant="flat"
                         style="font-size: 0.58rem; height: 18px; padding: 0 6px;"
                       >
-                        ✔️ {{ ex['ins_week' + settimanaAttiva].trim() }}
+                        ✔️ {{ ex['ins_week' + settimanaAttivaGiorno].trim() }}
                       </v-chip>
                       
                       <!-- Badge Pendente (Da fare) -->
@@ -381,7 +381,7 @@
 
                     <!-- Prescrizione della settimana attiva -->
                     <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
-                      {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttiva]) || ex.des_qta_report || 'Prescrizione non definita' }}
+                      {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
 
                     <!-- Cronologia Carichi Settimanali -->
@@ -394,8 +394,8 @@
                           class="mini-week-capsule d-inline-flex align-center"
                           :class="{
                             'capsule-completed': ex['ins_week' + w] && ex['ins_week' + w].trim(),
-                            'capsule-active': w === settimanaAttiva && !(ex['ins_week' + w] && ex['ins_week' + w].trim()),
-                            'capsule-pending': w !== settimanaAttiva && !(ex['ins_week' + w] && ex['ins_week' + w].trim())
+                            'capsule-active': w === settimanaAttivaGiorno && !(ex['ins_week' + w] && ex['ins_week' + w].trim()),
+                            'capsule-pending': w !== settimanaAttivaGiorno && !(ex['ins_week' + w] && ex['ins_week' + w].trim())
                           }"
                           style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
                         >
@@ -478,14 +478,14 @@
                   
                   <!-- Badge Carico Inserito (Completato) -->
                   <v-chip
-                    v-if="block.exercise['ins_week' + settimanaAttiva] && block.exercise['ins_week' + settimanaAttiva].trim()"
+                    v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno].trim()"
                     color="green-darken-3"
                     size="x-small"
                     class="font-weight-black uppercase text-white animate-pulse"
                     variant="flat"
                     style="font-size: 0.58rem; height: 18px; padding: 0 6px;"
                   >
-                    ✔️ {{ block.exercise['ins_week' + settimanaAttiva].trim() }}
+                    ✔️ {{ block.exercise['ins_week' + settimanaAttivaGiorno].trim() }}
                   </v-chip>
                   
                   <!-- Badge Pendente (Da fare) -->
@@ -509,7 +509,7 @@
 
                 <!-- Prescrizione della settimana attiva -->
                 <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
-                  {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttiva]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
+                  {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                 </div>
 
                 <!-- Cronologia Carichi Settimanali -->
@@ -522,8 +522,8 @@
                       class="mini-week-capsule d-inline-flex align-center"
                       :class="{
                         'capsule-completed': block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim(),
-                        'capsule-active': w === settimanaAttiva && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim()),
-                        'capsule-pending': w !== settimanaAttiva && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim())
+                        'capsule-active': w === settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim()),
+                        'capsule-pending': w !== settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim())
                       }"
                       style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
                     >
@@ -903,6 +903,16 @@ const blocchiEsercizi = computed(() => {
 
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
+
+const settimanaAttivaGiorno = computed(() => {
+  if (!headerGiorno.value) return settimanaAttiva.value;
+  for (let w = 1; w <= 6; w++) {
+    if (headerGiorno.value['cmp' + w] !== 'true') {
+      return w;
+    }
+  }
+  return 6; // Se tutte completate, ritorna l'ultima
+});
 
 // Helper per applicare le modifiche salvate offline nel localStorage
 const applicaModificheLocali = (item) => {

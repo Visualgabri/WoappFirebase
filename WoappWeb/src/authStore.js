@@ -2,9 +2,18 @@ import { ref } from 'vue';
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
 const emailSalvata = localStorage.getItem('utenteEmail');
+let initialRuolo = localStorage.getItem('ruolo') || 'atleta';
+let initialIdCliente = localStorage.getItem('idCliente') || '';
+
+// Forza il ruolo a 'coach' per l'email del Coach (visualgabri@gmail.com)
+if (emailSalvata && emailSalvata.trim().toLowerCase() === 'visualgabri@gmail.com') {
+  initialRuolo = 'coach';
+  initialIdCliente = '1';
+}
+
 export const utente = ref(emailSalvata ? { email: emailSalvata } : null);
-export const idCliente = ref(localStorage.getItem('idCliente') || '');
-export const ruolo = ref(localStorage.getItem('ruolo') || 'atleta'); // 'atleta' o 'coach'
+export const idCliente = ref(initialIdCliente);
+export const ruolo = ref(initialRuolo); // 'atleta' o 'coach'
 export const loadingAuth = ref(false); // Immediatamente pronto nel sistema passwordless
 
 // Stato di selezione globale Atleta e Scheda (in stile AppSheet)
@@ -25,17 +34,33 @@ export const setSelectedSheet = (val) => {
 
 // Avvia o aggiorna la sessione utente locale
 export const inizializzaSessione = (email, idCli, rlo) => {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  
+  // Forza il ruolo a 'coach' per l'email del Coach (visualgabri@gmail.com)
+  let finalRuolo = rlo || 'atleta';
+  let finalIdCliente = idCli || '';
+  
+  if (cleanEmail === 'visualgabri@gmail.com') {
+    finalRuolo = 'coach';
+    finalIdCliente = '1';
+  }
+
   utente.value = { email };
-  idCliente.value = idCli || '';
-  ruolo.value = rlo || 'atleta';
+  idCliente.value = finalIdCliente;
+  ruolo.value = finalRuolo;
 
   localStorage.setItem('utenteEmail', email);
   localStorage.setItem('idCliente', idCliente.value);
   localStorage.setItem('ruolo', ruolo.value);
 
   // Se è un atleta, imposta automaticamente se stesso come atleta selezionato
-  if (rlo === 'atleta' && idCli) {
-    setSelectedAthlete(idCli);
+  if (finalRuolo === 'atleta' && finalIdCliente) {
+    setSelectedAthlete(finalIdCliente);
+  } else if (finalRuolo === 'coach') {
+    // Se entra come coach, pre-seleziona il primo atleta se non ce n'è uno salvato
+    if (!selectedAthlete.value) {
+      setSelectedAthlete('1'); // Di default Gabriele Belmonte
+    }
   }
 };
 

@@ -20,12 +20,12 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png',
+            src: '/logo.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png',
+            src: '/logo.png',
             sizes: '512x512',
             type: 'image/png'
           }

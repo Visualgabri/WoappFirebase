@@ -3,8 +3,8 @@
     <!-- Header Premium -->
     <div class="appsheet-header mb-6 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
-        <v-avatar size="44" class="mr-3 bg-white elevation-1">
-          <v-img src="https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png" alt="Superman G"></v-img>
+        <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1">
+          <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
         <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight">WORKOUTS</h1>
       </div>
@@ -273,73 +273,183 @@
           <p class="mt-2 text-caption text-muted">Nessun esercizio presente per il giorno {{ giornoSelezionato }} in questa scheda.</p>
         </div>
 
-        <!-- Lista Esercizi con Miniature a Sinistra stile AppSheet -->
+        <!-- Lista Esercizi con Miniature a Sinistra stile AppSheet (Raggruppati in Superserie se presenti) -->
         <div v-else class="exercise-list">
-          <v-card
-            v-for="ex in eserciziFiltrati"
-            :key="ex.id"
-            class="exercise-item-card rounded-xl pa-3 mb-4 elevation-1 d-flex align-center"
-            @click="vaiAlDettaglio(ex.id)"
-          >
-            <!-- Miniatura GIF/Immagine sulla Sinistra -->
-            <div class="thumbnail-wrapper mr-4 rounded-lg overflow-hidden">
-              <v-img
-                :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                width="84"
-                height="84"
-                cover
-                alt="Esercizio"
-                class="bg-grey-lighten-4"
-              >
-                <template v-slot:placeholder>
-                  <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                    <v-icon color="grey-lighten-1">mdi-dumbbell</v-icon>
-                  </div>
-                </template>
-              </v-img>
-            </div>
-
-            <!-- Dettagli Centrali -->
-            <div class="flex-grow-1 text-left min-width-0">
-              <!-- Titolo Esercizio -->
-              <h4 class="text-body-1 font-weight-black text-slate-dark text-truncate leading-tight mb-1">
-                {{ ex.des_esercizio || 'Esercizio' }}
-              </h4>
-
-              <!-- Settore e Emoji Sforzo -->
-              <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
-                <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
-                <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
-              </div>
-
-              <!-- Prescrizione della settimana attiva -->
-              <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
-                {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttiva]) || ex.des_qta_report || 'Prescrizione non definita' }}
-              </div>
-
-              <!-- Timer Recupero Clickable -->
-              <div v-if="ex.des_rec_report" class="mt-1">
-                <v-chip
-                  color="orange-darken-3"
-                  variant="tonal"
-                  size="x-small"
-                  class="font-weight-black clickable-timer-chip"
-                  prepend-icon="mdi-clock-outline"
-                  @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
-                >
-                  ⏱️ Recupero: {{ ex.des_rec_report }}
+          <template v-for="(block, bIdx) in blocchiEsercizi" :key="bIdx">
+            
+            <!-- CASO 1: GRUPPO SUPERSET (SUPERSERIE) -->
+            <v-card
+              v-if="block.type === 'superset'"
+              class="superset-group-card rounded-2xl pa-4 mb-4 border-superset elevation-2 text-left"
+            >
+              <!-- Intestazione del Superset -->
+              <div class="superset-header d-flex align-center justify-space-between mb-3">
+                <div class="d-flex align-center flex-wrap gap-2">
+                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-1 mr-1" variant="flat" size="x-small">
+                    ⚡ SUPERSET {{ block.letter }}
+                  </v-chip>
+                  <span class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
+                    Esegui in sequenza senza pausa
+                  </span>
+                </div>
+                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2">
+                  {{ block.exercises.length }} ESERCIZI
                 </v-chip>
               </div>
-            </div>
+              
+              <div class="superset-exercises-wrapper">
+                <div
+                  v-for="(ex, index) in block.exercises"
+                  :key="ex.id"
+                  class="superset-exercise-item position-relative d-flex align-center py-3"
+                  :class="{
+                    'border-bottom-soft': index < block.exercises.length - 1
+                  }"
+                  @click="vaiAlDettaglio(ex.id)"
+                >
+                  <!-- Linea di collegamento tratteggiata tra le miniature degli esercizi in superset -->
+                  <div v-if="index < block.exercises.length - 1" class="superset-connector-line"></div>
+                  
+                  <!-- Miniatura GIF/Immagine sulla Sinistra -->
+                  <div class="thumbnail-wrapper mr-4 rounded-lg overflow-hidden position-relative" style="z-index: 2; width: 76px; height: 76px;">
+                    <v-img
+                      :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
+                      width="76"
+                      height="76"
+                      cover
+                      alt="Esercizio"
+                      class="bg-grey-lighten-4"
+                    >
+                      <template v-slot:placeholder>
+                        <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                          <v-icon color="grey-lighten-1" size="20">mdi-dumbbell</v-icon>
+                        </div>
+                      </template>
+                    </v-img>
+                  </div>
 
-            <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
-            <div class="d-flex flex-column align-end justify-center pl-2">
-              <div class="text-caption font-weight-black text-slate-dark mb-2">
-                {{ ex.num_riga_giorno }}
+                  <!-- Dettagli Centrali -->
+                  <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
+                    <!-- Titolo Esercizio -->
+                    <h4 class="text-body-1 font-weight-black text-slate-dark text-truncate leading-tight mb-1">
+                      {{ ex.des_esercizio || 'Esercizio' }}
+                    </h4>
+
+                    <!-- Settore e Emoji Sforzo -->
+                    <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
+                      <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
+                      <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
+                    </div>
+
+                    <!-- Prescrizione della settimana attiva -->
+                    <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
+                      {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttiva]) || ex.des_qta_report || 'Prescrizione non definita' }}
+                    </div>
+
+                    <!-- Timer Recupero / Chaining Clickable -->
+                    <div class="mt-1">
+                      <v-chip
+                        v-if="ex.des_rec_report"
+                        color="orange-darken-3"
+                        variant="tonal"
+                        size="x-small"
+                        class="font-weight-black clickable-timer-chip"
+                        prepend-icon="mdi-clock-outline"
+                        @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
+                      >
+                        ⏱️ Recupero: {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
+                      </v-chip>
+                      <v-chip
+                        v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
+                        color="green-darken-3"
+                        variant="flat"
+                        size="x-small"
+                        class="font-weight-black text-white"
+                        prepend-icon="mdi-arrow-right-bold-circle-outline"
+                      >
+                        ⚡ PASSA AL PROSSIMO (NO PAUSA)
+                      </v-chip>
+                    </div>
+                  </div>
+
+                  <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
+                  <div class="d-flex flex-column align-end justify-center pl-2 position-relative" style="z-index: 2;">
+                    <div class="text-caption font-weight-black text-slate-dark mb-2">
+                      {{ ex.num_riga_giorno }}
+                    </div>
+                    <v-icon color="orange-darken-3" size="20">mdi-book-open-outline</v-icon>
+                  </div>
+                </div>
               </div>
-              <v-icon color="orange-darken-3">mdi-book-open-outline</v-icon>
-            </div>
-          </v-card>
+            </v-card>
+
+            <!-- CASO 2: ESERCIZIO STANDARD SINGOLO -->
+            <v-card
+              v-else
+              class="exercise-item-card rounded-xl pa-3 mb-4 elevation-1 d-flex align-center"
+              @click="vaiAlDettaglio(block.exercise.id)"
+            >
+              <!-- Miniatura GIF/Immagine sulla Sinistra -->
+              <div class="thumbnail-wrapper mr-4 rounded-lg overflow-hidden" style="width: 84px; height: 84px;">
+                <v-img
+                  :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
+                  width="84"
+                  height="84"
+                  cover
+                  alt="Esercizio"
+                  class="bg-grey-lighten-4"
+                >
+                  <template v-slot:placeholder>
+                    <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                      <v-icon color="grey-lighten-1">mdi-dumbbell</v-icon>
+                    </div>
+                  </template>
+                </v-img>
+              </div>
+
+              <!-- Dettagli Centrali -->
+              <div class="flex-grow-1 text-left min-width-0">
+                <!-- Titolo Esercizio -->
+                <h4 class="text-body-1 font-weight-black text-slate-dark text-truncate leading-tight mb-1">
+                  {{ block.exercise.des_esercizio || 'Esercizio' }}
+                </h4>
+
+                <!-- Settore e Emoji Sforzo -->
+                <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
+                  <span>{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                  <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
+                </div>
+
+                <!-- Prescrizione della settimana attiva -->
+                <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
+                  {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttiva]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
+                </div>
+
+                <!-- Timer Recupero Clickable -->
+                <div v-if="block.exercise.des_rec_report" class="mt-1">
+                  <v-chip
+                    color="orange-darken-3"
+                    variant="tonal"
+                    size="x-small"
+                    class="font-weight-black clickable-timer-chip"
+                    prepend-icon="mdi-clock-outline"
+                    @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
+                  >
+                    ⏱️ Recupero: {{ block.exercise.des_rec_report }}
+                  </v-chip>
+                </div>
+              </div>
+
+              <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
+              <div class="d-flex flex-column align-end justify-center pl-2">
+                <div class="text-caption font-weight-black text-slate-dark mb-2">
+                  {{ block.exercise.num_riga_giorno }}
+                </div>
+                <v-icon color="orange-darken-3">mdi-book-open-outline</v-icon>
+              </div>
+            </v-card>
+
+          </template>
         </div>
 
       </div>
@@ -349,7 +459,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -382,36 +492,65 @@ const avviaTimerRecupero = (recStr, label) => {
 };
 
 
-// Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77%)
+// Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77% o 3x6(78%)|45KG 92%)
 const parsePrescription = (str) => {
   if (!str) return null;
   const cleanStr = str.trim();
   
   // Split by "|"
   const parts = cleanStr.split('|');
-  if (parts.length === 3) {
+  if (parts.length >= 2) {
     const part1 = parts[0].trim();
-    const part2 = parts[1].trim();
-    const part3 = parts[2].trim();
     
-    // Parse Part 1: e.g. "5x2(75%)"
-    const m1 = part1.match(/^([0-9xX\s]+)\s*\(([^)]+)\)$/);
+    // Parse Part 1: reps and optional max (e.g. "5x2(75%)" or "3x12(60%)")
+    const m1 = part1.match(/^([0-9xX\s-]+)\s*\(([^)]+)\)$/);
     const repsInfo = m1 ? m1[1].trim() : part1;
     const maxInfo = m1 ? m1[2].trim() : '';
     
-    // Parse Part 2: e.g. "87,5KG"
-    const totalWeight = part2.replace(/KG/i, '').trim();
+    let totalWeight = '';
+    let sideWeight = '';
+    let effortInfo = '';
     
-    // Parse Part 3: e.g. "33,75L 77%"
-    const m3 = part3.match(/^([\d,.]+)\s*L\s+(.+)$/i);
-    const sideWeight = m3 ? m3[1].trim() : part3.replace(/L/i, '').trim();
-    const effortInfo = m3 ? m3[2].trim() : '';
+    if (parts.length === 3) {
+      // 3 Parts: e.g. reps | total | side effort
+      const part2 = parts[1].trim();
+      const part3 = parts[2].trim();
+      
+      totalWeight = part2.replace(/KG/i, '').trim();
+      
+      // Check if part 3 has "L"
+      const m3 = part3.match(/^([\d,.]+)\s*L\s*(.+)?$/i);
+      if (m3) {
+        sideWeight = m3[1].trim();
+        effortInfo = m3[2] ? m3[2].trim() : '';
+      } else {
+        if (part3.toUpperCase().includes('L')) {
+          sideWeight = part3.replace(/L/i, '').trim();
+        } else {
+          effortInfo = part3;
+        }
+      }
+    } else if (parts.length === 2) {
+      // 2 Parts: e.g. reps | total effort (without side weight)
+      const part2 = parts[1].trim();
+      
+      // Look for effort (e.g. "86%")
+      const m2Effort = part2.match(/(\d+(?:,\d+)?\s*%)$/);
+      if (m2Effort) {
+        effortInfo = m2Effort[1].trim();
+        totalWeight = part2.substring(0, part2.lastIndexOf(m2Effort[1])).trim();
+      } else {
+        totalWeight = part2;
+      }
+      
+      totalWeight = totalWeight.replace(/KG/i, '').trim();
+    }
     
     return {
       reps: repsInfo,
       max: maxInfo ? (maxInfo.includes('%') ? maxInfo : maxInfo + '%') : '',
       total: totalWeight,
-      side: sideWeight,
+      side: sideWeight || null,
       effort: effortInfo ? (effortInfo.includes('%') ? effortInfo : effortInfo + '%') : ''
     };
   }
@@ -422,7 +561,17 @@ const formattaPrescrizioneSemplice = (str) => {
   if (!str) return '';
   const parsed = parsePrescription(str);
   if (parsed) {
-    return `${parsed.reps} @ ${parsed.total} kg (${parsed.side} kg per lato) • ${parsed.max} Max • ${parsed.effort} Sforzo`;
+    let res = `${parsed.reps} @ ${parsed.total} kg`;
+    if (parsed.side) {
+      res += ` (${parsed.side} kg per lato)`;
+    }
+    if (parsed.max) {
+      res += ` • ${parsed.max} Max`;
+    }
+    if (parsed.effort) {
+      res += ` • ${parsed.effort} Sforzo`;
+    }
+    return res;
   }
   return str;
 };
@@ -600,6 +749,35 @@ const caricamento = ref(true);
 const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
+
+// Raggruppa gli esercizi consecutivi in blocchi (singoli o superset)
+const blocchiEsercizi = computed(() => {
+  const blocks = [];
+  let currentSuperset = null;
+  
+  eserciziFiltrati.value.forEach((ex) => {
+    const ss = (ex.alf_superserie || '').trim().toUpperCase();
+    if (ss) {
+      if (currentSuperset && currentSuperset.letter === ss) {
+        currentSuperset.exercises.push(ex);
+      } else {
+        currentSuperset = {
+          type: 'superset',
+          letter: ss,
+          exercises: [ex]
+        };
+        blocks.push(currentSuperset);
+      }
+    } else {
+      currentSuperset = null;
+      blocks.push({
+        type: 'single',
+        exercise: ex
+      });
+    }
+  });
+  return blocks;
+});
 
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
@@ -978,5 +1156,48 @@ const vibraTattile = (ms = 12) => {
   font-size: 0.55rem;
   font-weight: 900;
   letter-spacing: -0.02em;
+}
+
+/* Nuovi Stili Premium per le Superserie (Supersets) */
+.superset-group-card {
+  background: rgba(249, 115, 22, 0.02) !important;
+  border: 1.5px solid rgba(249, 115, 22, 0.25) !important;
+  box-shadow: 0 8px 32px 0 rgba(249, 115, 22, 0.05) !important;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+}
+
+.superset-group-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(249, 115, 22, 0.45) !important;
+}
+
+.border-superset {
+  border-left: 6px solid #ea580c !important;
+}
+
+.superset-exercise-item {
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.superset-exercise-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.superset-connector-line {
+  position: absolute;
+  left: 45px; /* Centrato rispetto alla miniatura da 76px (8px padding + 38px metà larghezza) */
+  top: 72px; /* Inizia sotto la miniatura */
+  bottom: -22px; /* Si estende fino alla miniatura successiva */
+  width: 2px;
+  border-left: 2px dashed rgba(249, 115, 22, 0.35);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.superset-exercises-wrapper {
+  position: relative;
 }
 </style>

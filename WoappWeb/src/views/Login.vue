@@ -1,7 +1,87 @@
 <template>
   <v-container class="fill-height justify-center px-4 py-12 login-background">
-    <!-- Card Glassmorphic Premium -->
-    <v-card class="login-card rounded-2xl pa-8 elevation-8" max-width="480" width="100%">
+    <!-- Card Glassmorphic Premium per Utente Loggato -->
+    <v-card v-if="utente" class="login-card rounded-2xl pa-8 elevation-8 text-center" max-width="480" width="100%">
+      <!-- Logo ed Intestazione -->
+      <div class="text-center mb-6">
+        <v-avatar color="orange-darken-3" size="72" class="mb-4 elevation-3 border-orange text-white">
+          <v-icon size="40">mdi-account</v-icon>
+        </v-avatar>
+        <h1 class="text-h4 font-weight-black text-slate-dark tracking-tight">
+          Profilo <span class="text-gradient">Atleta</span>
+        </h1>
+        <p class="text-subtitle-2 text-muted mt-1">Gestione account e sessione attiva</p>
+      </div>
+
+      <!-- Anagrafica Premium Box -->
+      <div class="pa-4 rounded-xl border border-orange-darken-3-op card-glass mb-6 text-left position-relative overflow-hidden">
+        <div class="decor-glow"></div>
+        <div class="d-flex align-center mb-4 position-relative" style="z-index: 2;">
+          <v-avatar size="44" color="orange-darken-4" class="mr-3 border-orange text-white font-weight-black">
+            {{ getNomeAtleta(idCliente) ? getNomeAtleta(idCliente).charAt(0).toUpperCase() : (ruolo === 'coach' ? 'C' : 'A') }}
+          </v-avatar>
+          <div class="text-left">
+            <div class="text-h6 font-weight-black text-slate-dark leading-none">
+              {{ ruolo === 'coach' ? 'Coach' : (getNomeAtleta(idCliente) || 'Atleta') }}
+            </div>
+            <div class="text-caption text-muted mt-1.5 d-flex align-center gap-1">
+              <v-icon size="12" class="mr-1">mdi-email-outline</v-icon>
+              {{ utente.email }}
+            </div>
+          </div>
+        </div>
+
+        <v-row dense class="border-top-soft pt-3 position-relative" style="z-index: 2;">
+          <v-col cols="6" class="border-right-soft">
+            <div class="text-center py-1">
+              <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.6rem;">Ruolo</span>
+              <v-chip color="orange-darken-3" size="x-small" class="font-weight-black mt-1 text-white" variant="flat">
+                {{ ruolo === 'coach' ? 'Coach 📋' : 'Atleta 🏋️' }}
+              </v-chip>
+            </div>
+          </v-col>
+          <v-col cols="6">
+            <div class="text-center py-1">
+              <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.6rem;">ID Cliente</span>
+              <span class="text-body-2 font-weight-black text-slate-dark mt-1 d-inline-block">
+                {{ idCliente || 'N/D' }}
+              </span>
+            </div>
+          </v-col>
+        </v-row>
+      </div>
+
+      <!-- Pulsanti d'azione -->
+      <div class="d-flex flex-column gap-3">
+        <v-btn
+          color="orange-darken-3"
+          block
+          size="large"
+          rounded="xl"
+          class="font-weight-bold text-none py-3 text-white glowing-btn"
+          @click="router.push('/')"
+        >
+          <v-icon left class="mr-2">mdi-dumbbell</v-icon>
+          Apri i tuoi Allenamenti
+        </v-btn>
+
+        <v-btn
+          color="red-darken-2"
+          variant="outlined"
+          block
+          size="large"
+          rounded="xl"
+          class="font-weight-bold text-none py-3"
+          @click="disconnettiAccount"
+        >
+          <v-icon left class="mr-2">mdi-logout</v-icon>
+          Disconnetti Account
+        </v-btn>
+      </div>
+    </v-card>
+
+    <!-- Card originale di Login (se non autenticato) -->
+    <v-card v-else class="login-card rounded-2xl pa-8 elevation-8" max-width="480" width="100%">
       
       <!-- Logo ed Intestazione -->
       <div class="text-center mb-6">
@@ -138,9 +218,21 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { inizializzaSessione } from '../authStore.js';
+import { 
+  inizializzaSessione, 
+  utente, 
+  idCliente, 
+  ruolo, 
+  logout, 
+  getNomeAtleta 
+} from '../authStore.js';
 
 const router = useRouter();
+
+const disconnettiAccount = async () => {
+  vibraTattile(15);
+  await logout();
+};
 
 // Stato Form
 const tabScelta = ref('accedi');
@@ -252,6 +344,25 @@ const gestisciAutenticazione = async () => {
 .login-background {
   background: transparent !important;
   min-height: 100vh;
+}
+
+.border-right-soft {
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.border-top-soft {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.decor-glow {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0) 70%);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .login-card {

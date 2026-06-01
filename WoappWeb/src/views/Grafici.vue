@@ -3,8 +3,8 @@
     <!-- Header Premium -->
     <div class="appsheet-header mb-6 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
-        <v-avatar size="44" class="mr-3 bg-white elevation-1">
-          <v-img src="https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png" alt="Superman G"></v-img>
+        <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1">
+          <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
         <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight">Grafici</h1>
       </div>
@@ -92,7 +92,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete } from '../authStore.js';
+import { selectedAthlete, getNomeAtleta } from '../authStore.js';
 
 // Chart.js e Vue-Chartjs
 import { Bar } from 'vue-chartjs';
@@ -182,11 +182,20 @@ const caricaDatiGrafici = async () => {
   chartDataReady.value = false;
 
   try {
-    // Cerca il nome dell'atleta
+    // Cerca il nome dell'atleta nell'anagrafica clienti statica, altrimenti fallback su UTENTI
+    const nomeMappato = getNomeAtleta(selectedAthlete.value);
+    if (nomeMappato) {
+      nomeAtleta.value = nomeMappato.toUpperCase();
+    } else {
+      nomeAtleta.value = 'GABRIELE BELMONTE';
+    }
+
     const qAtleta = query(collection(db, 'UTENTI'), where('ID_cliente', '==', selectedAthlete.value));
     const snapAtleta = await getDocs(qAtleta);
     snapAtleta.forEach(d => {
-      nomeAtleta.value = (d.data().email || '').split('@')[0].toUpperCase();
+      if (!nomeMappato) {
+        nomeAtleta.value = (d.data().email || '').split('@')[0].toUpperCase();
+      }
     });
 
     // Recupera TUTTI i workout storici dell'atleta

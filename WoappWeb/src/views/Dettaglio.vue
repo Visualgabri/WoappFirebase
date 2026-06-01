@@ -39,14 +39,15 @@
     <div v-else class="exercise-detail-area">
       
       <!-- 1. Grande GIF dell'Esercizio in alto -->
-      <v-card class="image-premium-frame rounded-2xl overflow-hidden mb-5 elevation-3" max-height="300">
+      <v-card class="image-premium-frame rounded-2xl overflow-hidden mb-5 elevation-3 bg-black" height="300">
         <v-img
           :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
-          cover
-          class="bg-grey-lighten-4"
+          contain
+          class="bg-black"
+          height="100%"
         >
           <template v-slot:placeholder>
-            <div class="fill-height d-flex align-center justify-center bg-slate-100">
+            <div class="fill-height d-flex align-center justify-center bg-black">
               <v-progress-circular indeterminate color="orange"></v-progress-circular>
             </div>
           </template>
@@ -149,6 +150,7 @@
             {{ workout.des_qta_report }}
           </v-chip>
           <v-chip
+            v-if="workout.des_rec_report"
             color="orange-darken-3"
             variant="tonal"
             size="small"
@@ -156,9 +158,81 @@
             prepend-icon="mdi-clock-outline"
             @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
           >
-            ⏱️ Recupero: {{ workout.des_rec_report }}
+            ⏱️ Recupero: {{ workout.des_rec_report }}{{ (workout.alf_superserie && workout.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
+          </v-chip>
+          <!-- Mostra "PASSA AL PROSSIMO" solo se è in superserie E non ha recupero -->
+          <v-chip
+            v-else-if="workout.alf_superserie"
+            color="green-darken-3"
+            variant="flat"
+            size="small"
+            class="font-weight-black text-white"
+            prepend-icon="mdi-arrow-right-bold-circle-outline"
+          >
+            ⚡ PASSA AL PROSSIMO (NO PAUSA)
           </v-chip>
         </div>
+      </div>
+
+      <!-- Banner Superserie e Lista Esercizi Associati -->
+      <div v-if="workout.alf_superserie" class="mb-6">
+        <v-card class="superset-detail-card rounded-2xl pa-4 border-superset elevation-2 text-left">
+          <div class="d-flex align-center mb-3">
+            <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-1 mr-2 animate-pulse-slow" variant="flat" size="x-small">
+              ⚡ SUPERSET {{ workout.alf_superserie }}
+            </v-chip>
+            <span v-if="workout.des_rec_report" class="text-caption font-weight-black text-orange-lighten-2">
+              (Riposati ora)
+            </span>
+            <span v-else class="text-caption font-weight-black text-orange-lighten-2">
+              Esegui in sequenza senza pausa!
+            </span>
+          </div>
+          
+          <p v-if="workout.des_rec_report" class="text-body-2 text-slate font-weight-medium mb-3">
+            Questo esercizio è l'ultimo della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata questa serie, effettua il recupero previsto prima di ricominciare il giro.
+          </p>
+          <p v-else class="text-body-2 text-slate font-weight-medium mb-3">
+            Questo esercizio fa parte della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata una serie di questo esercizio, passa immediatamente all'esercizio successivo prima del recupero.
+          </p>
+          
+          <!-- Esercizi correlati nella superserie -->
+          <div v-if="eserciziSupersetCollegati.length > 0">
+            <div class="text-super-caption text-muted font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+              Altri esercizi in questa superserie:
+            </div>
+            
+            <div class="superset-connected-list rounded-xl overflow-hidden card-glass border">
+              <div
+                v-for="connEx in eserciziSupersetCollegati"
+                :key="connEx.id"
+                class="connected-exercise-item d-flex align-center pa-3 clickable-item border-bottom-soft"
+                @click="vaiAdEsercizioCollegato(connEx.id)"
+                style="cursor: pointer;"
+              >
+                <div class="connected-thumb mr-3 rounded overflow-hidden" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                  <v-img
+                    :src="getGifUrl(connEx.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                    width="48"
+                    height="48"
+                    cover
+                  ></v-img>
+                </div>
+                <div class="flex-grow-1 min-width-0 text-left">
+                  <div class="text-body-2 font-weight-black text-slate-dark text-truncate">
+                    {{ connEx.des_esercizio }}
+                  </div>
+                  <div class="text-super-caption text-orange-darken-3 font-weight-bold">
+                    {{ connEx.des_settore || 'Corpo Libero' }} • Posizione {{ connEx.num_riga_giorno }}
+                    <span v-if="connEx.des_rec_report" class="text-amber-lighten-2 ml-1">⏱️ (Recupero: {{ connEx.des_rec_report }})</span>
+                    <span v-else class="text-green-lighten-2 ml-1">⚡ (No Pausa)</span>
+                  </div>
+                </div>
+                <v-icon size="18" color="orange-darken-3">mdi-arrow-right-circle-outline</v-icon>
+              </div>
+            </div>
+          </div>
+        </v-card>
       </div>
 
       <!-- 3. Coaching Note Card (Cartellino giallo in stile AppSheet) -->
@@ -174,28 +248,12 @@
         </div>
       </v-card>
 
-      <!-- 4. Lista delle Settimane con opzione di visualizzazione fissa o dinamica -->
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2 text-left">
+      <!-- 4. Lista delle Settimane (Progressione Settimanale) -->
+      <div class="d-flex align-center justify-space-between mb-4 text-left">
         <h3 class="text-subtitle-2 font-weight-black text-slate-dark d-flex align-center">
           <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-clipboard-list-outline</v-icon>
           Progressione Settimanale
         </h3>
-        
-        <v-btn-toggle
-          v-model="modalitaSettimane"
-          mandatory
-          selected-class="bg-orange-darken-3 text-white"
-          density="compact"
-          rounded="xl"
-          class="card-glass border"
-        >
-          <v-btn value="dinamica" size="small" class="font-weight-bold" id="btn-toggle-dinamica">
-            <v-icon size="16" class="mr-1">mdi-target</v-icon> Dinamica
-          </v-btn>
-          <v-btn value="fissa" size="small" class="font-weight-bold" id="btn-toggle-fissa">
-            <v-icon size="16" class="mr-1">mdi-calendar-month</v-icon> Fissa
-          </v-btn>
-        </v-btn-toggle>
       </div>
 
       <div class="weeks-stacked-list mb-6">
@@ -301,7 +359,7 @@
               hide-details
               rounded="lg"
               color="orange-darken-3"
-              prepend-inner-icon="mdi-pencil-outline"
+              class="custom-weight-input"
               @blur="salvaDatoSettimanale(sett, 'ins')"
               :id="'input-peso-w' + sett"
             ></v-text-field>
@@ -327,91 +385,141 @@
         </div>
       </div>
 
-      <!-- 5. Elenco Dettagli Tecnici (stile AppSheet fedele a fondo pagina) -->
-      <h3 class="text-subtitle-2 font-weight-black text-slate-dark mb-4 d-flex align-center">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-cogs</v-icon>
-        Dettagli Tecnici Esercizio
-      </h3>
+      <!-- Opzioni di Visualizzazione delle Settimane (Spostato a fondo lista per non disturbare) -->
+      <v-expansion-panels class="mb-6 card-glass border-soft rounded-2xl overflow-hidden shadow-sm" style="background: rgba(15, 23, 42, 0.4);">
+        <v-expansion-panel bg-color="transparent" class="elevation-0">
+          <v-expansion-panel-title class="py-2.5 px-4 font-weight-black text-subtitle-2 text-slate-dark d-flex align-center">
+            <v-icon color="orange" class="mr-2" size="18">mdi-cog-outline</v-icon>
+            Opzioni Visualizzazione Settimane
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="px-2 pb-3">
+            <div class="d-flex flex-column gap-2 text-left pt-1">
+              <span class="text-super-caption text-muted font-weight-bold uppercase mb-1" style="font-size: 0.6rem;">Modalità elenco settimane:</span>
+              <v-btn-toggle
+                v-model="modalitaSettimane"
+                mandatory
+                selected-class="bg-orange-darken-3 text-white"
+                density="comfortable"
+                rounded="xl"
+                class="w-100 card-glass border"
+              >
+                <v-btn value="dinamica" class="font-weight-bold flex-grow-1" id="btn-toggle-dinamica" style="min-width: 50%;">
+                  <v-icon size="16" class="mr-1">mdi-target</v-icon> Dinamica
+                </v-btn>
+                <v-btn value="fissa" class="font-weight-bold flex-grow-1" id="btn-toggle-fissa" style="min-width: 50%;">
+                  <v-icon size="16" class="mr-1">mdi-calendar-month</v-icon> Fissa
+                </v-btn>
+              </v-btn-toggle>
+              <p class="text-super-caption text-muted mt-2 leading-snug">
+                * <strong>Dinamica</strong>: Mette in evidenza la settimana attiva ordinando le altre in sequenza.<br>
+                * <strong>Fissa</strong>: Mostra la progressione lineare classica dalla settimana 1 alla 6.
+              </p>
+            </div>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
 
-      <v-card class="premium-card rounded-2xl pa-4 mb-6" elevation="2">
-        <v-list class="bg-transparent py-0" density="comfortable">
-          <!-- Muscolo Target -->
-          <v-list-item class="px-0 py-2 border-bottom-soft text-left">
-            <v-list-item-title class="text-caption text-muted font-weight-bold uppercase">Muscolo target</v-list-item-title>
-            <v-list-item-subtitle class="text-body-1 font-weight-black text-slate-dark mt-1">
+      <!-- 5. Dettagli Tecnici Esercizio (Stile Grid ultra-compatto per evitare dispersioni) -->
+      <div class="d-flex align-center justify-space-between mb-4 text-left">
+        <h3 class="text-subtitle-2 font-weight-black text-slate-dark d-flex align-center">
+          <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-cogs</v-icon>
+          Dettagli Tecnici Esercizio
+        </h3>
+      </div>
+
+      <!-- Griglia compattata dei Dettagli statici -->
+      <v-row dense class="mb-4">
+        <!-- Muscolo Target -->
+        <v-col cols="4">
+          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Muscolo Target</span>
+            <span class="text-body-2 font-weight-black text-slate-dark text-truncate d-block">
               {{ workout.des_settore || 'Generico' }}
-            </v-list-item-subtitle>
-          </v-list-item>
-
-          <!-- Giorno -->
-          <v-list-item class="px-0 py-2 border-bottom-soft text-left">
-            <v-list-item-title class="text-caption text-muted font-weight-bold uppercase">Giorno</v-list-item-title>
-            <v-list-item-subtitle class="text-body-1 font-weight-bold text-slate-dark mt-1">
+            </span>
+          </div>
+        </v-col>
+        <!-- Giorno -->
+        <v-col cols="4">
+          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Giorno</span>
+            <span class="text-body-2 font-weight-black text-orange-lighten-1 text-truncate d-block">
               Giorno {{ workout.des_giorno }}
-            </v-list-item-subtitle>
-          </v-list-item>
+            </span>
+          </div>
+        </v-col>
+        <!-- Posizione / Superserie -->
+        <v-col cols="4">
+          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Posizione</span>
+            <span class="text-body-2 font-weight-black text-slate-dark text-truncate d-block">
+              N. {{ workout.num_riga_giorno }}{{ workout.alf_superserie ? ' (' + workout.alf_superserie + ')' : '' }}
+            </span>
+          </div>
+        </v-col>
+      </v-row>
 
-          <!-- N. Esercizio -->
-          <v-list-item class="px-0 py-2 border-bottom-soft text-left">
-            <v-list-item-title class="text-caption text-muted font-weight-bold uppercase">N. esercizio o superserie</v-list-item-title>
-            <v-list-item-subtitle class="text-body-1 font-weight-bold text-slate-dark mt-1">
-              Posizione {{ workout.num_riga_giorno }} {{ workout.alf_superserie ? ' - Superserie ' + workout.alf_superserie : '' }}
-            </v-list-item-subtitle>
-          </v-list-item>
-
+      <!-- Card Note e Commenti (Campi Modificabili) -->
+      <v-card class="premium-card rounded-2xl pa-4 mb-6" elevation="2">
+        <div class="text-left d-flex flex-column gap-4">
           <!-- Note Attrezzo -->
-          <v-list-item class="px-0 py-2 border-bottom-soft text-left">
-            <v-list-item-title class="text-caption text-muted font-weight-bold uppercase">Note attrezzo</v-list-item-title>
-            <div class="mt-1 flex-grow-1">
-              <v-text-field
-                v-model="noteAttrezzo"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                color="orange-darken-3"
-                @blur="salvaDatoGenerale('des_note_attrezzo', noteAttrezzo)"
-                id="input-detail-note-attrezzo"
-              ></v-text-field>
+          <div>
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <span class="text-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Note attrezzo:</span>
+              <v-icon size="14" color="orange-darken-3">mdi-wrench-outline</v-icon>
             </div>
-          </v-list-item>
+            <v-text-field
+              v-model="noteAttrezzo"
+              variant="outlined"
+              density="compact"
+              hide-details
+              rounded="lg"
+              color="orange-darken-3"
+              class="custom-textarea-input"
+              @blur="salvaDatoGenerale('des_note_attrezzo', noteAttrezzo)"
+              id="input-detail-note-attrezzo"
+            ></v-text-field>
+          </div>
 
-          <!-- Note Esercizio (Input box) -->
-          <v-list-item class="px-0 py-2 border-bottom-soft text-left">
-            <v-list-item-title class="text-caption text-muted font-weight-bold uppercase">Note esercizio</v-list-item-title>
-            <div class="mt-1 flex-grow-1">
-              <v-textarea
-                v-model="noteEsercizio"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                rows="2"
-                color="orange-darken-3"
-                @blur="salvaDatoGenerale('ins_esercizio', noteEsercizio)"
-                id="input-detail-note-esercizio"
-              ></v-textarea>
+          <!-- Note Esercizio -->
+          <div>
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <span class="text-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Note esercizio:</span>
+              <v-icon size="14" color="orange-darken-3">mdi-note-text-outline</v-icon>
             </div>
-          </v-list-item>
+            <v-textarea
+              v-model="noteEsercizio"
+              variant="outlined"
+              density="compact"
+              hide-details
+              rounded="lg"
+              rows="2"
+              color="orange-darken-3"
+              class="custom-textarea-input"
+              @blur="salvaDatoGenerale('ins_esercizio', noteEsercizio)"
+              id="input-detail-note-esercizio"
+            ></v-textarea>
+          </div>
 
           <!-- Commenti Atleta -->
-          <v-list-item class="px-0 py-2 text-left">
-            <v-list-item-title class="text-caption text-muted font-weight-bold uppercase">Commenti</v-list-item-title>
-            <div class="mt-1 flex-grow-1">
-              <v-textarea
-                v-model="commentiAtleta"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                rows="3"
-                color="orange-darken-3"
-                @blur="salvaDatoGenerale('des_commenti', commentiAtleta)"
-                id="input-detail-commenti"
-              ></v-textarea>
+          <div>
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <span class="text-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Commenti personali:</span>
+              <v-icon size="14" color="orange-darken-3">mdi-comment-text-outline</v-icon>
             </div>
-          </v-list-item>
-        </v-list>
+            <v-textarea
+              v-model="commentiAtleta"
+              variant="outlined"
+              density="compact"
+              hide-details
+              rounded="lg"
+              rows="3"
+              color="orange-darken-3"
+              class="custom-textarea-input"
+              @blur="salvaDatoGenerale('des_commenti', commentiAtleta)"
+              id="input-detail-commenti"
+            ></v-textarea>
+          </div>
+        </div>
       </v-card>
 
     </div>
@@ -476,6 +584,67 @@ const riga0 = ref(null);
 const caricamento = ref(true);
 
 const settimanaAttiva = ref(2);
+const tuttiEserciziGiorno = ref([]);
+
+// Trova altri esercizi dello stesso blocco superserie consecutivo (stessa logica di Workouts.vue)
+const eserciziSupersetCollegati = computed(() => {
+  if (!workout.value || !workout.value.alf_superserie || tuttiEserciziGiorno.value.length === 0) return [];
+  
+  // 1. Raggruppa gli esercizi del giorno in blocchi consecutivi
+  const blocks = [];
+  let currentSuperset = null;
+  
+  tuttiEserciziGiorno.value.forEach((ex) => {
+    const ss = (ex.alf_superserie || '').trim().toUpperCase();
+    if (ss) {
+      if (currentSuperset && currentSuperset.letter === ss) {
+        currentSuperset.exercises.push(ex);
+      } else {
+        currentSuperset = {
+          type: 'superset',
+          letter: ss,
+          exercises: [ex]
+        };
+        blocks.push(currentSuperset);
+      }
+    } else {
+      currentSuperset = null;
+      blocks.push({
+        type: 'single',
+        exercise: ex
+      });
+    }
+  });
+  
+  // 2. Trova il blocco superset specifico che contiene l'esercizio corrente (confronto super robusto string/number)
+  const currentId = String(routeIdLocal.value || '');
+  const currentNumRiga = workout.value?.num_riga ? String(workout.value.num_riga) : '';
+  
+  const targetBlock = blocks.find(
+    block => block.type === 'superset' && block.exercises.some(item => {
+      const itemId = String(item.id || '');
+      const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
+      return (itemId && itemId === currentId) || (itemNumRiga && itemNumRiga === currentId) ||
+             (itemId && itemId === currentNumRiga) || (itemNumRiga && itemNumRiga === currentNumRiga);
+    })
+  );
+  
+  if (!targetBlock) return [];
+  
+  // 3. Ritorna gli altri esercizi dello stesso identico blocco (confronto robusto per escludere il corrente)
+  return targetBlock.exercises.filter(item => {
+    const itemId = String(item.id || '');
+    const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
+    const isCurrent = (itemId && itemId === currentId) || (itemNumRiga && itemNumRiga === currentId) ||
+                      (itemId && itemId === currentNumRiga) || (itemNumRiga && itemNumRiga === currentNumRiga);
+    return !isCurrent;
+  });
+});
+
+const vaiAdEsercizioCollegato = (id) => {
+  vibraTattile(12);
+  router.replace({ name: 'DettaglioWorkout', params: { id } });
+};
 
 // Campi Modificabili
 const inputSettimane = ref({
@@ -501,7 +670,7 @@ watch(modalitaSettimane, (nuovoValore) => {
   localStorage.setItem('modalitaSettimane', nuovoValore);
 });
 
-const mostraAltreDinamica = ref(false);
+const mostraAltreDinamica = ref(true);
 const toggleAltreDinamiche = () => {
   vibraTattile(10);
   mostraAltreDinamica.value = !mostraAltreDinamica.value;
@@ -646,15 +815,23 @@ const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desG
       const d = doc.data();
       const riga = parseInt(d.num_riga_giorno) || 0;
       if (riga > 0) { // Saltiamo la riga 0
-        temp.push({ id: doc.id, riga });
+        temp.push({ id: doc.id, riga, ...d });
       }
     });
     
     // Ordiniamo per riga
     temp.sort((a, b) => a.riga - b.riga);
     
+    tuttiEserciziGiorno.value = temp;
     listaIdEsercizi.value = temp.map(item => item.id);
-    indexCorrente.value = listaIdEsercizi.value.indexOf(routeIdLocal.value);
+    
+    // Ricerca robusta dell'indice per lo swipe touch
+    indexCorrente.value = temp.findIndex(item => {
+      const itemId = String(item.id || '');
+      const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
+      const currentId = String(routeIdLocal.value || '');
+      return itemId === currentId || itemNumRiga === currentId;
+    });
   } catch (error) {
     console.error("Errore caricamento lista esercizi per swipe:", error);
   }
@@ -811,8 +988,16 @@ const caricaEsercizioDaBackup = async () => {
           parseInt(item.num_riga_giorno) > 0
         );
         filtratiEsercizi.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
+        tuttiEserciziGiorno.value = filtratiEsercizi;
         listaIdEsercizi.value = filtratiEsercizi.map(item => item.id);
-        indexCorrente.value = listaIdEsercizi.value.indexOf(routeIdLocal.value);
+        
+        // Ricerca robusta dell'indice per lo swipe touch
+        indexCorrente.value = filtratiEsercizi.findIndex(item => {
+          const itemId = String(item.id || '');
+          const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
+          const currentId = String(routeIdLocal.value || '');
+          return itemId === currentId || itemNumRiga === currentId;
+        });
       }
     }
   } catch (errBackup) {
@@ -1174,5 +1359,43 @@ const tornaIndietro = () => {
 .clickable-timer-chip:hover {
   background: rgba(249, 115, 22, 0.2) !important;
   transform: translateY(-1px) scale(1.02);
+}
+
+/* Nuovi Stili Premium per Superserie in Dettaglio */
+.superset-detail-card {
+  background: rgba(249, 115, 22, 0.02) !important;
+  border: 1.5px solid rgba(249, 115, 22, 0.25) !important;
+  box-shadow: 0 8px 32px 0 rgba(249, 115, 22, 0.05) !important;
+}
+
+.border-superset {
+  border-left: 6px solid #ea580c !important;
+}
+
+.superset-connected-list {
+  background: rgba(15, 23, 42, 0.4) !important;
+}
+
+.connected-exercise-item {
+  transition: background-color 0.2s ease;
+}
+
+.connected-exercise-item:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.connected-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Matite e label trasparenti per input carico settimanale */
+.custom-weight-input :deep(.v-label) {
+  opacity: 0.35 !important;
+  color: #cbd5e1 !important;
+  font-weight: 500 !important;
+}
+
+.custom-weight-input :deep(.v-field__outline) {
+  opacity: 0.45 !important;
 }
 </style>

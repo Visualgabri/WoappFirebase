@@ -30,7 +30,7 @@
       <v-card class="compact-header-card rounded-2xl pa-3 mb-4 card-glass border d-flex align-center" elevation="2">
         <div class="thumbnail-frame mr-3 rounded-xl overflow-hidden bg-black flex-shrink-0" style="width: 52px; height: 52px; border: 1px solid rgba(255,255,255,0.08);">
           <v-img
-            :src="getGifUrl(workout.UrlNormal) || 'https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png'"
+            :src="getGifUrl(workout.UrlNormal) || '/logo.png'"
             cover
             height="100%"
             width="100%"

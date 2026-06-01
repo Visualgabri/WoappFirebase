@@ -140,10 +140,25 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer } from './authStore.js';
 
 const router = useRouter();
+
+onMounted(() => {
+  // Gestione del tasto indietro fisico di Android per PWA Standalone
+  window.addEventListener('popstate', (event) => {
+    const routeName = router.currentRoute.value.name;
+    if (routeName === 'DettaglioWorkout' || routeName === 'DettaglioSessione') {
+      // Se non c'è una rotta precedente nella cronologia della PWA,
+      // evitiamo che il browser esca e chiuda l'app, reindirizzandolo alla lista dei Workouts.
+      if (!window.history.state || !window.history.state.back) {
+        router.push('/');
+      }
+    }
+  });
+});
 
 // Micro-vibrazione tattile per smartphone (Haptic feedback)
 const vibraTattile = (ms = 8) => {

@@ -4,8 +4,8 @@
     <div class="dashboard-header mb-6 d-flex align-center justify-space-between animate-slide-down">
       <div class="d-flex align-center">
         <div class="profile-avatar-wrapper mr-4">
-          <v-avatar size="52" class="profile-avatar elevation-3">
-            <v-img src="https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png" alt="Profile"></v-img>
+          <v-avatar size="52" class="profile-avatar elevation-3 bg-transparent border-orange">
+            <v-img src="/logo.png" alt="WoApp Logo"></v-img>
           </v-avatar>
           <span class="active-dot"></span>
         </div>
@@ -494,7 +494,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet } from '../authStore.js';
+import { selectedAthlete, selectedSheet, getNomeAtleta } from '../authStore.js';
 
 const router = useRouter();
 
@@ -607,15 +607,23 @@ const caricaDatiScheda = async () => {
   atletaSelezionato.value = selectedAthlete.value;
   schedaSelezionata.value = selectedSheet.value;
 
-  // Carica i dettagli dall'utente / sessione
-  nomeAtleta.value = 'Gabriele Belmonte';
+  // Carica il nome reale dell'atleta dalla mappa CLIENTI statica, altrimenti fallback su UTENTI
+  const nomeMappato = getNomeAtleta(selectedAthlete.value);
+  if (nomeMappato) {
+    nomeAtleta.value = nomeMappato.toUpperCase();
+  } else {
+    nomeAtleta.value = 'GABRIELE BELMONTE';
+  }
+  
   try {
-    // Cerca l'atleta per estrarre il nome effettivo
+    // Cerca l'atleta per estrarre il nome effettivo (solo se non era presente in anagrafica statica)
     const qAtleta = query(collection(db, 'UTENTI'), where('ID_cliente', '==', selectedAthlete.value));
     const snapAtleta = await getDocs(qAtleta);
     snapAtleta.forEach(d => {
-      const email = d.data().email || '';
-      nomeAtleta.value = email.split('@')[0].toUpperCase();
+      if (!nomeMappato) {
+        const email = d.data().email || '';
+        nomeAtleta.value = email.split('@')[0].toUpperCase();
+      }
     });
 
     // Carica gli esercizi per estrarre i test, i video e le note

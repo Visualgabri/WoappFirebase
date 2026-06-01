@@ -3,8 +3,8 @@
     <!-- Header Premium con stile AppSheet Evoluto (Coerente Dark Mode) -->
     <div class="premium-header card-glass rounded-2xl pa-4 mb-6 d-flex align-center justify-space-between elevation-2 border-bottom-soft">
       <div class="d-flex align-center">
-        <v-avatar size="44" class="mr-3 bg-white elevation-1 profile-avatar">
-          <v-img src="https://visualgabri.github.io/Esercizi/WoApp/Immagini/A.png" alt="Superman G"></v-img>
+        <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1 profile-avatar">
+          <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
         <div class="text-left">
           <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight leading-tight">Ricerca Wo</h1>
@@ -16,169 +16,250 @@
       </div>
     </div>
 
-    <!-- Sezione di Selezione Atleta (Mostrata solo se Coach, se Atleta è bloccata) -->
-    <v-card class="premium-card rounded-2xl pa-5 mb-6 text-left border" elevation="2">
-      <div class="d-flex align-center mb-4">
-        <v-avatar color="orange-lighten-5" size="44" class="mr-3 bg-slate-900-op border-soft">
-          <v-icon color="orange-darken-3">mdi-account-search</v-icon>
-        </v-avatar>
-        <div class="text-left">
-          <div class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">SceltaNomeCognome *</div>
-          <h3 v-if="ruolo === 'atleta'" class="text-h6 font-weight-black text-slate-dark">Atleta Corrente</h3>
-          <h3 v-else class="text-h6 font-weight-black text-slate-dark">Seleziona Atleta</h3>
-        </div>
-      </div>
+    <!-- GUIDED STEPS FLOW -->
+    <div class="steps-flow-container">
 
-      <!-- Autocomplete Atleta per il Coach -->
-      <v-autocomplete
-        v-if="ruolo === 'coach'"
-        v-model="atletaSelezionato"
-        :items="listaAtleti"
-        label="Scegli Atleta..."
-        variant="outlined"
-        rounded="lg"
-        color="orange-darken-3"
-        prepend-inner-icon="mdi-account"
-        class="search-autocomplete-field"
-        hide-details
-        @update:model-value="gestisciCambioAtleta"
-        id="atleta-dropdown"
-      ></v-autocomplete>
-      
-      <!-- Box bloccato per l'Atleta loggato -->
-      <div v-else class="pa-4 rounded-xl bg-orange-darken-3-op border-orange d-flex align-center justify-space-between">
-        <div class="d-flex align-center">
-          <v-icon color="orange" class="mr-2.5">mdi-account-check</v-icon>
-          <span class="font-weight-black text-slate-dark text-body-1">{{ utente?.email }}</span>
+      <!-- STEP 1: SELEZIONE ATLETA -->
+      <v-card class="premium-card rounded-2xl pa-5 mb-5 text-left border position-relative" elevation="2">
+        <div class="d-flex align-start mb-4">
+          <!-- Circular Step Badge -->
+          <div class="step-badge mr-3 flex-shrink-0">01</div>
+          <div class="text-left">
+            <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Passo Uno</span>
+            <h3 v-if="ruolo === 'atleta'" class="text-h6 font-weight-black text-slate-dark leading-tight mt-0.5">Atleta Connesso</h3>
+            <h3 v-else class="text-h6 font-weight-black text-slate-dark leading-tight mt-0.5">Seleziona Atleta</h3>
+          </div>
         </div>
-        <v-chip color="orange-darken-3" size="small" class="font-weight-black">ID: {{ idCliente }}</v-chip>
-      </div>
-    </v-card>
 
-    <!-- Bottone ULTIMA SCHEDA (Premium Orange) -->
-    <div v-if="atletaSelezionato" class="d-flex justify-center mb-6 w-100">
-      <v-btn
-        color="orange-darken-3"
-        size="large"
-        block
-        rounded="xl"
-        class="font-weight-black text-none py-3 text-white glowing-btn animate-pulse-slow"
-        @click="selezionaUltimaScheda"
-        :disabled="listaSchede.length === 0"
-        id="btn-ultima-scheda"
+        <!-- Autocomplete Atleta per il Coach -->
+        <v-autocomplete
+          v-if="ruolo === 'coach'"
+          v-model="atletaSelezionato"
+          :items="itemsAtleti"
+          item-title="title"
+          item-value="value"
+          label="Scegli Atleta..."
+          variant="outlined"
+          rounded="lg"
+          color="orange-darken-3"
+          prepend-inner-icon="mdi-account"
+          class="search-autocomplete-field"
+          hide-details
+          @update:model-value="gestisciCambioAtleta"
+          id="atleta-dropdown"
+        ></v-autocomplete>
+        
+        <!-- Box bloccato per l'Atleta loggato -->
+        <div v-else class="pa-4 rounded-xl bg-orange-darken-3-op border-orange d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-icon color="orange" class="mr-2.5">mdi-account-check</v-icon>
+            <span class="font-weight-black text-slate-dark text-body-1">{{ utente?.email }}</span>
+          </div>
+          <v-chip color="orange-darken-3" size="small" class="font-weight-black">ID: {{ idCliente }}</v-chip>
+        </div>
+
+        <!-- Riepilogo Anagrafica Atleta (Premium Glassmorphic Grid) -->
+        <div v-if="atletaSelezionato" class="mt-4 pa-4 rounded-xl border border-orange-darken-3-op card-glass position-relative overflow-hidden">
+          <!-- Subtle backglow decoration -->
+          <div class="decor-glow"></div>
+          
+          <div class="d-flex align-center justify-space-between mb-3 position-relative" style="z-index: 2;">
+            <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Riepilogo Anagrafica Atleta</span>
+            <v-chip 
+              :color="isAtletaObsoleto(atletaSelezionato) ? 'red-darken-3' : 'green-darken-3'"
+              size="x-small" 
+              class="font-weight-black px-2.5 uppercase text-white"
+              variant="flat"
+            >
+              {{ isAtletaObsoleto(atletaSelezionato) ? 'Obsoleto' : 'Attivo' }}
+            </v-chip>
+          </div>
+
+          <div class="position-relative text-left" style="z-index: 2;">
+            <!-- Nome ed Email -->
+            <div class="d-flex align-center mb-3">
+              <v-avatar size="36" color="orange-darken-4" class="mr-3 border-orange text-white font-weight-black">
+                {{ getNomeAtleta(atletaSelezionato) ? getNomeAtleta(atletaSelezionato).charAt(0).toUpperCase() : 'A' }}
+              </v-avatar>
+              <div class="text-left">
+                <div class="text-body-1 font-weight-black text-slate-dark leading-none">
+                  {{ getNomeAtleta(atletaSelezionato) || 'Atleta Sconosciuto' }}
+                </div>
+                <div class="text-caption text-muted mt-1.5 d-flex align-center gap-1">
+                  <v-icon size="12" class="mr-1">mdi-email-outline</v-icon>
+                  {{ getEmailAtleta(atletaSelezionato) || 'Nessuna email' }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Griglia Parametri -->
+            <v-row dense class="mt-2 border-top-soft pt-2">
+              <v-col cols="6" class="border-right-soft">
+                <div class="text-center py-1">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.6rem;">Scheda Default</span>
+                  <span class="text-body-2 font-weight-black text-orange-lighten-1 mt-0.5 d-inline-block">
+                    Scheda {{ getSchedaSelezionataAtleta(atletaSelezionato) || 'N/D' }}
+                  </span>
+                </div>
+              </v-col>
+              <v-col cols="6">
+                <div class="text-center py-1">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.6rem;">Stile Dettagli</span>
+                  <span class="text-body-2 font-weight-black text-slate-dark d-flex align-center justify-center gap-1 mt-0.5">
+                    <v-icon size="14" :color="getVistaDettagliAtleta(atletaSelezionato) ? 'orange' : 'grey'" class="mr-0.5">
+                      {{ getVistaDettagliAtleta(atletaSelezionato) ? 'mdi-eye-outline' : 'mdi-eye-off-outline' }}
+                    </v-icon>
+                    {{ getVistaDettagliAtleta(atletaSelezionato) ? 'Dettagliata' : 'Semplice' }}
+                  </span>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+        </div>
+      </v-card>
+
+      <!-- STEP 2: SELEZIONE SCHEDA (MESOCICLO) -->
+      <v-card 
+        class="premium-card rounded-2xl pa-5 mb-5 text-left border position-relative transition-all" 
+        :class="{ 'locked-card-state': !atletaSelezionato }"
+        elevation="2"
       >
-        <v-icon left class="mr-2">mdi-skip-next</v-icon>
-        ULTIMA SCHEDA DISPONIBILE
-      </v-btn>
+        <!-- Overlay di blocco se atleta non selezionato -->
+        <div v-if="!atletaSelezionato" class="locked-card-overlay d-flex flex-column align-center justify-center text-center pa-6">
+          <v-icon size="36" color="grey" class="mb-2">mdi-lock-outline</v-icon>
+          <span class="text-caption font-weight-bold text-muted">Seleziona prima l'atleta al Passo 1 per sbloccare le schede</span>
+        </div>
+
+        <div v-else class="w-100">
+          <div class="d-flex align-start mb-4">
+            <div class="step-badge mr-3 flex-shrink-0">02</div>
+            <div class="text-left flex-grow-1">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Passo Due</span>
+              <h3 class="text-h6 font-weight-black text-slate-dark leading-tight mt-0.5">Scegli Scheda</h3>
+            </div>
+            <!-- Bottone Ultima Scheda a fianco o sopra -->
+            <v-btn
+              color="orange-darken-3"
+              size="x-small"
+              class="font-weight-black text-none py-1.5 px-3 rounded-lg text-white glowing-btn"
+              @click="selezionaUltimaScheda"
+              :disabled="listaSchede.length === 0"
+              id="btn-ultima-scheda-small"
+            >
+              <v-icon size="12" class="mr-1">mdi-skip-next</v-icon>
+              ULTIMA SCHEDA
+            </v-btn>
+          </div>
+
+          <div v-if="caricamentoSchede" class="text-center my-6">
+            <v-progress-circular indeterminate color="orange" size="32"></v-progress-circular>
+            <p class="mt-2 text-caption text-muted">Caricamento schede disponibili...</p>
+          </div>
+
+          <div v-else-if="listaSchede.length === 0" class="text-center my-6 py-6 border-dashed rounded-xl">
+            <v-icon color="grey-lighten-1" size="36" class="mb-2">mdi-clipboard-alert-outline</v-icon>
+            <p class="text-caption text-muted px-4 leading-tight">Nessuna scheda trovata per questo atleta.</p>
+          </div>
+
+          <!-- Griglia pulsanti quadrati premium -->
+          <div v-else class="scheda-grid">
+            <button
+              v-for="scheda in listaSchede"
+              :key="scheda"
+              class="scheda-grid-btn"
+              :class="{ 'scheda-grid-btn-active': schedaSelezionata === scheda }"
+              @click="gestisciSelezioneScheda(scheda)"
+              :id="'btn-scheda-' + scheda"
+            >
+              <div class="d-flex flex-column align-center">
+                <span class="font-weight-black" style="font-size: 1.25rem;">{{ scheda }}</span>
+                <span class="text-super-caption uppercase opacity-75 mt-0.5" style="font-size: 0.52rem; font-weight: 700;">Scheda</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </v-card>
+
+      <!-- STEP 3: ANTEPRIMA ALLENAMENTI & AVVIO -->
+      <v-card 
+        class="premium-card rounded-2xl pa-5 mb-6 text-left border position-relative transition-all" 
+        :class="{ 'locked-card-state': !schedaSelezionata }"
+        elevation="2"
+      >
+        <!-- Overlay di blocco se scheda non selezionata -->
+        <div v-if="!schedaSelezionata" class="locked-card-overlay d-flex flex-column align-center justify-center text-center pa-6">
+          <v-icon size="36" color="grey" class="mb-2">mdi-lock-outline</v-icon>
+          <span class="text-caption font-weight-bold text-muted">Scegli una scheda al Passo 2 per vedere l'anteprima e iniziare</span>
+        </div>
+
+        <div v-else class="w-100">
+          <div class="d-flex align-start mb-4">
+            <div class="step-badge mr-3 flex-shrink-0">03</div>
+            <div class="text-left">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Passo Tre</span>
+              <h3 class="text-h6 font-weight-black text-slate-dark leading-tight mt-0.5">Anteprima Allenamenti</h3>
+            </div>
+          </div>
+
+          <!-- Stato di caricamento preview -->
+          <div v-if="caricamentoPreview" class="text-center my-6">
+            <v-progress-circular indeterminate color="orange" size="32"></v-progress-circular>
+            <p class="mt-2 text-caption text-muted">Generazione anteprima scheda...</p>
+          </div>
+
+          <!-- Lista preview dei giorni -->
+          <div v-else-if="giorniPreview.length > 0" class="preview-days-stacked mb-5">
+            <div 
+              v-for="g in giorniPreview" 
+              :key="g.giorno" 
+              class="preview-day-card d-flex align-center pa-3 mb-3 rounded-xl border-soft bg-slate-900-op"
+            >
+              <div class="day-letter-badge mr-3">{{ g.giorno }}</div>
+              <div class="flex-grow-1 min-width-0">
+                <h4 class="text-body-2 font-weight-black text-slate-dark text-truncate leading-tight">
+                  Focus: {{ getFocusGiorno(g.exercises) }}
+                </h4>
+                <span class="text-super-caption text-muted font-weight-bold uppercase" style="font-size: 0.6rem;">
+                  {{ g.exercises.length }} esercizi configurati
+                </span>
+              </div>
+              <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black">
+                Giorno {{ g.giorno }}
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- Bottone di Avvio Scheda Primario Gigante e Glowing -->
+          <div class="mt-2 w-100">
+            <v-btn
+              color="orange-darken-3"
+              block
+              size="x-large"
+              rounded="xl"
+              class="font-weight-black text-none py-4 text-white glowing-btn-giant animate-pulse-slow"
+              @click="navigaAiWorkouts"
+              id="btn-spazio-workouts"
+            >
+              <v-icon size="22" class="mr-2">mdi-dumbbell</v-icon>
+              APRI SCHEDA WORKOUTS 🏋️
+            </v-btn>
+          </div>
+        </div>
+      </v-card>
+
     </div>
 
-    <!-- Griglia dei Numeri Scheda (Scegli scheda * stile AppSheet) -->
-    <v-card v-if="atletaSelezionato" class="premium-card rounded-2xl pa-5 mb-6 text-left border" elevation="2">
-      <div class="text-subtitle-2 font-weight-black text-slate-dark mb-4 d-flex align-center">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-grid-large</v-icon>
-        Scegli scheda *
-      </div>
-
-      <div v-if="caricamentoSchede" class="text-center my-6">
-        <v-progress-circular indeterminate color="orange" size="40"></v-progress-circular>
-        <p class="mt-2 text-caption text-muted">Caricamento schede disponibili...</p>
-      </div>
-
-      <div v-else-if="listaSchede.length === 0" class="text-center my-6 py-8">
-        <v-icon color="grey-lighten-1" size="48">mdi-clipboard-alert-outline</v-icon>
-        <p class="mt-2 text-caption text-muted">Nessuna scheda trovata per questo atleta.</p>
-      </div>
-
-      <!-- Griglia pulsanti quadrati premium -->
-      <div v-else class="scheda-grid">
-        <button
-          v-for="scheda in listaSchede"
-          :key="scheda"
-          class="scheda-grid-btn"
-          :class="{ 'scheda-grid-btn-active': schedaSelezionata === scheda }"
-          @click="gestisciSelezioneScheda(scheda)"
-          :id="'btn-scheda-' + scheda"
-        >
-          <div class="d-flex flex-column align-center">
-            <span class="font-weight-black" style="font-size: 1.2rem;">{{ scheda }}</span>
-            <span class="text-super-caption uppercase opacity-75 mt-0.5" style="font-size: 0.52rem; font-weight: 700;">Scheda</span>
-          </div>
-        </button>
-      </div>
-    </v-card>
-
-    <!-- Info email di riferimento dell'atleta loggato -->
-    <v-card v-if="atletaSelezionato" class="premium-card rounded-2xl pa-4 text-left border" elevation="1">
-      <div class="text-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">des_emailRef</div>
-      <div class="text-body-1 font-weight-black text-slate-dark d-flex align-center mt-1">
-        <v-icon size="18" color="orange" class="mr-2">mdi-email-outline</v-icon>
-        {{ emailRiferimento || 'Nessuna mail di riferimento' }}
-      </div>
-    </v-card>
-
-    <!-- Nuova Barra Azioni Navigazione a Fondo Pagina (Altamente Intuitiva) -->
-    <v-row dense v-if="schedaSelezionata" class="mt-6 gap-3 justify-space-between">
-      <v-col cols="6" class="flex-grow-1">
-        <v-btn
-          color="blue-darken-3"
-          block
-          size="large"
-          rounded="xl"
-          class="font-weight-black text-none py-3 text-white glowing-btn-blue"
-          @click="navigaAiWorkouts"
-        >
-          <v-icon size="18" class="mr-2">mdi-dumbbell</v-icon>
-          Vedi Esercizi
-        </v-btn>
-      </v-col>
-      <v-col cols="6" class="flex-grow-1">
-        <v-btn
-          color="orange-darken-3"
-          block
-          size="large"
-          rounded="xl"
-          class="font-weight-black text-none py-3 text-white glowing-btn"
-          @click="navigaAllaHome"
-        >
-          <v-icon size="18" class="mr-2">mdi-home-outline</v-icon>
-          Vai alla Home
-        </v-btn>
-      </v-col>
-    </v-row>
-
-    <!-- Pulsanti Fluttuanti FAB in stile AppSheet (Stilizzati Glassmorphic) -->
-    <div class="fab-container d-sm-none">
-      <v-btn
-        color="orange-darken-3"
-        icon
-        size="large"
-        elevation="6"
-        class="fab-btn mb-3"
-        @click="navigaAiWorkouts"
-        :disabled="!schedaSelezionata"
-        id="fab-eye"
-      >
-        <v-icon size="28">mdi-eye</v-icon>
-      </v-btn>
-
-      <v-btn
-        color="orange-darken-3"
-        icon
-        size="large"
-        elevation="6"
-        class="fab-btn"
-        @click="navigaAllaHome"
-        :disabled="!schedaSelezionata"
-        id="fab-smiley"
-      >
-        <v-icon size="28">mdi-emoticon-outline</v-icon>
-      </v-btn>
+    <!-- Info Coach & email di riferimento in basso, discreta e premium -->
+    <div v-if="atletaSelezionato && emailRiferimento" class="text-center mt-6 opacity-60">
+      <span class="text-super-caption text-muted font-weight-bold uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+        Coach di riferimento: <span class="text-orange-lighten-2 font-weight-black">{{ emailRiferimento }}</span>
+      </span>
     </div>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -189,7 +270,12 @@ import {
   selectedAthlete, 
   selectedSheet,
   setSelectedAthlete,
-  setSelectedSheet
+  setSelectedSheet,
+  getNomeAtleta,
+  getEmailAtleta,
+  isAtletaObsoleto,
+  getSchedaSelezionataAtleta,
+  getVistaDettagliAtleta
 } from '../authStore.js';
 
 const router = useRouter();
@@ -200,10 +286,50 @@ const atletaSelezionato = ref(selectedAthlete.value || null);
 const schedaSelezionata = ref(selectedSheet.value || null);
 const listaSchede = ref([]);
 const emailRiferimento = ref('');
+const eserciziDellaScheda = ref([]);
 
-// Loading state
+// Loading states
 const caricamentoAtleti = ref(true);
 const caricamentoSchede = ref(false);
+const caricamentoPreview = ref(false);
+
+// Computed property per mappare la lista ID atleti a nomi reali leggibili per l'autocomplete
+const itemsAtleti = computed(() => {
+  return listaAtleti.value.map(id => {
+    const nome = getNomeAtleta(id);
+    return {
+      title: nome ? `${nome} (ID: ${id})` : `Atleta ID: ${id}`,
+      value: id
+    };
+  });
+});
+
+// Computed property per raggruppare gli esercizi per giorno in anteprima
+const giorniPreview = computed(() => {
+  if (eserciziDellaScheda.value.length === 0) return [];
+  
+  const giorniMap = {};
+  eserciziDellaScheda.value.forEach(ex => {
+    const giorno = (ex.des_giorno || '').trim().toUpperCase();
+    if (!giorno) return;
+    
+    const rigaGiorno = parseInt(ex.num_riga_giorno) || 0;
+    if (rigaGiorno === 0) {
+      if (!giorniMap[giorno]) {
+        giorniMap[giorno] = { giorno, titolo: ex.des_esercizio, exercises: [] };
+      } else {
+        giorniMap[giorno].titolo = ex.des_esercizio;
+      }
+    } else {
+      if (!giorniMap[giorno]) {
+        giorniMap[giorno] = { giorno, titolo: `Allenamento Giorno ${giorno}`, exercises: [] };
+      }
+      giorniMap[giorno].exercises.push(ex);
+    }
+  });
+  
+  return Object.values(giorniMap).sort((a, b) => a.giorno.localeCompare(b.giorno));
+});
 
 // Carica la lista degli atleti all'avvio
 const caricaDatiAtleti = async () => {
@@ -216,7 +342,6 @@ const caricaDatiAtleti = async () => {
       listaAtleti.value = docSnap.data().lista || [];
     }
 
-    // Se è un atleta loggato, blocca la selezione a se stesso
     if (ruolo.value === 'atleta') {
       atletaSelezionato.value = idCliente.value;
       setSelectedAthlete(idCliente.value);
@@ -257,11 +382,8 @@ const caricaSchedeAtleta = async () => {
       }
     });
 
-    // Ordina numericamente
     listaSchede.value = Array.from(schedeSet).sort((a, b) => Number(a) - Number(b));
 
-    // Se c'è una scheda globale selezionata e fa parte di questa lista, mantienila.
-    // Altrimenti, seleziona l'ultima disponibile per default.
     if (selectedSheet.value && listaSchede.value.includes(selectedSheet.value)) {
       schedaSelezionata.value = selectedSheet.value;
     } else if (listaSchede.value.length > 0) {
@@ -304,13 +426,56 @@ const caricaSchedeAtleta = async () => {
   }
 };
 
+// Carica la preview di tutti gli allenamenti della scheda per lo Step 3
+const caricaPreviewScheda = async () => {
+  if (!atletaSelezionato.value || !schedaSelezionata.value) {
+    eserciziDellaScheda.value = [];
+    return;
+  }
+  
+  caricamentoPreview.value = true;
+  try {
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where('ID_cliente', '==', atletaSelezionato.value),
+      where('num_scheda', '==', String(schedaSelezionata.value))
+    );
+    const snap = await getDocs(q);
+    let temp = [];
+    snap.forEach(doc => {
+      temp.push({ id: doc.id, ...doc.data() });
+    });
+    
+    if (temp.length === 0) {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      temp = allData.filter(
+        item => String(item.ID_cliente) === String(atletaSelezionato.value) &&
+        String(item.num_scheda) === String(schedaSelezionata.value)
+      );
+    }
+    eserciziDellaScheda.value = temp;
+  } catch (err) {
+    console.warn("Errore caricamento preview, carico da backup:", err);
+    try {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      eserciziDellaScheda.value = allData.filter(
+        item => String(item.ID_cliente) === String(atletaSelezionato.value) &&
+        String(item.num_scheda) === String(schedaSelezionata.value)
+      );
+    } catch (e) {}
+  } finally {
+    caricamentoPreview.value = false;
+  }
+};
+
 // Carica email di riferimento da UTENTI
 const caricaEmailRiferimento = async () => {
   if (!atletaSelezionato.value) return;
   emailRiferimento.value = '';
 
   try {
-    // Cerchiamo nella collezione UTENTI se c'è un atleta con questo ID
     const q = query(
       collection(db, 'UTENTI'),
       where('ID_cliente', '==', atletaSelezionato.value)
@@ -321,7 +486,6 @@ const caricaEmailRiferimento = async () => {
       emailRiferimento.value = doc.data().email || '';
     });
 
-    // Fallback su sessione se siamo l'atleta loggato
     if (!emailRiferimento.value && atletaSelezionato.value === idCliente.value) {
       emailRiferimento.value = utente.value?.email || '';
     }
@@ -330,7 +494,7 @@ const caricaEmailRiferimento = async () => {
   }
 };
 
-// Micro-vibrazione tattile per smartphone (Haptic feedback)
+// Micro-vibrazione tattile per smartphone
 const vibraTattile = (ms = 12) => {
   if (navigator.vibrate) {
     navigator.vibrate(ms);
@@ -345,6 +509,7 @@ const gestisciCambioAtleta = async () => {
     setSelectedSheet('');
     schedaSelezionata.value = null;
     listaSchede.value = [];
+    eserciziDellaScheda.value = [];
     return;
   }
 
@@ -366,19 +531,53 @@ const selezionaUltimaScheda = () => {
 // Gestisce la scelta manuale della scheda nella griglia
 const gestisciSelezioneScheda = (scheda) => {
   vibraTattile(12);
-  schedaSelezionata.value = { value: scheda }.value; // Assicura slegamento reattivo
+  schedaSelezionata.value = { value: scheda }.value;
   setSelectedSheet(scheda);
 };
 
-// Navigazione
-const navigaAiWorkouts = () => {
-  vibraTattile(10);
-  router.push('/');
+// Mappa l'anagrafica muscolare per visualizzare focus premium
+const getFocusGiorno = (exercises) => {
+  const sectors = exercises.map(e => e.des_settore).filter(Boolean);
+  if (sectors.length === 0) return 'Corpo Libero';
+  
+  const counts = {};
+  sectors.forEach(s => {
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  
+  const sorted = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  
+  const humanize = (s) => {
+    const map = {
+      'PectoralSternal': 'Petto Basso',
+      'BackGeneral': 'Dorsali',
+      'Obliques': 'Obliqui',
+      'Ischiocrurali': 'Femorali',
+      'PectoralClavicular': 'Petto Alto',
+      'DeltoidPosterior': 'Deltoidi Post.',
+      'Triceps': 'Tricipiti',
+      'Quadriceps': 'Quadricipiti',
+      'GluteusMaximus': 'Glutei',
+      'DeltoidLateral': 'Deltoidi Lat.',
+      'DeltoidAnterior': 'Deltoidi Ant.',
+      'LatissimusDorsi': 'Dorsali Lat',
+      'Biceps': 'Bicipiti'
+    };
+    return map[s] || s;
+  };
+  
+  return sorted.slice(0, 2).map(humanize).join(' & ');
 };
 
-const navigaAllaHome = () => {
-  vibraTattile(10);
-  router.push('/home');
+// Monitora se cambia la combinazione atleta/scheda per ricaricare l'anteprima Step 3
+watch([atletaSelezionato, schedaSelezionata], () => {
+  caricaPreviewScheda();
+}, { immediate: true });
+
+// Navigazione
+const navigaAiWorkouts = () => {
+  vibraTattile(15);
+  router.push('/');
 };
 </script>
 
@@ -386,6 +585,25 @@ const navigaAllaHome = () => {
 .max-width-container {
   max-width: 600px;
   margin: 0 auto;
+}
+
+.border-right-soft {
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.border-top-soft {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.decor-glow {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0) 70%);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .min-height-screen {
@@ -446,6 +664,41 @@ const navigaAllaHome = () => {
   background: rgba(15, 23, 42, 0.6) !important;
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Stile Step guided badges */
+.step-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.9rem;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
+}
+
+/* Stato bloccato per i passaggi successivi */
+.locked-card-state {
+  opacity: 0.38;
+  pointer-events: none;
+  filter: grayscale(80%) blur(0.5px);
+  transform: scale(0.98);
+}
+
+.locked-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: inherit;
 }
 
 /* Griglia pulsanti scheda */
@@ -487,62 +740,54 @@ const navigaAllaHome = () => {
   transform: scale(1.04);
 }
 
+/* Anteprime dei giorni */
+.preview-day-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 4px solid #ea580c !important;
+  transition: background-color 0.2s ease;
+}
+
+.preview-day-card:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.day-letter-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  color: #fb923c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
 /* Glowing buttons */
 .glowing-btn {
-  box-shadow: 0 8px 25px -5px rgba(249, 115, 22, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
   transition: all 0.2s ease !important;
 }
 
-.glowing-btn:hover {
+.glowing-btn-giant {
+  box-shadow: 0 8px 30px -4px rgba(249, 115, 22, 0.5) !important;
+  transition: all 0.25s ease !important;
+}
+
+.glowing-btn-giant:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px -5px rgba(249, 115, 22, 0.55) !important;
+  box-shadow: 0 12px 35px -2px rgba(249, 115, 22, 0.65) !important;
 }
 
-.glowing-btn:active {
-  transform: scale(0.96);
-}
-
-.glowing-btn-blue {
-  box-shadow: 0 8px 25px -5px rgba(37, 99, 235, 0.4) !important;
-  transition: all 0.2s ease !important;
-}
-
-.glowing-btn-blue:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -5px rgba(37, 99, 235, 0.55) !important;
-}
-
-.glowing-btn-blue:active {
-  transform: scale(0.96);
+.glowing-btn-giant:active {
+  transform: scale(0.97);
 }
 
 /* Autocomplete field custom styling */
 .search-autocomplete-field :deep(.v-field) {
   background: rgba(0, 0, 0, 0.2) !important;
-}
-
-/* FABs modern glassmorphic */
-.fab-container {
-  position: fixed;
-  bottom: 84px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  z-index: 99;
-}
-
-.fab-btn {
-  background: rgba(15, 23, 42, 0.75) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(249, 115, 22, 0.3) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.fab-btn:hover {
-  transform: scale(1.1) translateY(-2px);
-  border-color: #f97316 !important;
-  box-shadow: 0 10px 35px rgba(249, 115, 22, 0.3) !important;
 }
 
 .animate-pulse-slow {

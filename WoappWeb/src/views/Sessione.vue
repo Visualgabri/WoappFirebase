@@ -131,8 +131,18 @@
         <!-- Interruttore Completamento Rapido (Sotto le Settimane per massima intuitività) -->
         <div class="d-flex align-center justify-space-between pa-3 rounded-xl card-glass border border-soft mt-1">
           <div class="text-left">
-            <span class="text-body-2 font-weight-black text-slate-dark d-block">
-              Marca W{{ selectedWeek }} come Completata
+            <span class="text-body-2 font-weight-black text-slate-dark d-flex align-center flex-wrap gap-1.5">
+              <span>Marca W{{ selectedWeek }} come Completata</span>
+              <v-chip
+                v-if="mostraPromemoriaChiusura"
+                size="x-small"
+                color="amber-darken-3"
+                class="font-weight-black px-1.5 animate-pulse text-white elevation-1 ml-1.5"
+                variant="flat"
+                style="font-size: 0.58rem; height: 18px;"
+              >
+                ⚠️ SETTIMANA DA CHIUDERE
+              </v-chip>
             </span>
             <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
               {{ isWeekCompleted(selectedWeek) ? 'Ottimo lavoro! Settimana completata ✓' : 'Attiva per chiudere l\'allenamento di questa settimana' }}
@@ -503,6 +513,32 @@ const caricaDatiDaBackup = async () => {
     const found = allData.find(item => String(item.id) === String(routeId) || String(item.num_riga) === String(routeId));
     if (found) {
       workout.value = applicaModificheLocali(found);
+      
+      // Carica tutti gli esercizi dello stesso atleta e scheda dal backup per l'auto-rilevamento
+      const rawExercises = allData.filter(
+        item => String(item.ID_cliente) === String(workout.value.ID_cliente) && 
+                String(item.num_scheda) === String(workout.value.num_scheda)
+      );
+      const tempExercises = rawExercises.map(applicaModificheLocali);
+      
+      let tempFilmati = [];
+      let tempTest = [];
+      tempExercises.forEach(data => {
+        if (data.flg_video === 'true') {
+          tempFilmati.push(data);
+        }
+        const qta = (data.des_qta_report || '').toLowerCase();
+        if (qta.includes('amrap') || qta.includes('test') || qta.includes('ramp')) {
+          tempTest.push(data);
+        }
+      });
+      
+      allExercises.value = tempExercises;
+      filmatiList.value = tempFilmati;
+      countFilmati.value = tempFilmati.length;
+      testList.value = tempTest;
+      countTest.value = tempTest.length;
+
       selectedWeek.value = activeUncompletedWeek.value;
     }
   } catch (errBackup) {
@@ -533,6 +569,33 @@ const activeUncompletedWeek = computed(() => {
     }
   }
   return 6;
+});
+
+// Ottieni gli esercizi del giorno corrente
+const eserciziDelGiorno = computed(() => {
+  if (!workout.value || !allExercises.value || allExercises.value.length === 0) return [];
+  const giorno = (workout.value.des_giorno || '').trim();
+  return allExercises.value.filter(
+    item => (item.des_giorno || '').trim() === giorno && parseInt(item.num_riga_giorno) > 0
+  );
+});
+
+// Verifica se tutti gli esercizi del giorno sono compilati per la settimana selezionata
+const tuttiEserciziCompilatiGiorno = computed(() => {
+  if (eserciziDelGiorno.value.length === 0) return false;
+  const w = selectedWeek.value;
+  return eserciziDelGiorno.value.every(ex => {
+    const val = ex['ins_week' + w];
+    return val && val.trim() !== '';
+  });
+});
+
+// Mostra il promemoria "Settimana da chiudere" nella sessione di allenamento
+const mostraPromemoriaChiusura = computed(() => {
+  if (!workout.value) return false;
+  const w = selectedWeek.value;
+  const isChiusa = isWeekCompleted(w);
+  return !isChiusa && tuttiEserciziCompilatiGiorno.value;
 });
 
 // Controlla se la settimana w è completata

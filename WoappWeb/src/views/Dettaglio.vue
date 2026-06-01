@@ -762,6 +762,25 @@ const vibraTattile = (ms = 12) => {
   }
 };
 
+// Helper per applicare le modifiche salvate offline nel localStorage
+const applicaModificheLocali = (item) => {
+  if (!item) return item;
+  const key1 = `offline_storyboard_${item.id}`;
+  const key2 = `offline_storyboard_${item.num_riga}`;
+  const localData1 = localStorage.getItem(key1);
+  const localData2 = localStorage.getItem(key2);
+  
+  let updates = {};
+  if (localData1) {
+    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+  }
+  if (localData2) {
+    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+  }
+  
+  return { ...item, ...updates };
+};
+
 // I campi ins sono puramente testuali ed i reps sono gestiti internamente al database, per cui non usiamo incrementatori o pulsanti.
 
 // Carica riga 0 della sessione del giorno per ottenere il completamento delle settimane (cmp1-cmp6)
@@ -779,7 +798,7 @@ const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
       const d = doc.data();
       const numRiga = parseInt(d.num_riga_giorno);
       if (numRiga === 0) {
-        riga0.value = { id: doc.id, ...d };
+        riga0.value = applicaModificheLocali({ id: doc.id, ...d });
       }
     });
   } catch (error) {
@@ -800,6 +819,19 @@ watch(() => route.params.id, (nuovoId) => {
   }
 });
 
+// Watcher per allineare la settimana attiva del giorno non appena la riga 0 viene caricata
+watch(riga0, (nuovaRiga0) => {
+  if (nuovaRiga0) {
+    for (let w = 1; w <= 6; w++) {
+      if (nuovaRiga0['cmp' + w] !== 'true') {
+        settimanaAttiva.value = w;
+        return;
+      }
+    }
+    settimanaAttiva.value = 6; // Se tutte completate, propone l'ultima
+  }
+}, { immediate: true });
+
 const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
   try {
     const q = query(
@@ -815,7 +847,7 @@ const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desG
       const d = doc.data();
       const riga = parseInt(d.num_riga_giorno) || 0;
       if (riga > 0) { // Saltiamo la riga 0
-        temp.push({ id: doc.id, riga, ...d });
+        temp.push(applicaModificheLocali({ id: doc.id, riga, ...d }));
       }
     });
     
@@ -895,7 +927,7 @@ const caricaDatiEsercizio = async () => {
 
     if (docSnap.exists()) {
       const dati = docSnap.data();
-      workout.value = dati;
+      workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });
 
       // Recupera la settimana attiva impostata nella Home per l'atleta specifico
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || '\uFEFF"ID_cliente"';
@@ -923,13 +955,13 @@ const caricaDatiEsercizio = async () => {
 
       // Inizializza gli input settimanali
       for (let w = 1; w <= 6; w++) {
-        inputSettimane.value[w].ins = dati['ins_week' + w] || '';
-        inputSettimane.value[w].reps = dati['reps_week' + w] || '';
+        inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
+        inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
       }
       
-      noteAttrezzo.value = dati.des_note_attrezzo || '';
-      noteEsercizio.value = dati.ins_esercizio || '';
-      commentiAtleta.value = dati.des_commenti || '';
+      noteAttrezzo.value = workout.value.des_note_attrezzo || '';
+      noteEsercizio.value = workout.value.ins_esercizio || '';
+      commentiAtleta.value = workout.value.des_commenti || '';
 
       // Carica il completamento del giorno (Riga 0) ed elenco per swipe
       if (atletaId && dati.num_scheda && dati.des_giorno) {
@@ -954,19 +986,19 @@ const caricaEsercizioDaBackup = async () => {
     const allData = await res.json();
     const found = allData.find(item => String(item.id) === String(routeIdLocal.value) || String(item.num_riga) === String(routeIdLocal.value));
     if (found) {
-      workout.value = found;
+      workout.value = applicaModificheLocali(found);
       const keyIdCliente = Object.keys(found).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = found[keyIdCliente] || '';
       settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
 
       for (let w = 1; w <= 6; w++) {
-        inputSettimane.value[w].ins = found['ins_week' + w] || '';
-        inputSettimane.value[w].reps = found['reps_week' + w] || '';
+        inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
+        inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
       }
       
-      noteAttrezzo.value = found.des_note_attrezzo || '';
-      noteEsercizio.value = found.ins_esercizio || '';
-      commentiAtleta.value = found.des_commenti || '';
+      noteAttrezzo.value = workout.value.des_note_attrezzo || '';
+      noteEsercizio.value = workout.value.ins_esercizio || '';
+      commentiAtleta.value = workout.value.des_commenti || '';
 
       if (atletaId && found.num_scheda && found.des_giorno) {
         // Riga 0 locale da backup
@@ -977,7 +1009,7 @@ const caricaEsercizioDaBackup = async () => {
           parseInt(item.num_riga_giorno) === 0
         );
         if (riga0Trovata) {
-          riga0.value = riga0Trovata;
+          riga0.value = applicaModificheLocali(riga0Trovata);
         }
 
         // Lista per swipe da backup
@@ -987,9 +1019,10 @@ const caricaEsercizioDaBackup = async () => {
           String(item.des_giorno) === String(found.des_giorno) &&
           parseInt(item.num_riga_giorno) > 0
         );
-        filtratiEsercizi.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
-        tuttiEserciziGiorno.value = filtratiEsercizi;
-        listaIdEsercizi.value = filtratiEsercizi.map(item => item.id);
+        const filtratiMappati = filtratiEsercizi.map(applicaModificheLocali);
+        filtratiMappati.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
+        tuttiEserciziGiorno.value = filtratiMappati;
+        listaIdEsercizi.value = filtratiMappati.map(item => item.id);
         
         // Ricerca robusta dell'indice per lo swipe touch
         indexCorrente.value = filtratiEsercizi.findIndex(item => {

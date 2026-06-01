@@ -6,7 +6,12 @@
         <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
-        <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight">WORKOUTS</h1>
+        <div class="text-left">
+          <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight leading-tight">WORKOUTS</h1>
+          <span v-if="atletaSelezionato && schedaSelezionata" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.62rem; letter-spacing: 0.05em;">
+            {{ getNomeAtleta(atletaSelezionato) }} • Scheda {{ schedaSelezionata }}
+          </span>
+        </div>
       </div>
       <div class="header-actions">
         <v-btn icon color="slate-dark" variant="text" @click="caricaAllenamenti"><v-icon>mdi-refresh</v-icon></v-btn>
@@ -463,7 +468,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta } from '../authStore.js';
 
 const router = useRouter();
 

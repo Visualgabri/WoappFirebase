@@ -6,13 +6,13 @@
         <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
-        <div class="text-left d-flex align-center flex-wrap gap-2">
+        <div class="text-left d-flex align-center flex-wrap" style="row-gap: 2px; column-gap: 8px;">
           <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight">WORKOUTS</h1>
           <v-chip
             v-if="atletaSelezionato && schedaSelezionata"
             color="orange-darken-3"
             size="x-small"
-            class="font-weight-black uppercase px-2 py-0.5 text-white elevation-1 ml-1"
+            class="font-weight-black uppercase px-2 py-0.5 text-white elevation-1"
             variant="flat"
             style="font-size: 0.62rem; letter-spacing: 0.02em; height: 20px;"
           >

@@ -151,6 +151,14 @@ export const stopGlobalTimer = () => {
   }
 };
 
+// Ordine originale degli atleti (estratto dal foglio Google)
+export const ORDINE_ORIGINALE_ATLETI = [
+  '1', '57', '93', '186', '219', '125', '188', '232', '193', '245',
+  '164', '196', '228', '276', '19', '237', '249', '243', '263', '54',
+  '268', '269', '281', '211', '178', '175', '297', '304', '274', '14',
+  '313', '312', '314'
+];
+
 // Mappa statica anagrafica clienti del foglio Google originario
 export const MAPPA_CLIENTI = {
   '1': { nome: 'Gabriele', cognome: 'Belmonte', email: 'visualgabri@gmail.com', scheda: 49, vista: false, obsoleto: false },

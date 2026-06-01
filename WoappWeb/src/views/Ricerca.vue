@@ -275,7 +275,8 @@ import {
   getEmailAtleta,
   isAtletaObsoleto,
   getSchedaSelezionataAtleta,
-  getVistaDettagliAtleta
+  getVistaDettagliAtleta,
+  ORDINE_ORIGINALE_ATLETI
 } from '../authStore.js';
 
 const router = useRouter();
@@ -295,7 +296,19 @@ const caricamentoPreview = ref(false);
 
 // Computed property per mappare la lista ID atleti a nomi reali leggibili per l'autocomplete
 const itemsAtleti = computed(() => {
-  return listaAtleti.value.map(id => {
+  // Ordina gli atleti in base alla sequenza originale del foglio Google
+  const ordinati = [...listaAtleti.value].sort((a, b) => {
+    const idxA = ORDINE_ORIGINALE_ATLETI.indexOf(String(a).trim());
+    const idxB = ORDINE_ORIGINALE_ATLETI.indexOf(String(b).trim());
+    
+    // Se non trova l'ID (indice -1), lo posiziona in fondo
+    const posA = idxA === -1 ? 999 : idxA;
+    const posB = idxB === -1 ? 999 : idxB;
+    
+    return posA - posB;
+  });
+
+  return ordinati.map(id => {
     const nome = getNomeAtleta(id);
     return {
       title: nome ? `${nome} (ID: ${id})` : `Atleta ID: ${id}`,

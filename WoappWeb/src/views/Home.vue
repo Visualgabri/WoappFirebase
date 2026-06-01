@@ -579,25 +579,44 @@ const applicaModificheLocali = (item) => {
   return { ...item, ...updates };
 };
 
-// Ricalcola la settimana attiva globale (prima settimana non completamente completata)
+// Ricalcola la settimana attiva globale (considerando anche i dati inseriti nelle settimane non chiuse)
 const calcolaSettimanaAttivaGlobale = (exercises) => {
   const giorni = ['A', 'B', 'C', 'D'];
-  for (let w = 1; w <= 6; w++) {
-    let tuttiCompletati = true;
-    for (const g of giorni) {
+  
+  // Verifica se una determinata settimana è chiusa su tutti i giorni di allenamento
+  const isSettimanaChiusa = (w) => {
+    return giorni.every(g => {
       const header = exercises.find(
         item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0
       );
-      if (!header || header['cmp' + w] !== 'true') {
-        tuttiCompletati = false;
-        break;
-      }
-    }
-    if (!tuttiCompletati) {
+      return header && header['cmp' + w] === 'true';
+    });
+  };
+
+  // Verifica se in una data settimana ci sono già dei campi compilati (non vuoti)
+  const haDatiInseriti = (w) => {
+    return exercises.some(item => {
+      if (parseInt(item.num_riga_giorno) === 0) return false; // Ignora le righe di intestazione
+      const val = item['ins_week' + w];
+      return val && val.trim() !== '';
+    });
+  };
+
+  // 1. Cerca se c'è una settimana non chiusa che ha già dei campi compilati (dalla più recente alla meno recente)
+  for (let w = 6; w >= 1; w--) {
+    if (!isSettimanaChiusa(w) && haDatiInseriti(w)) {
       return w;
     }
   }
-  return 6; // Se tutte completate, ritorna l'ultima
+
+  // 2. Se non ci sono dati compilati in settimane non chiuse, prendi la prima settimana non chiusa
+  for (let w = 1; w <= 6; w++) {
+    if (!isSettimanaChiusa(w)) {
+      return w;
+    }
+  }
+
+  return 6; // Se tutte le settimane sono chiuse, ritorna l'ultima
 };
 
 // Caricamento

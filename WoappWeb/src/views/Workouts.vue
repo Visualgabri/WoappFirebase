@@ -82,6 +82,16 @@
                     <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
                       SETTIMANA {{ settimanaAttivaGiorno }} DI 6
                     </v-chip>
+                    <v-chip
+                      v-if="mostraPromemoriaChiusura"
+                      size="x-small"
+                      color="amber-darken-3"
+                      class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
+                      variant="flat"
+                      style="font-size: 0.58rem; height: 18px;"
+                    >
+                      ⚠️ SETTIMANA DA CHIUDERE
+                    </v-chip>
                     <div class="d-flex gap-1 align-center mini-weeks-progression">
                       <div
                         v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -200,6 +210,16 @@
               <div class="d-flex align-center mt-1 gap-2 flex-wrap">
                 <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
                   SETTIMANA {{ settimanaAttivaGiorno }} DI 6
+                </v-chip>
+                <v-chip
+                  v-if="mostraPromemoriaChiusura"
+                  size="x-small"
+                  color="amber-darken-3"
+                  class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
+                  variant="flat"
+                  style="font-size: 0.58rem; height: 18px;"
+                >
+                  ⚠️ SETTIMANA DA CHIUDERE
                 </v-chip>
                 <div class="d-flex gap-1 align-center mini-weeks-progression">
                   <div
@@ -912,6 +932,24 @@ const settimanaAttivaGiorno = computed(() => {
     }
   }
   return 6; // Se tutte completate, ritorna l'ultima
+});
+
+// Verifica se tutti gli esercizi del giorno sono stati compilati per la settimana attiva
+const tuttiEserciziCompilatiGiorno = computed(() => {
+  if (eserciziFiltrati.value.length === 0) return false;
+  const w = settimanaAttivaGiorno.value;
+  return eserciziFiltrati.value.every(ex => {
+    const val = ex['ins_week' + w];
+    return val && val.trim() !== '';
+  });
+});
+
+// Mostra il promemoria "Settimana da chiudere" se tutti gli esercizi sono fatti ma la settimana è ancora aperta
+const mostraPromemoriaChiusura = computed(() => {
+  if (!headerGiorno.value) return false;
+  const w = settimanaAttivaGiorno.value;
+  const isChiusa = headerGiorno.value['cmp' + w] === 'true';
+  return !isChiusa && tuttiEserciziCompilatiGiorno.value;
 });
 
 // Helper per applicare le modifiche salvate offline nel localStorage

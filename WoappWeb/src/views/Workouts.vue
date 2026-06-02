@@ -89,7 +89,7 @@
               <div class="d-flex align-center">
                 <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
                 <div class="text-left">
-                  <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4">
+                  <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 mb-0">
                     Workout Giorno {{ giornoSelezionato }}
                   </h3>
                   <!-- Promemoria Chiusura Settimana -->
@@ -215,7 +215,7 @@
           <div v-else class="d-flex align-center w-100">
             <div class="giorno-big-letter mr-4">{{ giornoSelezionato }}</div>
             <div class="flex-grow-1 text-left min-width-0">
-              <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 text-truncate">
+              <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 text-truncate mb-0">
                 {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
               </h3>
               <!-- Visualizzazione Settimana Attiva e Progresso -->
@@ -1576,5 +1576,25 @@ const vibraTattile = (ms = 12) => {
 }
 .pulse-warning {
   animation: pulse-warn 1.5s infinite ease-in-out;
+}
+
+/* Day Selection Tabs Styling */
+.sticky-tabs-container .v-tab {
+  transition: all 0.3s ease !important;
+  border-radius: 12px !important;
+  margin: 4px 6px !important;
+  height: calc(100% - 8px) !important;
+  min-width: 0 !important;
+}
+
+.sticky-tabs-container .v-tab--selected {
+  background: rgba(249, 115, 22, 0.18) !important;
+  border: 1.5px solid rgba(249, 115, 22, 0.5) !important;
+  color: #ea580c !important;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15) !important;
+}
+
+.sticky-tabs-container .v-tab-slider {
+  display: none !important;
 }
 </style>

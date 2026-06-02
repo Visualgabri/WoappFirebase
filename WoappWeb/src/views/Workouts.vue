@@ -1594,11 +1594,24 @@ const vibraTattile = (ms = 12) => {
   box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15) !important;
 }
 
-.sticky-tabs-container .v-tab-slider {
+.sticky-tabs-container .v-tab-slider,
+.sticky-tabs-container .v-tab-slider-wrapper,
+.sticky-tabs-container :deep(.v-tab-slider),
+.sticky-tabs-container :deep(.v-tab-slider-wrapper) {
   display: none !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
-.sticky-tabs-container .v-tabs {
+.sticky-tabs-container .v-tabs,
+.sticky-tabs-container .v-slide-group,
+.sticky-tabs-container .v-slide-group__container,
+.sticky-tabs-container :deep(.v-tabs),
+.sticky-tabs-container :deep(.v-slide-group),
+.sticky-tabs-container :deep(.v-slide-group__container) {
   border-bottom: none !important;
+  border-bottom-width: 0 !important;
+  box-shadow: none !important;
 }
 </style>

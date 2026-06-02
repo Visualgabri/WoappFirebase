@@ -40,20 +40,24 @@
     <!-- Contenuto Principale -->
     <div v-else>
       
-      <!-- Selettore del Giorno (A, B, C, D) in alto stile AppSheet -->
-      <v-tabs
-        v-model="giornoSelezionato"
-        color="orange-darken-3"
-        align-tabs="center"
-        grow
-        class="card-glass border-bottom mb-4 rounded-xl elevation-1 sticky-tabs"
+      <!-- Sticky wrapper for the day selector tabs -->
+      <div
+        class="sticky-tabs-container mb-4"
         :style="{ top: utente ? '56px' : '0px' }"
-        @update:model-value="salvaGiornoSelezionato"
       >
-        <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6">
-          {{ giorno }}
-        </v-tab>
-      </v-tabs>
+        <v-tabs
+          v-model="giornoSelezionato"
+          color="orange-darken-3"
+          align-tabs="center"
+          grow
+          class="card-glass border-bottom rounded-xl elevation-1"
+          @update:model-value="salvaGiornoSelezionato"
+        >
+          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6">
+            {{ giorno }}
+          </v-tab>
+        </v-tabs>
+      </div>
 
       <!-- Indicatore di Caricamento -->
       <div v-if="caricamento" class="text-center my-10">
@@ -1488,11 +1492,12 @@ const vibraTattile = (ms = 12) => {
   position: relative;
 }
 
-.sticky-tabs {
+.sticky-tabs-container {
   position: sticky !important;
   z-index: 99 !important;
-  background: rgba(15, 23, 42, 0.85) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: #030712 !important; /* solid background matching body to hide scrolling content */
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  margin-top: -8px !important;
 }
 </style>

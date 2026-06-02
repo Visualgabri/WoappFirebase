@@ -357,7 +357,7 @@ const chartOptions = ref({
         padding: 10,
         font: {
           weight: 'bold',
-          family: 'Outfit, sans-serif',
+          family: 'sans-serif',
           size: 10
         }
       }

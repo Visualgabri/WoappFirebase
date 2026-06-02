@@ -77,11 +77,7 @@
                   <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4">
                     Workout Giorno {{ giornoSelezionato }}
                   </h3>
-                  <!-- Visualizzazione Settimana Attiva e Progresso -->
                   <div class="d-flex align-center mt-1 gap-2 flex-wrap">
-                    <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
-                      SETTIMANA {{ settimanaAttivaGiorno }} DI 6
-                    </v-chip>
                     <v-chip
                       v-if="mostraPromemoriaChiusura"
                       size="x-small"
@@ -208,9 +204,6 @@
               </h3>
               <!-- Visualizzazione Settimana Attiva e Progresso -->
               <div class="d-flex align-center mt-1 gap-2 flex-wrap">
-                <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5" variant="flat" style="font-size: 0.58rem; height: 18px;">
-                  SETTIMANA {{ settimanaAttivaGiorno }} DI 6
-                </v-chip>
                 <v-chip
                   v-if="mostraPromemoriaChiusura"
                   size="x-small"
@@ -342,55 +335,54 @@
                   <!-- Linea di collegamento tratteggiata tra le miniature degli esercizi in superset -->
                   <div v-if="index < block.exercises.length - 1" class="superset-connector-line"></div>
                   
-                  <!-- Miniatura GIF/Immagine sulla Sinistra -->
-                  <div class="thumbnail-wrapper mr-4 rounded-lg overflow-hidden position-relative" style="z-index: 2; width: 76px; height: 76px;">
-                    <v-img
-                      :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                      width="76"
-                      height="76"
-                      cover
-                      alt="Esercizio"
-                      class="bg-grey-lighten-4"
+                  <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
+                  <div class="d-flex flex-column align-center mr-4" style="width: 76px; min-width: 76px;">
+                    <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-1" style="z-index: 2; width: 76px; height: 76px;">
+                      <v-img
+                        :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
+                        width="76"
+                        height="76"
+                        cover
+                        alt="Esercizio"
+                        class="bg-grey-lighten-4"
+                      >
+                        <template v-slot:placeholder>
+                          <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                            <v-icon color="grey-lighten-1" size="20">mdi-dumbbell</v-icon>
+                          </div>
+                        </template>
+                      </v-img>
+                    </div>
+
+                    <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
+                    <v-chip
+                      v-if="ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim()"
+                      color="green-darken-3"
+                      size="x-small"
+                      class="font-weight-black uppercase text-white animate-pulse"
+                      variant="flat"
+                      style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center;"
                     >
-                      <template v-slot:placeholder>
-                        <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                          <v-icon color="grey-lighten-1" size="20">mdi-dumbbell</v-icon>
-                        </div>
-                      </template>
-                    </v-img>
+                      ✔️ {{ String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
+                    </v-chip>
+                    
+                    <v-chip
+                      v-else
+                      color="grey-darken-2"
+                      size="x-small"
+                      class="font-weight-bold uppercase text-slate"
+                      variant="outlined"
+                      style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center;"
+                    >
+                      ❌ DA FARE
+                    </v-chip>
                   </div>
 
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-                    <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1 d-flex align-center justify-space-between flex-wrap gap-1.5 w-100">
-                      <span class="text-truncate flex-grow-1 mr-1" style="max-width: calc(100% - 90px);">
-                        {{ ex.des_esercizio || 'Esercizio' }}
-                      </span>
-                      
-                      <!-- Badge Carico Inserito (Completato) -->
-                      <v-chip
-                        v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno].trim()"
-                        color="green-darken-3"
-                        size="x-small"
-                        class="font-weight-black uppercase text-white animate-pulse"
-                        variant="flat"
-                        style="font-size: 0.58rem; height: 18px; padding: 0 6px;"
-                      >
-                        ✔️ {{ ex['ins_week' + settimanaAttivaGiorno].trim() }}
-                      </v-chip>
-                      
-                      <!-- Badge Pendente (Da fare) -->
-                      <v-chip
-                        v-else
-                        color="grey-darken-2"
-                        size="x-small"
-                        class="font-weight-bold uppercase text-slate"
-                        variant="outlined"
-                        style="font-size: 0.58rem; height: 18px; padding: 0 6px; border-style: dashed !important; opacity: 0.65;"
-                      >
-                        ❌ DA FARE
-                      </v-chip>
+                    <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1">
+                      {{ ex.des_esercizio || 'Esercizio' }}
                     </h4>
 
                     <!-- Settore e Emoji Sforzo -->
@@ -413,9 +405,9 @@
                           :key="w"
                           class="mini-week-capsule d-inline-flex align-center"
                           :class="{
-                            'capsule-completed': ex['ins_week' + w] && ex['ins_week' + w].trim(),
-                            'capsule-active': w === settimanaAttivaGiorno && !(ex['ins_week' + w] && ex['ins_week' + w].trim()),
-                            'capsule-pending': w !== settimanaAttivaGiorno && !(ex['ins_week' + w] && ex['ins_week' + w].trim())
+                            'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim(),
+                            'capsule-active': w === settimanaAttivaGiorno && !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()),
+                            'capsule-pending': w !== settimanaAttivaGiorno && !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim())
                           }"
                           style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
                         >
@@ -455,10 +447,9 @@
 
                   <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
                   <div class="d-flex flex-column align-end justify-center pl-2 position-relative" style="z-index: 2;">
-                    <div class="text-caption font-weight-black text-slate-dark mb-2">
+                    <div class="text-caption font-weight-black text-slate-dark">
                       {{ ex.num_riga_giorno }}
                     </div>
-                    <v-icon color="orange-darken-3" size="20">mdi-book-open-outline</v-icon>
                   </div>
                 </div>
               </div>
@@ -470,55 +461,54 @@
               class="exercise-item-card rounded-xl pa-3 mb-4 elevation-1 d-flex align-center"
               @click="vaiAlDettaglio(block.exercise.id)"
             >
-              <!-- Miniatura GIF/Immagine sulla Sinistra -->
-              <div class="thumbnail-wrapper mr-4 rounded-lg overflow-hidden" style="width: 84px; height: 84px;">
-                <v-img
-                  :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                  width="84"
-                  height="84"
-                  cover
-                  alt="Esercizio"
-                  class="bg-grey-lighten-4"
+              <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
+              <div class="d-flex flex-column align-center mr-4" style="width: 84px; min-width: 84px;">
+                <div class="thumbnail-wrapper rounded-lg overflow-hidden mb-1" style="width: 84px; height: 84px;">
+                  <v-img
+                    :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
+                    width="84"
+                    height="84"
+                    cover
+                    alt="Esercizio"
+                    class="bg-grey-lighten-4"
+                  >
+                    <template v-slot:placeholder>
+                      <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                        <v-icon color="grey-lighten-1">mdi-dumbbell</v-icon>
+                      </div>
+                    </template>
+                  </v-img>
+                </div>
+
+                <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
+                <v-chip
+                  v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim()"
+                  color="green-darken-3"
+                  size="x-small"
+                  class="font-weight-black uppercase text-white animate-pulse"
+                  variant="flat"
+                  style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center;"
                 >
-                  <template v-slot:placeholder>
-                    <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                      <v-icon color="grey-lighten-1">mdi-dumbbell</v-icon>
-                    </div>
-                  </template>
-                </v-img>
+                  ✔️ {{ String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
+                </v-chip>
+                
+                <v-chip
+                  v-else
+                  color="grey-darken-2"
+                  size="x-small"
+                  class="font-weight-bold uppercase text-slate"
+                  variant="outlined"
+                  style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center;"
+                >
+                  ❌ DA FARE
+                </v-chip>
               </div>
 
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-                <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1 d-flex align-center justify-space-between flex-wrap gap-1.5 w-100">
-                  <span class="text-truncate flex-grow-1 mr-1" style="max-width: calc(100% - 90px);">
-                    {{ block.exercise.des_esercizio || 'Esercizio' }}
-                  </span>
-                  
-                  <!-- Badge Carico Inserito (Completato) -->
-                  <v-chip
-                    v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno].trim()"
-                    color="green-darken-3"
-                    size="x-small"
-                    class="font-weight-black uppercase text-white animate-pulse"
-                    variant="flat"
-                    style="font-size: 0.58rem; height: 18px; padding: 0 6px;"
-                  >
-                    ✔️ {{ block.exercise['ins_week' + settimanaAttivaGiorno].trim() }}
-                  </v-chip>
-                  
-                  <!-- Badge Pendente (Da fare) -->
-                  <v-chip
-                    v-else
-                    color="grey-darken-2"
-                    size="x-small"
-                    class="font-weight-bold uppercase text-slate"
-                    variant="outlined"
-                    style="font-size: 0.58rem; height: 18px; padding: 0 6px; border-style: dashed !important; opacity: 0.65;"
-                  >
-                    ❌ DA FARE
-                  </v-chip>
+                <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1">
+                  {{ block.exercise.des_esercizio || 'Esercizio' }}
                 </h4>
 
                 <!-- Settore e Emoji Sforzo -->
@@ -541,9 +531,9 @@
                       :key="w"
                       class="mini-week-capsule d-inline-flex align-center"
                       :class="{
-                        'capsule-completed': block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim(),
-                        'capsule-active': w === settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim()),
-                        'capsule-pending': w !== settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && block.exercise['ins_week' + w].trim())
+                        'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim(),
+                        'capsule-active': w === settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()),
+                        'capsule-pending': w !== settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim())
                       }"
                       style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
                     >
@@ -572,10 +562,9 @@
 
               <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
               <div class="d-flex flex-column align-end justify-center pl-2">
-                <div class="text-caption font-weight-black text-slate-dark mb-2">
+                <div class="text-caption font-weight-black text-slate-dark">
                   {{ block.exercise.num_riga_giorno }}
                 </div>
-                <v-icon color="orange-darken-3">mdi-book-open-outline</v-icon>
               </div>
             </v-card>
 
@@ -708,7 +697,7 @@ const formattaPrescrizioneSemplice = (str) => {
 
 const formattaCaricoCompatto = (val) => {
   if (!val) return '-';
-  let clean = val.trim();
+  let clean = String(val).trim();
   // Rimuove 'kg' o 'KG' con spazi opzionali
   clean = clean.replace(/\s*kg/i, '');
   // Tronca se troppo lungo per mantenere l'interfaccia compatta

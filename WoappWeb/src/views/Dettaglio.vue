@@ -39,7 +39,7 @@
     <div v-else class="exercise-detail-area">
       
       <!-- 1. Grande GIF dell'Esercizio in alto -->
-      <v-card class="image-premium-frame rounded-2xl overflow-hidden mb-5 elevation-3 bg-black" height="300">
+      <v-card class="image-premium-frame rounded-xl overflow-hidden mb-3 elevation-2 bg-black mx-auto" max-width="280" height="150">
         <v-img
           :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
           contain
@@ -55,9 +55,9 @@
       </v-card>
 
       <!-- 2. Intestazione Principale con Massimale / RMT -->
-      <div class="mb-4 text-left">
-        <h2 class="text-h5 font-weight-black text-slate-dark leading-tight d-flex align-center flex-wrap gap-1">
-          <v-icon color="orange-darken-3" class="mr-1" size="24">mdi-trophy-outline</v-icon>
+      <div class="mb-2 text-left">
+        <h2 class="text-h6 font-weight-black text-slate-dark leading-tight d-flex align-center flex-wrap gap-1" style="font-size: 1.1rem; line-height: 1.2;">
+          <v-icon color="orange-darken-3" class="mr-1" size="18">mdi-trophy-outline</v-icon>
           {{ workout.des_esercizio }}
         </h2>
 
@@ -144,32 +144,29 @@
         </div>
 
         <!-- Rigo Dettaglio Rapido -->
-        <div class="text-subtitle-2 font-weight-bold text-slate mt-2 d-flex align-center flex-wrap gap-2">
-          <v-chip color="orange-darken-3" size="small" class="font-weight-black">{{ workout.des_settore_princ }}</v-chip>
-          <v-chip color="blue-darken-3" variant="outlined" size="small" class="font-weight-bold">
-            {{ workout.des_qta_report }}
-          </v-chip>
+        <div class="text-caption font-weight-bold text-slate mt-1 d-flex align-center flex-wrap gap-1.5">
+          <v-chip color="orange-darken-3" size="x-small" class="font-weight-black px-2 py-0.5" variant="flat">{{ workout.des_settore_princ }}</v-chip>
           <v-chip
             v-if="workout.des_rec_report"
             color="orange-darken-3"
             variant="tonal"
-            size="small"
-            class="font-weight-black clickable-timer-chip"
+            size="x-small"
+            class="font-weight-black clickable-timer-chip px-2 py-0.5"
             prepend-icon="mdi-clock-outline"
             @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
           >
-            ⏱️ Recupero: {{ workout.des_rec_report }}{{ (workout.alf_superserie && workout.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
+            ⏱️ {{ workout.des_rec_report }}{{ (workout.alf_superserie && workout.alf_superserie.trim()) ? ' (No stop)' : '' }}
           </v-chip>
           <!-- Mostra "PASSA AL PROSSIMO" solo se è in superserie E non ha recupero -->
           <v-chip
             v-else-if="workout.alf_superserie"
             color="green-darken-3"
             variant="flat"
-            size="small"
-            class="font-weight-black text-white"
+            size="x-small"
+            class="font-weight-black text-white px-2 py-0.5"
             prepend-icon="mdi-arrow-right-bold-circle-outline"
           >
-            ⚡ PASSA AL PROSSIMO (NO PAUSA)
+            ⚡ PROSSIMO (NO PAUSA)
           </v-chip>
         </div>
       </div>
@@ -235,32 +232,23 @@
         </v-card>
       </div>
 
-      <!-- 3. Coaching Note Card (Cartellino giallo in stile AppSheet) -->
-      <v-card class="coaching-note-card pa-4 rounded-xl mb-6 elevation-1" border="left">
-        <div class="d-flex align-start">
-          <v-icon color="amber-darken-4" class="mr-2 mt-1">mdi-lead-pencil</v-icon>
-          <div class="text-left">
-            <span class="text-caption text-amber-darken-4 font-weight-black uppercase tracking-wider">Note del Coach:</span>
-            <p class="text-body-2 text-slate font-weight-bold mt-1 leading-relaxed">
-              {{ workout.des_note || 'Nessuna indicazione specifica per questa scheda.' }}
-            </p>
-          </div>
-        </div>
+      <!-- 3. Coaching Note Card (Compact callout) -->
+      <v-card
+        v-if="workout && workout.des_note && String(workout.des_note).trim()"
+        class="py-2 px-3 rounded-lg mb-5 elevation-0 text-left d-flex align-center"
+        style="background: rgba(249, 115, 22, 0.08) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important; border-left: 4px solid #f97316 !important;"
+      >
+        <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0" size="15">mdi-information-outline</v-icon>
+        <span class="text-orange-lighten-4 font-weight-medium" style="font-size: 0.75rem; line-height: 1.35; color: #ffedd5 !important;">
+          {{ String(workout.des_note).trim() }}
+        </span>
       </v-card>
 
-      <!-- 4. Lista delle Settimane (Progressione Settimanale) -->
-      <div class="d-flex align-center justify-space-between mb-4 text-left">
-        <h3 class="text-subtitle-2 font-weight-black text-slate-dark d-flex align-center">
-          <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-clipboard-list-outline</v-icon>
-          Progressione Settimanale
-        </h3>
-      </div>
-
-      <div class="weeks-stacked-list mb-6">
+      <div class="weeks-stacked-list mb-4">
         <v-card
           v-for="sett in settimaneVisualizzate"
           :key="sett"
-          class="week-log-card rounded-2xl pa-4 mb-4 border transition-all"
+          class="week-log-card rounded-xl py-2.5 px-3 mb-2.5 border transition-all"
           :class="{
             'week-active-border': sett === settimanaAttiva,
             'week-secondary-card': modalitaSettimane === 'dinamica' && sett !== settimanaAttiva
@@ -268,45 +256,46 @@
           elevation="1"
         >
           <!-- Intestazione della Settimana -->
-          <div class="d-flex align-center justify-space-between mb-3">
+          <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center">
               <v-icon
                 :color="isWeekCompleted(sett) ? 'green-darken-2' : 'grey-lighten-1'"
                 class="mr-2"
+                size="18"
               >
                 {{ isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline' }}
               </v-icon>
-              <span class="text-subtitle-2 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'">
+              <span class="text-caption font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
               </span>
-              <v-chip v-if="sett === settimanaAttiva" color="orange-darken-3" size="x-small" class="ml-2 font-weight-black" variant="flat">ATTIVA</v-chip>
-              <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold" variant="outlined">ALTRE</v-chip>
+              <v-chip v-if="sett === settimanaAttiva" color="orange-darken-3" size="x-small" class="ml-2 font-weight-black px-1.5" style="height: 16px; font-size: 0.55rem;" variant="flat">ATTIVA</v-chip>
+              <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
             </div>
             
-            <div v-if="workout['perc_irt_w' + sett]" class="text-caption text-red-darken-3 font-weight-bold">
+            <div v-if="workout['perc_irt_w' + sett]" class="text-caption text-red-darken-3 font-weight-bold" style="font-size: 0.7rem;">
               IRT: {{ workout['perc_irt_w' + sett] }}%
             </div>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
-          <div v-if="parsedPrescription(workout['des_week' + sett])" class="mb-3 px-1">
+          <div v-if="parsedPrescription(workout['des_week' + sett])" class="mb-2 px-1">
             <!-- Rigo Principale con Serie e Peso Totale -->
-            <v-row dense class="mb-2">
+            <v-row dense class="mb-1.5">
               <!-- Serie e Ripetizioni -->
               <v-col cols="6">
-                <div class="prescription-chip-box px-3 py-2 rounded-xl text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">Lavoro</span>
-                  <span class="text-h6 font-weight-black text-orange-darken-3">
+                <div class="prescription-chip-box px-2.5 py-1 rounded-lg text-left">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.55rem;">Lavoro</span>
+                  <span class="text-body-1 font-weight-black text-orange-darken-3" style="font-size: 0.95rem !important; line-height: 1.25;">
                     {{ parsedPrescription(workout['des_week' + sett]).reps }}
                   </span>
                 </div>
               </v-col>
               <!-- Peso Totale -->
               <v-col cols="6">
-                <div class="prescription-chip-box px-3 py-2 rounded-xl text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">Carico Totale</span>
-                  <span class="text-h6 font-weight-black text-slate-dark">
-                    {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-caption text-muted">KG</span>
+                <div class="prescription-chip-box px-2.5 py-1 rounded-lg text-left">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.55rem;">Carico Totale</span>
+                  <span class="text-body-1 font-weight-black text-slate-dark" style="font-size: 0.95rem !important; line-height: 1.25;">
+                    {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-caption text-muted" style="font-size: 0.7rem;">KG</span>
                   </span>
                 </div>
               </v-col>
@@ -316,27 +305,26 @@
             <v-row dense>
               <!-- Peso per Lato (solo se presente) -->
               <v-col v-if="parsedPrescription(workout['des_week' + sett]).side" cols="4">
-                <div class="prescription-chip-box px-2 py-2 rounded-lg text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">Per Lato</span>
-                  <span class="text-body-2 font-weight-black text-blue-lighten-2">
-                    {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted">KG</span>
+                <div class="prescription-chip-box px-2 py-0.5 rounded-lg text-left">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Per Lato</span>
+                  <span class="text-caption font-weight-black text-blue-lighten-2" style="font-size: 0.75rem !important;">
+                    {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
                   </span>
                 </div>
               </v-col>
               <!-- % Massimale -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 4 : 6">
-                <div class="prescription-chip-box px-2 py-2 rounded-lg text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">% 1RM</span>
-                  <span class="text-body-2 font-weight-black text-orange-lighten-2">
+                <div class="prescription-chip-box px-2 py-0.5 rounded-lg text-left">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">% 1RM</span>
+                  <span class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.75rem !important;">
                     {{ parsedPrescription(workout['des_week' + sett]).max || '-' }}
                   </span>
                 </div>
               </v-col>
               <!-- % Sforzo -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 4 : 6">
-                <div class="prescription-chip-box px-2 py-2 rounded-lg text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5">Sforzo</span>
-                  <span class="text-body-2 font-weight-black text-green-lighten-2">
+                <div class="prescription-chip-box px-2 py-0.5 rounded-lg text-left">
+                  <span class="text-caption font-weight-black text-green-lighten-2" style="font-size: 0.75rem !important;">
                     {{ parsedPrescription(workout['des_week' + sett]).effort || '-' }}
                   </span>
                 </div>
@@ -345,12 +333,12 @@
           </div>
           
           <!-- Fallback se non corrisponde al pattern speciale -->
-          <div v-else class="week-prescription-text text-body-2 font-weight-bold text-slate mb-3 py-1 px-2 rounded bg-slate-100">
+          <div v-else class="week-prescription-text text-caption font-weight-bold text-slate mb-2 py-0.5 px-2 rounded bg-slate-100" style="font-size: 0.75rem;">
             {{ workout['des_week' + sett] || 'Nessuna prescrizione' }}
           </div>
 
           <!-- Input di inserimento Carico (puramente testuale) -->
-          <div class="mt-2">
+          <div class="mt-1.5">
             <v-text-field
               v-model="inputSettimane[sett].ins"
               label="Carico inserito (es. 45kg o note)"
@@ -786,21 +774,38 @@ const applicaModificheLocali = (item) => {
 // Carica riga 0 della sessione del giorno per ottenere il completamento delle settimane (cmp1-cmp6)
 const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
   try {
-    // Cerchiamo il documento della sessione (Riga 0)
+    // Cerchiamo il documento della sessione (Riga 0) provando sia stringa che numero
     const q1 = query(
       collection(db, 'STORYBOARD'),
       where(keyIdCliente, '==', atletaId),
-      where('num_scheda', '==', numScheda),
-      where('des_giorno', '==', desGiorno)
+      where('num_scheda', 'in', [numScheda, String(numScheda), Number(numScheda)])
     );
     const querySnapshot = await getDocs(q1);
+    let trovato = false;
     querySnapshot.forEach((doc) => {
       const d = doc.data();
       const numRiga = parseInt(d.num_riga_giorno);
-      if (numRiga === 0) {
+      // Controllo des_giorno localmente per robustezza contro spazi
+      if (numRiga === 0 && String(d.des_giorno).trim().toUpperCase() === String(desGiorno).trim().toUpperCase()) {
         riga0.value = applicaModificheLocali({ id: doc.id, ...d });
+        trovato = true;
       }
     });
+
+    // Fallback al backup se non trovato (es. problemi di sincronizzazione Firestore)
+    if (!trovato) {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      const riga0Trovata = allData.find(
+        item => (String(item[keyIdCliente]) === String(atletaId) || String(item['ID_cliente']) === String(atletaId)) &&
+        String(item.num_scheda) === String(numScheda) &&
+        String(item.des_giorno).trim().toUpperCase() === String(desGiorno).trim().toUpperCase() &&
+        parseInt(item.num_riga_giorno) === 0
+      );
+      if (riga0Trovata) {
+        riga0.value = applicaModificheLocali(riga0Trovata);
+      }
+    }
   } catch (error) {
     console.error("Errore caricamento riga 0 per completamento:", error);
   }
@@ -810,8 +815,17 @@ const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
 const listaIdEsercizi = ref([]);
 const indexCorrente = ref(-1);
 
+const riportaAInizioPagina = () => {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  const appContainer = document.querySelector('.v-main') || document.documentElement || document.body;
+  if (appContainer) {
+    appContainer.scrollTop = 0;
+  }
+};
+
 watch(() => route.params.id, (nuovoId) => {
   if (nuovoId) {
+    riportaAInizioPagina();
     riga0.value = null;
     workout.value = null;
     routeIdLocal.value = nuovoId;
@@ -1039,6 +1053,7 @@ const caricaEsercizioDaBackup = async () => {
 };
 
 onMounted(() => {
+  riportaAInizioPagina();
   caricaDatiEsercizio();
   window.addEventListener('touchstart', handleTouchStart, { passive: true });
   window.addEventListener('touchend', handleTouchEnd, { passive: true });

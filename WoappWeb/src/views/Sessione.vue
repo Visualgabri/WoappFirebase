@@ -354,7 +354,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete } from '../authStore.js';
 
@@ -400,6 +400,13 @@ const caricamento = ref(true);
 const snackbar = ref(false);
 const mostraManuale = ref(false);
 const selectedWeek = ref(1);
+
+// Aggiunti i ref mancanti
+const allExercises = ref([]);
+const filmatiList = ref([]);
+const countFilmati = ref(0);
+const testList = ref([]);
+const countTest = ref(0);
 
 // Inputs per la settimana selezionata
 const inputNote = ref('');
@@ -473,6 +480,28 @@ const caricaDati = async () => {
       const dati = docSnap.data();
       workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });
       
+      // Carica tutti gli esercizi dello stesso atleta, scheda e giorno
+      const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+      const atletaId = dati[keyIdCliente] || '';
+      if (atletaId && dati.num_scheda && dati.des_giorno) {
+         try {
+           const q = query(
+             collection(db, 'STORYBOARD'),
+             where(keyIdCliente, '==', atletaId),
+             where('num_scheda', '==', dati.num_scheda),
+             where('des_giorno', '==', dati.des_giorno)
+           );
+           const snap = await getDocs(q);
+           let temp = [];
+           snap.forEach((d) => {
+             temp.push(applicaModificheLocali({ id: d.id, ...d.data() }));
+           });
+           allExercises.value = temp;
+         } catch (e) {
+           console.error("Errore fetch esercizi del giorno in Sessione:", e);
+         }
+      }
+
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
       if (!workout.value.UrlNormal || !workout.value.UrlNormal.startsWith('http')) {
         try {
@@ -586,7 +615,7 @@ const tuttiEserciziCompilatiGiorno = computed(() => {
   const w = selectedWeek.value;
   return eserciziDelGiorno.value.every(ex => {
     const val = ex['ins_week' + w];
-    return val && val.trim() !== '';
+    return val && String(val).trim() !== '';
   });
 });
 
@@ -813,14 +842,7 @@ const setWeekCompleted = async (w, val) => {
   salvaModificaLocale(campo, valString);
   snackbar.value = true;
 
-  // 2. Ricalcola la settimana attiva globale per l'atleta ed aggiorna il localStorage
-  const nuovaSettimanaAttiva = calcolaSettimanaAttivaG();
-  const atletaId = selectedAthlete.value || '';
-  if (atletaId) {
-    localStorage.setItem('settimanaAttiva_' + atletaId, nuovaSettimanaAttiva);
-  }
-
-  // 3. Prova ad aggiornare Firestore in background
+  // 2. Prova ad aggiornare Firestore in background
   try {
     const docRef = doc(db, 'STORYBOARD', routeId);
     const payload = {
@@ -833,16 +855,6 @@ const setWeekCompleted = async (w, val) => {
   } catch (error) {
     console.warn("Firestore offline/quota esaurita. Dati salvati localmente:", error);
   }
-};
-
-// Ricalcola settimana attiva globale
-const calcolaSettimanaAttivaG = () => {
-  for (let w = 1; w <= 6; w++) {
-    if (workout.value['cmp' + w] !== 'true') {
-      return w;
-    }
-  }
-  return 6;
 };
 
 // Salva dato generico del modulo

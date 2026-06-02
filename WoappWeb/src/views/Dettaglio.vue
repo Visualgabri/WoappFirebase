@@ -186,10 +186,10 @@
             </span>
           </div>
           
-          <p v-if="workout.des_rec_report" class="text-caption text-slate font-weight-medium mb-2 leading-tight">
+          <p v-if="workout.des_rec_report" class="text-slate font-weight-medium mb-2 leading-tight" style="font-size: 0.7rem; line-height: 1.35;">
             Questo esercizio è l'ultimo della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata questa serie, effettua il recupero previsto prima di ricominciare il giro.
           </p>
-          <p v-else class="text-caption text-slate font-weight-medium mb-2 leading-tight">
+          <p v-else class="text-slate font-weight-medium mb-2 leading-tight" style="font-size: 0.7rem; line-height: 1.35;">
             Questo esercizio fa parte della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata una serie di questo esercizio, passa immediatamente all'esercizio successivo prima del recupero.
           </p>
           
@@ -246,10 +246,10 @@
 
       <div class="weeks-stacked-list mb-4">
         <!-- Nota Esponenti (Ripetizioni di Riserva RIR) -->
-        <v-card
+         <v-card
           v-if="haEsponenti"
-          class="py-2.5 px-3.5 rounded-xl mb-4 text-left border d-flex align-start"
-          style="background: rgba(15, 23, 42, 0.45) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05);"
+          class="py-2.5 px-3.5 mb-4 text-left border d-flex align-start"
+          style="background: rgba(15, 23, 42, 0.45) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important;"
         >
           <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-information-outline</v-icon>
           <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">

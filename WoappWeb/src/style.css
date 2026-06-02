@@ -6,6 +6,17 @@
   color-scheme: dark;
 }
 
+/* Evita la selezione del testo per emulare il comportamento nativo ed evitare popup del browser */
+*, *::before, *::after {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+input, textarea, [contenteditable="true"], .selectable-text {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
 body {
   margin: 0;
   padding: 0;

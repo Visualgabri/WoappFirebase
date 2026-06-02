@@ -585,21 +585,72 @@ const router = useRouter();
 
 const parseTimeToSeconds = (tStr) => {
   if (!tStr) return 90;
+
+  const parseSinglePartToSeconds = (p) => {
+    p = p.trim();
+    if (!p) return 0;
+
+    // Se il formato è mm:ss (es. 1:30)
+    if (p.includes(':')) {
+      const parts = p.split(':');
+      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    }
+
+    // Minuti e secondi combinati (es. 1'30" o 1'30'')
+    if (p.includes("'") && (p.includes('"') || p.includes("''"))) {
+      const cleanPart = p.replace("''", '"');
+      const parts = cleanPart.split("'");
+      const mins = parseFloat(parts[0]) || 0;
+      const secs = parseFloat(parts[1].replace('"', '')) || 0;
+      return Math.round(mins * 60 + secs);
+    }
+
+    // Solo secondi (es. 45" o 45'' o 45s)
+    if (p.endsWith('"') || p.endsWith("''") || p.endsWith("s")) {
+      const secs = parseFloat(p.replace(/''|"|s/g, '')) || 0;
+      return Math.round(secs);
+    }
+
+    // Solo minuti (es. 1' o 1m o 1min)
+    if (p.endsWith("'") || p.endsWith("m") || p.endsWith("min")) {
+      const mins = parseFloat(p.replace(/min|m|'/g, '')) || 0;
+      return Math.round(mins * 60);
+    }
+
+    // Numero semplice senza unità
+    const num = parseFloat(p);
+    if (!isNaN(num)) {
+      if (num <= 5) return Math.round(num * 60); // Se <= 5 sono minuti
+      return Math.round(num); // Altrimenti sono secondi
+    }
+
+    return 0;
+  };
+
   const clean = tStr.toLowerCase().replace('rec', '').replace('⏱️', '').trim();
-  if (clean.includes(':')) {
-    const parts = clean.split(':');
-    return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+
+  // Verifica la presenza di intervalli/range tramite '-' o '/'
+  let parts = [];
+  if (clean.includes('-')) {
+    parts = clean.split('-');
+  } else if (clean.includes('/')) {
+    parts = clean.split('/');
   }
-  if (clean.includes("'")) {
-    const parts = clean.split("'");
-    const mins = parseInt(parts[0], 10) || 0;
-    const secs = parseInt(parts[1].replace('"', ''), 10) || 0;
-    return mins * 60 + secs;
+
+  if (parts.length > 1) {
+    // Range individuato: prendiamo il limite superiore (l'ultimo elemento)
+    const upperStr = parts[parts.length - 1].trim();
+    const upperVal = parseSinglePartToSeconds(upperStr);
+    if (upperVal > 0) return upperVal;
+
+    // Fallback al limite inferiore
+    const lowerStr = parts[0].trim();
+    const lowerVal = parseSinglePartToSeconds(lowerStr);
+    if (lowerVal > 0) return lowerVal;
   }
-  if (clean.includes('"')) {
-    return parseInt(clean.replace('"', ''), 10) || 90;
-  }
-  return parseInt(clean.replace('s', ''), 10) || 90;
+
+  const val = parseSinglePartToSeconds(clean);
+  return val > 0 ? val : 90;
 };
 
 const avviaTimerRecupero = (recStr, label) => {

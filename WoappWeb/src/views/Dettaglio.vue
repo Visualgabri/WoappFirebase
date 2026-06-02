@@ -245,6 +245,18 @@
       </v-card>
 
       <div class="weeks-stacked-list mb-4">
+        <!-- Nota Esponenti (Ripetizioni di Riserva RIR) -->
+        <v-card
+          v-if="haEsponenti"
+          class="py-2.5 px-3.5 rounded-xl mb-4 text-left border d-flex align-start"
+          style="background: rgba(15, 23, 42, 0.45) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05);"
+        >
+          <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-information-outline</v-icon>
+          <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">
+            <strong class="text-orange-lighten-2">Nota sulle Ripetizioni di Riserva (RIR):</strong> I numeri ad esponente (es. 8² o 10³) indicano il margine dal cedimento muscolare. Ad esempio, 8² significa eseguire 8 ripetizioni con una riserva di altre 2 ripetizioni possibili prima del cedimento completo.
+          </div>
+        </v-card>
+
         <v-card
           v-for="sett in settimaneVisualizzate"
           :key="sett"
@@ -334,7 +346,7 @@
           </div>
 
           <!-- Input di inserimento Carico (puramente testuale) -->
-          <div class="mt-1.5">
+          <div class="mt-3.5 mb-1">
             <v-text-field
               v-model="inputSettimane[sett].ins"
               label="Carico inserito (es. 45kg o note)"
@@ -537,21 +549,72 @@ const router = useRouter();
 
 const parseTimeToSeconds = (tStr) => {
   if (!tStr) return 90;
+
+  const parseSinglePartToSeconds = (p) => {
+    p = p.trim();
+    if (!p) return 0;
+
+    // Se il formato è mm:ss (es. 1:30)
+    if (p.includes(':')) {
+      const parts = p.split(':');
+      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    }
+
+    // Minuti e secondi combinati (es. 1'30" o 1'30'')
+    if (p.includes("'") && (p.includes('"') || p.includes("''"))) {
+      const cleanPart = p.replace("''", '"');
+      const parts = cleanPart.split("'");
+      const mins = parseFloat(parts[0]) || 0;
+      const secs = parseFloat(parts[1].replace('"', '')) || 0;
+      return Math.round(mins * 60 + secs);
+    }
+
+    // Solo secondi (es. 45" o 45'' o 45s)
+    if (p.endsWith('"') || p.endsWith("''") || p.endsWith("s")) {
+      const secs = parseFloat(p.replace(/''|"|s/g, '')) || 0;
+      return Math.round(secs);
+    }
+
+    // Solo minuti (es. 1' o 1m o 1min)
+    if (p.endsWith("'") || p.endsWith("m") || p.endsWith("min")) {
+      const mins = parseFloat(p.replace(/min|m|'/g, '')) || 0;
+      return Math.round(mins * 60);
+    }
+
+    // Numero semplice senza unità
+    const num = parseFloat(p);
+    if (!isNaN(num)) {
+      if (num <= 5) return Math.round(num * 60); // Se <= 5 sono minuti
+      return Math.round(num); // Altrimenti sono secondi
+    }
+
+    return 0;
+  };
+
   const clean = tStr.toLowerCase().replace('rec', '').replace('⏱️', '').trim();
-  if (clean.includes(':')) {
-    const parts = clean.split(':');
-    return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+
+  // Verifica la presenza di intervalli/range tramite '-' o '/'
+  let parts = [];
+  if (clean.includes('-')) {
+    parts = clean.split('-');
+  } else if (clean.includes('/')) {
+    parts = clean.split('/');
   }
-  if (clean.includes("'")) {
-    const parts = clean.split("'");
-    const mins = parseInt(parts[0], 10) || 0;
-    const secs = parseInt(parts[1].replace('"', ''), 10) || 0;
-    return mins * 60 + secs;
+
+  if (parts.length > 1) {
+    // Range individuato: prendiamo il limite superiore (l'ultimo elemento)
+    const upperStr = parts[parts.length - 1].trim();
+    const upperVal = parseSinglePartToSeconds(upperStr);
+    if (upperVal > 0) return upperVal;
+
+    // Fallback al limite inferiore
+    const lowerStr = parts[0].trim();
+    const lowerVal = parseSinglePartToSeconds(lowerStr);
+    if (lowerVal > 0) return lowerVal;
   }
-  if (clean.includes('"')) {
-    return parseInt(clean.replace('"', ''), 10) || 90;
-  }
-  return parseInt(clean.replace('s', ''), 10) || 90;
+
+  const val = parseSinglePartToSeconds(clean);
+  return val > 0 ? val : 90;
 };
 
 const avviaTimerRecupero = (recStr, label) => {
@@ -629,6 +692,20 @@ const vaiAdEsercizioCollegato = (id) => {
   vibraTattile(12);
   router.replace({ name: 'DettaglioWorkout', params: { id } });
 };
+
+const haEsponenti = computed(() => {
+  if (!workout.value) return false;
+  const esponentiRegex = /[⁰¹²³⁴⁵⁶⁷⁸⁹]/;
+  for (let w = 1; w <= 6; w++) {
+    const des = workout.value['des_week' + w] || '';
+    const ins = (inputSettimane.value && inputSettimane.value[w] && inputSettimane.value[w].ins) || '';
+    const reps = (inputSettimane.value && inputSettimane.value[w] && inputSettimane.value[w].reps) || '';
+    if (esponentiRegex.test(des) || esponentiRegex.test(ins) || esponentiRegex.test(reps)) {
+      return true;
+    }
+  }
+  return false;
+});
 
 // Campi Modificabili
 const inputSettimane = ref({
@@ -1331,6 +1408,7 @@ const tornaIndietro = () => {
   border: 2px solid #f97316 !important;
   background-color: rgba(249, 115, 22, 0.03) !important;
   box-shadow: 0 0 15px rgba(249, 115, 22, 0.15) !important;
+  padding: 14px 14px 16px 14px !important;
 }
 
 .week-prescription-text {

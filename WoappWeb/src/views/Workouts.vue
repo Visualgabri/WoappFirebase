@@ -53,8 +53,18 @@
           class="card-glass border-bottom rounded-xl elevation-1"
           @update:model-value="salvaGiornoSelezionato"
         >
-          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6">
-            {{ giorno }}
+          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6 px-2">
+            <div class="d-flex align-center">
+              <span>{{ giorno }}</span>
+              <v-icon
+                v-if="giorniConPendenze[giorno]"
+                color="amber-darken-3"
+                size="15"
+                class="ml-1 pulse-warning"
+              >
+                mdi-alert-circle-outline
+              </v-icon>
+            </div>
           </v-tab>
         </v-tabs>
       </div>
@@ -934,6 +944,57 @@ const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
 
+// Verifica quali giorni hanno pendenze (settimane arretrate o da chiudere)
+const giorniConPendenze = computed(() => {
+  const result = { A: false, B: false, C: false, D: false };
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return result;
+
+  const giorni = ['A', 'B', 'C', 'D'];
+  giorni.forEach(g => {
+    // Trova l'intestazione (Riga 0) del giorno g
+    const header = listaAllenamenti.value.find(
+      item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
+    );
+    if (!header) return;
+
+    // Trova tutti gli esercizi reali per il giorno g
+    const exercisesForDay = listaAllenamenti.value.filter(
+      item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) > 0
+    );
+
+    // Calcola la settimana attiva per questo giorno specifico
+    let activeWeekForDay = 1;
+    for (let w = 1; w <= 6; w++) {
+      if (header['cmp' + w] !== 'true') {
+        activeWeekForDay = w;
+        break;
+      }
+    }
+
+    // 1. Controllo: se la settimana attiva del giorno è inferiore alla settimana attiva globale,
+    // significa che questo giorno è rimasto indietro rispetto all'atleta!
+    if (activeWeekForDay < settimanaAttiva.value) {
+      result[g] = true;
+      return;
+    }
+
+    // 2. Controllo: se la settimana attiva del giorno ha tutti gli esercizi compilati ma non è chiusa
+    if (exercisesForDay.length > 0) {
+      const isChiusa = header['cmp' + activeWeekForDay] === 'true';
+      const tuttiCompilati = exercisesForDay.every(ex => {
+        const val = ex['ins_week' + activeWeekForDay];
+        return val && val.trim() !== '';
+      });
+      if (!isChiusa && tuttiCompilati) {
+        result[g] = true;
+        return;
+      }
+    }
+  });
+
+  return result;
+});
+
 // Raggruppa gli esercizi consecutivi in blocchi (singoli o superset)
 const blocchiEsercizi = computed(() => {
   const blocks = [];
@@ -1499,5 +1560,19 @@ const vibraTattile = (ms = 12) => {
   padding-top: 8px !important;
   padding-bottom: 8px !important;
   margin-top: -8px !important;
+}
+
+@keyframes pulse-warn {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+.pulse-warning {
+  animation: pulse-warn 1.5s infinite ease-in-out;
 }
 </style>

@@ -1593,9 +1593,12 @@ const vibraTattile = (ms = 12) => {
   color: #ea580c !important;
   box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15) !important;
 }
-
+.sticky-tabs-container .v-tabs-slider,
+.sticky-tabs-container .v-tabs-slider-wrapper,
 .sticky-tabs-container .v-tab-slider,
 .sticky-tabs-container .v-tab-slider-wrapper,
+.sticky-tabs-container :deep(.v-tabs-slider),
+.sticky-tabs-container :deep(.v-tabs-slider-wrapper),
 .sticky-tabs-container :deep(.v-tab-slider),
 .sticky-tabs-container :deep(.v-tab-slider-wrapper) {
   display: none !important;

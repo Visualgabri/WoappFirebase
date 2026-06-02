@@ -157,7 +157,7 @@
           >
             ⏱️ {{ workout.des_rec_report }}{{ (workout.alf_superserie && workout.alf_superserie.trim()) ? ' (No stop)' : '' }}
           </v-chip>
-          <!-- Mostra "PASSA AL PROSSIMO" solo se è in superserie E non ha recupero -->
+          <!-- Mostra "VAI AL PROSSIMO" solo se è in superserie E non ha recupero -->
           <v-chip
             v-else-if="workout.alf_superserie"
             color="green-darken-3"

@@ -46,7 +46,8 @@
         color="orange-darken-3"
         align-tabs="center"
         grow
-        class="card-glass border-bottom mb-4 rounded-xl elevation-1"
+        class="card-glass border-bottom mb-4 rounded-xl elevation-1 sticky-tabs"
+        :style="{ top: utente ? '56px' : '0px' }"
         @update:model-value="salvaGiornoSelezionato"
       >
         <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6">
@@ -575,11 +576,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente } from '../authStore.js';
 
 const router = useRouter();
 
@@ -1182,8 +1183,68 @@ const salvaGiornoSelezionato = (giorno) => {
   filtraEserciziPerGiorno();
 };
 
+// Gesture di swipe touch per cambiare giorno di allenamento
+let touchStartX = 0;
+let touchStartY = 0;
+
+const handleTouchStart = (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+};
+
+const handleTouchEnd = (e) => {
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  
+  const diffX = touchEndX - touchStartX;
+  const diffY = touchEndY - touchStartY;
+  
+  // Swipe orizzontale e sufficientemente lungo (> 80px), non verticale
+  if (Math.abs(diffX) > 80 && Math.abs(diffY) < 50) {
+    if (diffX < 0) {
+      // Swipe a sinistra -> Giorno Successivo
+      vaiAlGiornoSuccessivo();
+    } else {
+      // Swipe a destra -> Giorno Precedente
+      vaiAlGiornoPrecedente();
+    }
+  }
+};
+
+const vaiAlGiornoSuccessivo = () => {
+  if (listaGiorniDisponibili.value.length <= 1) return;
+  const idx = listaGiorniDisponibili.value.indexOf(giornoSelezionato.value);
+  if (idx !== -1) {
+    const nextIdx = (idx + 1) % listaGiorniDisponibili.value.length;
+    giornoSelezionato.value = listaGiorniDisponibili.value[nextIdx];
+    salvaGiornoSelezionato(giornoSelezionato.value);
+    vibraTattile(12);
+  }
+};
+
+const vaiAlGiornoPrecedente = () => {
+  if (listaGiorniDisponibili.value.length <= 1) return;
+  const idx = listaGiorniDisponibili.value.indexOf(giornoSelezionato.value);
+  if (idx !== -1) {
+    let prevIdx = idx - 1;
+    if (prevIdx < 0) {
+      prevIdx = listaGiorniDisponibili.value.length - 1;
+    }
+    giornoSelezionato.value = listaGiorniDisponibili.value[prevIdx];
+    salvaGiornoSelezionato(giornoSelezionato.value);
+    vibraTattile(12);
+  }
+};
+
 onMounted(() => {
   caricaAllenamenti();
+  window.addEventListener('touchstart', handleTouchStart, { passive: true });
+  window.addEventListener('touchend', handleTouchEnd, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('touchstart', handleTouchStart);
+  window.removeEventListener('touchend', handleTouchEnd);
 });
 
 // Ascolta cambiamenti globali
@@ -1425,5 +1486,13 @@ const vibraTattile = (ms = 12) => {
 
 .superset-exercises-wrapper {
   position: relative;
+}
+
+.sticky-tabs {
+  position: sticky !important;
+  z-index: 99 !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 </style>

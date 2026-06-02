@@ -50,7 +50,7 @@
           color="orange-darken-3"
           align-tabs="center"
           grow
-          class="card-glass border-bottom rounded-xl elevation-1"
+          class="card-glass rounded-xl elevation-1"
           @update:model-value="salvaGiornoSelezionato"
         >
           <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6 px-2">
@@ -1596,5 +1596,9 @@ const vibraTattile = (ms = 12) => {
 
 .sticky-tabs-container .v-tab-slider {
   display: none !important;
+}
+
+.sticky-tabs-container .v-tabs {
+  border-bottom: none !important;
 }
 </style>

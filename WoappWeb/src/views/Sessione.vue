@@ -245,18 +245,20 @@
           <div class="text-caption text-orange-lighten-2 font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
             2. Note & Commenti
           </div>
-          <v-text-field
+          <v-textarea
             v-model="inputNote"
             label="Note sull'allenamento..."
             variant="outlined"
             density="comfortable"
             rounded="lg"
+            rows="1"
+            auto-grow
             color="orange-darken-3"
             prepend-inner-icon="mdi-pencil-outline"
             class="notes-field-spacious"
             @blur="salvaDato('ins_week' + selectedWeek, inputNote)"
             hide-details
-          ></v-text-field>
+          ></v-textarea>
         </div>
 
 
@@ -354,7 +356,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete } from '../authStore.js';
 
@@ -842,15 +844,12 @@ const setWeekCompleted = async (w, val) => {
   salvaModificaLocale(campo, valString);
   snackbar.value = true;
 
-  // 2. Prova ad aggiornare Firestore in background
+  // 2. Prova ad aggiornare Firestore in background (con setDoc self-healing)
   try {
     const docRef = doc(db, 'STORYBOARD', routeId);
-    const payload = {
-      [campo]: valString,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
-    };
+    workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
     
-    await updateDoc(docRef, payload);
+    await setDoc(docRef, workout.value, { merge: true });
     console.log("Firestore completamento week sincronizzato con successo!");
   } catch (error) {
     console.warn("Firestore offline/quota esaurita. Dati salvati localmente:", error);
@@ -870,17 +869,14 @@ const salvaDato = async (campo, valore) => {
       salvaModificaLocale(campo, valore);
       snackbar.value = true;
 
-      // 2. Prova ad aggiornare Firestore in background
+      // 2. Prova ad aggiornare Firestore in background (con setDoc self-healing)
       const docRef = doc(db, 'STORYBOARD', routeId);
-      const payload = {
-        [campo]: valore,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
-      };
-      
-      await updateDoc(docRef, payload);
+      workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+      await setDoc(docRef, workout.value, { merge: true });
       console.log("Firestore dato sincronizzato con successo!");
     } catch (error) {
-      console.warn("Firestore offline/quota esaurita. Dati salvati localmente:", error);
+      console.warn("Errore salvataggio:", error);
     }
   }
 };

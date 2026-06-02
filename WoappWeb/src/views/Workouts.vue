@@ -343,6 +343,7 @@
                 <div
                   v-for="(ex, index) in block.exercises"
                   :key="ex.id"
+                  :id="'esercizio-' + ex.id"
                   class="superset-exercise-item position-relative d-flex align-center py-3"
                   :class="{
                     'border-bottom-soft': index < block.exercises.length - 1
@@ -473,6 +474,7 @@
             <!-- CASO 2: ESERCIZIO STANDARD SINGOLO -->
             <v-card
               v-else
+              :id="'esercizio-' + block.exercise.id"
               class="exercise-item-card rounded-xl pa-3 mb-4 elevation-1 d-flex align-center"
               @click="vaiAlDettaglio(block.exercise.id)"
             >
@@ -592,7 +594,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
+import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -1201,6 +1203,7 @@ const caricaAllenamenti = async () => {
     localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
 
     filtraEserciziPerGiorno();
+    scrollaAllUltimoEsercizio();
   } catch (error) {
     console.warn("Errore caricamento allenamenti da Firestore (quota esaurita), provo da backup locale:", error);
     const rawFiltrati = backupList.filter(
@@ -1215,6 +1218,7 @@ const caricaAllenamenti = async () => {
     localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
 
     filtraEserciziPerGiorno();
+    scrollaAllUltimoEsercizio();
   } finally {
     caricamento.value = false;
   }
@@ -1300,6 +1304,25 @@ const vaiAlGiornoPrecedente = () => {
     giornoSelezionato.value = listaGiorniDisponibili.value[prevIdx];
     salvaGiornoSelezionato(giornoSelezionato.value);
     vibraTattile(12);
+  }
+};
+
+const scrollaAllUltimoEsercizio = () => {
+  const ultimoId = localStorage.getItem('ultimoEsercizioDettaglio');
+  if (ultimoId) {
+    nextTick(() => {
+      setTimeout(() => {
+        const el = document.getElementById('esercizio-' + ultimoId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('highlight-exercise');
+          setTimeout(() => {
+            el.classList.remove('highlight-exercise');
+          }, 1500);
+        }
+        localStorage.removeItem('ultimoEsercizioDettaglio');
+      }, 100);
+    });
   }
 };
 
@@ -1616,5 +1639,19 @@ const vibraTattile = (ms = 12) => {
   border-bottom: none !important;
   border-bottom-width: 0 !important;
   box-shadow: none !important;
+}
+
+@keyframes highlight-glow {
+  0% {
+    background-color: rgba(249, 115, 22, 0.25) !important;
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.4) !important;
+  }
+  100% {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+.highlight-exercise {
+  animation: highlight-glow 1.5s ease-out;
 }
 </style>

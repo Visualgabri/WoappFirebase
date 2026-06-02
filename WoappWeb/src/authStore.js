@@ -82,10 +82,113 @@ export const logout = async () => {
 // Stato di Timer Globale per il Recupero (Premium UX)
 export const activeTimer = ref(null); // { remainingSeconds, totalSeconds, label, isPaused, intervalId }
 
+let silentAudioCtx = null;
+let silentSource = null;
+
+const startBackgroundKeepAlive = () => {
+  try {
+    if (window.Notification && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    if (silentAudioCtx && silentAudioCtx.state === 'suspended') {
+      silentAudioCtx.resume();
+      return;
+    }
+    if (silentAudioCtx) return;
+
+    silentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Create a 1-second silent buffer (zeros)
+    const buffer = silentAudioCtx.createBuffer(1, silentAudioCtx.sampleRate, silentAudioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = 0;
+    }
+    
+    silentSource = silentAudioCtx.createBufferSource();
+    silentSource.buffer = buffer;
+    silentSource.loop = true;
+    silentSource.connect(silentAudioCtx.destination);
+    silentSource.start(0);
+  } catch (err) {
+    console.warn("Non è stato possibile avviare il keep-alive audio silenzioso:", err);
+  }
+};
+
+const stopBackgroundKeepAlive = () => {
+  try {
+    if (silentSource) {
+      silentSource.stop();
+      silentSource.disconnect();
+      silentSource = null;
+    }
+    if (silentAudioCtx) {
+      silentAudioCtx.close();
+      silentAudioCtx = null;
+    }
+  } catch (err) {
+    console.warn("Non è stato possibile fermare il keep-alive audio silenzioso:", err);
+  }
+};
+
+const playBeepSequence = () => {
+  try {
+    const alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    const playBeep = (startTime) => {
+      const osc = alarmCtx.createOscillator();
+      const gainNode = alarmCtx.createGain();
+      
+      osc.connect(gainNode);
+      gainNode.connect(alarmCtx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, startTime); // Nota A5
+      
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.35);
+      
+      osc.start(startTime);
+      osc.stop(startTime + 0.4);
+    };
+
+    playBeep(alarmCtx.currentTime);
+    playBeep(alarmCtx.currentTime + 0.5);
+    playBeep(alarmCtx.currentTime + 1.0);
+    
+    setTimeout(() => {
+      try {
+        alarmCtx.close();
+      } catch (e) {}
+    }, 2000);
+  } catch (err) {
+    console.error("Non è stato possibile riprodurre la sequenza di beeps:", err);
+  }
+};
+
+const sendTimerNotification = (label) => {
+  if (window.Notification && Notification.permission === 'granted') {
+    try {
+      new Notification("Tempo Scaduto! ⏱️", {
+        body: label ? `Fine recupero per: ${label}` : 'Il recupero è terminato!',
+        icon: '/logo.png',
+        vibrate: [200, 100, 200, 100, 200],
+        tag: 'timer-recupero',
+        requireInteraction: true
+      });
+    } catch (e) {
+      console.warn("Errore nell'invio della notifica nativa:", e);
+    }
+  }
+};
+
 export const startGlobalTimer = (seconds, label = 'Recupero') => {
   if (activeTimer.value && activeTimer.value.intervalId) {
     clearInterval(activeTimer.value.intervalId);
   }
+  stopBackgroundKeepAlive();
   activeTimer.value = {
     remainingSeconds: seconds,
     totalSeconds: seconds,
@@ -103,6 +206,7 @@ export const pauseGlobalTimer = () => {
       clearInterval(activeTimer.value.intervalId);
       activeTimer.value.intervalId = null;
     }
+    stopBackgroundKeepAlive();
   }
 };
 
@@ -112,6 +216,9 @@ export const resumeGlobalTimer = () => {
   if (navigator.vibrate) {
     navigator.vibrate(35);
   }
+  
+  startBackgroundKeepAlive();
+
   activeTimer.value.intervalId = setInterval(() => {
     if (!activeTimer.value) return;
     if (activeTimer.value.remainingSeconds > 1) {
@@ -120,22 +227,18 @@ export const resumeGlobalTimer = () => {
         navigator.vibrate([40, 40, 40]);
       }
     } else {
+      stopBackgroundKeepAlive();
+
       if (navigator.vibrate) {
         navigator.vibrate([150, 80, 150, 80, 200]);
       }
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.setValueAtTime(0.1, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.8);
-      } catch (e) {}
+      
+      playBeepSequence();
+      
+      if (document.visibilityState === 'hidden') {
+        sendTimerNotification(activeTimer.value.label);
+      }
+      
       clearInterval(activeTimer.value.intervalId);
       activeTimer.value = null;
     }
@@ -148,6 +251,7 @@ export const stopGlobalTimer = () => {
       clearInterval(activeTimer.value.intervalId);
     }
     activeTimer.value = null;
+    stopBackgroundKeepAlive();
   }
 };
 

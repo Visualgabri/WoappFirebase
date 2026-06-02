@@ -158,6 +158,11 @@ onMounted(() => {
       }
     }
   });
+
+  // Richiesta permessi di notifica per timer in background
+  if (window.Notification && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 });
 
 // Micro-vibrazione tattile per smartphone (Haptic feedback)

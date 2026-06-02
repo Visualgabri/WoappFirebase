@@ -11,9 +11,20 @@
       >
         <v-icon size="28">mdi-arrow-left</v-icon>
       </v-btn>
-      <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate">
-        {{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
-      </h3>
+      <div class="d-flex align-center justify-center flex-grow-1 px-2 text-truncate" style="gap: 8px;">
+        <v-chip
+          v-if="workout?.num_riga_giorno"
+          color="orange-darken-3"
+          size="small"
+          class="font-weight-black text-white px-2 py-0.5 flex-shrink-0"
+          variant="flat"
+        >
+          Es. {{ workout.num_riga_giorno }}
+        </v-chip>
+        <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
+          {{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
+        </h3>
+      </div>
       <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
     </div>
 
@@ -347,18 +358,20 @@
 
           <!-- Input di inserimento Carico (puramente testuale) -->
           <div class="mt-3.5 mb-1">
-            <v-text-field
+            <v-textarea
               v-model="inputSettimane[sett].ins"
               label="Carico inserito (es. 45kg o note)"
               variant="outlined"
               density="compact"
               hide-details
               rounded="lg"
+              rows="1"
+              auto-grow
               color="orange-darken-3"
               class="custom-weight-input"
               @blur="salvaDatoSettimanale(sett, 'ins')"
               :id="'input-peso-w' + sett"
-            ></v-text-field>
+            ></v-textarea>
           </div>
         </v-card>
 
@@ -463,17 +476,19 @@
               <span class="text-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Note attrezzo:</span>
               <v-icon size="14" color="orange-darken-3">mdi-wrench-outline</v-icon>
             </div>
-            <v-text-field
+            <v-textarea
               v-model="noteAttrezzo"
               variant="outlined"
               density="compact"
               hide-details
               rounded="lg"
+              rows="1"
+              auto-grow
               color="orange-darken-3"
               class="custom-textarea-input"
               @blur="salvaDatoGenerale('des_note_attrezzo', noteAttrezzo)"
               id="input-detail-note-attrezzo"
-            ></v-text-field>
+            ></v-textarea>
           </div>
 
           <!-- Note Esercizio -->
@@ -540,7 +555,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { startGlobalTimer } from '../authStore.js';
 
@@ -902,6 +917,7 @@ watch(() => route.params.id, (nuovoId) => {
     riga0.value = null;
     workout.value = null;
     routeIdLocal.value = nuovoId;
+    localStorage.setItem('ultimoEsercizioDettaglio', nuovoId);
     caricaDatiEsercizio();
   }
 });
@@ -958,7 +974,8 @@ const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desG
 
 const vaiAdEsercizioSuccessivo = () => {
   if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1) return;
-  const nextIndex = (indexCorrente.value + 1) % listaIdEsercizi.value.length;
+  if (indexCorrente.value === listaIdEsercizi.value.length - 1) return;
+  const nextIndex = indexCorrente.value + 1;
   const nextId = listaIdEsercizi.value[nextIndex];
   
   vibraTattile(15);
@@ -967,10 +984,8 @@ const vaiAdEsercizioSuccessivo = () => {
 
 const vaiAdEsercizioPrecedente = () => {
   if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1) return;
-  let prevIndex = indexCorrente.value - 1;
-  if (prevIndex < 0) {
-    prevIndex = listaIdEsercizi.value.length - 1;
-  }
+  if (indexCorrente.value === 0) return;
+  const prevIndex = indexCorrente.value - 1;
   const prevId = listaIdEsercizi.value[prevIndex];
   
   vibraTattile(15);
@@ -1128,6 +1143,9 @@ const caricaEsercizioDaBackup = async () => {
 onMounted(() => {
   riportaAInizioPagina();
   caricaDatiEsercizio();
+  if (routeIdLocal.value) {
+    localStorage.setItem('ultimoEsercizioDettaglio', routeIdLocal.value);
+  }
   window.addEventListener('touchstart', handleTouchStart, { passive: true });
   window.addEventListener('touchend', handleTouchEnd, { passive: true });
 });
@@ -1290,13 +1308,11 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
     try {
       vibraTattile(20); // Vibrazione forte di successo salvataggio
       const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
-      const payload = {
-        [campo]: valoreNuovo,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
-      };
-
-      await updateDoc(docRef, payload);
       workout.value[campo] = valoreNuovo;
+      workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+      // Usiamo setDoc con merge per autorigenerare i documenti mancanti in Firestore
+      await setDoc(docRef, workout.value, { merge: true });
       snackbarSalvataggio.value = true;
     } catch (error) {
       console.error("Errore salvataggio automatico settimanale:", error);
@@ -1314,13 +1330,11 @@ const salvaDatoGenerale = async (campo, valore) => {
     try {
       vibraTattile(20);
       const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
-      const payload = {
-        [campo]: valore,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
-      };
-
-      await updateDoc(docRef, payload);
       workout.value[campo] = valore;
+      workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+      // Usiamo setDoc con merge per autorigenerare i documenti mancanti in Firestore
+      await setDoc(docRef, workout.value, { merge: true });
       snackbarSalvataggio.value = true;
     } catch (error) {
       console.error("Errore salvataggio automatico generale:", error);

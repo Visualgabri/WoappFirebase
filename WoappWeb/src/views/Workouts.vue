@@ -92,9 +92,9 @@
                   <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4">
                     Workout Giorno {{ giornoSelezionato }}
                   </h3>
-                  <div class="d-flex align-center mt-1 gap-2 flex-wrap">
+                  <!-- Promemoria Chiusura Settimana -->
+                  <div v-if="mostraPromemoriaChiusura" class="mt-1">
                     <v-chip
-                      v-if="mostraPromemoriaChiusura"
                       size="x-small"
                       color="amber-darken-3"
                       class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
@@ -103,20 +103,21 @@
                     >
                       ⚠️ SETTIMANA DA CHIUDERE
                     </v-chip>
-                    <div class="d-flex gap-1 align-center mini-weeks-progression">
-                      <div
-                        v-for="w in [1, 2, 3, 4, 5, 6]"
-                        :key="w"
-                        class="mini-week-capsule"
-                        :class="{
-                          'capsule-completed': headerGiorno['cmp' + w] === 'true',
-                          'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
-                          'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
-                        }"
-                      >
-                        <span class="capsule-num">W{{ w }}</span>
-                        <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
-                      </div>
+                  </div>
+                  <!-- Progresso Settimane (Tracker Week) -->
+                  <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
+                    <div
+                      v-for="w in [1, 2, 3, 4, 5, 6]"
+                      :key="w"
+                      class="mini-week-capsule"
+                      :class="{
+                        'capsule-completed': headerGiorno['cmp' + w] === 'true',
+                        'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
+                        'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
+                      }"
+                    >
+                      <span class="capsule-num">W{{ w }}</span>
+                      <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
                   <div class="text-caption text-muted font-weight-bold d-flex align-center mt-1" style="font-size: 0.7rem;">
@@ -218,9 +219,9 @@
                 {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
               </h3>
               <!-- Visualizzazione Settimana Attiva e Progresso -->
-              <div class="d-flex align-center mt-1 gap-2 flex-wrap">
+              <!-- Promemoria Chiusura Settimana -->
+              <div v-if="mostraPromemoriaChiusura" class="mt-1">
                 <v-chip
-                  v-if="mostraPromemoriaChiusura"
                   size="x-small"
                   color="amber-darken-3"
                   class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
@@ -229,20 +230,21 @@
                 >
                   ⚠️ SETTIMANA DA CHIUDERE
                 </v-chip>
-                <div class="d-flex gap-1 align-center mini-weeks-progression">
-                  <div
-                    v-for="w in [1, 2, 3, 4, 5, 6]"
-                    :key="w"
-                    class="mini-week-capsule"
-                    :class="{
-                      'capsule-completed': headerGiorno['cmp' + w] === 'true',
-                      'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
-                      'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
-                    }"
-                  >
-                    <span class="capsule-num">W{{ w }}</span>
-                    <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
-                  </div>
+              </div>
+              <!-- Progresso Settimane (Tracker Week) -->
+              <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
+                <div
+                  v-for="w in [1, 2, 3, 4, 5, 6]"
+                  :key="w"
+                  class="mini-week-capsule"
+                  :class="{
+                    'capsule-completed': headerGiorno['cmp' + w] === 'true',
+                    'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
+                    'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
+                  }"
+                >
+                  <span class="capsule-num">W{{ w }}</span>
+                  <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                 </div>
               </div>
               <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-1.5 d-flex align-center text-truncate">

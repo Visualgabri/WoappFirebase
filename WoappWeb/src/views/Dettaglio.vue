@@ -248,7 +248,7 @@
         <v-card
           v-for="sett in settimaneVisualizzate"
           :key="sett"
-          class="week-log-card rounded-xl py-2.5 px-3 mb-4.5 border transition-all"
+          class="week-log-card rounded-xl py-2.5 px-3 mb-6 border transition-all"
           :class="{
             'week-active-border': sett === settimanaAttiva,
             'week-secondary-card': modalitaSettimane === 'dinamica' && sett !== settimanaAttiva

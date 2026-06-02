@@ -396,9 +396,7 @@
                       {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
 
-                    <!-- Cronologia Carichi Settimanali -->
                     <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
-                      <span class="text-super-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.58rem; letter-spacing: 0.05em;">Week tracker:</span>
                       <div class="d-flex gap-1 align-center flex-wrap">
                         <div
                           v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -524,7 +522,6 @@
 
                 <!-- Cronologia Carichi Settimanali -->
                 <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
-                  <span class="text-super-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.58rem; letter-spacing: 0.05em;">Week tracker:</span>
                   <div class="d-flex gap-1 align-center flex-wrap">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"

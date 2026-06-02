@@ -4,13 +4,13 @@
     <v-app-bar
       v-if="utente"
       flat
-      color="transparent"
-      class="card-glass border-bottom px-4"
+      color="#0f172a"
+      class="border-bottom px-4"
       density="comfortable"
     >
       <v-app-bar-title class="font-weight-black text-slate-dark">
         <v-icon color="orange-darken-3" class="mr-2">mdi-dumbbell</v-icon>
-        Woapp<span class="orange-dot">.</span>
+        FlexCoach<span class="orange-dot">.</span>
       </v-app-bar-title>
 
       <v-spacer></v-spacer>
@@ -26,9 +26,9 @@
       <v-btn
         icon
         color="red-darken-2"
-        variant="tonal"
+        variant="flat"
         size="small"
-        class="rounded-lg"
+        class="rounded-lg text-white"
         @click="eseguiLogout"
         id="btn-logout"
       >
@@ -207,9 +207,7 @@ const eseguiLogout = async () => {
 }
 
 .premium-nav {
-  background: rgba(15, 23, 42, 0.7) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: #0f172a !important;
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 

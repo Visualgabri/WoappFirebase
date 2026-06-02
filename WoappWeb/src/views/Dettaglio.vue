@@ -145,7 +145,7 @@
 
         <!-- Rigo Dettaglio Rapido -->
         <div class="text-caption font-weight-bold text-slate mt-1 d-flex align-center flex-wrap gap-1.5">
-          <v-chip color="orange-darken-3" size="x-small" class="font-weight-black px-2 py-0.5" variant="flat">{{ workout.des_settore_princ }}</v-chip>
+          <v-chip color="orange-darken-3" size="x-small" class="font-weight-black px-2 py-0.5" variant="flat">{{ workout.des_settore }}</v-chip>
           <v-chip
             v-if="workout.des_rec_report"
             color="orange-darken-3"
@@ -172,24 +172,24 @@
       </div>
 
       <!-- Banner Superserie e Lista Esercizi Associati -->
-      <div v-if="workout.alf_superserie" class="mb-6">
-        <v-card class="superset-detail-card rounded-2xl pa-4 border-superset elevation-2 text-left">
-          <div class="d-flex align-center mb-3">
-            <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-1 mr-2 animate-pulse-slow" variant="flat" size="x-small">
+      <div v-if="workout.alf_superserie" class="mb-4">
+        <v-card class="superset-detail-card rounded-xl pa-3 border-superset elevation-2 text-left">
+          <div class="d-flex align-center mb-2">
+            <v-chip color="orange-darken-3" class="font-weight-black text-white px-1.5 py-0.5 mr-2 animate-pulse-slow" variant="flat" size="x-small" style="height: 18px; font-size: 0.55rem;">
               ⚡ SUPERSET {{ workout.alf_superserie }}
             </v-chip>
-            <span v-if="workout.des_rec_report" class="text-caption font-weight-black text-orange-lighten-2">
+            <span v-if="workout.des_rec_report" class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.7rem;">
               (Riposati ora)
             </span>
-            <span v-else class="text-caption font-weight-black text-orange-lighten-2">
+            <span v-else class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.7rem;">
               Esegui in sequenza senza pausa!
             </span>
           </div>
           
-          <p v-if="workout.des_rec_report" class="text-body-2 text-slate font-weight-medium mb-3">
+          <p v-if="workout.des_rec_report" class="text-caption text-slate font-weight-medium mb-2 leading-tight">
             Questo esercizio è l'ultimo della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata questa serie, effettua il recupero previsto prima di ricominciare il giro.
           </p>
-          <p v-else class="text-body-2 text-slate font-weight-medium mb-3">
+          <p v-else class="text-caption text-slate font-weight-medium mb-2 leading-tight">
             Questo esercizio fa parte della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata una serie di questo esercizio, passa immediatamente all'esercizio successivo prima del recupero.
           </p>
           
@@ -199,33 +199,33 @@
               Altri esercizi in questa superserie:
             </div>
             
-            <div class="superset-connected-list rounded-xl overflow-hidden card-glass border">
+            <div class="superset-connected-list rounded-lg overflow-hidden card-glass border">
               <div
                 v-for="connEx in eserciziSupersetCollegati"
                 :key="connEx.id"
-                class="connected-exercise-item d-flex align-center pa-3 clickable-item border-bottom-soft"
+                class="connected-exercise-item d-flex align-center py-1.5 px-2.5 clickable-item border-bottom-soft"
                 @click="vaiAdEsercizioCollegato(connEx.id)"
                 style="cursor: pointer;"
               >
-                <div class="connected-thumb mr-3 rounded overflow-hidden" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="connected-thumb mr-2 rounded overflow-hidden" style="width: 40px; height: 40px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
                   <v-img
                     :src="getGifUrl(connEx.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
-                    width="48"
-                    height="48"
+                    width="40"
+                    height="40"
                     cover
                   ></v-img>
                 </div>
                 <div class="flex-grow-1 min-width-0 text-left">
-                  <div class="text-body-2 font-weight-black text-slate-dark text-truncate">
+                  <div class="text-caption font-weight-black text-slate-dark text-truncate" style="font-size: 0.78rem !important;">
                     {{ connEx.des_esercizio }}
                   </div>
-                  <div class="text-super-caption text-orange-darken-3 font-weight-bold">
-                    {{ connEx.des_settore || 'Corpo Libero' }} • Posizione {{ connEx.num_riga_giorno }}
-                    <span v-if="connEx.des_rec_report" class="text-amber-lighten-2 ml-1">⏱️ (Recupero: {{ connEx.des_rec_report }})</span>
-                    <span v-else class="text-green-lighten-2 ml-1">⚡ (No Pausa)</span>
+                  <div class="text-super-caption text-orange-darken-3 font-weight-bold" style="font-size: 0.58rem;">
+                    {{ connEx.des_settore || 'Corpo Libero' }} • Pos. {{ connEx.num_riga_giorno }}
+                    <span v-if="connEx.des_rec_report" class="text-amber-lighten-2 ml-1">⏱️ {{ connEx.des_rec_report }}</span>
+                    <span v-else class="text-green-lighten-2 ml-1">⚡ No Pausa</span>
                   </div>
                 </div>
-                <v-icon size="18" color="orange-darken-3">mdi-arrow-right-circle-outline</v-icon>
+                <v-icon size="16" color="orange-darken-3">mdi-arrow-right-circle-outline</v-icon>
               </div>
             </div>
           </div>
@@ -248,7 +248,7 @@
         <v-card
           v-for="sett in settimaneVisualizzate"
           :key="sett"
-          class="week-log-card rounded-xl py-2.5 px-3 mb-2.5 border transition-all"
+          class="week-log-card rounded-xl py-2.5 px-3 mb-4.5 border transition-all"
           :class="{
             'week-active-border': sett === settimanaAttiva,
             'week-secondary-card': modalitaSettimane === 'dinamica' && sett !== settimanaAttiva
@@ -270,10 +270,6 @@
               </span>
               <v-chip v-if="sett === settimanaAttiva" color="orange-darken-3" size="x-small" class="ml-2 font-weight-black px-1.5" style="height: 16px; font-size: 0.55rem;" variant="flat">ATTIVA</v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
-            </div>
-            
-            <div v-if="workout['perc_irt_w' + sett]" class="text-caption text-red-darken-3 font-weight-bold" style="font-size: 0.7rem;">
-              IRT: {{ workout['perc_irt_w' + sett] }}%
             </div>
           </div>
 

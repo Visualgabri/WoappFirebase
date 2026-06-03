@@ -76,6 +76,8 @@
       </div>
 
       <div v-else>
+        <transition :name="transitionName" mode="out-in">
+          <div :key="giornoSelezionato" class="swipe-transition-wrapper">
         <!-- Intestazione del Giorno Attivo (Riga 0) stile AppSheet (cliccabile per completamento) -->
         <v-card
           v-if="headerGiorno"
@@ -586,7 +588,8 @@
 
           </template>
         </div>
-
+          </div>
+        </transition>
       </div>
 
     </div>
@@ -941,12 +944,46 @@ const getGifUrl = (url) => {
 const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
 const giornoSelezionato = ref('A');
-const listaGiorniDisponibili = ref(['A', 'B', 'C', 'D']);
 
 const caricamento = ref(true);
 const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
+
+const listaGiorniDisponibili = computed(() => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) {
+    return ['A', 'B', 'C', 'D'];
+  }
+  const giorni = new Set();
+  listaAllenamenti.value.forEach(item => {
+    const g = (item.des_giorno || '').trim().toUpperCase();
+    if (g) {
+      giorni.add(g);
+    }
+  });
+  
+  if (giorni.size === 0) {
+    return ['A', 'B', 'C', 'D'];
+  }
+  
+  return Array.from(giorni).sort();
+});
+
+const transitionName = ref('swipe-left');
+
+// Gestione direzione swipe
+watch(giornoSelezionato, (newVal, oldVal) => {
+  const days = listaGiorniDisponibili.value;
+  const oldIdx = days.indexOf(oldVal);
+  const newIdx = days.indexOf(newVal);
+  if (oldIdx !== -1 && newIdx !== -1 && oldVal !== newVal) {
+    if ((newIdx > oldIdx && !(oldIdx === 0 && newIdx === days.length - 1)) || (oldIdx === days.length - 1 && newIdx === 0)) {
+      transitionName.value = 'swipe-left';
+    } else {
+      transitionName.value = 'swipe-right';
+    }
+  }
+});
 
 // Verifica quali giorni hanno pendenze (settimane arretrate o da chiudere)
 const giorniConPendenze = computed(() => {
@@ -1210,16 +1247,23 @@ const caricaAllenamenti = async () => {
 
 // Filtra ed ordina gli esercizi in base al giorno selezionato
 const filtraEserciziPerGiorno = () => {
-  const giorno = giornoSelezionato.value;
+  let giorno = (giornoSelezionato.value || '').trim().toUpperCase();
+
+  // Se il giorno selezionato non è tra quelli disponibili, seleziona il primo disponibile
+  if (listaGiorniDisponibili.value.length > 0 && !listaGiorniDisponibili.value.includes(giorno)) {
+    giorno = listaGiorniDisponibili.value[0];
+    giornoSelezionato.value = giorno;
+    localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giorno);
+  }
 
   // Cerca la riga di intestazione (num_riga_giorno === 0 oppure '0')
   headerGiorno.value = listaAllenamenti.value.find(
-    item => (item.des_giorno || '').trim() === giorno && (parseInt(item.num_riga_giorno) === 0)
+    item => (item.des_giorno || '').trim().toUpperCase() === giorno && (parseInt(item.num_riga_giorno) === 0)
   ) || null;
 
   // Cerca gli esercizi reali del giorno (num_riga_giorno > 0)
   const filtrati = listaAllenamenti.value.filter(
-    item => (item.des_giorno || '').trim() === giorno && (parseInt(item.num_riga_giorno) > 0)
+    item => (item.des_giorno || '').trim().toUpperCase() === giorno && (parseInt(item.num_riga_giorno) > 0)
   );
 
   // Ordina per num_riga_giorno numerico
@@ -1637,5 +1681,39 @@ const vibraTattile = (ms = 12) => {
 }
 .highlight-exercise {
   animation: highlight-glow 1.5s ease-out;
+}
+
+/* Swipe transitions */
+.swipe-transition-wrapper {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+/* Swipe Left (moving forward) */
+.swipe-left-enter-active,
+.swipe-left-leave-active {
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.swipe-left-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.swipe-left-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* Swipe Right (moving backward) */
+.swipe-right-enter-active,
+.swipe-right-leave-active {
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.swipe-right-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+.swipe-right-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>

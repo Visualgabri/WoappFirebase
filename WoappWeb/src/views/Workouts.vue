@@ -136,22 +136,7 @@
                   </div>
                 </div>
               </div>
-              <div class="d-flex align-center">
-                <!-- Checkbox completamento rapido giorno -->
-                <v-btn
-                  icon
-                  variant="text"
-                  :color="headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'green-accent-4' : 'grey-lighten-1'"
-                  class="mr-1"
-                  size="small"
-                  @click.stop="toggleGiornoAttivoRapido"
-                >
-                  <v-icon size="24">
-                    {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
-                  </v-icon>
-                </v-btn>
-                <v-icon color="orange-darken-3">mdi-chevron-right</v-icon>
-              </div>
+              <v-icon color="orange-darken-3">mdi-chevron-right</v-icon>
             </div>
 
             <!-- Griglia dei Tempi e Densità con Medie -->
@@ -330,21 +315,7 @@
                 {{ headerGiorno.ins_esercizio }}
               </div>
             </div>
-            <div class="d-flex align-center ml-2">
-              <!-- Checkbox completamento rapido giorno (fallback) -->
-              <v-btn
-                icon
-                variant="text"
-                :color="headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'green-accent-4' : 'grey-lighten-1'"
-                size="small"
-                @click.stop="toggleGiornoAttivoRapido"
-              >
-                <v-icon size="24">
-                  {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
-                </v-icon>
-              </v-btn>
-              <v-icon color="orange-darken-3">mdi-chevron-right</v-icon>
-            </div>
+            <v-icon color="orange-darken-3" class="ml-2">mdi-chevron-right</v-icon>
           </div>
         </v-card>
 

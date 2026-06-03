@@ -1033,8 +1033,8 @@ const giorniConPendenze = computed(() => {
       item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) > 0
     );
 
-    // Calcola la settimana attiva per questo giorno specifico
-    let activeWeekForDay = 1;
+    // Calcola la settimana attiva per questo giorno specifico (default a 7 se tutte chiuse)
+    let activeWeekForDay = 7;
     for (let w = 1; w <= 6; w++) {
       if (header['cmp' + w] !== 'true') {
         activeWeekForDay = w;
@@ -1050,7 +1050,7 @@ const giorniConPendenze = computed(() => {
     }
 
     // 2. Controllo: se la settimana attiva del giorno ha tutti gli esercizi compilati ma non è chiusa
-    if (exercisesForDay.length > 0) {
+    if (activeWeekForDay <= 6 && exercisesForDay.length > 0) {
       const isChiusa = header['cmp' + activeWeekForDay] === 'true';
       const tuttiCompilati = exercisesForDay.every(ex => {
         const val = ex['ins_week' + activeWeekForDay];

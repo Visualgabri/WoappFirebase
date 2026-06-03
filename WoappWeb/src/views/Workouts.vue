@@ -45,7 +45,15 @@
         class="sticky-tabs-container mb-4"
         :style="{ top: utente ? '56px' : '0px' }"
       >
+        <!-- Skeleton tabs durante il caricamento per evitare sflash dei giorni A B C D -->
+        <div v-if="caricamento" class="card-glass rounded-xl elevation-1 d-flex justify-space-around align-center" style="height: 48px;">
+          <div class="skeleton-tab-item"></div>
+          <div class="skeleton-tab-item"></div>
+          <div class="skeleton-tab-item"></div>
+        </div>
+
         <v-tabs
+          v-else
           v-model="giornoSelezionato"
           color="orange-darken-3"
           align-tabs="center"
@@ -952,7 +960,7 @@ const eserciziFiltrati = ref([]);
 
 const listaGiorniDisponibili = computed(() => {
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) {
-    return ['A', 'B', 'C', 'D'];
+    return [];
   }
   const giorni = new Set();
   listaAllenamenti.value.forEach(item => {
@@ -963,7 +971,7 @@ const listaGiorniDisponibili = computed(() => {
   });
   
   if (giorni.size === 0) {
-    return ['A', 'B', 'C', 'D'];
+    return [];
   }
   
   return Array.from(giorni).sort();
@@ -1715,5 +1723,25 @@ const vibraTattile = (ms = 12) => {
 .swipe-right-leave-to {
   opacity: 0;
   transform: translateX(30px);
+}
+
+/* Skeleton loader for days tabs */
+.skeleton-tab-item {
+  width: 52px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  animation: skeleton-pulse-tab 1.5s infinite ease-in-out;
+}
+
+@keyframes skeleton-pulse-tab {
+  0%, 100% {
+    opacity: 0.6;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  50% {
+    opacity: 0.35;
+    background: rgba(255, 255, 255, 0.12);
+  }
 }
 </style>

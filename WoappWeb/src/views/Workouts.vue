@@ -45,15 +45,6 @@
         class="sticky-tabs-container mb-4"
         :style="{ top: utente ? '56px' : '0px' }"
       >
-        <div 
-          v-if="!caricamento && listaGiorniDisponibili.length > 0"
-          class="card-glass rounded-xl py-1.5 mb-2 text-center font-weight-black tracking-widest"
-          style="font-size: 0.62rem; border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6);"
-        >
-          <span style="color: #f97316;">SETTIMANA CORRENTE:</span>
-          <span class="text-white ml-1.5">WEEK {{ settimanaAttiva }}</span>
-        </div>
-
         <!-- Skeleton tabs durante il caricamento per evitare sflash dei giorni A B C D -->
         <div v-if="caricamento" class="card-glass rounded-xl elevation-1 d-flex justify-space-around align-center" style="height: 48px;">
           <div class="skeleton-tab-item"></div>
@@ -92,6 +83,15 @@
             </div>
           </v-tab>
         </v-tabs>
+
+        <div 
+          v-if="!caricamento && listaGiorniDisponibili.length > 0"
+          class="card-glass rounded-xl py-1 mt-1 text-center font-weight-black tracking-widest"
+          style="font-size: 0.62rem; border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6);"
+        >
+          <span style="color: #f97316;">SETTIMANA CORRENTE:</span>
+          <span class="text-white ml-1.5">WEEK {{ settimanaAttiva }}</span>
+        </div>
       </div>
 
       <!-- Indicatore di Caricamento -->

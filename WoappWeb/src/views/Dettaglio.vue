@@ -381,7 +381,7 @@
 
           <!-- Istruzioni Esecuzione / Test sotto il Lavoro (LAVORO) -->
           <div 
-            v-if="workout && ((workout.des_estesa_start && String(workout.des_estesa_start).trim()) || (workout.des_estesa_end && String(workout.des_estesa_end).trim()))"
+            v-if="sett === 6 && workout && ((workout.des_estesa_start && String(workout.des_estesa_start).trim()) || (workout.des_estesa_end && String(workout.des_estesa_end).trim()))"
             class="mt-2.5 mb-2 px-2.5 py-2 rounded-lg text-left"
             style="background: rgba(249, 115, 22, 0.03) !important; border: 1px dashed rgba(249, 115, 22, 0.15) !important;"
           >
@@ -1548,19 +1548,87 @@ const parsedPrescription = (str) => {
   return parsePrescription(str);
 };
 
+const estraiPesoDaInput = (str) => {
+  if (!str) return null;
+  const clean = str.replace(/,/g, '.').trim();
+  
+  // Cerca l'ultimo numero seguito da "kg"
+  const kgMatches = clean.match(/([\d.]+)\s*kg/gi);
+  if (kgMatches && kgMatches.length > 0) {
+    const lastKg = kgMatches[kgMatches.length - 1];
+    const val = lastKg.match(/([\d.]+)/);
+    if (val) return val[1];
+  }
+
+  // Se non c'è "kg", prendiamo l'ultimo numero della stringa
+  const allNumbers = clean.match(/\d+(?:\.\d+)?/g);
+  if (allNumbers && allNumbers.length > 0) {
+    return allNumbers[allNumbers.length - 1];
+  }
+  
+  return null;
+};
+
+const getTestWeight = (sett) => {
+  if (!workout.value) return '';
+  
+  // 1. Carico prescritto per la settimana del test (sett 6)
+  const prescrizioneAttiva = parsedPrescription(workout.value['des_week' + sett]);
+  if (prescrizioneAttiva && prescrizioneAttiva.total) {
+    const peso = prescrizioneAttiva.total.trim();
+    if (peso && parseFloat(peso.replace(',', '.')) > 0) {
+      return `${peso} KG`;
+    }
+  }
+
+  // 2. Carico inserito dall'utente nella settimana precedente (week 5, poi 4, 3, etc.)
+  for (let w = sett - 1; w >= 1; w--) {
+    const inputVal = inputSettimane.value[w]?.ins;
+    if (inputVal && inputVal.trim()) {
+      const pesoEstratto = estraiPesoDaInput(inputVal);
+      if (pesoEstratto) {
+        return `${pesoEstratto} KG`;
+      }
+    }
+  }
+
+  // 3. Carico prescritto nella settimana precedente (week 5)
+  const prescrizionePrecedente = parsedPrescription(workout.value['des_week' + (sett - 1)]);
+  if (prescrizionePrecedente && prescrizionePrecedente.total) {
+    const pesoPrev = prescrizionePrecedente.total.trim();
+    if (pesoPrev && parseFloat(pesoPrev.replace(',', '.')) > 0) {
+      return `${pesoPrev} KG`;
+    }
+  }
+
+  return '';
+};
+
 const formattaIstruzioneFine = (testo, sett) => {
   if (!testo) return '';
-  let formatta = testo;
   
+  const lowerTesto = testo.toLowerCase();
+  const isAmrapOrMaxReps = lowerTesto.includes('massime ripetizioni') || lowerTesto.includes('massimo di ripetizioni');
+  
+  if (isAmrapOrMaxReps) {
+    const peso = getTestWeight(sett);
+    if (peso) {
+      return `Dopo il riscaldamento fai una serie con le <strong>massime ripetizioni possibili</strong> con il carico reale di <strong class="text-white">${peso}</strong>.`;
+    } else {
+      return `Dopo il riscaldamento fai una serie con le <strong>massime ripetizioni possibili</strong> con l'ultimo carico allenante.`;
+    }
+  }
+  
+  let formatta = testo;
   const prescrizione = parsedPrescription(workout.value?.['des_week' + sett]);
   if (prescrizione && prescrizione.total) {
     const peso = prescrizione.total.trim();
-    // Rimpiazza la formula generica con il valore reale formattato in HTML bold white
     formatta = formatta.replace(/\(con x% del carico massimale\)/gi, `(con il carico reale di <strong class="text-white">${peso} KG</strong>)`);
     formatta = formatta.replace(/con x% del carico massimale/gi, `con il carico reale di <strong class="text-white">${peso} KG</strong>`);
   }
   return formatta;
 };
+
 
 const parsedRmt = (str) => {
   if (!str) return null;

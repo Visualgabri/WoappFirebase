@@ -1084,15 +1084,8 @@ const blocchiEsercizi = computed(() => {
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
 
-const settimanaAttivaGiorno = computed(() => {
-  if (!headerGiorno.value) return settimanaAttiva.value;
-  for (let w = 1; w <= 6; w++) {
-    if (headerGiorno.value['cmp' + w] !== 'true') {
-      return w;
-    }
-  }
-  return 6; // Se tutte completate, ritorna l'ultima
-});
+const settimanaAttivaGiorno = computed(() => settimanaAttiva.value);
+
 
 // Verifica se tutti gli esercizi del giorno sono stati compilati per la settimana attiva
 const tuttiEserciziCompilatiGiorno = computed(() => {
@@ -1382,6 +1375,14 @@ const impostaChiusuraGiorno = async (w, val) => {
     console.log("Completamento giorno sincronizzato con Firebase!");
   } catch (err) {
     console.warn("Errore salvataggio completamento giorno Firebase:", err);
+  }
+
+  // Ricalcola la settimana attiva globale dopo il cambio di stato del giorno
+  const activeW = calcolaSettimanaAttivaGlobale(listaAllenamenti.value);
+  if (activeW !== settimanaAttiva.value) {
+    settimanaAttiva.value = activeW;
+    localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+    filtraEserciziPerGiorno();
   }
 };
 

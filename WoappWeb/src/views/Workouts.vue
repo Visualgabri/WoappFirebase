@@ -65,12 +65,20 @@
             <div class="d-flex align-center">
               <span>{{ giorno }}</span>
               <v-icon
-                v-if="giorniConPendenze[giorno]"
-                color="amber-darken-3"
+                v-if="statoGiorni[giorno] === 'completed'"
+                color="green-accent-4"
                 size="15"
-                class="ml-1 pulse-warning"
+                class="ml-1"
               >
-                mdi-alert-circle-outline
+                mdi-check-bold
+              </v-icon>
+              <v-icon
+                v-else-if="statoGiorni[giorno] === 'pending'"
+                color="orange-darken-3"
+                size="14"
+                class="ml-1 pulse-active-tab-icon"
+              >
+                mdi-flash
               </v-icon>
             </div>
           </v-tab>
@@ -1015,54 +1023,23 @@ watch(giornoSelezionato, (newVal, oldVal) => {
   }
 });
 
-// Verifica quali giorni hanno pendenze (settimane arretrate o da chiudere)
-const giorniConPendenze = computed(() => {
-  const result = { A: false, B: false, C: false, D: false };
+// Stato di completamento dei giorni per la settimana attiva globale
+const statoGiorni = computed(() => {
+  const result = {};
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return result;
 
-  const giorni = ['A', 'B', 'C', 'D'];
-  giorni.forEach(g => {
-    // Trova l'intestazione (Riga 0) del giorno g
+  const w = settimanaAttiva.value;
+  listaGiorniDisponibili.value.forEach(g => {
     const header = listaAllenamenti.value.find(
       item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
     );
-    if (!header) return;
-
-    // Trova tutti gli esercizi reali per il giorno g
-    const exercisesForDay = listaAllenamenti.value.filter(
-      item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) > 0
-    );
-
-    // Calcola la settimana attiva per questo giorno specifico (default a 7 se tutte chiuse)
-    let activeWeekForDay = 7;
-    for (let w = 1; w <= 6; w++) {
-      if (header['cmp' + w] !== 'true') {
-        activeWeekForDay = w;
-        break;
-      }
-    }
-
-    // 1. Controllo: se la settimana attiva del giorno è inferiore alla settimana attiva globale,
-    // significa che questo giorno è rimasto indietro rispetto all'atleta!
-    if (activeWeekForDay < settimanaAttiva.value) {
-      result[g] = true;
+    if (!header) {
+      result[g] = 'none';
       return;
     }
-
-    // 2. Controllo: se la settimana attiva del giorno ha tutti gli esercizi compilati ma non è chiusa
-    if (activeWeekForDay <= 6 && exercisesForDay.length > 0) {
-      const isChiusa = header['cmp' + activeWeekForDay] === 'true';
-      const tuttiCompilati = exercisesForDay.every(ex => {
-        const val = ex['ins_week' + activeWeekForDay];
-        return val && val.trim() !== '';
-      });
-      if (!isChiusa && tuttiCompilati) {
-        result[g] = true;
-        return;
-      }
-    }
+    const isChiusa = header['cmp' + w] === 'true';
+    result[g] = isChiusa ? 'completed' : 'pending';
   });
-
   return result;
 });
 
@@ -1749,18 +1726,20 @@ const vibraTattile = (ms = 12) => {
   margin-top: -8px !important;
 }
 
-@keyframes pulse-warn {
+@keyframes pulse-active-icon {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
+    filter: drop-shadow(0 0 1px rgba(249, 115, 22, 0.4));
   }
   50% {
-    opacity: 0.6;
-    transform: scale(0.9);
+    opacity: 0.7;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.8));
   }
 }
-.pulse-warning {
-  animation: pulse-warn 1.5s infinite ease-in-out;
+.pulse-active-tab-icon {
+  animation: pulse-active-icon 1.8s infinite ease-in-out;
 }
 
 /* Day Selection Tabs Styling */

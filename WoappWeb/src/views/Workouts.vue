@@ -45,6 +45,18 @@
         class="sticky-tabs-container mb-4"
         :style="{ top: utente ? '56px' : '0px' }"
       >
+        <div class="d-flex align-center justify-center mb-2" v-if="!caricamento && listaGiorniDisponibili.length > 0">
+          <v-chip
+            color="orange-darken-3"
+            size="x-small"
+            class="font-weight-black uppercase px-2.5 py-0.5 text-white elevation-1"
+            variant="flat"
+            style="font-size: 0.65rem; letter-spacing: 0.04em; height: 20px;"
+          >
+            🔥 Settimana Corrente: Week {{ settimanaAttiva }}
+          </v-chip>
+        </div>
+
         <!-- Skeleton tabs durante il caricamento per evitare sflash dei giorni A B C D -->
         <div v-if="caricamento" class="card-glass rounded-xl elevation-1 d-flex justify-space-around align-center" style="height: 48px;">
           <div class="skeleton-tab-item"></div>

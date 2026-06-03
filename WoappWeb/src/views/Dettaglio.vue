@@ -256,6 +256,27 @@
       </v-card>
 
       <div class="weeks-stacked-list mb-4">
+        <!-- Raccomandazione Carico Week 1 (Proposta automatica) -->
+        <v-card
+          v-if="settimanaAttiva === 1 && propostaWeek1"
+          class="py-3.5 px-4 mb-4 text-left border position-relative overflow-hidden"
+          style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; border: 1.5px solid rgba(234, 88, 12, 0.35) !important; box-shadow: 0 8px 24px rgba(234, 88, 12, 0.1) !important; border-radius: 16px !important;"
+        >
+          <div class="d-flex align-start">
+            <v-icon color="orange-darken-1" class="mr-3 mt-1 flex-shrink-0" size="24">mdi-lightbulb-on</v-icon>
+            <div class="flex-grow-1">
+              <div class="text-subtitle-2 font-weight-black text-orange-lighten-1 mb-1" style="font-size: 0.9rem;">
+                Carico Consigliato per Week 1: <span class="text-white font-weight-black text-h6 ml-1" style="font-size: 1.15rem !important;">{{ propostaWeek1.peso }} KG</span>
+              </div>
+              <div class="text-slate font-weight-medium" style="font-size: 0.72rem; line-height: 1.45; color: #cbd5e1 !important;">
+                Proposta calcolata sul carico della Week 6 del mesociclo precedente (Scheda {{ previousWorkout.num_scheda }}):
+                <strong>{{ propostaWeek1.prevPeso }} KG</strong> per <strong>{{ propostaWeek1.prevReps }} reps</strong> con fatica <strong>{{ propostaWeek1.fatica }}</strong>.
+                L'algoritmo ha scalato il carico sulle <strong>{{ propostaWeek1.currReps }} reps</strong> previste per questa Week 1.
+              </div>
+            </div>
+          </div>
+        </v-card>
+
         <!-- Nota Esponenti (Ripetizioni di Riserva RIR) -->
          <v-card
           v-if="haEsponenti"
@@ -372,6 +393,107 @@
               @blur="salvaDatoSettimanale(sett, 'ins')"
               :id="'input-peso-w' + sett"
             ></v-textarea>
+          </div>
+
+          <!-- Campi Aggiuntivi per Week 6 (Kg unico e Fatica) -->
+          <div v-if="sett === 6" class="mt-4 pt-4 border-top-soft">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <div>
+                <span class="text-caption font-weight-black text-slate-dark d-block">Kg unico W6 *</span>
+                <span class="text-super-caption text-orange-darken-3" style="font-size: 0.58rem;">(Solo valore numerico)</span>
+              </div>
+              
+              <!-- Stepper per Kg unico W6 -->
+              <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn
+                  icon
+                  size="x-small"
+                  variant="text"
+                  color="orange-lighten-2"
+                  @click="decrementaKgUnico"
+                  id="btn-decrementa-kg-unico"
+                >
+                  <v-icon size="18">mdi-minus</v-icon>
+                </v-btn>
+                <input
+                  v-model="numIns6Val"
+                  type="text"
+                  class="text-center font-weight-black text-white px-1"
+                  style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
+                  @blur="salvaKgUnico"
+                  id="input-kg-unico-w6"
+                />
+                <v-btn
+                  icon
+                  size="x-small"
+                  variant="text"
+                  color="orange-lighten-2"
+                  @click="incrementaKgUnico"
+                  id="btn-incrementa-kg-unico"
+                >
+                  <v-icon size="18">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <p class="text-super-caption text-italic text-muted text-left mb-4" style="line-height: 1.35; font-size: 0.65rem !important;">
+              Inserisci qui sopra il massimo peso della week6 e qui sotto la tua percezione di sforzo. È essenziale per calcolare il peso della week1 nel prossimo mesociclo.
+            </p>
+
+            <!-- Selettore Fatica W6 -->
+            <div class="text-left mb-2">
+              <span class="text-caption font-weight-black text-slate-dark d-block mb-2">Fatica W6</span>
+              <v-row dense class="gap-2 justify-space-between">
+                <v-col cols="4">
+                  <v-btn
+                    block
+                    variant="flat"
+                    :color="numFaticaw6Val === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
+                    size="small"
+                    rounded="lg"
+                    class="font-weight-black text-none"
+                    :class="{'text-white': numFaticaw6Val === 'Media', 'text-slate': numFaticaw6Val !== 'Media'}"
+                    style="font-size: 0.72rem; height: 32px;"
+                    @click="salvaFatica('Media')"
+                    id="btn-fatica-media"
+                  >
+                    Media
+                  </v-btn>
+                </v-col>
+                <v-col cols="4">
+                  <v-btn
+                    block
+                    variant="flat"
+                    :color="numFaticaw6Val === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
+                    size="small"
+                    rounded="lg"
+                    class="font-weight-black text-none"
+                    :class="{'text-white': numFaticaw6Val === 'Pesante', 'text-slate': numFaticaw6Val !== 'Pesante'}"
+                    style="font-size: 0.72rem; height: 32px;"
+                    @click="salvaFatica('Pesante')"
+                    id="btn-fatica-pesante"
+                  >
+                    Pesante
+                  </v-btn>
+                </v-col>
+                <v-col cols="4">
+                  <v-btn
+                    block
+                    variant="flat"
+                    :color="numFaticaw6Val === 'Devastante' ? 'red-darken-4' : 'grey-darken-3'"
+                    size="small"
+                    rounded="lg"
+                    class="font-weight-black text-none"
+                    :class="{'text-white': numFaticaw6Val === 'Devastante', 'text-slate': numFaticaw6Val !== 'Devastante'}"
+                    style="font-size: 0.72rem; height: 32px;"
+                    @click="salvaFatica('Devastante')"
+                    id="btn-fatica-devastante"
+                  >
+                    Devastante
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </div>
           </div>
         </v-card>
 
@@ -529,6 +651,34 @@
               @blur="salvaDatoGenerale('des_commenti', commentiAtleta)"
               id="input-detail-commenti"
             ></v-textarea>
+          </div>
+        </div>
+      </v-card>
+
+      <!-- Card Feedback Feeling Esercizio (ind_reps_start) -->
+      <v-card class="premium-card rounded-2xl pa-4 mb-6" elevation="2">
+        <div class="text-left">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <span class="text-caption font-weight-black text-slate-dark uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+              Dai un voto da 1 a 5 sul feeling dell'esercizio
+            </span>
+            <v-icon size="16" color="orange">mdi-emoticon-happy-outline</v-icon>
+          </div>
+          
+          <div class="d-flex align-center justify-space-between mt-3 px-1 gap-2">
+            <v-btn
+              v-for="voto in [1, 2, 3, 4, 5]"
+              :key="voto"
+              variant="flat"
+              :color="parseInt(indRepsStartVal) === voto ? 'orange-darken-3' : 'grey-darken-3'"
+              class="font-weight-black rounded-lg text-none flex-grow-1"
+              :class="{'text-white': parseInt(indRepsStartVal) === voto, 'text-slate': parseInt(indRepsStartVal) !== voto}"
+              style="min-width: 45px; height: 40px; font-size: 0.9rem;"
+              @click="salvaVotoFeeling(voto)"
+              :id="'btn-feeling-' + voto"
+            >
+              {{ voto }}
+            </v-btn>
           </div>
         </div>
       </v-card>
@@ -734,6 +884,146 @@ const inputSettimane = ref({
 const noteAttrezzo = ref('');
 const noteEsercizio = ref('');
 const commentiAtleta = ref('');
+const numIns6Val = ref('');
+const numFaticaw6Val = ref('');
+const indRepsStartVal = ref('');
+
+const previousWorkout = ref(null);
+
+const getAtletaInfo = (wObj) => {
+  if (!wObj) return { key: 'ID_cliente', id: '' };
+  const key = Object.keys(wObj).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  return { key, id: wObj[key] || '' };
+};
+
+const estraiRepsDaPrescrizione = (prescrizioneStr) => {
+  if (!prescrizioneStr) return null;
+  const part = String(prescrizioneStr).split('|')[0].trim();
+  const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
+  
+  const matchX = cleanPart.match(/\d+\s*[xX]\s*(\d+)/);
+  if (matchX) {
+    return parseInt(matchX[1], 10);
+  }
+  
+  const matchNum = cleanPart.match(/^(\d+)$/);
+  if (matchNum) {
+    return parseInt(matchNum[1], 10);
+  }
+  
+  const matchFirstNum = cleanPart.match(/(\d+)/);
+  if (matchFirstNum) {
+    return parseInt(matchFirstNum[1], 10);
+  }
+  
+  return null;
+};
+
+const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica) => {
+  if (!prevW6Weight) return null;
+  const w6 = parseFloat(String(prevW6Weight).replace(',', '.'));
+  if (isNaN(w6) || w6 <= 0) return null;
+  
+  const r6 = prevW6Reps ? parseInt(prevW6Reps, 10) : (currW1Reps ? parseInt(currW1Reps, 10) : 10);
+  const r1 = currW1Reps ? parseInt(currW1Reps, 10) : (prevW6Reps ? parseInt(prevW6Reps, 10) : 10);
+  
+  // 1RM estimation via Epley formula
+  const estimated1RM = w6 * (1 + r6 / 30);
+  
+  // Theoretical weight for week 1
+  let proposedWeight = estimated1RM / (1 + r1 / 30);
+  
+  // Adjust based on fatigue
+  const faticaLower = (fatica || '').toLowerCase().trim();
+  let adjustment = 1.0;
+  if (faticaLower === 'media' || faticaLower === 'bassa') {
+    adjustment = 1.03; // Increase by 3%
+  } else if (faticaLower === 'devastante') {
+    adjustment = 0.95; // Decrease by 5%
+  } else {
+    adjustment = 1.0;
+  }
+  
+  proposedWeight = proposedWeight * adjustment;
+  
+  // Round to nearest 0.5 kg
+  return Math.round(proposedWeight * 2) / 2;
+};
+
+const propostaWeek1 = computed(() => {
+  if (!previousWorkout.value || !workout.value) return null;
+  
+  const prevW6Weight = previousWorkout.value.num_ins6;
+  if (!prevW6Weight) return null;
+  
+  const prevW6Reps = parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6);
+  const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1);
+  const fatica = previousWorkout.value.num_faticaw6;
+  
+  const proposta = calcolaPropostaCarico(prevW6Weight, prevW6Reps, currW1Reps, fatica);
+  if (proposta === null) return null;
+
+  return {
+    peso: proposta,
+    prevPeso: prevW6Weight,
+    prevReps: prevW6Reps || 'N/D',
+    currReps: currW1Reps || 'N/D',
+    fatica: fatica || 'Non specificata'
+  };
+});
+
+const caricaEsercizioPrecedente = async () => {
+  if (!workout.value) return;
+  
+  const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
+  const currentNumScheda = workout.value.num_scheda;
+  const desEsercizio = workout.value.des_esercizio;
+  
+  if (!atletaId || !currentNumScheda || !desEsercizio) return;
+  
+  try {
+    const currentSchedaNum = parseInt(currentNumScheda);
+    if (isNaN(currentSchedaNum)) return;
+    
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where(keyIdCliente, '==', atletaId),
+      where('des_esercizio', '==', desEsercizio)
+    );
+    const snap = await getDocs(q);
+    
+    let bestPrev = null;
+    snap.forEach((doc) => {
+      const d = doc.data();
+      const sNum = parseInt(d.num_scheda);
+      if (sNum < currentSchedaNum) {
+        if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+          bestPrev = { id: doc.id, ...d };
+        }
+      }
+    });
+    
+    if (bestPrev) {
+      previousWorkout.value = applicaModificheLocali(bestPrev);
+    } else {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      const matched = allData.filter(b => {
+        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        return String(bAtletaId) === String(atletaId) &&
+               String(b.des_esercizio).trim() === String(desEsercizio).trim() &&
+               parseInt(b.num_scheda) < currentSchedaNum;
+      });
+      if (matched.length > 0) {
+        matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
+        previousWorkout.value = applicaModificheLocali(matched[0]);
+      }
+    }
+  } catch (error) {
+    console.error("Errore caricamento esercizio precedente:", error);
+  }
+};
+
 
 let savedMode = localStorage.getItem('modalitaSettimane');
 if (savedMode === 'tutte') savedMode = 'fissa';
@@ -1065,6 +1355,13 @@ const caricaDatiEsercizio = async () => {
       noteEsercizio.value = workout.value.ins_esercizio || '';
       commentiAtleta.value = workout.value.des_commenti || '';
 
+      numIns6Val.value = workout.value.num_ins6 || '';
+      numFaticaw6Val.value = workout.value.num_faticaw6 || '';
+      indRepsStartVal.value = workout.value.ind_reps_start || '';
+
+      // Carica l'esercizio del mesociclo precedente per consigliare il carico in Week 1
+      await caricaEsercizioPrecedente();
+
       // Carica il completamento del giorno (Riga 0) ed elenco per swipe
       if (atletaId && dati.num_scheda && dati.des_giorno) {
         await caricaRiga0(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
@@ -1101,6 +1398,12 @@ const caricaEsercizioDaBackup = async () => {
       noteAttrezzo.value = workout.value.des_note_attrezzo || '';
       noteEsercizio.value = workout.value.ins_esercizio || '';
       commentiAtleta.value = workout.value.des_commenti || '';
+
+      numIns6Val.value = workout.value.num_ins6 || '';
+      numFaticaw6Val.value = workout.value.num_faticaw6 || '';
+      indRepsStartVal.value = workout.value.ind_reps_start || '';
+
+      await caricaEsercizioPrecedente();
 
       if (atletaId && found.num_scheda && found.des_giorno) {
         // Riga 0 locale da backup
@@ -1296,6 +1599,53 @@ const isWeekLogged = (w) => {
   return inputSettimane.value[w].ins || inputSettimane.value[w].reps;
 };
 
+const aggiornaDatoECommit = async (updates) => {
+  if (!workout.value) return;
+  
+  try {
+    vibraTattile(20);
+    const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
+    
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    
+    // Aggiorna oggetto reattivo locale
+    for (const [campo, valore] of Object.entries(updates)) {
+      workout.value[campo] = valore;
+    }
+    workout.value.timestamp = timestamp;
+
+    // Aggiorna localStorage per supporto offline
+    const key1 = `offline_storyboard_${routeIdLocal.value}`;
+    const localData1 = localStorage.getItem(key1);
+    let currentUpdates = {};
+    if (localData1) {
+      try { currentUpdates = JSON.parse(localData1); } catch (e) {}
+    }
+    currentUpdates = { ...currentUpdates, ...updates, timestamp };
+    localStorage.setItem(key1, JSON.stringify(currentUpdates));
+    
+    if (workout.value.num_riga) {
+      const key2 = `offline_storyboard_${workout.value.num_riga}`;
+      localStorage.setItem(key2, JSON.stringify(currentUpdates));
+    }
+
+    // Carica su Firestore con merge
+    await setDoc(docRef, workout.value, { merge: true });
+    snackbarSalvataggio.value = true;
+  } catch (error) {
+    console.error("Errore salvataggio e commit:", error);
+  }
+};
+
+const estraiNumeroMassimo = (str) => {
+  if (!str) return null;
+  const numbers = str.replace(/,/g, '.').match(/\d+(?:\.\d+)?/g);
+  if (numbers && numbers.length > 0) {
+    return Math.max(...numbers.map(Number));
+  }
+  return null;
+};
+
 // Salva dato settimanale al blur
 const salvaDatoSettimanale = async (settimana, tipo) => {
   if (!workout.value) return;
@@ -1305,18 +1655,21 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
   const valoreNuovo = inputSettimane.value[settimana][tipo];
 
   if (valoreOriginale !== valoreNuovo) {
-    try {
-      vibraTattile(20); // Vibrazione forte di successo salvataggio
-      const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
-      workout.value[campo] = valoreNuovo;
-      workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-      // Usiamo setDoc con merge per autorigenerare i documenti mancanti in Firestore
-      await setDoc(docRef, workout.value, { merge: true });
-      snackbarSalvataggio.value = true;
-    } catch (error) {
-      console.error("Errore salvataggio automatico settimanale:", error);
+    const updates = { [campo]: valoreNuovo };
+    
+    // Auto-estrazione per la week 6
+    if (settimana === 6 && tipo === 'ins' && valoreNuovo) {
+      const estratto = estraiNumeroMassimo(valoreNuovo);
+      if (estratto !== null) {
+        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
+        if (!numIns6Val.value || (vecchioEstratto !== null && parseFloat(numIns6Val.value) === vecchioEstratto)) {
+          numIns6Val.value = String(estratto);
+          updates.num_ins6 = String(estratto);
+        }
+      }
     }
+    
+    await aggiornaDatoECommit(updates);
   }
 };
 
@@ -1327,19 +1680,57 @@ const salvaDatoGenerale = async (campo, valore) => {
   const valoreOriginale = workout.value[campo] || '';
 
   if (valoreOriginale !== valore) {
-    try {
-      vibraTattile(20);
-      const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
-      workout.value[campo] = valore;
-      workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-      // Usiamo setDoc con merge per autorigenerare i documenti mancanti in Firestore
-      await setDoc(docRef, workout.value, { merge: true });
-      snackbarSalvataggio.value = true;
-    } catch (error) {
-      console.error("Errore salvataggio automatico generale:", error);
-    }
+    await aggiornaDatoECommit({ [campo]: valore });
   }
+};
+
+const parseKg = (val) => {
+  if (!val) return 0;
+  const parsed = parseFloat(String(val).replace(',', '.'));
+  return isNaN(parsed) ? 0 : parsed;
+};
+
+const incrementaKgUnico = () => {
+  vibraTattile(10);
+  let current = parseKg(numIns6Val.value);
+  current += 0.5;
+  numIns6Val.value = String(current);
+  salvaKgUnico();
+};
+
+const decrementaKgUnico = () => {
+  vibraTattile(10);
+  let current = parseKg(numIns6Val.value);
+  if (current > 0) {
+    current = Math.max(0, current - 0.5);
+    numIns6Val.value = String(current);
+    salvaKgUnico();
+  }
+};
+
+const salvaKgUnico = async () => {
+  await salvaDatoGenerale('num_ins6', numIns6Val.value);
+};
+
+const salvaFatica = async (fatica) => {
+  vibraTattile(15);
+  if (numFaticaw6Val.value === fatica) {
+    numFaticaw6Val.value = '';
+  } else {
+    numFaticaw6Val.value = fatica;
+  }
+  await salvaDatoGenerale('num_faticaw6', numFaticaw6Val.value);
+};
+
+const salvaVotoFeeling = async (voto) => {
+  vibraTattile(15);
+  const votoStr = String(voto);
+  if (indRepsStartVal.value === votoStr) {
+    indRepsStartVal.value = '';
+  } else {
+    indRepsStartVal.value = votoStr;
+  }
+  await salvaDatoGenerale('ind_reps_start', indRepsStartVal.value);
 };
 
 // Torna indietro

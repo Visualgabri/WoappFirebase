@@ -387,19 +387,14 @@
           >
             <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="mb-2">
               <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center mb-0.5" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                ▶️ Esecuzione / ROM:
+                💡 ROM ed Esecuzione:
               </span>
               <p class="text-slate font-weight-medium mb-0" style="font-size: 0.7rem; line-height: 1.35; color: #cbd5e1 !important;">
                 {{ String(workout.des_estesa_start).trim() }}
               </p>
             </div>
             <div v-if="workout.des_estesa_end && String(workout.des_estesa_end).trim()">
-              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center mb-0.5" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                ⏹️ Test Informativo / Note:
-              </span>
-              <p class="text-slate font-weight-medium mb-0" style="font-size: 0.7rem; line-height: 1.35; color: #cbd5e1 !important;">
-                {{ String(workout.des_estesa_end).trim() }}
-              </p>
+              <p v-html="'📢 ' + formattaIstruzioneFine(workout.des_estesa_end, sett)" class="text-orange-lighten-3 font-weight-bold mb-0" style="font-size: 0.72rem; line-height: 1.4; color: #ffb74d !important;"></p>
             </div>
           </div>
 
@@ -1551,6 +1546,20 @@ const parsePrescription = (str) => {
 
 const parsedPrescription = (str) => {
   return parsePrescription(str);
+};
+
+const formattaIstruzioneFine = (testo, sett) => {
+  if (!testo) return '';
+  let formatta = testo;
+  
+  const prescrizione = parsedPrescription(workout.value?.['des_week' + sett]);
+  if (prescrizione && prescrizione.total) {
+    const peso = prescrizione.total.trim();
+    // Rimpiazza la formula generica con il valore reale formattato in HTML bold white
+    formatta = formatta.replace(/\(con x% del carico massimale\)/gi, `(con il carico reale di <strong class="text-white">${peso} KG</strong>)`);
+    formatta = formatta.replace(/con x% del carico massimale/gi, `con il carico reale di <strong class="text-white">${peso} KG</strong>`);
+  }
+  return formatta;
 };
 
 const parsedRmt = (str) => {

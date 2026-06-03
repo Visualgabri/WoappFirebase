@@ -243,6 +243,30 @@
         </v-card>
       </div>
 
+      <!-- Sezione Istruzioni Esecuzione (des_estesa_start / des_estesa_end) -->
+      <v-card 
+        v-if="workout && ((workout.des_estesa_start && String(workout.des_estesa_start).trim()) || (workout.des_estesa_end && String(workout.des_estesa_end).trim()))"
+        class="py-3 px-4 rounded-xl mb-5 text-left border"
+        style="background: rgba(30, 41, 59, 0.4) !important; border: 1.5px solid rgba(249, 115, 22, 0.2) !important;"
+      >
+        <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="mb-3">
+          <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-flex align-center mb-1">
+            <v-icon size="14" color="orange" class="mr-1">mdi-play-circle-outline</v-icon> Fase Iniziale / ROM:
+          </span>
+          <p class="text-slate font-weight-medium mb-0" style="font-size: 0.75rem; line-height: 1.4; color: #e2e8f0 !important;">
+            {{ String(workout.des_estesa_start).trim() }}
+          </p>
+        </div>
+        <div v-if="workout.des_estesa_end && String(workout.des_estesa_end).trim()">
+          <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-flex align-center mb-1">
+            <v-icon size="14" color="orange" class="mr-1">mdi-stop-circle-outline</v-icon> Fase Finale / Test:
+          </span>
+          <p class="text-slate font-weight-medium mb-0" style="font-size: 0.75rem; line-height: 1.4; color: #e2e8f0 !important;">
+            {{ String(workout.des_estesa_end).trim() }}
+          </p>
+        </div>
+      </v-card>
+
       <!-- 3. Coaching Note Card (Compact callout) -->
       <v-card
         v-if="workout && workout.des_note && String(workout.des_note).trim()"

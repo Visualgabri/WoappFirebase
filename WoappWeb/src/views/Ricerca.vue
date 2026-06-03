@@ -31,8 +31,8 @@
           </div>
         </div>
 
-        <!-- Autocomplete Atleta per il Coach -->
-        <v-autocomplete
+        <!-- Dropdown Select Atleta per il Coach (Non editabile per evitare la tastiera su mobile) -->
+        <v-select
           v-if="ruolo === 'coach'"
           v-model="atletaSelezionato"
           :items="itemsAtleti"
@@ -43,11 +43,11 @@
           rounded="lg"
           color="orange-darken-3"
           prepend-inner-icon="mdi-account"
-          class="search-autocomplete-field"
+          class="search-select-field"
           hide-details
           @update:model-value="gestisciCambioAtleta"
           id="atleta-dropdown"
-        ></v-autocomplete>
+        ></v-select>
         
         <!-- Box bloccato per l'Atleta loggato -->
         <div v-else class="pa-4 rounded-xl bg-orange-darken-3-op border-orange d-flex align-center justify-space-between">

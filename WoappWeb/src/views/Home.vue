@@ -339,6 +339,95 @@
               </v-card>
             </v-col>
           </v-row>
+
+          <!-- Card Dettagli Programma WORKOUT_T -->
+          <v-card v-if="workoutTData" class="premium-card rounded-2xl pa-4 mb-6 text-left border animate-fade-in" elevation="2" style="background: rgba(30, 41, 59, 0.45) !important;">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.65rem;">
+                Dettagli Programma (Workout T)
+              </span>
+              <v-chip color="orange-darken-3" size="x-small" class="font-weight-black" variant="tonal">
+                {{ workoutTData.cod_tipo_avanz_scheda || 'Standard' }}
+              </v-chip>
+            </div>
+
+            <!-- Griglia di Informazioni -->
+            <v-row dense class="mb-2">
+              <!-- Inizio e Fine Programma -->
+              <v-col cols="6">
+                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Inizio Programma</span>
+                  <span class="text-body-2 font-weight-black text-slate-dark d-flex align-center">
+                    📅 {{ workoutTData.dat_data || '-' }}
+                  </span>
+                </div>
+              </v-col>
+              <v-col cols="6">
+                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Fine Mesociclo</span>
+                  <span class="text-body-2 font-weight-black text-orange-lighten-1 d-flex align-center">
+                    🏁 {{ workoutTData.dat_scadenza || '-' }}
+                  </span>
+                </div>
+              </v-col>
+            </v-row>
+
+            <v-row dense class="mb-3">
+              <!-- Passi Giornalieri -->
+              <v-col cols="6">
+                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Passi Giornalieri Target</span>
+                  <span class="text-body-2 font-weight-black text-slate-dark d-flex align-center">
+                    👟 {{ formattaPassi(workoutTData.num_passi_gg) }}
+                  </span>
+                </div>
+              </v-col>
+              <!-- Ramp Test e Stato Da Finire -->
+              <v-col cols="6">
+                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Ramp Test / Stato</span>
+                  <div class="d-flex align-center gap-1.5 flex-wrap mt-0.5">
+                    <v-chip
+                      :color="isTrue(workoutTData.flg_ramp_test) ? 'orange-darken-3' : 'grey-darken-2'"
+                      size="x-small"
+                      variant="flat"
+                      class="font-weight-black px-1.5 text-white"
+                      style="height: 18px;"
+                    >
+                      RAMP: {{ isTrue(workoutTData.flg_ramp_test) ? 'SÌ' : 'NO' }}
+                    </v-chip>
+                    <v-chip
+                      :color="isTrue(workoutTData.flg_da_finire) ? 'amber-darken-3' : 'green-darken-3'"
+                      size="x-small"
+                      variant="flat"
+                      class="font-weight-black px-1.5 text-white"
+                      style="height: 18px;"
+                    >
+                      {{ isTrue(workoutTData.flg_da_finire) ? 'DA FINIRE' : 'ATTIVO' }}
+                    </v-chip>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+
+            <!-- Progresso di Completamento Mesociclo se presente -->
+            <div v-if="workoutTData.num_perc_compl" class="mt-3 pt-3 border-top-soft">
+              <div class="d-flex align-center justify-space-between mb-1.5">
+                <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Completamento Reale foglio</span>
+                <span class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.65rem;">
+                  {{ workoutTData.num_perc_compl }}%
+                </span>
+              </div>
+              <v-progress-linear
+                :model-value="parsePercentuale(workoutTData.num_perc_compl)"
+                color="orange-darken-3"
+                height="6"
+                rounded
+                striped
+                active
+              ></v-progress-linear>
+            </div>
+          </v-card>
         </v-window-item>
 
         <!-- WINDOW 2: CONFIGURAZIONE SCHEDA -->
@@ -518,6 +607,28 @@ const giornoAttivo = ref(localStorage.getItem('giornoAttivo_' + selectedAthlete.
 const dataInizio = ref('18 mag 26');
 const dataFine = ref('28 giu 26');
 const descrizioneMesociclo = ref('');
+const workoutTData = ref(null);
+
+const formattaPassi = (val) => {
+  if (val === undefined || val === null || val === '') return 'N/D';
+  const cleanStr = String(val).replace(/\./g, '').replace(/,/g, '').trim();
+  const num = parseInt(cleanStr);
+  if (isNaN(num) || num === 0) return 'Libero 🏃';
+  return num.toLocaleString('it-IT') + ' / giorno';
+};
+
+const isTrue = (val) => {
+  if (val === undefined || val === null) return false;
+  if (typeof val === 'boolean') return val;
+  const str = String(val).toUpperCase().trim();
+  return str === 'TRUE' || str === 'SÌ' || str === 'SI' || str === '1';
+};
+
+const parsePercentuale = (val) => {
+  if (!val) return 0;
+  const clean = String(val).replace(',', '.').trim();
+  return parseFloat(clean) || 0;
+};
 
 // Modali e popups
 const mostraLeggimi = ref(false);
@@ -663,14 +774,18 @@ const caricaDatiWorkoutT = async () => {
 
     if (!snap.empty) {
       const docData = snap.docs[0].data();
+      workoutTData.value = docData;
       dataInizio.value = docData.dat_data || '18 mag 26';
       dataFine.value = docData.dat_scadenza || '28 giu 26';
       descrizioneMesociclo.value = docData.des_descrizione || '';
       if (docData.des_note) {
         coachMessage.value = docData.des_note;
       }
+    } else {
+      workoutTData.value = null;
     }
   } catch (err) {
+    workoutTData.value = null;
     console.warn("Errore caricamento da WORKOUT_T, uso i default:", err);
   }
 };

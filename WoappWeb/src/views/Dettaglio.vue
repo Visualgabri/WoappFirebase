@@ -420,7 +420,7 @@
           </div>
 
           <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
-          <div v-if="sett === 6" class="mt-4 pt-4 border-top-soft">
+          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%'))" class="mt-4 pt-4 border-top-soft">
             <div class="d-flex align-center justify-space-between mb-2">
               <div>
                 <span class="text-caption font-weight-black text-slate-dark d-block">Miglior Carico (W6) *</span>

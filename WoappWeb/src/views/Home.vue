@@ -14,7 +14,7 @@
             {{ salutoOrario }}
           </span>
           <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight leading-tight">
-            {{ nomeAtleta || 'GABRIELE BELMONTE' }}
+            {{ nomeAtleta || 'CARICAMENTO...' }}
           </h1>
           <div class="d-flex align-center mt-1">
             <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-2 py-1" variant="flat" style="height: 18px; font-size: 0.58rem;">
@@ -601,7 +601,7 @@ const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
 
 // Dati dinamici scheda
-const nomeAtleta = ref('');
+const nomeAtleta = ref(getNomeAtleta(selectedAthlete.value).toUpperCase() || '');
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
 const giornoAttivo = ref(localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'C');
 const dataInizio = ref('18 mag 26');
@@ -886,7 +886,7 @@ const caricaDatiScheda = async () => {
   if (nomeMappato) {
     nomeAtleta.value = nomeMappato.toUpperCase();
   } else {
-    nomeAtleta.value = 'GABRIELE BELMONTE';
+    nomeAtleta.value = '';
   }
   
   try {

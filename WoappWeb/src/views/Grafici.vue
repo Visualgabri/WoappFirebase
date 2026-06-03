@@ -29,7 +29,7 @@
     <div v-else>
       <div class="text-subtitle-1 font-weight-bold text-slate mb-6 d-flex align-center">
         <v-icon color="orange-darken-3" class="mr-2" size="22">mdi-account-circle-outline</v-icon>
-        Atleta: <strong class="text-orange-darken-4 ml-1">{{ nomeAtleta }}</strong>
+        Atleta: <strong class="text-orange-darken-4 ml-1">{{ nomeAtleta || 'Caricamento...' }}</strong>
       </div>
 
       <!-- Indicatore di caricamento -->
@@ -110,7 +110,7 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 // Stato
 const atletaSelezionato = ref(selectedAthlete.value);
-const nomeAtleta = ref('Gabriele Belmonte');
+const nomeAtleta = ref(getNomeAtleta(selectedAthlete.value).toUpperCase() || '');
 const caricamento = ref(true);
 
 const listaSchedeStoriche = ref([]);
@@ -187,7 +187,7 @@ const caricaDatiGrafici = async () => {
     if (nomeMappato) {
       nomeAtleta.value = nomeMappato.toUpperCase();
     } else {
-      nomeAtleta.value = 'GABRIELE BELMONTE';
+      nomeAtleta.value = '';
     }
 
     const qAtleta = query(collection(db, 'UTENTI'), where('ID_cliente', '==', selectedAthlete.value));

@@ -136,7 +136,22 @@
                   </div>
                 </div>
               </div>
-              <v-icon color="orange-darken-3">mdi-chevron-right</v-icon>
+              <div class="d-flex align-center">
+                <!-- Checkbox completamento rapido giorno -->
+                <v-btn
+                  icon
+                  variant="text"
+                  :color="headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'green-accent-4' : 'grey-lighten-1'"
+                  class="mr-1"
+                  size="small"
+                  @click.stop="toggleGiornoAttivoRapido"
+                >
+                  <v-icon size="24">
+                    {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                  </v-icon>
+                </v-btn>
+                <v-icon color="orange-darken-3">mdi-chevron-right</v-icon>
+              </div>
             </div>
 
             <!-- Griglia dei Tempi e Densità con Medie -->
@@ -315,7 +330,21 @@
                 {{ headerGiorno.ins_esercizio }}
               </div>
             </div>
-            <v-icon color="orange-darken-3" class="ml-2">mdi-chevron-right</v-icon>
+            <div class="d-flex align-center ml-2">
+              <!-- Checkbox completamento rapido giorno (fallback) -->
+              <v-btn
+                icon
+                variant="text"
+                :color="headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'green-accent-4' : 'grey-lighten-1'"
+                size="small"
+                @click.stop="toggleGiornoAttivoRapido"
+              >
+                <v-icon size="24">
+                  {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                </v-icon>
+              </v-btn>
+              <v-icon color="orange-darken-3">mdi-chevron-right</v-icon>
+            </div>
           </div>
         </v-card>
 
@@ -389,7 +418,8 @@
                       size="x-small"
                       class="font-weight-black uppercase text-white animate-pulse"
                       variant="flat"
-                      style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center;"
+                      style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
+                      @click.stop="segnaComeFattoRapido(ex)"
                     >
                       ✔️ {{ String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
                     </v-chip>
@@ -400,7 +430,8 @@
                       size="x-small"
                       class="font-weight-bold uppercase text-slate"
                       variant="outlined"
-                      style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center;"
+                      style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
+                      @click.stop="segnaComeFattoRapido(ex)"
                     >
                       ❌ DA FARE
                     </v-chip>
@@ -514,7 +545,8 @@
                   size="x-small"
                   class="font-weight-black uppercase text-white animate-pulse"
                   variant="flat"
-                  style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center;"
+                  style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
+                  @click.stop="segnaComeFattoRapido(block.exercise)"
                 >
                   ✔️ {{ String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
                 </v-chip>
@@ -525,7 +557,8 @@
                   size="x-small"
                   class="font-weight-bold uppercase text-slate"
                   variant="outlined"
-                  style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center;"
+                  style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
+                  @click.stop="segnaComeFattoRapido(block.exercise)"
                 >
                   ❌ DA FARE
                 </v-chip>
@@ -595,6 +628,24 @@
             </v-card>
 
           </template>
+
+          <!-- Grande pulsante di completamento giorno in fondo alla lista -->
+          <div class="mt-6 mb-8 px-1">
+            <v-btn
+              v-if="headerGiorno"
+              block
+              size="large"
+              class="font-weight-black text-none rounded-xl elevation-2 py-3"
+              :color="headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'green-darken-3' : 'orange-darken-3'"
+              style="height: 52px;"
+              @click.stop="toggleGiornoAttivoRapido"
+            >
+              <v-icon class="mr-2" size="20">
+                {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'mdi-check-circle' : 'mdi-check-all' }}
+              </v-icon>
+              {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'Giorno Completato (Riapri)' : 'Completa Giorno ' + giornoSelezionato }}
+            </v-btn>
+          </div>
         </div>
           </div>
         </transition>
@@ -607,7 +658,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente } from '../authStore.js';
 
@@ -1282,6 +1333,9 @@ const filtraEserciziPerGiorno = () => {
   });
 
   eserciziFiltrati.value = filtrati;
+  
+  // Controllo di chiusura automatica se tutti compilati
+  controllaEChiudiGiornoAutomatico();
 };
 
 // Salva e filtra quando si cambia scheda/giorno
@@ -1340,6 +1394,107 @@ const vaiAlGiornoPrecedente = () => {
     giornoSelezionato.value = listaGiorniDisponibili.value[prevIdx];
     salvaGiornoSelezionato(giornoSelezionato.value);
     vibraTattile(12);
+  }
+};
+
+const impostaChiusuraGiorno = async (w, val) => {
+  if (!headerGiorno.value) return;
+  vibraTattile(val ? 25 : 15);
+  
+  const valString = val ? 'true' : 'false';
+  const campoCmp = 'cmp' + w;
+  
+  // Aggiorna localmente
+  headerGiorno.value[campoCmp] = valString;
+  
+  // Salva offline nel localStorage per consentire il funzionamento offline istantaneo
+  const key1 = `offline_storyboard_${headerGiorno.value.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates[campoCmp] = valString;
+  updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  // Salva su Firebase in background
+  try {
+    const docRef = doc(db, 'STORYBOARD', headerGiorno.value.id);
+    await setDoc(docRef, { [campoCmp]: valString, timestamp: updates['timestamp'] }, { merge: true });
+    console.log("Completamento giorno sincronizzato con Firebase!");
+  } catch (err) {
+    console.warn("Errore salvataggio completamento giorno Firebase:", err);
+  }
+};
+
+const toggleGiornoAttivoRapido = async () => {
+  if (!headerGiorno.value) return;
+  const w = settimanaAttivaGiorno.value;
+  const campoCmp = 'cmp' + w;
+  const giaChiusa = headerGiorno.value[campoCmp] === 'true';
+  await impostaChiusuraGiorno(w, !giaChiusa);
+};
+
+const segnaComeFattoRapido = async (ex) => {
+  vibraTattile(15);
+  const w = settimanaAttivaGiorno.value;
+  const campo = 'ins_week' + w;
+  const valoreAttuale = (ex[campo] || '').trim();
+  
+  let nuovoValore = '';
+  if (!valoreAttuale) {
+    nuovoValore = '-'; // Segna come fatto con un trattino
+  } else if (valoreAttuale === '-') {
+    nuovoValore = ''; // Toglie il completamento
+  } else {
+    // Evita di sovrascrivere carichi reali inseriti a mano
+    return;
+  }
+
+  // Aggiorna lo stato locale immediatamente
+  ex[campo] = nuovoValore;
+  
+  // Salva offline nel localStorage
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates[campo] = nuovoValore;
+  updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  // Salva su Firebase in background
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, { [campo]: nuovoValore, timestamp: updates['timestamp'] }, { merge: true });
+    console.log("Stato esercizio rapido salvato in Firebase!");
+  } catch (err) {
+    console.warn("Errore salvataggio esercizio rapido Firebase:", err);
+  }
+
+  // Esegui il controllo per la chiusura automatica
+  controllaEChiudiGiornoAutomatico();
+};
+
+const controllaEChiudiGiornoAutomatico = async () => {
+  if (eserciziFiltrati.value.length === 0 || !headerGiorno.value) return;
+  
+  const w = settimanaAttivaGiorno.value;
+  
+  // Controlla se tutti gli esercizi del giorno hanno una compilazione (qualsiasi testo non vuoto)
+  const tuttiCompilati = eserciziFiltrati.value.every(ex => {
+    const val = ex['ins_week' + w];
+    return val && String(val).trim() !== '';
+  });
+
+  const campoCmp = 'cmp' + w;
+  const giaChiusa = headerGiorno.value[campoCmp] === 'true';
+
+  if (tuttiCompilati && !giaChiusa) {
+    await impostaChiusuraGiorno(w, true);
   }
 };
 

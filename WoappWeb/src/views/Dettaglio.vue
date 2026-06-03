@@ -166,7 +166,7 @@
             prepend-icon="mdi-clock-outline"
             @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
           >
-            ⏱️ {{ workout.des_rec_report }}{{ (workout.alf_superserie && workout.alf_superserie.trim()) ? ' (No stop)' : '' }}
+            ⏱️ {{ workout.des_rec_report }}
           </v-chip>
           <!-- Mostra "VAI AL PROSSIMO" solo se è in superserie E non ha recupero -->
           <v-chip

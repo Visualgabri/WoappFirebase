@@ -630,6 +630,88 @@ const parsePercentuale = (val) => {
   return parseFloat(clean) || 0;
 };
 
+const parseDateString = (str) => {
+  if (!str) return null;
+  const s = String(str).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const parts = s.substring(0, 10).split('-');
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  }
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+    const parts = s.split(' ')[0].split('/');
+    return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+  }
+  const t = Date.parse(s);
+  if (!isNaN(t)) {
+    return new Date(t);
+  }
+  return null;
+};
+
+const applicaFallbackWorkoutT = (tempExercises) => {
+  if (workoutTData.value || tempExercises.length === 0) return;
+
+  let minDate = null;
+  let sheetId = "";
+  let coachNote = "";
+
+  for (const rec of tempExercises) {
+    if (rec.ID_scheda && !sheetId) sheetId = String(rec.ID_scheda);
+    if (rec.des_note && !coachNote) coachNote = rec.des_note;
+
+    if (parseInt(rec.num_riga_giorno) === 0) {
+      const dates = [
+        rec.start_wo, rec.start2_wo, rec.start3_wo,
+        rec.start4_wo, rec.start5_wo, rec.start6_wo
+      ].filter(Boolean);
+
+      for (const dStr of dates) {
+        const parsed = parseDateString(dStr);
+        if (parsed) {
+          if (!minDate || parsed < minDate) {
+            minDate = parsed;
+          }
+        }
+      }
+    }
+  }
+
+  if (minDate) {
+    const d = String(minDate.getDate()).padStart(2, '0');
+    const m = String(minDate.getMonth() + 1).padStart(2, '0');
+    const y = minDate.getFullYear();
+    const startDateStr = `${d}/${m}/${y}`;
+    
+    const expDate = new Date(minDate.getTime() + 42 * 24 * 60 * 60 * 1000);
+    const ed = String(expDate.getDate()).padStart(2, '0');
+    const em = String(expDate.getMonth() + 1).padStart(2, '0');
+    const ey = expDate.getFullYear();
+    const expDateStr = `${ed}/${em}/${ey}`;
+
+    dataInizio.value = startDateStr;
+    dataFine.value = expDateStr;
+    descrizioneMesociclo.value = "Mesociclo Definitivo";
+
+    workoutTData.value = {
+      ID_cliente: selectedAthlete.value,
+      num_scheda: selectedSheet.value,
+      dat_data: startDateStr,
+      dat_scadenza: expDateStr,
+      des_descrizione: "Mesociclo Definitivo",
+      des_note: coachNote,
+      flg_da_finire: "true",
+      flg_ramp_test: "true",
+      num_passi_gg: 0,
+      cod_tipo_avanz_scheda: "0DEF",
+      num_perc_compl: 0,
+      ID_scheda: sheetId || "0",
+      PropostaWoManuale: "FALSE",
+      SceltaGiorno: "A",
+      SceltaWeek: 1
+    };
+  }
+};
+
 // Modali e popups
 const mostraLeggimi = ref(false);
 const mostraFilmati = ref(false);
@@ -913,6 +995,9 @@ const caricaDatiScheda = async () => {
       localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
     }
 
+    // Fallback se i dati di WORKOUT_T sono mancanti o nulli
+    applicaFallbackWorkoutT(tempExercises);
+
   } catch (error) {
     console.warn("Errore caricamento dettagli Home da Firestore (quota esaurita), provo da backup locale:", error);
     await caricaDatiWorkoutT();
@@ -973,6 +1058,9 @@ const caricaDatiScheda = async () => {
         giornoAttivo.value = giornoDaFare;
         localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
       }
+
+      // Fallback se i dati di WORKOUT_T sono mancanti o nulli
+      applicaFallbackWorkoutT(tempExercises);
     } catch (errBackup) {
       console.error("Errore nel caricamento del backup locale in Home:", errBackup);
     }

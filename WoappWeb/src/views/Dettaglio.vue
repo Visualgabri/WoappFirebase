@@ -243,29 +243,7 @@
         </v-card>
       </div>
 
-      <!-- Sezione Istruzioni Esecuzione (des_estesa_start / des_estesa_end) -->
-      <v-card 
-        v-if="workout && ((workout.des_estesa_start && String(workout.des_estesa_start).trim()) || (workout.des_estesa_end && String(workout.des_estesa_end).trim()))"
-        class="py-3 px-4 rounded-xl mb-5 text-left border"
-        style="background: rgba(30, 41, 59, 0.4) !important; border: 1.5px solid rgba(249, 115, 22, 0.2) !important;"
-      >
-        <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="mb-3">
-          <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-flex align-center mb-1">
-            <v-icon size="14" color="orange" class="mr-1">mdi-play-circle-outline</v-icon> Fase Iniziale / ROM:
-          </span>
-          <p class="text-slate font-weight-medium mb-0" style="font-size: 0.75rem; line-height: 1.4; color: #e2e8f0 !important;">
-            {{ String(workout.des_estesa_start).trim() }}
-          </p>
-        </div>
-        <div v-if="workout.des_estesa_end && String(workout.des_estesa_end).trim()">
-          <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-flex align-center mb-1">
-            <v-icon size="14" color="orange" class="mr-1">mdi-stop-circle-outline</v-icon> Fase Finale / Test:
-          </span>
-          <p class="text-slate font-weight-medium mb-0" style="font-size: 0.75rem; line-height: 1.4; color: #e2e8f0 !important;">
-            {{ String(workout.des_estesa_end).trim() }}
-          </p>
-        </div>
-      </v-card>
+
 
       <!-- 3. Coaching Note Card (Compact callout) -->
       <v-card
@@ -399,6 +377,30 @@
           <!-- Fallback se non corrisponde al pattern speciale -->
           <div v-else class="week-prescription-text text-caption font-weight-bold text-slate mb-2 py-0.5 px-2 rounded bg-slate-100" style="font-size: 0.75rem;">
             {{ workout['des_week' + sett] || 'Nessuna prescrizione' }}
+          </div>
+
+          <!-- Istruzioni Esecuzione / Test sotto il Lavoro (LAVORO) -->
+          <div 
+            v-if="workout && ((workout.des_estesa_start && String(workout.des_estesa_start).trim()) || (workout.des_estesa_end && String(workout.des_estesa_end).trim()))"
+            class="mt-2.5 mb-2 px-2.5 py-2 rounded-lg text-left"
+            style="background: rgba(249, 115, 22, 0.03) !important; border: 1px dashed rgba(249, 115, 22, 0.15) !important;"
+          >
+            <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="mb-2">
+              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center mb-0.5" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                ▶️ Esecuzione / ROM:
+              </span>
+              <p class="text-slate font-weight-medium mb-0" style="font-size: 0.7rem; line-height: 1.35; color: #cbd5e1 !important;">
+                {{ String(workout.des_estesa_start).trim() }}
+              </p>
+            </div>
+            <div v-if="workout.des_estesa_end && String(workout.des_estesa_end).trim()">
+              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center mb-0.5" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                ⏹️ Test Informativo / Note:
+              </span>
+              <p class="text-slate font-weight-medium mb-0" style="font-size: 0.7rem; line-height: 1.35; color: #cbd5e1 !important;">
+                {{ String(workout.des_estesa_end).trim() }}
+              </p>
+            </div>
           </div>
 
           <!-- Input di inserimento Carico (puramente testuale) -->

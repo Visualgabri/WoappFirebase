@@ -395,15 +395,15 @@
             ></v-textarea>
           </div>
 
-          <!-- Campi Aggiuntivi per Week 6 (Kg unico e Fatica) -->
+          <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
           <div v-if="sett === 6" class="mt-4 pt-4 border-top-soft">
             <div class="d-flex align-center justify-space-between mb-2">
               <div>
-                <span class="text-caption font-weight-black text-slate-dark d-block">Kg unico W6 *</span>
+                <span class="text-caption font-weight-black text-slate-dark d-block">Miglior Carico (W6) *</span>
                 <span class="text-super-caption text-orange-darken-3" style="font-size: 0.58rem;">(Solo valore numerico)</span>
               </div>
               
-              <!-- Stepper per Kg unico W6 -->
+              <!-- Stepper per Miglior Carico W6 -->
               <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
                 <v-btn
                   icon
@@ -440,9 +440,9 @@
               Inserisci qui sopra il massimo peso della week6 e qui sotto la tua percezione di sforzo. È essenziale per calcolare il peso della week1 nel prossimo mesociclo.
             </p>
 
-            <!-- Selettore Fatica W6 -->
+            <!-- Selettore Sforzo Percepito W6 -->
             <div class="text-left mb-2">
-              <span class="text-caption font-weight-black text-slate-dark d-block mb-2">Fatica W6</span>
+              <span class="text-caption font-weight-black text-slate-dark d-block mb-2">Sforzo Percepito (W6)</span>
               <v-row dense class="gap-2 justify-space-between">
                 <v-col cols="4">
                   <v-btn

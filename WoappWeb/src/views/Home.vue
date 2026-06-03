@@ -21,7 +21,7 @@
               SCHEDA N.{{ schedaSelezionata }}
             </v-chip>
             <span class="text-caption font-weight-bold text-muted ml-2" style="font-size: 0.68rem;">
-              Mesociclo Definitivo
+              {{ descrizioneMesociclo || 'Mesociclo Definitivo' }}
             </span>
           </div>
         </div>
@@ -92,17 +92,17 @@
                 :key="w"
                 class="progression-step-node d-flex flex-column align-center position-relative"
                 :class="{
-                  'step-completed': w < settimanaAttiva,
-                  'step-active': w === settimanaAttiva,
-                  'step-future': w > settimanaAttiva
+                  'step-completed': w <= settimaneChiuse,
+                  'step-active': w === settimaneChiuse + 1 && settimaneChiuse < 6,
+                  'step-future': w > settimaneChiuse + 1
                 }"
               >
                 <div class="step-ring d-flex align-center justify-center">
-                  <v-icon v-if="w < settimanaAttiva" size="14" color="white">mdi-check</v-icon>
+                  <v-icon v-if="w <= settimaneChiuse" size="14" color="white">mdi-check</v-icon>
                   <span v-else class="step-number">{{ w }}</span>
                 </div>
                 <span class="step-label text-super-caption font-weight-black mt-2" style="font-size: 0.58rem;">
-                  {{ w < settimanaAttiva ? 'Fatta' : (w === settimanaAttiva ? 'Attiva' : 'Da fare') }}
+                  {{ w <= settimaneChiuse ? 'Fatta' : (w === settimaneChiuse + 1 && settimaneChiuse < 6 ? 'Attiva' : 'Da fare') }}
                 </span>
               </div>
             </div>
@@ -110,11 +110,11 @@
             <div class="d-flex align-center justify-space-between pt-3 border-top-soft text-caption font-weight-bold text-slate">
               <span class="d-flex align-center">
                 <v-icon size="15" color="green-accent-4" class="mr-1">mdi-checkbox-marked-circle-outline</v-icon>
-                Settimane fatte: <span class="text-green-lighten-2 ml-1 font-weight-black">{{ settimanaAttiva - 1 }} / 6</span>
+                Settimane fatte: <span class="text-green-lighten-2 ml-1 font-weight-black">{{ settimaneChiuse }} / 6</span>
               </span>
               <span class="d-flex align-center">
                 <v-icon size="15" color="grey" class="mr-1">mdi-clock-outline</v-icon>
-                Rimanenti: <span class="text-orange-lighten-2 ml-1 font-weight-black">{{ 6 - (settimanaAttiva - 1) }} settimane</span>
+                Rimanenti: <span class="text-orange-lighten-2 ml-1 font-weight-black">{{ 6 - settimaneChiuse }} settimane</span>
               </span>
             </div>
           </v-card>
@@ -331,7 +331,8 @@
                 </div>
                 <div class="text-left mt-3">
                   <h4 class="text-caption font-weight-black text-slate-dark">Durata Mesociclo</h4>
-                  <p class="text-super-caption text-muted mt-1 mb-0" style="font-size: 0.65rem; line-height: 1.2;">
+                  <p class="text-super-caption text-muted mt-1 mb-0" style="font-size: 0.65rem; line-height: 1.3;">
+                    Inizio: {{ dataInizio }}<br>
                     Scadenza: {{ dataFine }}
                   </p>
                 </div>
@@ -516,6 +517,7 @@ const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + s
 const giornoAttivo = ref(localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'C');
 const dataInizio = ref('18 mag 26');
 const dataFine = ref('28 giu 26');
+const descrizioneMesociclo = ref('');
 
 // Modali e popups
 const mostraLeggimi = ref(false);
@@ -542,11 +544,39 @@ const salutoOrario = computed(() => {
   return 'Buonanotte 💤';
 });
 
+// Calcola quante settimane sono state completamente chiuse sequentially a partire dalle righe zero
+const settimaneChiuse = computed(() => {
+  const exercises = allExercises.value;
+  const activeDays = [...new Set(exercises
+    .filter(item => parseInt(item.num_riga_giorno) === 0)
+    .map(item => (item.des_giorno || '').trim().toUpperCase())
+  )].filter(Boolean);
+
+  if (activeDays.length === 0) return 0;
+
+  let count = 0;
+  for (let w = 1; w <= 6; w++) {
+    const isChiusa = activeDays.every(g => {
+      const header = exercises.find(
+        item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
+      );
+      return header && header['cmp' + w] === 'true';
+    });
+    if (isChiusa) {
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
+});
+
 // Computed per la barra di riempimento del progresso delle settimane nel mesociclo
 const getProgressionLineFillWidth = computed(() => {
-  if (settimanaAttiva.value <= 1) return '0%';
-  if (settimanaAttiva.value >= 6) return '100%';
-  return ((settimanaAttiva.value - 1) / 5 * 100) + '%';
+  const closed = settimaneChiuse.value;
+  if (closed <= 0) return '0%';
+  if (closed >= 6) return '100%';
+  return (closed / 5 * 100) + '%';
 });
 
 // Calcola il primo giorno non completato della settimana attiva
@@ -579,44 +609,70 @@ const applicaModificheLocali = (item) => {
   return { ...item, ...updates };
 };
 
-// Ricalcola la settimana attiva globale (considerando anche i dati inseriti nelle settimane non chiuse)
+// Ricalcola la settimana attiva globale in base alle settimane chiuse delle righe zero
 const calcolaSettimanaAttivaGlobale = (exercises) => {
-  const giorni = ['A', 'B', 'C', 'D'];
-  
-  // Verifica se una determinata settimana è chiusa su tutti i giorni di allenamento
-  const isSettimanaChiusa = (w) => {
-    return giorni.every(g => {
+  const activeDays = [...new Set(exercises
+    .filter(item => parseInt(item.num_riga_giorno) === 0)
+    .map(item => (item.des_giorno || '').trim().toUpperCase())
+  )].filter(Boolean);
+
+  if (activeDays.length === 0) return 1;
+
+  for (let w = 1; w <= 6; w++) {
+    const isChiusa = activeDays.every(g => {
       const header = exercises.find(
-        item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0
+        item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
       );
       return header && header['cmp' + w] === 'true';
     });
-  };
-
-  // Verifica se in una data settimana ci sono già dei campi compilati (non vuoti)
-  const haDatiInseriti = (w) => {
-    return exercises.some(item => {
-      if (parseInt(item.num_riga_giorno) === 0) return false; // Ignora le righe di intestazione
-      const val = item['ins_week' + w];
-      return val && val.trim() !== '';
-    });
-  };
-
-  // 1. Cerca se c'è una settimana non chiusa che ha già dei campi compilati (dalla più recente alla meno recente)
-  for (let w = 6; w >= 1; w--) {
-    if (!isSettimanaChiusa(w) && haDatiInseriti(w)) {
-      return w;
-    }
-  }
-
-  // 2. Se non ci sono dati compilati in settimane non chiuse, prendi la prima settimana non chiusa
-  for (let w = 1; w <= 6; w++) {
-    if (!isSettimanaChiusa(w)) {
+    if (!isChiusa) {
       return w;
     }
   }
 
   return 6; // Se tutte le settimane sono chiuse, ritorna l'ultima
+};
+
+const caricaDatiWorkoutT = async () => {
+  dataInizio.value = '18 mag 26';
+  dataFine.value = '28 giu 26';
+  descrizioneMesociclo.value = '';
+  coachMessage.value = '';
+
+  if (!selectedAthlete.value || !selectedSheet.value) return;
+
+  try {
+    const athleteId = selectedAthlete.value;
+    const sheetNum = selectedSheet.value;
+
+    const q1 = query(
+      collection(db, 'WORKOUT_T'),
+      where('ID_cliente', '==', athleteId),
+      where('num_scheda', '==', sheetNum)
+    );
+    let snap = await getDocs(q1);
+
+    if (snap.empty) {
+      const q2 = query(
+        collection(db, 'WORKOUT_T'),
+        where('ID_cliente', '==', Number(athleteId)),
+        where('num_scheda', '==', Number(sheetNum))
+      );
+      snap = await getDocs(q2);
+    }
+
+    if (!snap.empty) {
+      const docData = snap.docs[0].data();
+      dataInizio.value = docData.dat_data || '18 mag 26';
+      dataFine.value = docData.dat_scadenza || '28 giu 26';
+      descrizioneMesociclo.value = docData.des_descrizione || '';
+      if (docData.des_note) {
+        coachMessage.value = docData.des_note;
+      }
+    }
+  } catch (err) {
+    console.warn("Errore caricamento da WORKOUT_T, uso i default:", err);
+  }
 };
 
 // Caricamento
@@ -625,6 +681,8 @@ const caricaDatiScheda = async () => {
 
   atletaSelezionato.value = selectedAthlete.value;
   schedaSelezionata.value = selectedSheet.value;
+
+  await caricaDatiWorkoutT();
 
   // Carica il nome reale dell'atleta dalla mappa CLIENTI statica, altrimenti fallback su UTENTI
   const nomeMappato = getNomeAtleta(selectedAthlete.value);
@@ -713,7 +771,9 @@ const caricaDatiScheda = async () => {
     testList.value = tempTest;
     countTest.value = tempTest.length;
 
-    coachMessage.value = noteScheda;
+    if (!coachMessage.value) {
+      coachMessage.value = noteScheda;
+    }
 
     // Calcola e aggiorna la settimana attiva globale
     const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
@@ -740,6 +800,7 @@ const caricaDatiScheda = async () => {
 
   } catch (error) {
     console.warn("Errore caricamento dettagli Home da Firestore (quota esaurita), provo da backup locale:", error);
+    await caricaDatiWorkoutT();
     try {
       const res = await fetch('/storyboard_backup.json');
       const allData = await res.json();
@@ -772,7 +833,9 @@ const caricaDatiScheda = async () => {
       testList.value = tempTest;
       countTest.value = tempTest.length;
 
-      coachMessage.value = noteScheda;
+      if (!coachMessage.value) {
+        coachMessage.value = noteScheda;
+      }
 
       // Calcola e aggiorna la settimana attiva globale
       const activeW = calcolaSettimanaAttivaGlobale(tempExercises);

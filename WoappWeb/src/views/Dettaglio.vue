@@ -49,6 +49,18 @@
     <!-- Contenuto Principale (Stile AppSheet verticale fedele) -->
     <div v-else class="exercise-detail-area">
       
+      <!-- Avviso Giorno Completato -->
+      <v-card
+        v-if="isWeekCompleted(settimanaAttiva)"
+        class="py-2.5 px-4 mb-4 text-left border d-flex align-center card-glass"
+        style="background: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid rgba(16, 185, 129, 0.25) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05); border-radius: 12px !important;"
+      >
+        <v-icon color="green-lighten-2" class="mr-3 flex-shrink-0" size="20">mdi-check-circle-outline</v-icon>
+        <div class="text-slate-dark" style="font-size: 0.75rem; line-height: 1.45;">
+          <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>. I tuoi dati inseriti sono al sicuro.
+        </div>
+      </v-card>
+
       <!-- 1. Grande GIF dell'Esercizio in alto -->
       <v-card class="image-premium-frame rounded-xl overflow-hidden mb-3 elevation-2 bg-black mx-auto" max-width="280" height="150">
         <v-img
@@ -314,7 +326,16 @@
               <span class="text-caption font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
               </span>
-              <v-chip v-if="sett === settimanaAttiva" color="orange-darken-3" size="x-small" class="ml-2 font-weight-black px-1.5" style="height: 16px; font-size: 0.55rem;" variant="flat">ATTIVA</v-chip>
+              <v-chip
+                v-if="sett === settimanaAttiva"
+                :color="isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3'"
+                size="x-small"
+                class="ml-2 font-weight-black px-1.5 text-white"
+                style="height: 16px; font-size: 0.55rem;"
+                variant="flat"
+              >
+                {{ isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA' }}
+              </v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
             </div>
           </div>
@@ -1233,18 +1254,7 @@ watch(() => route.params.id, (nuovoId) => {
   }
 });
 
-// Watcher per allineare la settimana attiva del giorno non appena la riga 0 viene caricata
-watch(riga0, (nuovaRiga0) => {
-  if (nuovaRiga0) {
-    for (let w = 1; w <= 6; w++) {
-      if (nuovaRiga0['cmp' + w] !== 'true') {
-        settimanaAttiva.value = w;
-        return;
-      }
-    }
-    settimanaAttiva.value = 6; // Se tutte completate, propone l'ultima
-  }
-}, { immediate: true });
+// Allineato alla settimana attiva globale per evitare disallineamenti di visualizzazione dei giorni completati
 
 const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
   try {

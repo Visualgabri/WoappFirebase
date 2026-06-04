@@ -101,6 +101,33 @@
           class="elevation-1"
         ></v-progress-linear>
       </div>
+      
+      <!-- Resoconto Volumi Alternativo se presente nel des_esercizio_2 -->
+      <div v-else-if="isVolumeString(workout.des_esercizio_2)" class="pa-2.5 rounded-2xl card-glass border-soft mb-4 text-left">
+        <div class="d-flex align-center justify-space-between mb-1.5">
+          <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.05em;">
+            📊 Distribuzione Volumi Giornalieri
+          </span>
+        </div>
+        <div class="d-flex align-center flex-wrap gap-x-4 text-caption font-weight-bold">
+          <span class="d-flex align-center mr-1" title="Volume Globale (V)">
+            <v-icon size="16" color="grey-lighten-1" class="mr-1.5">mdi-dumbbell</v-icon>
+            Totale: <span class="text-slate-dark ml-1">{{ parseVolumeString(workout.des_esercizio_2).v }} serie</span>
+          </span>
+          <span class="d-flex align-center mr-1" title="Parte Alta / Upper Body (A)">
+            <v-icon size="16" color="blue-lighten-2" class="mr-1.5">mdi-arm-flex</v-icon>
+            Alta: <span class="text-blue-lighten-2 ml-1">{{ parseVolumeString(workout.des_esercizio_2).a }} serie</span>
+          </span>
+          <span class="d-flex align-center mr-1" title="Parte Bassa / Lower Body (B)">
+            <v-icon size="16" color="orange-lighten-2" class="mr-1.5">mdi-run</v-icon>
+            Bassa: <span class="text-orange-lighten-2 ml-1">{{ parseVolumeString(workout.des_esercizio_2).b }} serie</span>
+          </span>
+          <span v-if="parseFloat(parseVolumeString(workout.des_esercizio_2).c.replace(',', '.')) > 0" class="d-flex align-center" title="Core / Centro (C)">
+            <v-icon size="16" color="green-lighten-2" class="mr-1.5">mdi-shield-half-full</v-icon>
+            Core: <span class="text-green-lighten-2 ml-1">{{ parseVolumeString(workout.des_esercizio_2).c }} serie</span>
+          </span>
+        </div>
+      </div>
 
       <!-- 2. Progressioni delle 6 Settimane in Card Espandibili -->
       <div class="week-selector-section mb-6 text-left">
@@ -770,6 +797,26 @@ const getWeekSummaryLine = (w) => {
   return parts.join('  •  ');
 };
 
+
+const isVolumeString = (str) => {
+  if (!str) return false;
+  return /V:\s*[\d,.]+\s+A:\s*[\d,.]+/i.test(str);
+};
+
+const parseVolumeString = (str) => {
+  if (!str) return null;
+  const regex = /V:\s*([\d,.]+)\s+A:\s*([\d,.]+)\s+B:\s*([\d,.]+)(?:\s+C:\s*([\d,.]+))?/i;
+  const match = str.trim().match(regex);
+  if (match) {
+    return {
+      v: match[1],
+      a: match[2],
+      b: match[3],
+      c: match[4] || '0'
+    };
+  }
+  return null;
+};
 
 const parsedRmt = (str) => {
   if (!str) return null;

@@ -170,7 +170,32 @@
           </div>
         </div>
 
-        <!-- Fallback se des_esercizio_2 non è una stringa RMT speciale -->
+        <!-- Alternativo se des_esercizio_2 è una stringa Volume speciale -->
+        <div v-else-if="isVolumeString(workout.des_esercizio_2)" class="volumes-compact-box mt-3 pa-2.5 rounded-xl card-glass border-soft">
+          <div class="text-super-caption text-muted font-weight-black uppercase mb-1.5" style="font-size: 0.65rem;">
+            📊 Distribuzione Volumi Allenamento
+          </div>
+          <div class="d-flex align-center flex-wrap gap-x-4 text-caption font-weight-bold">
+            <span class="d-flex align-center" title="Volume Globale (V)">
+              <v-icon size="16" color="grey-lighten-1" class="mr-1.5">mdi-dumbbell</v-icon>
+              Volume: <span class="text-slate-dark ml-1">{{ parseVolumeString(workout.des_esercizio_2).v }} serie</span>
+            </span>
+            <span class="d-flex align-center" title="Upper Body / Parte Alta (A)">
+              <v-icon size="16" color="blue-lighten-2" class="mr-1.5">mdi-arm-flex</v-icon>
+              Alta: <span class="text-blue-lighten-2 ml-1">{{ parseVolumeString(workout.des_esercizio_2).a }} serie</span>
+            </span>
+            <span class="d-flex align-center" title="Lower Body / Parte Bassa (B)">
+              <v-icon size="16" color="orange-lighten-2" class="mr-1.5">mdi-run</v-icon>
+              Bassa: <span class="text-orange-lighten-2 ml-1">{{ parseVolumeString(workout.des_esercizio_2).b }} serie</span>
+            </span>
+            <span v-if="parseFloat(parseVolumeString(workout.des_esercizio_2).c.replace(',', '.')) > 0" class="d-flex align-center" title="Core / Centro (C)">
+              <v-icon size="16" color="green-lighten-2" class="mr-1.5">mdi-shield-half-full</v-icon>
+              Core: <span class="text-green-lighten-2 ml-1">{{ parseVolumeString(workout.des_esercizio_2).c }} serie</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Fallback se des_esercizio_2 non è una stringa RMT speciale nè volume -->
         <div v-else-if="workout.des_esercizio_2" class="text-subtitle-2 font-weight-black text-red-darken-3 mt-1 uppercase">
           {{ workout.des_esercizio_2 }}
         </div>
@@ -2447,6 +2472,26 @@ const apriStoricoEsercizio = async () => {
   } finally {
     caricandoStorico.value = false;
   }
+};
+
+const isVolumeString = (str) => {
+  if (!str) return false;
+  return /V:\s*[\d,.]+\s+A:\s*[\d,.]+/i.test(str);
+};
+
+const parseVolumeString = (str) => {
+  if (!str) return null;
+  const regex = /V:\s*([\d,.]+)\s+A:\s*([\d,.]+)\s+B:\s*([\d,.]+)(?:\s+C:\s*([\d,.]+))?/i;
+  const match = str.trim().match(regex);
+  if (match) {
+    return {
+      v: match[1],
+      a: match[2],
+      b: match[3],
+      c: match[4] || '0'
+    };
+  }
+  return null;
 };
 
 // Helper per tracciare il recupero tramite tag [RECUPERA]

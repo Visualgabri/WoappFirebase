@@ -394,10 +394,35 @@
               </v-row>
             </div>
 
-            <!-- Informazioni RMT se presenti -->
-            <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-2 pt-2 border-top-soft text-left d-flex align-center text-truncate">
-              <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
-              {{ formattaRmtSemplice(headerGiorno.des_esercizio_2) }}
+            <!-- Informazioni RMT o Volumi se presenti -->
+            <div v-if="headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft text-left d-flex align-center">
+              <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
+                <div class="d-flex align-center flex-wrap gap-x-3 text-caption font-weight-bold">
+                  <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
+                  <span class="d-flex align-center mr-1" title="Volume Globale (V)">
+                    <v-icon size="14" color="grey-lighten-1" class="mr-1">mdi-dumbbell</v-icon>
+                    <span class="text-slate-dark">{{ parseVolumeString(headerGiorno.des_esercizio_2).v }}</span>
+                  </span>
+                  <span class="d-flex align-center mr-1" title="Parte Alta / Upper Body (A)">
+                    <v-icon size="14" color="blue-lighten-2" class="mr-1">mdi-arm-flex</v-icon>
+                    <span class="text-blue-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).a }}</span>
+                  </span>
+                  <span class="d-flex align-center mr-1" title="Parte Bassa / Lower Body (B)">
+                    <v-icon size="14" color="orange-lighten-2" class="mr-1">mdi-run</v-icon>
+                    <span class="text-orange-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).b }}</span>
+                  </span>
+                  <span v-if="parseFloat(parseVolumeString(headerGiorno.des_esercizio_2).c.replace(',', '.')) > 0" class="d-flex align-center" title="Core / Centro (C)">
+                    <v-icon size="14" color="green-lighten-2" class="mr-1">mdi-shield-half-full</v-icon>
+                    <span class="text-green-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).c }}</span>
+                  </span>
+                </div>
+              </template>
+              <template v-else>
+                <div class="text-caption text-slate font-weight-bold d-flex align-center text-truncate">
+                  <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
+                  {{ formattaRmtSemplice(headerGiorno.des_esercizio_2) }}
+                </div>
+              </template>
             </div>
           </div>
 
@@ -437,9 +462,35 @@
                   <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                 </div>
               </div>
-              <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-1.5 d-flex align-center text-truncate">
-                <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
-                {{ formattaRmtSemplice(headerGiorno.des_esercizio_2) }}
+              <!-- Informazioni RMT o Volumi se presenti -->
+              <div v-if="headerGiorno.des_esercizio_2" class="mt-1.5 d-flex align-center">
+                <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
+                  <div class="d-flex align-center flex-wrap gap-x-3 text-caption font-weight-bold">
+                    <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
+                    <span class="d-flex align-center mr-1" title="Volume Globale (V)">
+                      <v-icon size="14" color="grey-lighten-1" class="mr-1">mdi-dumbbell</v-icon>
+                      <span class="text-slate-dark">{{ parseVolumeString(headerGiorno.des_esercizio_2).v }}</span>
+                    </span>
+                    <span class="d-flex align-center mr-1" title="Parte Alta / Upper Body (A)">
+                      <v-icon size="14" color="blue-lighten-2" class="mr-1">mdi-arm-flex</v-icon>
+                      <span class="text-blue-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).a }}</span>
+                    </span>
+                    <span class="d-flex align-center mr-1" title="Parte Bassa / Lower Body (B)">
+                      <v-icon size="14" color="orange-lighten-2" class="mr-1">mdi-run</v-icon>
+                      <span class="text-orange-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).b }}</span>
+                    </span>
+                    <span v-if="parseFloat(parseVolumeString(headerGiorno.des_esercizio_2).c.replace(',', '.')) > 0" class="d-flex align-center" title="Core / Centro (C)">
+                      <v-icon size="14" color="green-lighten-2" class="mr-1">mdi-shield-half-full</v-icon>
+                      <span class="text-green-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).c }}</span>
+                    </span>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="text-caption text-slate font-weight-bold d-flex align-center text-truncate">
+                    <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
+                    {{ formattaRmtSemplice(headerGiorno.des_esercizio_2) }}
+                  </div>
+                </template>
               </div>
               
               <!-- Sezione Volumi (VOL A, B, C) in fallback -->
@@ -1300,6 +1351,26 @@ const parseDayHeader = (str) => {
       tempoMedia,
       densitaMedia,
       calorie
+    };
+  }
+  return null;
+};
+
+const isVolumeString = (str) => {
+  if (!str) return false;
+  return /V:\s*[\d,.]+\s+A:\s*[\d,.]+/i.test(str);
+};
+
+const parseVolumeString = (str) => {
+  if (!str) return null;
+  const regex = /V:\s*([\d,.]+)\s+A:\s*([\d,.]+)\s+B:\s*([\d,.]+)(?:\s+C:\s*([\d,.]+))?/i;
+  const match = str.trim().match(regex);
+  if (match) {
+    return {
+      v: match[1],
+      a: match[2],
+      b: match[3],
+      c: match[4] || '0'
     };
   }
   return null;

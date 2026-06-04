@@ -337,24 +337,6 @@
                 {{ isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA' }}
               </v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
-              
-              <!-- Sblocco Modifica Dati Storici -->
-              <span 
-                v-if="sett < settimanaAttiva && !storicoSbloccato"
-                class="text-super-caption text-orange-darken-3 font-weight-black ml-2 clickable-item text-decoration-underline"
-                style="font-size: 0.58rem; cursor: pointer;"
-                @click="sbloccaStorico"
-              >
-                🔑 SBLOCCA
-              </span>
-              <span 
-                v-else-if="sett < settimanaAttiva && storicoSbloccato"
-                class="text-super-caption text-green-accent-4 font-weight-black ml-2 clickable-item text-decoration-underline"
-                style="font-size: 0.58rem; cursor: pointer;"
-                @click="storicoSbloccato = false"
-              >
-                🔒 BLOCCA
-              </span>
             </div>
           </div>
 
@@ -441,8 +423,7 @@
           <div class="mt-3.5 mb-1">
             <v-textarea
               v-model="inputSettimane[sett].ins"
-              :label="sett < settimanaAttiva && !storicoSbloccato ? '🔒 Carico Storico (Sola Lettura)' : 'Carico inserito (es. 45kg o note)'"
-              :readonly="sett < settimanaAttiva && !storicoSbloccato"
+              label="Carico inserito (es. 45kg o note)"
               variant="outlined"
               density="compact"
               hide-details
@@ -471,7 +452,6 @@
                   size="x-small"
                   variant="text"
                   color="orange-lighten-2"
-                  :disabled="settimanaAttiva === 6 && isWeekCompleted(6) && !storicoSbloccato"
                   @click="decrementaKgUnico"
                   id="btn-decrementa-kg-unico"
                 >
@@ -480,7 +460,6 @@
                 <input
                   v-model="numIns6Val"
                   type="text"
-                  :readonly="settimanaAttiva === 6 && isWeekCompleted(6) && !storicoSbloccato"
                   class="text-center font-weight-black text-white px-1"
                   style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
                   @blur="salvaKgUnico"
@@ -491,7 +470,6 @@
                   size="x-small"
                   variant="text"
                   color="orange-lighten-2"
-                  :disabled="settimanaAttiva === 6 && isWeekCompleted(6) && !storicoSbloccato"
                   @click="incrementaKgUnico"
                   id="btn-incrementa-kg-unico"
                 >
@@ -513,7 +491,6 @@
                     block
                     variant="flat"
                     :color="numFaticaw6Val === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
-                    :disabled="settimanaAttiva === 6 && isWeekCompleted(6) && !storicoSbloccato"
                     size="small"
                     rounded="lg"
                     class="font-weight-black text-none"
@@ -530,7 +507,6 @@
                     block
                     variant="flat"
                     :color="numFaticaw6Val === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
-                    :disabled="settimanaAttiva === 6 && isWeekCompleted(6) && !storicoSbloccato"
                     size="small"
                     rounded="lg"
                     class="font-weight-black text-none"
@@ -547,7 +523,6 @@
                     block
                     variant="flat"
                     :color="numFaticaw6Val === 'Devastante' ? 'red-darken-4' : 'grey-darken-3'"
-                    :disabled="settimanaAttiva === 6 && isWeekCompleted(6) && !storicoSbloccato"
                     size="small"
                     rounded="lg"
                     class="font-weight-black text-none"
@@ -736,7 +711,6 @@
             <v-btn
               v-for="voto in [1, 2, 3, 4, 5]"
               :key="voto"
-              :disabled="isWeekCompleted(settimanaAttiva) && !storicoSbloccato"
               variant="flat"
               :color="parseInt(indRepsStartVal) === voto ? 'orange-darken-3' : 'grey-darken-3'"
               class="font-weight-black rounded-lg text-none flex-grow-1"
@@ -780,11 +754,7 @@ import { startGlobalTimer } from '../authStore.js';
 const route = useRoute();
 const router = useRouter();
 
-const storicoSbloccato = ref(false);
-const sbloccaStorico = () => {
-  vibraTattile(15);
-  storicoSbloccato.value = true;
-};
+// Blocco storico rimosso per modifiche sempre abilitate
 
 
 const parseTimeToSeconds = (tStr) => {

@@ -69,26 +69,36 @@
           grow
           class="card-glass rounded-xl elevation-1"
           @update:model-value="salvaGiornoSelezionato"
+          style="height: 56px;"
         >
-          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="font-weight-black text-h6 px-2">
-            <div class="d-flex align-center">
-              <span>{{ giorno }}</span>
-              <v-icon
-                v-if="statoGiorni[giorno] === 'completed'"
-                color="green-accent-4"
-                size="15"
-                class="ml-1"
+          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="px-2" style="height: 56px;">
+            <div class="d-flex flex-column align-center justify-center py-1">
+              <div class="d-flex align-center">
+                <span class="font-weight-black text-h6" style="line-height: 1.1;">{{ giorno }}</span>
+                <v-icon
+                  v-if="statoGiorni[giorno] === 'completed'"
+                  color="green-accent-4"
+                  size="14"
+                  class="ml-1"
+                >
+                  mdi-check-bold
+                </v-icon>
+                <v-icon
+                  v-else-if="statoGiorni[giorno] === 'pending'"
+                  color="orange-darken-3"
+                  size="13"
+                  class="ml-1 pulse-active-tab-icon"
+                >
+                  mdi-flash
+                </v-icon>
+              </div>
+              <span 
+                v-if="ultimoChiusoPerGiorno(giorno)" 
+                class="text-super-caption font-weight-bold text-grey-lighten-1" 
+                style="font-size: 0.62rem; margin-top: 1.5px; line-height: 1; opacity: 0.85;"
               >
-                mdi-check-bold
-              </v-icon>
-              <v-icon
-                v-else-if="statoGiorni[giorno] === 'pending'"
-                color="orange-darken-3"
-                size="14"
-                class="ml-1 pulse-active-tab-icon"
-              >
-                mdi-flash
-              </v-icon>
+                {{ ultimoChiusoPerGiorno(giorno) }}
+              </span>
             </div>
           </v-tab>
         </v-tabs>
@@ -117,16 +127,6 @@
                 Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda. Ottimo lavoro!
               </p>
               <div class="d-flex gap-3">
-                <v-btn
-                  color="green-darken-3"
-                  size="small"
-                  class="font-weight-black text-none"
-                  rounded="lg"
-                  @click="ripristinaMesociclo"
-                  id="btn-ripristina-mesociclo"
-                >
-                  🔄 Ricomincia Scheda (Reset)
-                </v-btn>
                 <v-btn
                   to="/ricerca"
                   variant="outlined"
@@ -1094,6 +1094,21 @@ const statoGiorni = computed(() => {
   return result;
 });
 
+// Trova l'ultima settimana chiusa (cmp = true) per un determinato giorno
+const ultimoChiusoPerGiorno = (g) => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return '';
+  const header = listaAllenamenti.value.find(
+    item => (item.des_giorno || '').trim().toUpperCase() === g.trim().toUpperCase() && parseInt(item.num_riga_giorno) === 0
+  );
+  if (!header) return '';
+  for (let w = 6; w >= 1; w--) {
+    if (header['cmp' + w] === 'true') {
+      return 'W' + w;
+    }
+  }
+  return '';
+};
+
 // Raggruppa gli esercizi consecutivi in blocchi (singoli o superset)
 const blocchiEsercizi = computed(() => {
   const blocks = [];
@@ -1396,6 +1411,14 @@ const impostaChiusuraGiorno = async (w, val) => {
   const valString = val ? 'true' : 'false';
   const campoCmp = 'cmp' + w;
   const campoIns = 'ins_week' + w;
+
+  // Rimuovi flag keepOpen se stiamo completando/chiudendo
+  const athlete = selectedAthlete.value || 'default';
+  const giorno = giornoSelezionato.value || 'A';
+  const keepOpenKey = `keepOpen_${athlete}_${giorno}_W${w}`;
+  if (val) {
+    localStorage.removeItem(keepOpenKey);
+  }
   
   // Riempimento automatico degli esercizi non compilati se stiamo chiudendo il giorno
   if (val) {
@@ -1462,6 +1485,15 @@ const toggleGiornoAttivoRapido = async () => {
   const w = settimanaAttivaGiorno.value;
   const campoCmp = 'cmp' + w;
   const giaChiusa = headerGiorno.value[campoCmp] === 'true';
+  
+  // Imposta flag keepOpen se riapriamo manualmente il giorno
+  if (giaChiusa) {
+    const athlete = selectedAthlete.value || 'default';
+    const giorno = giornoSelezionato.value || 'A';
+    const keepOpenKey = `keepOpen_${athlete}_${giorno}_W${w}`;
+    localStorage.setItem(keepOpenKey, 'true');
+  }
+  
   await impostaChiusuraGiorno(w, !giaChiusa);
 };
 
@@ -1522,7 +1554,16 @@ const controllaEChiudiGiornoAutomatico = async () => {
   const campoCmp = 'cmp' + w;
   const giaChiusa = headerGiorno.value[campoCmp] === 'true';
 
-  if (tuttiCompilati && !giaChiusa) {
+  const athlete = selectedAthlete.value || 'default';
+  const giorno = giornoSelezionato.value || 'A';
+  const keepOpenKey = `keepOpen_${athlete}_${giorno}_W${w}`;
+  const keepOpen = localStorage.getItem(keepOpenKey) === 'true';
+
+  if (!tuttiCompilati) {
+    localStorage.removeItem(keepOpenKey);
+  }
+
+  if (tuttiCompilati && !giaChiusa && !keepOpen) {
     await impostaChiusuraGiorno(w, true);
   }
 };

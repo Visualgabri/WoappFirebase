@@ -88,7 +88,7 @@
           style="font-size: 1.1rem; line-height: 1.2;"
         >
           <v-icon :color="previousWorkout ? 'red-lighten-2' : 'orange-darken-3'" class="mr-1" size="18">
-            {{ previousWorkout ? 'mdi-repeat' : 'mdi-trophy-outline' }}
+            mdi-trophy-outline
           </v-icon>
           {{ workout.des_esercizio }}
         </h2>
@@ -813,24 +813,24 @@
     <!-- Dialog 1: Progressione Scheda Precedente (PRECEDENTE) -->
     <v-dialog v-model="dialogProgressioniPrecedente" max-width="500" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
-        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+        <v-card-title class="pa-3 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2">
-            <v-icon color="orange-darken-3" size="22">mdi-history</v-icon>
-            <span class="text-subtitle-1 font-weight-black text-white">Progressione Scheda Precedente</span>
+            <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
+            <span class="font-weight-black text-white" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">Progressione Scheda Precedente</span>
           </div>
           <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogProgressioniPrecedente = false"></v-btn>
         </v-card-title>
         
-        <v-card-text class="pa-4 scrollbar-custom" style="max-height: 60vh;">
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
           <div v-if="!previousWorkout" class="text-center py-6">
-            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <v-icon size="36" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
             <p class="text-caption text-muted">Nessun dato o scheda precedente trovata per questo esercizio.</p>
           </div>
           <div v-else>
             <!-- Info Esercizio Precedente -->
-            <div class="mb-4 text-left">
-              <h4 class="text-subtitle-2 font-weight-black text-white leading-tight mb-1">{{ previousWorkout.des_esercizio }}</h4>
-              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.6rem;">
+            <div class="mb-3 text-left">
+              <h4 class="font-weight-black text-white leading-tight mb-0.5" style="font-size: 0.78rem !important;">{{ previousWorkout.des_esercizio }}</h4>
+              <span class="text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
                 Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }} • Pos. {{ previousWorkout.num_riga_giorno }}
               </span>
             </div>
@@ -839,8 +839,8 @@
             <div class="d-flex flex-column gap-3">
               <div v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-3 text-left">
                 <div class="d-flex align-center justify-space-between mb-2">
-                  <span class="text-caption font-weight-black text-white uppercase">Week {{ w }}</span>
-                  <span class="text-super-caption text-orange-lighten-2 font-weight-bold uppercase text-right text-truncate px-1" style="font-size: 0.6rem; max-width: 70%;">
+                  <span class="font-weight-black text-white uppercase" style="font-size: 0.65rem !important;">Week {{ w }}</span>
+                  <span class="text-orange-lighten-2 font-weight-bold uppercase text-right text-truncate px-1" style="font-size: 0.58rem !important; max-width: 70%;">
                     Prescrizione: {{ previousWorkout['des_week' + w] || 'N.D.' }}
                   </span>
                 </div>

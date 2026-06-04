@@ -497,7 +497,6 @@
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
                     <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="haEsercizioPrecedenteReale(ex) ? 'text-red-lighten-2' : 'text-slate-dark'">
-                      <v-icon v-if="haEsercizioPrecedenteReale(ex)" color="red-lighten-2" size="14">mdi-repeat</v-icon>
                       {{ ex.des_esercizio || 'Esercizio' }}
                     </h4>
 
@@ -625,7 +624,6 @@
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
                 <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="haEsercizioPrecedenteReale(block.exercise) ? 'text-red-lighten-2' : 'text-slate-dark'">
-                  <v-icon v-if="haEsercizioPrecedenteReale(block.exercise)" color="red-lighten-2" size="14">mdi-repeat</v-icon>
                   {{ block.exercise.des_esercizio || 'Esercizio' }}
                 </h4>
 

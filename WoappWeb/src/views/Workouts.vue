@@ -8,16 +8,31 @@
         </v-avatar>
         <div class="text-left d-flex flex-column align-start" style="gap: 4px;">
           <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight mb-0" style="line-height: 1;">WORKOUTS</h1>
-          <v-chip
-            v-if="atletaSelezionato && schedaSelezionata"
-            color="orange-darken-3"
-            size="x-small"
-            class="font-weight-black uppercase px-2 py-0.5 text-white elevation-1"
-            variant="flat"
-            style="font-size: 0.62rem; letter-spacing: 0.02em; height: 20px;"
-          >
-            👤 {{ getNomeAtleta(atletaSelezionato) }} • Scheda {{ schedaSelezionata }}
-          </v-chip>
+          <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" v-if="atletaSelezionato && schedaSelezionata">
+            <v-chip
+              color="orange-darken-3"
+              size="x-small"
+              class="font-weight-black uppercase px-2 py-0.5 text-white elevation-1"
+              variant="flat"
+              style="font-size: 0.62rem; letter-spacing: 0.02em; height: 20px;"
+            >
+              👤 {{ getNomeAtleta(atletaSelezionato) }} • Scheda {{ schedaSelezionata }}
+            </v-chip>
+            
+            <v-chip
+              v-if="allineamentoProgramma"
+              :color="allineamentoProgramma.status === 'in-linea' ? 'green-darken-3' : (allineamentoProgramma.status === 'ritardo' ? 'red-darken-3' : 'blue-darken-3')"
+              size="x-small"
+              class="font-weight-black px-2 py-0.5 text-white elevation-1"
+              variant="flat"
+              style="font-size: 0.62rem; letter-spacing: 0.02em; height: 20px;"
+            >
+              <v-icon size="11" class="mr-1">
+                {{ allineamentoProgramma.status === 'in-linea' ? 'mdi-check-circle' : (allineamentoProgramma.status === 'ritardo' ? 'mdi-alert-circle' : 'mdi-trending-up') }}
+              </v-icon>
+              {{ allineamentoProgramma.status === 'in-linea' ? 'IN LINEA' : (allineamentoProgramma.status === 'ritardo' ? 'RITARDO W' + allineamentoProgramma.deltaAbs : 'ANTICIPO W' + allineamentoProgramma.deltaAbs) }}
+            </v-chip>
+          </div>
         </div>
       </div>
       <div class="header-actions">
@@ -815,18 +830,29 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-4 pt-2 border-top">
+        <v-card-actions class="pa-4 pt-2 border-top gap-2">
           <v-btn
-            block
+            prepend-icon="mdi-file-pdf-box"
+            color="red-darken-3"
+            variant="flat"
+            size="large"
+            rounded="xl"
+            class="font-weight-black text-none text-white flex-grow-1"
+            @click="scaricaReportPDF"
+            style="height: 48px;"
+          >
+            Esporta PDF
+          </v-btn>
+          <v-btn
             color="orange-darken-3"
             variant="flat"
             size="large"
             rounded="xl"
-            class="font-weight-black text-none text-white"
+            class="font-weight-black text-none text-white flex-grow-1"
             @click="dialogProgressioni = false"
             style="height: 48px;"
           >
-            Chiudi Report
+            Chiudi
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -841,6 +867,7 @@ import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente } from '../authStore.js';
+import { jsPDF } from 'jspdf';
 
 const router = useRouter();
 
@@ -1784,6 +1811,234 @@ const mesocicloCompletato = computed(() => {
 });
 
 const dialogProgressioni = ref(false);
+
+const allineamentoProgramma = computed(() => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return null;
+  
+  const header = listaAllenamenti.value.find(
+    item => parseInt(item.num_riga_giorno) === 0 && item.start_wo
+  );
+  
+  if (!header || !header.start_wo) return null;
+  
+  const parseDateString = (str) => {
+    if (!str) return null;
+    const s = String(str).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+      const parts = s.substring(0, 10).split('-');
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+      const parts = s.split(' ')[0].split('/');
+      return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+    }
+    const t = Date.parse(s);
+    if (!isNaN(t)) return new Date(t);
+    return null;
+  };
+
+  const startDate = parseDateString(header.start_wo);
+  if (!startDate) return null;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  startDate.setHours(0,0,0,0);
+  
+  const diffTime = today.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  let weekTeorica = Math.floor(diffDays / 7) + 1;
+  if (weekTeorica < 1) weekTeorica = 1;
+  
+  const weekAttiva = settimanaAttiva.value;
+  const delta = weekAttiva - weekTeorica;
+  
+  return {
+    weekTeorica,
+    weekAttiva,
+    delta,
+    status: delta === 0 ? 'in-linea' : (delta < 0 ? 'ritardo' : 'anticipo'),
+    deltaAbs: Math.abs(delta)
+  };
+});
+
+const scaricaReportPDF = () => {
+  vibraTattile(12);
+  const doc = new jsPDF();
+  
+  // Header Style
+  doc.setFillColor(249, 115, 22); // Orange Accent
+  doc.rect(0, 0, 210, 30, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text('FLEXCOACH - REPORT PROGRESSIONI', 15, 20);
+  
+  // Metadata section
+  doc.setTextColor(51, 65, 85);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  
+  const oggi = new Date().toLocaleDateString('it-IT');
+  doc.text(`Data Generazione: ${oggi}`, 140, 20);
+  
+  let y = 45;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('1. INFORMAZIONI GENERALI', 15, y);
+  doc.line(15, y + 2, 195, y + 2);
+  
+  y += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Atleta: ${getNomeAtleta(atletaSelezionato.value) || 'N/D'}`, 15, y);
+  doc.text(`Scheda: N. ${schedaSelezionata.value}`, 80, y);
+  doc.text(`Stato Programma: ${mesocicloCompletato.value ? 'COMPLETATO' : 'ATTIVO'}`, 130, y);
+  
+  y += 12;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('2. STATISTICHE DI CONSISTENZA E PERFORMANCE', 15, y);
+  doc.line(15, y + 2, 195, y + 2);
+  
+  y += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Consistenza Allenamenti: ${reportProgressioni.value.percentualeConsistenza}%`, 15, y);
+  doc.text(`Feeling Medio Esercizi: ${reportProgressioni.value.mediaFeeling || '-'} / 5`, 80, y);
+  
+  y += 6;
+  let consistenzaDettaglio = '';
+  for (let w = 1; w <= 6; w++) {
+    consistenzaDettaglio += `W${w}: ${reportProgressioni.value.consistenzaGiorni[w]}gg  `;
+  }
+  doc.text(`Consistenza per Settimana: ${consistenzaDettaglio}`, 15, y);
+  
+  y += 6;
+  const fatiche = reportProgressioni.value.miglioriFatiche;
+  doc.text(`Sforzo Week 6 -> Media: ${fatiche.Media} | Pesante: ${fatiche.Pesante} | Devastante: ${fatiche.Devastante}`, 15, y);
+  
+  y += 14;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('3. DETTAGLIO PROGRESSIONE CARICHI', 15, y);
+  doc.line(15, y + 2, 195, y + 2);
+  
+  // Table Header
+  y += 10;
+  doc.setFillColor(30, 41, 59); // Dark header
+  doc.rect(15, y, 180, 8, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('Esercizio', 17, y + 5);
+  doc.text('Giorno', 85, y + 5);
+  doc.text('W1', 105, y + 5);
+  doc.text('W6', 125, y + 5);
+  doc.text('Progressione', 150, y + 5);
+  
+  y += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  
+  const items = listaAllenamenti.value || [];
+  let rowCount = 0;
+  
+  const parsePeso = (val) => {
+    if (!val) return 0;
+    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
+    const parts = clean.split(/\s+/);
+    const num = parseFloat(parts[0]);
+    return isNaN(num) ? 0 : num;
+  };
+  
+  items.forEach(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return;
+    
+    const w1 = ex.ins_week1 || '';
+    const w2 = ex.ins_week2 || '';
+    const w3 = ex.ins_week3 || '';
+    const w4 = ex.ins_week4 || '';
+    const w5 = ex.ins_week5 || '';
+    const w6 = ex.ins_week6 || '';
+    
+    if (!w1 && !w2 && !w3 && !w4 && !w5 && !w6) return;
+    
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+      doc.setFillColor(30, 41, 59);
+      doc.rect(15, y, 180, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Esercizio', 17, y + 5);
+      doc.text('Giorno', 85, y + 5);
+      doc.text('W1', 105, y + 5);
+      doc.text('W6', 125, y + 5);
+      doc.text('Progressione', 150, y + 5);
+      y += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+    }
+    
+    if (rowCount % 2 === 1) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(15, y, 180, 7, 'F');
+    }
+    
+    const w1Peso = parsePeso(w1);
+    let latestPeso = 0;
+    let latestW = 1;
+    for (let w = 6; w >= 1; w--) {
+      const wVal = parsePeso(ex['ins_week' + w]);
+      if (wVal > 0) {
+        latestPeso = wVal;
+        latestW = w;
+        break;
+      }
+    }
+    
+    const delta = latestPeso - w1Peso;
+    let progText = 'Stabile';
+    if (delta > 0 && w1Peso > 0) {
+      const pct = Math.round((delta / w1Peso) * 100);
+      progText = `+${delta.toFixed(1)} kg (+${pct}%)`;
+    } else if (delta < 0 && w1Peso > 0) {
+      const pct = Math.round((Math.abs(delta) / w1Peso) * 100);
+      progText = `-${Math.abs(delta).toFixed(1)} kg (-${pct}%)`;
+    } else if (w1Peso === 0 && latestPeso > 0) {
+      progText = `Partito da W${latestW}: ${latestPeso} kg`;
+    }
+    
+    const nomeTrunc = (ex.des_esercizio || 'Esercizio').substring(0, 36);
+    doc.text(nomeTrunc, 17, y + 5);
+    doc.text(String(ex.des_giorno || '-'), 85, y + 5);
+    doc.text(w1 ? `${w1} kg` : '-', 105, y + 5);
+    
+    const lastWVal = ex['ins_week' + latestW] || '-';
+    doc.text(lastWVal ? `${lastWVal} kg` : '-', 125, y + 5);
+    
+    if (delta > 0) {
+      doc.setTextColor(16, 185, 129);
+      doc.setFont('helvetica', 'bold');
+    } else if (delta < 0) {
+      doc.setTextColor(239, 68, 68);
+    }
+    doc.text(progText, 150, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    
+    y += 7;
+    rowCount++;
+  });
+  
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text('Generato con FlexCoach WoApp - I tuoi dati, i tuoi risultati.', 15, 287);
+  
+  doc.save(`FlexCoach_Report_${(getNomeAtleta(atletaSelezionato.value) || 'Atleta').replace(/\s+/g, '_')}_Scheda_${schedaSelezionata.value}.pdf`);
+};
 
 const reportProgressioni = computed(() => {
   const result = {

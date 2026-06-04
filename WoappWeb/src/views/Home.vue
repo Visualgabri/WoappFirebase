@@ -413,16 +413,16 @@
           <v-row dense class="mb-6 card-actions-grid">
             <!-- COACH NOTES CARD -->
             <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-4 d-flex flex-column justify-space-between border-coaching" @click="apriLeggimi">
+              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-coaching" @click="apriLeggimi" style="height: 110px !important;">
                 <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="amber-lighten-5" size="36" class="action-avatar border-amber">
-                    <v-icon color="amber-darken-3" size="20">mdi-comment-text-multiple-outline</v-icon>
+                  <v-avatar color="amber-lighten-5" size="30" class="action-avatar border-amber">
+                    <v-icon color="amber-darken-3" size="16">mdi-comment-text-multiple-outline</v-icon>
                   </v-avatar>
-                  <v-chip color="amber-darken-4" size="x-small" class="font-weight-black px-1.5" variant="tonal">COACH</v-chip>
+                  <v-chip color="amber-darken-4" size="x-small" class="font-weight-black px-1.5" variant="tonal" style="font-size: 0.52rem; height: 16px;">COACH</v-chip>
                 </div>
-                <div class="text-left mt-3">
-                  <h4 class="text-caption font-weight-black text-slate-dark">Note Coach</h4>
-                  <p class="text-super-caption text-muted text-truncate mt-1 mb-0" style="font-size: 0.65rem;">
+                <div class="text-left mt-1.5">
+                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Note Coach</h4>
+                  <p class="text-super-caption text-muted text-truncate mt-0.5 mb-0" style="font-size: 0.58rem !important; opacity: 0.85;">
                     {{ coachMessage || 'Nessun messaggio specifico' }}
                   </p>
                 </div>
@@ -431,18 +431,18 @@
             
             <!-- FILMATI CARD -->
             <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-4 d-flex flex-column justify-space-between border-video" @click="apriFilmati">
+              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-video" @click="apriFilmati" style="height: 110px !important;">
                 <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="red-lighten-5" size="36" class="action-avatar border-red">
-                    <v-icon color="red-darken-3" size="20" :class="{ 'pulse-video-icon': countFilmati > 0 }">
+                  <v-avatar color="red-lighten-5" size="30" class="action-avatar border-red">
+                    <v-icon color="red-darken-3" size="16" :class="{ 'pulse-video-icon': countFilmati > 0 }">
                       {{ countFilmati > 0 ? 'mdi-video-outline' : 'mdi-video-off-outline' }}
                     </v-icon>
                   </v-avatar>
-                  <v-chip color="red" size="x-small" class="font-weight-black px-1.5" variant="tonal" v-if="countFilmati > 0">RECORD</v-chip>
+                  <v-chip color="red" size="x-small" class="font-weight-black px-1.5" variant="tonal" v-if="countFilmati > 0" style="font-size: 0.52rem; height: 16px;">RECORD</v-chip>
                 </div>
-                <div class="text-left mt-3">
-                  <h4 class="text-caption font-weight-black text-slate-dark">Video da fare ({{ countFilmati }})</h4>
-                  <p class="text-super-caption text-muted mt-1 mb-0" style="font-size: 0.65rem;">
+                <div class="text-left mt-1.5">
+                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Video ({{ countFilmati }})</h4>
+                  <p class="text-super-caption text-muted text-truncate mt-0.5 mb-0" style="font-size: 0.58rem !important; opacity: 0.85;">
                     {{ countFilmati > 0 ? 'Esercizi da registrare' : 'Nessuna ripresa richiesta' }}
                   </p>
                 </div>
@@ -451,16 +451,16 @@
             
             <!-- TEST CARD -->
             <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-4 d-flex flex-column justify-space-between border-test" @click="apriTest">
+              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-test" @click="apriTest" style="height: 110px !important;">
                 <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="blue-lighten-5" size="36" class="action-avatar border-blue">
-                    <v-icon color="blue-darken-3" size="20">mdi-dumbbell</v-icon>
+                  <v-avatar color="blue-lighten-5" size="30" class="action-avatar border-blue">
+                    <v-icon color="blue-darken-3" size="16">mdi-dumbbell</v-icon>
                   </v-avatar>
-                  <v-chip color="blue" size="x-small" class="font-weight-black px-1.5" variant="tonal" v-if="countTest > 0">TEST</v-chip>
+                  <v-chip color="blue" size="x-small" class="font-weight-black px-1.5" variant="tonal" v-if="countTest > 0" style="font-size: 0.52rem; height: 16px;">TEST</v-chip>
                 </div>
-                <div class="text-left mt-3">
-                  <h4 class="text-caption font-weight-black text-slate-dark">Test / AMRAP ({{ countTest }})</h4>
-                  <p class="text-super-caption text-muted mt-1 mb-0" style="font-size: 0.65rem;">
+                <div class="text-left mt-1.5">
+                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Test / AMRAP ({{ countTest }})</h4>
+                  <p class="text-super-caption text-muted text-truncate mt-0.5 mb-0" style="font-size: 0.58rem !important; opacity: 0.85;">
                     {{ countTest > 0 ? 'Verifica massimali attiva' : 'Nessun test in questa scheda' }}
                   </p>
                 </div>
@@ -469,16 +469,16 @@
             
             <!-- PERIODIZZAZIONE STATS CARD -->
             <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-4 d-flex flex-column justify-space-between border-calendar">
+              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-calendar" style="height: 110px !important;">
                 <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="deep-purple-lighten-5" size="36" class="action-avatar border-purple">
-                    <v-icon color="deep-purple-darken-3" size="20">mdi-calendar-range</v-icon>
+                  <v-avatar color="deep-purple-lighten-5" size="30" class="action-avatar border-purple">
+                    <v-icon color="deep-purple-darken-3" size="16">mdi-calendar-range</v-icon>
                   </v-avatar>
-                  <v-chip color="deep-purple" size="x-small" class="font-weight-black px-1.5" variant="tonal">INFO</v-chip>
+                  <v-chip color="deep-purple" size="x-small" class="font-weight-black px-1.5" variant="tonal" style="font-size: 0.52rem; height: 16px;">INFO</v-chip>
                 </div>
-                <div class="text-left mt-3">
-                  <h4 class="text-caption font-weight-black text-slate-dark">Durata Mesociclo</h4>
-                  <p class="text-super-caption text-muted mt-1 mb-0" style="font-size: 0.65rem; line-height: 1.3;">
+                <div class="text-left mt-1.5">
+                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Durata</h4>
+                  <p class="text-super-caption text-muted mt-0.5 mb-0" style="font-size: 0.58rem !important; line-height: 1.25; opacity: 0.85;">
                     Inizio: {{ dataInizio }}<br>
                     Scadenza: {{ dataFine }}
                   </p>
@@ -756,18 +756,29 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-4 pt-2 border-top">
+        <v-card-actions class="pa-4 pt-2 border-top gap-2">
           <v-btn
-            block
+            prepend-icon="mdi-file-pdf-box"
+            color="red-darken-3"
+            variant="flat"
+            size="large"
+            rounded="xl"
+            class="font-weight-black text-none text-white flex-grow-1"
+            @click="scaricaReportPDF"
+            style="height: 48px;"
+          >
+            Esporta PDF
+          </v-btn>
+          <v-btn
             color="orange-darken-3"
             variant="flat"
             size="large"
             rounded="xl"
-            class="font-weight-black text-none text-white"
+            class="font-weight-black text-none text-white flex-grow-1"
             @click="dialogProgressioni = false"
             style="height: 48px;"
           >
-            Chiudi Report
+            Chiudi
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -781,6 +792,7 @@ import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, getNomeAtleta } from '../authStore.js';
+import { jsPDF } from 'jspdf';
 
 const router = useRouter();
 
@@ -1114,6 +1126,189 @@ const calcolaSettimanaAttivaGlobale = (exercises) => {
   }
 
   return 6; // Se tutte le settimane sono chiuse, ritorna l'ultima
+};
+
+const scaricaReportPDF = () => {
+  vibraTattile(12);
+  const doc = new jsPDF();
+  
+  // Header Style
+  doc.setFillColor(249, 115, 22); // Orange Accent
+  doc.rect(0, 0, 210, 30, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text('FLEXCOACH - REPORT PROGRESSIONI', 15, 20);
+  
+  // Metadata section
+  doc.setTextColor(51, 65, 85);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  
+  const oggi = new Date().toLocaleDateString('it-IT');
+  doc.text(`Data Generazione: ${oggi}`, 140, 20);
+  
+  let y = 45;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('1. INFORMAZIONI GENERALI', 15, y);
+  doc.line(15, y + 2, 195, y + 2);
+  
+  y += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Atleta: ${nomeAtleta.value || 'N/D'}`, 15, y);
+  doc.text(`Scheda: N. ${schedaSelezionata.value}`, 80, y);
+  doc.text(`Mesociclo: ${descrizioneMesociclo.value || 'N/D'}`, 130, y);
+  
+  y += 6;
+  doc.text(`Inizio: ${dataInizio.value}`, 15, y);
+  doc.text(`Scadenza: ${dataFine.value}`, 80, y);
+  doc.text(`Stato Programma: ${settimaneChiuse.value === 6 ? 'COMPLETATO' : 'ATTIVO'}`, 130, y);
+  
+  y += 12;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('2. STATISTICHE DI CONSISTENZA E PERFORMANCE', 15, y);
+  doc.line(15, y + 2, 195, y + 2);
+  
+  y += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Consistenza Allenamenti: ${reportProgressioni.value.percentualeConsistenza}%`, 15, y);
+  doc.text(`Feeling Medio Esercizi: ${reportProgressioni.value.mediaFeeling || '-'} / 5`, 80, y);
+  
+  y += 6;
+  let consistenzaDettaglio = '';
+  for (let w = 1; w <= 6; w++) {
+    consistenzaDettaglio += `W${w}: ${reportProgressioni.value.consistenzaGiorni[w]}gg  `;
+  }
+  doc.text(`Consistenza per Settimana: ${consistenzaDettaglio}`, 15, y);
+  
+  y += 6;
+  const fatiche = reportProgressioni.value.miglioriFatiche;
+  doc.text(`Sforzo Week 6 -> Media: ${fatiche.Media} | Pesante: ${fatiche.Pesante} | Devastante: ${fatiche.Devastante}`, 15, y);
+  
+  y += 14;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('3. DETTAGLIO PROGRESSIONE CARICHI', 15, y);
+  doc.line(15, y + 2, 195, y + 2);
+  
+  // Table Header
+  y += 10;
+  doc.setFillColor(30, 41, 59); // Dark header
+  doc.rect(15, y, 180, 8, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('Esercizio', 17, y + 5);
+  doc.text('Giorno', 85, y + 5);
+  doc.text('W1', 105, y + 5);
+  doc.text('W6', 125, y + 5);
+  doc.text('Progressione', 150, y + 5);
+  
+  y += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  
+  const items = allExercises.value || [];
+  let rowCount = 0;
+  
+  const parsePeso = (val) => {
+    if (!val) return 0;
+    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
+    const parts = clean.split(/\s+/);
+    const num = parseFloat(parts[0]);
+    return isNaN(num) ? 0 : num;
+  };
+  
+  items.forEach(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return;
+    
+    const w1 = ex.ins_week1 || '';
+    const w2 = ex.ins_week2 || '';
+    const w3 = ex.ins_week3 || '';
+    const w4 = ex.ins_week4 || '';
+    const w5 = ex.ins_week5 || '';
+    const w6 = ex.ins_week6 || '';
+    
+    if (!w1 && !w2 && !w3 && !w4 && !w5 && !w6) return;
+    
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+      doc.setFillColor(30, 41, 59);
+      doc.rect(15, y, 180, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Esercizio', 17, y + 5);
+      doc.text('Giorno', 85, y + 5);
+      doc.text('W1', 105, y + 5);
+      doc.text('W6', 125, y + 5);
+      doc.text('Progressione', 150, y + 5);
+      y += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+    }
+    
+    if (rowCount % 2 === 1) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(15, y, 180, 7, 'F');
+    }
+    
+    const w1Peso = parsePeso(w1);
+    let latestPeso = 0;
+    let latestW = 1;
+    for (let w = 6; w >= 1; w--) {
+      const wVal = parsePeso(ex['ins_week' + w]);
+      if (wVal > 0) {
+        latestPeso = wVal;
+        latestW = w;
+        break;
+      }
+    }
+    
+    const delta = latestPeso - w1Peso;
+    let progText = 'Stabile';
+    if (delta > 0 && w1Peso > 0) {
+      const pct = Math.round((delta / w1Peso) * 100);
+      progText = `+${delta.toFixed(1)} kg (+${pct}%)`;
+    } else if (delta < 0 && w1Peso > 0) {
+      const pct = Math.round((Math.abs(delta) / w1Peso) * 100);
+      progText = `-${Math.abs(delta).toFixed(1)} kg (-${pct}%)`;
+    } else if (w1Peso === 0 && latestPeso > 0) {
+      progText = `Partito da W${latestW}: ${latestPeso} kg`;
+    }
+    
+    const nomeTrunc = (ex.des_esercizio || 'Esercizio').substring(0, 36);
+    doc.text(nomeTrunc, 17, y + 5);
+    doc.text(String(ex.des_giorno || '-'), 85, y + 5);
+    doc.text(w1 ? `${w1} kg` : '-', 105, y + 5);
+    
+    const lastWVal = ex['ins_week' + latestW] || '-';
+    doc.text(lastWVal ? `${lastWVal} kg` : '-', 125, y + 5);
+    
+    if (delta > 0) {
+      doc.setTextColor(16, 185, 129);
+      doc.setFont('helvetica', 'bold');
+    } else if (delta < 0) {
+      doc.setTextColor(239, 68, 68);
+    }
+    doc.text(progText, 150, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    
+    y += 7;
+    rowCount++;
+  });
+  
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text('Generato con FlexCoach WoApp - I tuoi dati, i tuoi risultati.', 15, 287);
+  
+  doc.save(`FlexCoach_Report_${nomeAtleta.value.replace(/\s+/g, '_')}_Scheda_${schedaSelezionata.value}.pdf`);
 };
 
 const caricaDatiWorkoutT = async () => {

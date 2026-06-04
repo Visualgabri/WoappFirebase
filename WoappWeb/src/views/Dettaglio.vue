@@ -41,6 +41,18 @@
           <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>.
         </div>
       </v-card>
+
+      <!-- Avviso Esercizio Ripetuto -->
+      <v-card
+        v-if="workout && workout.num_coord_ex_wo_prec"
+        class="py-2.5 px-4 mb-3 text-left border d-flex align-center card-glass"
+        style="background: rgba(239, 68, 68, 0.08) !important; border: 1.5px solid rgba(239, 68, 68, 0.25) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.05); border-radius: 12px !important;"
+      >
+        <v-icon color="red-lighten-2" class="mr-3 flex-shrink-0" size="20">mdi-repeat</v-icon>
+        <div class="text-slate-dark" style="font-size: 0.75rem; line-height: 1.45;">
+          <strong class="text-red-lighten-2">Esercizio Ripetuto!</strong> Presente nella scheda precedente alla coordinata <strong class="text-white">{{ workout.num_coord_ex_wo_prec }}</strong>. Usa il tasto <strong class="text-white">PRECEDENTE</strong> sotto per vedere la progressione passata.
+        </div>
+      </v-card>
     </div>
 
     <!-- Swipe indicator hint -->
@@ -82,9 +94,25 @@
 
       <!-- 2. Intestazione Principale con Massimale / RMT -->
       <div class="mb-2 text-left">
-        <h2 class="text-h6 font-weight-black text-slate-dark leading-tight d-flex align-center flex-wrap gap-1" style="font-size: 1.1rem; line-height: 1.2;">
-          <v-icon color="orange-darken-3" class="mr-1" size="18">mdi-trophy-outline</v-icon>
+        <h2 
+          class="text-h6 font-weight-black leading-tight d-flex align-center flex-wrap gap-1" 
+          :class="workout.num_coord_ex_wo_prec ? 'text-red-lighten-2' : 'text-slate-dark'"
+          style="font-size: 1.1rem; line-height: 1.2;"
+        >
+          <v-icon :color="workout.num_coord_ex_wo_prec ? 'red-lighten-2' : 'orange-darken-3'" class="mr-1" size="18">
+            {{ workout.num_coord_ex_wo_prec ? 'mdi-repeat' : 'mdi-trophy-outline' }}
+          </v-icon>
           {{ workout.des_esercizio }}
+          <v-chip 
+            v-if="workout.num_coord_ex_wo_prec" 
+            color="red-darken-3" 
+            size="x-small" 
+            class="font-weight-black text-white ml-2 animate-pulse-slow" 
+            variant="flat"
+            style="height: 18px; font-size: 0.55rem;"
+          >
+            RIPETUTO ({{ workout.num_coord_ex_wo_prec }})
+          </v-chip>
         </h2>
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
@@ -194,6 +222,64 @@
           >
             ⚡ PROSSIMO (NO PAUSA)
           </v-chip>
+        </div>
+
+        <!-- Action Row (Precedente, Elimina, Storico, WhatsApp) -->
+        <div class="d-flex align-center justify-space-between mt-3 mb-2 px-1 border-top-soft pt-3 gap-2 flex-wrap">
+          <div class="d-flex align-center gap-2">
+            <!-- Tasto PRECEDENTE -->
+            <v-btn
+              prepend-icon="mdi-arrow-left-bold-box-outline"
+              variant="text"
+              color="orange-darken-3"
+              class="font-weight-black text-none px-2"
+              size="small"
+              @click="dialogProgressioniPrecedente = true"
+              style="font-size: 0.72rem; letter-spacing: 0.05em;"
+            >
+              PRECEDENTE
+            </v-btn>
+
+            <!-- Tasto ELIMINA (solo Coach) -->
+            <v-btn
+              v-if="ruolo === 'coach'"
+              prepend-icon="mdi-close-thick"
+              variant="text"
+              color="red-lighten-2"
+              class="font-weight-black text-none px-2"
+              size="small"
+              @click="dialogElimina = true"
+              style="font-size: 0.72rem; letter-spacing: 0.05em;"
+            >
+              ELIMINA
+            </v-btn>
+          </div>
+
+          <div class="d-flex align-center gap-2">
+            <!-- Tasto Freccia con Orologio (Riepilogo Storico) -->
+            <v-btn
+              icon
+              variant="text"
+              color="orange-darken-3"
+              size="small"
+              @click="apriStoricoEsercizio"
+              title="Storico Esercizio"
+            >
+              <v-icon size="22">mdi-history</v-icon>
+            </v-btn>
+
+            <!-- Tasto Aereo (WhatsApp) -->
+            <v-btn
+              icon
+              variant="text"
+              color="orange-darken-3"
+              size="small"
+              @click="inviaVideoWhatsApp"
+              title="Invia Video al Coach"
+            >
+              <v-icon size="20">mdi-send</v-icon>
+            </v-btn>
+          </div>
         </div>
       </div>
 
@@ -741,21 +827,170 @@
     >
       <div class="d-flex align-center justify-center font-weight-bold">
         <v-icon class="mr-2">mdi-check-circle</v-icon>
-        Progressione salvata in tempo reale!
+        {{ snackbarMessaggio || 'Progressione salvata in tempo reale!' }}
       </div>
     </v-snackbar>
+
+    <!-- Dialog 1: Progressione Scheda Precedente (PRECEDENTE) -->
+    <v-dialog v-model="dialogProgressioniPrecedente" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange-darken-3" size="22">mdi-history</v-icon>
+            <span class="text-subtitle-1 font-weight-black text-white">Progressione Scheda Precedente</span>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogProgressioniPrecedente = false"></v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-4 scrollbar-custom" style="max-height: 60vh;">
+          <div v-if="!previousWorkout" class="text-center py-6">
+            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessun dato o scheda precedente trovata per questo esercizio.</p>
+          </div>
+          <div v-else>
+            <!-- Info Esercizio Precedente -->
+            <div class="mb-4 text-left">
+              <h4 class="text-subtitle-2 font-weight-black text-white leading-tight mb-1">{{ previousWorkout.des_esercizio }}</h4>
+              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.6rem;">
+                Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }} • Pos. {{ previousWorkout.num_riga_giorno }}
+              </span>
+            </div>
+
+            <!-- Tabella delle 6 settimane -->
+            <div class="rounded-xl overflow-hidden border bg-slate-950">
+              <div class="d-flex align-center justify-space-between bg-slate-900 py-2 px-3 border-bottom text-super-caption font-weight-black text-muted uppercase" style="font-size: 0.6rem;">
+                <span class="flex-grow-1" style="min-width: 50px;">Settimana</span>
+                <span class="text-center" style="width: 140px;">Prescrizione</span>
+                <span class="text-right" style="width: 100px;">Carico Effettivo</span>
+              </div>
+              <div v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="d-flex align-center justify-space-between py-2 px-3 border-bottom text-caption font-weight-medium border-soft">
+                <span class="font-weight-black text-white flex-grow-1" style="min-width: 50px;">Week {{ w }}</span>
+                <span class="text-center text-slate text-truncate px-1" style="width: 140px; font-size: 0.72rem;">
+                  {{ previousWorkout['des_week' + w] || 'N.D.' }}
+                </span>
+                <span class="text-right font-weight-black text-orange-lighten-2" style="width: 100px;">
+                  {{ previousWorkout['ins_week' + w] ? previousWorkout['ins_week' + w] + ' KG' : '-' }}
+                  <span v-if="previousWorkout['reps_week' + w]" class="text-super-caption text-muted block" style="font-size: 0.58rem;">
+                    ({{ previousWorkout['reps_week' + w] }} reps)
+                  </span>
+                </span>
+              </div>
+            </div>
+
+            <div v-if="previousWorkout.des_note_attrezzo" class="mt-4 pa-3 rounded-lg bg-slate-900 border-soft text-left">
+              <span class="text-super-caption text-muted font-weight-bold uppercase d-block mb-1" style="font-size: 0.6rem;">Note Coach:</span>
+              <p class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.35;">{{ previousWorkout.des_note_attrezzo }}</p>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogProgressioniPrecedente = false">
+            Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog 2: Conferma Eliminazione (ELIMINA) -->
+    <v-dialog v-model="dialogElimina" max-width="400">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center gap-2 bg-slate-900">
+          <v-icon color="red-lighten-2" size="22">mdi-alert-outline</v-icon>
+          <span class="text-subtitle-1 font-weight-black text-white">Conferma Eliminazione</span>
+        </v-card-title>
+        <v-card-text class="pa-4 text-slate font-weight-medium" style="font-size: 0.85rem; line-height: 1.5;">
+          Sei sicuro di voler eliminare l'esercizio <strong class="text-white">{{ workout.des_esercizio }}</strong>?<br>
+          Questa azione lo rimuoverà permanentemente da questo mesociclo (Scheda {{ workout.num_scheda }}, Giorno {{ workout.des_giorno }}).
+        </v-card-text>
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn variant="text" color="grey" rounded="lg" size="small" class="font-weight-bold text-none flex-grow-1" @click="dialogElimina = false">
+            Annulla
+          </v-btn>
+          <v-btn color="red-darken-3" variant="flat" rounded="lg" size="small" class="font-weight-bold text-none flex-grow-1 text-white" :loading="eliminandoEsercizio" @click="eliminaEsercizio">
+            Elimina
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog 3: Riepilogo Storico Esercizi (Cronologia) -->
+    <v-dialog v-model="dialogStorico" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange-darken-3" size="22">mdi-history</v-icon>
+            <span class="text-subtitle-1 font-weight-black text-white">Storico Esercizio nei Mesocicli</span>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogStorico = false"></v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-4 scrollbar-custom" style="max-height: 60vh;">
+          <!-- Loader caricamento storico -->
+          <div v-if="caricandoStorico" class="text-center py-8">
+            <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
+            <p class="mt-2 text-caption text-muted">Caricamento dello storico...</p>
+          </div>
+          
+          <div v-else-if="storicoEsercizio.length === 0" class="text-center py-6">
+            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessuna scheda passata trovata per questo esercizio.</p>
+          </div>
+          
+          <div v-else class="d-flex flex-column gap-4">
+            <div v-for="prevEx in storicoEsercizio" :key="prevEx.id" class="rounded-xl border border-soft bg-slate-950 pa-3 text-left">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-caption font-weight-black text-white uppercase">
+                  Scheda {{ prevEx.num_scheda }}
+                </span>
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black uppercase text-super-caption">
+                  Giorno {{ prevEx.des_giorno }}
+                </v-chip>
+              </div>
+
+              <!-- Griglia dei carichi registrati nelle settimane -->
+              <v-row dense class="mt-2 bg-slate-900 rounded-lg pa-2 mx-0 align-center text-center">
+                <v-col v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" cols="4" class="py-1">
+                  <div class="border-soft" :class="{'border-right': w !== 3 && w !== 6}">
+                    <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.52rem;">W{{ w }}</span>
+                    <strong class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
+                      {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
+                    </strong>
+                  </div>
+                </v-col>
+              </v-row>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogStorico = false">
+            Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer } from '../authStore.js';
+import { startGlobalTimer, ruolo } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
+
+// Dialogs and States
+const dialogProgressioniPrecedente = ref(false);
+const dialogElimina = ref(false);
+const dialogStorico = ref(false);
+const eliminandoEsercizio = ref(false);
+const caricandoStorico = ref(false);
+const storicoEsercizio = ref([]);
+const snackbarMessaggio = ref('');
 
 // Blocco storico rimosso per modifiche sempre abilitate
 
@@ -1850,6 +2085,107 @@ const salvaVotoFeeling = async (voto) => {
     indRepsStartVal.value = votoStr;
   }
   await salvaDatoGenerale('ind_reps_start', indRepsStartVal.value);
+};
+
+// Funzione WhatsApp (Aereo)
+const inviaVideoWhatsApp = () => {
+  vibraTattile(12);
+  const numeroCoach = '393495525181'; // Con prefisso internazionale per l'Italia (+39)
+  const nomeEx = workout.value?.des_esercizio || '';
+  const nScheda = workout.value?.num_scheda || '';
+  const desGiorno = workout.value?.des_giorno || '';
+  const weekAttiva = settimanaAttiva.value;
+  
+  const messaggio = `Ciao Coach, ti allego il video dell'esercizio: *${nomeEx}* (Scheda ${nScheda}, Giorno ${desGiorno}, Week ${weekAttiva}) per le correzioni.`;
+  const url = `https://wa.me/${numeroCoach}?text=${encodeURIComponent(messaggio)}`;
+  window.open(url, '_blank');
+};
+
+// Funzione Elimina Esercizio (Coach only)
+const eliminaEsercizio = async () => {
+  vibraTattile(20);
+  eliminandoEsercizio.value = true;
+  try {
+    const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
+    await deleteDoc(docRef);
+
+    // Rimuovi dall'offline storage
+    localStorage.removeItem(`offline_storyboard_${routeIdLocal.value}`);
+    if (workout.value && workout.value.num_riga) {
+      localStorage.removeItem(`offline_storyboard_${workout.value.num_riga}`);
+    }
+
+    snackbarMessaggio.value = "Esercizio eliminato con successo!";
+    snackbarSalvataggio.value = true;
+    dialogElimina.value = false;
+    
+    setTimeout(() => {
+      tornaIndietro();
+    }, 1500);
+  } catch (error) {
+    console.error("Errore nell'eliminazione dell'esercizio:", error);
+    alert("Errore durante l'eliminazione dell'esercizio. Riprova.");
+  } finally {
+    eliminandoEsercizio.value = false;
+  }
+};
+
+// Funzione Riepilogo Storico Esercizi (freccia con orologio)
+const apriStoricoEsercizio = async () => {
+  vibraTattile(10);
+  dialogStorico.value = true;
+  caricandoStorico.value = true;
+  storicoEsercizio.value = [];
+  
+  try {
+    const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
+    const desEsercizio = workout.value.des_esercizio;
+    const currentNumScheda = parseInt(workout.value.num_scheda);
+    
+    if (!atletaId || !desEsercizio || isNaN(currentNumScheda)) {
+      caricandoStorico.value = false;
+      return;
+    }
+
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where(keyIdCliente, '==', atletaId),
+      where('des_esercizio', '==', desEsercizio)
+    );
+    const snap = await getDocs(q);
+    const list = [];
+    snap.forEach((doc) => {
+      const d = doc.data();
+      const sNum = parseInt(d.num_scheda);
+      // Solo schede precedenti ed esercizi (riga > 0)
+      if (sNum < currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
+        list.push({ id: doc.id, ...d });
+      }
+    });
+
+    list.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
+    
+    // Fallback a backup locale se vuoto
+    if (list.length === 0) {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      const matched = allData.filter(b => {
+        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        return String(bAtletaId) === String(atletaId) &&
+               String(b.des_esercizio).trim() === String(desEsercizio).trim() &&
+               parseInt(b.num_scheda) < currentNumScheda &&
+               parseInt(b.num_riga_giorno) > 0;
+      });
+      matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
+      storicoEsercizio.value = matched;
+    } else {
+      storicoEsercizio.value = list;
+    }
+  } catch (err) {
+    console.error("Errore caricamento storico esercizio:", err);
+  } finally {
+    caricandoStorico.value = false;
+  }
 };
 
 // Torna indietro

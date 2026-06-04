@@ -496,8 +496,19 @@
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-                    <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1">
+                    <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="ex.num_coord_ex_wo_prec ? 'text-red-lighten-2' : 'text-slate-dark'">
+                      <v-icon v-if="ex.num_coord_ex_wo_prec" color="red-lighten-2" size="14">mdi-repeat</v-icon>
                       {{ ex.des_esercizio || 'Esercizio' }}
+                      <v-chip 
+                        v-if="ex.num_coord_ex_wo_prec" 
+                        color="red-darken-3" 
+                        size="x-small" 
+                        variant="flat" 
+                        class="font-weight-black px-1.5 py-0" 
+                        style="font-size: 0.5rem; height: 14px;"
+                      >
+                        {{ ex.num_coord_ex_wo_prec }}
+                      </v-chip>
                     </h4>
 
                     <!-- Settore e Emoji Sforzo -->
@@ -623,8 +634,19 @@
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-                <h4 class="text-body-1 font-weight-black text-slate-dark leading-tight mb-1">
+                <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="block.exercise.num_coord_ex_wo_prec ? 'text-red-lighten-2' : 'text-slate-dark'">
+                  <v-icon v-if="block.exercise.num_coord_ex_wo_prec" color="red-lighten-2" size="14">mdi-repeat</v-icon>
                   {{ block.exercise.des_esercizio || 'Esercizio' }}
+                  <v-chip 
+                    v-if="block.exercise.num_coord_ex_wo_prec" 
+                    color="red-darken-3" 
+                    size="x-small" 
+                    variant="flat" 
+                    class="font-weight-black px-1.5 py-0" 
+                    style="font-size: 0.5rem; height: 14px;"
+                  >
+                    {{ block.exercise.num_coord_ex_wo_prec }}
+                  </v-chip>
                 </h4>
 
                 <!-- Settore e Emoji Sforzo -->

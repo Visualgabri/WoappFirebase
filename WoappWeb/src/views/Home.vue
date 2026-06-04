@@ -1,42 +1,42 @@
 <template>
   <v-container class="px-4 py-6 max-width-container min-height-screen home-dashboard">
-    <!-- Header Premium e Moderno -->
-    <div class="dashboard-header mb-6 d-flex align-center justify-space-between animate-slide-down">
-      <div class="d-flex align-center">
-        <div class="profile-avatar-wrapper mr-4">
-          <v-avatar size="52" class="profile-avatar elevation-3 bg-transparent border-orange">
-            <v-img src="/logo.png" alt="WoApp Logo"></v-img>
-          </v-avatar>
-          <span class="active-dot"></span>
-        </div>
-        <div class="text-left">
-          <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest d-block" style="font-size: 0.6rem; opacity: 0.8;">
-            {{ salutoOrario }}
-          </span>
-          <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight leading-tight">
-            {{ nomeAtleta || 'CARICAMENTO...' }}
-          </h1>
-          <div class="d-flex align-center mt-1">
-            <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-2 py-1" variant="flat" style="height: 18px; font-size: 0.58rem;">
-              SCHEDA N.{{ schedaSelezionata }}
+    <!-- Header Premium e Moderno (Sticky & Compatto) -->
+    <div class="sticky-dashboard-header d-flex align-center justify-space-between animate-slide-down">
+      <div class="d-flex align-center min-width-0">
+        <v-avatar size="36" class="profile-avatar elevation-2 bg-transparent border-orange mr-3 flex-shrink-0">
+          <v-img src="/logo.png" alt="WoApp Logo"></v-img>
+        </v-avatar>
+        <div class="text-left min-width-0">
+          <div class="d-flex align-baseline gap-1.5 flex-wrap" style="line-height: 1.1;">
+            <h1 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight text-truncate mb-0" style="font-size: 1.05rem !important; line-height: 1.1;">
+              {{ nomeAtleta || 'CARICAMENTO...' }}
+            </h1>
+            <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem; opacity: 0.75; line-height: 1.1;">
+              ({{ salutoOrario }})
+            </span>
+          </div>
+          <div class="d-flex align-center mt-1" style="line-height: 1;">
+            <v-chip size="x-small" color="orange-darken-3" class="font-weight-black px-1.5 py-0.5" variant="flat" style="height: 16px; font-size: 0.55rem; line-height: 1;">
+              SCHEDA {{ schedaSelezionata }}
             </v-chip>
-            <span class="text-caption font-weight-bold text-muted ml-2" style="font-size: 0.68rem;">
-              {{ descrizioneMesociclo || 'Mesociclo Definitivo' }}
+            <span class="text-super-caption font-weight-bold text-muted ml-2 text-truncate" style="font-size: 0.65rem; max-width: 180px; line-height: 1;">
+              {{ descrizioneMesociclo || 'Mesociclo' }}
             </span>
           </div>
         </div>
       </div>
-      <div>
+      <div class="flex-shrink-0">
         <v-btn
           icon
           color="orange-darken-3"
           variant="tonal"
-          size="comfortable"
-          class="rounded-xl header-refresh-btn"
+          size="small"
+          class="rounded-lg"
+          style="width: 32px; height: 32px;"
           @click="caricaDatiScheda"
           id="btn-refresh"
         >
-          <v-icon size="20">mdi-refresh</v-icon>
+          <v-icon size="16">mdi-refresh</v-icon>
         </v-btn>
       </div>
     </div>
@@ -119,8 +119,8 @@
             </div>
           </v-card>
 
-          <!-- Card Allenamento Attivo (Gamified Hero Card con bagliore neon) -->
-          <v-card class="premium-hero-card rounded-2xl pa-5 mb-6 text-left border position-relative overflow-hidden" elevation="3">
+          <!-- Card Allenamento Attivo (Gamified Hero Card con bagliore neon) - Mostrata solo se non completato -->
+          <v-card v-if="settimaneChiuse < 6" class="premium-hero-card rounded-2xl pa-5 mb-6 text-left border position-relative overflow-hidden" elevation="3">
             <!-- Neon background accent -->
             <div class="glowing-accent"></div>
             
@@ -260,6 +260,62 @@
               APRI WORKOUT GIORNO {{ giornoAttivo }}
               <v-icon right class="ml-2" size="20">mdi-play-circle-outline</v-icon>
             </v-btn>
+          </v-card>
+
+          <!-- Card Programma Completato (mostrato quando settimaneChiuse === 6) -->
+          <v-card v-else class="premium-hero-card rounded-2xl pa-5 mb-6 text-left border position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.05)) !important; border: 1.5px solid rgba(16, 185, 129, 0.4) !important;" elevation="3">
+            <div class="glowing-accent" style="background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%) !important;"></div>
+            <div class="d-flex align-center justify-space-between mb-4">
+              <span class="text-super-caption text-green-lighten-2 font-weight-black uppercase tracking-widest" style="font-size: 0.6rem;">
+                Programma Completato
+              </span>
+              <v-chip color="green" size="x-small" class="font-weight-black text-white px-2" variant="flat">
+                🎉 COMPLETATO
+              </v-chip>
+            </div>
+            
+            <div class="d-flex align-start mb-4">
+              <v-icon color="green-accent-4" class="mr-3 mt-1 flex-shrink-0 animate-bounce" size="36">mdi-trophy-outline</v-icon>
+              <div class="text-left">
+                <h3 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight leading-tight">
+                  Grandioso! Programma Terminato!
+                </h3>
+                <p class="text-caption text-slate mt-2 mb-0" style="line-height: 1.45; font-size: 0.72rem !important;">
+                  Hai completato con successo tutte le 6 settimane di questo mesociclo. Sei pronto per una nuova scheda di allenamento o per visualizzare l'andamento dei tuoi carichi.
+                </p>
+              </div>
+            </div>
+
+            <!-- Bottoni d'azione -->
+            <v-row dense class="mt-4">
+              <v-col cols="6">
+                <v-btn
+                  to="/ricerca"
+                  color="green-darken-3"
+                  block
+                  size="small"
+                  rounded="lg"
+                  class="font-weight-black text-none py-2 text-white"
+                  style="height: 38px;"
+                >
+                  📋 Prossima Scheda
+                </v-btn>
+              </v-col>
+              <v-col cols="6">
+                <v-btn
+                  color="green-lighten-3"
+                  variant="outlined"
+                  block
+                  size="small"
+                  rounded="lg"
+                  class="font-weight-black text-none py-2 card-glass text-white"
+                  style="height: 38px;"
+                  @click="dialogProgressioni = true"
+                >
+                  📈 Progressioni
+                </v-btn>
+              </v-col>
+            </v-row>
           </v-card>
 
           <!-- Dashboard Actions Grid 2x2 (High-Tech Floating Panels) -->
@@ -576,6 +632,143 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog Progressioni Premium -->
+    <v-dialog
+      v-model="dialogProgressioni"
+      max-width="500"
+      scrollable
+      transition="dialog-bottom-transition"
+    >
+      <v-card class="card-glass rounded-2xl border" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+        <v-card-title class="d-flex align-center justify-space-between py-4 px-5 border-bottom">
+          <div class="d-flex align-center">
+            <v-icon color="orange-darken-3" class="mr-2" size="22">mdi-chart-line-variant</v-icon>
+            <span class="font-weight-black text-slate-dark text-subtitle-1" style="letter-spacing: 0.05em; font-size: 1rem !important;">
+              REPORT PROGRESSIONI
+            </span>
+          </div>
+          <v-btn icon size="small" variant="text" color="slate-dark" @click="dialogProgressioni = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-4 pt-3" style="max-height: 60vh;">
+          <!-- 1. Consistenza Generale -->
+          <div class="metric-pill pa-4 rounded-xl mb-4 text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important;">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Consistenza Allenamenti</span>
+              <span class="text-caption font-weight-black text-green-accent-4">{{ reportProgressioni.percentualeConsistenza }}%</span>
+            </div>
+            <v-progress-linear
+              :model-value="reportProgressioni.percentualeConsistenza"
+              color="green-accent-4"
+              height="8"
+              rounded
+              striped
+              class="mb-3"
+            ></v-progress-linear>
+            <div class="d-flex align-center justify-space-around flex-wrap gap-2 text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
+              <span v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="px-2 py-0.5 rounded bg-slate-900 border-soft">
+                W{{ w }}: <strong class="text-white">{{ reportProgressioni.consistenzaGiorni[w] }}</strong> giorni
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. Feeling e Performance -->
+          <v-row dense class="mb-4">
+            <v-col cols="6">
+              <div class="metric-pill pa-3 rounded-xl text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important; height: 100%;">
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Sensazione Media</span>
+                <span class="text-h6 font-weight-black text-orange-lighten-2 mt-1 d-block">
+                  ⭐ {{ reportProgressioni.mediaFeeling || '-' }} <span class="text-caption text-muted">/ 5</span>
+                </span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.55rem;">Feeling generale</span>
+              </div>
+            </v-col>
+            <v-col cols="6">
+              <div class="metric-pill pa-3 rounded-xl text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important; height: 100%;">
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Progressioni Carico</span>
+                <span class="text-h6 font-weight-black text-green-accent-4 mt-1 d-block">
+                  📈 {{ reportProgressioni.progressioniCarichi.length }}
+                </span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.55rem;">Esercizi migliorati</span>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- 3. Lista Progressioni Carichi -->
+          <div class="text-left mb-2">
+            <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Incrementi di Carico Rilevati</span>
+          </div>
+
+          <div v-if="reportProgressioni.progressioniCarichi.length === 0" class="text-center py-6 card-glass rounded-xl border-soft" style="background: rgba(30, 41, 59, 0.15) !important;">
+            <v-icon color="grey" size="32">mdi-chart-line-stacked</v-icon>
+            <p class="text-caption text-muted mt-2 mb-0">Nessuna progressione registrata tra Week 1 e successive.</p>
+          </div>
+
+          <div v-else class="d-flex flex-column gap-2">
+            <v-card
+              v-for="(p, idx) in reportProgressioni.progressioniCarichi"
+              :key="idx"
+              class="pa-3 rounded-xl border-soft text-left"
+              style="background: rgba(30, 41, 59, 0.25) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important;"
+              flat
+            >
+              <div class="d-flex align-center justify-space-between mb-1.5">
+                <span class="text-caption font-weight-black text-slate-dark text-truncate" style="max-width: 70%;">
+                  {{ p.nome }}
+                </span>
+                <v-chip color="green-darken-3" size="x-small" class="font-weight-black text-white px-2 py-0.5" variant="flat">
+                  🔥 +{{ p.pct }}%
+                </v-chip>
+              </div>
+              <div class="d-flex align-center justify-space-between">
+                <div class="d-flex align-center text-super-caption text-slate" style="font-size: 0.65rem;">
+                  <span>W1: <strong>{{ p.w1 }} kg</strong></span>
+                  <v-icon size="12" class="mx-1" color="orange">mdi-arrow-right</v-icon>
+                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }} kg</strong></span>
+                </div>
+                <div class="text-super-caption text-green-accent-4 font-weight-black" style="font-size: 0.68rem;">
+                  +{{ p.delta }} kg
+                </div>
+              </div>
+            </v-card>
+          </div>
+
+          <!-- 4. Feedback Percezione Sforzo W6 -->
+          <div v-if="reportProgressioni.consistenzaGiorni[6] > 0" class="mt-4 pt-4 border-top-soft text-left">
+            <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-2" style="font-size: 0.6rem;">Sforzo Percepito Week 6</span>
+            <div class="d-flex align-center justify-space-around gap-2 text-center text-super-caption font-weight-bold">
+              <div class="flex-grow-1 py-1 rounded bg-slate-900 border-soft text-green-lighten-2">
+                Media: <strong>{{ reportProgressioni.miglioriFatiche.Media }}</strong>
+              </div>
+              <div class="flex-grow-1 py-1 rounded bg-slate-900 border-soft text-orange-lighten-2">
+                Pesante: <strong>{{ reportProgressioni.miglioriFatiche.Pesante }}</strong>
+              </div>
+              <div class="flex-grow-1 py-1 rounded bg-slate-900 border-soft text-red-lighten-2">
+                Devastante: <strong>{{ reportProgressioni.miglioriFatiche.Devastante }}</strong>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-4 pt-2 border-top">
+          <v-btn
+            block
+            color="orange-darken-3"
+            variant="flat"
+            size="large"
+            rounded="xl"
+            class="font-weight-black text-none text-white"
+            @click="dialogProgressioni = false"
+            style="height: 48px;"
+          >
+            Chiudi Report
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -599,6 +792,99 @@ const vibraTattile = (ms = 12) => {
 const subTab = ref('dati');
 const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
+
+const dialogProgressioni = ref(false);
+
+const reportProgressioni = computed(() => {
+  const result = {
+    progressioniCarichi: [],
+    mediaFeeling: 0,
+    totaleEserciziConCarichi: 0,
+    consistenzaGiorni: {
+      1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
+    },
+    percentualeConsistenza: 0,
+    miglioriFatiche: {
+      Media: 0,
+      Pesante: 0,
+      Devastante: 0
+    }
+  };
+
+  if (!allExercises.value || allExercises.value.length === 0) return result;
+
+  const parsePeso = (val) => {
+    if (!val) return 0;
+    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
+    const parts = clean.split(/\s+/);
+    const num = parseFloat(parts[0]);
+    return isNaN(num) ? 0 : num;
+  };
+
+  let sommaFeeling = 0;
+  let countFeeling = 0;
+
+  allExercises.value.forEach(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return;
+
+    const feeling = parseInt(ex.ind_reps_start);
+    if (feeling > 0) {
+      sommaFeeling += feeling;
+      countFeeling++;
+    }
+
+    const fatica = ex.num_faticaw6;
+    if (fatica && result.miglioriFatiche[fatica] !== undefined) {
+      result.miglioriFatiche[fatica]++;
+    }
+
+    const w1Peso = parsePeso(ex.ins_week1);
+    if (w1Peso > 0) {
+      result.totaleEserciziConCarichi++;
+      for (let w = 6; w >= 2; w--) {
+        const wPeso = parsePeso(ex['ins_week' + w]);
+        if (wPeso > w1Peso) {
+          const delta = parseFloat((wPeso - w1Peso).toFixed(1));
+          const pct = Math.round((delta / w1Peso) * 100);
+          result.progressioniCarichi.push({
+            nome: ex.des_esercizio || 'Esercizio',
+            w1: w1Peso,
+            latest: wPeso,
+            latestWeek: w,
+            delta: delta,
+            pct: pct
+          });
+          break;
+        }
+      }
+    }
+  });
+
+  result.mediaFeeling = countFeeling > 0 ? parseFloat((sommaFeeling / countFeeling).toFixed(1)) : 0;
+
+  const righeZero = allExercises.value.filter(item => parseInt(item.num_riga_giorno) === 0);
+  const totaleGiorni = righeZero.length;
+  if (totaleGiorni > 0) {
+    let totaleChiusurePossibili = totaleGiorni * 6;
+    let chiusureEffettive = 0;
+    
+    for (let w = 1; w <= 6; w++) {
+      let chiuseInWeek = 0;
+      righeZero.forEach(header => {
+        if (header['cmp' + w] === 'true') {
+          chiuseInWeek++;
+          chiusureEffettive++;
+        }
+      });
+      result.consistenzaGiorni[w] = chiuseInWeek;
+    }
+    result.percentualeConsistenza = Math.round((chiusureEffettive / totaleChiusurePossibili) * 100);
+  }
+
+  result.progressioniCarichi.sort((a, b) => b.pct - a.pct);
+
+  return result;
+});
 
 // Dati dinamici scheda
 const nomeAtleta = ref(getNomeAtleta(selectedAthlete.value).toUpperCase() || '');
@@ -1327,6 +1613,18 @@ const apriTest = () => {
 
 .min-height-screen {
   min-height: calc(100vh - 140px);
+}
+
+.sticky-dashboard-header {
+  position: sticky !important;
+  top: 48px !important; /* sticks below the 48px compact global app bar */
+  z-index: 100 !important;
+  background: #030712 !important; /* solid background matching body */
+  padding-top: 16px !important;
+  padding-bottom: 8px !important;
+  margin-top: -16px !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  margin-bottom: 20px !important;
 }
 
 .home-dashboard {

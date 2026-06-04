@@ -126,7 +126,7 @@
               <p class="text-slate font-weight-medium mb-3" style="font-size: 0.75rem; line-height: 1.45; color: #cbd5e1 !important;">
                 Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda. Ottimo lavoro!
               </p>
-              <div class="d-flex gap-3">
+              <div class="d-flex gap-3 flex-wrap">
                 <v-btn
                   to="/ricerca"
                   variant="outlined"
@@ -137,6 +137,17 @@
                   id="btn-prossima-scheda"
                 >
                   📋 Prossima Scheda
+                </v-btn>
+                <v-btn
+                  variant="flat"
+                  color="green-darken-3"
+                  size="small"
+                  class="font-weight-black text-none text-white"
+                  rounded="lg"
+                  @click="dialogProgressioni = true"
+                  id="btn-riepilogo-progressioni"
+                >
+                  📈 Riepilogo Progressioni
                 </v-btn>
               </div>
             </div>
@@ -682,6 +693,144 @@
       </div>
 
     </div>
+
+    <!-- Dialog Progressioni Premium -->
+    <v-dialog
+      v-model="dialogProgressioni"
+      max-width="500"
+      scrollable
+      transition="dialog-bottom-transition"
+    >
+      <v-card class="card-glass rounded-2xl border" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+        <v-card-title class="d-flex align-center justify-space-between py-4 px-5 border-bottom">
+          <div class="d-flex align-center">
+            <v-icon color="orange-darken-3" class="mr-2" size="22">mdi-chart-line-variant</v-icon>
+            <span class="font-weight-black text-slate-dark text-subtitle-1" style="letter-spacing: 0.05em; font-size: 1rem !important;">
+              REPORT PROGRESSIONI
+            </span>
+          </div>
+          <v-btn icon size="small" variant="text" color="slate-dark" @click="dialogProgressioni = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-4 pt-3" style="max-height: 60vh;">
+          <!-- 1. Consistenza Generale -->
+          <div class="metric-pill pa-4 rounded-xl mb-4 text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important;">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Consistenza Allenamenti</span>
+              <span class="text-caption font-weight-black text-green-accent-4">{{ reportProgressioni.percentualeConsistenza }}%</span>
+            </div>
+            <v-progress-linear
+              :model-value="reportProgressioni.percentualeConsistenza"
+              color="green-accent-4"
+              height="8"
+              rounded
+              striped
+              class="mb-3"
+            ></v-progress-linear>
+            <div class="d-flex align-center justify-space-around flex-wrap gap-2 text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
+              <span v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="px-2 py-0.5 rounded bg-slate-900 border-soft">
+                W{{ w }}: <strong class="text-white">{{ reportProgressioni.consistenzaGiorni[w] }}</strong> giorni
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. Feeling e Performance -->
+          <v-row dense class="mb-4">
+            <v-col cols="6">
+              <div class="metric-pill pa-3 rounded-xl text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important; height: 100%;">
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Sensazione Media</span>
+                <span class="text-h6 font-weight-black text-orange-lighten-2 mt-1 d-block">
+                  ⭐ {{ reportProgressioni.mediaFeeling || '-' }} <span class="text-caption text-muted">/ 5</span>
+                </span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.55rem;">Feeling generale</span>
+              </div>
+            </v-col>
+            <v-col cols="6">
+              <div class="metric-pill pa-3 rounded-xl text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important; height: 100%;">
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Progressioni Carico</span>
+                <span class="text-h6 font-weight-black text-green-accent-4 mt-1 d-block">
+                  📈 {{ reportProgressioni.progressioniCarichi.length }}
+                </span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.55rem;">Esercizi migliorati</span>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- 3. Lista Progressioni Carichi -->
+          <div class="text-left mb-2">
+            <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Incrementi di Carico Rilevati</span>
+          </div>
+
+          <div v-if="reportProgressioni.progressioniCarichi.length === 0" class="text-center py-6 card-glass rounded-xl border-soft" style="background: rgba(30, 41, 59, 0.15) !important;">
+            <v-icon color="grey" size="32">mdi-chart-line-stacked</v-icon>
+            <p class="text-caption text-muted mt-2 mb-0">Nessuna progressione registrata tra Week 1 e successive.</p>
+          </div>
+
+          <div v-else class="d-flex flex-column gap-2">
+            <v-card
+              v-for="(p, idx) in reportProgressioni.progressioniCarichi"
+              :key="idx"
+              class="pa-3 rounded-xl border-soft text-left"
+              style="background: rgba(30, 41, 59, 0.25) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important;"
+              flat
+            >
+              <div class="d-flex align-center justify-space-between mb-1.5">
+                <span class="text-caption font-weight-black text-slate-dark text-truncate" style="max-width: 70%;">
+                  {{ p.nome }}
+                </span>
+                <v-chip color="green-darken-3" size="x-small" class="font-weight-black text-white px-2 py-0.5" variant="flat">
+                  🔥 +{{ p.pct }}%
+                </v-chip>
+              </div>
+              <div class="d-flex align-center justify-space-between">
+                <div class="d-flex align-center text-super-caption text-slate" style="font-size: 0.65rem;">
+                  <span>W1: <strong>{{ p.w1 }} kg</strong></span>
+                  <v-icon size="12" class="mx-1" color="orange">mdi-arrow-right</v-icon>
+                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }} kg</strong></span>
+                </div>
+                <div class="text-super-caption text-green-accent-4 font-weight-black" style="font-size: 0.68rem;">
+                  +{{ p.delta }} kg
+                </div>
+              </div>
+            </v-card>
+          </div>
+
+          <!-- 4. Feedback Percezione Sforzo W6 -->
+          <div v-if="reportProgressioni.consistenzaGiorni[6] > 0" class="mt-4 pt-4 border-top-soft text-left">
+            <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-2" style="font-size: 0.6rem;">Sforzo Percepito Week 6</span>
+            <div class="d-flex align-center justify-space-around gap-2 text-center text-super-caption font-weight-bold">
+              <div class="flex-grow-1 py-1 rounded bg-slate-900 border-soft text-green-lighten-2">
+                Media: <strong>{{ reportProgressioni.miglioriFatiche.Media }}</strong>
+              </div>
+              <div class="flex-grow-1 py-1 rounded bg-slate-900 border-soft text-orange-lighten-2">
+                Pesante: <strong>{{ reportProgressioni.miglioriFatiche.Pesante }}</strong>
+              </div>
+              <div class="flex-grow-1 py-1 rounded bg-slate-900 border-soft text-red-lighten-2">
+                Devastante: <strong>{{ reportProgressioni.miglioriFatiche.Devastante }}</strong>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-4 pt-2 border-top">
+          <v-btn
+            block
+            color="orange-darken-3"
+            variant="flat"
+            size="large"
+            rounded="xl"
+            class="font-weight-black text-none text-white"
+            @click="dialogProgressioni = false"
+            style="height: 48px;"
+          >
+            Chiudi Report
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -1630,9 +1779,102 @@ const mesocicloCompletato = computed(() => {
     for (let w = 1; w <= 6; w++) {
       if (header['cmp' + w] !== 'true') return false;
     }
-    return true;
   });
 });
+
+const dialogProgressioni = ref(false);
+
+const reportProgressioni = computed(() => {
+  const result = {
+    progressioniCarichi: [],
+    mediaFeeling: 0,
+    totaleEserciziConCarichi: 0,
+    consistenzaGiorni: {
+      1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
+    },
+    percentualeConsistenza: 0,
+    miglioriFatiche: {
+      Media: 0,
+      Pesante: 0,
+      Devastante: 0
+    }
+  };
+
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return result;
+
+  const parsePeso = (val) => {
+    if (!val) return 0;
+    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
+    const parts = clean.split(/\s+/);
+    const num = parseFloat(parts[0]);
+    return isNaN(num) ? 0 : num;
+  };
+
+  let sommaFeeling = 0;
+  let countFeeling = 0;
+
+  listaAllenamenti.value.forEach(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return;
+
+    const feeling = parseInt(ex.ind_reps_start);
+    if (feeling > 0) {
+      sommaFeeling += feeling;
+      countFeeling++;
+    }
+
+    const fatica = ex.num_faticaw6;
+    if (fatica && result.miglioriFatiche[fatica] !== undefined) {
+      result.miglioriFatiche[fatica]++;
+    }
+
+    const w1Peso = parsePeso(ex.ins_week1);
+    if (w1Peso > 0) {
+      result.totaleEserciziConCarichi++;
+      for (let w = 6; w >= 2; w--) {
+        const wPeso = parsePeso(ex['ins_week' + w]);
+        if (wPeso > w1Peso) {
+          const delta = parseFloat((wPeso - w1Peso).toFixed(1));
+          const pct = Math.round((delta / w1Peso) * 100);
+          result.progressioniCarichi.push({
+            nome: ex.des_esercizio || 'Esercizio',
+            w1: w1Peso,
+            latest: wPeso,
+            latestWeek: w,
+            delta: delta,
+            pct: pct
+          });
+          break;
+        }
+      }
+    }
+  });
+
+  result.mediaFeeling = countFeeling > 0 ? parseFloat((sommaFeeling / countFeeling).toFixed(1)) : 0;
+
+  const righeZero = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) === 0);
+  const totaleGiorni = righeZero.length;
+  if (totaleGiorni > 0) {
+    let totaleChiusurePossibili = totaleGiorni * 6;
+    let chiusureEffettive = 0;
+    
+    for (let w = 1; w <= 6; w++) {
+      let chiuseInWeek = 0;
+      righeZero.forEach(header => {
+        if (header['cmp' + w] === 'true') {
+          chiuseInWeek++;
+          chiusureEffettive++;
+        }
+      });
+      result.consistenzaGiorni[w] = chiuseInWeek;
+    }
+    result.percentualeConsistenza = Math.round((chiusureEffettive / totaleChiusurePossibili) * 100);
+  }
+
+  result.progressioniCarichi.sort((a, b) => b.pct - a.pct);
+
+  return result;
+});
+
 
 const ripristinaMesociclo = async () => {
   const conferma = confirm("Sei sicuro di voler resettare tutti i log e le spunte di questo mesociclo? L'operazione è irreversibile.");

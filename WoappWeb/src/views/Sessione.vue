@@ -102,30 +102,41 @@
         ></v-progress-linear>
       </div>
 
-      <!-- 2. Selettore Orizzontale delle 6 Settimane -->
+      <!-- 2. Selettore Orizzontale delle 6 Settimane (Timeline Progress) -->
       <div class="week-selector-section mb-4 text-left">
         <div class="text-super-caption text-muted font-weight-black uppercase tracking-wider mb-2" style="font-size: 0.62rem; letter-spacing: 0.05em;">
-          Seleziona Settimana da Visualizzare
+          Progressione Settimane (Seleziona per visualizzare)
         </div>
         
-        <div class="d-flex justify-space-between gap-2.5 pb-2 overflow-x-auto mb-2">
-          <button
-            v-for="sett in [1, 2, 3, 4, 5, 6]"
-            :key="sett"
-            class="week-chip-btn flex-grow-1 py-2.5"
-            :class="{
-              'week-chip-active': selectedWeek === sett,
-              'week-chip-completed': isWeekCompleted(sett) && selectedWeek !== sett,
-              'week-chip-pending': !isWeekCompleted(sett) && selectedWeek !== sett
-            }"
-            @click="selectedWeek = sett"
-          >
-            <div class="d-flex align-center justify-center font-weight-black">
-              <span>W{{ sett }}</span>
-              <v-icon v-if="isWeekCompleted(sett)" size="11" class="ml-1" color="green-accent-4">mdi-check-bold</v-icon>
-              <span v-else-if="sett === activeUncompletedWeek" class="active-dot-orange ml-1"></span>
+        <div class="timeline-container position-relative mb-2">
+          <!-- Linea di sfondo che unisce i nodi -->
+          <div class="timeline-connecting-line"></div>
+          
+          <!-- Contenitore dei nodi -->
+          <div class="d-flex justify-space-between align-center position-relative" style="z-index: 1;">
+            <div
+              v-for="sett in [1, 2, 3, 4, 5, 6]"
+              :key="sett"
+              class="d-flex flex-column align-center flex-grow-1"
+            >
+              <button
+                class="timeline-node-btn"
+                :class="{
+                  'node-selected': selectedWeek === sett,
+                  'node-completed': isWeekCompleted(sett),
+                  'node-active': sett === activeUncompletedWeek && !isWeekCompleted(sett),
+                  'node-pending': !isWeekCompleted(sett) && sett !== activeUncompletedWeek
+                }"
+                @click="selectedWeek = sett"
+              >
+                <span v-if="!isWeekCompleted(sett)">{{ sett }}</span>
+                <v-icon v-else size="12" color="white">mdi-check-bold</v-icon>
+              </button>
+              <span class="text-super-caption mt-1 font-weight-black" :class="selectedWeek === sett ? 'text-orange-darken-3 font-weight-black' : 'text-muted'" style="font-size: 0.58rem;">
+                W{{ sett }}
+              </span>
             </div>
-          </button>
+          </div>
         </div>
 
         <!-- Interruttore Completamento Rapido (Sotto le Settimane per massima intuitività) -->
@@ -1044,58 +1055,94 @@ const tornaIndietro = () => {
   line-height: 1 !important;
 }
 
-/* Horizontal Week selector chips */
-.week-chip-btn {
-  background: rgba(30, 41, 59, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
-  font-weight: 800;
-  font-size: 0.8rem;
-  padding: 8px 0;
-  border-radius: 12px;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  text-align: center;
+/* Timeline Progress horizontal week selector */
+.timeline-container {
+  padding: 0 8px;
 }
 
-.week-chip-btn:hover {
-  background: rgba(30, 41, 59, 0.5);
-  border-color: rgba(249, 115, 22, 0.25);
+.timeline-connecting-line {
+  position: absolute;
+  top: 16px; /* center of a 32px node */
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 0;
+  border-radius: 2px;
 }
 
-.week-chip-active {
-  background: linear-gradient(135deg, #ea580c, #f97316) !important;
-  border-color: #f97316 !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
-}
-
-.week-chip-completed {
-  border-color: rgba(16, 185, 129, 0.3) !important;
-  background: rgba(16, 185, 129, 0.06) !important;
-  color: #10b981 !important;
-}
-
-.week-chip-pending {
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-.active-dot-orange {
-  width: 5px;
-  height: 5px;
-  background: #f97316;
+.timeline-node-btn {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  box-shadow: 0 0 5px #f97316;
-  animation: pulse-dot 1.5s infinite alternate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.8rem;
+  border: 2px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #1e293b;
+  color: #cbd5e1;
+  z-index: 2;
+  cursor: pointer;
 }
 
-@keyframes pulse-dot {
+.timeline-node-btn:hover {
+  transform: scale(1.08);
+}
+
+.timeline-node-btn.node-selected {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.22), 0 0 8px rgba(249, 115, 22, 0.45);
+  transform: scale(1.12);
+  color: #f97316 !important;
+  background: #1e293b !important;
+}
+
+.timeline-node-btn.node-completed {
+  background: #00e676 !important;
+  color: white !important;
+  border-color: #00e676 !important;
+  box-shadow: 0 0 5px rgba(0, 230, 118, 0.35);
+}
+
+.timeline-node-btn.node-completed.node-selected {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25), 0 0 8px rgba(0, 230, 118, 0.5);
+  background: #00e676 !important;
+  color: white !important;
+}
+
+.timeline-node-btn.node-active {
+  background: #ff9100 !important;
+  color: white !important;
+  border-color: #ff9100 !important;
+  box-shadow: 0 0 8px rgba(255, 145, 0, 0.5);
+  animation: pulse-active-node 1.4s infinite alternate;
+}
+
+.timeline-node-btn.node-active.node-selected {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25), 0 0 8px rgba(255, 145, 0, 0.7);
+  background: #ff9100 !important;
+  color: white !important;
+}
+
+.timeline-node-btn.node-pending {
+  background: #0f172a !important;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  color: #64748b;
+}
+
+@keyframes pulse-active-node {
   0% {
-    transform: scale(0.8);
-    opacity: 0.5;
+    box-shadow: 0 0 3px rgba(255, 145, 0, 0.35);
+    transform: scale(0.96);
   }
   100% {
-    transform: scale(1.3);
-    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 145, 0, 0.7);
+    transform: scale(1.04);
   }
 }
 

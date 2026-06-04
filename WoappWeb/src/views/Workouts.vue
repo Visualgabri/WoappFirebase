@@ -830,27 +830,27 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-4 pt-2 border-top gap-2">
+        <v-card-actions class="pa-3 pt-1 border-top gap-2">
           <v-btn
             prepend-icon="mdi-file-pdf-box"
             color="red-darken-3"
             variant="flat"
-            size="large"
-            rounded="xl"
+            size="small"
+            rounded="lg"
             class="font-weight-black text-none text-white flex-grow-1"
             @click="scaricaReportPDF"
-            style="height: 48px;"
+            style="height: 36px; font-size: 0.72rem !important;"
           >
             Esporta PDF
           </v-btn>
           <v-btn
             color="orange-darken-3"
             variant="flat"
-            size="large"
-            rounded="xl"
+            size="small"
+            rounded="lg"
             class="font-weight-black text-none text-white flex-grow-1"
             @click="dialogProgressioni = false"
-            style="height: 48px;"
+            style="height: 36px; font-size: 0.72rem !important;"
           >
             Chiudi
           </v-btn>

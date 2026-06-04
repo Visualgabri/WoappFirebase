@@ -101,6 +101,48 @@
       </div>
 
       <div v-else>
+        <!-- Banner Celebrativo Mesociclo Completato -->
+        <v-card
+          v-if="mesocicloCompletato"
+          class="py-4 px-5 mb-5 text-left border position-relative overflow-hidden"
+          style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.05)) !important; border: 1.5px solid rgba(16, 185, 129, 0.4) !important; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15) !important; border-radius: 16px !important;"
+        >
+          <div class="d-flex align-start">
+            <v-icon color="green-accent-4" class="mr-3 mt-1 flex-shrink-0 animate-bounce" size="32">mdi-trophy</v-icon>
+            <div class="flex-grow-1">
+              <h3 class="text-subtitle-1 font-weight-black text-green-lighten-2 mb-1" style="font-size: 1.05rem;">
+                🎉 Congratulazioni! Mesociclo Completato!
+              </h3>
+              <p class="text-slate font-weight-medium mb-3" style="font-size: 0.75rem; line-height: 1.45; color: #cbd5e1 !important;">
+                Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda. Ottimo lavoro!
+              </p>
+              <div class="d-flex gap-3">
+                <v-btn
+                  color="green-darken-3"
+                  size="small"
+                  class="font-weight-black text-none"
+                  rounded="lg"
+                  @click="ripristinaMesociclo"
+                  id="btn-ripristina-mesociclo"
+                >
+                  🔄 Ricomincia Scheda (Reset)
+                </v-btn>
+                <v-btn
+                  to="/ricerca"
+                  variant="outlined"
+                  color="green-lighten-3"
+                  size="small"
+                  class="font-weight-black text-none card-glass"
+                  rounded="lg"
+                  id="btn-prossima-scheda"
+                >
+                  📋 Prossima Scheda
+                </v-btn>
+              </div>
+            </div>
+          </div>
+        </v-card>
+
         <transition :name="transitionName" mode="out-in">
           <div :key="giornoSelezionato" class="swipe-transition-wrapper">
         <!-- Intestazione del Giorno Attivo (Riga 0) stile AppSheet (cliccabile per completamento) -->
@@ -646,7 +688,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente } from '../authStore.js';
 
@@ -1353,6 +1395,35 @@ const impostaChiusuraGiorno = async (w, val) => {
   
   const valString = val ? 'true' : 'false';
   const campoCmp = 'cmp' + w;
+  const campoIns = 'ins_week' + w;
+  
+  // Riempimento automatico degli esercizi non compilati se stiamo chiudendo il giorno
+  if (val) {
+    const daAggiornare = eserciziFiltrati.value.filter(ex => {
+      const v = ex[campoIns];
+      return !v || v.trim() === '';
+    });
+    
+    for (const ex of daAggiornare) {
+      ex[campoIns] = '-';
+      const key = `offline_storyboard_${ex.id}`;
+      let localUpdates = {};
+      const localData = localStorage.getItem(key);
+      if (localData) {
+        try { localUpdates = JSON.parse(localData); } catch (e) {}
+      }
+      localUpdates[campoIns] = '-';
+      localUpdates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      localStorage.setItem(key, JSON.stringify(localUpdates));
+      
+      try {
+        const docRef = doc(db, 'STORYBOARD', ex.id);
+        await setDoc(docRef, { [campoIns]: '-', timestamp: localUpdates['timestamp'] }, { merge: true });
+      } catch (err) {
+        console.warn("Errore salvataggio segnaposto automatico:", err);
+      }
+    }
+  }
   
   // Aggiorna localmente
   headerGiorno.value[campoCmp] = valString;
@@ -1507,6 +1578,72 @@ const vaiAlDettaglioSessione = (id) => {
 const vibraTattile = (ms = 12) => {
   if (navigator.vibrate) {
     navigator.vibrate(ms);
+  }
+};
+
+const mesocicloCompletato = computed(() => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return false;
+  const righeZero = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) === 0);
+  if (righeZero.length === 0) return false;
+  return righeZero.every(header => {
+    for (let w = 1; w <= 6; w++) {
+      if (header['cmp' + w] !== 'true') return false;
+    }
+    return true;
+  });
+});
+
+const ripristinaMesociclo = async () => {
+  const conferma = confirm("Sei sicuro di voler resettare tutti i log e le spunte di questo mesociclo? L'operazione è irreversibile.");
+  if (!conferma) return;
+  
+  caricamento.value = true;
+  vibraTattile(50);
+  
+  try {
+    const batch = writeBatch(db);
+    for (const ex of listaAllenamenti.value) {
+      const updates = {};
+      if (parseInt(ex.num_riga_giorno) === 0) {
+        for (let w = 1; w <= 6; w++) {
+          updates['cmp' + w] = 'false';
+          ex['cmp' + w] = 'false';
+        }
+      } else {
+        for (let w = 1; w <= 6; w++) {
+          updates['ins_week' + w] = '';
+          updates['reps_week' + w] = '';
+          ex['ins_week' + w] = '';
+          ex['reps_week' + w] = '';
+        }
+        updates['num_ins6'] = '';
+        updates['num_faticaw6'] = '';
+        updates['ind_reps_start'] = '';
+        ex['num_ins6'] = '';
+        ex['num_faticaw6'] = '';
+        ex['ind_reps_start'] = '';
+      }
+      
+      updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      ex['timestamp'] = updates['timestamp'];
+      
+      const key = `offline_storyboard_${ex.id}`;
+      localStorage.setItem(key, JSON.stringify(updates));
+      
+      const docRef = doc(db, 'STORYBOARD', ex.id);
+      batch.set(docRef, updates, { merge: true });
+    }
+    
+    await batch.commit();
+    settimanaAttiva.value = 1;
+    localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, 1);
+    filtraEserciziPerGiorno();
+    alert("Mesociclo resettato con successo! Puoi ripartire dalla Week 1.");
+  } catch (err) {
+    console.error("Errore reset mesociclo:", err);
+    alert("Si è verificato un errore durante il reset del mesociclo.");
+  } finally {
+    caricamento.value = false;
   }
 };
 </script>

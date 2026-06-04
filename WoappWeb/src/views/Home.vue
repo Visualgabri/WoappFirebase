@@ -887,7 +887,7 @@ const reportProgressioni = computed(() => {
     for (let w = 1; w <= 6; w++) {
       let chiuseInWeek = 0;
       righeZero.forEach(header => {
-        if (header['cmp' + w] === 'true') {
+        if (isTrue(header['cmp' + w])) {
           chiuseInWeek++;
           chiusureEffettive++;
         }
@@ -1055,7 +1055,7 @@ const settimaneChiuse = computed(() => {
       const header = exercises.find(
         item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
       );
-      return header && header['cmp' + w] === 'true';
+      return header && isTrue(header['cmp' + w]);
     });
     if (isChiusa) {
       count++;
@@ -1094,11 +1094,33 @@ const applicaModificheLocali = (item) => {
   const localData2 = localStorage.getItem(key2);
   
   let updates = {};
+  let localTimestamp = null;
+  
   if (localData1) {
-    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData1);
+      if (parsed.timestamp) localTimestamp = parsed.timestamp;
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
   }
   if (localData2) {
-    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData2);
+      if (parsed.timestamp && (!localTimestamp || parsed.timestamp > localTimestamp)) {
+        localTimestamp = parsed.timestamp;
+      }
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
+  }
+  
+  // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
+  if (localTimestamp && item.timestamp) {
+    if (localTimestamp <= item.timestamp) {
+      // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
+      localStorage.removeItem(key1);
+      localStorage.removeItem(key2);
+      return item;
+    }
   }
   
   return { ...item, ...updates };
@@ -1118,7 +1140,7 @@ const calcolaSettimanaAttivaGlobale = (exercises) => {
       const header = exercises.find(
         item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
       );
-      return header && header['cmp' + w] === 'true';
+      return header && isTrue(header['cmp' + w]);
     });
     if (!isChiusa) {
       return w;
@@ -1469,7 +1491,7 @@ const caricaDatiScheda = async () => {
       const header = tempExercises.find(
         item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
       );
-      const completato = header ? (header['cmp' + activeW] === 'true') : false;
+      const completato = header ? isTrue(header['cmp' + activeW]) : false;
       if (!completato) {
         giornoDaFare = g;
         break;
@@ -1533,7 +1555,7 @@ const caricaDatiScheda = async () => {
         const header = tempExercises.find(
           item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
         );
-        const completato = header ? (header['cmp' + activeW] === 'true') : false;
+        const completato = header ? isTrue(header['cmp' + activeW]) : false;
         if (!completato) {
           giornoDaFare = g;
           break;
@@ -1689,7 +1711,7 @@ const getDayCompletion = (giorno) => {
     item => (item.des_giorno || '').trim() === giorno && (parseInt(item.num_riga_giorno) === 0)
   );
   if (!header) return false;
-  return header['cmp' + settimanaAttiva.value] === 'true';
+  return isTrue(header['cmp' + settimanaAttiva.value]);
 };
 
 // Selezione rapida del giorno dal Journey Track

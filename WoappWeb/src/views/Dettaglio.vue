@@ -87,7 +87,7 @@
           :class="previousWorkout ? 'text-red-lighten-2' : 'text-slate-dark'"
           style="font-size: 1.1rem; line-height: 1.2;"
         >
-          <v-icon :color="previousWorkout ? 'red-lighten-2' : 'orange-darken-3'" class="mr-1" size="18">
+          <v-icon v-if="parsedRmt(workout.des_esercizio_2)" :color="previousWorkout ? 'red-lighten-2' : 'orange-darken-3'" class="mr-1" size="18">
             mdi-trophy-outline
           </v-icon>
           {{ workout.des_esercizio }}
@@ -487,6 +487,33 @@
             </div>
           </div>
 
+          <!-- Pulsante di recupero manuale -->
+          <div v-if="workout" class="d-flex align-center mb-2 mt-1 justify-start">
+            <v-chip
+              v-if="haRecupero(inputSettimane[sett].ins)"
+              color="orange-darken-3"
+              size="small"
+              class="font-weight-black text-white px-2 py-1"
+              variant="flat"
+              prepend-icon="mdi-sync"
+              @click="toggleRecuperoDettaglio(sett, false)"
+            >
+              Programmato per il recupero
+            </v-chip>
+            <v-chip
+              v-else
+              color="grey-darken-2"
+              size="small"
+              class="font-weight-bold text-slate px-2 py-1"
+              variant="outlined"
+              style="border-style: dashed !important; opacity: 0.85;"
+              prepend-icon="mdi-plus"
+              @click="toggleRecuperoDettaglio(sett, true)"
+            >
+              Recupera la prossima volta?
+            </v-chip>
+          </div>
+
           <!-- Input di inserimento Carico (puramente testuale) -->
           <div class="mt-3.5 mb-1">
             <v-textarea
@@ -864,17 +891,17 @@
                   </v-col>
                   <v-col cols="6">
                     <v-textarea
-                      v-model="inputSettimanePrecedente[w].reps"
-                      label="Ripetizioni"
+                      :model-value="inputSettimanePrecedente[w].reps"
+                      label="Ripetizioni (Sola Lettura)"
                       variant="outlined"
                       density="compact"
                       hide-details
                       rounded="lg"
                       rows="1"
                       auto-grow
-                      color="orange-darken-3"
-                      class="custom-weight-input text-caption"
-                      @blur="salvaDatoSettimanalePrecedente(w, 'reps')"
+                      readonly
+                      disabled
+                      class="custom-weight-input text-caption opacity-70"
                     ></v-textarea>
                   </v-col>
                 </v-row>
@@ -1535,11 +1562,33 @@ const applicaModificheLocali = (item) => {
   const localData2 = localStorage.getItem(key2);
   
   let updates = {};
+  let localTimestamp = null;
+  
   if (localData1) {
-    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData1);
+      if (parsed.timestamp) localTimestamp = parsed.timestamp;
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
   }
   if (localData2) {
-    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData2);
+      if (parsed.timestamp && (!localTimestamp || parsed.timestamp > localTimestamp)) {
+        localTimestamp = parsed.timestamp;
+      }
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
+  }
+  
+  // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
+  if (localTimestamp && item.timestamp) {
+    if (localTimestamp <= item.timestamp) {
+      // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
+      localStorage.removeItem(key1);
+      localStorage.removeItem(key2);
+      return item;
+    }
   }
   
   return { ...item, ...updates };
@@ -2060,7 +2109,7 @@ const getRmtProgress = (rmt) => {
 // Controlla se la settimana w è completata (cmp1-cmp6 da Riga 0)
 const isWeekCompleted = (w) => {
   if (!riga0.value) return false;
-  return riga0.value['cmp' + w] === 'true';
+  return riga0.value['cmp' + w] === 'true' || riga0.value['cmp' + w] === true || String(riga0.value['cmp' + w]).toLowerCase() === 'true';
 };
 
 // Controlla se la settimana ha dati loggati
@@ -2398,6 +2447,74 @@ const apriStoricoEsercizio = async () => {
   } finally {
     caricandoStorico.value = false;
   }
+};
+
+// Helper per tracciare il recupero tramite tag [RECUPERA]
+const haRecupero = (val) => {
+  if (!val) return false;
+  const str = String(val).toLowerCase();
+  
+  if (str.includes('[recuperato]') || str.includes('recuperato') || str.includes('recuperata') || str.includes('recuperati')) {
+    return false;
+  }
+  
+  if (str.includes('[recupera]')) {
+    return true;
+  }
+  
+  const keywords = [
+    'da finire',
+    'da fare',
+    'manca',
+    'mancano',
+    'saltato',
+    'saltata',
+    'saltati',
+    'incompleto',
+    'incompleta',
+    'incompleti',
+    'prossima volta',
+    'prox volta',
+    'altra serie',
+    'altre serie',
+    'da completare',
+    'recupera',
+    'recuperare',
+    'non fatto',
+    'non fatta',
+    'non fatti',
+    'fatto solo',
+    'fatta solo',
+    'fatte solo',
+    'solo 1',
+    'solo 2',
+    'solo 3',
+    'solo una',
+    'solo due',
+    'solo tre'
+  ];
+  
+  return keywords.some(kw => str.includes(kw));
+};
+
+const impostaRecuperoValore = (valoreAttuale, attivo) => {
+  let str = (valoreAttuale || '').trim();
+  if (attivo) {
+    if (!str.includes('[RECUPERA]')) {
+      str = str ? `${str} [RECUPERA]` : '[RECUPERA]';
+    }
+  } else {
+    str = str.replace(/\s*\[RECUPERA\]/g, '').trim();
+  }
+  return str;
+};
+
+const toggleRecuperoDettaglio = (sett, attivo) => {
+  vibraTattile(15);
+  const valoreAttuale = inputSettimane.value[sett].ins;
+  const nuovoValore = impostaRecuperoValore(valoreAttuale, attivo);
+  inputSettimane.value[sett].ins = nuovoValore;
+  salvaDatoSettimanale(sett, 'ins');
 };
 
 // Torna indietro

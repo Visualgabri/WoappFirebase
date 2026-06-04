@@ -373,11 +373,33 @@ const applicaModificheLocali = (item) => {
   const localData2 = localStorage.getItem(key2);
   
   let updates = {};
+  let localTimestamp = null;
+  
   if (localData1) {
-    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData1);
+      if (parsed.timestamp) localTimestamp = parsed.timestamp;
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
   }
   if (localData2) {
-    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData2);
+      if (parsed.timestamp && (!localTimestamp || parsed.timestamp > localTimestamp)) {
+        localTimestamp = parsed.timestamp;
+      }
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
+  }
+  
+  // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
+  if (localTimestamp && item.timestamp) {
+    if (localTimestamp <= item.timestamp) {
+      // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
+      localStorage.removeItem(key1);
+      localStorage.removeItem(key2);
+      return item;
+    }
   }
   
   return { ...item, ...updates };
@@ -595,7 +617,8 @@ onMounted(() => {
 const activeUncompletedWeek = computed(() => {
   if (!workout.value) return 1;
   for (let w = 1; w <= 6; w++) {
-    if (workout.value['cmp' + w] !== 'true') {
+    const valCmp = workout.value['cmp' + w];
+    if (valCmp !== 'true' && valCmp !== true && String(valCmp).toLowerCase() !== 'true') {
       return w;
     }
   }
@@ -632,7 +655,8 @@ const mostraPromemoriaChiusura = computed(() => {
 // Controlla se la settimana w è completata
 const isWeekCompleted = (w) => {
   if (!workout.value) return false;
-  return workout.value['cmp' + w] === 'true';
+  const valCmp = workout.value['cmp' + w];
+  return valCmp === 'true' || valCmp === true || String(valCmp).toLowerCase() === 'true';
 };
 
 // Conteggio settimane completate

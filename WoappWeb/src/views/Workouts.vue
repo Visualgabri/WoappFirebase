@@ -171,7 +171,102 @@
 
         <transition :name="transitionName" mode="out-in">
           <div :key="giornoSelezionato" class="swipe-transition-wrapper">
-        <!-- Intestazione del Giorno Attivo (Riga 0) stile AppSheet (cliccabile per completamento) -->
+            <!-- Pannello Esercizi da Recuperare (Inbox) -->
+            <v-expand-transition>
+              <div v-if="eserciziDaRecuperare.length > 0" class="mb-6">
+                <v-card
+                  class="pa-4 rounded-2xl border"
+                  style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.1), rgba(249, 115, 22, 0.03)) !important; border: 1.5px solid rgba(249, 115, 22, 0.3) !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;"
+                >
+                  <div class="d-flex align-center justify-space-between mb-3">
+                    <div class="d-flex align-center">
+                      <v-icon color="orange-darken-3" class="mr-2 animate-pulse" size="20">mdi-sync</v-icon>
+                      <span class="text-subtitle-2 font-weight-black text-orange-lighten-2" style="letter-spacing: 0.05em;">
+                        🔁 ESERCIZI DA RECUPERARE
+                      </span>
+                    </div>
+                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat">
+                      {{ eserciziDaRecuperare.length }} DA COMPLETARE
+                    </v-chip>
+                  </div>
+
+                  <div class="d-flex flex-column gap-3">
+                    <v-card
+                      v-for="(recItem, idx) in eserciziDaRecuperare"
+                      :key="idx"
+                      class="pa-3 rounded-xl border-soft d-flex align-center bg-slate-900-op"
+                      flat
+                      style="border: 1px solid rgba(255, 255, 255, 0.05) !important;"
+                    >
+                      <!-- Thumbnail Miniatura -->
+                      <div class="mr-3 rounded-lg overflow-hidden flex-shrink-0" style="width: 52px; height: 52px; border: 1px solid rgba(255,255,255,0.08);">
+                        <v-img
+                          :src="getGifUrl(recItem.exercise.UrlNormal) || '/logo.png'"
+                          cover
+                          height="100%"
+                          width="100%"
+                        >
+                          <template v-slot:placeholder>
+                            <div class="fill-height d-flex align-center justify-center bg-slate-800">
+                              <v-icon color="grey" size="16">mdi-dumbbell</v-icon>
+                            </div>
+                          </template>
+                        </v-img>
+                      </div>
+
+                      <!-- Testo e controlli -->
+                      <div class="flex-grow-1 min-width-0 text-left">
+                        <div class="d-flex align-center justify-space-between flex-wrap gap-1">
+                          <h4 class="text-caption font-weight-black text-slate-dark text-truncate mr-2" style="font-size: 0.85rem !important;">
+                            {{ recItem.exercise.des_esercizio }}
+                          </h4>
+                          <v-chip size="x-small" color="orange-darken-3" variant="outlined" class="font-weight-bold uppercase" style="font-size: 0.55rem; height: 16px;">
+                            Giorno {{ recItem.exercise.des_giorno }} • W{{ recItem.week }}
+                          </v-chip>
+                        </div>
+
+                        <!-- Prescrizione e Info recupero -->
+                        <div class="text-super-caption text-muted mt-0.5">
+                          Target prescritto: {{ formattaPrescrizioneSemplice(recItem.prescription) }}
+                        </div>
+                        
+                        <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-super-caption text-orange-lighten-2 mt-0.5">
+                          Log parziale: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
+                        </div>
+
+                        <!-- Campo inserimento log e bottone completa -->
+                        <div class="d-flex align-center gap-2 mt-2">
+                          <v-text-field
+                            v-model="logRecuperi[recItem.exercise.id + '_' + recItem.week]"
+                            label="Scrivi peso o esecuzione..."
+                            variant="outlined"
+                            density="compact"
+                            hide-details
+                            rounded="lg"
+                            color="orange-darken-3"
+                            style="font-size: 0.72rem !important; height: 32px;"
+                            class="custom-compact-input flex-grow-1"
+                          ></v-text-field>
+                          <v-btn
+                            color="green-darken-3"
+                            size="small"
+                            variant="flat"
+                            class="font-weight-black text-none text-white rounded-lg"
+                            style="height: 32px;"
+                            @click.stop="concludiRecuperoTesto(recItem)"
+                          >
+                            <v-icon size="16" class="mr-0.5">mdi-check</v-icon>
+                            Completa
+                          </v-btn>
+                        </div>
+                      </div>
+                    </v-card>
+                  </div>
+                </v-card>
+              </div>
+            </v-expand-transition>
+
+            <!-- Intestazione del Giorno Attivo (Riga 0) stile AppSheet (cliccabile per completamento) -->
         <v-card
           v-if="headerGiorno"
           class="day-header-card pa-4 rounded-xl mb-6 elevation-2 clickable-header"
@@ -206,13 +301,13 @@
                       :key="w"
                       class="mini-week-capsule"
                       :class="{
-                        'capsule-completed': headerGiorno['cmp' + w] === 'true',
-                        'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
-                        'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
+                        'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
+                        'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
+                        'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
                       }"
                     >
                       <span class="capsule-num">W{{ w }}</span>
-                      <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
+                      <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
                   <div class="text-caption text-muted font-weight-bold d-flex align-center mt-1" style="font-size: 0.7rem;">
@@ -333,13 +428,13 @@
                   :key="w"
                   class="mini-week-capsule"
                   :class="{
-                    'capsule-completed': headerGiorno['cmp' + w] === 'true',
-                    'capsule-active': w === settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true',
-                    'capsule-pending': w !== settimanaAttivaGiorno && headerGiorno['cmp' + w] !== 'true'
+                    'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
+                    'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
+                    'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
                   }"
                 >
                   <span class="capsule-num">W{{ w }}</span>
-                  <v-icon v-if="headerGiorno['cmp' + w] === 'true'" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
+                  <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                 </div>
               </div>
               <div v-if="headerGiorno.des_esercizio_2" class="text-caption text-slate font-weight-bold mt-1.5 d-flex align-center text-truncate">
@@ -511,6 +606,33 @@
                       {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
 
+                    <!-- Pulsante Recupero Manuale -->
+                    <div class="mt-1" style="z-index: 5;">
+                      <v-chip
+                        v-if="haRecupero(ex['ins_week' + settimanaAttivaGiorno])"
+                        color="orange-darken-3"
+                        size="x-small"
+                        class="font-weight-black text-white px-2"
+                        variant="flat"
+                        prepend-icon="mdi-sync"
+                        @click.stop="toggleRecupero(ex, false)"
+                      >
+                        In recupero la prossima volta
+                      </v-chip>
+                      <v-chip
+                        v-else-if="!ex['ins_week' + settimanaAttivaGiorno] || String(ex['ins_week' + settimanaAttivaGiorno]).trim() === '' || String(ex['ins_week' + settimanaAttivaGiorno]).trim() === '-'"
+                        color="grey-darken-2"
+                        size="x-small"
+                        class="font-weight-bold text-slate px-2"
+                        variant="outlined"
+                        style="border-style: dashed !important; opacity: 0.85;"
+                        prepend-icon="mdi-plus"
+                        @click.stop="toggleRecupero(ex, true)"
+                      >
+                        Recupera la prossima volta?
+                      </v-chip>
+                    </div>
+
                     <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
                       <div class="d-flex gap-1 align-center flex-wrap">
                         <div
@@ -638,6 +760,33 @@
                   {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                 </div>
 
+                <!-- Pulsante Recupero Manuale -->
+                <div class="mt-1" style="z-index: 5;">
+                  <v-chip
+                    v-if="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno])"
+                    color="orange-darken-3"
+                    size="x-small"
+                    class="font-weight-black text-white px-2"
+                    variant="flat"
+                    prepend-icon="mdi-sync"
+                    @click.stop="toggleRecupero(block.exercise, false)"
+                  >
+                    In recupero la prossima volta
+                  </v-chip>
+                  <v-chip
+                    v-else-if="!block.exercise['ins_week' + settimanaAttivaGiorno] || String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() === '' || String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() === '-'"
+                    color="grey-darken-2"
+                    size="x-small"
+                    class="font-weight-bold text-slate px-2"
+                    variant="outlined"
+                    style="border-style: dashed !important; opacity: 0.85;"
+                    prepend-icon="mdi-plus"
+                    @click.stop="toggleRecupero(block.exercise, true)"
+                  >
+                    Recupera la prossima volta?
+                  </v-chip>
+                </div>
+
                 <!-- Cronologia Carichi Settimanali -->
                 <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
                   <div class="d-flex gap-1 align-center flex-wrap">
@@ -692,14 +841,14 @@
               block
               size="large"
               class="font-weight-black text-none rounded-xl elevation-2 py-3"
-              :color="headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'green-darken-3' : 'orange-darken-3'"
+              :color="isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'green-darken-3' : 'orange-darken-3'"
               style="height: 52px;"
               @click.stop="toggleGiornoAttivoRapido"
             >
               <v-icon class="mr-2" size="20">
-                {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'mdi-check-circle' : 'mdi-check-all' }}
+                {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'mdi-check-circle' : 'mdi-check-all' }}
               </v-icon>
-              {{ headerGiorno['cmp' + settimanaAttivaGiorno] === 'true' ? 'Giorno Completato (Riapri)' : 'Completa Giorno ' + giornoSelezionato }}
+              {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'Giorno Completato (Riapri)' : 'Completa Giorno ' + giornoSelezionato }}
             </v-btn>
           </div>
         </div>
@@ -858,6 +1007,20 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog di Avviso Esercizi Incompleti al Completamento -->
+    <v-dialog v-model="dialogRecuperiAvviso" max-width="450">
+      <v-card class="card-glass rounded-2xl border pa-5 text-center" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+        <v-icon color="orange-darken-3" size="56" class="mb-4 animate-pulse">mdi-sync</v-icon>
+        <h3 class="text-h6 font-weight-black text-slate-dark mb-2">Allenamento Completato!</h3>
+        <p class="text-body-2 text-slate mb-5" style="line-height: 1.5; color: #cbd5e1 !important;">
+          Ci sono alcuni esercizi saltati o incompleti in questa seduta. Li abbiamo salvati e verranno riproposti automaticamente nella tua prossima sessione per essere recuperati.
+        </p>
+        <v-btn color="orange-darken-3" block rounded="xl" class="font-weight-black text-none py-2 text-white" height="44" @click="dialogRecuperiAvviso = false">
+          Ho capito, grazie!
+        </v-btn>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -870,6 +1033,13 @@ import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
+
+const isCmpTrue = (val) => {
+  if (val === undefined || val === null) return false;
+  if (typeof val === 'boolean') return val;
+  const str = String(val).toLowerCase().trim();
+  return str === 'true' || str === 'sì' || str === 'si' || str === '1';
+};
 
 const parseTimeToSeconds = (tStr) => {
   if (!tStr) return 90;
@@ -1289,7 +1459,7 @@ const statoGiorni = computed(() => {
       result[g] = 'none';
       return;
     }
-    const isChiusa = header['cmp' + w] === 'true';
+    const isChiusa = isCmpTrue(header['cmp' + w]);
     result[g] = isChiusa ? 'completed' : 'pending';
   });
   return result;
@@ -1303,7 +1473,7 @@ const ultimoChiusoPerGiorno = (g) => {
   );
   if (!header) return '';
   for (let w = 6; w >= 1; w--) {
-    if (header['cmp' + w] === 'true') {
+    if (isCmpTrue(header['cmp' + w])) {
       return 'W' + w;
     }
   }
@@ -1359,7 +1529,7 @@ const tuttiEserciziCompilatiGiorno = computed(() => {
 const mostraPromemoriaChiusura = computed(() => {
   if (!headerGiorno.value) return false;
   const w = settimanaAttivaGiorno.value;
-  const isChiusa = headerGiorno.value['cmp' + w] === 'true';
+  const isChiusa = isCmpTrue(headerGiorno.value['cmp' + w]);
   return !isChiusa && tuttiEserciziCompilatiGiorno.value;
 });
 
@@ -1372,11 +1542,33 @@ const applicaModificheLocali = (item) => {
   const localData2 = localStorage.getItem(key2);
   
   let updates = {};
+  let localTimestamp = null;
+  
   if (localData1) {
-    try { updates = { ...updates, ...JSON.parse(localData1) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData1);
+      if (parsed.timestamp) localTimestamp = parsed.timestamp;
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
   }
   if (localData2) {
-    try { updates = { ...updates, ...JSON.parse(localData2) }; } catch (e) {}
+    try {
+      const parsed = JSON.parse(localData2);
+      if (parsed.timestamp && (!localTimestamp || parsed.timestamp > localTimestamp)) {
+        localTimestamp = parsed.timestamp;
+      }
+      updates = { ...updates, ...parsed };
+    } catch (e) {}
+  }
+  
+  // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
+  if (localTimestamp && item.timestamp) {
+    if (localTimestamp <= item.timestamp) {
+      // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
+      localStorage.removeItem(key1);
+      localStorage.removeItem(key2);
+      return item;
+    }
   }
   
   return { ...item, ...updates };
@@ -1396,7 +1588,7 @@ const calcolaSettimanaAttivaGlobale = (exercises) => {
       const header = exercises.find(
         item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
       );
-      return header && header['cmp' + w] === 'true';
+      return header && isCmpTrue(header['cmp' + w]);
     });
     if (!isChiusa) {
       return w;
@@ -1622,34 +1814,6 @@ const impostaChiusuraGiorno = async (w, val) => {
     localStorage.removeItem(keepOpenKey);
   }
   
-  // Riempimento automatico degli esercizi non compilati se stiamo chiudendo il giorno
-  if (val) {
-    const daAggiornare = eserciziFiltrati.value.filter(ex => {
-      const v = ex[campoIns];
-      return !v || v.trim() === '';
-    });
-    
-    for (const ex of daAggiornare) {
-      ex[campoIns] = '-';
-      const key = `offline_storyboard_${ex.id}`;
-      let localUpdates = {};
-      const localData = localStorage.getItem(key);
-      if (localData) {
-        try { localUpdates = JSON.parse(localData); } catch (e) {}
-      }
-      localUpdates[campoIns] = '-';
-      localUpdates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
-      localStorage.setItem(key, JSON.stringify(localUpdates));
-      
-      try {
-        const docRef = doc(db, 'STORYBOARD', ex.id);
-        await setDoc(docRef, { [campoIns]: '-', timestamp: localUpdates['timestamp'] }, { merge: true });
-      } catch (err) {
-        console.warn("Errore salvataggio segnaposto automatico:", err);
-      }
-    }
-  }
-  
   // Aggiorna localmente
   headerGiorno.value[campoCmp] = valString;
   
@@ -1680,13 +1844,24 @@ const impostaChiusuraGiorno = async (w, val) => {
     localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
     filtraEserciziPerGiorno();
   }
+
+  // Notifica all'utente se ci sono esercizi incompleti da recuperare alla chiusura
+  if (val) {
+    const haIncompleti = eserciziFiltrati.value.some(ex => {
+      const valIns = ex['ins_week' + w] || '';
+      return haRecupero(valIns);
+    });
+    if (haIncompleti) {
+      dialogRecuperiAvviso.value = true;
+    }
+  }
 };
 
 const toggleGiornoAttivoRapido = async () => {
   if (!headerGiorno.value) return;
   const w = settimanaAttivaGiorno.value;
   const campoCmp = 'cmp' + w;
-  const giaChiusa = headerGiorno.value[campoCmp] === 'true';
+  const giaChiusa = isCmpTrue(headerGiorno.value[campoCmp]);
   
   // Imposta flag keepOpen se riapriamo manualmente il giorno
   if (giaChiusa) {
@@ -1743,31 +1918,8 @@ const segnaComeFattoRapido = async (ex) => {
 };
 
 const controllaEChiudiGiornoAutomatico = async () => {
-  if (eserciziFiltrati.value.length === 0 || !headerGiorno.value) return;
-  
-  const w = settimanaAttivaGiorno.value;
-  
-  // Controlla se tutti gli esercizi del giorno hanno una compilazione (qualsiasi testo non vuoto)
-  const tuttiCompilati = eserciziFiltrati.value.every(ex => {
-    const val = ex['ins_week' + w];
-    return val && String(val).trim() !== '';
-  });
-
-  const campoCmp = 'cmp' + w;
-  const giaChiusa = headerGiorno.value[campoCmp] === 'true';
-
-  const athlete = selectedAthlete.value || 'default';
-  const giorno = giornoSelezionato.value || 'A';
-  const keepOpenKey = `keepOpen_${athlete}_${giorno}_W${w}`;
-  const keepOpen = localStorage.getItem(keepOpenKey) === 'true';
-
-  if (!tuttiCompilati) {
-    localStorage.removeItem(keepOpenKey);
-  }
-
-  if (tuttiCompilati && !giaChiusa && !keepOpen) {
-    await impostaChiusuraGiorno(w, true);
-  }
+  // Disabilitata la chiusura automatica per consentire il controllo manuale esclusivo ed evitare confusioni.
+  return;
 };
 
 const scrollaAllUltimoEsercizio = () => {
@@ -1830,7 +1982,7 @@ const mesocicloCompletato = computed(() => {
   if (righeZero.length === 0) return false;
   return righeZero.every(header => {
     for (let w = 1; w <= 6; w++) {
-      if (header['cmp' + w] !== 'true') return false;
+      if (!isCmpTrue(header['cmp' + w])) return false;
     }
   });
 });
@@ -2142,7 +2294,7 @@ const reportProgressioni = computed(() => {
     for (let w = 1; w <= 6; w++) {
       let chiuseInWeek = 0;
       righeZero.forEach(header => {
-        if (header['cmp' + w] === 'true') {
+        if (isCmpTrue(header['cmp' + w])) {
           chiuseInWeek++;
           chiusureEffettive++;
         }
@@ -2211,6 +2363,169 @@ const ripristinaMesociclo = async () => {
     caricamento.value = false;
   }
 };
+
+// --- LOGICA DI RECUPERO E COMPLETAMENTO ESERCIZI (COMBINAZIONE A+B) ---
+const dialogRecuperiAvviso = ref(false);
+const logRecuperi = ref({});
+
+const haRecupero = (val) => {
+  if (!val) return false;
+  const str = String(val).toLowerCase();
+  
+  // Se è stato marcato come recuperato (esplicitamente o implicitamente), non richiede più recupero
+  if (str.includes('[recuperato]') || str.includes('recuperato') || str.includes('recuperata') || str.includes('recuperati')) {
+    return false;
+  }
+  
+  // Se contiene il tag manuale inserito dal sistema
+  if (str.includes('[recupera]')) {
+    return true;
+  }
+  
+  // Parole chiave comuni utilizzate dagli utenti per indicare esercizi incompleti o da recuperare
+  const keywords = [
+    'da finire',
+    'da fare',
+    'manca',
+    'mancano',
+    'saltato',
+    'saltata',
+    'saltati',
+    'incompleto',
+    'incompleta',
+    'incompleti',
+    'prossima volta',
+    'prox volta',
+    'altra serie',
+    'altre serie',
+    'da completare',
+    'recupera',
+    'recuperare',
+    'non fatto',
+    'non fatta',
+    'non fatti',
+    'fatto solo',
+    'fatta solo',
+    'fatte solo',
+    'solo 1',
+    'solo 2',
+    'solo 3',
+    'solo una',
+    'solo due',
+    'solo tre'
+  ];
+  
+  return keywords.some(kw => str.includes(kw));
+};
+
+const impostaRecuperoValore = (valoreAttuale, attivo) => {
+  let str = (valoreAttuale || '').trim();
+  if (attivo) {
+    if (!str.includes('[RECUPERA]')) {
+      str = str ? `${str} [RECUPERA]` : '[RECUPERA]';
+    }
+  } else {
+    str = str.replace(/\s*\[RECUPERA\]/g, '').trim();
+  }
+  return str;
+};
+
+const salvaValoreEsercizio = async (ex, w, valore) => {
+  const campo = 'ins_week' + w;
+  ex[campo] = valore;
+  
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates[campo] = valore;
+  updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, { [campo]: valore, timestamp: updates['timestamp'] }, { merge: true });
+    console.log("Valore esercizio salvato con successo!");
+  } catch (err) {
+    console.warn("Errore salvataggio esercizio:", err);
+  }
+  
+  controllaEChiudiGiornoAutomatico();
+};
+
+const toggleRecupero = async (ex, attivo) => {
+  vibraTattile(15);
+  const w = settimanaAttivaGiorno.value;
+  const valoreAttuale = ex['ins_week' + w] || '';
+  const nuovoValore = impostaRecuperoValore(valoreAttuale, attivo);
+  await salvaValoreEsercizio(ex, w, nuovoValore);
+};
+
+const concludiRecuperoTesto = async (recItem) => {
+  vibraTattile(20);
+  const ex = recItem.exercise;
+  const w = recItem.week;
+  const key = ex.id + '_' + w;
+  const inputNuovo = (logRecuperi.value[key] || '').trim();
+  
+  let valoreFinale = inputNuovo;
+  if (!valoreFinale) {
+    let original = recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim();
+    if (!original || original === '-') {
+      valoreFinale = 'Recuperato';
+    } else {
+      valoreFinale = `${original} [RECUPERATO]`;
+    }
+  } else {
+    valoreFinale = valoreFinale.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim();
+  }
+  
+  await salvaValoreEsercizio(ex, w, valoreFinale);
+  logRecuperi.value[key] = '';
+};
+
+const eserciziDaRecuperare = computed(() => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return [];
+  
+  const list = [];
+  
+  const headersMap = {};
+  listaAllenamenti.value.forEach(item => {
+    if (parseInt(item.num_riga_giorno) === 0) {
+      const g = (item.des_giorno || '').trim().toUpperCase();
+      headersMap[g] = item;
+    }
+  });
+
+  listaAllenamenti.value.forEach(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return;
+    
+    const giornoEx = (ex.des_giorno || '').trim().toUpperCase();
+    const header = headersMap[giornoEx];
+    if (!header) return;
+    
+    for (let w = 1; w <= 6; w++) {
+      const giornoCompletato = isCmpTrue(header['cmp' + w]);
+      
+      if (giornoCompletato) {
+        const val = ex['ins_week' + w] || '';
+        if (haRecupero(val)) {
+          const prescrizione = ex['des_week' + w] || ex.des_qta_report || '';
+          list.push({
+            exercise: ex,
+            week: w,
+            prescription,
+            originalVal: val
+          });
+        }
+      }
+    }
+  });
+  
+  return list;
+});
 </script>
 
 <style scoped>
@@ -2570,5 +2885,31 @@ const ripristinaMesociclo = async () => {
 .clickable-progression-card:active {
   transform: scale(0.98);
   background: rgba(249, 115, 22, 0.15) !important;
+}
+
+/* Stili per pallini serie e input compatti */
+.dot-set-btn {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.dot-set-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.custom-compact-input :deep(.v-field) {
+  height: 32px !important;
+  font-size: 0.75rem !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 8px !important;
+}
+.custom-compact-input :deep(.v-field__input) {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  min-height: 32px !important;
+}
+.custom-compact-input :deep(.v-label) {
+  top: 6px !important;
+  font-size: 0.75rem !important;
+  opacity: 0.4 !important;
 }
 </style>

@@ -772,9 +772,10 @@
             <v-card
               v-for="(p, idx) in reportProgressioni.progressioniCarichi"
               :key="idx"
-              class="pa-3 rounded-xl border-soft text-left"
+              class="pa-3 rounded-xl border-soft text-left cursor-pointer clickable-progression-card"
               style="background: rgba(30, 41, 59, 0.25) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important;"
               flat
+              @click="vibraTattile(10); vaiAlDettaglio(p.id); dialogProgressioni = false"
             >
               <div class="d-flex align-center justify-space-between mb-1.5">
                 <span class="text-caption font-weight-black text-slate-dark text-truncate" style="max-width: 70%;">
@@ -1836,6 +1837,7 @@ const reportProgressioni = computed(() => {
           const delta = parseFloat((wPeso - w1Peso).toFixed(1));
           const pct = Math.round((delta / w1Peso) * 100);
           result.progressioniCarichi.push({
+            id: ex.id,
             nome: ex.des_esercizio || 'Esercizio',
             w1: w1Peso,
             latest: wPeso,
@@ -2278,5 +2280,15 @@ const ripristinaMesociclo = async () => {
     opacity: 0.35;
     background: rgba(255, 255, 255, 0.12);
   }
+}
+
+/* Clickable progression card in report */
+.clickable-progression-card {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.clickable-progression-card:active {
+  transform: scale(0.98);
+  background: rgba(249, 115, 22, 0.15) !important;
 }
 </style>

@@ -102,226 +102,225 @@
         ></v-progress-linear>
       </div>
 
-      <!-- 2. Selettore Orizzontale delle 6 Settimane (Timeline Progress) -->
-      <div class="week-selector-section mb-4 text-left">
-        <div class="text-super-caption text-muted font-weight-black uppercase tracking-wider mb-2" style="font-size: 0.62rem; letter-spacing: 0.05em;">
-          Progressione Settimane (Seleziona per visualizzare)
+      <!-- 2. Progressioni delle 6 Settimane in Card Espandibili -->
+      <div class="week-selector-section mb-6 text-left">
+        <div class="text-super-caption text-muted font-weight-black uppercase tracking-wider mb-3" style="font-size: 0.62rem; letter-spacing: 0.05em;">
+          Registro delle Settimane (Seleziona una scheda per visualizzare/modificare)
         </div>
         
-        <div class="timeline-container position-relative mb-2">
-          <!-- Linea di sfondo che unisce i nodi -->
-          <div class="timeline-connecting-line"></div>
-          
-          <!-- Contenitore dei nodi -->
-          <div class="d-flex justify-space-between align-center position-relative" style="z-index: 1;">
-            <div
-              v-for="sett in [1, 2, 3, 4, 5, 6]"
-              :key="sett"
-              class="d-flex flex-column align-center flex-grow-1"
-            >
-              <button
-                class="timeline-node-btn"
-                :class="{
-                  'node-selected': selectedWeek === sett,
-                  'node-completed': isWeekCompleted(sett),
-                  'node-active': sett === activeUncompletedWeek && !isWeekCompleted(sett),
-                  'node-pending': !isWeekCompleted(sett) && sett !== activeUncompletedWeek
-                }"
-                @click="selectedWeek = sett"
+        <v-card
+          v-for="sett in [1, 2, 3, 4, 5, 6]"
+          :key="sett"
+          class="mb-4 rounded-2xl border week-expandable-card transition-all"
+          :class="{
+            'card-expanded': selectedWeek === sett,
+            'card-completed-border': isWeekCompleted(sett) && selectedWeek !== sett,
+            'card-active-border': sett === activeUncompletedWeek && !isWeekCompleted(sett) && selectedWeek !== sett
+          }"
+          elevation="2"
+        >
+          <!-- Card Header (Sempre visibile, cliccabile) -->
+          <div
+            class="pa-4 cursor-pointer d-flex align-center justify-space-between select-none"
+            @click="selectedWeek = (selectedWeek === sett ? null : sett)"
+          >
+            <div class="d-flex align-center min-width-0">
+              <v-icon
+                :color="isWeekCompleted(sett) ? 'green-accent-4' : (sett === activeUncompletedWeek ? 'orange-darken-3' : 'grey-lighten-1')"
+                class="mr-3"
+                size="20"
               >
-                <span v-if="!isWeekCompleted(sett)">{{ sett }}</span>
-                <v-icon v-else size="12" color="white">mdi-check-bold</v-icon>
-              </button>
-              <span class="text-super-caption mt-1 font-weight-black" :class="selectedWeek === sett ? 'text-orange-darken-3 font-weight-black' : 'text-muted'" style="font-size: 0.58rem;">
-                W{{ sett }}
-              </span>
+                {{ isWeekCompleted(sett) ? 'mdi-check-circle' : (sett === activeUncompletedWeek ? 'mdi-play-circle-outline' : 'mdi-circle-outline') }}
+              </v-icon>
+              
+              <div class="text-left min-width-0">
+                <div class="d-flex align-center flex-wrap gap-1.5">
+                  <span class="font-weight-black text-subtitle-1 text-slate-dark" style="line-height: 1;">
+                    Settimana {{ sett }}
+                  </span>
+                  
+                  <!-- Badges di Stato -->
+                  <v-chip
+                    :color="isWeekCompleted(sett) ? 'green-accent-4' : (sett === activeUncompletedWeek ? 'orange-darken-3' : 'grey-darken-2')"
+                    size="x-small"
+                    class="font-weight-black text-white px-2"
+                    variant="flat"
+                    style="font-size: 0.55rem; height: 16px;"
+                  >
+                    {{ isWeekCompleted(sett) ? 'COMPLETATA' : (sett === activeUncompletedWeek ? 'ATTIVA' : 'DA FARE') }}
+                  </v-chip>
+                </div>
+                
+                <!-- Riga di Sommario sotto (visibile solo se la card è chiusa) -->
+                <v-expand-transition>
+                  <div
+                    v-if="selectedWeek !== sett && getWeekSummaryLine(sett)"
+                    class="text-super-caption text-muted font-weight-bold mt-1 text-truncate"
+                    style="font-size: 0.62rem;"
+                  >
+                    {{ getWeekSummaryLine(sett) }}
+                  </div>
+                </v-expand-transition>
+              </div>
+            </div>
+            
+            <div class="d-flex align-center">
+              <!-- Switch di completamento rapido sempre accessibile dal header senza espandere! -->
+              <v-switch
+                :model-value="isWeekCompleted(sett)"
+                @update:model-value="(val) => setWeekCompleted(sett, val)"
+                color="green-accent-4"
+                hide-details
+                density="compact"
+                class="scale-switch mr-3"
+                @click.stop
+              ></v-switch>
+              
+              <v-icon color="grey" size="18">
+                {{ selectedWeek === sett ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+              </v-icon>
             </div>
           </div>
-        </div>
 
-        <!-- Interruttore Completamento Rapido (Sotto le Settimane per massima intuitività) -->
-        <div class="d-flex align-center justify-space-between pa-3 rounded-xl card-glass border border-soft mt-1">
-          <div class="text-left">
-            <span class="text-body-2 font-weight-black text-slate-dark d-flex align-center flex-wrap gap-1.5">
-              <span>Marca W{{ selectedWeek }} come Completata</span>
-              <v-chip
-                v-if="mostraPromemoriaChiusura"
-                size="x-small"
-                color="amber-darken-3"
-                class="font-weight-black px-1.5 animate-pulse text-white elevation-1 ml-1.5"
-                variant="flat"
-                style="font-size: 0.58rem; height: 18px;"
-              >
-                ⚠️ SETTIMANA DA CHIUDERE
-              </v-chip>
-            </span>
-            <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
-              {{ isWeekCompleted(selectedWeek) ? 'Ottimo lavoro! Settimana completata ✓' : 'Attiva per chiudere l\'allenamento di questa settimana' }}
-            </span>
-          </div>
-          
-          <v-switch
-            :model-value="isWeekCompleted(selectedWeek)"
-            @update:model-value="(val) => setWeekCompleted(selectedWeek, val)"
-            color="green-accent-4"
-            hide-details
-            density="comfortable"
-            class="scale-switch"
-          ></v-switch>
-        </div>
-      </div>
-
-      <!-- 3. Scheda Unica Focalizzata sulla Settimana Selezionata (Spaziosa ed Estremamente Intuitiva) -->
-      <v-card class="focused-week-card rounded-2xl pa-5 mb-4 border text-left" elevation="2">
-        <!-- Titolo Settimana -->
-        <div class="mb-4">
-          <span class="text-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">LOG SCHEDA</span>
-          <h3 class="text-h6 font-weight-black text-slate-dark leading-tight mt-1">
-            Settimana {{ selectedWeek }}
-          </h3>
-        </div>
-
-        <!-- Success Banner se completata -->
-        <v-fade-transition>
-          <div v-if="isWeekCompleted(selectedWeek)" class="success-banner-spacious text-caption font-weight-bold mb-4 pa-3 rounded-xl d-flex align-center justify-center">
-            <v-icon size="16" color="green" class="mr-2">mdi-check-circle-outline</v-icon>
-            Settimana completata con successo! ⚡
-          </div>
-        </v-fade-transition>
-
-        <!-- STEP 1: REGISTRAZIONE ORE -->
-        <div class="step-container mb-5">
-          <div class="d-flex align-center justify-space-between mb-2.5">
-            <span class="text-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-              1. Registro Ore Sessione
-            </span>
-            <span class="text-super-caption text-green-lighten-2 font-weight-bold d-flex align-center" style="font-size: 0.58rem;">
-              <v-icon size="11" color="green" class="mr-1">mdi-cloud-check</v-icon>
-              Auto-save attivo
-            </span>
-          </div>
-          
-          <v-row dense class="mb-3 gap-2">
-            <!-- Record Start -->
-            <v-col cols="6" class="flex-grow-1">
-              <div class="d-flex flex-column text-center">
-                <v-btn
-                  :color="inputStart ? 'green-darken-3' : 'orange-darken-3'"
-                  variant="tonal"
-                  rounded="lg"
-                  class="font-weight-black text-none py-2 btn-quick-log"
-                  @click="registraInizioOra(selectedWeek)"
-                  height="44"
-                >
-                  <v-icon size="16" class="mr-1">mdi-play-circle-outline</v-icon>
-                  Inizio Wo
-                </v-btn>
-                <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputStart ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
-                  {{ inputStart ? formattaOraLeggibile(inputStart) : 'Non registrato' }}
-                </span>
-              </div>
-            </v-col>
-            
-            <!-- Record End -->
-            <v-col cols="6" class="flex-grow-1">
-              <div class="d-flex flex-column text-center">
-                <v-btn
-                  :color="inputEnd ? 'green-darken-3' : 'orange-darken-3'"
-                  variant="tonal"
-                  rounded="lg"
-                  class="font-weight-black text-none py-2 btn-quick-log"
-                  @click="registraFineOra(selectedWeek)"
-                  height="44"
-                  :disabled="!inputStart"
-                >
-                  <v-icon size="16" class="mr-1">mdi-stop-circle-outline</v-icon>
-                  Fine Wo
-                </v-btn>
-                <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputEnd ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
-                  {{ inputEnd ? formattaOraLeggibile(inputEnd) : 'Non registrato' }}
-                </span>
-              </div>
-            </v-col>
-          </v-row>
-
-          <!-- Durata stimata -->
-          <div class="text-caption font-weight-bold text-slate d-flex align-center mt-2 pl-1">
-            <v-icon size="14" color="grey" class="mr-1.5">mdi-timer-sand</v-icon>
-            Durata Calcolata: <span class="text-orange-lighten-2 ml-1 font-weight-black">{{ calcolaDurata(inputStart, inputEnd) }}</span>
-          </div>
-        </div>
-
-        <!-- STEP 2: NOTE E COMMENTI -->
-        <div class="step-container mb-5">
-          <div class="text-caption text-orange-lighten-2 font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-            2. Note & Commenti
-          </div>
-          <v-textarea
-            v-model="inputNote"
-            label="Note sull'allenamento..."
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            rows="1"
-            auto-grow
-            color="orange-darken-3"
-            prepend-inner-icon="mdi-pencil-outline"
-            class="notes-field-spacious"
-            @blur="salvaDato('ins_week' + selectedWeek, inputNote)"
-            hide-details
-          ></v-textarea>
-        </div>
-
-
-
-        <!-- Manual Adjustments -->
-        <div class="mt-4">
-          <div
-            class="d-flex align-center justify-space-between cursor-pointer py-2 px-3 rounded-lg manual-toggle bg-slate-900-op border-soft"
-            @click="mostraManuale = !mostraManuale"
-          >
-            <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem;">
-              {{ mostraManuale ? '✓ Nascondi Ora Manuale' : '⚙️ Regola Data/Ora Manualmente' }}
-            </span>
-            <v-icon size="12" color="grey">{{ mostraManuale ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-          </div>
-          
+          <!-- Card Body (Visibile solo se espansa) -->
           <v-expand-transition>
-            <div v-show="mostraManuale" class="mt-3 pt-3 border-top-soft">
-              <v-row dense>
-                <v-col cols="6">
-                  <v-text-field
-                    v-model="inputStart"
-                    type="datetime-local"
-                    label="Data/Ora Inizio"
-                    variant="outlined"
-                    density="compact"
-                    rounded="lg"
-                    color="orange-darken-3"
-                    @change="salvaDato(getStartField(selectedWeek), inputStart)"
-                    hide-details
-                    style="font-size: 0.8rem;"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="6">
-                  <v-text-field
-                    v-model="inputEnd"
-                    type="datetime-local"
-                    label="Data/Ora Fine"
-                    variant="outlined"
-                    density="compact"
-                    rounded="lg"
-                    color="orange-darken-3"
-                    @change="salvaDato(getEndField(selectedWeek), inputEnd)"
-                    hide-details
-                    style="font-size: 0.8rem;"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
+            <div v-show="selectedWeek === sett" class="pa-4 border-top-soft bg-slate-900-op">
+              
+              <!-- STEP 1: REGISTRAZIONE ORE -->
+              <div class="step-container mb-5">
+                <div class="d-flex align-center justify-space-between mb-2.5">
+                  <span class="text-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+                    1. Registro Ore Sessione
+                  </span>
+                  <span class="text-super-caption text-green-lighten-2 font-weight-bold d-flex align-center" style="font-size: 0.58rem;">
+                    <v-icon size="11" color="green" class="mr-1">mdi-cloud-check</v-icon>
+                    Auto-save attivo
+                  </span>
+                </div>
+                
+                <v-row dense class="mb-3 gap-2">
+                  <!-- Record Start -->
+                  <v-col cols="6" class="flex-grow-1">
+                    <div class="d-flex flex-column text-center">
+                      <v-btn
+                        :color="inputStart ? 'green-darken-3' : 'orange-darken-3'"
+                        variant="tonal"
+                        rounded="lg"
+                        class="font-weight-black text-none py-2 btn-quick-log"
+                        @click="registraInizioOra(sett)"
+                        height="44"
+                      >
+                        <v-icon size="16" class="mr-1">mdi-play-circle-outline</v-icon>
+                        Inizio Wo
+                      </v-btn>
+                      <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputStart ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
+                        {{ inputStart ? formattaOraLeggibile(inputStart) : 'Non registrato' }}
+                      </span>
+                    </div>
+                  </v-col>
+                  
+                  <!-- Record End -->
+                  <v-col cols="6" class="flex-grow-1">
+                    <div class="d-flex flex-column text-center">
+                      <v-btn
+                        :color="inputEnd ? 'green-darken-3' : 'orange-darken-3'"
+                        variant="tonal"
+                        rounded="lg"
+                        class="font-weight-black text-none py-2 btn-quick-log"
+                        @click="registraFineOra(sett)"
+                        height="44"
+                        :disabled="!inputStart"
+                      >
+                        <v-icon size="16" class="mr-1">mdi-stop-circle-outline</v-icon>
+                        Fine Wo
+                      </v-btn>
+                      <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputEnd ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
+                        {{ inputEnd ? formattaOraLeggibile(inputEnd) : 'Non registrato' }}
+                      </span>
+                    </div>
+                  </v-col>
+                </v-row>
+
+                <!-- Durata stimata -->
+                <div class="text-caption font-weight-bold text-slate d-flex align-center mt-2 pl-1">
+                  <v-icon size="14" color="grey" class="mr-1.5">mdi-timer-sand</v-icon>
+                  Durata Calcolata: <span class="text-orange-lighten-2 ml-1 font-weight-black">{{ calcolaDurata(inputStart, inputEnd) }}</span>
+                </div>
+              </div>
+
+              <!-- STEP 2: NOTE E COMMENTI -->
+              <div class="step-container mb-5">
+                <div class="text-caption text-orange-lighten-2 font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+                  2. Note & Commenti
+                </div>
+                <v-textarea
+                  v-model="inputNote"
+                  label="Note sull'allenamento..."
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  rows="1"
+                  auto-grow
+                  color="orange-darken-3"
+                  prepend-inner-icon="mdi-pencil-outline"
+                  class="notes-field-spacious"
+                  @blur="salvaDato('ins_week' + sett, inputNote)"
+                  hide-details
+                ></v-textarea>
+              </div>
+
+              <!-- Manual Adjustments -->
+              <div class="mt-4">
+                <div
+                  class="d-flex align-center justify-space-between cursor-pointer py-2 px-3 rounded-lg manual-toggle bg-slate-900 border-soft"
+                  @click="mostraManuale = !mostraManuale"
+                >
+                  <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem;">
+                    {{ mostraManuale ? '✓ Nascondi Ora Manuale' : '⚙️ Regola Data/Ora Manualmente' }}
+                  </span>
+                  <v-icon size="12" color="grey">{{ mostraManuale ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                </div>
+                
+                <v-expand-transition>
+                  <div v-show="mostraManuale" class="mt-3 pt-3 border-top-soft">
+                    <v-row dense>
+                      <v-col cols="6">
+                        <v-text-field
+                          v-model="inputStart"
+                          type="datetime-local"
+                          label="Data/Ora Inizio"
+                          variant="outlined"
+                          density="compact"
+                          rounded="lg"
+                          color="orange-darken-3"
+                          @change="salvaDato(getStartField(sett), inputStart)"
+                          hide-details
+                          style="font-size: 0.8rem;"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="6">
+                        <v-text-field
+                          v-model="inputEnd"
+                          type="datetime-local"
+                          label="Data/Ora Fine"
+                          variant="outlined"
+                          density="compact"
+                          rounded="lg"
+                          color="orange-darken-3"
+                          @change="salvaDato(getEndField(sett), inputEnd)"
+                          hide-details
+                          style="font-size: 0.8rem;"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </div>
+                </v-expand-transition>
+              </div>
+
             </div>
           </v-expand-transition>
-        </div>
-      </v-card>
+        </v-card>
+      </div>
 
       <!-- 4. Resoconto Durate & Coerenza (Spazioso ed elegante) -->
       <v-card class="premium-card rounded-2xl pa-4 text-left" elevation="2">
@@ -720,6 +719,28 @@ const formattaOraLeggibile = (datetimeStr) => {
   return datetimeStr;
 };
 
+// Genera una riga riassuntiva di durata e note per la card chiusa
+const getWeekSummaryLine = (w) => {
+  if (!workout.value) return '';
+  const start = workout.value[getStartField(w)];
+  const end = workout.value[getEndField(w)];
+  const note = workout.value['ins_week' + w];
+  
+  let parts = [];
+  if (start) {
+    const startStr = formattaOraLeggibile(start);
+    const endStr = end ? formattaOraLeggibile(end) : 'in corso';
+    const dur = calcolaDurata(start, end);
+    parts.push(`⏱️ ${startStr} - ${endStr} (${dur})`);
+  }
+  if (note && note.trim()) {
+    parts.push(`📝 ${note.substring(0, 45)}${note.length > 45 ? '...' : ''}`);
+  }
+  
+  return parts.join('  •  ');
+};
+
+
 const parsedRmt = (str) => {
   if (!str) return null;
   const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*)\s*1RMT?:\s*([\d,.]+)\s*KG\s*~([\d,.]+)(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
@@ -1000,6 +1021,28 @@ const tornaIndietro = () => {
   margin: 0 auto;
 }
 
+/* Stili per le schede espandibili delle settimane */
+.week-expandable-card {
+  background: rgba(15, 23, 42, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: hidden;
+}
+
+.week-expandable-card.card-expanded {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border-color: rgba(249, 115, 22, 0.35) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+}
+
+.week-expandable-card.card-completed-border {
+  border-color: rgba(0, 230, 118, 0.25) !important;
+}
+
+.week-expandable-card.card-active-border {
+  border-color: rgba(255, 145, 0, 0.25) !important;
+}
+
 .min-height-screen {
   min-height: calc(100vh - 100px);
 }
@@ -1055,103 +1098,8 @@ const tornaIndietro = () => {
   line-height: 1 !important;
 }
 
-/* Timeline Progress horizontal week selector */
-.timeline-container {
-  padding: 0 8px;
-}
-
-.timeline-connecting-line {
-  position: absolute;
-  top: 16px; /* center of a 32px node */
-  left: 24px;
-  right: 24px;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  z-index: 0;
-  border-radius: 2px;
-}
-
-.timeline-node-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 0.8rem;
-  border: 2px solid transparent;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #1e293b;
-  color: #cbd5e1;
-  z-index: 2;
-  cursor: pointer;
-}
-
-.timeline-node-btn:hover {
-  transform: scale(1.08);
-}
-
-.timeline-node-btn.node-selected {
-  border-color: #f97316 !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.22), 0 0 8px rgba(249, 115, 22, 0.45);
-  transform: scale(1.12);
-  color: #f97316 !important;
-  background: #1e293b !important;
-}
-
-.timeline-node-btn.node-completed {
-  background: #00e676 !important;
-  color: white !important;
-  border-color: #00e676 !important;
-  box-shadow: 0 0 5px rgba(0, 230, 118, 0.35);
-}
-
-.timeline-node-btn.node-completed.node-selected {
-  border-color: #f97316 !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25), 0 0 8px rgba(0, 230, 118, 0.5);
-  background: #00e676 !important;
-  color: white !important;
-}
-
-.timeline-node-btn.node-active {
-  background: #ff9100 !important;
-  color: white !important;
-  border-color: #ff9100 !important;
-  box-shadow: 0 0 8px rgba(255, 145, 0, 0.5);
-  animation: pulse-active-node 1.4s infinite alternate;
-}
-
-.timeline-node-btn.node-active.node-selected {
-  border-color: #f97316 !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25), 0 0 8px rgba(255, 145, 0, 0.7);
-  background: #ff9100 !important;
-  color: white !important;
-}
-
-.timeline-node-btn.node-pending {
-  background: #0f172a !important;
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  color: #64748b;
-}
-
-@keyframes pulse-active-node {
-  0% {
-    box-shadow: 0 0 3px rgba(255, 145, 0, 0.35);
-    transform: scale(0.96);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(255, 145, 0, 0.7);
-    transform: scale(1.04);
-  }
-}
-
 /* Focused Week Card */
-.focused-week-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(3, 7, 18, 0.85) 100%) !important;
-  border: 1px solid rgba(249, 115, 22, 0.15) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
-}
+
 
 .btn-quick-log {
   height: 44px !important;

@@ -121,19 +121,19 @@
         >
           <!-- Card Header (Sempre visibile, cliccabile) -->
           <div
-            class="pa-4 cursor-pointer d-flex align-center justify-space-between select-none"
+            class="pa-3 py-3.5 cursor-pointer d-flex align-center justify-space-between select-none"
             @click="selectedWeek = (selectedWeek === sett ? null : sett)"
           >
-            <div class="d-flex align-center min-width-0">
+            <div class="d-flex align-center min-width-0 flex-grow-1">
               <v-icon
                 :color="isWeekCompleted(sett) ? 'green-accent-4' : (sett === activeUncompletedWeek ? 'orange-darken-3' : 'grey-lighten-1')"
-                class="mr-3"
+                class="mr-3 flex-shrink-0"
                 size="20"
               >
                 {{ isWeekCompleted(sett) ? 'mdi-check-circle' : (sett === activeUncompletedWeek ? 'mdi-play-circle-outline' : 'mdi-circle-outline') }}
               </v-icon>
               
-              <div class="text-left min-width-0">
+              <div class="text-left min-width-0 flex-grow-1">
                 <div class="d-flex align-center flex-wrap gap-1.5">
                   <span class="font-weight-black text-subtitle-1 text-slate-dark" style="line-height: 1;">
                     Settimana {{ sett }}
@@ -143,7 +143,7 @@
                   <v-chip
                     :color="isWeekCompleted(sett) ? 'green-accent-4' : (sett === activeUncompletedWeek ? 'orange-darken-3' : 'grey-darken-2')"
                     size="x-small"
-                    class="font-weight-black text-white px-2"
+                    class="font-weight-black text-white px-2 flex-shrink-0"
                     variant="flat"
                     style="font-size: 0.55rem; height: 16px;"
                   >
@@ -156,7 +156,7 @@
                   <div
                     v-if="selectedWeek !== sett && getWeekSummaryLine(sett)"
                     class="text-super-caption text-muted font-weight-bold mt-1 text-truncate"
-                    style="font-size: 0.62rem;"
+                    style="font-size: 0.62rem; max-width: 100%;"
                   >
                     {{ getWeekSummaryLine(sett) }}
                   </div>
@@ -164,7 +164,7 @@
               </div>
             </div>
             
-            <div class="d-flex align-center">
+            <div class="d-flex align-center flex-shrink-0 ml-3">
               <!-- Switch di completamento rapido sempre accessibile dal header senza espandere! -->
               <v-switch
                 :model-value="isWeekCompleted(sett)"
@@ -172,11 +172,11 @@
                 color="green-accent-4"
                 hide-details
                 density="compact"
-                class="scale-switch mr-3"
+                class="scale-switch mr-2"
                 @click.stop
               ></v-switch>
               
-              <v-icon color="grey" size="18">
+              <v-icon color="grey" size="18" class="flex-shrink-0">
                 {{ selectedWeek === sett ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
               </v-icon>
             </div>
@@ -706,17 +706,15 @@ const registraFineOra = (w) => {
 // Formattazione data leggibile sotto i bottoni (DD/MM alle HH:MM)
 const formattaOraLeggibile = (datetimeStr) => {
   if (!datetimeStr) return '';
-  const parts = datetimeStr.split('T');
-  if (parts.length === 2) {
-    const datePart = parts[0];
-    const timePart = parts[1];
-    const dateSubparts = datePart.split('-');
-    if (dateSubparts.length === 3) {
-      return `${dateSubparts[2]}/${dateSubparts[1]} alle ${timePart}`;
-    }
-    return timePart;
-  }
-  return datetimeStr;
+  const dateObj = parseCustomDate(datetimeStr);
+  if (!dateObj) return datetimeStr;
+  
+  const gg = String(dateObj.getDate()).padStart(2, '0');
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const hh = String(dateObj.getHours()).padStart(2, '0');
+  const min = String(dateObj.getMinutes()).padStart(2, '0');
+  
+  return `${gg}/${mm} alle ${hh}:${min}`;
 };
 
 // Genera una riga riassuntiva di durata e note per la card chiusa
@@ -728,13 +726,45 @@ const getWeekSummaryLine = (w) => {
   
   let parts = [];
   if (start) {
-    const startStr = formattaOraLeggibile(start);
-    const endStr = end ? formattaOraLeggibile(end) : 'in corso';
-    const dur = calcolaDurata(start, end);
-    parts.push(`⏱️ ${startStr} - ${endStr} (${dur})`);
+    const dtStart = parseCustomDate(start);
+    const dtEnd = end ? parseCustomDate(end) : null;
+    
+    if (dtStart) {
+      const gg = String(dtStart.getDate()).padStart(2, '0');
+      const mm = String(dtStart.getMonth() + 1).padStart(2, '0');
+      const hhStart = String(dtStart.getHours()).padStart(2, '0');
+      const minStart = String(dtStart.getMinutes()).padStart(2, '0');
+      
+      let timeRange = '';
+      if (dtEnd) {
+        const hhEnd = String(dtEnd.getHours()).padStart(2, '0');
+        const minEnd = String(dtEnd.getMinutes()).padStart(2, '0');
+        
+        // Se è lo stesso giorno
+        if (dtStart.getDate() === dtEnd.getDate() && dtStart.getMonth() === dtEnd.getMonth()) {
+          timeRange = `${gg}/${mm} ore ${hhStart}:${minStart}-${hhEnd}:${minEnd}`;
+        } else {
+          timeRange = `${gg}/${mm} ${hhStart}:${minStart} - ${String(dtEnd.getDate()).padStart(2, '0')}/${String(dtEnd.getMonth() + 1).padStart(2, '0')} ${hhEnd}:${minEnd}`;
+        }
+      } else {
+        timeRange = `${gg}/${mm} ore ${hhStart}:${minStart} (in corso)`;
+      }
+      
+      const dur = calcolaDurata(start, end);
+      parts.push(`⏱️ ${timeRange} (${dur})`);
+    } else {
+      // Fallback
+      const startStr = formattaOraLeggibile(start);
+      const endStr = end ? formattaOraLeggibile(end) : 'in corso';
+      const dur = calcolaDurata(start, end);
+      parts.push(`⏱️ ${startStr} - ${endStr} (${dur})`);
+    }
   }
+  
   if (note && note.trim()) {
-    parts.push(`📝 ${note.substring(0, 45)}${note.length > 45 ? '...' : ''}`);
+    // Rimuove eventuali ritorni a capo per tenere la riga singola pulita
+    const cleanNote = note.replace(/\s+/g, ' ').trim();
+    parts.push(`📝 ${cleanNote.substring(0, 30)}${cleanNote.length > 30 ? '...' : ''}`);
   }
   
   return parts.join('  •  ');
@@ -1165,6 +1195,23 @@ const tornaIndietro = () => {
 .scale-switch {
   transform: scale(0.85);
   transform-origin: right center;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.scale-switch :deep(.v-input__control) {
+  min-height: unset !important;
+  height: 24px !important;
+}
+
+.scale-switch :deep(.v-selection-control) {
+  min-height: unset !important;
+  height: 24px !important;
 }
 
 .success-banner-spacious {

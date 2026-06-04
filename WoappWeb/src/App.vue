@@ -28,12 +28,11 @@
         icon
         color="red-darken-2"
         variant="flat"
-        size="small"
-        class="rounded-lg text-white"
+        class="rounded-lg text-white btn-logout-compact"
         @click="eseguiLogout"
         id="btn-logout"
       >
-        <v-icon>mdi-logout</v-icon>
+        <v-icon size="16">mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
     
@@ -210,6 +209,13 @@ const eseguiLogout = async () => {
 
 .border-bottom {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.btn-logout-compact {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
 }
 
 .premium-nav {

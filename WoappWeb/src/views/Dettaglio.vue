@@ -41,18 +41,6 @@
           <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>.
         </div>
       </v-card>
-
-      <!-- Avviso Esercizio Ripetuto -->
-      <v-card
-        v-if="workout && workout.num_coord_ex_wo_prec"
-        class="py-2.5 px-4 mb-3 text-left border d-flex align-center card-glass"
-        style="background: rgba(239, 68, 68, 0.08) !important; border: 1.5px solid rgba(239, 68, 68, 0.25) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.05); border-radius: 12px !important;"
-      >
-        <v-icon color="red-lighten-2" class="mr-3 flex-shrink-0" size="20">mdi-repeat</v-icon>
-        <div class="text-slate-dark" style="font-size: 0.75rem; line-height: 1.45;">
-          <strong class="text-red-lighten-2">Esercizio Ripetuto!</strong> Presente nella scheda precedente alla coordinata <strong class="text-white">{{ workout.num_coord_ex_wo_prec }}</strong>. Usa il tasto <strong class="text-white">PRECEDENTE</strong> sotto per vedere la progressione passata.
-        </div>
-      </v-card>
     </div>
 
     <!-- Swipe indicator hint -->
@@ -96,23 +84,13 @@
       <div class="mb-2 text-left">
         <h2 
           class="text-h6 font-weight-black leading-tight d-flex align-center flex-wrap gap-1" 
-          :class="workout.num_coord_ex_wo_prec ? 'text-red-lighten-2' : 'text-slate-dark'"
+          :class="previousWorkout ? 'text-red-lighten-2' : 'text-slate-dark'"
           style="font-size: 1.1rem; line-height: 1.2;"
         >
-          <v-icon :color="workout.num_coord_ex_wo_prec ? 'red-lighten-2' : 'orange-darken-3'" class="mr-1" size="18">
-            {{ workout.num_coord_ex_wo_prec ? 'mdi-repeat' : 'mdi-trophy-outline' }}
+          <v-icon :color="previousWorkout ? 'red-lighten-2' : 'orange-darken-3'" class="mr-1" size="18">
+            {{ previousWorkout ? 'mdi-repeat' : 'mdi-trophy-outline' }}
           </v-icon>
           {{ workout.des_esercizio }}
-          <v-chip 
-            v-if="workout.num_coord_ex_wo_prec" 
-            color="red-darken-3" 
-            size="x-small" 
-            class="font-weight-black text-white ml-2 animate-pulse-slow" 
-            variant="flat"
-            style="height: 18px; font-size: 0.55rem;"
-          >
-            RIPETUTO ({{ workout.num_coord_ex_wo_prec }})
-          </v-chip>
         </h2>
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
@@ -229,6 +207,7 @@
           <div class="d-flex align-center gap-2">
             <!-- Tasto PRECEDENTE -->
             <v-btn
+              v-if="previousWorkout"
               prepend-icon="mdi-arrow-left-bold-box-outline"
               variant="text"
               color="orange-darken-3"
@@ -856,24 +835,139 @@
               </span>
             </div>
 
-            <!-- Tabella delle 6 settimane -->
-            <div class="rounded-xl overflow-hidden border bg-slate-950">
-              <div class="d-flex align-center justify-space-between bg-slate-900 py-2 px-3 border-bottom text-super-caption font-weight-black text-muted uppercase" style="font-size: 0.6rem;">
-                <span class="flex-grow-1" style="min-width: 50px;">Settimana</span>
-                <span class="text-center" style="width: 140px;">Prescrizione</span>
-                <span class="text-right" style="width: 100px;">Carico Effettivo</span>
-              </div>
-              <div v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="d-flex align-center justify-space-between py-2 px-3 border-bottom text-caption font-weight-medium border-soft">
-                <span class="font-weight-black text-white flex-grow-1" style="min-width: 50px;">Week {{ w }}</span>
-                <span class="text-center text-slate text-truncate px-1" style="width: 140px; font-size: 0.72rem;">
-                  {{ previousWorkout['des_week' + w] || 'N.D.' }}
-                </span>
-                <span class="text-right font-weight-black text-orange-lighten-2" style="width: 100px;">
-                  {{ previousWorkout['ins_week' + w] ? previousWorkout['ins_week' + w] + ' KG' : '-' }}
-                  <span v-if="previousWorkout['reps_week' + w]" class="text-super-caption text-muted block" style="font-size: 0.58rem;">
-                    ({{ previousWorkout['reps_week' + w] }} reps)
+            <!-- Lista delle 6 settimane editabili -->
+            <div class="d-flex flex-column gap-3">
+              <div v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-3 text-left">
+                <div class="d-flex align-center justify-space-between mb-2">
+                  <span class="text-caption font-weight-black text-white uppercase">Week {{ w }}</span>
+                  <span class="text-super-caption text-orange-lighten-2 font-weight-bold uppercase text-right text-truncate px-1" style="font-size: 0.6rem; max-width: 70%;">
+                    Prescrizione: {{ previousWorkout['des_week' + w] || 'N.D.' }}
                   </span>
-                </span>
+                </div>
+                
+                <!-- Row per Carico e Ripetizioni -->
+                <v-row dense class="gap-2 justify-space-between">
+                  <v-col cols="6">
+                    <v-textarea
+                      v-model="inputSettimanePrecedente[w].ins"
+                      label="Carico (es. 45kg)"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      rounded="lg"
+                      rows="1"
+                      auto-grow
+                      color="orange-darken-3"
+                      class="custom-weight-input text-caption"
+                      @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
+                    ></v-textarea>
+                  </v-col>
+                  <v-col cols="6">
+                    <v-textarea
+                      v-model="inputSettimanePrecedente[w].reps"
+                      label="Ripetizioni"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      rounded="lg"
+                      rows="1"
+                      auto-grow
+                      color="orange-darken-3"
+                      class="custom-weight-input text-caption"
+                      @blur="salvaDatoSettimanalePrecedente(w, 'reps')"
+                    ></v-textarea>
+                  </v-col>
+                </v-row>
+
+                <!-- Campi Aggiuntivi per Week 6 -->
+                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%'))" class="mt-3 pt-3 border-top-soft">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <div>
+                      <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
+                    </div>
+                    
+                    <!-- Stepper per Miglior Carico W6 Precedente -->
+                    <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                      <v-btn
+                        icon
+                        size="x-small"
+                        variant="text"
+                        color="orange-lighten-2"
+                        @click="decrementaKgUnicoPrecedente"
+                      >
+                        <v-icon size="18">mdi-minus</v-icon>
+                      </v-btn>
+                      <input
+                        v-model="numIns6ValPrecedente"
+                        type="text"
+                        class="text-center font-weight-black text-white px-1"
+                        style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
+                        @blur="salvaKgUnicoPrecedente"
+                      />
+                      <v-btn
+                        icon
+                        size="x-small"
+                        variant="text"
+                        color="orange-lighten-2"
+                        @click="incrementaKgUnicoPrecedente"
+                      >
+                        <v-icon size="18">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
+
+                  <!-- Selettore Sforzo Percepito W6 Precedente -->
+                  <div class="text-left mt-2">
+                    <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.58rem;">Sforzo Percepito (W6)</span>
+                    <v-row dense class="gap-2 justify-space-between">
+                      <v-col cols="4">
+                        <v-btn
+                          block
+                          variant="flat"
+                          :color="numFaticaw6ValPrecedente === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
+                          size="x-small"
+                          rounded="lg"
+                          class="font-weight-black text-none"
+                          :class="{'text-white': numFaticaw6ValPrecedente === 'Media', 'text-slate': numFaticaw6ValPrecedente !== 'Media'}"
+                          style="font-size: 0.65rem; height: 26px;"
+                          @click="salvaFaticaPrecedente('Media')"
+                        >
+                          Media
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn
+                          block
+                          variant="flat"
+                          :color="numFaticaw6ValPrecedente === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
+                          size="x-small"
+                          rounded="lg"
+                          class="font-weight-black text-none"
+                          :class="{'text-white': numFaticaw6ValPrecedente === 'Pesante', 'text-slate': numFaticaw6ValPrecedente !== 'Pesante'}"
+                          style="font-size: 0.65rem; height: 26px;"
+                          @click="salvaFaticaPrecedente('Pesante')"
+                        >
+                          Pesante
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn
+                          block
+                          variant="flat"
+                          :color="numFaticaw6ValPrecedente === 'Devastante' ? 'red-darken-3' : 'grey-darken-3'"
+                          size="x-small"
+                          rounded="lg"
+                          class="font-weight-black text-none"
+                          :class="{'text-white': numFaticaw6ValPrecedente === 'Devastante', 'text-slate': numFaticaw6ValPrecedente !== 'Devastante'}"
+                          style="font-size: 0.65rem; height: 26px;"
+                          @click="salvaFaticaPrecedente('Devastante')"
+                        >
+                          Devastante
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -991,6 +1085,18 @@ const eliminandoEsercizio = ref(false);
 const caricandoStorico = ref(false);
 const storicoEsercizio = ref([]);
 const snackbarMessaggio = ref('');
+
+// Previous Workout Editing States
+const inputSettimanePrecedente = ref({
+  1: { ins: '', reps: '' },
+  2: { ins: '', reps: '' },
+  3: { ins: '', reps: '' },
+  4: { ins: '', reps: '' },
+  5: { ins: '', reps: '' },
+  6: { ins: '', reps: '' }
+});
+const numIns6ValPrecedente = ref('');
+const numFaticaw6ValPrecedente = ref('');
 
 // Blocco storico rimosso per modifiche sempre abilitate
 
@@ -1301,6 +1407,15 @@ const caricaEsercizioPrecedente = async () => {
         matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
         previousWorkout.value = applicaModificheLocali(matched[0]);
       }
+    }
+
+    if (previousWorkout.value) {
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = previousWorkout.value['ins_week' + w] || '';
+        inputSettimanePrecedente.value[w].reps = previousWorkout.value['reps_week' + w] || '';
+      }
+      numIns6ValPrecedente.value = previousWorkout.value.num_ins6 || '';
+      numFaticaw6ValPrecedente.value = previousWorkout.value.num_faticaw6 || '';
     }
   } catch (error) {
     console.error("Errore caricamento esercizio precedente:", error);
@@ -2085,6 +2200,103 @@ const salvaVotoFeeling = async (voto) => {
     indRepsStartVal.value = votoStr;
   }
   await salvaDatoGenerale('ind_reps_start', indRepsStartVal.value);
+};
+
+// Helper per aggiornare e salvare l'esercizio precedente su Firestore e offline storage
+const aggiornaDatoPrecedenteECommit = async (updates) => {
+  if (!previousWorkout.value) return;
+  try {
+    const docRef = doc(db, 'STORYBOARD', previousWorkout.value.id);
+    const timestamp = Date.now();
+    
+    // Aggiorna l'oggetto locale
+    previousWorkout.value = { ...previousWorkout.value, ...updates, timestamp };
+    
+    // Aggiorna l'offline storage
+    const key1 = `offline_storyboard_${previousWorkout.value.id}`;
+    const currentUpdates = JSON.parse(localStorage.getItem(key1) || '{}');
+    Object.assign(currentUpdates, updates, { timestamp });
+    localStorage.setItem(key1, JSON.stringify(currentUpdates));
+    
+    if (previousWorkout.value.num_riga) {
+      const key2 = `offline_storyboard_${previousWorkout.value.num_riga}`;
+      localStorage.setItem(key2, JSON.stringify(currentUpdates));
+    }
+
+    // Salva su Firestore
+    await updateDoc(docRef, { ...updates, timestamp });
+    
+    // Mostra feedback
+    snackbarMessaggio.value = "Modifica esercizio precedente salvata!";
+    snackbarSalvataggio.value = true;
+  } catch (error) {
+    console.error("Errore salvataggio esercizio precedente:", error);
+  }
+};
+
+const salvaDatoSettimanalePrecedente = async (settimana, tipo) => {
+  if (!previousWorkout.value) return;
+  const campo = `${tipo}_week${settimana}`;
+  const valoreOriginale = previousWorkout.value[campo] || '';
+  const valoreNuovo = inputSettimanePrecedente.value[settimana][tipo];
+
+  if (valoreOriginale !== valoreNuovo) {
+    const updates = { [campo]: valoreNuovo };
+    
+    // Auto-estrazione per la week 6 dell'esercizio precedente
+    if (settimana === 6 && tipo === 'ins' && valoreNuovo) {
+      const estratto = estraiNumeroMassimo(valoreNuovo);
+      if (estratto !== null) {
+        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
+        if (!numIns6ValPrecedente.value || (vecchioEstratto !== null && parseFloat(numIns6ValPrecedente.value) === vecchioEstratto)) {
+          numIns6ValPrecedente.value = String(estratto);
+          updates.num_ins6 = String(estratto);
+        }
+      }
+    }
+    
+    await aggiornaDatoPrecedenteECommit(updates);
+  }
+};
+
+const salvaDatoGeneralePrecedente = async (campo, valore) => {
+  if (!previousWorkout.value) return;
+  const valoreOriginale = previousWorkout.value[campo] || '';
+  if (valoreOriginale !== valore) {
+    await aggiornaDatoPrecedenteECommit({ [campo]: valore });
+  }
+};
+
+const salvaKgUnicoPrecedente = async () => {
+  await salvaDatoGeneralePrecedente('num_ins6', numIns6ValPrecedente.value);
+};
+
+const incrementaKgUnicoPrecedente = () => {
+  vibraTattile(10);
+  let current = parseKg(numIns6ValPrecedente.value);
+  current += 0.5;
+  numIns6ValPrecedente.value = String(current);
+  salvaKgUnicoPrecedente();
+};
+
+const decrementaKgUnicoPrecedente = () => {
+  vibraTattile(10);
+  let current = parseKg(numIns6ValPrecedente.value);
+  if (current > 0) {
+    current = Math.max(0, current - 0.5);
+    numIns6ValPrecedente.value = String(current);
+    salvaKgUnicoPrecedente();
+  }
+};
+
+const salvaFaticaPrecedente = async (fatica) => {
+  vibraTattile(15);
+  if (numFaticaw6ValPrecedente.value === fatica) {
+    numFaticaw6ValPrecedente.value = '';
+  } else {
+    numFaticaw6ValPrecedente.value = fatica;
+  }
+  await salvaDatoGeneralePrecedente('num_faticaw6', numFaticaw6ValPrecedente.value);
 };
 
 // Funzione WhatsApp (Aereo)

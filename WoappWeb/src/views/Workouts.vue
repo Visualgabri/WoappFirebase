@@ -496,19 +496,9 @@
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-                    <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="ex.num_coord_ex_wo_prec ? 'text-red-lighten-2' : 'text-slate-dark'">
-                      <v-icon v-if="ex.num_coord_ex_wo_prec" color="red-lighten-2" size="14">mdi-repeat</v-icon>
+                    <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="haEsercizioPrecedenteReale(ex) ? 'text-red-lighten-2' : 'text-slate-dark'">
+                      <v-icon v-if="haEsercizioPrecedenteReale(ex)" color="red-lighten-2" size="14">mdi-repeat</v-icon>
                       {{ ex.des_esercizio || 'Esercizio' }}
-                      <v-chip 
-                        v-if="ex.num_coord_ex_wo_prec" 
-                        color="red-darken-3" 
-                        size="x-small" 
-                        variant="flat" 
-                        class="font-weight-black px-1.5 py-0" 
-                        style="font-size: 0.5rem; height: 14px;"
-                      >
-                        {{ ex.num_coord_ex_wo_prec }}
-                      </v-chip>
                     </h4>
 
                     <!-- Settore e Emoji Sforzo -->
@@ -634,19 +624,9 @@
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-                <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="block.exercise.num_coord_ex_wo_prec ? 'text-red-lighten-2' : 'text-slate-dark'">
-                  <v-icon v-if="block.exercise.num_coord_ex_wo_prec" color="red-lighten-2" size="14">mdi-repeat</v-icon>
+                <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="haEsercizioPrecedenteReale(block.exercise) ? 'text-red-lighten-2' : 'text-slate-dark'">
+                  <v-icon v-if="haEsercizioPrecedenteReale(block.exercise)" color="red-lighten-2" size="14">mdi-repeat</v-icon>
                   {{ block.exercise.des_esercizio || 'Esercizio' }}
-                  <v-chip 
-                    v-if="block.exercise.num_coord_ex_wo_prec" 
-                    color="red-darken-3" 
-                    size="x-small" 
-                    variant="flat" 
-                    class="font-weight-black px-1.5 py-0" 
-                    style="font-size: 0.5rem; height: 14px;"
-                  >
-                    {{ block.exercise.num_coord_ex_wo_prec }}
-                  </v-chip>
                 </h4>
 
                 <!-- Settore e Emoji Sforzo -->
@@ -1237,6 +1217,30 @@ const caricamento = ref(true);
 const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
+const allExercisesBackup = ref([]);
+
+const haEsercizioPrecedenteReale = (ex) => {
+  if (!ex) return false;
+  if (!ex.num_coord_ex_wo_prec) return false;
+  
+  const nomeEx = String(ex.des_esercizio || '').trim().toLowerCase();
+  const currentNumScheda = parseInt(ex.num_scheda);
+  const keyIdCliente = Object.keys(ex).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  const atletaId = ex[keyIdCliente] || '';
+
+  if (!nomeEx || isNaN(currentNumScheda) || !atletaId) return false;
+
+  // Cerca nel backup se c'è un esercizio con lo stesso nome in una scheda precedente
+  const hasPast = allExercisesBackup.value.some(b => {
+    const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+    return String(bAtletaId) === String(atletaId) &&
+           String(b.des_esercizio || '').trim().toLowerCase() === nomeEx &&
+           parseInt(b.num_scheda) < currentNumScheda &&
+           parseInt(b.num_riga_giorno) > 0;
+  });
+
+  return hasPast;
+};
 
 const listaGiorniDisponibili = computed(() => {
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) {
@@ -1421,7 +1425,8 @@ const caricaAllenamenti = async () => {
   let backupList = [];
   try {
     const res = await fetch('/storyboard_backup.json');
-    backupList = await res.json();
+    allExercisesBackup.value = await res.json();
+    backupList = allExercisesBackup.value;
   } catch (errBackup) {
     console.warn("Impossibile caricare backup locale in anticipo:", errBackup);
   }

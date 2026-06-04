@@ -1,31 +1,46 @@
 <template>
   <v-container class="px-3 py-4 max-width-container bg-slate-50 min-height-screen pb-12">
-    <!-- Barra Superiore con pulsante indietro stile AppSheet -->
-    <div class="d-flex align-center justify-space-between mb-4 appsheet-top-bar">
-      <v-btn
-        icon
-        color="orange-darken-3"
-        variant="text"
-        @click="tornaIndietro"
-        id="btn-dettaglio-indietro"
-      >
-        <v-icon size="28">mdi-arrow-left</v-icon>
-      </v-btn>
-      <div class="d-flex align-center justify-center flex-grow-1 px-2 text-truncate" style="gap: 8px;">
-        <v-chip
-          v-if="workout?.num_riga_giorno"
+    <!-- Header Sticky Wrapper -->
+    <div class="sticky-detail-header">
+      <!-- Barra Superiore con pulsante indietro stile AppSheet -->
+      <div class="d-flex align-center justify-space-between mb-3 appsheet-top-bar">
+        <v-btn
+          icon
           color="orange-darken-3"
-          size="small"
-          class="font-weight-black text-white px-2 py-0.5 flex-shrink-0"
-          variant="flat"
+          variant="text"
+          @click="tornaIndietro"
+          id="btn-dettaglio-indietro"
         >
-          Es. {{ workout.num_riga_giorno }}
-        </v-chip>
-        <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
-          {{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
-        </h3>
+          <v-icon size="28">mdi-arrow-left</v-icon>
+        </v-btn>
+        <div class="d-flex align-center justify-center flex-grow-1 px-2 text-truncate" style="gap: 8px;">
+          <v-chip
+            v-if="workout?.num_riga_giorno"
+            color="orange-darken-3"
+            size="small"
+            class="font-weight-black text-white px-2 py-0.5 flex-shrink-0"
+            variant="flat"
+          >
+            Es. {{ workout.num_riga_giorno }}
+          </v-chip>
+          <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
+            {{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
+          </h3>
+        </div>
+        <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
-      <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
+
+      <!-- Avviso Giorno Completato -->
+      <v-card
+        v-if="workout && isWeekCompleted(settimanaAttiva)"
+        class="py-2.5 px-4 mb-3 text-left border d-flex align-center card-glass"
+        style="background: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid rgba(16, 185, 129, 0.25) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05); border-radius: 12px !important;"
+      >
+        <v-icon color="green-lighten-2" class="mr-3 flex-shrink-0" size="20">mdi-check-circle-outline</v-icon>
+        <div class="text-slate-dark" style="font-size: 0.75rem; line-height: 1.45;">
+          <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>.
+        </div>
+      </v-card>
     </div>
 
     <!-- Swipe indicator hint -->
@@ -48,18 +63,6 @@
 
     <!-- Contenuto Principale (Stile AppSheet verticale fedele) -->
     <div v-else class="exercise-detail-area">
-      
-      <!-- Avviso Giorno Completato -->
-      <v-card
-        v-if="isWeekCompleted(settimanaAttiva)"
-        class="py-2.5 px-4 mb-4 text-left border d-flex align-center card-glass"
-        style="background: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid rgba(16, 185, 129, 0.25) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05); border-radius: 12px !important;"
-      >
-        <v-icon color="green-lighten-2" class="mr-3 flex-shrink-0" size="20">mdi-check-circle-outline</v-icon>
-        <div class="text-slate-dark" style="font-size: 0.75rem; line-height: 1.45;">
-          <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>. I tuoi dati inseriti sono al sicuro.
-        </div>
-      </v-card>
 
       <!-- 1. Grande GIF dell'Esercizio in alto -->
       <v-card class="image-premium-frame rounded-xl overflow-hidden mb-3 elevation-2 bg-black mx-auto" max-width="280" height="150">
@@ -1864,6 +1867,16 @@ const tornaIndietro = () => {
 
 .min-height-screen {
   min-height: calc(100vh - 100px);
+}
+
+.sticky-detail-header {
+  position: sticky !important;
+  top: 0;
+  z-index: 100 !important;
+  background: #030712 !important; /* solid background matching body */
+  padding-top: 16px !important;
+  padding-bottom: 8px !important;
+  margin-top: -16px !important;
 }
 
 .appsheet-top-bar {

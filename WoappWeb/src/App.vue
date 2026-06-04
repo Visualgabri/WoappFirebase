@@ -6,10 +6,11 @@
       flat
       color="#0f172a"
       class="border-bottom px-4"
-      density="comfortable"
+      density="compact"
+      style="background-color: #0f172a !important; opacity: 1 !important; z-index: 1000 !important;"
     >
-      <v-app-bar-title class="font-weight-black text-slate-dark">
-        <v-icon color="orange-darken-3" class="mr-2">mdi-dumbbell</v-icon>
+      <v-app-bar-title class="font-weight-black text-slate-dark" style="font-size: 1.05rem !important;">
+        <v-icon color="orange-darken-3" class="mr-1.5" size="18">mdi-dumbbell</v-icon>
         FlexCoach<span class="orange-dot">.</span>
       </v-app-bar-title>
 

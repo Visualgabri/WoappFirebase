@@ -1871,7 +1871,7 @@ const tornaIndietro = () => {
 
 .sticky-detail-header {
   position: sticky !important;
-  top: 0;
+  top: 48px !important; /* sticks below the 48px height compact global app bar */
   z-index: 100 !important;
   background: #030712 !important; /* solid background matching body */
   padding-top: 16px !important;

@@ -43,7 +43,7 @@
       <!-- Sticky wrapper for the day selector tabs -->
       <div
         class="sticky-tabs-container mb-4"
-        :style="{ top: utente ? '56px' : '0px' }"
+        :style="{ top: utente ? '48px' : '0px' }"
       >
         <div 
           v-if="!caricamento && listaGiorniDisponibili.length > 0"

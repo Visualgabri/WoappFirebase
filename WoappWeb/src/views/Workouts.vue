@@ -397,23 +397,26 @@
             <!-- Informazioni RMT o Volumi se presenti -->
             <div v-if="headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft text-left d-flex align-center">
               <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
-                <div class="d-flex align-center flex-wrap gap-x-3 text-caption font-weight-bold">
-                  <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
-                  <span class="d-flex align-center mr-1" title="Volume Globale (V)">
-                    <v-icon size="14" color="grey-lighten-1" class="mr-1">mdi-dumbbell</v-icon>
-                    <span class="text-slate-dark">{{ parseVolumeString(headerGiorno.des_esercizio_2).v }}</span>
+                <div class="d-flex align-center flex-wrap gap-1.5">
+                  <span class="vol-pill vol-pill-total" title="Volume Globale (V)">
+                    <span class="mr-1">📊</span>
+                    <span class="vol-label">Vol</span>
+                    <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).v }}</span>
                   </span>
-                  <span class="d-flex align-center mr-1" title="Parte Alta / Upper Body (A)">
-                    <v-icon size="14" color="blue-lighten-2" class="mr-1">mdi-arm-flex</v-icon>
-                    <span class="text-blue-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).a }}</span>
+                  <span class="vol-pill vol-pill-upper" title="Parte Alta / Upper Body (A)">
+                    <span class="mr-1">💪</span>
+                    <span class="vol-label">Alta</span>
+                    <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).a }}</span>
                   </span>
-                  <span class="d-flex align-center mr-1" title="Parte Bassa / Lower Body (B)">
-                    <v-icon size="14" color="orange-lighten-2" class="mr-1">mdi-run</v-icon>
-                    <span class="text-orange-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).b }}</span>
+                  <span class="vol-pill vol-pill-lower" title="Parte Bassa / Lower Body (B)">
+                    <span class="mr-1">🦵</span>
+                    <span class="vol-label">Bassa</span>
+                    <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).b }}</span>
                   </span>
-                  <span v-if="parseFloat(parseVolumeString(headerGiorno.des_esercizio_2).c.replace(',', '.')) > 0" class="d-flex align-center" title="Core / Centro (C)">
-                    <v-icon size="14" color="green-lighten-2" class="mr-1">mdi-shield-half-full</v-icon>
-                    <span class="text-green-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).c }}</span>
+                  <span v-if="parseFloat(parseVolumeString(headerGiorno.des_esercizio_2).c.replace(',', '.')) > 0" class="vol-pill vol-pill-core" title="Core / Centro (C)">
+                    <span class="mr-1">🎯</span>
+                    <span class="vol-label">Core</span>
+                    <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).c }}</span>
                   </span>
                 </div>
               </template>
@@ -465,23 +468,26 @@
               <!-- Informazioni RMT o Volumi se presenti -->
               <div v-if="headerGiorno.des_esercizio_2" class="mt-1.5 d-flex align-center">
                 <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
-                  <div class="d-flex align-center flex-wrap gap-x-3 text-caption font-weight-bold">
-                    <v-icon size="14" color="grey" class="mr-1">mdi-chart-line</v-icon>
-                    <span class="d-flex align-center mr-1" title="Volume Globale (V)">
-                      <v-icon size="14" color="grey-lighten-1" class="mr-1">mdi-dumbbell</v-icon>
-                      <span class="text-slate-dark">{{ parseVolumeString(headerGiorno.des_esercizio_2).v }}</span>
+                  <div class="d-flex align-center flex-wrap gap-1.5">
+                    <span class="vol-pill vol-pill-total" title="Volume Globale (V)">
+                      <span class="mr-1">📊</span>
+                      <span class="vol-label">Vol</span>
+                      <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).v }}</span>
                     </span>
-                    <span class="d-flex align-center mr-1" title="Parte Alta / Upper Body (A)">
-                      <v-icon size="14" color="blue-lighten-2" class="mr-1">mdi-arm-flex</v-icon>
-                      <span class="text-blue-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).a }}</span>
+                    <span class="vol-pill vol-pill-upper" title="Parte Alta / Upper Body (A)">
+                      <span class="mr-1">💪</span>
+                      <span class="vol-label">Alta</span>
+                      <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).a }}</span>
                     </span>
-                    <span class="d-flex align-center mr-1" title="Parte Bassa / Lower Body (B)">
-                      <v-icon size="14" color="orange-lighten-2" class="mr-1">mdi-run</v-icon>
-                      <span class="text-orange-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).b }}</span>
+                    <span class="vol-pill vol-pill-lower" title="Parte Bassa / Lower Body (B)">
+                      <span class="mr-1">🦵</span>
+                      <span class="vol-label">Bassa</span>
+                      <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).b }}</span>
                     </span>
-                    <span v-if="parseFloat(parseVolumeString(headerGiorno.des_esercizio_2).c.replace(',', '.')) > 0" class="d-flex align-center" title="Core / Centro (C)">
-                      <v-icon size="14" color="green-lighten-2" class="mr-1">mdi-shield-half-full</v-icon>
-                      <span class="text-green-lighten-2">{{ parseVolumeString(headerGiorno.des_esercizio_2).c }}</span>
+                    <span v-if="parseFloat(parseVolumeString(headerGiorno.des_esercizio_2).c.replace(',', '.')) > 0" class="vol-pill vol-pill-core" title="Core / Centro (C)">
+                      <span class="mr-1">🎯</span>
+                      <span class="vol-label">Core</span>
+                      <span class="vol-val">{{ parseVolumeString(headerGiorno.des_esercizio_2).c }}</span>
                     </span>
                   </div>
                 </template>

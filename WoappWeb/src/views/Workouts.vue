@@ -755,6 +755,26 @@
             </div>
             <v-icon color="orange-darken-3" class="ml-2">mdi-chevron-right</v-icon>
           </div>
+
+          <!-- Progress Bar Session Energy (unificata visivamente) -->
+          <div class="mt-3 pt-2.5 border-top-soft text-left" @click.stop>
+            <div class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-grey-lighten-1 mb-1.5" style="font-size: 0.62rem; letter-spacing: 0.05em;">
+              <span>🔋 Avanzamento Allenamento</span>
+              <span class="text-orange-lighten-2">{{ progressoSessione.completate }} di {{ progressoSessione.totali }} serie completate • {{ progressoSessione.percentuale }}%</span>
+            </div>
+            <div class="session-progress-bar-container rounded-full overflow-hidden" style="height: 5px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.03);">
+              <div
+                class="session-progress-bar-fill rounded-full"
+                :style="{
+                  width: progressoSessione.percentuale + '%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #f97316, #ff8f00)',
+                  boxShadow: '0 0 10px rgba(249, 115, 22, 0.6)',
+                  transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                }"
+              ></div>
+            </div>
+          </div>
           </div>
 
           <!-- Sezione Esercizi della Sessione (unita visivamente) -->
@@ -1095,17 +1115,17 @@
           </template>
 
           <!-- Grande pulsante di completamento giorno in fondo alla lista -->
-          <div class="mt-6 mb-8 px-1">
+          <div class="mt-4 mb-4 px-1">
             <v-btn
               v-if="headerGiorno"
               block
-              size="large"
-              class="font-weight-black text-none rounded-xl elevation-2 py-3"
+              size="default"
+              class="font-weight-black text-none rounded-lg elevation-2"
               :color="isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'green-darken-3' : 'orange-darken-3'"
-              style="height: 52px;"
+              style="height: 42px;"
               @click.stop="toggleGiornoAttivoRapido"
             >
-              <v-icon class="mr-2" size="20">
+              <v-icon class="mr-2" size="18">
                 {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'mdi-check-circle' : 'mdi-check-all' }}
               </v-icon>
               {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'Giorno Completato (Riapri)' : 'Completa Giorno ' + giornoSelezionato }}
@@ -1789,6 +1809,45 @@ const blocchiEsercizi = computed(() => {
     }
   });
   return blocks;
+});
+
+// Progresso sessione per barra di avanzamento (Energy Bar)
+const progressoSessione = computed(() => {
+  if (!eserciziFiltrati.value || eserciziFiltrati.value.length === 0) {
+    return { completate: 0, totali: 0, percentuale: 0 };
+  }
+  
+  let totali = 0;
+  let completate = 0;
+  
+  eserciziFiltrati.value.forEach(ex => {
+    const prescrizione = ex['des_week' + settimanaAttivaGiorno.value] || ex.des_qta_report || '';
+    
+    // Estraiamo il numero di serie (es. "4x8" -> 4, "3/4x12" -> 3)
+    let sets = 3;
+    const match = String(prescrizione).trim().toLowerCase().match(/^(\d+)(?:\s*[-/]\s*\d+)?\s*[x*]/);
+    if (match) {
+      sets = parseInt(match[1]) || 3;
+    }
+    
+    totali += sets;
+    
+    const logVal = ex['ins_week' + settimanaAttivaGiorno.value] || '';
+    if (logVal && logVal.trim() !== '' && logVal.trim() !== '-') {
+      completate += sets;
+    }
+  });
+  
+  if (totali === 0) {
+    totali = eserciziFiltrati.value.length;
+    completate = eserciziFiltrati.value.filter(ex => {
+      const logVal = ex['ins_week' + settimanaAttivaGiorno.value] || '';
+      return logVal && logVal.trim() !== '' && logVal.trim() !== '-';
+    }).length;
+  }
+  
+  const percentuale = totali > 0 ? Math.round((completate / totali) * 100) : 0;
+  return { completate, totali, percentuale };
 });
 
 // Stato apertura/chiusura ordine esecuzione

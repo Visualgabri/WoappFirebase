@@ -17,11 +17,12 @@
           <v-chip
             v-if="workout?.num_riga_giorno"
             color="orange-darken-3"
-            size="small"
-            class="font-weight-black text-white px-2 py-0.5 flex-shrink-0"
+            size="x-small"
+            class="font-weight-black text-white px-1.5 py-0 flex-shrink-0"
             variant="flat"
+            style="min-width: 24px; height: 22px; font-size: 0.72rem;"
           >
-            Es. {{ workout.num_riga_giorno }}
+            {{ workout.num_riga_giorno }}
           </v-chip>
           <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
             {{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
@@ -340,7 +341,7 @@
                     {{ connEx.des_esercizio }}
                   </div>
                   <div class="text-super-caption text-orange-darken-3 font-weight-bold" style="font-size: 0.58rem;">
-                    {{ connEx.des_settore || 'Corpo Libero' }} • Pos. {{ connEx.num_riga_giorno }}
+                    {{ connEx.des_settore || 'Corpo Libero' }} • {{ formatPrescrizioneSuperset(connEx) }}
                     <span v-if="connEx.des_rec_report" class="text-amber-lighten-2 ml-1">⏱️ {{ connEx.des_rec_report }}</span>
                     <span v-else class="text-green-lighten-2 ml-1">⚡ No Pausa</span>
                   </div>
@@ -1297,6 +1298,30 @@ const eserciziSupersetCollegati = computed(() => {
     return !isCurrent;
   });
 });
+
+// Formatta la prescrizione sintetica di un esercizio collegato in superserie (serie x reps)
+const formatPrescrizioneSuperset = (connEx) => {
+  const w = settimanaAttiva.value;
+  const desWeek = connEx['des_week' + w] || connEx.des_qta_report || '';
+  if (!desWeek) return `Pos. ${connEx.num_riga_giorno}`;
+  
+  // Prova a parsare la prescrizione strutturata
+  const parsed = parsePrescription(desWeek);
+  if (parsed && parsed.reps) {
+    let result = parsed.reps;
+    if (parsed.total) {
+      result += ` @ ${parsed.total} kg`;
+    }
+    return result;
+  }
+  
+  // Fallback: mostra la stringa grezza abbreviata
+  const clean = desWeek.trim();
+  if (clean.length > 25) {
+    return clean.substring(0, 22) + '...';
+  }
+  return clean;
+};
 
 const vaiAdEsercizioCollegato = (id) => {
   vibraTattile(12);

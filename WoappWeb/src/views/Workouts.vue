@@ -171,13 +171,14 @@
 
         <transition :name="transitionName" mode="out-in">
           <div :key="giornoSelezionato" class="swipe-transition-wrapper">
-            <!-- Pannello Esercizi da Recuperare (Inbox) -->
+            <!-- Pannello Esercizi da Recuperare (Accordion per giorno) -->
             <v-expand-transition>
               <div v-if="eserciziDaRecuperare.length > 0" class="mb-6">
                 <v-card
                   class="pa-4 rounded-2xl border"
                   style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.1), rgba(249, 115, 22, 0.03)) !important; border: 1.5px solid rgba(249, 115, 22, 0.3) !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;"
                 >
+                  <!-- Header Globale -->
                   <div class="d-flex align-center justify-space-between mb-3">
                     <div class="d-flex align-center">
                       <v-icon color="orange-darken-3" class="mr-2 animate-pulse" size="20">mdi-sync</v-icon>
@@ -186,81 +187,151 @@
                       </span>
                     </div>
                     <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat">
-                      {{ eserciziDaRecuperare.length }} DA COMPLETARE
+                      {{ eserciziDaRecuperare.length }} TOTALI
                     </v-chip>
                   </div>
 
-                  <div class="d-flex flex-column gap-3">
-                    <v-card
-                      v-for="(recItem, idx) in eserciziDaRecuperare"
-                      :key="idx"
-                      class="pa-3 rounded-xl border-soft d-flex align-center bg-slate-900-op"
-                      flat
-                      style="border: 1px solid rgba(255, 255, 255, 0.05) !important;"
+                  <!-- Accordion per ogni giorno precedente -->
+                  <div class="d-flex flex-column gap-2">
+                    <div
+                      v-for="gruppo in recuperiRaggruppati"
+                      :key="gruppo.giorno"
+                      class="recupero-accordion-group rounded-xl overflow-hidden"
+                      style="border: 1px solid rgba(249, 115, 22, 0.15); background: rgba(0,0,0,0.15);"
                     >
-                      <!-- Thumbnail Miniatura -->
-                      <div class="mr-3 rounded-lg overflow-hidden flex-shrink-0" style="width: 52px; height: 52px; border: 1px solid rgba(255,255,255,0.08);">
-                        <v-img
-                          :src="getGifUrl(recItem.exercise.UrlNormal) || '/logo.png'"
-                          cover
-                          height="100%"
-                          width="100%"
-                        >
-                          <template v-slot:placeholder>
-                            <div class="fill-height d-flex align-center justify-center bg-slate-800">
-                              <v-icon color="grey" size="16">mdi-dumbbell</v-icon>
-                            </div>
-                          </template>
-                        </v-img>
-                      </div>
-
-                      <!-- Testo e controlli -->
-                      <div class="flex-grow-1 min-width-0 text-left">
-                        <div class="d-flex align-center justify-space-between flex-wrap gap-1">
-                          <h4 class="text-caption font-weight-black text-slate-dark text-truncate mr-2" style="font-size: 0.85rem !important;">
-                            {{ recItem.exercise.des_esercizio }}
-                          </h4>
-                          <v-chip size="x-small" color="orange-darken-3" variant="outlined" class="font-weight-bold uppercase" style="font-size: 0.55rem; height: 16px;">
-                            Giorno {{ recItem.exercise.des_giorno }} • W{{ recItem.week }}
-                          </v-chip>
-                        </div>
-
-                        <!-- Prescrizione e Info recupero -->
-                        <div class="text-super-caption text-muted mt-0.5">
-                          Target prescritto: {{ formattaPrescrizioneSemplice(recItem.prescription) }}
-                        </div>
-                        
-                        <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-super-caption text-orange-lighten-2 mt-0.5">
-                          Log parziale: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
-                        </div>
-
-                        <!-- Campo inserimento log e bottone completa -->
-                        <div class="d-flex align-center gap-2 mt-2">
-                          <v-text-field
-                            v-model="logRecuperi[recItem.exercise.id + '_' + recItem.week]"
-                            label="Scrivi peso o esecuzione..."
-                            variant="outlined"
-                            density="compact"
-                            hide-details
-                            rounded="lg"
-                            color="orange-darken-3"
-                            style="font-size: 0.72rem !important; height: 32px;"
-                            class="custom-compact-input flex-grow-1"
-                          ></v-text-field>
-                          <v-btn
-                            color="green-darken-3"
-                            size="small"
-                            variant="flat"
-                            class="font-weight-black text-none text-white rounded-lg"
-                            style="height: 32px;"
-                            @click.stop="concludiRecuperoTesto(recItem)"
+                      <!-- Accordion Header (sempre visibile) -->
+                      <div
+                        class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none"
+                        style="transition: background 0.2s;"
+                        @click="toggleRecuperoAccordion(gruppo.giorno)"
+                      >
+                        <div class="d-flex align-center">
+                          <div
+                            class="d-flex align-center justify-center rounded-lg mr-3 font-weight-black"
+                            style="width: 32px; height: 32px; background: rgba(249, 115, 22, 0.2); color: #fb923c; font-size: 0.95rem;"
                           >
-                            <v-icon size="16" class="mr-0.5">mdi-check</v-icon>
-                            Completa
-                          </v-btn>
+                            {{ gruppo.giorno }}
+                          </div>
+                          <div>
+                            <div class="text-caption font-weight-black text-slate-dark" style="font-size: 0.8rem !important;">
+                              Da Giorno {{ gruppo.giorno }}
+                            </div>
+                            <div class="text-super-caption text-muted" style="font-size: 0.65rem;">
+                              {{ gruppo.esercizi.length }} eserciz{{ gruppo.esercizi.length === 1 ? 'io' : 'i' }} da completare
+                            </div>
+                          </div>
+                        </div>
+                        <div class="d-flex align-center gap-2">
+                          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">
+                            {{ gruppo.esercizi.length }}
+                          </v-chip>
+                          <v-icon size="18" color="orange-lighten-2" :style="{ transform: recuperoAccordionAperto === gruppo.giorno ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
+                            mdi-chevron-down
+                          </v-icon>
                         </div>
                       </div>
-                    </v-card>
+
+                      <!-- Accordion Body (collassabile) -->
+                      <v-expand-transition>
+                        <div v-show="recuperoAccordionAperto === gruppo.giorno" class="px-3 pb-3">
+                          <!-- Coaching Tip -->
+                          <div class="d-flex align-center pa-2 mb-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border: 1px dashed rgba(249, 115, 22, 0.2);">
+                            <v-icon size="14" color="orange-lighten-1" class="mr-2 flex-shrink-0">mdi-lightbulb-outline</v-icon>
+                            <span class="text-super-caption text-orange-lighten-2" style="font-size: 0.62rem; line-height: 1.3;">
+                              Ordine consigliato: inserisci prima i <strong>multiarticolari</strong> (dopo i tuoi esercizi principali), poi l'<strong>isolamento</strong>, infine il <strong>core</strong>.
+                            </span>
+                          </div>
+
+                          <div class="d-flex flex-column gap-2">
+                            <v-card
+                              v-for="(recItem, idx) in gruppo.esercizi"
+                              :key="idx"
+                              class="pa-3 rounded-xl d-flex align-center"
+                              flat
+                              style="border: 1px solid rgba(255, 255, 255, 0.06) !important; background: rgba(15, 23, 42, 0.6) !important;"
+                            >
+                              <!-- Numero ordine + Thumbnail -->
+                              <div class="d-flex flex-column align-center mr-3 flex-shrink-0" style="gap: 3px;">
+                                <div
+                                  class="d-flex align-center justify-center rounded font-weight-black"
+                                  style="width: 20px; height: 20px; font-size: 0.6rem; background: rgba(249, 115, 22, 0.25); color: #fb923c;"
+                                >
+                                  {{ idx + 1 }}
+                                </div>
+                                <div class="rounded-lg overflow-hidden" style="width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.08);">
+                                  <v-img
+                                    :src="getGifUrl(recItem.exercise.UrlNormal) || '/logo.png'"
+                                    cover
+                                    height="100%"
+                                    width="100%"
+                                  >
+                                    <template v-slot:placeholder>
+                                      <div class="fill-height d-flex align-center justify-center" style="background: rgba(30,41,59,0.8);">
+                                        <v-icon color="grey" size="14">mdi-dumbbell</v-icon>
+                                      </div>
+                                    </template>
+                                  </v-img>
+                                </div>
+                              </div>
+
+                              <!-- Testo e controlli -->
+                              <div class="flex-grow-1 min-width-0 text-left">
+                                <div class="d-flex align-center justify-space-between flex-wrap gap-1">
+                                  <h4 class="text-caption font-weight-black text-slate-dark text-truncate mr-2" style="font-size: 0.82rem !important;">
+                                    {{ recItem.exercise.des_esercizio }}
+                                  </h4>
+                                  <div class="d-flex align-center gap-1">
+                                    <v-chip size="x-small" variant="flat" class="font-weight-bold px-1" style="font-size: 0.5rem; height: 15px;"
+                                      :color="recItem.complessita === 1 ? 'red-darken-3' : recItem.complessita === 2 ? 'orange-darken-3' : recItem.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
+                                    >
+                                      {{ labelComplessita(recItem.complessita) }}
+                                    </v-chip>
+                                    <v-chip size="x-small" color="orange-darken-3" variant="outlined" class="font-weight-bold" style="font-size: 0.55rem; height: 15px;">
+                                      W{{ recItem.week }}
+                                    </v-chip>
+                                  </div>
+                                </div>
+
+                                <!-- Prescrizione -->
+                                <div class="text-super-caption text-muted mt-0.5">
+                                  Target: {{ formattaPrescrizioneSemplice(recItem.prescrizione) }}
+                                </div>
+                                
+                                <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-super-caption text-orange-lighten-2 mt-0.5">
+                                  Log parziale: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
+                                </div>
+
+                                <!-- Campo inserimento log e bottone completa -->
+                                <div class="d-flex align-center gap-2 mt-2">
+                                  <v-text-field
+                                    v-model="logRecuperi[recItem.exercise.id + '_' + recItem.week]"
+                                    label="Peso o esecuzione..."
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details
+                                    rounded="lg"
+                                    color="orange-darken-3"
+                                    style="font-size: 0.72rem !important; height: 32px;"
+                                    class="custom-compact-input flex-grow-1"
+                                  ></v-text-field>
+                                  <v-btn
+                                    color="green-darken-3"
+                                    size="small"
+                                    variant="flat"
+                                    class="font-weight-black text-none text-white rounded-lg"
+                                    style="height: 32px;"
+                                    @click.stop="concludiRecuperoTesto(recItem)"
+                                  >
+                                    <v-icon size="16" class="mr-0.5">mdi-check</v-icon>
+                                    OK
+                                  </v-btn>
+                                </div>
+                              </div>
+                            </v-card>
+                          </div>
+                        </div>
+                      </v-expand-transition>
+                    </div>
                   </div>
                 </v-card>
               </div>
@@ -564,6 +635,128 @@
 
         <!-- Lista Esercizi con Miniature a Sinistra stile AppSheet (Raggruppati in Superserie se presenti) -->
         <div v-else class="exercise-list">
+
+          <!-- Ordine Esecuzione Proposto (Auto-generato con Recuperi integrati) -->
+          <v-card
+            v-if="ordineEsecuzioneCompleto.length > 0"
+            class="pa-3 rounded-xl mb-4 border elevation-1"
+            style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7)) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important;"
+          >
+            <div
+              class="d-flex align-center justify-space-between cursor-pointer select-none"
+              @click="ordineEsecuzioneAperto = !ordineEsecuzioneAperto"
+            >
+              <div class="d-flex align-center">
+                <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-format-list-numbered</v-icon>
+                <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.78rem !important; letter-spacing: 0.03em;">
+                  ORDINE ESECUZIONE
+                </span>
+                <v-chip
+                  v-if="eserciziDaRecuperare.length > 0"
+                  color="orange-darken-3"
+                  size="x-small"
+                  class="ml-2 font-weight-black text-white px-1.5"
+                  variant="flat"
+                  style="font-size: 0.5rem; height: 16px;"
+                >
+                  +{{ eserciziDaRecuperare.length }} RECUPERI
+                </v-chip>
+              </div>
+              <div class="d-flex align-center gap-1">
+                <v-chip
+                  color="grey-darken-1"
+                  size="x-small"
+                  variant="tonal"
+                  class="font-weight-black px-1.5"
+                  style="font-size: 0.5rem; height: 16px;"
+                >
+                  {{ ordineEsecuzioneCompleto.length }} TOT
+                </v-chip>
+                <v-icon size="16" color="orange-lighten-2" :style="{ transform: ordineEsecuzioneAperto ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
+                  mdi-chevron-down
+                </v-icon>
+              </div>
+            </div>
+
+            <v-expand-transition>
+              <div v-show="ordineEsecuzioneAperto" class="mt-3">
+                <div class="d-flex flex-column gap-1">
+                  <div
+                    v-for="(item, idx) in ordineEsecuzioneCompleto"
+                    :key="'ord-' + idx"
+                    class="d-flex align-center py-1.5 px-2 rounded-lg cursor-pointer"
+                    :style="{
+                      background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                      border: item.tipo === 'recupero' ? '1px solid rgba(249, 115, 22, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)',
+                    }"
+                    @click="item.id ? vaiAlDettaglio(item.id) : null"
+                  >
+                    <!-- Numero ordine -->
+                    <div
+                      class="d-flex align-center justify-center rounded font-weight-black flex-shrink-0 mr-2.5"
+                      :style="{
+                        width: '22px',
+                        height: '22px',
+                        fontSize: '0.62rem',
+                        background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(255, 255, 255, 0.08)',
+                        color: item.tipo === 'recupero' ? '#fb923c' : '#94a3b8',
+                      }"
+                    >
+                      {{ idx + 1 }}
+                    </div>
+
+                    <!-- Info Esercizio -->
+                    <div class="flex-grow-1 min-width-0">
+                      <div class="d-flex align-center gap-1">
+                        <span class="text-caption font-weight-bold text-truncate" :class="item.tipo === 'recupero' ? 'text-orange-lighten-2' : 'text-slate-dark'" style="font-size: 0.72rem !important;">
+                          {{ item.nome }}
+                        </span>
+                        <v-chip
+                          v-if="item.tipo === 'recupero'"
+                          color="orange-darken-3"
+                          size="x-small"
+                          variant="flat"
+                          class="font-weight-black text-white flex-shrink-0"
+                          style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
+                        >
+                          🔁 REC
+                        </v-chip>
+                        <v-chip
+                          v-if="item.superserie"
+                          color="amber-darken-3"
+                          size="x-small"
+                          variant="tonal"
+                          class="font-weight-black flex-shrink-0"
+                          style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
+                        >
+                          ⚡ {{ item.superserie }}
+                        </v-chip>
+                      </div>
+                      <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.55rem;">
+                        {{ item.settore }}
+                        <span v-if="item.prescrizione" class="text-slate ml-0.5">• {{ item.prescrizione }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Status -->
+                    <v-icon
+                      v-if="item.completato"
+                      size="14"
+                      color="green-accent-4"
+                      class="flex-shrink-0 ml-1"
+                    >mdi-check-circle</v-icon>
+                    <v-icon
+                      v-else
+                      size="14"
+                      color="grey-darken-1"
+                      class="flex-shrink-0 ml-1"
+                      style="opacity: 0.4;"
+                    >mdi-circle-outline</v-icon>
+                  </div>
+                </div>
+              </div>
+            </v-expand-transition>
+          </v-card>
           <template v-for="(block, bIdx) in blocchiEsercizi" :key="bIdx">
             
             <!-- CASO 1: GRUPPO SUPERSET (SUPERSERIE) -->
@@ -1586,6 +1779,73 @@ const blocchiEsercizi = computed(() => {
   return blocks;
 });
 
+// Stato apertura/chiusura ordine esecuzione
+const ordineEsecuzioneAperto = ref(false);
+
+// Ordine completo esecuzione proposto: esercizi del giorno + recuperi integrati
+const ordineEsecuzioneCompleto = computed(() => {
+  if (eserciziFiltrati.value.length === 0) return [];
+  
+  const w = settimanaAttivaGiorno.value;
+  const lista = [];
+  
+  // 1. Aggiungi tutti gli esercizi del giorno corrente
+  eserciziFiltrati.value.forEach((ex) => {
+    const val = ex['ins_week' + w] || '';
+    const completato = val && val.trim() !== '' && !haRecupero(val);
+    const prescrizione = formattaPrescrizioneSemplice(ex['des_week' + w]) || ex.des_qta_report || '';
+    const ss = (ex.alf_superserie || '').trim().toUpperCase();
+    
+    lista.push({
+      id: ex.id,
+      nome: ex.des_esercizio || 'Esercizio',
+      settore: ex.des_settore || 'Corpo Libero',
+      prescrizione: prescrizione,
+      tipo: 'giorno',
+      completato,
+      superserie: ss || null,
+      complessita: classificaComplessitaEsercizio(ex.des_esercizio),
+    });
+  });
+  
+  // 2. Aggiungi gli esercizi da recuperare (da giorni precedenti), in ordine di complessità
+  if (eserciziDaRecuperare.value.length > 0) {
+    const recuperiOrdinati = [...eserciziDaRecuperare.value]
+      .map(item => {
+        const complessita = classificaComplessitaEsercizio(item.exercise.des_esercizio);
+        const prescrizione = formattaPrescrizioneSemplice(item.prescrizione) || '';
+        return {
+          id: item.exercise.id,
+          nome: item.exercise.des_esercizio || 'Esercizio',
+          settore: item.exercise.des_settore || 'Corpo Libero',
+          prescrizione: prescrizione,
+          tipo: 'recupero',
+          completato: false,
+          superserie: null,
+          complessita,
+          weekRecupero: item.week,
+        };
+      })
+      .sort((a, b) => a.complessita - b.complessita);
+    
+    // Inserimento intelligente: i compound vanno subito dopo gli esercizi principali del giorno,
+    // isolamento dopo l'isolamento, core alla fine
+    recuperiOrdinati.forEach(rec => {
+      // Trova la posizione giusta: dopo l'ultimo esercizio del giorno con complessità <= alla rec
+      let insertIdx = lista.length;
+      for (let i = lista.length - 1; i >= 0; i--) {
+        if (lista[i].complessita <= rec.complessita) {
+          insertIdx = i + 1;
+          break;
+        }
+      }
+      lista.splice(insertIdx, 0, rec);
+    });
+  }
+  
+  return lista;
+});
+
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
 
@@ -2444,6 +2704,11 @@ const ripristinaMesociclo = async () => {
 // --- LOGICA DI RECUPERO E COMPLETAMENTO ESERCIZI (COMBINAZIONE A+B) ---
 const dialogRecuperiAvviso = ref(false);
 const logRecuperi = ref({});
+const recuperoAccordionAperto = ref(null);
+
+const toggleRecuperoAccordion = (giorno) => {
+  recuperoAccordionAperto.value = recuperoAccordionAperto.value === giorno ? null : giorno;
+};
 
 const haRecupero = (val) => {
   if (!val) return false;
@@ -2566,6 +2831,18 @@ const concludiRecuperoTesto = async (recItem) => {
 const eserciziDaRecuperare = computed(() => {
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return [];
   
+  const giornoCorrente = (giornoSelezionato.value || '').trim().toUpperCase();
+  if (!giornoCorrente) return [];
+  
+  // Determina i giorni precedenti a quello selezionato
+  // Ordine: A, B, C, D, E, F, G, H, ...
+  const giorniOrdinati = listaGiorniDisponibili.value.map(g => g.toUpperCase());
+  const idxCorrente = giorniOrdinati.indexOf(giornoCorrente);
+  if (idxCorrente <= 0) return []; // Se è il primo giorno (A), non ci sono giorni precedenti
+  
+  // Tutti i giorni prima di quello selezionato
+  const giorniPrecedenti = new Set(giorniOrdinati.slice(0, idxCorrente));
+  
   const list = [];
   
   const headersMap = {};
@@ -2580,6 +2857,10 @@ const eserciziDaRecuperare = computed(() => {
     if (parseInt(ex.num_riga_giorno) === 0) return;
     
     const giornoEx = (ex.des_giorno || '').trim().toUpperCase();
+    
+    // Mostra solo esercizi da recuperare dei giorni PRECEDENTI a quello selezionato
+    if (!giorniPrecedenti.has(giornoEx)) return;
+    
     const header = headersMap[giornoEx];
     if (!header) return;
     
@@ -2593,7 +2874,7 @@ const eserciziDaRecuperare = computed(() => {
           list.push({
             exercise: ex,
             week: w,
-            prescription,
+            prescrizione,
             originalVal: val
           });
         }
@@ -2602,6 +2883,81 @@ const eserciziDaRecuperare = computed(() => {
   });
   
   return list;
+});
+
+// Classificazione complessità esercizi per ordinamento intelligente
+// Priorità: 1 = Multiarticolari pesanti (alto impatto SNC) → 2 = Multiarticolari leggeri → 3 = Isolamento → 4 = Core/Stabilità
+const classificaComplessitaEsercizio = (nomeEsercizio) => {
+  const nome = (nomeEsercizio || '').toLowerCase();
+  
+  // 1 — Multiarticolari pesanti (alto impatto SNC, eseguire per primi)
+  const compound_heavy = [
+    'squat', 'stacco', 'deadlift', 'panca piana', 'bench press',
+    'military press', 'overhead press', 'pressa', 'leg press',
+    'distensioni', 'trazioni', 'pull-up', 'chin-up', 'pullup',
+    'rematore', 'row', 'hip thrust', 'clean', 'snatch', 'jerk',
+    'good morning', 'front squat', 'back squat', 'bulgaro',
+    'affondi', 'lunge', 'dip', 'muscle up'
+  ];
+  
+  // 2 — Multiarticolari leggeri / accessori compound
+  const compound_light = [
+    'lat machine', 'lat pull', 'pulldown', 'cable row',
+    'chest press', 'shoulder press', 'push up', 'piegamenti',
+    'leg curl', 'leg extension', 'hack squat', 'step up',
+    'tirata', 'alzate', 'remata', 'pulley', 'seated row',
+    'incline', 'decline', 't-bar', 'pendlay'
+  ];
+  
+  // 4 — Core e stabilità (eseguire per ultimi)
+  const core = [
+    'plank', 'crunch', 'addominali', 'obliqui', 'core',
+    'sit up', 'sit-up', 'russian twist', 'hollow', 'ab wheel',
+    'woodchop', 'pallof', 'bird dog', 'dead bug', 'superman',
+    'hyperextension', 'iperestensioni', 'back extension'
+  ];
+  
+  if (compound_heavy.some(kw => nome.includes(kw))) return 1;
+  if (compound_light.some(kw => nome.includes(kw))) return 2;
+  if (core.some(kw => nome.includes(kw))) return 4;
+  return 3; // Default: isolamento / accessorio
+};
+
+const labelComplessita = (livello) => {
+  switch (livello) {
+    case 1: return '🔴 Alta intensità SNC';
+    case 2: return '🟠 Compound accessorio';
+    case 3: return '🟡 Isolamento';
+    case 4: return '🟢 Core / Stabilità';
+    default: return '';
+  }
+};
+
+// Raggruppa gli esercizi da recuperare per giorno di origine
+const recuperiRaggruppati = computed(() => {
+  const grouped = {};
+  eserciziDaRecuperare.value.forEach(item => {
+    const g = (item.exercise.des_giorno || '').trim().toUpperCase();
+    if (!grouped[g]) {
+      grouped[g] = { giorno: g, esercizi: [] };
+    }
+    // Aggiungi livello di complessità per ordinamento
+    const complessita = classificaComplessitaEsercizio(item.exercise.des_esercizio);
+    grouped[g].esercizi.push({ ...item, complessita });
+  });
+  
+  // Ordina per giorno, e dentro ogni giorno ordina per complessità (compound first → core last)
+  const result = Object.values(grouped).sort((a, b) => a.giorno.localeCompare(b.giorno));
+  result.forEach(gruppo => {
+    gruppo.esercizi.sort((a, b) => a.complessita - b.complessita);
+  });
+  
+  // Se l'accordion aperto non esiste più (esercizi completati), resetta a null
+  if (recuperoAccordionAperto.value && !grouped[recuperoAccordionAperto.value]) {
+    recuperoAccordionAperto.value = null;
+  }
+  
+  return result;
 });
 </script>
 

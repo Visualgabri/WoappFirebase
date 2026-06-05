@@ -82,12 +82,13 @@
           color="orange-darken-3"
           align-tabs="center"
           grow
+          hide-slider
           class="card-glass rounded-xl elevation-1"
           @update:model-value="salvaGiornoSelezionato"
-          style="height: 56px;"
+          style="height: 62px;"
         >
-          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="px-2" style="height: 56px;">
-            <div class="d-flex flex-column align-center justify-center py-1">
+          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="px-2" style="height: 62px;">
+            <div class="d-flex flex-column align-center justify-center py-1 w-100">
               <div class="d-flex align-center">
                 <span class="font-weight-black text-h6" style="line-height: 1.1;">{{ giorno }}</span>
                 <v-icon
@@ -114,6 +115,18 @@
               >
                 {{ ultimoChiusoPerGiorno(giorno) }}
               </span>
+              <!-- Mini barra di avanzamento del giorno -->
+              <div class="day-tab-progress-bg mt-1" style="width: 75%; height: 3px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden;">
+                <div 
+                  class="day-tab-progress-fill"
+                  :style="{ 
+                    width: getProgressoGiorno(giorno).percentuale + '%', 
+                    height: '100%', 
+                    background: getProgressoGiorno(giorno).percentuale === 100 ? 'linear-gradient(90deg, #4ade80, #22c55e)' : 'linear-gradient(90deg, #f97316, #ff8f00)',
+                    transition: 'width 0.3s ease'
+                  }"
+                ></div>
+              </div>
             </div>
           </v-tab>
         </v-tabs>
@@ -1856,6 +1869,48 @@ const progressoSessione = computed(() => {
   const percentuale = totali > 0 ? Math.round((completate / totali) * 100) : 0;
   return { completate, totali, percentuale };
 });
+
+const getProgressoGiorno = (g) => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) {
+    return { completate: 0, totali: 0, percentuale: 0 };
+  }
+  
+  const exercises = listaAllenamenti.value.filter(
+    item => (item.des_giorno || '').trim().toUpperCase() === g.trim().toUpperCase() && parseInt(item.num_riga_giorno) > 0
+  );
+  if (exercises.length === 0) return { completate: 0, totali: 0, percentuale: 0 };
+  
+  let totali = 0;
+  let completate = 0;
+  const w = settimanaAttiva.value;
+  
+  exercises.forEach(ex => {
+    const prescrizione = ex['des_week' + w] || ex.des_qta_report || '';
+    let sets = 3;
+    const match = String(prescrizione).trim().toLowerCase().match(/^(\d+)(?:\s*[-/]\s*\d+)?\s*[x*]/);
+    if (match) {
+      sets = parseInt(match[1]) || 3;
+    }
+    
+    totali += sets;
+    const logVal = ex['ins_week' + w] || '';
+    if (logVal && logVal.trim() !== '' && logVal.trim() !== '-') {
+      completate += sets;
+    }
+  });
+  
+  if (totali === 0) {
+    totali = exercises.length;
+    completate = exercises.filter(ex => {
+      const logVal = ex['ins_week' + w] || '';
+      return logVal && logVal.trim() !== '' && logVal.trim() !== '-';
+    }).length;
+  }
+  
+  const percentuale = totali > 0 ? Math.round((completate / totali) * 100) : 0;
+  return { completate, totali, percentuale };
+};
+
 
 const getSettorePrincipale = (s) => {
   if (!s) return 'Altro';

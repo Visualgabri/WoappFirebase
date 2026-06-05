@@ -194,12 +194,12 @@
                   <!-- Header Globale -->
                   <div class="d-flex align-center justify-space-between mb-3">
                     <div class="d-flex align-center">
-                      <v-icon color="orange-darken-3" class="mr-2 animate-pulse" size="20">mdi-sync</v-icon>
-                      <span class="text-subtitle-2 font-weight-black text-orange-lighten-2" style="letter-spacing: 0.05em;">
+                      <v-icon color="orange-darken-3" class="mr-1.5 animate-pulse" size="14">mdi-sync</v-icon>
+                      <span class="font-weight-black text-orange-lighten-2" style="letter-spacing: 0.03em; font-size: 0.72rem !important;">
                         🔁 ESERCIZI DA RECUPERARE
                       </span>
                     </div>
-                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat">
+                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat" style="height: 18px; font-size: 0.58rem;">
                       {{ eserciziDaRecuperare.length }} TOTALI
                     </v-chip>
                   </div>
@@ -324,18 +324,18 @@
                                     hide-details
                                     rounded="lg"
                                     color="orange-darken-3"
-                                    style="font-size: 0.72rem !important; height: 32px;"
-                                    class="custom-compact-input flex-grow-1"
+                                    style="font-size: 0.68rem !important; height: 26px;"
+                                    class="recovery-compact-input flex-grow-1"
                                   ></v-text-field>
                                   <v-btn
                                     color="green-darken-3"
-                                    size="small"
+                                    size="x-small"
                                     variant="flat"
-                                    class="font-weight-black text-none text-white rounded-lg"
-                                    style="height: 32px;"
+                                    class="font-weight-black text-none text-white rounded-lg px-2"
+                                    style="height: 26px; font-size: 0.68rem !important; min-width: 44px;"
                                     @click.stop="concludiRecuperoTesto(recItem)"
                                   >
-                                    <v-icon size="16" class="mr-0.5">mdi-check</v-icon>
+                                    <v-icon size="12" class="mr-0.5">mdi-check</v-icon>
                                     OK
                                   </v-btn>
                                 </div>

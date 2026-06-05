@@ -265,12 +265,12 @@ export const ORDINE_ORIGINALE_ATLETI = [
 
 // Mappa statica anagrafica clienti del foglio Google originario
 export const MAPPA_CLIENTI = {
-  '1': { nome: 'Gabriele', cognome: 'Belmonte', email: 'visualgabri@gmail.com', scheda: 49, vista: false, obsoleto: false },
+  '1': { nome: 'Gabriele', cognome: 'Belmonte', email: 'visualgabri@gmail.com', scheda: 49, vista: false, obsoleto: false, stileStorico: 'timeline', modalitaSettimane: 'fissa' },
   '57': { nome: 'Jessica', cognome: 'Carletti', email: 'Jessica.carletti89@gmail.com', scheda: 36, vista: false, obsoleto: false },
   '93': { nome: 'Tiziano', cognome: 'Passetti', email: 'tizypass@gmail.com', scheda: 55, vista: null, obsoleto: false },
   '186': { nome: 'Jenny', cognome: 'Pichini', email: 'Pichinijenny@gmail.com', scheda: 14, vista: true, obsoleto: true },
   '219': { nome: 'Chiara', cognome: 'Lazzarini', email: 'chiara.lazzarini15@hotmail.com', scheda: 12, vista: true, obsoleto: true },
-  '125': { nome: 'Carla', cognome: 'Leone', email: 'carlaleone59@gmail.com', scheda: 45, vista: true, obsoleto: false },
+  '125': { nome: 'Carla', cognome: 'Leone', email: 'carlaleone59@gmail.com', scheda: 45, vista: true, obsoleto: false, stileStorico: 'tabella', modalitaSettimane: 'dinamica' },
   '188': { nome: 'Gabriele', cognome: 'Cappelli', email: 'gabrielecappelli290723@gmail.com', scheda: 29, vista: false, obsoleto: false },
   '232': { nome: 'Damiano', cognome: 'Rossi', email: 'damianorossi6@gmail.com', scheda: 23, vista: false, obsoleto: false },
   '193': { nome: 'Giulietta', cognome: 'Bernareggi', email: 'giuli@intercom.it', scheda: 23, vista: null, obsoleto: false },
@@ -327,4 +327,14 @@ export const getSchedaSelezionataAtleta = (id) => {
 export const getVistaDettagliAtleta = (id) => {
   const cleanId = String(id || '').trim();
   return !!MAPPA_CLIENTI[cleanId]?.vista;
+};
+
+export const getStileStoricoAtleta = (id) => {
+  const cleanId = String(id || '').trim();
+  return MAPPA_CLIENTI[cleanId]?.stileStorico || 'tabella'; // Default a tabella
+};
+
+export const getModalitaSettimaneAtleta = (id) => {
+  const cleanId = String(id || '').trim();
+  return MAPPA_CLIENTI[cleanId]?.modalitaSettimane || 'dinamica'; // Default a dinamica
 };

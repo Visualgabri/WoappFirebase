@@ -9,9 +9,16 @@
       density="compact"
       style="background-color: #0f172a !important; opacity: 1 !important; z-index: 1000 !important;"
     >
-      <v-app-bar-title class="font-weight-black text-slate-dark" style="font-size: 1.05rem !important;">
-        <v-icon color="orange-darken-3" class="mr-1.5" size="18">mdi-dumbbell</v-icon>
-        FlexCoach<span class="orange-dot">.</span>
+      <v-app-bar-title class="text-slate-dark" style="line-height: 1.15;">
+        <div class="d-flex flex-column text-left">
+          <div class="font-weight-black d-flex align-center" style="font-size: 1.05rem !important; line-height: 1.1;">
+            <v-icon color="orange-darken-3" class="mr-1.5" size="18">mdi-dumbbell</v-icon>
+            FlexCoach<span class="orange-dot">.</span>
+          </div>
+          <div class="text-super-caption text-muted font-weight-medium" style="font-size: 0.62rem !important; margin-left: 24px; margin-top: 1px;">
+            {{ activeAthleteName }} • {{ activeSheetNumber }}
+          </div>
+        </div>
       </v-app-bar-title>
 
       <v-spacer></v-spacer>
@@ -140,11 +147,19 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta } from './authStore.js';
 
 const router = useRouter();
+
+const activeAthleteName = computed(() => {
+  return getNomeAtleta(selectedAthlete.value) || 'Ospite';
+});
+
+const activeSheetNumber = computed(() => {
+  return selectedSheet.value || '-';
+});
 
 onMounted(() => {
   // Gestione del tasto indietro fisico di Android per PWA Standalone

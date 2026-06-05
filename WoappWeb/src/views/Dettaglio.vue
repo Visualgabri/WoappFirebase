@@ -885,146 +885,127 @@
           </div>
           <div v-else>
             <!-- Info Esercizio Precedente -->
-            <div class="mb-3 text-left">
-              <h4 class="font-weight-black text-white leading-tight mb-0.5" style="font-size: 0.78rem !important;">{{ previousWorkout.des_esercizio }}</h4>
-              <span class="text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
+            <div class="mb-2.5 text-left" style="line-height: 1.1;">
+              <h4 class="font-weight-black text-white" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
+              <div class="text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
                 Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }} • Pos. {{ previousWorkout.num_riga_giorno }}
-              </span>
+              </div>
             </div>
 
-            <!-- Lista delle 6 settimane editabili -->
-            <div class="d-flex flex-column gap-3">
-              <div v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-3 text-left">
-                <div class="d-flex align-center justify-space-between mb-2">
-                  <span class="font-weight-black text-white uppercase" style="font-size: 0.65rem !important;">Week {{ w }}</span>
-                  <span class="text-orange-lighten-2 font-weight-bold uppercase text-right text-truncate px-1" style="font-size: 0.58rem !important; max-width: 70%;">
-                    Prescrizione: {{ previousWorkout['des_week' + w] || 'N.D.' }}
-                  </span>
+            <!-- Lista delle 6 settimane delle progressioni precedenti (Carico a tutta larghezza e prescrizione sopra) -->
+            <div class="d-flex flex-column gap-2 mb-3">
+              <div v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-2 text-left">
+                <!-- Settimana + Prescrizione (Sopra) -->
+                <div class="d-flex align-center justify-space-between mb-1.5" style="line-height: 1.1;">
+                  <div class="font-weight-black text-white uppercase d-flex align-center gap-1.5" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
+                    <span>Week {{ w }}</span>
+                    <span class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.68rem !important; text-transform: none;">
+                      ({{ previousWorkout['des_week' + w] || 'N.D.' }})
+                    </span>
+                  </div>
                 </div>
                 
-                <!-- Row per Carico e Ripetizioni -->
+                <!-- Carico (A tutta larghezza) -->
+                <div class="w-100">
+                  <input
+                    v-model="inputSettimanePrecedente[w].ins"
+                    type="text"
+                    placeholder="Carico (es. 45 kg)"
+                    class="custom-compact-ins-field font-weight-black text-white w-100"
+                    style="width: 100%; border: 1.5px solid rgba(255, 255, 255, 0.12); outline: none; background: rgba(30, 41, 59, 0.55); font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; height: 38px;"
+                    @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito) -->
+            <div v-if="!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')" class="rounded-xl border border-soft bg-slate-950 pa-3 text-left">
+              <div class="d-flex align-center justify-space-between mb-2.5">
+                <div>
+                  <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
+                </div>
+                
+                <!-- Stepper per Miglior Carico W6 Precedente -->
+                <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <v-btn
+                    icon
+                    size="x-small"
+                    variant="text"
+                    color="orange-lighten-2"
+                    @click="decrementaKgUnicoPrecedente"
+                  >
+                    <v-icon size="18">mdi-minus</v-icon>
+                  </v-btn>
+                  <input
+                    v-model="numIns6ValPrecedente"
+                    type="text"
+                    class="text-center font-weight-black text-white px-1"
+                    style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
+                    @blur="salvaKgUnicoPrecedente"
+                  />
+                  <v-btn
+                    icon
+                    size="x-small"
+                    variant="text"
+                    color="orange-lighten-2"
+                    @click="incrementaKgUnicoPrecedente"
+                  >
+                    <v-icon size="18">mdi-plus</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+
+              <!-- Selettore Sforzo Percepito W6 Precedente -->
+              <div class="text-left mt-2">
+                <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.58rem;">Sforzo Percepito (W6)</span>
                 <v-row dense class="gap-2 justify-space-between">
-                  <v-col cols="6">
-                    <v-textarea
-                      v-model="inputSettimanePrecedente[w].ins"
-                      label="Carico (es. 45kg)"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
+                  <v-col cols="4">
+                    <v-btn
+                      block
+                      variant="flat"
+                      :color="numFaticaw6ValPrecedente === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
+                      size="x-small"
                       rounded="lg"
-                      rows="1"
-                      auto-grow
-                      color="orange-darken-3"
-                      class="custom-weight-input text-caption"
-                      @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
-                    ></v-textarea>
+                      class="font-weight-black text-none"
+                      :class="{'text-white': numFaticaw6ValPrecedente === 'Media', 'text-slate': numFaticaw6ValPrecedente !== 'Media'}"
+                      style="font-size: 0.65rem; height: 26px;"
+                      @click="salvaFaticaPrecedente('Media')"
+                    >
+                      Media
+                    </v-btn>
                   </v-col>
-                  <v-col cols="6">
-                    <v-textarea
-                      :model-value="inputSettimanePrecedente[w].reps"
-                      label="Ripetizioni (Sola Lettura)"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
+                  <v-col cols="4">
+                    <v-btn
+                      block
+                      variant="flat"
+                      :color="numFaticaw6ValPrecedente === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
+                      size="x-small"
                       rounded="lg"
-                      rows="1"
-                      auto-grow
-                      readonly
-                      disabled
-                      class="custom-weight-input text-caption opacity-70"
-                    ></v-textarea>
+                      class="font-weight-black text-none"
+                      :class="{'text-white': numFaticaw6ValPrecedente === 'Pesante', 'text-slate': numFaticaw6ValPrecedente !== 'Pesante'}"
+                      style="font-size: 0.65rem; height: 26px;"
+                      @click="salvaFaticaPrecedente('Pesante')"
+                    >
+                      Pesante
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="4">
+                    <v-btn
+                      block
+                      variant="flat"
+                      :color="numFaticaw6ValPrecedente === 'Devastante' ? 'red-darken-3' : 'grey-darken-3'"
+                      size="x-small"
+                      rounded="lg"
+                      class="font-weight-black text-none"
+                      :class="{'text-white': numFaticaw6ValPrecedente === 'Devastante', 'text-slate': numFaticaw6ValPrecedente !== 'Devastante'}"
+                      style="font-size: 0.65rem; height: 26px;"
+                      @click="salvaFaticaPrecedente('Devastante')"
+                    >
+                      Devastante
+                    </v-btn>
                   </v-col>
                 </v-row>
-
-                <!-- Campi Aggiuntivi per Week 6 -->
-                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%'))" class="mt-3 pt-3 border-top-soft">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <div>
-                      <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
-                    </div>
-                    
-                    <!-- Stepper per Miglior Carico W6 Precedente -->
-                    <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-                      <v-btn
-                        icon
-                        size="x-small"
-                        variant="text"
-                        color="orange-lighten-2"
-                        @click="decrementaKgUnicoPrecedente"
-                      >
-                        <v-icon size="18">mdi-minus</v-icon>
-                      </v-btn>
-                      <input
-                        v-model="numIns6ValPrecedente"
-                        type="text"
-                        class="text-center font-weight-black text-white px-1"
-                        style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
-                        @blur="salvaKgUnicoPrecedente"
-                      />
-                      <v-btn
-                        icon
-                        size="x-small"
-                        variant="text"
-                        color="orange-lighten-2"
-                        @click="incrementaKgUnicoPrecedente"
-                      >
-                        <v-icon size="18">mdi-plus</v-icon>
-                      </v-btn>
-                    </div>
-                  </div>
-
-                  <!-- Selettore Sforzo Percepito W6 Precedente -->
-                  <div class="text-left mt-2">
-                    <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.58rem;">Sforzo Percepito (W6)</span>
-                    <v-row dense class="gap-2 justify-space-between">
-                      <v-col cols="4">
-                        <v-btn
-                          block
-                          variant="flat"
-                          :color="numFaticaw6ValPrecedente === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
-                          size="x-small"
-                          rounded="lg"
-                          class="font-weight-black text-none"
-                          :class="{'text-white': numFaticaw6ValPrecedente === 'Media', 'text-slate': numFaticaw6ValPrecedente !== 'Media'}"
-                          style="font-size: 0.65rem; height: 26px;"
-                          @click="salvaFaticaPrecedente('Media')"
-                        >
-                          Media
-                        </v-btn>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn
-                          block
-                          variant="flat"
-                          :color="numFaticaw6ValPrecedente === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
-                          size="x-small"
-                          rounded="lg"
-                          class="font-weight-black text-none"
-                          :class="{'text-white': numFaticaw6ValPrecedente === 'Pesante', 'text-slate': numFaticaw6ValPrecedente !== 'Pesante'}"
-                          style="font-size: 0.65rem; height: 26px;"
-                          @click="salvaFaticaPrecedente('Pesante')"
-                        >
-                          Pesante
-                        </v-btn>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn
-                          block
-                          variant="flat"
-                          :color="numFaticaw6ValPrecedente === 'Devastante' ? 'red-darken-3' : 'grey-darken-3'"
-                          size="x-small"
-                          rounded="lg"
-                          class="font-weight-black text-none"
-                          :class="{'text-white': numFaticaw6ValPrecedente === 'Devastante', 'text-slate': numFaticaw6ValPrecedente !== 'Devastante'}"
-                          style="font-size: 0.65rem; height: 26px;"
-                          @click="salvaFaticaPrecedente('Devastante')"
-                        >
-                          Devastante
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -1066,45 +1047,115 @@
     </v-dialog>
 
     <!-- Dialog 3: Riepilogo Storico Esercizi (Cronologia) -->
-    <v-dialog v-model="dialogStorico" max-width="500" scrollable>
+    <v-dialog v-model="dialogStorico" :max-width="stileStorico === 'tabella' ? 950 : 500" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
-        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
-          <div class="d-flex align-center gap-2">
-            <v-icon color="orange-darken-3" size="22">mdi-history</v-icon>
-            <span class="text-subtitle-1 font-weight-black text-white">Storico Esercizio nei Mesocicli</span>
+        <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              Storico: {{ workout?.des_esercizio || 'Esercizio' }} <span class="text-orange-lighten-2">({{ targetRepsRange ? targetRepsRange + ' reps' : 'N.D.' }})</span>
+            </span>
           </div>
           <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogStorico = false"></v-btn>
         </v-card-title>
         
-        <v-card-text class="pa-4 scrollbar-custom" style="max-height: 60vh;">
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
+          <!-- Selettore stile storico al volo -->
+          <div class="mb-3 d-flex align-center justify-space-between gap-2 flex-wrap">
+            <span class="text-super-caption text-muted font-weight-bold uppercase" style="font-size: 0.58rem; letter-spacing: 0.05em;">Stile visualizzazione:</span>
+            <div class="d-flex align-center gap-2">
+              <v-btn
+                :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
+                variant="flat"
+                size="x-small"
+                class="font-weight-black text-none"
+                style="height: 28px; font-size: 0.68rem;"
+                @click="toggleFiltroCorrispondenti"
+              >
+                <v-icon size="14" class="mr-1">
+                  {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
+                </v-icon>
+                Solo Stessi Reps ({{ targetRepsRange ? targetRepsRange : 'N.D.' }})
+              </v-btn>
+              
+              <v-btn-toggle
+                v-model="stileStorico"
+                mandatory
+                selected-class="bg-orange-darken-3 text-white"
+                density="compact"
+                rounded="lg"
+                class="card-glass border"
+                style="height: 28px;"
+              >
+                <v-btn value="timeline" class="font-weight-bold text-none px-2.5" style="min-width: 80px; height: 28px; font-size: 0.68rem;">
+                  <v-icon size="13" class="mr-1">mdi-format-list-bulleted</v-icon> Timeline
+                </v-btn>
+                <v-btn value="tabella" class="font-weight-bold text-none px-2.5" style="min-width: 80px; height: 28px; font-size: 0.68rem;">
+                  <v-icon size="13" class="mr-1">mdi-table</v-icon> Tabella
+                </v-btn>
+              </v-btn-toggle>
+            </div>
+          </div>
+
           <!-- Loader caricamento storico -->
           <div v-if="caricandoStorico" class="text-center py-8">
             <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
             <p class="mt-2 text-caption text-muted">Caricamento dello storico...</p>
           </div>
           
-          <div v-else-if="storicoEsercizio.length === 0" class="text-center py-6">
+          <div v-else-if="storicoFiltrato.length === 0" class="text-center py-6">
             <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
-            <p class="text-caption text-muted">Nessuna scheda passata trovata per questo esercizio.</p>
+            <p class="text-caption text-muted">Nessuna scheda passata corrispondente trovata.</p>
           </div>
           
-          <div v-else class="d-flex flex-column gap-4">
-            <div v-for="prevEx in storicoEsercizio" :key="prevEx.id" class="rounded-xl border border-soft bg-slate-950 pa-3 text-left">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <span class="text-caption font-weight-black text-white uppercase">
+          <!-- LAYOUT 1: TIMELINE (Mobile-first Cards) -->
+          <div v-else-if="stileStorico === 'timeline'" class="d-flex flex-column gap-2.5">
+            <div v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left">
+              <div 
+                class="d-flex align-center justify-space-between mb-1 px-1.5 py-0.5 rounded"
+                :class="{'red-scheda-header': haSettimanaCorrispondente(prevEx)}"
+              >
+                <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem !important;">
                   Scheda {{ prevEx.num_scheda }}
                 </span>
-                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black uppercase text-super-caption">
-                  Giorno {{ prevEx.des_giorno }}
-                </v-chip>
+                <div class="d-flex align-center gap-1.5">
+                  <span v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">
+                    {{ formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }} <span class="text-orange-lighten-2 ml-1">({{ tempoTrascorso(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }})</span>
+                  </span>
+                </div>
               </div>
 
-              <!-- Griglia dei carichi registrati nelle settimane -->
-              <v-row dense class="mt-2 bg-slate-900 rounded-lg pa-2 mx-0 align-center text-center">
-                <v-col v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" cols="4" class="py-1">
-                  <div class="border-soft" :class="{'border-right': w !== 3 && w !== 6}">
-                    <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.52rem;">W{{ w }}</span>
-                    <strong class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
+              <!-- Note statiche associate dell'attrezzo e giorno -->
+              <div class="text-super-caption text-muted mb-1.5 italic" style="font-size: 0.62rem !important; line-height: 1.25;">
+                <span v-if="prevEx.des_giorno" class="font-weight-black text-orange-lighten-2 mr-1">Giorno {{ prevEx.des_giorno }}</span>
+                <span v-if="(prevEx.des_note_attrezzo || prevEx.des_note) && String(prevEx.des_note_attrezzo || prevEx.des_note).trim()">
+                  • Note: {{ prevEx.des_note_attrezzo || prevEx.des_note }}
+                </span>
+              </div>
+
+              <!-- Griglia dei carichi registrati nelle settimane con evidenziazione rossa condizionale -->
+              <v-row dense class="mt-1 bg-slate-900 rounded-lg pa-1.5 mx-0 align-center text-center">
+                <v-col v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" cols="4" class="py-0.5">
+                  <div 
+                    class="border-soft rounded py-0.5 px-0.5" 
+                    :class="{
+                      'border-right': w !== 3 && w !== 6,
+                      'timeline-red-cell': isMatchingReps(prevEx, w)
+                    }"
+                  >
+                    <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
+                    <span 
+                      class="text-super-caption text-muted d-block text-truncate px-0.5" 
+                      style="font-size: 0.48rem; line-height: 1;"
+                      :class="{'text-red font-weight-black': isMatchingReps(prevEx, w)}"
+                    >
+                      {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
+                    </span>
+                    <strong 
+                      class="text-caption font-weight-black text-orange-lighten-2 d-block mt-0.5" 
+                      style="font-size: 0.68rem; line-height: 1.1;"
+                      :class="{'text-red': isMatchingReps(prevEx, w)}"
+                    >
                       {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
                     </strong>
                   </div>
@@ -1112,8 +1163,93 @@
               </v-row>
             </div>
           </div>
-        </v-card-text>
 
+          <!-- LAYOUT 2: TABELLA MATRICE (AppSheet Grid) -->
+          <div v-else class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto">
+            <table class="premium-storico-table" style="width: 1415px; table-layout: fixed; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th class="sticky-col header-cell text-left" style="width: 75px;">Scheda</th>
+                  <th class="header-cell" style="width: 75px;">Prescr.</th>
+                  <th class="header-cell" style="width: 110px;">W1</th>
+                  <th class="header-cell" style="width: 110px;">W2</th>
+                  <th class="header-cell" style="width: 110px;">W3</th>
+                  <th class="header-cell" style="width: 110px;">W4</th>
+                  <th class="header-cell" style="width: 110px;">W5</th>
+                  <th class="header-cell" style="width: 110px;">W6</th>
+                  <th class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
+                  <th class="header-cell" style="width: 75px;">Peso Corp.</th>
+                  <th class="header-cell" style="width: 110px;">Giorno</th>
+                  <th class="header-cell" style="width: 340px;">Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="table-row">
+                  <!-- Scheda (Sticky) -->
+                  <td 
+                    class="sticky-col body-cell text-left"
+                    :class="{'red-scheda-cell': haSettimanaCorrispondente(prevEx)}"
+                  >
+                    <div class="font-weight-black text-white" style="font-size: 0.75rem; line-height: 1.15;">S. {{ prevEx.num_scheda }}</div>
+                    <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted" style="font-size: 0.55rem; white-space: nowrap; line-height: 1.15; margin-top: 1px;">
+                      {{ formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }}
+                    </div>
+                    <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.52rem; white-space: nowrap; line-height: 1.1; margin-top: 1px;">
+                      {{ tempoTrascorso(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }}
+                    </div>
+                  </td>
+                  
+                  <!-- Prescrizione target settimana attiva -->
+                  <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">
+                    {{ prevEx['des_week' + settimanaAttiva] ? (parsedPrescription(prevEx['des_week' + settimanaAttiva])?.reps || prevEx['des_week' + settimanaAttiva]) : '-' }}
+                  </td>
+                  
+                  <!-- Settimane W1 - W6 -->
+                  <td 
+                    v-for="w in [1, 2, 3, 4, 5, 6]" 
+                    :key="w" 
+                    class="body-cell font-weight-bold text-center"
+                    :class="{'red-cell': isMatchingReps(prevEx, w)}"
+                    style="word-wrap: break-word;"
+                  >
+                    <div style="font-size: 0.72rem;">
+                      {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
+                    </div>
+                    <div 
+                      v-if="prevEx['des_week' + w]" 
+                      class="text-super-caption text-muted font-weight-bold" 
+                      style="font-size: 0.52rem; line-height: 1.1; word-wrap: break-word;"
+                      :class="{'text-red font-weight-black': isMatchingReps(prevEx, w)}"
+                    >
+                      {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
+                    </div>
+                  </td>
+                  
+                  <!-- Miglior W6 -->
+                  <td class="body-cell font-weight-black text-amber-lighten-2 text-center" style="font-size: 0.72rem; word-wrap: break-word;">
+                    {{ prevEx.num_ins6 ? prevEx.num_ins6 + ' kg' : '-' }}
+                  </td>
+                  
+                  <!-- Peso Corporeo -->
+                  <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">
+                    {{ prevEx.peso_corporeo || '-' }}
+                  </td>
+                  
+                  <!-- Giorno -->
+                  <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">
+                    {{ prevEx.des_giorno || '-' }}
+                  </td>
+                  
+                  <!-- Note -->
+                  <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_attrezzo || prevEx.des_note || ''">
+                    {{ prevEx.des_note_attrezzo || prevEx.des_note || '-' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </v-card-text>
+ 
         <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
           <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogStorico = false">
             Chiudi
@@ -1129,7 +1265,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -1504,15 +1640,121 @@ const caricaEsercizioPrecedente = async () => {
 };
 
 
-let savedMode = localStorage.getItem('modalitaSettimane');
-if (savedMode === 'tutte') savedMode = 'fissa';
-if (savedMode === 'attiva') savedMode = 'dinamica';
-if (!savedMode) savedMode = 'dinamica';
+const stileStorico = ref('tabella');
+const modalitaSettimane = ref('dinamica');
 
-const modalitaSettimane = ref(savedMode);
+const currentAtletaId = computed(() => {
+  if (!workout.value) return '';
+  const key = Object.keys(workout.value).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  return String(workout.value[key] || '').trim();
+});
+
+watch(stileStorico, (nuovoValore) => {
+  vibraTattile(8);
+  const atletaId = currentAtletaId.value;
+  if (atletaId) {
+    localStorage.setItem('stileStorico_' + atletaId, nuovoValore);
+  }
+});
+
 watch(modalitaSettimane, (nuovoValore) => {
   vibraTattile(8);
-  localStorage.setItem('modalitaSettimane', nuovoValore);
+  const atletaId = currentAtletaId.value;
+  if (atletaId) {
+    localStorage.setItem('modalitaSettimane_' + atletaId, nuovoValore);
+  }
+});
+
+const targetRepsRange = computed(() => {
+  if (!workout.value) return null;
+  const wActive = settimanaAttiva.value;
+  let reps = workout.value['reps_week' + wActive];
+  if (!reps) {
+    reps = estraiRepsDaPrescrizione(workout.value['des_week' + wActive]);
+  }
+  return reps ? parseInt(reps, 10) : null;
+});
+
+const isMatchingReps = (prevEx, w) => {
+  const target = targetRepsRange.value;
+  if (!target) return false;
+  
+  let reps = prevEx['reps_week' + w];
+  if (!reps) {
+    reps = estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+  }
+  
+  return reps && parseInt(reps, 10) === target;
+};
+
+const formattaDataStorico = (dateStr) => {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const months = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+    const day = d.getDate();
+    const month = months[d.getMonth()];
+    const year = String(d.getFullYear()).slice(-2);
+    return `${day} ${month} ${year}`;
+  } catch (e) {
+    return dateStr;
+  }
+};
+
+const tempoTrascorso = (dateStr) => {
+  if (!dateStr) return '';
+  try {
+    const past = new Date(dateStr);
+    if (isNaN(past.getTime())) return '';
+    const now = new Date();
+    
+    // Resettiamo le ore per calcolare la differenza in giorni puri
+    const pastClean = new Date(past.getFullYear(), past.getMonth(), past.getDate());
+    const nowClean = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffMs = nowClean.getTime() - pastClean.getTime();
+    if (diffMs < 0) return '';
+    
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'oggi';
+    if (diffDays === 1) return 'ieri';
+    if (diffDays < 7) return `${diffDays} gg fa`;
+    
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks < 4) return `${diffWeeks} sett fa`;
+    
+    const diffMonths = Math.floor(diffDays / 30.43);
+    if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? 'mese' : 'mesi'} fa`;
+    
+    const diffYears = Math.floor(diffDays / 365.25);
+    return `${diffYears} ${diffYears === 1 ? 'anno' : 'anni'} fa`;
+  } catch (e) {
+    return '';
+  }
+};
+
+const soloCorrispondenti = ref(true);
+
+const toggleFiltroCorrispondenti = () => {
+  vibraTattile(10);
+  soloCorpospondetiAndToggle();
+};
+
+const soloCorpospondetiAndToggle = () => {
+  soloCorrispondenti.value = !soloCorrispondenti.value;
+};
+
+const haSettimanaCorrispondente = (prevEx) => {
+  return [1, 2, 3, 4, 5, 6].some(w => isMatchingReps(prevEx, w));
+};
+
+const storicoFiltrato = computed(() => {
+  if (soloCorrispondenti.value) {
+    return storicoEsercizio.value.filter(prevEx => haSettimanaCorrispondente(prevEx));
+  }
+  return storicoEsercizio.value;
 });
 
 const mostraAltreDinamica = ref(true);
@@ -1777,11 +2019,13 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 const handleTouchStart = (e) => {
+  if (dialogStorico.value || dialogProgressioniPrecedente.value || dialogElimina.value) return;
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
 };
 
 const handleTouchEnd = (e) => {
+  if (dialogStorico.value || dialogProgressioniPrecedente.value || dialogElimina.value) return;
   const touchEndX = e.changedTouches[0].clientX;
   const touchEndY = e.changedTouches[0].clientY;
   
@@ -1815,6 +2059,10 @@ const caricaDatiEsercizio = async () => {
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || '\uFEFF"ID_cliente"';
       const atletaId = dati[keyIdCliente] || '';
       settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+
+      // Recupera stileStorico e modalitaSettimane per l'atleta specifico
+      stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
+      modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
       if (!workout.value.UrlNormal || !workout.value.UrlNormal.startsWith('http')) {
@@ -1879,6 +2127,10 @@ const caricaEsercizioDaBackup = async () => {
       const keyIdCliente = Object.keys(found).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = found[keyIdCliente] || '';
       settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+
+      // Recupera stileStorico e modalitaSettimane per l'atleta specifico
+      stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
+      modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
 
       for (let w = 1; w <= 6; w++) {
         inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
@@ -2265,8 +2517,8 @@ const parseKg = (val) => {
 const incrementaKgUnico = () => {
   vibraTattile(10);
   let current = parseKg(numIns6Val.value);
-  current += 0.5;
-  numIns6Val.value = String(current);
+  current += 1.25;
+  numIns6Val.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnico();
 };
 
@@ -2274,8 +2526,8 @@ const decrementaKgUnico = () => {
   vibraTattile(10);
   let current = parseKg(numIns6Val.value);
   if (current > 0) {
-    current = Math.max(0, current - 0.5);
-    numIns6Val.value = String(current);
+    current = Math.max(0, current - 1.25);
+    numIns6Val.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnico();
   }
 };
@@ -2377,8 +2629,8 @@ const salvaKgUnicoPrecedente = async () => {
 const incrementaKgUnicoPrecedente = () => {
   vibraTattile(10);
   let current = parseKg(numIns6ValPrecedente.value);
-  current += 0.5;
-  numIns6ValPrecedente.value = String(current);
+  current += 1.25;
+  numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnicoPrecedente();
 };
 
@@ -2386,8 +2638,8 @@ const decrementaKgUnicoPrecedente = () => {
   vibraTattile(10);
   let current = parseKg(numIns6ValPrecedente.value);
   if (current > 0) {
-    current = Math.max(0, current - 0.5);
-    numIns6ValPrecedente.value = String(current);
+    current = Math.max(0, current - 1.25);
+    numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnicoPrecedente();
   }
 };
@@ -2451,6 +2703,7 @@ const apriStoricoEsercizio = async () => {
   dialogStorico.value = true;
   caricandoStorico.value = true;
   storicoEsercizio.value = [];
+  soloCorrispondenti.value = true;
   
   try {
     const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
@@ -2478,7 +2731,7 @@ const apriStoricoEsercizio = async () => {
       }
     });
 
-    list.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
+    list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
     
     // Fallback a backup locale se vuoto
     if (list.length === 0) {
@@ -2491,7 +2744,7 @@ const apriStoricoEsercizio = async () => {
                parseInt(b.num_scheda) < currentNumScheda &&
                parseInt(b.num_riga_giorno) > 0;
       });
-      matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
+      matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
       storicoEsercizio.value = matched;
     } else {
       storicoEsercizio.value = list;
@@ -2792,5 +3045,131 @@ const tornaIndietro = () => {
 
 .custom-weight-input :deep(.v-field__outline) {
   opacity: 0.45 !important;
+}
+
+/* Nuovi Stili per lo Storico Esercizi (Tabella e Timeline) */
+.timeline-red-cell {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.15) !important;
+}
+
+.text-red {
+  color: #f87171 !important; /* rosso chiaro per dark mode */
+}
+
+.table-responsive-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.premium-storico-table {
+  border-collapse: collapse;
+  font-family: inherit;
+}
+
+.header-cell {
+  position: sticky;
+  top: 0;
+  background: rgba(30, 41, 59, 0.98);
+  color: #94a3b8;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 8px;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+  z-index: 3;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+.body-cell {
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  vertical-align: middle;
+  text-align: center;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+.table-row {
+  transition: background-color 0.15s ease;
+}
+
+.table-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Sticky First Column */
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: rgba(15, 23, 42, 0.98);
+  z-index: 2;
+  border-right: 1.5px solid rgba(255, 255, 255, 0.08);
+}
+
+th.sticky-col {
+  position: sticky;
+  left: 0;
+  top: 0;
+  background: rgba(30, 41, 59, 1);
+  z-index: 4;
+}
+
+/* Red highlights for matching reps range */
+.red-cell {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.45) !important;
+  box-shadow: inset 0 0 8px rgba(239, 68, 68, 0.2) !important;
+}
+
+.red-cell .text-muted {
+  color: #fca5a5 !important;
+}
+
+.red-cell strong, .red-cell span, .red-cell div {
+  color: #ef4444 !important;
+}
+
+.red-scheda-cell {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-right: 2.5px solid #ef4444 !important;
+}
+
+.red-scheda-header {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+.note-cell {
+  white-space: normal !important;
+  word-break: break-word !important;
+  min-width: 120px;
+  max-width: 180px;
+}
+
+/* Stili per la Tabella Progressioni Precedenti Compatta */
+.compact-prev-table {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.prev-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.custom-compact-ins-field {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s ease;
+}
+
+.custom-compact-ins-field:focus {
+  border-color: #f97316 !important;
+  background: rgba(249, 115, 22, 0.05) !important;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.1) !important;
 }
 </style>

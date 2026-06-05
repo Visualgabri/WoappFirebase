@@ -425,10 +425,10 @@
               </v-icon>
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
-                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.15rem !important;">
+                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 0.68rem !important;">
                   ({{ parsedPrescription(workout['des_week' + sett]).reps }})
                 </span>
-                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.15rem !important;">
+                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 0.68rem !important;">
                   ({{ workout['des_week' + sett] }})
                 </span>
               </span>
@@ -895,7 +895,7 @@
                 <div class="d-flex align-center justify-space-between mb-1.5" style="line-height: 1.1;">
                   <div class="font-weight-black text-white uppercase d-flex align-center gap-1.5" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
                     <span>Week {{ w }}</span>
-                    <span class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.68rem !important; text-transform: none;">
+                    <span class="text-orange-lighten-2 font-weight-black" style="font-size: 1.05rem !important; text-transform: none;">
                       ({{ previousWorkout['des_week' + w] || 'N.D.' }})
                     </span>
                   </div>
@@ -1108,14 +1108,12 @@
           <div v-if="!caricandoStorico && storicoFiltrato.length > 0 && suggerimentoRecord" class="mb-4 pa-3 rounded-xl border-soft text-left" style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.2) !important;">
             <div class="d-flex align-center gap-2 mb-1">
               <v-icon color="orange" size="18">mdi-trophy-outline</v-icon>
-              <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem;">Suggerimento per battere il record</span>
+              <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem;">Obiettivo per questa settimana</span>
             </div>
             <p class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.4; font-size: 0.7rem !important;">
-              Il tuo record storico per la <strong class="text-white">Week {{ settimanaAttiva }}</strong> è di <strong class="text-orange-lighten-2">{{ recordWeekAttiva }} kg</strong>.<br>
-              Oggi sei in <strong class="text-white">Week {{ settimanaAttiva }}</strong>: ti consiglio di provare <strong class="text-orange-lighten-2" style="font-size: 0.95rem; font-weight: 800;">{{ suggerimentoRecord }} kg</strong> 
-              <span class="text-super-caption text-muted font-weight-bold ml-1">
-                ({{ settimanaAttiva <= 3 ? 'approccio conservativo per l\'inizio mesociclo' : 'approccio aggressivo per fine mesociclo' }})
-              </span>.
+              Nelle schede precedenti, il carico più alto che hai usato in <strong class="text-white">Week {{ settimanaAttiva }}</strong> è stato <strong class="text-orange-lighten-2">{{ suggerimentoRecord.record }} kg</strong>.
+              Ti consiglio di puntare a <strong class="text-orange-lighten-2" style="font-size: 0.95rem; font-weight: 800;">{{ suggerimentoRecord.target }} kg</strong>
+              <span class="text-super-caption text-muted font-weight-bold ml-1">({{ suggerimentoRecord.label }})</span>.
             </p>
           </div>
           
@@ -1274,7 +1272,11 @@
                   </td>
                   
                   <!-- Miglior W6 -->
-                  <td class="body-cell font-weight-black text-amber-lighten-2 text-center" style="font-size: 0.72rem; word-wrap: break-word;">
+                  <td 
+                    class="body-cell font-weight-black text-center" 
+                    style="font-size: 0.72rem; word-wrap: break-word;"
+                    :style="prevEx.num_faticaw6 ? getColoreFaticaStyle(prevEx.num_faticaw6) : { color: '#ffca28' }"
+                  >
                     {{ prevEx.num_ins6 ? prevEx.num_ins6 + ' kg' : '-' }}
                   </td>
                   
@@ -2779,11 +2781,13 @@ const eliminaEsercizio = async () => {
 };
 
 // Computed per record e suggerimenti nello storico
-const recordWeekAttiva = computed(() => {
+// Trova il carico massimo registrato nella settimana attiva tra tutte le schede precedenti
+const suggerimentoRecord = computed(() => {
   const w = settimanaAttiva.value;
   let maxWeight = 0;
+  
   storicoEsercizio.value.forEach(prevEx => {
-    // Escludiamo la scheda attuale per non calcolare il suggerimento su se stessi
+    // Escludi la scheda attuale
     const sNum = parseInt(prevEx.num_scheda);
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     if (sNum === currentNumScheda) return;
@@ -2796,23 +2800,30 @@ const recordWeekAttiva = computed(() => {
       }
     }
   });
-  return maxWeight;
-});
-
-const suggerimentoRecord = computed(() => {
-  const record = recordWeekAttiva.value;
-  if (!record || record === 0) return null;
-  const w = settimanaAttiva.value;
+  
+  if (maxWeight === 0) return null;
+  
+  // Calcola il target in base alla settimana:
+  // Week 1-3: conservativo, aggiungi poco (+0.5 kg) - siamo a inizio mesociclo
+  // Week 4: intermedio (+1.0 kg)
+  // Week 5-6: aggressivo (+2.0 kg) - siamo a fine mesociclo, puoi osare
+  let increment, label;
   if (w <= 3) {
-    // Prime 3 settimane: conservativo (+0.5 kg)
-    return (record + 0.5);
+    increment = 0.5;
+    label = '+0.5 kg, inizio mesociclo: approccio conservativo';
   } else if (w === 4) {
-    // Settimana 4: intermedio (+1.0 kg)
-    return (record + 1.0);
+    increment = 1.0;
+    label = '+1.0 kg, metà mesociclo: approccio moderato';
   } else {
-    // Settimane 5 e 6: osare di più (+2.0 kg)
-    return (record + 2.0);
+    increment = 2.0;
+    label = '+2.0 kg, fine mesociclo: osa di più!';
   }
+  
+  return {
+    record: maxWeight,
+    target: maxWeight + increment,
+    label
+  };
 });
 
 const getColoreFaticaStyle = (fatica) => {

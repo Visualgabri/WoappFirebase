@@ -423,6 +423,9 @@
               </v-icon>
               <span class="text-caption font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
+                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1.5 font-weight-bold" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'">
+                  ({{ parsedPrescription(workout['des_week' + sett]).reps }})
+                </span>
               </span>
               <v-chip
                 v-if="sett === settimanaAttiva"
@@ -440,52 +443,40 @@
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
           <div v-if="parsedPrescription(workout['des_week' + sett])" class="mb-2 px-1">
-            <!-- Rigo Principale con Serie e Peso Totale -->
-            <v-row dense class="mb-1.5">
-              <!-- Serie e Ripetizioni -->
-              <v-col cols="6">
-                <div class="prescription-chip-box px-2.5 py-1 rounded-lg text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.55rem;">Lavoro</span>
-                  <span class="text-body-1 font-weight-black text-orange-darken-3" style="font-size: 0.95rem !important; line-height: 1.25;">
-                    {{ parsedPrescription(workout['des_week' + sett]).reps }}
-                  </span>
-                </div>
-              </v-col>
-              <!-- Peso Totale -->
-              <v-col cols="6">
-                <div class="prescription-chip-box px-2.5 py-1 rounded-lg text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.55rem;">Carico Totale</span>
-                  <span class="text-body-1 font-weight-black text-slate-dark" style="font-size: 0.95rem !important; line-height: 1.25;">
-                    {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-caption text-muted" style="font-size: 0.7rem;">KG</span>
-                  </span>
-                </div>
-              </v-col>
-            </v-row>
-
-            <!-- Rigo Secondario con Peso per Lato e Percentuali (Coerente con presenza o assenza di pesi per lato) -->
+            <!-- Rigo Unico con Dettagli Carico e Intensità -->
             <v-row dense>
+              <!-- Carico Totale -->
+              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
+                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Carico</span>
+                  <span class="text-caption font-weight-black text-slate-dark text-truncate" style="font-size: 0.85rem !important;">
+                    {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-super-caption text-muted" style="font-size: 0.60rem;">KG</span>
+                  </span>
+                </div>
+              </v-col>
               <!-- Peso per Lato (solo se presente) -->
-              <v-col v-if="parsedPrescription(workout['des_week' + sett]).side" cols="4">
-                <div class="prescription-chip-box px-2 py-0.5 rounded-lg text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Per Lato</span>
-                  <span class="text-caption font-weight-black text-blue-lighten-2" style="font-size: 0.75rem !important;">
-                    {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
+              <v-col v-if="parsedPrescription(workout['des_week' + sett]).side" cols="3">
+                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Lato</span>
+                  <span class="text-caption font-weight-black text-blue-lighten-2 text-truncate" style="font-size: 0.85rem !important;">
+                    {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted" style="font-size: 0.60rem;">KG</span>
                   </span>
                 </div>
               </v-col>
               <!-- % Massimale -->
-              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 4 : 6">
-                <div class="prescription-chip-box px-2 py-0.5 rounded-lg text-left">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">% 1RM</span>
-                  <span class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.75rem !important;">
+              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
+                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">% 1RM</span>
+                  <span class="text-caption font-weight-black text-orange-lighten-2 text-truncate" style="font-size: 0.85rem !important;">
                     {{ parsedPrescription(workout['des_week' + sett]).max || '-' }}
                   </span>
                 </div>
               </v-col>
               <!-- % Sforzo -->
-              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 4 : 6">
-                <div class="prescription-chip-box px-2 py-0.5 rounded-lg text-left">
-                  <span class="text-caption font-weight-black text-green-lighten-2" style="font-size: 0.75rem !important;">
+              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
+                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Sforzo</span>
+                  <span class="text-caption font-weight-black text-green-lighten-2 text-truncate" style="font-size: 0.85rem !important;">
                     {{ parsedPrescription(workout['des_week' + sett]).effort || '-' }}
                   </span>
                 </div>

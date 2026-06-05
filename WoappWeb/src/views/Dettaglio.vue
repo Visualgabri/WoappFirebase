@@ -425,10 +425,10 @@
               </v-icon>
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
-                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 0.88rem !important;">
+                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.0rem !important;">
                   ({{ parsedPrescription(workout['des_week' + sett]).reps }})
                 </span>
-                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 0.88rem !important;">
+                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.0rem !important;">
                   ({{ workout['des_week' + sett] }})
                 </span>
               </span>
@@ -2354,20 +2354,65 @@ const parsedPrescription = (str) => {
 
 const estraiPesoDaInput = (str) => {
   if (!str) return null;
-  const clean = str.replace(/,/g, '.').trim();
   
-  // Cerca l'ultimo numero seguito da "kg"
-  const kgMatches = clean.match(/([\d.]+)\s*kg/gi);
-  if (kgMatches && kgMatches.length > 0) {
-    const lastKg = kgMatches[kgMatches.length - 1];
-    const val = lastKg.match(/([\d.]+)/);
-    if (val) return val[1];
+  // Sostituiamo virgole con punti per uniformità nei decimali
+  let clean = str.replace(/,/g, '.').trim();
+  
+  // 1. Rimuoviamo il prefisso delle reps all'inizio se presente (es: "3x12RP++", "4x6", "3x8", "3 x 12")
+  const repsPrefixRegex = /^\s*\d+\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g;
+  clean = clean.replace(repsPrefixRegex, '').trim();
+  
+  // 2. Troviamo tutti i numeri (anche decimali) nella stringa rimanente
+  // e controlliamo il loro contesto (prefissi/suffissi vietati)
+  const numberRegex = /(\+|-|rp|rpe|rpe:|rpe\s*:)?\s*(\d+(?:\.\d+)?)\s*([a-zA-Z\/%]+)?/gi;
+  
+  let match;
+  const validWeights = [];
+  
+  while ((match = numberRegex.exec(clean)) !== null) {
+    const prefix = (match[1] || '').toLowerCase().trim();
+    const valStr = match[2];
+    const suffix = (match[3] || '').toLowerCase().trim();
+    const numVal = parseFloat(valStr);
+    
+    if (isNaN(numVal)) continue;
+    
+    // Filtri di esclusione:
+    // a) Prefissi vietati: "+", "-", "rp"
+    if (prefix.includes('+') || prefix.includes('-') || prefix.includes('rp')) {
+      continue;
+    }
+    
+    // b) Suffissi vietati: "r" (reps), "rep", "reps", "gr" (grammi), "g" (tranne kg), "v" (volte), "misurino", "sec", "s", "%", "/"
+    // Il suffisso "kg" o "kg." non viene escluso (perché inizia con "k")
+    if (suffix) {
+      if (
+        suffix.startsWith('/') ||
+        suffix === '%' ||
+        suffix.startsWith('r') || // r, rep, reps
+        (suffix.startsWith('g') && !suffix.startsWith('k')) || // g, gr, grammi (ma non kg!)
+        suffix.startsWith('v') || // v, volte
+        suffix.startsWith('m') || // misurino, min, minuti
+        suffix.startsWith('s')    // sec, s
+      ) {
+        continue;
+      }
+    }
+    
+    // Se passa tutti i controlli, è un carico allenante valido
+    validWeights.push(numVal);
   }
-
-  // Se non c'è "kg", prendiamo l'ultimo numero della stringa
-  const allNumbers = clean.match(/\d+(?:\.\d+)?/g);
-  if (allNumbers && allNumbers.length > 0) {
-    return allNumbers[allNumbers.length - 1];
+  
+  if (validWeights.length > 0) {
+    // Restituiamo il valore massimo trovato come stringa
+    return String(Math.max(...validWeights));
+  }
+  
+  // Fallback se nessun carico viene trovato dall'algoritmo
+  const fallbackRegex = /\b\d+(?:\.\d+)?\b/g;
+  const fallbackMatches = clean.match(fallbackRegex);
+  if (fallbackMatches && fallbackMatches.length > 0) {
+    return fallbackMatches[fallbackMatches.length - 1];
   }
   
   return null;

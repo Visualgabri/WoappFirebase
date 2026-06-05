@@ -580,7 +580,7 @@
               class="px-0 py-2 border-bottom-soft"
             >
               <v-list-item-title class="font-weight-bold text-slate-dark text-left">{{ ex.des_esercizio }}</v-list-item-title>
-              <v-list-item-subtitle class="text-caption text-orange-darken-3 text-left">Giorno {{ ex.des_giorno }} • Riga {{ ex.num_riga_giorno }}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-caption text-orange-darken-3 text-left">Giorno <span class="font-weight-black">{{ ex.des_giorno }}{{ ex.num_riga_giorno }}</span></v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-card-text>

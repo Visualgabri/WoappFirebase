@@ -337,13 +337,18 @@
               </div>
             </v-expand-transition>
 
-            <!-- Intestazione del Giorno Attivo (Riga 0) stile AppSheet (cliccabile per completamento) -->
+        <!-- Container Unico Sessione Giorno -->
         <v-card
           v-if="headerGiorno"
-          class="day-header-card pa-4 rounded-xl mb-6 elevation-2 clickable-header"
-          border="left"
-          @click="vaiAlDettaglioSessione(headerGiorno.id)"
+          class="workout-session-container rounded-2xl overflow-hidden border elevation-2 mb-6"
+          style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.35), rgba(15, 23, 42, 0.55)) !important; border: 1.5px solid rgba(255, 255, 255, 0.08) !important;"
         >
+          <!-- Intestazione Sessione (ex Day Header Card) -->
+          <div
+            class="day-header-section pa-4 clickable-header position-relative"
+            style="border-bottom: 1.5px solid rgba(255, 255, 255, 0.08); transition: background 0.2s;"
+            @click="vaiAlDettaglioSessione(headerGiorno.id)"
+          >
           <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
           <div v-if="parseDayHeader(headerGiorno.des_esercizio)" class="w-100">
             <div class="d-flex align-center justify-space-between mb-3">
@@ -625,16 +630,18 @@
             </div>
             <v-icon color="orange-darken-3" class="ml-2">mdi-chevron-right</v-icon>
           </div>
-        </v-card>
+          </div>
 
-        <!-- Stato Vuoto se nessun esercizio -->
-        <div v-if="eserciziFiltrati.length === 0" class="text-center my-10 py-6">
-          <v-icon color="grey-lighten-1" size="48">mdi-dumbbell-off</v-icon>
-          <p class="mt-2 text-caption text-muted">Nessun esercizio presente per il giorno {{ giornoSelezionato }} in questa scheda.</p>
-        </div>
+          <!-- Sezione Esercizi della Sessione (unita visivamente) -->
+          <div class="day-exercises-section pa-3" style="background: rgba(15, 23, 42, 0.25);">
+            <!-- Stato Vuoto se nessun esercizio -->
+            <div v-if="eserciziFiltrati.length === 0" class="text-center my-10 py-6">
+              <v-icon color="grey-lighten-1" size="48">mdi-dumbbell-off</v-icon>
+              <p class="mt-2 text-caption text-muted">Nessun esercizio presente per il giorno {{ giornoSelezionato }} in questa scheda.</p>
+            </div>
 
-        <!-- Lista Esercizi con Miniature a Sinistra stile AppSheet (Raggruppati in Superserie se presenti) -->
-        <div v-else class="exercise-list">
+            <!-- Lista Esercizi con Miniature a Sinistra stile AppSheet (Raggruppati in Superserie se presenti) -->
+            <div v-else class="exercise-list">
 
           <!-- Ordine Esecuzione Proposto (Auto-generato con Recuperi integrati) -->
           <v-card
@@ -1102,6 +1109,8 @@
             </v-btn>
           </div>
         </div>
+          </div>
+        </v-card>
           </div>
         </transition>
       </div>
@@ -3335,6 +3344,23 @@ const recuperiRaggruppati = computed(() => {
   background: rgba(0, 0, 0, 0.2) !important;
   border-radius: 8px !important;
 }
+.recovery-compact-input :deep(input) {
+  padding: 0px !important;
+  height: 26px !important;
+}
+
+.day-header-section {
+  background: rgba(30, 41, 59, 0.35) !important;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.day-header-section:hover {
+  background: rgba(30, 41, 59, 0.55) !important;
+}
+.day-header-section:active {
+  background: rgba(30, 41, 59, 0.7) !important;
+}
+
 .custom-compact-input :deep(.v-field__input) {
   padding-top: 4px !important;
   padding-bottom: 4px !important;

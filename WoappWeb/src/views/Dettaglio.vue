@@ -18,11 +18,11 @@
             v-if="workout?.num_riga_giorno"
             color="orange-darken-3"
             size="x-small"
-            class="font-weight-black text-white px-1.5 py-0 flex-shrink-0"
+            class="font-weight-black text-white px-1 py-0 flex-shrink-0"
             variant="flat"
-            style="min-width: 24px; height: 22px; font-size: 0.72rem;"
+            style="min-width: 20px; height: 16px; font-size: 0.62rem;"
           >
-            {{ workout.num_riga_giorno }}
+            {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
           </v-chip>
           <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
             {{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
@@ -209,7 +209,16 @@
 
         <!-- Rigo Dettaglio Rapido -->
         <div class="text-caption font-weight-bold text-slate mt-1 d-flex align-center flex-wrap gap-1.5">
-          <v-chip color="orange-darken-3" size="x-small" class="font-weight-black px-2 py-0.5" variant="flat">{{ workout.des_settore }}</v-chip>
+          <v-chip
+            color="orange-darken-3"
+            size="x-small"
+            class="font-weight-black px-2 py-0.5"
+            variant="flat"
+            style="cursor: pointer;"
+            @click="apriListaSettore"
+          >
+            {{ workout.des_settore }}
+          </v-chip>
           <v-chip
             v-if="workout.des_rec_report"
             color="orange-darken-3"
@@ -431,6 +440,10 @@
                 <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
                   ({{ workout['des_week' + sett] }})
                 </span>
+                <!-- Suggerimento Peso Week 2 per Scarico Week 4 -->
+                <span v-if="sett === 4 && isWeek4Scarico" class="ml-1 text-amber-lighten-2 font-weight-bold" style="font-size: 0.72rem !important;">
+                  (Metti peso W2<span v-if="getPesoWeek2"> = {{ getPesoWeek2 }}</span>)
+                </span>
               </span>
               <v-chip
                 v-if="sett === settimanaAttiva"
@@ -492,6 +505,20 @@
           <!-- Fallback se non corrisponde al pattern speciale -->
           <div v-else-if="!workout['des_week' + sett]" class="week-prescription-text text-caption font-weight-bold text-slate mb-2 py-0.5 px-2 rounded bg-slate-100" style="font-size: 0.75rem;">
             Nessuna prescrizione
+          </div>
+
+          <!-- Banner Scarico per Week 4 -->
+          <div
+            v-if="sett === 4 && isWeek4Scarico"
+            class="mt-2.5 mb-3 px-3 py-2 rounded-lg text-left"
+            style="background: rgba(249, 115, 22, 0.08) !important; border: 1px dashed rgba(249, 115, 22, 0.25) !important;"
+          >
+            <div class="d-flex align-start">
+              <v-icon color="orange-lighten-2" class="mr-2 mt-0.5 flex-shrink-0" size="16">mdi-information-outline</v-icon>
+              <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">
+                <strong class="text-orange-lighten-2">Scarico:</strong> metti il peso della Week 2<span v-if="getPesoWeek2"> (pari a <strong class="text-white">{{ getPesoWeek2 }}</strong>)</span>. Se è leggero, aumenta le reps e segnalalo nel campo peso e reps fatte.
+              </div>
+            </div>
           </div>
 
           <!-- Istruzioni Esecuzione / Test sotto il Lavoro (LAVORO) -->
@@ -852,19 +879,22 @@
     <v-snackbar
       v-model="snackbarSalvataggio"
       color="success"
-      timeout="2500"
+      timeout="1200"
       rounded="xl"
-      elevation="4"
+      elevation="3"
+      location="bottom"
+      :class="{'tiny-save-snackbar': !snackbarMessaggio}"
+      style="margin: 0 auto;"
       id="detail-snackbar"
     >
-      <div class="d-flex align-center justify-center font-weight-bold">
-        <v-icon class="mr-2">mdi-check-circle</v-icon>
-        {{ snackbarMessaggio || 'Progressione salvata in tempo reale!' }}
+      <div class="d-flex align-center justify-center font-weight-black py-0 px-0.5" style="font-size: 0.65rem; gap: 4px;">
+        <v-icon size="11">mdi-check-circle</v-icon>
+        <span>{{ snackbarMessaggio || 'Salvato' }}</span>
       </div>
     </v-snackbar>
 
     <!-- Dialog 1: Progressione Scheda Precedente (PRECEDENTE) -->
-    <v-dialog v-model="dialogProgressioniPrecedente" max-width="500" scrollable>
+    <v-dialog v-model="dialogProgressioniPrecedente" max-width="650" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
         <v-card-title class="pa-3 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2">
@@ -884,7 +914,7 @@
             <div class="mb-2.5 text-left" style="line-height: 1.1;">
               <h4 class="font-weight-black text-white" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
               <div class="text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
-                Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }} • Pos. {{ previousWorkout.num_riga_giorno }}
+                Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}
               </div>
             </div>
 
@@ -1043,7 +1073,7 @@
     </v-dialog>
 
     <!-- Dialog 3: Riepilogo Storico Esercizi (Cronologia) -->
-    <v-dialog v-model="dialogStorico" :max-width="stileStorico === 'tabella' ? 950 : 500" scrollable>
+    <v-dialog v-model="dialogStorico" :max-width="stileStorico === 'tabella' ? 1200 : 650" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
         <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
@@ -1099,18 +1129,21 @@
             <p class="mt-2 text-caption text-muted">Caricamento dello storico...</p>
           </div>
           
-          <div v-else-if="storicoFiltrato.length === 0" class="text-center py-6">
+          <div v-else-if="storicoFiltrato.length === 0 && !(settimanaAttiva === 4 && isWeek4Scarico)" class="text-center py-6">
             <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
             <p class="text-caption text-muted">Nessuna scheda passata corrispondente trovata.</p>
           </div>
 
-          <!-- Banner Suggerimento Record (Mostrato se c'è storico caricato) -->
-          <div v-if="!caricandoStorico && storicoFiltrato.length > 0 && suggerimentoRecord" class="mb-4 pa-3 rounded-xl border-soft text-left" style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.2) !important;">
+          <!-- Banner Suggerimento Record (Mostrato se c'è storico caricato o scarico week 4) -->
+          <div v-if="!caricandoStorico && (storicoFiltrato.length > 0 || (settimanaAttiva === 4 && isWeek4Scarico)) && suggerimentoRecord" class="mb-4 pa-3 rounded-xl border-soft text-left" style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.2) !important;">
             <div class="d-flex align-center gap-2 mb-1">
               <v-icon color="orange" size="18">mdi-trophy-outline</v-icon>
               <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem;">Obiettivo per questa settimana</span>
             </div>
-            <p class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.4; font-size: 0.7rem !important;">
+            <p v-if="suggerimentoRecord.isScarico" class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.45; font-size: 0.72rem !important;">
+              Scarico: Metti il peso della Week 2<span v-if="suggerimentoRecord.pesoWeek2"> (pari a <strong class="text-orange-lighten-2">{{ suggerimentoRecord.pesoWeek2 }}</strong>)</span>. Se è leggero, aumenta le reps e segnalalo nel campo peso e reps fatte.
+            </p>
+            <p v-else class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.4; font-size: 0.7rem !important;">
               Nelle schede precedenti, il carico più alto che hai usato in <strong class="text-white">Week {{ settimanaAttiva }}</strong> è stato <strong class="text-orange-lighten-2">{{ suggerimentoRecord.record }} kg</strong>.
               Ti consiglio di puntare a <strong class="text-orange-lighten-2" style="font-size: 0.95rem; font-weight: 800;">{{ suggerimentoRecord.target }} kg</strong>
               <span class="text-super-caption text-muted font-weight-bold ml-1">({{ suggerimentoRecord.label }})</span>.
@@ -1318,6 +1351,83 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog 4: Esercizi dello Stesso Gruppo Muscolare (Settore Principale) -->
+    <v-dialog v-model="dialogSettore" max-width="650" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+        <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <v-icon color="orange-darken-3" size="18">mdi-format-list-bulleted</v-icon>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              Gruppo: {{ settoreSelezionatoNome }}
+            </span>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogSettore = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
+          <!-- Loader caricamento settore -->
+          <div v-if="caricandoSettore" class="text-center py-8">
+            <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
+            <p class="mt-2 text-caption text-muted">Caricamento esercizi...</p>
+          </div>
+
+          <div v-else-if="eserciziSettore.length === 0" class="text-center py-6">
+            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessun esercizio trovato per questo gruppo.</p>
+          </div>
+
+          <!-- Lista degli esercizi del settore -->
+          <div v-else class="d-flex flex-column gap-2.5">
+            <div
+              v-for="ex in eserciziSettore"
+              :key="ex.id"
+              class="connected-exercise-item d-flex align-center py-2 px-3 clickable-item border rounded-xl"
+              :class="ex.id === workout?.id ? 'week-active-border border-orange-darken-3-op' : 'border-soft bg-slate-950'"
+              @click="vaiAdEsercizioSettore(ex.id)"
+              style="cursor: pointer; transition: all 0.2s ease;"
+            >
+              <div class="connected-thumb mr-3 rounded overflow-hidden" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <v-img
+                  :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                  width="48"
+                  height="48"
+                  cover
+                ></v-img>
+              </div>
+              <div class="flex-grow-1 min-width-0 text-left">
+                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                  {{ ex.des_esercizio }}
+                </div>
+                <div class="text-super-caption text-muted font-weight-bold mt-0.5" style="font-size: 0.65rem;">
+                  Giorno <span class="text-orange-lighten-2 font-weight-black">{{ ex.des_giorno }}{{ ex.num_riga_giorno }}</span>
+                  <span
+                    v-if="ex.des_settore && (ex.des_settore === settoreSecondarioTarget || ex.des_settore !== settoreSelezionatoNome)"
+                    :class="{
+                      'text-orange-accent-4 font-weight-black': ex.des_settore === settoreSecondarioTarget,
+                      'text-orange-lighten-2': ex.des_settore !== settoreSecondarioTarget
+                    }"
+                    :style="ex.des_settore === settoreSecondarioTarget ? 'color: #ff6d00 !important; font-size: 0.68rem;' : ''"
+                  >
+                     ({{ ex.des_settore }})
+                  </span>
+                </div>
+                <div class="text-super-caption font-weight-black mt-1" :class="ex.id === workout?.id ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 0.72rem;">
+                  {{ ex['des_week' + settimanaAttiva] || ex.des_qta_report || 'N.D.' }}
+                </div>
+              </div>
+              <v-icon size="18" :color="ex.id === workout?.id ? 'orange-darken-3' : 'grey'">mdi-chevron-right</v-icon>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogSettore = false">
+            Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Dialog per GIF a tutto schermo -->
     <v-dialog v-model="dialogGifFullScreen" max-width="95vw" max-height="95vh">
       <v-card class="bg-black border-0 rounded-2xl position-relative d-flex justify-center align-center overflow-hidden" style="height: 100%; max-height: 95vh;">
@@ -1344,7 +1454,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta } from '../authStore.js';
@@ -1748,6 +1858,26 @@ watch(modalitaSettimane, (nuovoValore) => {
   }
 });
 
+const getRepsForWeek = (w) => {
+  if (!workout.value) return null;
+  let reps = workout.value['reps_week' + w];
+  if (!reps) {
+    reps = estraiRepsDaPrescrizione(workout.value['des_week' + w]);
+  }
+  return reps ? parseInt(reps, 10) : null;
+};
+
+const isWeek4Scarico = computed(() => {
+  const repsW4 = getRepsForWeek(4);
+  const repsW3 = getRepsForWeek(3);
+  return repsW4 && repsW3 && repsW4 > repsW3;
+});
+
+const getPesoWeek2 = computed(() => {
+  if (!workout.value) return '';
+  return workout.value.ins_week2 || '';
+});
+
 const targetRepsRange = computed(() => {
   if (!workout.value) return null;
   const wActive = settimanaAttiva.value;
@@ -1757,6 +1887,7 @@ const targetRepsRange = computed(() => {
   }
   return reps ? parseInt(reps, 10) : null;
 });
+
 
 const isMatchingReps = (prevEx, w) => {
   const target = targetRepsRange.value;
@@ -2829,6 +2960,18 @@ const eliminaEsercizio = async () => {
 // Trova il carico massimo registrato nella settimana attiva tra tutte le schede precedenti
 const suggerimentoRecord = computed(() => {
   const w = settimanaAttiva.value;
+  
+  if (w === 4 && isWeek4Scarico.value) {
+    const pesoW2 = workout.value?.ins_week2 || '';
+    return {
+      isScarico: true,
+      pesoWeek2: pesoW2,
+      record: 0,
+      target: 0,
+      label: ''
+    };
+  }
+
   let maxWeight = 0;
   
   storicoEsercizio.value.forEach(prevEx => {
@@ -3034,6 +3177,175 @@ const toggleRecuperoDettaglio = (sett, attivo) => {
   const nuovoValore = impostaRecuperoValore(valoreAttuale, attivo);
   inputSettimane.value[sett].ins = nuovoValore;
   salvaDatoSettimanale(sett, 'ins');
+};
+
+const salvaModifichePendenti = async () => {
+  if (!workout.value) return;
+  
+  const updates = {};
+  
+  for (let w = 1; w <= 6; w++) {
+    const valNuovo = inputSettimane.value[w].ins;
+    const valOriginale = workout.value['ins_week' + w] || '';
+    if (valNuovo !== valOriginale) {
+      const campo = `ins_week${w}`;
+      updates[campo] = valNuovo;
+      
+      // Auto-estrazione per la week 6
+      if (w === 6 && valNuovo) {
+        const estratto = estraiNumeroMassimo(valNuovo);
+        if (estratto !== null) {
+          const vecchioEstratto = estraiNumeroMassimo(valOriginale);
+          if (!numIns6Val.value || (vecchioEstratto !== null && parseFloat(numIns6Val.value) === vecchioEstratto)) {
+            numIns6Val.value = String(estratto);
+            updates.num_ins6 = String(estratto);
+          }
+        }
+      }
+    }
+  }
+  
+  if (noteAttrezzo.value !== (workout.value.des_note_attrezzo || '')) {
+    updates.des_note_attrezzo = noteAttrezzo.value;
+  }
+  if (noteEsercizio.value !== (workout.value.ins_esercizio || '')) {
+    updates.ins_esercizio = noteEsercizio.value;
+  }
+  if (commentiAtleta.value !== (workout.value.des_commenti || '')) {
+    updates.des_commenti = commentiAtleta.value;
+  }
+  if (numIns6Val.value !== (workout.value.num_ins6 || '')) {
+    updates.num_ins6 = numIns6Val.value;
+  }
+  
+  if (Object.keys(updates).length > 0) {
+    await aggiornaDatoECommit(updates);
+  }
+};
+
+onBeforeRouteLeave(async (to, from) => {
+  document.activeElement?.blur();
+  await salvaModifichePendenti();
+});
+
+onBeforeRouteUpdate(async (to, from) => {
+  document.activeElement?.blur();
+  await salvaModifichePendenti();
+});
+
+const dialogSettore = ref(false);
+const caricandoSettore = ref(false);
+const eserciziSettore = ref([]);
+const settoreSelezionatoNome = ref('');
+const settoreSecondarioTarget = ref('');
+
+const getSettorePrincipale = (s) => {
+  if (!s) return 'Altro';
+  const clean = s.trim().toLowerCase();
+  
+  if (clean.includes('pectoral') || clean.includes('petto')) {
+    return 'Petto';
+  }
+  if (clean.includes('back') || clean.includes('latissimus') || clean.includes('dorsal') || clean.includes('trapezius') || clean.includes('erector')) {
+    return 'Dorsali';
+  }
+  if (clean.includes('deltoid') || clean.includes('spall')) {
+    return 'Deltoidi';
+  }
+  if (clean.includes('biceps') || clean.includes('bicipiti') || clean.includes('brachialis') || clean.includes('brachioradialis')) {
+    return 'Bicipiti';
+  }
+  if (clean.includes('triceps') || clean.includes('tricipiti')) {
+    return 'Tricipiti';
+  }
+  if (clean.includes('quadriceps') || clean.includes('ischiocrurali') || clean.includes('gluteus') || clean.includes('glutei') || clean.includes('hip') || clean.includes('soleus') || clean.includes('gastrocnemius') || clean.includes('adductor') || clean.includes('abductor') || clean.includes('femorali') || clean.includes('quadricipiti') || clean.includes('gambe')) {
+    return 'Gambe';
+  }
+  if (clean.includes('abdomis') || clean.includes('addome') || clean.includes('oblique') || clean.includes('obliqui')) {
+    return 'Addome';
+  }
+  
+  return s; // Fallback
+};
+
+const apriListaSettore = async () => {
+  if (!workout.value) return;
+  vibraTattile(10);
+  
+  const settore = workout.value.des_settore || 'Generico';
+  const settorePrincipale = getSettorePrincipale(settore);
+  settoreSelezionatoNome.value = settorePrincipale;
+  settoreSecondarioTarget.value = settore;
+  dialogSettore.value = true;
+  caricandoSettore.value = true;
+  eserciziSettore.value = [];
+  
+  try {
+    const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
+    const currentNumScheda = String(workout.value.num_scheda);
+    
+    if (!atletaId || !currentNumScheda) {
+      caricandoSettore.value = false;
+      return;
+    }
+
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where(keyIdCliente, '==', atletaId),
+      where('num_scheda', '==', currentNumScheda)
+    );
+    const snap = await getDocs(q);
+    const list = [];
+    snap.forEach((doc) => {
+      const d = doc.data();
+      if (parseInt(d.num_riga_giorno) > 0) {
+        list.push({ id: doc.id, ...d });
+      }
+    });
+
+    if (list.length === 0) {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      const matched = allData.filter(b => {
+        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        return String(bAtletaId) === String(atletaId) &&
+               String(b.num_scheda) === String(currentNumScheda) &&
+               parseInt(b.num_riga_giorno) > 0;
+      });
+      matched.forEach(item => list.push(item));
+    }
+
+    const filtrati = list.filter(ex => {
+      return getSettorePrincipale(ex.des_settore) === settorePrincipale;
+    });
+
+    filtrati.sort((a, b) => {
+      const isTargetA = a.des_settore === settoreSecondarioTarget.value;
+      const isTargetB = b.des_settore === settoreSecondarioTarget.value;
+      
+      if (isTargetA && !isTargetB) return -1;
+      if (!isTargetA && isTargetB) return 1;
+      
+      const giornoA = String(a.des_giorno || '').trim();
+      const giornoB = String(b.des_giorno || '').trim();
+      if (giornoA !== giornoB) {
+        return giornoA.localeCompare(giornoB);
+      }
+      return (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0);
+    });
+
+    eserciziSettore.value = filtrati;
+  } catch (err) {
+    console.error("Errore caricamento esercizi settore:", err);
+  } finally {
+    caricandoSettore.value = false;
+  }
+};
+
+const vaiAdEsercizioSettore = (id) => {
+  vibraTattile(12);
+  dialogSettore.value = false;
+  router.push({ name: 'DettaglioWorkout', params: { id } });
 };
 
 // Torna indietro
@@ -3363,5 +3675,19 @@ th.sticky-col {
   border-color: #f97316 !important;
   background: rgba(249, 115, 22, 0.05) !important;
   box-shadow: 0 0 8px rgba(249, 115, 22, 0.1) !important;
+}
+
+.tiny-save-snackbar :deep(.v-snackbar__wrapper) {
+  min-width: 90px !important;
+  max-width: 110px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+}
+.tiny-save-snackbar :deep(.v-snackbar__content) {
+  padding: 0px 8px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 </style>

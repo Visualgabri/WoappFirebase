@@ -337,6 +337,131 @@
               </div>
             </v-expand-transition>
 
+            <!-- Ordine Esecuzione Proposto (Auto-generato con Recuperi integrati) -->
+            <v-expand-transition>
+              <div v-if="eserciziDaRecuperare.length > 0 && ordineEsecuzioneCompleto.length > 0" class="mb-6">
+                <v-card
+                  class="pa-3 rounded-xl mb-4 border elevation-1"
+                  style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7)) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important;"
+                >
+                  <div
+                    class="d-flex align-center justify-space-between cursor-pointer select-none"
+                    @click="ordineEsecuzioneAperto = !ordineEsecuzioneAperto"
+                  >
+                    <div class="d-flex align-center">
+                      <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-format-list-numbered</v-icon>
+                      <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.78rem !important; letter-spacing: 0.03em;">
+                        ORDINE ESECUZIONE
+                      </span>
+                      <v-chip
+                        v-if="eserciziDaRecuperare.length > 0"
+                        color="orange-darken-3"
+                        size="x-small"
+                        class="ml-2 font-weight-black text-white px-1.5"
+                        variant="flat"
+                        style="font-size: 0.5rem; height: 16px;"
+                      >
+                        +{{ eserciziDaRecuperare.length }} RECUPERI
+                      </v-chip>
+                    </div>
+                    <div class="d-flex align-center gap-1">
+                      <v-chip
+                        color="grey-darken-1"
+                        size="x-small"
+                        variant="tonal"
+                        class="font-weight-black px-1.5"
+                        style="font-size: 0.5rem; height: 16px;"
+                      >
+                        {{ ordineEsecuzioneCompleto.length }} TOT
+                      </v-chip>
+                      <v-icon size="16" color="orange-lighten-2" :style="{ transform: ordineEsecuzioneAperto ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
+                        mdi-chevron-down
+                      </v-icon>
+                    </div>
+                  </div>
+
+                  <v-expand-transition>
+                    <div v-show="ordineEsecuzioneAperto" class="mt-3">
+                      <div class="d-flex flex-column gap-1">
+                        <div
+                          v-for="(item, idx) in ordineEsecuzioneCompleto"
+                          :key="'ord-' + idx"
+                          class="d-flex align-center py-1.5 px-2 rounded-lg cursor-pointer"
+                          :style="{
+                            background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                            border: item.tipo === 'recupero' ? '1px solid rgba(249, 115, 22, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)',
+                          }"
+                          @click="item.id ? vaiAlDettaglio(item.id) : null"
+                        >
+                          <!-- Numero ordine -->
+                          <div
+                            class="d-flex align-center justify-center rounded font-weight-black flex-shrink-0 mr-2.5"
+                            :style="{
+                              width: '22px',
+                              height: '22px',
+                              fontSize: '0.62rem',
+                              background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(255, 255, 255, 0.08)',
+                              color: item.tipo === 'recupero' ? '#fb923c' : '#94a3b8',
+                            }"
+                          >
+                            {{ idx + 1 }}
+                          </div>
+
+                          <!-- Info Esercizio -->
+                          <div class="flex-grow-1 min-width-0">
+                            <div class="d-flex align-center gap-1">
+                              <span class="text-caption font-weight-bold text-truncate" :class="item.tipo === 'recupero' ? 'text-orange-lighten-2' : 'text-slate-dark'" style="font-size: 0.72rem !important;">
+                                {{ item.nome }}
+                              </span>
+                              <v-chip
+                                v-if="item.tipo === 'recupero'"
+                                color="orange-darken-3"
+                                size="x-small"
+                                variant="flat"
+                                class="font-weight-black text-white flex-shrink-0"
+                                style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
+                              >
+                                🔁 REC
+                              </v-chip>
+                              <v-chip
+                                v-if="item.superserie"
+                                color="amber-darken-3"
+                                size="x-small"
+                                variant="tonal"
+                                class="font-weight-black flex-shrink-0"
+                                style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
+                              >
+                                ⚡ {{ item.superserie }}
+                              </v-chip>
+                            </div>
+                            <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.55rem;">
+                              {{ item.settore }}
+                              <span v-if="item.prescrizione" class="text-slate ml-0.5">• {{ item.prescrizione }}</span>
+                            </div>
+                          </div>
+
+                          <!-- Status -->
+                          <v-icon
+                            v-if="item.completato"
+                            size="14"
+                            color="green-accent-4"
+                            class="flex-shrink-0 ml-1"
+                          >mdi-check-circle</v-icon>
+                          <v-icon
+                            v-else
+                            size="14"
+                            color="grey-darken-1"
+                            class="flex-shrink-0 ml-1"
+                            style="opacity: 0.4;"
+                          >mdi-circle-outline</v-icon>
+                        </div>
+                      </div>
+                    </div>
+                  </v-expand-transition>
+                </v-card>
+              </div>
+            </v-expand-transition>
+
         <!-- Container Unico Sessione Giorno -->
         <v-card
           v-if="headerGiorno"
@@ -642,128 +767,6 @@
 
             <!-- Lista Esercizi con Miniature a Sinistra stile AppSheet (Raggruppati in Superserie se presenti) -->
             <div v-else class="exercise-list">
-
-          <!-- Ordine Esecuzione Proposto (Auto-generato con Recuperi integrati) -->
-          <v-card
-            v-if="ordineEsecuzioneCompleto.length > 0"
-            class="pa-3 rounded-xl mb-4 border elevation-1"
-            style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7)) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important;"
-          >
-            <div
-              class="d-flex align-center justify-space-between cursor-pointer select-none"
-              @click="ordineEsecuzioneAperto = !ordineEsecuzioneAperto"
-            >
-              <div class="d-flex align-center">
-                <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-format-list-numbered</v-icon>
-                <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.78rem !important; letter-spacing: 0.03em;">
-                  ORDINE ESECUZIONE
-                </span>
-                <v-chip
-                  v-if="eserciziDaRecuperare.length > 0"
-                  color="orange-darken-3"
-                  size="x-small"
-                  class="ml-2 font-weight-black text-white px-1.5"
-                  variant="flat"
-                  style="font-size: 0.5rem; height: 16px;"
-                >
-                  +{{ eserciziDaRecuperare.length }} RECUPERI
-                </v-chip>
-              </div>
-              <div class="d-flex align-center gap-1">
-                <v-chip
-                  color="grey-darken-1"
-                  size="x-small"
-                  variant="tonal"
-                  class="font-weight-black px-1.5"
-                  style="font-size: 0.5rem; height: 16px;"
-                >
-                  {{ ordineEsecuzioneCompleto.length }} TOT
-                </v-chip>
-                <v-icon size="16" color="orange-lighten-2" :style="{ transform: ordineEsecuzioneAperto ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
-                  mdi-chevron-down
-                </v-icon>
-              </div>
-            </div>
-
-            <v-expand-transition>
-              <div v-show="ordineEsecuzioneAperto" class="mt-3">
-                <div class="d-flex flex-column gap-1">
-                  <div
-                    v-for="(item, idx) in ordineEsecuzioneCompleto"
-                    :key="'ord-' + idx"
-                    class="d-flex align-center py-1.5 px-2 rounded-lg cursor-pointer"
-                    :style="{
-                      background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                      border: item.tipo === 'recupero' ? '1px solid rgba(249, 115, 22, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)',
-                    }"
-                    @click="item.id ? vaiAlDettaglio(item.id) : null"
-                  >
-                    <!-- Numero ordine -->
-                    <div
-                      class="d-flex align-center justify-center rounded font-weight-black flex-shrink-0 mr-2.5"
-                      :style="{
-                        width: '22px',
-                        height: '22px',
-                        fontSize: '0.62rem',
-                        background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(255, 255, 255, 0.08)',
-                        color: item.tipo === 'recupero' ? '#fb923c' : '#94a3b8',
-                      }"
-                    >
-                      {{ idx + 1 }}
-                    </div>
-
-                    <!-- Info Esercizio -->
-                    <div class="flex-grow-1 min-width-0">
-                      <div class="d-flex align-center gap-1">
-                        <span class="text-caption font-weight-bold text-truncate" :class="item.tipo === 'recupero' ? 'text-orange-lighten-2' : 'text-slate-dark'" style="font-size: 0.72rem !important;">
-                          {{ item.nome }}
-                        </span>
-                        <v-chip
-                          v-if="item.tipo === 'recupero'"
-                          color="orange-darken-3"
-                          size="x-small"
-                          variant="flat"
-                          class="font-weight-black text-white flex-shrink-0"
-                          style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
-                        >
-                          🔁 REC
-                        </v-chip>
-                        <v-chip
-                          v-if="item.superserie"
-                          color="amber-darken-3"
-                          size="x-small"
-                          variant="tonal"
-                          class="font-weight-black flex-shrink-0"
-                          style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
-                        >
-                          ⚡ {{ item.superserie }}
-                        </v-chip>
-                      </div>
-                      <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.55rem;">
-                        {{ item.settore }}
-                        <span v-if="item.prescrizione" class="text-slate ml-0.5">• {{ item.prescrizione }}</span>
-                      </div>
-                    </div>
-
-                    <!-- Status -->
-                    <v-icon
-                      v-if="item.completato"
-                      size="14"
-                      color="green-accent-4"
-                      class="flex-shrink-0 ml-1"
-                    >mdi-check-circle</v-icon>
-                    <v-icon
-                      v-else
-                      size="14"
-                      color="grey-darken-1"
-                      class="flex-shrink-0 ml-1"
-                      style="opacity: 0.4;"
-                    >mdi-circle-outline</v-icon>
-                  </div>
-                </div>
-              </div>
-            </v-expand-transition>
-          </v-card>
           <template v-for="(block, bIdx) in blocchiEsercizi" :key="bIdx">
             
             <!-- CASO 1: GRUPPO SUPERSET (SUPERSERIE) -->
@@ -2843,14 +2846,9 @@ const eserciziDaRecuperare = computed(() => {
   const giornoCorrente = (giornoSelezionato.value || '').trim().toUpperCase();
   if (!giornoCorrente) return [];
   
-  // Determina i giorni precedenti a quello selezionato
-  // Ordine: A, B, C, D, E, F, G, H, ...
   const giorniOrdinati = listaGiorniDisponibili.value.map(g => g.toUpperCase());
   const idxCorrente = giorniOrdinati.indexOf(giornoCorrente);
-  if (idxCorrente <= 0) return []; // Se è il primo giorno (A), non ci sono giorni precedenti
-  
-  // Tutti i giorni prima di quello selezionato
-  const giorniPrecedenti = new Set(giorniOrdinati.slice(0, idxCorrente));
+  if (idxCorrente < 0) return [];
   
   const list = [];
   
@@ -2866,26 +2864,32 @@ const eserciziDaRecuperare = computed(() => {
     if (parseInt(ex.num_riga_giorno) === 0) return;
     
     const giornoEx = (ex.des_giorno || '').trim().toUpperCase();
-    
-    // Mostra solo esercizi da recuperare dei giorni PRECEDENTI a quello selezionato
-    if (!giorniPrecedenti.has(giornoEx)) return;
+    const idxEx = giorniOrdinati.indexOf(giornoEx);
     
     const header = headersMap[giornoEx];
     if (!header) return;
     
     for (let w = 1; w <= 6; w++) {
-      const giornoCompletato = isCmpTrue(header['cmp' + w]);
+      let isPastSession = false;
+      if (w < settimanaAttiva.value) {
+        isPastSession = true;
+      } else if (w === settimanaAttiva.value && idxEx >= 0 && idxEx < idxCorrente) {
+        isPastSession = true;
+      }
       
-      if (giornoCompletato) {
-        const val = ex['ins_week' + w] || '';
-        if (haRecupero(val)) {
-          const prescrizione = ex['des_week' + w] || ex.des_qta_report || '';
-          list.push({
-            exercise: ex,
-            week: w,
-            prescrizione,
-            originalVal: val
-          });
+      if (isPastSession) {
+        const giornoCompletato = isCmpTrue(header['cmp' + w]);
+        if (giornoCompletato) {
+          const val = ex['ins_week' + w] || '';
+          if (haRecupero(val)) {
+            const prescrizione = ex['des_week' + w] || ex.des_qta_report || '';
+            list.push({
+              exercise: ex,
+              week: w,
+              prescrizione,
+              originalVal: val
+            });
+          }
         }
       }
     }

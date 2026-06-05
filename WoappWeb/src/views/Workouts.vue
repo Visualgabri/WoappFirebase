@@ -186,20 +186,20 @@
           <div :key="giornoSelezionato" class="swipe-transition-wrapper">
             <!-- Pannello Esercizi da Recuperare (Accordion per giorno) -->
             <v-expand-transition>
-              <div v-if="eserciziDaRecuperare.length > 0" class="mb-5">
+              <div v-if="eserciziDaRecuperare.length > 0" class="mb-6">
                 <v-card
-                  class="pa-2.5 rounded-2xl border"
+                  class="pa-4 rounded-2xl border"
                   style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.1), rgba(249, 115, 22, 0.03)) !important; border: 1.5px solid rgba(249, 115, 22, 0.3) !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;"
                 >
                   <!-- Header Globale -->
-                  <div class="d-flex align-center justify-space-between mb-2">
+                  <div class="d-flex align-center justify-space-between mb-3">
                     <div class="d-flex align-center">
-                      <v-icon color="orange-darken-3" class="mr-1.5 animate-pulse" size="14">mdi-sync</v-icon>
-                      <span class="font-weight-black text-orange-lighten-2" style="letter-spacing: 0.03em; font-size: 0.72rem !important;">
+                      <v-icon color="orange-darken-3" class="mr-2 animate-pulse" size="20">mdi-sync</v-icon>
+                      <span class="text-subtitle-2 font-weight-black text-orange-lighten-2" style="letter-spacing: 0.05em;">
                         🔁 ESERCIZI DA RECUPERARE
                       </span>
                     </div>
-                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat" style="height: 18px; font-size: 0.58rem;">
+                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat">
                       {{ eserciziDaRecuperare.length }} TOTALI
                     </v-chip>
                   </div>
@@ -214,7 +214,7 @@
                     >
                       <!-- Accordion Header (sempre visibile) -->
                       <div
-                        class="d-flex align-center justify-space-between pa-2 px-2.5 cursor-pointer select-none"
+                        class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none"
                         style="transition: background 0.2s;"
                         @click="toggleRecuperoAccordion(gruppo.giorno)"
                       >
@@ -246,12 +246,12 @@
 
                       <!-- Accordion Body (collassabile) -->
                       <v-expand-transition>
-                        <div v-show="recuperoAccordionAperto === gruppo.giorno" class="px-2.5 pb-2.5">
+                        <div v-show="recuperoAccordionAperto === gruppo.giorno" class="px-3 pb-3">
                           <!-- Coaching Tip -->
-                          <div class="d-flex align-center pa-1.5 mb-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border: 1px dashed rgba(249, 115, 22, 0.2);">
-                            <v-icon size="13" color="orange-lighten-1" class="mr-1.5 flex-shrink-0">mdi-lightbulb-outline</v-icon>
+                          <div class="d-flex align-center pa-2 mb-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border: 1px dashed rgba(249, 115, 22, 0.2);">
+                            <v-icon size="14" color="orange-lighten-1" class="mr-2 flex-shrink-0">mdi-lightbulb-outline</v-icon>
                             <span class="text-super-caption text-orange-lighten-2" style="font-size: 0.62rem; line-height: 1.3;">
-                              Ordine consigliato: inserisci prima i <strong>multiarticolari</strong>, poi l'<strong>isolamento</strong>, infine il <strong>core</strong>.
+                              Ordine consigliato: inserisci prima i <strong>multiarticolari</strong> (dopo i tuoi esercizi principali), poi l'<strong>isolamento</strong>, infine il <strong>core</strong>.
                             </span>
                           </div>
 
@@ -259,19 +259,19 @@
                             <v-card
                               v-for="(recItem, idx) in gruppo.esercizi"
                               :key="idx"
-                              class="pa-2 rounded-xl d-flex align-center"
+                              class="pa-3 rounded-xl d-flex align-center"
                               flat
                               style="border: 1px solid rgba(255, 255, 255, 0.06) !important; background: rgba(15, 23, 42, 0.6) !important;"
                             >
                               <!-- Numero ordine + Thumbnail -->
-                              <div class="d-flex flex-column align-center mr-2 flex-shrink-0" style="gap: 3px;">
+                              <div class="d-flex flex-column align-center mr-3 flex-shrink-0" style="gap: 3px;">
                                 <div
                                   class="d-flex align-center justify-center rounded font-weight-black"
-                                  style="width: 18px; height: 18px; font-size: 0.58rem; background: rgba(249, 115, 22, 0.25); color: #fb923c;"
+                                  style="width: 20px; height: 20px; font-size: 0.6rem; background: rgba(249, 115, 22, 0.25); color: #fb923c;"
                                 >
                                   {{ idx + 1 }}
                                 </div>
-                                <div class="rounded overflow-hidden" style="width: 38px; height: 38px; border: 1px solid rgba(255,255,255,0.08);">
+                                <div class="rounded-lg overflow-hidden" style="width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.08);">
                                   <v-img
                                     :src="getGifUrl(recItem.exercise.UrlNormal) || '/logo.png'"
                                     cover
@@ -280,7 +280,7 @@
                                   >
                                     <template v-slot:placeholder>
                                       <div class="fill-height d-flex align-center justify-center" style="background: rgba(30,41,59,0.8);">
-                                        <v-icon color="grey" size="12">mdi-dumbbell</v-icon>
+                                        <v-icon color="grey" size="14">mdi-dumbbell</v-icon>
                                       </div>
                                     </template>
                                   </v-img>
@@ -3498,9 +3498,11 @@ const recuperiRaggruppati = computed(() => {
   border-radius: 8px !important;
 }
 .recovery-compact-input :deep(input) {
-  padding: 0 8px !important;
+  padding: 0 !important;
   height: 26px !important;
   font-size: 0.62rem !important;
+  text-align: center !important;
+  line-height: 26px !important;
 }
 
 .day-header-section {
@@ -3528,9 +3530,17 @@ const recuperiRaggruppati = computed(() => {
   border-radius: 6px !important;
   transition: all 0.2s ease !important;
 }
+.recovery-compact-input :deep(.v-field__input) {
+  padding: 0 !important;
+  min-height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
 .recovery-compact-input :deep(input::placeholder) {
   font-size: 0.62rem !important;
   opacity: 0.55 !important;
+  text-align: center !important;
 }
 .recovery-compact-input :deep(.v-field--focused) {
   background: rgba(255, 255, 255, 0.18) !important;

@@ -194,12 +194,12 @@
                   <!-- Header Globale -->
                   <div class="d-flex align-center justify-space-between mb-3">
                     <div class="d-flex align-center">
-                      <v-icon color="orange-darken-3" class="mr-2 animate-pulse" size="20">mdi-sync</v-icon>
-                      <span class="text-subtitle-2 font-weight-black text-orange-lighten-2" style="letter-spacing: 0.05em;">
+                      <v-icon color="orange-darken-3" class="mr-1.5 animate-pulse" size="14">mdi-sync</v-icon>
+                      <span class="font-weight-black text-orange-lighten-2" style="letter-spacing: 0.03em; font-size: 0.72rem !important;">
                         🔁 ESERCIZI DA RECUPERARE
                       </span>
                     </div>
-                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat">
+                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat" style="height: 18px; font-size: 0.58rem;">
                       {{ eserciziDaRecuperare.length }} TOTALI
                     </v-chip>
                   </div>

@@ -912,96 +912,96 @@
                     @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
                   />
                 </div>
-              </div>
-            </div>
 
-            <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito) -->
-            <div v-if="!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')" class="rounded-xl border border-soft bg-slate-950 pa-3 text-left">
-              <div class="d-flex align-center justify-space-between mb-2.5">
-                <div>
-                  <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
-                </div>
-                
-                <!-- Stepper per Miglior Carico W6 Precedente -->
-                <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-                  <v-btn
-                    icon
-                    size="x-small"
-                    variant="text"
-                    color="orange-lighten-2"
-                    @click="decrementaKgUnicoPrecedente"
-                  >
-                    <v-icon size="18">mdi-minus</v-icon>
-                  </v-btn>
-                  <input
-                    v-model="numIns6ValPrecedente"
-                    type="text"
-                    class="text-center font-weight-black text-white px-1"
-                    style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
-                    @blur="salvaKgUnicoPrecedente"
-                  />
-                  <v-btn
-                    icon
-                    size="x-small"
-                    variant="text"
-                    color="orange-lighten-2"
-                    @click="incrementaKgUnicoPrecedente"
-                  >
-                    <v-icon size="18">mdi-plus</v-icon>
-                  </v-btn>
-                </div>
-              </div>
+                <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito) - Spostato sotto la Week 6 -->
+                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%'))" class="mt-3 pt-3 border-top-soft">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <div>
+                      <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
+                    </div>
+                    
+                    <!-- Stepper per Miglior Carico W6 Precedente -->
+                    <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                      <v-btn
+                        icon
+                        size="x-small"
+                        variant="text"
+                        color="orange-lighten-2"
+                        @click="decrementaKgUnicoPrecedente"
+                      >
+                        <v-icon size="18">mdi-minus</v-icon>
+                      </v-btn>
+                      <input
+                        v-model="numIns6ValPrecedente"
+                        type="text"
+                        class="text-center font-weight-black text-white px-1"
+                        style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
+                        @blur="salvaKgUnicoPrecedente"
+                      />
+                      <v-btn
+                        icon
+                        size="x-small"
+                        variant="text"
+                        color="orange-lighten-2"
+                        @click="incrementaKgUnicoPrecedente"
+                      >
+                        <v-icon size="18">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
 
-              <!-- Selettore Sforzo Percepito W6 Precedente -->
-              <div class="text-left mt-2">
-                <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.58rem;">Sforzo Percepito (W6)</span>
-                <v-row dense class="gap-2 justify-space-between">
-                  <v-col cols="4">
-                    <v-btn
-                      block
-                      variant="flat"
-                      :color="numFaticaw6ValPrecedente === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
-                      size="x-small"
-                      rounded="lg"
-                      class="font-weight-black text-none"
-                      :class="{'text-white': numFaticaw6ValPrecedente === 'Media', 'text-slate': numFaticaw6ValPrecedente !== 'Media'}"
-                      style="font-size: 0.65rem; height: 26px;"
-                      @click="salvaFaticaPrecedente('Media')"
-                    >
-                      Media
-                    </v-btn>
-                  </v-col>
-                  <v-col cols="4">
-                    <v-btn
-                      block
-                      variant="flat"
-                      :color="numFaticaw6ValPrecedente === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
-                      size="x-small"
-                      rounded="lg"
-                      class="font-weight-black text-none"
-                      :class="{'text-white': numFaticaw6ValPrecedente === 'Pesante', 'text-slate': numFaticaw6ValPrecedente !== 'Pesante'}"
-                      style="font-size: 0.65rem; height: 26px;"
-                      @click="salvaFaticaPrecedente('Pesante')"
-                    >
-                      Pesante
-                    </v-btn>
-                  </v-col>
-                  <v-col cols="4">
-                    <v-btn
-                      block
-                      variant="flat"
-                      :color="numFaticaw6ValPrecedente === 'Devastante' ? 'red-darken-3' : 'grey-darken-3'"
-                      size="x-small"
-                      rounded="lg"
-                      class="font-weight-black text-none"
-                      :class="{'text-white': numFaticaw6ValPrecedente === 'Devastante', 'text-slate': numFaticaw6ValPrecedente !== 'Devastante'}"
-                      style="font-size: 0.65rem; height: 26px;"
-                      @click="salvaFaticaPrecedente('Devastante')"
-                    >
-                      Devastante
-                    </v-btn>
-                  </v-col>
-                </v-row>
+                  <!-- Selettore Sforzo Percepito W6 Precedente -->
+                  <div class="text-left mt-2">
+                    <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.58rem;">Sforzo Percepito (W6)</span>
+                    <v-row dense class="gap-2 justify-space-between">
+                      <v-col cols="4">
+                        <v-btn
+                          block
+                          variant="flat"
+                          :color="numFaticaw6ValPrecedente === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
+                          size="x-small"
+                          rounded="lg"
+                          class="font-weight-black text-none"
+                          :class="{'text-white': numFaticaw6ValPrecedente === 'Media', 'text-slate': numFaticaw6ValPrecedente !== 'Media'}"
+                          style="font-size: 0.65rem; height: 26px;"
+                          @click="salvaFaticaPrecedente('Media')"
+                        >
+                          Media
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn
+                          block
+                          variant="flat"
+                          :color="numFaticaw6ValPrecedente === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
+                          size="x-small"
+                          rounded="lg"
+                          class="font-weight-black text-none"
+                          :class="{'text-white': numFaticaw6ValPrecedente === 'Pesante', 'text-slate': numFaticaw6ValPrecedente !== 'Pesante'}"
+                          style="font-size: 0.65rem; height: 26px;"
+                          @click="salvaFaticaPrecedente('Pesante')"
+                        >
+                          Pesante
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn
+                          block
+                          variant="flat"
+                          :color="numFaticaw6ValPrecedente === 'Devastante' ? 'red-darken-3' : 'grey-darken-3'"
+                          size="x-small"
+                          rounded="lg"
+                          class="font-weight-black text-none"
+                          :class="{'text-white': numFaticaw6ValPrecedente === 'Devastante', 'text-slate': numFaticaw6ValPrecedente !== 'Devastante'}"
+                          style="font-size: 0.65rem; height: 26px;"
+                          @click="salvaFaticaPrecedente('Devastante')"
+                        >
+                          Devastante
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1112,7 +1112,7 @@
             </div>
             <p class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.4; font-size: 0.7rem !important;">
               Il tuo record storico per la <strong class="text-white">Week {{ settimanaAttiva }}</strong> è di <strong class="text-orange-lighten-2">{{ recordWeekAttiva }} kg</strong>.<br>
-              Oggi sei in <strong class="text-white">Week {{ settimanaAttiva }}</strong>: ti consigliamo di provare <strong class="text-orange-lighten-2" style="font-size: 0.95rem; font-weight: 800;">{{ suggerimentoRecord }} kg</strong> 
+              Oggi sei in <strong class="text-white">Week {{ settimanaAttiva }}</strong>: ti consiglio di provare <strong class="text-orange-lighten-2" style="font-size: 0.95rem; font-weight: 800;">{{ suggerimentoRecord }} kg</strong> 
               <span class="text-super-caption text-muted font-weight-bold ml-1">
                 ({{ settimanaAttiva <= 3 ? 'approccio conservativo per l\'inizio mesociclo' : 'approccio aggressivo per fine mesociclo' }})
               </span>.
@@ -1120,7 +1120,7 @@
           </div>
           
           <!-- LAYOUT 1: TIMELINE (Mobile-first Cards) -->
-          <div v-else-if="stileStorico === 'timeline'" class="d-flex flex-column gap-2.5">
+          <div v-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'timeline'" class="d-flex flex-column gap-2.5">
             <div 
               v-for="prevEx in storicoFiltrato" 
               :key="prevEx.id" 
@@ -1191,7 +1191,7 @@
           </div>
 
           <!-- LAYOUT 2: TABELLA MATRICE (AppSheet Grid) -->
-          <div v-else class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto">
+          <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0" class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto">
             <table class="premium-storico-table" style="width: 1740px; table-layout: fixed; border-collapse: collapse;">
               <thead>
                 <tr>

@@ -72,6 +72,8 @@
           contain
           class="bg-black"
           height="100%"
+          style="cursor: pointer;"
+          @click="dialogGifFullScreen = true"
         >
           <template v-slot:placeholder>
             <div class="fill-height d-flex align-center justify-center bg-black">
@@ -421,10 +423,13 @@
               >
                 {{ isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline' }}
               </v-icon>
-              <span class="text-caption font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
+              <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
-                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1.5 font-weight-bold" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'">
+                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.15rem !important;">
                   ({{ parsedPrescription(workout['des_week' + sett]).reps }})
+                </span>
+                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.15rem !important;">
+                  ({{ workout['des_week' + sett] }})
                 </span>
               </span>
               <v-chip
@@ -485,8 +490,8 @@
           </div>
           
           <!-- Fallback se non corrisponde al pattern speciale -->
-          <div v-else class="week-prescription-text text-caption font-weight-bold text-slate mb-2 py-0.5 px-2 rounded bg-slate-100" style="font-size: 0.75rem;">
-            {{ workout['des_week' + sett] || 'Nessuna prescrizione' }}
+          <div v-else-if="!workout['des_week' + sett]" class="week-prescription-text text-caption font-weight-bold text-slate mb-2 py-0.5 px-2 rounded bg-slate-100" style="font-size: 0.75rem;">
+            Nessuna prescrizione
           </div>
 
           <!-- Istruzioni Esecuzione / Test sotto il Lavoro (LAVORO) -->
@@ -885,7 +890,7 @@
 
             <!-- Lista delle 6 settimane delle progressioni precedenti (Carico a tutta larghezza e prescrizione sopra) -->
             <div class="d-flex flex-column gap-2 mb-3">
-              <div v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-2 text-left">
+              <div v-for="w in [6, 5, 4, 3, 2, 1]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-2 text-left">
                 <!-- Settimana + Prescrizione (Sopra) -->
                 <div class="d-flex align-center justify-space-between mb-1.5" style="line-height: 1.1;">
                   <div class="font-weight-black text-white uppercase d-flex align-center gap-1.5" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
@@ -1104,7 +1109,7 @@
             <div v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left">
               <div 
                 class="d-flex align-center justify-space-between mb-1 px-1.5 py-0.5 rounded"
-                :class="{'red-scheda-header': haSettimanaCorrispondente(prevEx)}"
+                :class="{'red-scheda-header': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}"
               >
                 <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem !important;">
                   Scheda {{ prevEx.num_scheda }}
@@ -1136,15 +1141,15 @@
                   >
                     <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                     <span 
-                      class="text-super-caption text-muted d-block text-truncate px-0.5" 
-                      style="font-size: 0.48rem; line-height: 1;"
+                      class="text-super-caption text-orange-lighten-2 font-weight-black d-block text-truncate px-0.5" 
+                      style="font-size: 0.68rem; line-height: 1.15;"
                       :class="{'text-red font-weight-black': isMatchingReps(prevEx, w)}"
                     >
                       {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
                     </span>
                     <strong 
-                      class="text-caption font-weight-black text-orange-lighten-2 d-block mt-0.5" 
-                      style="font-size: 0.68rem; line-height: 1.1;"
+                      class="text-caption font-weight-bold text-muted d-block mt-0.5" 
+                      style="font-size: 0.58rem; line-height: 1.1;"
                       :class="{'text-red': isMatchingReps(prevEx, w)}"
                     >
                       {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
@@ -1179,7 +1184,7 @@
                   <!-- Scheda (Sticky) -->
                   <td 
                     class="sticky-col body-cell text-left"
-                    :class="{'red-scheda-cell': haSettimanaCorrispondente(prevEx)}"
+                    :class="{'red-scheda-cell': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}"
                   >
                     <div class="font-weight-black text-white" style="font-size: 0.75rem; line-height: 1.15;">S. {{ prevEx.num_scheda }}</div>
                     <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted" style="font-size: 0.55rem; white-space: nowrap; line-height: 1.15; margin-top: 1px;">
@@ -1203,16 +1208,26 @@
                     :class="{'red-cell': isMatchingReps(prevEx, w)}"
                     style="word-wrap: break-word;"
                   >
-                    <div style="font-size: 0.72rem;">
-                      {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
-                    </div>
+                    <!-- Lavoro (des_week) in arancione con dimensione aumentata, mostrato prima -->
                     <div 
                       v-if="prevEx['des_week' + w]" 
-                      class="text-super-caption text-muted font-weight-bold" 
-                      style="font-size: 0.52rem; line-height: 1.1; word-wrap: break-word;"
+                      class="text-super-caption text-orange-lighten-2 font-weight-black" 
+                      style="font-size: 0.72rem; line-height: 1.15; word-wrap: break-word;"
                       :class="{'text-red font-weight-black': isMatchingReps(prevEx, w)}"
                     >
                       {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
+                    </div>
+                    <div v-else class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.72rem; line-height: 1.15;">
+                      N.D.
+                    </div>
+                    
+                    <!-- Testo utente (ins_week) in grigio, mostrato sotto -->
+                    <div 
+                      class="text-caption font-weight-bold text-muted mt-0.5" 
+                      style="font-size: 0.58rem; line-height: 1.1; word-wrap: break-word;"
+                      :class="{'text-red': isMatchingReps(prevEx, w)}"
+                    >
+                      {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
                     </div>
                   </td>
                   
@@ -1248,6 +1263,28 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog per GIF a tutto schermo -->
+    <v-dialog v-model="dialogGifFullScreen" max-width="95vw" max-height="95vh">
+      <v-card class="bg-black border-0 rounded-2xl position-relative d-flex justify-center align-center overflow-hidden" style="height: 100%; max-height: 95vh;">
+        <v-btn
+          icon="mdi-close"
+          variant="flat"
+          color="rgba(0,0,0,0.6)"
+          size="small"
+          class="position-absolute text-white"
+          style="top: 10px; right: 10px; z-index: 10;"
+          @click="dialogGifFullScreen = false"
+        ></v-btn>
+        <v-img
+          :src="getGifUrl(workout?.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
+          alt="Esercizio Full Screen"
+          contain
+          style="max-height: 90vh; width: 100%; max-width: 100%; cursor: pointer;"
+          @click="dialogGifFullScreen = false"
+        ></v-img>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -1265,6 +1302,7 @@ const router = useRouter();
 const dialogProgressioniPrecedente = ref(false);
 const dialogElimina = ref(false);
 const dialogStorico = ref(false);
+const dialogGifFullScreen = ref(false);
 const eliminandoEsercizio = ref(false);
 const caricandoStorico = ref(false);
 const storicoEsercizio = ref([]);

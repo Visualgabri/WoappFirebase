@@ -1103,10 +1103,31 @@
             <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
             <p class="text-caption text-muted">Nessuna scheda passata corrispondente trovata.</p>
           </div>
+
+          <!-- Banner Suggerimento Record (Mostrato se c'è storico caricato) -->
+          <div v-if="!caricandoStorico && storicoFiltrato.length > 0 && suggerimentoRecord" class="mb-4 pa-3 rounded-xl border-soft text-left" style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.2) !important;">
+            <div class="d-flex align-center gap-2 mb-1">
+              <v-icon color="orange" size="18">mdi-trophy-outline</v-icon>
+              <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem;">Suggerimento per battere il record</span>
+            </div>
+            <p class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.4; font-size: 0.7rem !important;">
+              Il tuo record storico per la <strong class="text-white">Week {{ settimanaAttiva }}</strong> è di <strong class="text-orange-lighten-2">{{ recordWeekAttiva }} kg</strong>.<br>
+              Oggi sei in <strong class="text-white">Week {{ settimanaAttiva }}</strong>: ti consigliamo di provare <strong class="text-orange-lighten-2" style="font-size: 0.95rem; font-weight: 800;">{{ suggerimentoRecord }} kg</strong> 
+              <span class="text-super-caption text-muted font-weight-bold ml-1">
+                ({{ settimanaAttiva <= 3 ? 'approccio conservativo per l\'inizio mesociclo' : 'approccio aggressivo per fine mesociclo' }})
+              </span>.
+            </p>
+          </div>
           
           <!-- LAYOUT 1: TIMELINE (Mobile-first Cards) -->
           <div v-else-if="stileStorico === 'timeline'" class="d-flex flex-column gap-2.5">
-            <div v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left">
+            <div 
+              v-for="prevEx in storicoFiltrato" 
+              :key="prevEx.id" 
+              class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left" 
+              style="cursor: pointer;" 
+              @click="vaiADettaglioStorico(prevEx.id)"
+            >
               <div 
                 class="d-flex align-center justify-space-between mb-1 px-1.5 py-0.5 rounded"
                 :class="{'red-scheda-header': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}"
@@ -1152,8 +1173,17 @@
                       style="font-size: 0.58rem; line-height: 1.1;"
                       :class="{'text-red': isMatchingReps(prevEx, w)}"
                     >
-                      {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
+                      {{ prevEx['ins_week' + w] || '-' }}
                     </strong>
+                    <!-- Fatica se W6 -->
+                    <span 
+                      v-if="w === 6 && prevEx.num_faticaw6"
+                      class="text-super-caption font-weight-bold d-block mt-0.5"
+                      style="font-size: 0.50rem; line-height: 1;"
+                      :style="getColoreFaticaStyle(prevEx.num_faticaw6)"
+                    >
+                      {{ prevEx.num_faticaw6 }}
+                    </span>
                   </div>
                 </v-col>
               </v-row>
@@ -1162,11 +1192,10 @@
 
           <!-- LAYOUT 2: TABELLA MATRICE (AppSheet Grid) -->
           <div v-else class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto">
-            <table class="premium-storico-table" style="width: 1415px; table-layout: fixed; border-collapse: collapse;">
+            <table class="premium-storico-table" style="width: 1740px; table-layout: fixed; border-collapse: collapse;">
               <thead>
                 <tr>
                   <th class="sticky-col header-cell text-left" style="width: 75px;">Scheda</th>
-                  <th class="header-cell" style="width: 75px;">Prescr.</th>
                   <th class="header-cell" style="width: 110px;">W1</th>
                   <th class="header-cell" style="width: 110px;">W2</th>
                   <th class="header-cell" style="width: 110px;">W3</th>
@@ -1176,11 +1205,19 @@
                   <th class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
                   <th class="header-cell" style="width: 75px;">Peso Corp.</th>
                   <th class="header-cell" style="width: 110px;">Giorno</th>
-                  <th class="header-cell" style="width: 340px;">Note</th>
+                  <th class="header-cell" style="width: 250px;">Note</th>
+                  <th class="header-cell" style="width: 200px;">Note Attrezzo</th>
+                  <th class="header-cell" style="width: 200px;">Note Gen. Attrezzo</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="table-row">
+                <tr 
+                  v-for="prevEx in storicoFiltrato" 
+                  :key="prevEx.id" 
+                  class="table-row" 
+                  style="cursor: pointer;" 
+                  @click="vaiADettaglioStorico(prevEx.id)"
+                >
                   <!-- Scheda (Sticky) -->
                   <td 
                     class="sticky-col body-cell text-left"
@@ -1193,11 +1230,6 @@
                     <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.52rem; white-space: nowrap; line-height: 1.1; margin-top: 1px;">
                       {{ tempoTrascorso(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }}
                     </div>
-                  </td>
-                  
-                  <!-- Prescrizione target settimana attiva -->
-                  <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">
-                    {{ prevEx['des_week' + settimanaAttiva] ? (parsedPrescription(prevEx['des_week' + settimanaAttiva])?.reps || prevEx['des_week' + settimanaAttiva]) : '-' }}
                   </td>
                   
                   <!-- Settimane W1 - W6 -->
@@ -1227,7 +1259,17 @@
                       style="font-size: 0.58rem; line-height: 1.1; word-wrap: break-word;"
                       :class="{'text-red': isMatchingReps(prevEx, w)}"
                     >
-                      {{ prevEx['ins_week' + w] ? prevEx['ins_week' + w] + ' kg' : '-' }}
+                      {{ prevEx['ins_week' + w] || '-' }}
+                    </div>
+
+                    <!-- Fatica se W6 -->
+                    <div 
+                      v-if="w === 6 && prevEx.num_faticaw6"
+                      class="text-super-caption font-weight-bold mt-0.5"
+                      style="font-size: 0.55rem; line-height: 1.1;"
+                      :style="getColoreFaticaStyle(prevEx.num_faticaw6)"
+                    >
+                      {{ prevEx.num_faticaw6 }}
                     </div>
                   </td>
                   
@@ -1247,8 +1289,18 @@
                   </td>
                   
                   <!-- Note -->
-                  <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_attrezzo || prevEx.des_note || ''">
-                    {{ prevEx.des_note_attrezzo || prevEx.des_note || '-' }}
+                  <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note || ''">
+                    {{ prevEx.des_note || '-' }}
+                  </td>
+
+                  <!-- Note Attrezzo -->
+                  <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_attrezzo || ''">
+                    {{ prevEx.des_note_attrezzo || '-' }}
+                  </td>
+
+                  <!-- Note Gen. Attrezzo -->
+                  <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_gen_attr || ''">
+                    {{ prevEx.des_note_gen_attr || '-' }}
                   </td>
                 </tr>
               </tbody>
@@ -2726,6 +2778,58 @@ const eliminaEsercizio = async () => {
   }
 };
 
+// Computed per record e suggerimenti nello storico
+const recordWeekAttiva = computed(() => {
+  const w = settimanaAttiva.value;
+  let maxWeight = 0;
+  storicoEsercizio.value.forEach(prevEx => {
+    // Escludiamo la scheda attuale per non calcolare il suggerimento su se stessi
+    const sNum = parseInt(prevEx.num_scheda);
+    const currentNumScheda = parseInt(workout.value?.num_scheda);
+    if (sNum === currentNumScheda) return;
+
+    const val = prevEx['ins_week' + w];
+    if (val) {
+      const pesoNum = parseFloat(estraiPesoDaInput(val));
+      if (!isNaN(pesoNum) && pesoNum > maxWeight) {
+        maxWeight = pesoNum;
+      }
+    }
+  });
+  return maxWeight;
+});
+
+const suggerimentoRecord = computed(() => {
+  const record = recordWeekAttiva.value;
+  if (!record || record === 0) return null;
+  const w = settimanaAttiva.value;
+  if (w <= 3) {
+    // Prime 3 settimane: conservativo (+0.5 kg)
+    return (record + 0.5);
+  } else if (w === 4) {
+    // Settimana 4: intermedio (+1.0 kg)
+    return (record + 1.0);
+  } else {
+    // Settimane 5 e 6: osare di più (+2.0 kg)
+    return (record + 2.0);
+  }
+});
+
+const getColoreFaticaStyle = (fatica) => {
+  if (!fatica) return {};
+  const f = fatica.trim().toLowerCase();
+  if (f === 'media') return { color: '#81c784 !important' }; // Light green
+  if (f === 'pesante') return { color: '#ffb74d !important' }; // Light orange
+  if (f === 'devastante') return { color: '#e57373 !important' }; // Light red
+  return {};
+};
+
+const vaiADettaglioStorico = (prevExId) => {
+  vibraTattile(10);
+  dialogStorico.value = false;
+  router.push({ name: 'DettaglioWorkout', params: { id: prevExId } });
+};
+
 // Funzione Riepilogo Storico Esercizi (freccia con orologio)
 const apriStoricoEsercizio = async () => {
   vibraTattile(10);
@@ -2754,8 +2858,8 @@ const apriStoricoEsercizio = async () => {
     snap.forEach((doc) => {
       const d = doc.data();
       const sNum = parseInt(d.num_scheda);
-      // Solo schede precedenti ed esercizi (riga > 0)
-      if (sNum < currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
+      // Schede precedenti ed attuale (riga > 0)
+      if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
         list.push({ id: doc.id, ...d });
       }
     });
@@ -2770,7 +2874,7 @@ const apriStoricoEsercizio = async () => {
         const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
         return String(bAtletaId) === String(atletaId) &&
                String(b.des_esercizio).trim() === String(desEsercizio).trim() &&
-               parseInt(b.num_scheda) < currentNumScheda &&
+               parseInt(b.num_scheda) <= currentNumScheda &&
                parseInt(b.num_riga_giorno) > 0;
       });
       matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));

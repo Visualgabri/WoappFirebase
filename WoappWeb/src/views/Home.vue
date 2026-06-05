@@ -236,51 +236,96 @@
               </v-chip>
             </div>
             
-            <div class="d-flex align-start justify-space-between mb-4">
-              <div class="d-flex align-center min-width-0">
-                <!-- Lettera Workout in grande -->
-                <div class="giorno-huge-badge mr-4">{{ giornoAttivo }}</div>
-                <div class="text-left min-width-0">
-                  <h3 class="text-h5 font-weight-black text-slate-dark tracking-tight leading-tight">
-                    Allenamento Giorno {{ giornoAttivo }}
-                  </h3>
-                  <!-- Focus muscolare -->
-                  <div class="text-body-2 font-weight-black text-orange-lighten-2 text-truncate mt-1">
-                    🎯 {{ getFocusSectors(giornoAttivo) }}
-                  </div>
-                  <!-- Calorie stimate -->
-                  <div class="text-caption text-muted font-weight-bold d-flex align-center mt-1" style="font-size: 0.72rem;">
-                    <v-icon size="14" color="orange" class="mr-1">mdi-fire</v-icon>
-                    Stima Consumo: <span class="text-slate-dark ml-1 font-weight-black">{{ activeDayHeaderParsed?.calorie || 350 }} kcal</span>
+            <v-row dense class="align-center mb-4">
+              <!-- Sinistra: Testo e pillole metriche -->
+              <v-col cols="8" class="text-left pr-1">
+                <div class="d-flex align-center mb-3 min-width-0">
+                  <div class="giorno-huge-badge mr-2 mr-sm-3 flex-shrink-0" style="font-size: 1.5rem; width: 38px; height: 38px; line-height: 38px;">{{ giornoAttivo }}</div>
+                  <div class="min-width-0">
+                    <h3 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight leading-tight text-truncate" style="font-size: 1.05rem !important;">
+                      Workout Giorno {{ giornoAttivo }}
+                    </h3>
+                    <!-- Focus muscolare -->
+                    <div class="text-caption font-weight-black text-orange-lighten-2 text-truncate mt-0.5" style="font-size: 0.72rem;">
+                      🎯 {{ getFocusSectors(giornoAttivo) }}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            
-            <!-- Metrics Pills Row -->
-            <v-row dense class="mb-4 text-center">
-              <v-col cols="4">
-                <div class="metric-pill pa-2 rounded-xl">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Durata</span>
-                  <span class="text-body-2 font-weight-black text-slate-dark mt-0.5 d-block">
-                    ⏱️ {{ activeDayHeaderParsed?.tempoMedia || '60 min' }}
-                  </span>
+
+                <!-- Metrics Row compattata per stare a sinistra -->
+                <div class="d-flex gap-1 flex-wrap">
+                  <div class="metric-pill py-1 px-1.5 rounded-lg flex-grow-1 text-center" style="min-width: 50px; background: rgba(15, 23, 42, 0.4);">
+                    <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.52rem; line-height: 1;">Durata</span>
+                    <span class="text-caption font-weight-bold text-slate-dark mt-0.5 d-block" style="font-size: 0.68rem; line-height: 1;">
+                      ⏱️ {{ activeDayHeaderParsed?.tempoMedia || '60m' }}
+                    </span>
+                  </div>
+                  <div class="metric-pill py-1 px-1.5 rounded-lg flex-grow-1 text-center" style="min-width: 50px; background: rgba(15, 23, 42, 0.4);">
+                    <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.52rem; line-height: 1;">Serie</span>
+                    <span class="text-caption font-weight-bold text-slate-dark mt-0.5 d-block" style="font-size: 0.68rem; line-height: 1;">
+                      🏋️ {{ activeDayVolumesParsed?.totale || '20' }}
+                    </span>
+                  </div>
+                  <div class="metric-pill py-1 px-1.5 rounded-lg flex-grow-1 text-center" style="min-width: 50px; background: rgba(15, 23, 42, 0.4);">
+                    <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.52rem; line-height: 1;">Densità</span>
+                    <span class="text-caption font-weight-bold text-slate-dark mt-0.5 d-block" style="font-size: 0.68rem; line-height: 1;">
+                      ⚡ {{ activeDayHeaderParsed?.densitaMedia || '60' }}%
+                    </span>
+                  </div>
                 </div>
               </v-col>
-              <v-col cols="4">
-                <div class="metric-pill pa-2 rounded-xl">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Serie Totali</span>
-                  <span class="text-body-2 font-weight-black text-slate-dark mt-0.5 d-block">
-                    🏋️ {{ activeDayVolumesParsed?.totale || '20' }} serie
-                  </span>
+
+              <!-- Destra: Silhouette Anatomica -->
+              <v-col cols="4" class="d-flex flex-column align-center justify-center">
+                <div class="heatmap-container rounded-lg pa-1 border position-relative" style="background: rgba(15, 23, 42, 0.55) !important; border-color: rgba(255, 255, 255, 0.08) !important; width: 92px; height: 74px; overflow: hidden;" @click.stop>
+                  <svg viewBox="0 0 100 120" width="100%" height="100%" style="display: block;">
+                    <!-- FRONTE (X: 10-45) -->
+                    <circle cx="27" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
+                    <path d="M16,24 L22,23 L25,26 L18,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
+                    <path d="M38,24 L32,23 L29,26 L36,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
+                    <rect x="13" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Bicipiti')" :stroke="getMuscleStroke('Bicipiti')" stroke-width="0.8" />
+                    <rect x="36.5" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Bicipiti')" :stroke="getMuscleStroke('Bicipiti')" stroke-width="0.8" />
+                    <rect x="19" y="28" width="7.5" height="9" rx="1" :fill="getMuscleColor('Pettorali')" :stroke="getMuscleStroke('Pettorali')" stroke-width="0.8" />
+                    <rect x="27.5" y="28" width="7.5" height="9" rx="1" :fill="getMuscleColor('Pettorali')" :stroke="getMuscleStroke('Pettorali')" stroke-width="0.8" />
+                    <rect x="21" y="38" width="12" height="14" rx="1" :fill="getMuscleColor('Addome')" :stroke="getMuscleStroke('Addome')" stroke-width="0.8" />
+                    <rect x="19.5" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
+                    <rect x="28" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
+                    
+                    <!-- RETRO (X: 55-90) -->
+                    <circle cx="73" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
+                    <path d="M62,24 L68,23 L71,26 L64,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
+                    <path d="M84,24 L78,23 L75,26 L82,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
+                    <rect x="59" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Tricipiti')" :stroke="getMuscleStroke('Tricipiti')" stroke-width="0.8" />
+                    <rect x="90.5" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Tricipiti')" :stroke="getMuscleStroke('Tricipiti')" stroke-width="0.8" />
+                    <path d="M65,28 L72.5,30 L72.5,42 L63,36 Z" :fill="getMuscleColor('Dorsali')" :stroke="getMuscleStroke('Dorsali')" stroke-width="0.8" />
+                    <path d="M81,28 L73.5,30 L73.5,42 L83,36 Z" :fill="getMuscleColor('Dorsali')" :stroke="getMuscleStroke('Dorsali')" stroke-width="0.8" />
+                    <rect x="65.5" y="44" width="13" height="8" rx="1" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
+                    <rect x="64.5" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
+                    <rect x="73" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
+                  </svg>
                 </div>
-              </v-col>
-              <v-col cols="4">
-                <div class="metric-pill pa-2 rounded-xl">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Densità</span>
-                  <span class="text-body-2 font-weight-black text-slate-dark mt-0.5 d-block">
-                    ⚡ {{ activeDayHeaderParsed?.densitaMedia || '60' }}%
-                  </span>
+                <!-- Heatmap scope and mode toggle buttons -->
+                <div class="d-flex align-center justify-center gap-1 mt-1 flex-wrap" @click.stop>
+                  <v-btn
+                    size="x-small"
+                    variant="tonal"
+                    :color="heatmapScope === 'giorno' ? 'orange' : 'grey-lighten-1'"
+                    class="px-1"
+                    style="height: 18px; font-size: 0.52rem; min-width: 0; line-height: 1; border-radius: 4px;"
+                    @click="heatmapScope = heatmapScope === 'giorno' ? 'settimana' : 'giorno'"
+                  >
+                    {{ heatmapScope === 'giorno' ? 'Giorno' : 'Sett.' }}
+                  </v-btn>
+                  <v-btn
+                    size="x-small"
+                    variant="tonal"
+                    :color="heatmapMode === 'completati' ? 'orange' : 'grey-lighten-1'"
+                    class="px-1"
+                    style="height: 18px; font-size: 0.52rem; min-width: 0; line-height: 1; border-radius: 4px;"
+                    @click="heatmapMode = heatmapMode === 'completati' ? 'programmati' : 'completati'"
+                  >
+                    {{ heatmapMode === 'completati' ? 'Fatti' : 'Prog.' }}
+                  </v-btn>
                 </div>
               </v-col>
             </v-row>
@@ -1025,6 +1070,100 @@ const coachMessage = ref('');
 const filmatiList = ref([]);
 const testList = ref([]);
 const allExercises = ref([]);
+
+// Muscle Heatmap States and Helpers
+const heatmapScope = ref('giorno'); // 'giorno' or 'settimana'
+const heatmapMode = ref('programmati'); // 'programmati' or 'completati'
+
+const getSettorePrincipale = (s) => {
+  if (!s) return 'Altro';
+  const clean = s.toLowerCase().trim();
+  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('chest')) {
+    return 'Pettorali';
+  }
+  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('back')) {
+    return 'Dorsali';
+  }
+  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('shoulder')) {
+    return 'Spalle';
+  }
+  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('biceps')) {
+    return 'Bicipiti';
+  }
+  if (clean.includes('tricipiti') || clean.includes('tricipite') || clean.includes('triceps')) {
+    return 'Tricipiti';
+  }
+  if (clean.includes('gambe') || clean.includes('quadricipiti') || clean.includes('femorali') || clean.includes('glutei') || clean.includes('leg') || clean.includes('polpacci')) {
+    return 'Gambe';
+  }
+  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('core') || clean.includes('obliqui') || clean.includes('abs')) {
+    return 'Addome';
+  }
+  return 'Altro';
+};
+
+const volumeMuscolare = computed(() => {
+  const vol = {
+    Pettorali: 0,
+    Dorsali: 0,
+    Spalle: 0,
+    Bicipiti: 0,
+    Tricipiti: 0,
+    Gambe: 0,
+    Addome: 0,
+    Altro: 0
+  };
+  
+  if (!allExercises.value || allExercises.value.length === 0) return vol;
+  
+  const targetExercises = allExercises.value.filter(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return false;
+    if (heatmapScope.value === 'giorno') {
+      return (ex.des_giorno || '').trim().toUpperCase() === giornoAttivo.value;
+    }
+    return true; // Settimana
+  });
+  
+  targetExercises.forEach(ex => {
+    const isCompleted = () => {
+      const logVal = ex['ins_week' + settimanaAttiva.value] || '';
+      return logVal && logVal.trim() !== '' && logVal.trim() !== '-';
+    };
+    
+    if (heatmapMode.value === 'programmati' || isCompleted()) {
+      const settore = getSettorePrincipale(ex.des_settore);
+      const prescrizione = ex['des_week' + settimanaAttiva.value] || ex.des_qta_report || '';
+      
+      let sets = 3;
+      const match = String(prescrizione).trim().toLowerCase().match(/^(\d+)(?:\s*[-/]\s*\d+)?\s*[x*]/);
+      if (match) {
+        sets = parseInt(match[1]) || 3;
+      }
+      
+      if (vol[settore] !== undefined) {
+        vol[settore] += sets;
+      }
+    }
+  });
+  
+  return vol;
+});
+
+const getMuscleColor = (sector) => {
+  const v = volumeMuscolare.value[sector] || 0;
+  if (v === 0) return 'rgba(255, 255, 255, 0.05)';
+  if (v <= 4) return 'rgba(249, 115, 22, 0.35)';
+  if (v <= 8) return 'rgba(249, 115, 22, 0.65)';
+  if (v <= 12) return 'rgba(249, 115, 22, 0.85)';
+  return '#f97316';
+};
+
+const getMuscleStroke = (sector) => {
+  const v = volumeMuscolare.value[sector] || 0;
+  if (v === 0) return 'rgba(255, 255, 255, 0.12)';
+  return 'rgba(249, 115, 22, 0.9)';
+};
+
 
 // Conteggi
 const countFilmati = ref(0);
@@ -2347,5 +2486,10 @@ const apriTest = () => {
 .clickable-progression-card:active {
   transform: scale(0.98);
   background: rgba(249, 115, 22, 0.15) !important;
+}
+
+.heatmap-container {
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s ease;
 }
 </style>

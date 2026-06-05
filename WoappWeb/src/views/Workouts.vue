@@ -477,7 +477,7 @@
           <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
           <div v-if="parseDayHeader(headerGiorno.des_esercizio)" class="w-100">
             <v-row no-gutters class="align-center mb-3">
-              <v-col cols="8" class="text-left pr-2">
+              <v-col cols="12" class="text-left">
                 <div class="d-flex align-center">
                   <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
                   <div class="text-left">
@@ -517,37 +517,6 @@
                       Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
                     </div>
                   </div>
-                </div>
-              </v-col>
-              
-              <v-col cols="4" class="d-flex justify-end align-center">
-                <!-- Silhouette Anatomica SVG (Fronte/Retro) -->
-                <div class="heatmap-container rounded-lg pa-1 border" style="background: rgba(15, 23, 42, 0.4) !important; border-color: rgba(255, 255, 255, 0.06) !important; width: 96px; height: 72px; overflow: hidden;" @click.stop>
-                  <svg viewBox="0 0 100 120" width="100%" height="100%" style="display: block;">
-                    <!-- FRONTE (X: 10-45) -->
-                    <circle cx="27" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
-                    <path d="M16,24 L22,23 L25,26 L18,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <path d="M38,24 L32,23 L29,26 L36,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <rect x="13" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Bicipiti')" :stroke="getMuscleStroke('Bicipiti')" stroke-width="0.8" />
-                    <rect x="36.5" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Bicipiti')" :stroke="getMuscleStroke('Bicipiti')" stroke-width="0.8" />
-                    <rect x="19" y="28" width="7.5" height="9" rx="1" :fill="getMuscleColor('Pettorali')" :stroke="getMuscleStroke('Pettorali')" stroke-width="0.8" />
-                    <rect x="27.5" y="28" width="7.5" height="9" rx="1" :fill="getMuscleColor('Pettorali')" :stroke="getMuscleStroke('Pettorali')" stroke-width="0.8" />
-                    <rect x="21" y="38" width="12" height="14" rx="1" :fill="getMuscleColor('Addome')" :stroke="getMuscleStroke('Addome')" stroke-width="0.8" />
-                    <rect x="19.5" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    <rect x="28" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    
-                    <!-- RETRO (X: 55-90) -->
-                    <circle cx="73" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
-                    <path d="M62,24 L68,23 L71,26 L64,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <path d="M84,24 L78,23 L75,26 L82,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <rect x="59" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Tricipiti')" :stroke="getMuscleStroke('Tricipiti')" stroke-width="0.8" />
-                    <rect x="90.5" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Tricipiti')" :stroke="getMuscleStroke('Tricipiti')" stroke-width="0.8" />
-                    <path d="M65,28 L72.5,30 L72.5,42 L63,36 Z" :fill="getMuscleColor('Dorsali')" :stroke="getMuscleStroke('Dorsali')" stroke-width="0.8" />
-                    <path d="M81,28 L73.5,30 L73.5,42 L83,36 Z" :fill="getMuscleColor('Dorsali')" :stroke="getMuscleStroke('Dorsali')" stroke-width="0.8" />
-                    <rect x="65.5" y="44" width="13" height="8" rx="1" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    <rect x="64.5" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    <rect x="73" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                  </svg>
                 </div>
               </v-col>
             </v-row>
@@ -665,7 +634,7 @@
           <!-- Fallback se non si può parsare -->
           <div v-else class="w-100">
             <v-row no-gutters class="align-center mb-3">
-              <v-col cols="8" class="text-left pr-2">
+              <v-col cols="12" class="text-left">
                 <div class="d-flex align-center">
                   <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
                   <div class="text-left min-width-0">
@@ -701,37 +670,6 @@
                       </div>
                     </div>
                   </div>
-                </div>
-              </v-col>
-              
-              <v-col cols="4" class="d-flex justify-end align-center">
-                <!-- Silhouette Anatomica SVG (Fronte/Retro) -->
-                <div class="heatmap-container rounded-lg pa-1 border" style="background: rgba(15, 23, 42, 0.4) !important; border-color: rgba(255, 255, 255, 0.06) !important; width: 96px; height: 72px; overflow: hidden;" @click.stop>
-                  <svg viewBox="0 0 100 120" width="100%" height="100%" style="display: block;">
-                    <!-- FRONTE (X: 10-45) -->
-                    <circle cx="27" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
-                    <path d="M16,24 L22,23 L25,26 L18,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <path d="M38,24 L32,23 L29,26 L36,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <rect x="13" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Bicipiti')" :stroke="getMuscleStroke('Bicipiti')" stroke-width="0.8" />
-                    <rect x="36.5" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Bicipiti')" :stroke="getMuscleStroke('Bicipiti')" stroke-width="0.8" />
-                    <rect x="19" y="28" width="7.5" height="9" rx="1" :fill="getMuscleColor('Pettorali')" :stroke="getMuscleStroke('Pettorali')" stroke-width="0.8" />
-                    <rect x="27.5" y="28" width="7.5" height="9" rx="1" :fill="getMuscleColor('Pettorali')" :stroke="getMuscleStroke('Pettorali')" stroke-width="0.8" />
-                    <rect x="21" y="38" width="12" height="14" rx="1" :fill="getMuscleColor('Addome')" :stroke="getMuscleStroke('Addome')" stroke-width="0.8" />
-                    <rect x="19.5" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    <rect x="28" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    
-                    <!-- RETRO (X: 55-90) -->
-                    <circle cx="73" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
-                    <path d="M62,24 L68,23 L71,26 L64,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <path d="M84,24 L78,23 L75,26 L82,27 Z" :fill="getMuscleColor('Spalle')" :stroke="getMuscleStroke('Spalle')" stroke-width="0.8" />
-                    <rect x="59" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Tricipiti')" :stroke="getMuscleStroke('Tricipiti')" stroke-width="0.8" />
-                    <rect x="90.5" y="28" width="4.5" height="15" rx="1.5" :fill="getMuscleColor('Tricipiti')" :stroke="getMuscleStroke('Tricipiti')" stroke-width="0.8" />
-                    <path d="M65,28 L72.5,30 L72.5,42 L63,36 Z" :fill="getMuscleColor('Dorsali')" :stroke="getMuscleStroke('Dorsali')" stroke-width="0.8" />
-                    <path d="M81,28 L73.5,30 L73.5,42 L83,36 Z" :fill="getMuscleColor('Dorsali')" :stroke="getMuscleStroke('Dorsali')" stroke-width="0.8" />
-                    <rect x="65.5" y="44" width="13" height="8" rx="1" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    <rect x="64.5" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                    <rect x="73" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
-                  </svg>
                 </div>
               </v-col>
             </v-row>
@@ -1946,54 +1884,6 @@ const getSettorePrincipale = (s) => {
   return 'Altro';
 };
 
-const volumeMuscolareCompletato = computed(() => {
-  const vol = {
-    Pettorali: 0,
-    Dorsali: 0,
-    Spalle: 0,
-    Bicipiti: 0,
-    Tricipiti: 0,
-    Gambe: 0,
-    Addome: 0,
-    Altro: 0
-  };
-  
-  if (!eserciziFiltrati.value) return vol;
-  
-  eserciziFiltrati.value.forEach(ex => {
-    const logVal = ex['ins_week' + settimanaAttivaGiorno.value] || '';
-    if (logVal && logVal.trim() !== '' && logVal.trim() !== '-') {
-      const settore = getSettorePrincipale(ex.des_settore);
-      const prescrizione = ex['des_week' + settimanaAttivaGiorno.value] || ex.des_qta_report || '';
-      
-      let sets = 3;
-      const match = String(prescrizione).trim().toLowerCase().match(/^(\d+)(?:\s*[-/]\s*\d+)?\s*[x*]/);
-      if (match) {
-        sets = parseInt(match[1]) || 3;
-      }
-      
-      if (vol[settore] !== undefined) {
-        vol[settore] += sets;
-      }
-    }
-  });
-  
-  return vol;
-});
-
-const getMuscleColor = (sector) => {
-  const v = volumeMuscolareCompletato.value[sector] || 0;
-  if (v === 0) return 'rgba(255, 255, 255, 0.06)';
-  if (v <= 6) return 'rgba(249, 115, 22, 0.35)';
-  if (v <= 12) return 'rgba(249, 115, 22, 0.7)';
-  return '#f97316';
-};
-
-const getMuscleStroke = (sector) => {
-  const v = volumeMuscolareCompletato.value[sector] || 0;
-  if (v === 0) return 'rgba(255, 255, 255, 0.12)';
-  return 'rgba(249, 115, 22, 0.9)';
-};
 
 // Stato apertura/chiusura ordine esecuzione
 const ordineEsecuzioneAperto = ref(false);

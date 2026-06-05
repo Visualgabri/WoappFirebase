@@ -938,7 +938,7 @@
                     type="text"
                     placeholder="Carico (es. 45 kg)"
                     class="custom-compact-ins-field font-weight-black text-white w-100"
-                    style="width: 100%; border: 1.5px solid rgba(255, 255, 255, 0.12); outline: none; background: rgba(30, 41, 59, 0.55); font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; height: 38px;"
+                    style="width: 100%; border: 1px solid rgba(255, 255, 255, 0.25); outline: none; background: rgba(255, 255, 255, 0.12); font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; height: 38px;"
                     @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
                   />
                 </div>
@@ -3547,8 +3547,35 @@ const tornaIndietro = () => {
   font-weight: 500 !important;
 }
 
+.custom-weight-input :deep(.v-field) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+.custom-weight-input :deep(.v-field--focused) {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: #f97316 !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5) !important;
+}
 .custom-weight-input :deep(.v-field__outline) {
-  opacity: 0.45 !important;
+  display: none !important;
+}
+
+/* Note e commenti textareas */
+.custom-textarea-input :deep(.v-field) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+.custom-textarea-input :deep(.v-field--focused) {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: #f97316 !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5) !important;
+}
+.custom-textarea-input :deep(.v-field__outline) {
+  display: none !important;
 }
 
 /* Nuovi Stili per lo Storico Esercizi (Tabella e Timeline) */
@@ -3667,14 +3694,15 @@ th.sticky-col {
 }
 
 .custom-compact-ins-field {
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
   transition: all 0.2s ease;
 }
 
 .custom-compact-ins-field:focus {
   border-color: #f97316 !important;
-  background: rgba(249, 115, 22, 0.05) !important;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.1) !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5) !important;
 }
 
 .tiny-save-snackbar :deep(.v-snackbar__wrapper) {

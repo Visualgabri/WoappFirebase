@@ -425,10 +425,10 @@
               </v-icon>
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
-                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.0rem !important;">
+                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
                   ({{ parsedPrescription(workout['des_week' + sett]).reps }})
                 </span>
-                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.0rem !important;">
+                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
                   ({{ workout['des_week' + sett] }})
                 </span>
               </span>
@@ -2836,6 +2836,9 @@ const suggerimentoRecord = computed(() => {
     const sNum = parseInt(prevEx.num_scheda);
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     if (sNum === currentNumScheda) return;
+
+    // Considera solo schede in cui le reps della settimana corrispondono a quelle attuali
+    if (!isMatchingReps(prevEx, w)) return;
 
     const val = prevEx['ins_week' + w];
     if (val) {

@@ -2146,6 +2146,18 @@ const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
   }
 };
 
+const determinaSettimanaAttivaGiorno = () => {
+  if (!riga0.value) return;
+  for (let w = 1; w <= 6; w++) {
+    const valCmp = riga0.value['cmp' + w];
+    if (valCmp !== 'true' && valCmp !== true && String(valCmp).toLowerCase() !== 'true') {
+      settimanaAttiva.value = w;
+      return;
+    }
+  }
+  settimanaAttiva.value = 6;
+};
+
 // Stato swipe ed elenco esercizi del giorno
 const listaIdEsercizi = ref([]);
 const indexCorrente = ref(-1);
@@ -2317,6 +2329,7 @@ const caricaDatiEsercizio = async () => {
       // Carica il completamento del giorno (Riga 0) ed elenco per swipe
       if (atletaId && dati.num_scheda && dati.des_giorno) {
         await caricaRiga0(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
+        determinaSettimanaAttivaGiorno();
         await caricaListaEserciziGiorno(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
       }
     } else {
@@ -2371,6 +2384,7 @@ const caricaEsercizioDaBackup = async () => {
         );
         if (riga0Trovata) {
           riga0.value = applicaModificheLocali(riga0Trovata);
+          determinaSettimanaAttivaGiorno();
         }
 
         // Lista per swipe da backup

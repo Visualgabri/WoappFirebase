@@ -188,7 +188,7 @@
               <div class="text-left min-width-0 flex-grow-1">
                 <div class="d-flex align-center flex-wrap gap-1.5">
                   <span class="font-weight-black text-subtitle-1 text-slate-dark" style="line-height: 1;">
-                    Settimana {{ sett }}
+                    Settimana {{ sett }}{{ sett === 6 ? ' (Ultima settimana!)' : '' }}
                   </span>
                   
                   <!-- Badges di Stato -->

@@ -62,11 +62,15 @@
       >
         <div 
           v-if="!caricamento && listaGiorniDisponibili.length > 0"
-          class="card-glass rounded-xl py-1 mb-1.5 text-center font-weight-black tracking-widest"
-          style="font-size: 0.62rem; border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6);"
+          class="card-glass rounded-xl mb-1.5 text-center font-weight-black tracking-widest"
+          :style="settimanaAttiva === 6 ? 'font-size: 0.65rem; border: 1.5px solid rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; padding: 6px 4px;' : 'font-size: 0.62rem; border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px 4px;'"
+          style="color: rgba(255, 255, 255, 0.6);"
         >
-          <span style="color: #f97316;">SETTIMANA CORRENTE:</span>
+          <span :style="settimanaAttiva === 6 ? 'color: #fb923c;' : 'color: #f97316;'">SETTIMANA CORRENTE:</span>
           <span class="text-white ml-1.5">WEEK {{ settimanaAttiva }}</span>
+          <span v-if="settimanaAttiva === 6" class="ml-2 px-1.5 py-0.5 rounded bg-orange-darken-3 text-white font-weight-black animate-pulse" style="font-size: 0.58rem; letter-spacing: normal;">
+            🔥 ULTIMA SETTIMANA!
+          </span>
         </div>
 
         <!-- Skeleton tabs durante il caricamento per evitare sflash dei giorni A B C D -->
@@ -111,10 +115,10 @@
                 <v-icon
                   v-else-if="statoGiorni[giorno] === 'pending'"
                   color="orange-darken-3"
-                  size="13"
+                  size="14"
                   class="ml-1 pulse-active-tab-icon"
                 >
-                  mdi-flash
+                  mdi-lock-open-outline
                 </v-icon>
               </div>
               <span 
@@ -131,7 +135,7 @@
                   :style="{ 
                     width: getProgressoGiorno(giorno).percentuale + '%', 
                     height: '100%', 
-                    background: getProgressoGiorno(giorno).percentuale === 100 ? 'linear-gradient(90deg, #4ade80, #22c55e)' : 'linear-gradient(90deg, #f97316, #ff8f00)',
+                    background: statoGiorni[giorno] === 'completed' ? 'linear-gradient(90deg, #4ade80, #22c55e)' : 'linear-gradient(90deg, #f97316, #ff8f00)',
                     transition: 'width 0.3s ease'
                   }"
                 ></div>
@@ -520,50 +524,60 @@
           >
           <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
           <div v-if="parseDayHeader(headerGiorno.des_esercizio)" class="w-100">
-            <v-row no-gutters class="align-center mb-3">
-              <v-col cols="12" class="text-left">
-                <div class="d-flex align-center">
-                  <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
-                  <div class="text-left">
-                    <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 mb-0">
-                      Workout Giorno {{ giornoSelezionato }}
-                    </h3>
-                    <!-- Promemoria Chiusura Settimana -->
-                    <div v-if="mostraPromemoriaChiusura" class="mt-1">
-                      <v-chip
-                        size="x-small"
-                        color="amber-darken-3"
-                        class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
-                        variant="flat"
-                        style="font-size: 0.58rem; height: 18px;"
-                      >
-                        ⚠️ SETTIMANA DA CHIUDERE
-                      </v-chip>
-                    </div>
-                    <!-- Progresso Settimane (Tracker Week) -->
-                    <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
-                      <div
-                        v-for="w in [1, 2, 3, 4, 5, 6]"
-                        :key="w"
-                        class="mini-week-capsule"
-                        :class="{
-                          'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
-                          'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
-                          'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
-                        }"
-                      >
-                        <span class="capsule-num">W{{ w }}</span>
-                        <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
-                      </div>
-                    </div>
-                    <div class="text-caption text-muted font-weight-bold d-flex align-center mt-1" style="font-size: 0.7rem;">
-                      <v-icon size="13" color="orange" class="mr-1">mdi-fire</v-icon>
-                      Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
+            <div class="d-flex align-start justify-space-between w-100 mb-3 flex-wrap gap-2">
+              <div class="d-flex align-center">
+                <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
+                <div class="text-left">
+                  <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 mb-0">
+                    Workout Giorno {{ giornoSelezionato }}
+                  </h3>
+                  <!-- Promemoria Chiusura Settimana -->
+                  <div v-if="mostraPromemoriaChiusura" class="mt-1">
+                    <v-chip
+                      size="x-small"
+                      color="amber-darken-3"
+                      class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
+                      variant="flat"
+                      style="font-size: 0.58rem; height: 18px;"
+                    >
+                      ⚠️ SETTIMANA DA CHIUDERE
+                    </v-chip>
+                  </div>
+                  <!-- Progresso Settimane (Tracker Week) -->
+                  <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
+                    <div
+                      v-for="w in [1, 2, 3, 4, 5, 6]"
+                      :key="w"
+                      class="mini-week-capsule"
+                      :class="{
+                        'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
+                        'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
+                        'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
+                      }"
+                    >
+                      <span class="capsule-num">W{{ w }}</span>
+                      <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
+                  <div class="text-caption text-muted font-weight-bold d-flex align-center mt-1" style="font-size: 0.7rem;">
+                    <v-icon size="13" color="orange" class="mr-1">mdi-fire</v-icon>
+                    Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
+                  </div>
                 </div>
-              </v-col>
-            </v-row>
+              </div>
+              <v-btn
+                v-if="haEserciziDaFare"
+                color="orange-darken-3"
+                size="small"
+                variant="flat"
+                class="font-weight-black text-white px-3 flex-shrink-0 align-self-center elevation-1"
+                style="font-size: 0.7rem; border-radius: 8px; height: 32px;"
+                @click.stop="vaiAlPrimoEsercizioDaFare"
+              >
+                VAI AL DA FARE
+                <v-icon right class="ml-1" size="14">mdi-arrow-down-bold-circle-outline</v-icon>
+              </v-btn>
+            </div>
 
             <!-- Griglia dei Tempi e Densità con Medie -->
             <v-row dense class="mb-3 text-center">
@@ -677,46 +691,56 @@
 
           <!-- Fallback se non si può parsare -->
           <div v-else class="w-100">
-            <v-row no-gutters class="align-center mb-3">
-              <v-col cols="12" class="text-left">
-                <div class="d-flex align-center">
-                  <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
-                  <div class="text-left min-width-0">
-                    <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 text-truncate mb-0">
-                      {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
-                    </h3>
-                    <!-- Promemoria Chiusura Settimana -->
-                    <div v-if="mostraPromemoriaChiusura" class="mt-1">
-                      <v-chip
-                        size="x-small"
-                        color="amber-darken-3"
-                        class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
-                        variant="flat"
-                        style="font-size: 0.58rem; height: 18px;"
-                      >
-                        ⚠️ SETTIMANA DA CHIUDERE
-                      </v-chip>
-                    </div>
-                    <!-- Progresso Settimane (Tracker Week) -->
-                    <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
-                      <div
-                        v-for="w in [1, 2, 3, 4, 5, 6]"
-                        :key="w"
-                        class="mini-week-capsule"
-                        :class="{
-                          'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
-                          'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
-                          'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
-                        }"
-                      >
-                        <span class="capsule-num">W{{ w }}</span>
-                        <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
-                      </div>
+            <div class="d-flex align-start justify-space-between w-100 mb-3 flex-wrap gap-2">
+              <div class="d-flex align-center">
+                <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
+                <div class="text-left min-width-0">
+                  <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 text-truncate mb-0">
+                    {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
+                  </h3>
+                  <!-- Promemoria Chiusura Settimana -->
+                  <div v-if="mostraPromemoriaChiusura" class="mt-1">
+                    <v-chip
+                      size="x-small"
+                      color="amber-darken-3"
+                      class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
+                      variant="flat"
+                      style="font-size: 0.58rem; height: 18px;"
+                    >
+                      ⚠️ SETTIMANA DA CHIUDERE
+                    </v-chip>
+                  </div>
+                  <!-- Progresso Settimane (Tracker Week) -->
+                  <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
+                    <div
+                      v-for="w in [1, 2, 3, 4, 5, 6]"
+                      :key="w"
+                      class="mini-week-capsule"
+                      :class="{
+                        'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
+                        'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
+                        'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
+                      }"
+                    >
+                      <span class="capsule-num">W{{ w }}</span>
+                      <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
                 </div>
-              </v-col>
-            </v-row>
+              </div>
+              <v-btn
+                v-if="haEserciziDaFare"
+                color="orange-darken-3"
+                size="small"
+                variant="flat"
+                class="font-weight-black text-white px-3 flex-shrink-0 align-self-center elevation-1"
+                style="font-size: 0.7rem; border-radius: 8px; height: 32px;"
+                @click.stop="vaiAlPrimoEsercizioDaFare"
+              >
+                VAI AL DA FARE
+                <v-icon right class="ml-1" size="14">mdi-arrow-down-bold-circle-outline</v-icon>
+              </v-btn>
+            </div>
 
             <!-- Informazioni RMT o Volumi se presenti (spostate sotto e rese indipendenti) -->
             <div v-if="headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft">
@@ -811,7 +835,7 @@
           <div class="mt-3 pt-2.5 border-top-soft text-left" @click.stop>
             <div class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-grey-lighten-1 mb-1.5" style="font-size: 0.62rem; letter-spacing: 0.05em;">
               <span>🔋 Avanzamento Allenamento</span>
-              <span class="text-orange-lighten-2">{{ progressoSessione.completate }} di {{ progressoSessione.totali }} serie completate • {{ progressoSessione.percentuale }}%</span>
+              <span class="text-orange-lighten-2">{{ progressoSessione.completate }} di {{ progressoSessione.totali }} esercizi completati • {{ progressoSessione.percentuale }}%</span>
             </div>
             <div class="session-progress-bar-container rounded-full overflow-hidden" style="height: 5px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.03);">
               <div
@@ -1179,7 +1203,7 @@
               <v-icon class="mr-2" size="18">
                 {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'mdi-check-circle' : 'mdi-check-all' }}
               </v-icon>
-              {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'Giorno Completato (Riapri)' : 'Completa Giorno ' + giornoSelezionato }}
+              {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'Giorno Completato (Riapri W' + settimanaAttivaGiorno + ')' : 'Completa Giorno ' + giornoSelezionato + ' (W' + settimanaAttivaGiorno + ')' }}
             </v-btn>
           </div>
         </div>
@@ -1868,34 +1892,11 @@ const progressoSessione = computed(() => {
     return { completate: 0, totali: 0, percentuale: 0 };
   }
   
-  let totali = 0;
-  let completate = 0;
-  
-  eserciziFiltrati.value.forEach(ex => {
-    const prescrizione = ex['des_week' + settimanaAttivaGiorno.value] || ex.des_qta_report || '';
-    
-    // Estraiamo il numero di serie (es. "4x8" -> 4, "3/4x12" -> 3)
-    let sets = 3;
-    const match = String(prescrizione).trim().toLowerCase().match(/^(\d+)(?:\s*[-/]\s*\d+)?\s*[x*]/);
-    if (match) {
-      sets = parseInt(match[1]) || 3;
-    }
-    
-    totali += sets;
-    
+  const totali = eserciziFiltrati.value.length;
+  const completate = eserciziFiltrati.value.filter(ex => {
     const logVal = ex['ins_week' + settimanaAttivaGiorno.value] || '';
-    if (logVal && logVal.trim() !== '' && logVal.trim() !== '-') {
-      completate += sets;
-    }
-  });
-  
-  if (totali === 0) {
-    totali = eserciziFiltrati.value.length;
-    completate = eserciziFiltrati.value.filter(ex => {
-      const logVal = ex['ins_week' + settimanaAttivaGiorno.value] || '';
-      return logVal && logVal.trim() !== '' && logVal.trim() !== '-';
-    }).length;
-  }
+    return logVal && logVal.trim() !== '' && logVal.trim() !== '-';
+  }).length;
   
   const percentuale = totali > 0 ? Math.round((completate / totali) * 100) : 0;
   return { completate, totali, percentuale };
@@ -1911,32 +1912,12 @@ const getProgressoGiorno = (g) => {
   );
   if (exercises.length === 0) return { completate: 0, totali: 0, percentuale: 0 };
   
-  let totali = 0;
-  let completate = 0;
   const w = settimanaAttiva.value;
-  
-  exercises.forEach(ex => {
-    const prescrizione = ex['des_week' + w] || ex.des_qta_report || '';
-    let sets = 3;
-    const match = String(prescrizione).trim().toLowerCase().match(/^(\d+)(?:\s*[-/]\s*\d+)?\s*[x*]/);
-    if (match) {
-      sets = parseInt(match[1]) || 3;
-    }
-    
-    totali += sets;
+  const totali = exercises.length;
+  const completate = exercises.filter(ex => {
     const logVal = ex['ins_week' + w] || '';
-    if (logVal && logVal.trim() !== '' && logVal.trim() !== '-') {
-      completate += sets;
-    }
-  });
-  
-  if (totali === 0) {
-    totali = exercises.length;
-    completate = exercises.filter(ex => {
-      const logVal = ex['ins_week' + w] || '';
-      return logVal && logVal.trim() !== '' && logVal.trim() !== '-';
-    }).length;
-  }
+    return logVal && logVal.trim() !== '' && logVal.trim() !== '-';
+  }).length;
   
   const percentuale = totali > 0 ? Math.round((completate / totali) * 100) : 0;
   return { completate, totali, percentuale };
@@ -2041,7 +2022,15 @@ const ordineEsecuzioneCompleto = computed(() => {
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
 
-const settimanaAttivaGiorno = computed(() => settimanaAttiva.value);
+const settimanaAttivaGiorno = computed(() => {
+  if (!headerGiorno.value) return settimanaAttiva.value;
+  for (let w = 1; w <= 6; w++) {
+    if (!isCmpTrue(headerGiorno.value['cmp' + w])) {
+      return w;
+    }
+  }
+  return 6;
+});
 
 
 // Verifica se tutti gli esercizi del giorno sono stati compilati per la settimana attiva
@@ -2213,7 +2202,7 @@ const caricaAllenamenti = async () => {
     localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
 
     filtraEserciziPerGiorno();
-    scrollaAllUltimoEsercizio();
+    gestisciScrollIniziale();
   } catch (error) {
     console.warn("Errore caricamento allenamenti da Firestore (quota esaurita), provo da backup locale:", error);
     const rawFiltrati = backupList.filter(
@@ -2228,7 +2217,7 @@ const caricaAllenamenti = async () => {
     localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
 
     filtraEserciziPerGiorno();
-    scrollaAllUltimoEsercizio();
+    gestisciScrollIniziale();
   } finally {
     caricamento.value = false;
   }
@@ -2484,6 +2473,46 @@ const segnaComeFattoRapido = async (ex) => {
 const controllaEChiudiGiornoAutomatico = async () => {
   // Disabilitata la chiusura automatica per consentire il controllo manuale esclusivo ed evitare confusioni.
   return;
+};
+
+const haEserciziDaFare = computed(() => {
+  if (eserciziFiltrati.value.length === 0) return false;
+  const w = settimanaAttivaGiorno.value;
+  return eserciziFiltrati.value.some(ex => {
+    const val = ex['ins_week' + w];
+    return !val || val.trim() === '' || val.trim() === '-';
+  });
+});
+
+const vaiAlPrimoEsercizioDaFare = () => {
+  const w = settimanaAttivaGiorno.value;
+  const daFare = eserciziFiltrati.value.find(ex => {
+    const val = ex['ins_week' + w];
+    return !val || val.trim() === '' || val.trim() === '-';
+  });
+  if (daFare) {
+    const el = document.getElementById('esercizio-' + daFare.id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('highlight-exercise');
+      setTimeout(() => {
+        el.classList.remove('highlight-exercise');
+      }, 1500);
+    }
+  }
+};
+
+const gestisciScrollIniziale = () => {
+  if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
+    localStorage.removeItem('scrollPrimoEsercizioDaFare');
+    nextTick(() => {
+      setTimeout(() => {
+        vaiAlPrimoEsercizioDaFare();
+      }, 300);
+    });
+  } else {
+    scrollaAllUltimoEsercizio();
+  }
 };
 
 const scrollaAllUltimoEsercizio = () => {

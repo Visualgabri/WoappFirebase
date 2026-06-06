@@ -25,7 +25,28 @@
 
     <!-- Contenuto Principale (Spazioso, Intuitivo, Flusso Lineare) -->
     <div v-else class="session-detail-area">
-      
+      <!-- Avviso Esercizi Mancanti (Buco nell'ordine numerico) -->
+      <v-card
+        v-if="eserciziMancantiSessione.length > 0"
+        class="py-3 px-4 mb-4 text-left border animate-pulse"
+        style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04)) !important; border: 1.5px solid rgba(239, 68, 68, 0.4) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15) !important; border-radius: 12px !important;"
+      >
+        <div class="d-flex align-center">
+          <v-icon color="red-lighten-1" class="mr-3 flex-shrink-0" size="24">mdi-alert-circle</v-icon>
+          <div class="flex-grow-1">
+            <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.82rem !important;">
+              Attenzione: Esercizi Mancanti!
+            </h4>
+            <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: #e2e8f0 !important;">
+              C'è un buco nell'ordine degli esercizi per il <strong>Giorno {{ workout.des_giorno }}</strong>.
+              Manca{{ eserciziMancantiSessione.length === 1 ? ' l\'esercizio alla posizione' : 'no gli esercizi alle posizioni' }}:
+              <span class="text-red-lighten-2 font-weight-black">{{ eserciziMancantiSessione.join(', ') }}</span>.
+              Verifica l'importazione.
+            </p>
+          </div>
+        </div>
+      </v-card>
+
       <!-- 1. Header Compatto: Mini GIF e Titoli Uniti su una riga -->
       <v-card class="compact-header-card rounded-2xl pa-3 mb-4 card-glass border d-flex align-center" elevation="2">
         <div class="thumbnail-frame mr-3 rounded-xl overflow-hidden bg-black flex-shrink-0" style="width: 52px; height: 52px; border: 1px solid rgba(255,255,255,0.08);">
@@ -673,6 +694,22 @@ const eserciziDelGiorno = computed(() => {
   return allExercises.value.filter(
     item => (item.des_giorno || '').trim() === giorno && parseInt(item.num_riga_giorno) > 0
   );
+});
+
+const eserciziMancantiSessione = computed(() => {
+  if (!workout.value || !eserciziDelGiorno.value || eserciziDelGiorno.value.length === 0) return [];
+  const indiciPresenti = eserciziDelGiorno.value
+    .map(item => parseInt(item.num_riga_giorno))
+    .filter(n => !isNaN(n) && n > 0);
+  if (indiciPresenti.length === 0) return [];
+  const maxIndice = Math.max(...indiciPresenti);
+  const buchi = [];
+  for (let i = 1; i < maxIndice; i++) {
+    if (!indiciPresenti.includes(i)) {
+      buchi.push(i);
+    }
+  }
+  return buchi;
 });
 
 // Verifica se tutti gli esercizi del giorno sono compilati per la settimana selezionata

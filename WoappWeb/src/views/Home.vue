@@ -210,6 +210,28 @@
             </div>
           </v-card>
 
+          <!-- Avviso Esercizi Mancanti (Buco nell'ordine numerico) -->
+          <v-card
+            v-if="eserciziMancantiGiornoAttivo.length > 0"
+            class="py-3 px-4 mb-4 text-left border animate-pulse"
+            style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04)) !important; border: 1.5px solid rgba(239, 68, 68, 0.4) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15) !important; border-radius: 12px !important;"
+          >
+            <div class="d-flex align-center">
+              <v-icon color="red-lighten-1" class="mr-3 flex-shrink-0" size="24">mdi-alert-circle</v-icon>
+              <div class="flex-grow-1">
+                <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.82rem !important;">
+                  Attenzione: Esercizi Mancanti!
+                </h4>
+                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: #e2e8f0 !important;">
+                  C'è un buco nell'ordine degli esercizi per il <strong>Giorno {{ giornoAttivo }}</strong>.
+                  Manca{{ eserciziMancantiGiornoAttivo.length === 1 ? ' l\'esercizio alla posizione' : 'no gli esercizi alle posizioni' }}:
+                  <span class="text-red-lighten-2 font-weight-black">{{ eserciziMancantiGiornoAttivo.join(', ') }}</span>.
+                  Verifica l'importazione.
+                </p>
+              </div>
+            </div>
+          </v-card>
+
           <!-- Card Allenamento Attivo (Gamified Hero Card con bagliore neon) - Mostrata solo se non completato -->
           <v-card v-if="settimaneChiuse < 6" class="premium-hero-card rounded-2xl pa-5 mb-6 text-left border position-relative overflow-hidden" elevation="3">
             <!-- Neon background accent -->
@@ -1789,6 +1811,25 @@ const parseVolumes = (str) => {
   }
   return null;
 };
+
+const eserciziMancantiGiornoAttivo = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return [];
+  const exDelGiorno = allExercises.value.filter(
+    e => (e.des_giorno || '').trim().toUpperCase() === (giornoAttivo.value || '').trim().toUpperCase() && parseInt(e.num_riga_giorno) > 0
+  );
+  const indiciPresenti = exDelGiorno
+    .map(item => parseInt(item.num_riga_giorno))
+    .filter(n => !isNaN(n) && n > 0);
+  if (indiciPresenti.length === 0) return [];
+  const maxIndice = Math.max(...indiciPresenti);
+  const buchi = [];
+  for (let i = 1; i < maxIndice; i++) {
+    if (!indiciPresenti.includes(i)) {
+      buchi.push(i);
+    }
+  }
+  return buchi;
+});
 
 // Computed properties per l'allenamento attivo di oggi
 const activeDayHeader = computed(() => {

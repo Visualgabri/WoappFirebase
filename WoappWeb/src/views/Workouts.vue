@@ -92,6 +92,15 @@
               <div class="d-flex align-center">
                 <span class="font-weight-black text-h6" style="line-height: 1.1;">{{ giorno }}</span>
                 <v-icon
+                  v-if="giornoHaBuchi(giorno)"
+                  color="red-lighten-1"
+                  size="14"
+                  class="ml-1"
+                  title="Esercizi mancanti (buco nell'ordine)"
+                >
+                  mdi-alert-circle
+                </v-icon>
+                <v-icon
                   v-if="statoGiorni[giorno] === 'completed'"
                   color="green-accent-4"
                   size="14"
@@ -184,6 +193,28 @@
 
         <transition :name="transitionName" mode="out-in">
           <div :key="giornoSelezionato" class="swipe-transition-wrapper">
+            <!-- Avviso Esercizi Mancanti (Buco nell'ordine numerico) -->
+            <v-card
+              v-if="eserciziMancantiGiornoSelezionato.length > 0"
+              class="py-3 px-4 mb-4 text-left border animate-pulse"
+              style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04)) !important; border: 1.5px solid rgba(239, 68, 68, 0.4) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15) !important; border-radius: 12px !important;"
+            >
+              <div class="d-flex align-center">
+                <v-icon color="red-lighten-1" class="mr-3 flex-shrink-0" size="24">mdi-alert-circle</v-icon>
+                <div class="flex-grow-1">
+                  <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.82rem !important;">
+                    Attenzione: Esercizi Mancanti!
+                  </h4>
+                  <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: #e2e8f0 !important;">
+                    C'è un buco nell'ordine degli esercizi per il <strong>Giorno {{ giornoSelezionato }}</strong>.
+                    Manca{{ eserciziMancantiGiornoSelezionato.length === 1 ? ' l\'esercizio alla posizione' : 'no gli esercizi alle posizioni' }}:
+                    <span class="text-red-lighten-2 font-weight-black">{{ eserciziMancantiGiornoSelezionato.join(', ') }}</span>.
+                    Verifica l'importazione.
+                  </p>
+                </div>
+              </div>
+            </v-card>
+
             <!-- Pannello Esercizi da Recuperare (Accordion per giorno) -->
             <v-expand-transition>
               <div v-if="eserciziDaRecuperare.length > 0" class="mb-6">
@@ -2235,6 +2266,41 @@ const filtraEserciziPerGiorno = () => {
   
   // Controllo di chiusura automatica se tutti compilati
   controllaEChiudiGiornoAutomatico();
+};
+
+const eserciziMancantiGiornoSelezionato = computed(() => {
+  if (!eserciziFiltrati.value || eserciziFiltrati.value.length === 0) return [];
+  const indiciPresenti = eserciziFiltrati.value
+    .map(item => parseInt(item.num_riga_giorno))
+    .filter(n => !isNaN(n) && n > 0);
+  if (indiciPresenti.length === 0) return [];
+  const maxIndice = Math.max(...indiciPresenti);
+  const buchi = [];
+  for (let i = 1; i < maxIndice; i++) {
+    if (!indiciPresenti.includes(i)) {
+      buchi.push(i);
+    }
+  }
+  return buchi;
+});
+
+const giornoHaBuchi = (g) => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return false;
+  const exDelGiorno = listaAllenamenti.value.filter(
+    item => (item.des_giorno || '').trim().toUpperCase() === g.trim().toUpperCase() && parseInt(item.num_riga_giorno) > 0
+  );
+  if (exDelGiorno.length === 0) return false;
+  const indiciPresenti = exDelGiorno
+    .map(item => parseInt(item.num_riga_giorno))
+    .filter(n => !isNaN(n) && n > 0);
+  if (indiciPresenti.length === 0) return false;
+  const maxIndice = Math.max(...indiciPresenti);
+  for (let i = 1; i < maxIndice; i++) {
+    if (!indiciPresenti.includes(i)) {
+      return true;
+    }
+  }
+  return false;
 };
 
 // Salva e filtra quando si cambia scheda/giorno

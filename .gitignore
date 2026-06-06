@@ -26,3 +26,5 @@ dist-ssr
 # Firebase
 .firebase/
 
+# Credentials
+woapp-56ae7-firebase-adminsdk-fbsvc-1080ce0316.json

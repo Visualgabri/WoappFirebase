@@ -122,11 +122,12 @@
                 </v-icon>
               </div>
               <span 
-                v-if="ultimoChiusoPerGiorno(giorno)" 
-                class="text-super-caption font-weight-bold text-grey-lighten-1" 
-                style="font-size: 0.62rem; margin-top: 1.5px; line-height: 1; opacity: 0.85;"
+                v-if="settimanaDaChiuderePerGiorno(giorno)" 
+                class="text-super-caption font-weight-black" 
+                :class="settimanaDaChiuderePerGiorno(giorno) === 'FINE' ? 'text-green-accent-4' : 'text-orange-lighten-2'"
+                style="font-size: 0.62rem; margin-top: 1.5px; line-height: 1; opacity: 0.9;"
               >
-                {{ ultimoChiusoPerGiorno(giorno) }}
+                {{ settimanaDaChiuderePerGiorno(giorno) }}
               </span>
               <!-- Mini barra di avanzamento del giorno -->
               <div class="day-tab-progress-bg mt-1" style="width: 75%; height: 3px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden;">
@@ -1843,19 +1844,19 @@ const statoGiorni = computed(() => {
   return result;
 });
 
-// Trova l'ultima settimana chiusa (cmp = true) per un determinato giorno
-const ultimoChiusoPerGiorno = (g) => {
+// Trova la prossima settimana da chiudere per un determinato giorno
+const settimanaDaChiuderePerGiorno = (g) => {
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return '';
   const header = listaAllenamenti.value.find(
     item => (item.des_giorno || '').trim().toUpperCase() === g.trim().toUpperCase() && parseInt(item.num_riga_giorno) === 0
   );
   if (!header) return '';
-  for (let w = 6; w >= 1; w--) {
-    if (isCmpTrue(header['cmp' + w])) {
+  for (let w = 1; w <= 6; w++) {
+    if (!isCmpTrue(header['cmp' + w])) {
       return 'W' + w;
     }
   }
-  return '';
+  return 'FINE'; // Se tutte sono chiuse
 };
 
 // Raggruppa gli esercizi consecutivi in blocchi (singoli o superset)

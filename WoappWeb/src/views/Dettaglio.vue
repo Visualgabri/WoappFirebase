@@ -24,16 +24,29 @@
           >
             {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
           </v-chip>
-          <h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
-            {{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
-          </h3>
+<h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
+  {{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨ ' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
+</h3>
         </div>
         <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
 
+      <!-- Avviso Scheda Passata (Modalità Storico) -->
+      <v-card
+        v-if="isSchedaPassata"
+        class="py-2 px-3 mb-3 text-left border d-flex align-start card-glass"
+        style="background: rgba(239, 68, 68, 0.08) !important; border: 1.5px solid rgba(239, 68, 68, 0.3) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1); border-radius: 10px !important;"
+      >
+        <v-icon color="red-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-history</v-icon>
+        <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.35;">
+          <strong class="text-red-lighten-2 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Modalità Storico</strong><br>
+          Stai guardando l'esercizio della <strong class="text-white">Scheda {{ workout.num_scheda }}</strong>. Le modifiche qui alterano il passato.
+        </div>
+      </v-card>
+
       <!-- Avviso Giorno Completato -->
       <v-card
-        v-if="workout && isWeekCompleted(settimanaAttiva)"
+        v-if="workout && isWeekCompleted(settimanaAttiva) && !isSchedaPassata"
         class="py-2.5 px-4 mb-3 text-left border d-flex align-center card-glass"
         style="background: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid rgba(16, 185, 129, 0.25) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05); border-radius: 12px !important;"
       >
@@ -87,13 +100,18 @@
       <div class="mb-2 text-left">
         <h2 
           class="text-h6 font-weight-black leading-tight d-flex align-center flex-wrap gap-1" 
-          :class="previousWorkout ? 'text-red-lighten-2' : 'text-slate-dark'"
+          :class="(previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-2' : 'text-slate-dark'"
           style="font-size: 1.1rem; line-height: 1.2;"
         >
-          <v-icon v-if="parsedRmt(workout.des_esercizio_2)" :color="previousWorkout ? 'red-lighten-2' : 'orange-darken-3'" class="mr-1" size="18">
-            mdi-trophy-outline
+          <v-icon 
+            v-if="parsedRmt(workout.des_esercizio_2)" 
+            :color="getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).color" 
+            class="mr-1" 
+            size="18"
+          >
+            {{ getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).icon }}
           </v-icon>
-          {{ workout.des_esercizio }}
+          {{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨ ' : '' }}{{ workout.des_esercizio }}
         </h2>
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
@@ -748,19 +766,19 @@
         </h3>
       </div>
 
-      <!-- Griglia compattata dei Dettagli statici -->
+      <!-- Griglia compattata dei Dettagli statici (2x2) -->
       <v-row dense class="mb-4">
-        <!-- Muscolo Target -->
-        <v-col cols="4">
+        <!-- Scheda -->
+        <v-col cols="6">
           <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Muscolo Target</span>
-            <span class="text-body-2 font-weight-black text-slate-dark text-truncate d-block">
-              {{ workout.des_settore || 'Generico' }}
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Scheda</span>
+            <span class="text-body-2 font-weight-black text-orange-lighten-2 text-truncate d-block">
+              Numero {{ workout.num_scheda }}
             </span>
           </div>
         </v-col>
         <!-- Giorno -->
-        <v-col cols="4">
+        <v-col cols="6">
           <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
             <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Giorno</span>
             <span class="text-body-2 font-weight-black text-orange-lighten-1 text-truncate d-block">
@@ -768,8 +786,17 @@
             </span>
           </div>
         </v-col>
+        <!-- Muscolo Target -->
+        <v-col cols="6">
+          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Muscolo Target</span>
+            <span class="text-body-2 font-weight-black text-slate-dark text-truncate d-block">
+              {{ workout.des_settore || 'Generico' }}
+            </span>
+          </div>
+        </v-col>
         <!-- Posizione / Superserie -->
-        <v-col cols="4">
+        <v-col cols="6">
           <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
             <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Posizione</span>
             <span class="text-body-2 font-weight-black text-slate-dark text-truncate d-block">
@@ -870,6 +897,71 @@
               {{ voto }}
             </v-btn>
           </div>
+        </div>
+      </v-card>
+
+      <!-- Stato Esercizio Mai Fatto -->
+      <v-card 
+        v-if="workout && (workout.flg_ex_mai_fatto === 'false' || workout.flg_ex_mai_fatto === false) && String(workout.num_scheda) !== '1'"
+        class="premium-card rounded-2xl pa-4 mb-6 card-glass text-center border-soft"
+        elevation="1"
+        style="border: 1px solid rgba(255, 255, 255, 0.08);"
+      >
+        <div class="text-super-caption text-muted font-weight-black uppercase mb-1" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+          Stato Esercizio
+        </div>
+        <div class="text-body-2 font-weight-bold text-slate-light">
+          🌱 Questo esercizio non è mai stato eseguito in precedenza.
+        </div>
+      </v-card>
+      
+      <!-- Analisi Ripetizioni (Continuità o Storico) - CLICCABILE -->
+      <v-card 
+        v-else-if="previousWorkout && analisiRipetizioniCiclo"
+        class="premium-card rounded-2xl pa-4 mb-6 card-glass text-left border-soft clickable-timer-chip"
+        elevation="2"
+        style="border: 1px solid rgba(255, 255, 255, 0.08);"
+        @click="vaiADettaglioStorico(previousWorkout.id)"
+      >
+        <div class="d-flex align-center justify-space-between mb-2">
+          <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+            {{ analisiRipetizioniCiclo.isContinuitato ? 'Continuità Mesociclo' : 'Richiamo Esercizio Storico' }}
+          </span>
+          <v-icon color="orange-lighten-2" size="16">mdi-open-in-new</v-icon>
+        </div>
+        
+        <div class="text-body-2 font-weight-medium text-slate-dark" style="line-height: 1.45;">
+          <template v-if="analisiRipetizioniCiclo.isContinuitato">
+            Questo esercizio era presente nella <strong>scheda precedente</strong> (Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>).<br>
+          </template>
+          <template v-else>
+            Eseguito l'ultima volta <strong class="text-orange-lighten-2">{{ tempoTrascorso(previousWorkout.dat_scheda_ult_ex || previousWorkout.timestamp) }}</strong> (il <span class="text-white">{{ formattaDataStorico(previousWorkout.dat_scheda_ult_ex || previousWorkout.timestamp) }}</span>) su Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>.<br>
+          </template>
+          
+          Prosegue il ciclo con <strong :class="'text-' + analisiRipetizioniCiclo.color">{{ analisiRipetizioniCiclo.testo }}</strong>
+          <v-icon :color="analisiRipetizioniCiclo.color" size="18" class="ml-1 mb-1">{{ analisiRipetizioniCiclo.icon }}</v-icon>
+        </div>
+        
+        <div class="text-super-caption text-muted mt-3 pt-2 border-top-soft d-flex align-center">
+          <v-icon size="14" color="grey" class="mr-1">mdi-gesture-tap</v-icon>
+          <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(previousWorkout.dat_scheda_ult_ex || previousWorkout.timestamp) }} - Clicca per i dettagli</span>
+          <span v-else>Clicca per vedere pesi e note di questa esecuzione</span>
+        </div>
+      </v-card>
+
+      <!-- Fallback Sicurezza (Se JSON non ha ancora scaricato l'oggetto previousWorkout) -->
+      <v-card 
+        v-else-if="workout && (workout.dat_scheda_ult_ex || workout.timestamp)"
+        class="premium-card rounded-2xl pa-4 mb-6 card-glass text-center border-soft"
+        elevation="1"
+        style="border: 1px solid rgba(255, 255, 255, 0.08);"
+      >
+        <div class="text-super-caption text-muted font-weight-black uppercase mb-1" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+          Tempo Trascorso dall'Ultima Esecuzione
+        </div>
+        <div class="text-body-2 font-weight-bold text-slate-dark" style="line-height: 1.4;">
+          Eseguito l'ultima volta su Wo <span class="text-white font-weight-black">{{ workout.num_scheda_ult_ex || '?' }} {{ workout.num_coord_ex_wo_prec || '' }}</span> il: <span class="text-orange-lighten-2">{{ formattaDataStorico(workout.dat_scheda_ult_ex || workout.timestamp) }}</span> 
+          <span class="text-white ml-1 font-weight-black">({{ tempoTrascorso(workout.dat_scheda_ult_ex || workout.timestamp) }})</span>
         </div>
       </v-card>
 
@@ -1457,7 +1549,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -1564,6 +1656,12 @@ const avviaTimerRecupero = (recStr, label) => {
 
 // Parametri
 const routeIdLocal = ref(route.params.id);
+
+// Verifica se stiamo guardando una scheda precedente (Storico)
+const isSchedaPassata = computed(() => {
+  if (!workout.value || !workout.value.num_scheda || !selectedSheet.value) return false;
+  return parseInt(workout.value.num_scheda) < parseInt(selectedSheet.value);
+});
 
 // Stato
 const workout = ref(null);
@@ -1689,6 +1787,48 @@ const indRepsStartVal = ref('');
 
 const previousWorkout = ref(null);
 
+const analisiRipetizioniCiclo = computed(() => {
+  if (!workout.value || !previousWorkout.value) return null;
+  
+  const currentScheda = parseInt(workout.value.num_scheda);
+  const prevScheda = parseInt(previousWorkout.value.num_scheda);
+  
+  if (isNaN(currentScheda) || isNaN(prevScheda)) return null;
+
+  // Flag per indicare se è l'esatta scheda precedente (Continuità) o uno storico più remoto
+  const isContinuitato = prevScheda === currentScheda - 1;
+
+  // Estraiamo le reps di partenza (Week 1) per confrontare il target del blocco di lavoro
+  const prevReps = parseInt(previousWorkout.value.reps_week1) || estraiRepsDaPrescrizione(previousWorkout.value.des_week1) || 0;
+  const currReps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 0;
+
+  let trend, icon, color, testo;
+
+  if (prevReps === 0 || currReps === 0) {
+    trend = 'uguale'; 
+    icon = 'mdi-minus'; 
+    color = 'grey-lighten-1'; 
+    testo = 'dinamiche variate (stesse reps)';
+  } else if (currReps > prevReps) {
+    trend = 'up'; 
+    icon = 'mdi-arrow-up-bold'; 
+    color = 'red-lighten-2'; 
+    testo = `ripetizioni più alte (${prevReps} ➡️ ${currReps})`;
+  } else if (currReps < prevReps) {
+    trend = 'down'; 
+    icon = 'mdi-arrow-down-bold'; 
+    color = 'blue-lighten-2'; 
+    testo = `ripetizioni più basse (${prevReps} ➡️ ${currReps})`;
+  } else {
+    trend = 'uguale'; 
+    icon = 'mdi-minus'; 
+    color = 'grey-lighten-1'; 
+    testo = `le stesse ripetizioni (${currReps})`;
+  }
+
+  return { isContinuitato, trend, icon, color, testo };
+});
+
 const getAtletaInfo = (wObj) => {
   if (!wObj) return { key: 'ID_cliente', id: '' };
   const key = Object.keys(wObj).find(k => k.includes('ID_cliente')) || 'ID_cliente';
@@ -1718,7 +1858,30 @@ const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   return null;
 };
 
-const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica) => {
+const calcolaGiorniTrascorsi = (dateStr) => {
+  if (!dateStr) return 0;
+  try {
+    const past = new Date(dateStr);
+    if (isNaN(past.getTime())) return 0;
+    const now = new Date();
+    const pastClean = new Date(past.getFullYear(), past.getMonth(), past.getDate());
+    const nowClean = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffMs = nowClean.getTime() - pastClean.getTime();
+    return diffMs > 0 ? Math.floor(diffMs / (1000 * 60 * 60 * 24)) : 0;
+  } catch (e) {
+    return 0;
+  }
+};
+
+const getLivelloForzaIconInfo = (stelle) => {
+  if (stelle <= 1) return { icon: 'mdi-sprout-outline', color: '#cd7f32' }; // Bronzo / Germoglio
+  if (stelle === 2) return { icon: 'mdi-medal-outline', color: '#b4b4b4' };  // Argento
+  if (stelle === 3) return { icon: 'mdi-medal', color: '#ffd700' };         // Oro
+  if (stelle === 4) return { icon: 'mdi-trophy-outline', color: '#f97316' };  // Avanzato
+  return { icon: 'mdi-trophy', color: '#a855f7' };                         // Elite
+};
+
+const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi) => {
   if (!prevW6Weight) return null;
   const w6 = parseFloat(String(prevW6Weight).replace(',', '.'));
   if (isNaN(w6) || w6 <= 0) return null;
@@ -1744,6 +1907,19 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica) => 
   }
   
   proposedWeight = proposedWeight * adjustment;
+
+  // Riduzione prudenziale in base al tempo passato
+  let dateFactor = 1.0;
+  if (giorniTrascorsi > 180) {
+    dateFactor = 0.90; // -10% per oltre 6 mesi
+  } else if (giorniTrascorsi > 90) {
+    dateFactor = 0.93; // -7% per 3-6 mesi
+  } else if (giorniTrascorsi > 60) {
+    dateFactor = 0.96; // -4% per 2-3 mesi
+  } else if (giorniTrascorsi > 30) {
+    dateFactor = 0.98; // -2% per 1-2 mesi
+  }
+  proposedWeight = proposedWeight * dateFactor;
   
   // Round to nearest 0.5 kg
   return Math.round(proposedWeight * 2) / 2;
@@ -1759,7 +1935,11 @@ const propostaWeek1 = computed(() => {
   const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1);
   const fatica = previousWorkout.value.num_faticaw6;
   
-  const proposta = calcolaPropostaCarico(prevW6Weight, prevW6Reps, currW1Reps, fatica);
+  // Calcolo giorni trascorsi
+  const dataUltimaEx = previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp;
+  const giorniTrascorsi = calcolaGiorniTrascorsi(dataUltimaEx);
+  
+  const proposta = calcolaPropostaCarico(prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi);
   if (proposta === null) return null;
 
   return {
@@ -1767,7 +1947,8 @@ const propostaWeek1 = computed(() => {
     prevPeso: prevW6Weight,
     prevReps: prevW6Reps || 'N/D',
     currReps: currW1Reps || 'N/D',
-    fatica: fatica || 'Non specificata'
+    fatica: fatica || 'Non specificata',
+    giorniTrascorsi
   };
 });
 

@@ -946,9 +946,9 @@
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-                    <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="haEsercizioPrecedenteReale(ex) ? 'text-red-lighten-2' : 'text-slate-dark'">
-                      {{ ex.des_esercizio || 'Esercizio' }}
-                    </h4>
+<h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-2' : 'text-slate-dark'">
+  {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨ ' : '' }}{{ ex.des_esercizio || 'Esercizio' }}
+</h4>
 
                     <!-- Settore e Emoji Sforzo -->
                     <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
@@ -1100,9 +1100,9 @@
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-                <h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="haEsercizioPrecedenteReale(block.exercise) ? 'text-red-lighten-2' : 'text-slate-dark'">
-                  {{ block.exercise.des_esercizio || 'Esercizio' }}
-                </h4>
+<h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-2' : 'text-slate-dark'">
+  {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨ ' : '' }}{{ block.exercise.des_esercizio || 'Esercizio' }}
+</h4>
 
                 <!-- Settore e Emoji Sforzo -->
                 <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
@@ -1764,27 +1764,28 @@ const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
 const allExercisesBackup = ref([]);
 
-const haEsercizioPrecedenteReale = (ex) => {
-  if (!ex) return false;
-  if (!ex.num_coord_ex_wo_prec) return false;
+// Funzione infallibile che controlla se l'esercizio esisteva ESATTAMENTE nella scheda - 1
+const esisteInSchedaPrecedente = (ex) => {
+  if (!ex || !allExercisesBackup.value.length) return false;
   
-  const nomeEx = String(ex.des_esercizio || '').trim().toLowerCase();
   const currentNumScheda = parseInt(ex.num_scheda);
+  if (isNaN(currentNumScheda) || currentNumScheda <= 1) return false;
+  
+  const targetScheda = currentNumScheda - 1;
+  const nomeEx = String(ex.des_esercizio || '').trim().toLowerCase();
   const keyIdCliente = Object.keys(ex).find(k => k.includes('ID_cliente')) || 'ID_cliente';
   const atletaId = ex[keyIdCliente] || '';
 
-  if (!nomeEx || isNaN(currentNumScheda) || !atletaId) return false;
+  if (!nomeEx || !atletaId) return false;
 
-  // Cerca nel backup se c'è un esercizio con lo stesso nome in una scheda precedente
-  const hasPast = allExercisesBackup.value.some(b => {
+  // Cerca nel backup locale l'esercizio con la scheda ESATTAMENTE uguale a quella precedente
+  return allExercisesBackup.value.some(b => {
     const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
     return String(bAtletaId) === String(atletaId) &&
            String(b.des_esercizio || '').trim().toLowerCase() === nomeEx &&
-           parseInt(b.num_scheda) < currentNumScheda &&
+           parseInt(b.num_scheda) === targetScheda &&
            parseInt(b.num_riga_giorno) > 0;
   });
-
-  return hasPast;
 };
 
 const listaGiorniDisponibili = computed(() => {

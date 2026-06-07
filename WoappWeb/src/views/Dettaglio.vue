@@ -58,14 +58,15 @@
     </div>
 
 
+    <transition :name="transitionName" mode="out-in">
     <!-- Stato di caricamento -->
-    <div v-if="caricamento" class="text-center my-12">
+    <div v-if="caricamento" key="loading" class="text-center my-12">
       <v-progress-circular indeterminate color="orange" size="48"></v-progress-circular>
       <p class="mt-2 text-caption text-muted">Caricamento dettagli esercizio...</p>
     </div>
 
     <!-- Errore o esercizio non trovato -->
-    <div v-else-if="!workout" class="text-center my-12 py-12 card-glass rounded-xl">
+    <div v-else-if="!workout" key="error" class="text-center my-12 py-12 card-glass rounded-xl">
       <v-icon size="64" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
       <h3 class="text-h6 font-weight-bold text-slate-dark">Esercizio non trovato</h3>
     </div>
@@ -921,6 +922,7 @@
       </v-card>
 
     </div>
+    </transition>
 
     <!-- Snackbar di successo salvataggio -->
     <v-snackbar
@@ -1611,8 +1613,11 @@ const avviaTimerRecupero = (recStr, label) => {
 
 // Parametri
 const routeIdLocal = ref(route.params.id);
+const transitionName = ref(''); // Vuoto per evitare animazioni all'apertura dalla lista
+const settimanaAttiva = ref(1);
+const tuttiEserciziGiorno = ref([]);
 
-// Verifica se stiamo guardando una scheda precedente (Storico)
+// Verifica se stiamo guardando una scheda passata (Modalità Storico)
 const isSchedaPassata = computed(() => {
   if (!workout.value || !workout.value.num_scheda || !selectedSheet.value) return false;
   return parseInt(workout.value.num_scheda) < parseInt(selectedSheet.value);
@@ -1622,9 +1627,6 @@ const isSchedaPassata = computed(() => {
 const workout = ref(null);
 const riga0 = ref(null);
 const caricamento = ref(true);
-
-const settimanaAttiva = ref(2);
-const tuttiEserciziGiorno = ref([]);
 
 // Trova altri esercizi dello stesso blocco superserie consecutivo (stessa logica di Workouts.vue)
 const eserciziSupersetCollegati = computed(() => {
@@ -2089,10 +2091,10 @@ const soloCorrispondenti = ref(true);
 
 const toggleFiltroCorrispondenti = () => {
   vibraTattile(10);
-  soloCorpospondetiAndToggle();
+  soloCorrispondentiAndToggle();
 };
 
-const soloCorpospondetiAndToggle = () => {
+const soloCorrispondentiAndToggle = () => {
   soloCorrispondenti.value = !soloCorrispondenti.value;
 };
 
@@ -2309,8 +2311,6 @@ const riportaAInizioPagina = () => {
 watch(() => route.params.id, (nuovoId) => {
   if (nuovoId) {
     riportaAInizioPagina();
-    riga0.value = null;
-    workout.value = null;
     routeIdLocal.value = nuovoId;
     localStorage.setItem('ultimoEsercizioDettaglio', nuovoId);
     caricaDatiEsercizio();
@@ -2330,27 +2330,29 @@ const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desG
     const snap = await getDocs(q);
     
     let temp = [];
+    let sessionItem = null;
     snap.forEach((doc) => {
       const d = doc.data();
       const riga = parseInt(d.num_riga_giorno) || 0;
-      if (riga > 0) { // Saltiamo la riga 0
-        temp.push(applicaModificheLocali({ id: doc.id, riga, ...d }));
+      const item = applicaModificheLocali({ id: doc.id, riga, ...d });
+      if (riga === 0) {
+        sessionItem = item;
+      } else {
+        temp.push(item);
       }
     });
     
-    // Ordiniamo per riga
     temp.sort((a, b) => a.riga - b.riga);
     
-    tuttiEserciziGiorno.value = temp;
-    listaIdEsercizi.value = temp.map(item => item.id);
+    // Inseriamo la sessione (riga 0) come primo elemento assoluto della cache
+    if (sessionItem) {
+      tuttiEserciziGiorno.value = [sessionItem, ...temp];
+    } else {
+      tuttiEserciziGiorno.value = temp;
+    }
     
-    // Ricerca robusta dell'indice per lo swipe touch
-    indexCorrente.value = temp.findIndex(item => {
-      const itemId = String(item.id || '');
-      const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
-      const currentId = String(routeIdLocal.value || '');
-      return itemId === currentId || itemNumRiga === currentId;
-    });
+    listaIdEsercizi.value = tuttiEserciziGiorno.value.map(item => item.id);
+    indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
   } catch (error) {
     console.error("Errore caricamento lista esercizi per swipe:", error);
   }
@@ -2359,21 +2361,39 @@ const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desG
 const vaiAdEsercizioSuccessivo = () => {
   if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1) return;
   if (indexCorrente.value === listaIdEsercizi.value.length - 1) return;
-  const nextIndex = indexCorrente.value + 1;
-  const nextId = listaIdEsercizi.value[nextIndex];
-  
+  transitionName.value = 'swipe-next'; // Imposta l'animazione verso sinistra
+  const nextItem = tuttiEserciziGiorno.value[indexCorrente.value + 1];
   vibraTattile(15);
-  router.replace({ name: 'DettaglioWorkout', params: { id: nextId } });
+  if (parseInt(nextItem.num_riga_giorno) === 0) {
+    router.replace({ name: 'DettaglioSessione', params: { id: nextItem.id } });
+  } else {
+    router.replace({ name: 'DettaglioWorkout', params: { id: nextItem.id } });
+  }
 };
 
 const vaiAdEsercizioPrecedente = () => {
   if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1) return;
-  if (indexCorrente.value === 0) return;
-  const prevIndex = indexCorrente.value - 1;
-  const prevId = listaIdEsercizi.value[prevIndex];
   
+  // Se sono sul giorno (index 0) e faccio swipe a destra, vado al primo esercizio (index 1)
+  if (indexCorrente.value === 0) {
+    transitionName.value = 'swipe-next';
+    const firstEx = tuttiEserciziGiorno.value[1];
+    if (firstEx) {
+      vibraTattile(15);
+      router.replace({ name: 'DettaglioWorkout', params: { id: firstEx.id } });
+    }
+    return;
+  }
+
+  // Navigazione precedente standard
+  transitionName.value = 'swipe-prev';
+  const prevItem = tuttiEserciziGiorno.value[indexCorrente.value - 1];
   vibraTattile(15);
-  router.replace({ name: 'DettaglioWorkout', params: { id: prevId } });
+  if (parseInt(prevItem.num_riga_giorno) === 0) {
+    router.replace({ name: 'DettaglioSessione', params: { id: prevItem.id } });
+  } else {
+    router.replace({ name: 'DettaglioWorkout', params: { id: prevItem.id } });
+  }
 };
 
 // Gesture di swipe touch
@@ -2410,6 +2430,33 @@ const handleTouchEnd = (e) => {
 const caricaDatiEsercizio = async () => {
   caricamento.value = true;
   try {
+    // CACHE REATTIVA PER SWIPE
+    const cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+    if (cachedEx) {
+      workout.value = applicaModificheLocali({ ...cachedEx });
+      const keyIdCliente = Object.keys(cachedEx).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+      const atletaId = cachedEx[keyIdCliente] || '';
+      settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
+      modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+
+      for (let w = 1; w <= 6; w++) {
+        inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
+        inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
+      }
+      noteAttrezzo.value = workout.value.des_note_attrezzo || '';
+      noteEsercizio.value = workout.value.ins_esercizio || '';
+      commentiAtleta.value = workout.value.des_commenti || '';
+      numIns6Val.value = workout.value.num_ins6 || '';
+      numFaticaw6Val.value = workout.value.num_faticaw6 || '';
+      indRepsStartVal.value = workout.value.ind_reps_start || '';
+
+      await caricaEsercizioPrecedente();
+      indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
+      caricamento.value = false;
+      return;
+    }
+
     const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
     const docSnap = await getDoc(docRef);
 
@@ -3456,6 +3503,9 @@ const salvaModifichePendenti = async () => {
 };
 
 onBeforeRouteLeave(async (to, from) => {
+  if (to.name === 'Workouts') {
+    transitionName.value = ''; // Reset animazione se torni alla lista
+  }
   document.activeElement?.blur();
   await salvaModifichePendenti();
 });
@@ -3997,4 +4047,18 @@ th.sticky-col {
   align-items: center !important;
   justify-content: center !important;
 }
+
+/* Animazioni Swipe */
+.swipe-next-enter-active, .swipe-next-leave-active,
+.swipe-prev-enter-active, .swipe-prev-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* swipe-next: il nuovo entra da destra (100%), il vecchio esce a sinistra (-100%) */
+.swipe-next-enter-from { transform: translateX(100%); opacity: 0; }
+.swipe-next-leave-to { transform: translateX(-100%); opacity: 0; }
+
+/* swipe-prev: il nuovo entra da sinistra (-100%), il vecchio esce a destra (100%) */
+.swipe-prev-enter-from { transform: translateX(-100%); opacity: 0; }
+.swipe-prev-leave-to { transform: translateX(100%); opacity: 0; }
 </style>

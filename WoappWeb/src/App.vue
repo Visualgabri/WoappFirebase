@@ -271,3 +271,44 @@ const eseguiLogout = async () => {
   }
 }
 </style>
+
+<style>
+/* TRANSIZIONI SWIPE PREMIUM (Effetto App Nativa) */
+
+/* Swipe verso il PROSSIMO (Entra da destra, esce a sinistra) */
+.swipe-next-enter-active, .swipe-next-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.swipe-next-enter-from {
+  opacity: 0;
+  transform: translateX(100px);
+}
+.swipe-next-leave-to {
+  opacity: 0;
+  transform: translateX(-100px);
+}
+
+/* Swipe verso il PRECEDENTE (Entra da sinistra, esce a destra) */
+.swipe-prev-enter-active, .swipe-prev-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.swipe-prev-enter-from {
+  opacity: 0;
+  transform: translateX(-100px);
+}
+.swipe-prev-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+/* Rende la transizione fluida evitando salti di altezza */
+.exercise-detail-area, .session-detail-area {
+  width: 100%;
+  will-change: transform, opacity;
+}
+
+/* Rimuove il flash bianco durante il cambio componente */
+.v-main {
+  background-color: #030712 !important;
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
   <v-container class="px-3 py-4 max-width-container min-height-screen pb-12">
-    <!-- Barra Superiore con pulsante indietro -->
+    <!-- Barra Superiore -->
     <div class="d-flex align-center justify-space-between mb-4 appsheet-top-bar pb-2">
       <v-btn icon color="orange-darken-3" variant="text" @click="tornaIndietro" id="btn-sessione-indietro" size="small">
         <v-icon size="26">mdi-arrow-left</v-icon>
@@ -11,20 +11,21 @@
       <v-btn icon color="slate-dark" variant="text" @click="caricaDati" size="small"><v-icon size="18">mdi-refresh</v-icon></v-btn>
     </div>
 
-    <!-- Stato di caricamento -->
-    <div v-if="caricamento" class="text-center my-12">
-      <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
-      <p class="mt-2 text-caption text-muted">Caricamento sessione...</p>
-    </div>
+    <transition :name="transitionName" mode="out-in">
+      <!-- Stato di caricamento -->
+      <div v-if="caricamento" key="loading" class="text-center my-12">
+        <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
+        <p class="mt-2 text-caption text-muted">Caricamento sessione...</p>
+      </div>
 
-    <!-- Errore o non trovato -->
-    <div v-else-if="!workout" class="text-center my-12 py-12 card-glass rounded-xl">
-      <v-icon size="50" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
-      <h3 class="text-caption font-weight-bold text-slate-dark">Sessione non trovata</h3>
-    </div>
+      <!-- Errore o non trovato -->
+      <div v-else-if="!workout" key="error" class="text-center my-12 py-12 card-glass rounded-xl">
+        <v-icon size="50" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
+        <h3 class="text-caption font-weight-bold text-slate-dark">Sessione non trovata</h3>
+      </div>
 
-    <!-- Contenuto Principale (Spazioso, Intuitivo, Flusso Lineare) -->
-    <div v-else class="session-detail-area">
+      <!-- Contenuto Principale -->
+      <div v-else key="content" class="session-detail-area">
       <!-- Avviso Esercizi Mancanti (Buco nell'ordine numerico) -->
       <v-card
         v-if="eserciziMancantiSessione.length > 0"
@@ -405,8 +406,8 @@
           </v-col>
         </v-row>
       </v-card>
-
-    </div>
+</div>
+    </transition>
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" color="success" timeout="2000" rounded="xl">
@@ -416,17 +417,48 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'; // Aggiunto onBeforeRouteLeave
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
-const routeId = route.params.id;
+const routeId = computed(() => route.params.id);
+const transitionName = ref('');
 
-// Helper per applicare le modifiche salvate offline nel localStorage
+// Gesture di swipe touch
+let touchStartX = 0;
+let touchStartY = 0;
+
+const handleTouchStart = (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+};
+
+const handleTouchEnd = (e) => {
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  const diffX = touchEndX - touchStartX;
+  const diffY = touchEndY - touchStartY;
+
+  // Swipe a SINISTRA (va avanti) -> Primo Esercizio
+  if (diffX < -80 && Math.abs(diffY) < 50) {
+    vaiAdEsercizioSuccessivo();
+  }
+};
+
+const vaiAdEsercizioSuccessivo = () => {
+  if (eserciziDelGiorno.value.length > 0) {
+    const primoEx = eserciziDelGiorno.value.find(ex => parseInt(ex.num_riga_giorno) === 1) || eserciziDelGiorno.value[0];
+    transitionName.value = 'swipe-next';
+    vibraTattile(15);
+    router.replace({ name: 'DettaglioWorkout', params: { id: primoEx.id } });
+  }
+};
+
+
 const applicaModificheLocali = (item) => {
   if (!item) return item;
   const key1 = `offline_storyboard_${item.id}`;
@@ -558,65 +590,56 @@ const getGifUrl = (url) => {
 
 // Carica i dati del documento Riga 0
 const caricaDati = async () => {
-  caricamento.value = true;
+  const currentId = routeId.value;
+  if (!currentId) return;
+
+  // 1. TENTATIVO CACHE: Cerchiamo nei dati caricati in precedenza (allExercises)
+  const cachedFromList = allExercises.value.find(ex => String(ex.id) === String(currentId));
+  const cachedFromLocal = applicaModificheLocali({ id: currentId });
+
+  if (cachedFromList) {
+    workout.value = cachedFromList;
+    caricamento.value = false;
+  } else if (cachedFromLocal.des_esercizio) {
+    workout.value = cachedFromLocal;
+    caricamento.value = false;
+  } else {
+    caricamento.value = true;
+  }
+
   try {
-    const docRef = doc(db, 'STORYBOARD', routeId);
+    const docRef = doc(db, 'STORYBOARD', currentId);
     const docSnap = await getDoc(docRef);
+
     if (docSnap.exists()) {
       const dati = docSnap.data();
       workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });
       
-      // Carica tutti gli esercizi dello stesso atleta, scheda e giorno
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = dati[keyIdCliente] || '';
-      if (atletaId && dati.num_scheda && dati.des_giorno) {
-         try {
-           const q = query(
-             collection(db, 'STORYBOARD'),
-             where(keyIdCliente, '==', atletaId),
-             where('num_scheda', '==', dati.num_scheda),
-             where('des_giorno', '==', dati.des_giorno)
-           );
-           const snap = await getDocs(q);
-           let temp = [];
-           snap.forEach((d) => {
-             temp.push(applicaModificheLocali({ id: d.id, ...d.data() }));
-           });
-           allExercises.value = temp;
-         } catch (e) {
-           console.error("Errore fetch esercizi del giorno in Sessione:", e);
-         }
-      }
-
-      // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
-      if (!workout.value.UrlNormal || !workout.value.UrlNormal.startsWith('http')) {
-        try {
-          const res = await fetch('/storyboard_backup.json');
-          const allData = await res.json();
-          const matched = allData.find(b => 
-            String(b.ID_cliente) === String(workout.value.ID_cliente) &&
-            String(b.num_scheda) === String(workout.value.num_scheda) &&
-            String(b.des_giorno).trim() === String(workout.value.des_giorno).trim() &&
-            parseInt(b.num_riga_giorno) === parseInt(workout.value.num_riga_giorno)
-          );
-          if (matched && matched.UrlNormal && matched.UrlNormal.startsWith('http')) {
-            workout.value.UrlNormal = matched.UrlNormal;
-          }
-        } catch (errBackup) {
-          console.warn("Impossibile applicare patch UrlNormal da backup in Sessione:", errBackup);
-        }
-      }
       
-      // Default sulla prima settimana incompleta all'avvio
-      selectedWeek.value = activeUncompletedWeek.value;
+      if (atletaId && dati.num_scheda && dati.des_giorno) {
+        const q = query(
+          collection(db, 'STORYBOARD'),
+          where(keyIdCliente, '==', atletaId),
+          where('num_scheda', '==', dati.num_scheda),
+          where('des_giorno', '==', dati.des_giorno)
+        );
+        const snap = await getDocs(q);
+        let temp = [];
+        snap.forEach((d) => {
+          temp.push(applicaModificheLocali({ id: d.id, ...d.data() }));
+        });
+        allExercises.value = temp;
+      }
     } else {
-      console.warn("Documento sessione non trovato su Firestore, provo da backup locale.");
       await caricaDatiDaBackup();
     }
   } catch (error) {
-    console.warn("Errore caricamento sessione da Firestore (quota esaurita), provo da backup locale:", error);
+    console.warn("Errore fetch, uso backup:", error);
     await caricaDatiDaBackup();
   } finally {
+    // IMPORTANTE: spegniamo sempre il caricamento
     caricamento.value = false;
   }
 };
@@ -671,9 +694,6 @@ watch([selectedWeek, workout], () => {
   }
 }, { immediate: true, deep: true });
 
-onMounted(() => {
-  caricaDati();
-});
 
 // Helper per identificare la prima settimana non completata
 const activeUncompletedWeek = computed(() => {
@@ -1127,10 +1147,41 @@ const getMediaFormatted = () => {
   return `${hours}:${String(mins).padStart(2, '0')}`;
 };
 
+const riportaAInizioPagina = () => {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  const appContainer = document.querySelector('.v-main') || document.documentElement || document.body;
+  if (appContainer) {
+    appContainer.scrollTop = 0;
+  }
+};
+
 const tornaIndietro = () => {
   vibraTattile(8);
   router.back();
 };
+
+// Inizializza il caricamento dati e gli eventi di swipe
+onMounted(() => {
+  riportaAInizioPagina();
+  caricaDati();
+  window.addEventListener('touchstart', handleTouchStart, { passive: true });
+  window.addEventListener('touchend', handleTouchEnd, { passive: true });
+});
+
+// Pulisce la memoria quando esci
+onBeforeUnmount(() => {
+  window.removeEventListener('touchstart', handleTouchStart);
+  window.removeEventListener('touchend', handleTouchEnd);
+});
+
+// Reagisce dinamicamente se la sessione cambia (es. aprendone un'altra)
+watch(() => route.params.id, (nuovoId) => {
+  if (nuovoId) {
+    transitionName.value = '';
+    riportaAInizioPagina();
+    caricaDati();
+  }
+});
 </script>
 
 <style scoped>
@@ -1313,4 +1364,17 @@ const tornaIndietro = () => {
   font-size: 0.58rem !important;
   white-space: nowrap;
 }
+
+/* Animazioni Swipe */
+.swipe-next-enter-active, .swipe-next-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.swipe-next-enter-from { transform: translateX(100%); opacity: 0; }
+.swipe-next-leave-to { transform: translateX(-100%); opacity: 0; }
+
+.swipe-prev-enter-active, .swipe-prev-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.swipe-prev-enter-from { transform: translateX(-100%); opacity: 0; }
+.swipe-prev-leave-to { transform: translateX(100%); opacity: 0; }
 </style>

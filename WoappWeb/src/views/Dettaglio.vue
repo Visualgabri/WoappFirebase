@@ -57,11 +57,6 @@
       </v-card>
     </div>
 
-    <!-- Swipe indicator hint -->
-    <div class="text-center mb-3 mt-n2 opacity-60 d-flex align-center justify-center gap-1">
-      <v-icon size="14" color="grey">mdi-gesture-swipe-horizontal</v-icon>
-      <span class="text-super-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Swipe per scorrere gli esercizi</span>
-    </div>
 
     <!-- Stato di caricamento -->
     <div v-if="caricamento" class="text-center my-12">
@@ -248,21 +243,10 @@
           >
             ⏱️ {{ workout.des_rec_report }}
           </v-chip>
-          <!-- Mostra "VAI AL PROSSIMO" solo se è in superserie E non ha recupero -->
-          <v-chip
-            v-else-if="workout.alf_superserie"
-            color="green-darken-3"
-            variant="flat"
-            size="x-small"
-            class="font-weight-black text-white px-2 py-0.5"
-            prepend-icon="mdi-arrow-right-bold-circle-outline"
-          >
-            ⚡ PROSSIMO (NO PAUSA)
-          </v-chip>
         </div>
 
         <!-- Action Row (Precedente, Elimina, Storico, WhatsApp) -->
-        <div class="d-flex align-center justify-space-between mt-3 mb-2 px-1 border-top-soft pt-3 gap-2 flex-wrap">
+        <div class="d-flex align-center justify-space-between mt-2 mb-1 px-1 border-top-soft pt-2 gap-2 flex-wrap">
           <div class="d-flex align-center gap-2">
             <!-- Tasto PRECEDENTE -->
             <v-btn
@@ -321,65 +305,41 @@
         </div>
       </div>
 
-      <!-- Banner Superserie e Lista Esercizi Associati -->
-      <div v-if="workout.alf_superserie" class="mb-4">
-        <v-card class="superset-detail-card rounded-xl pa-3 border-superset elevation-2 text-left">
-          <div class="d-flex align-center mb-2">
-            <v-chip color="orange-darken-3" class="font-weight-black text-white px-1.5 py-0.5 mr-2 animate-pulse-slow" variant="flat" size="x-small" style="height: 18px; font-size: 0.55rem;">
-              ⚡ SUPERSET {{ workout.alf_superserie }}
-            </v-chip>
-            <span v-if="workout.des_rec_report" class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.7rem;">
-              (Riposati ora)
-            </span>
-            <span v-else class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.7rem;">
-              Esegui in sequenza senza pausa!
+      <!-- Barra Laterale Superset (Opzione B) -->
+      <div v-if="workout.alf_superserie" class="mb-4 mt-1">
+        <div class="text-left border-left-orange pl-3 position-relative">
+          <div class="d-flex align-center mb-1">
+            <span class="text-super-caption font-weight-black text-orange-darken-3 mr-2" style="font-size: 0.6rem;">⚡ SUPERSET {{ workout.alf_superserie }}</span>
+            <span 
+              class="text-super-caption font-weight-black uppercase" 
+              :class="workout.des_rec_report ? 'text-amber-lighten-2' : 'text-green-accent-3'"
+              style="font-size: 0.58rem; letter-spacing: 0.05em;"
+            >
+              {{ workout.des_rec_report ? 'Recupera' : 'Vola al prossimo' }}
             </span>
           </div>
           
-          <p v-if="workout.des_rec_report" class="text-slate font-weight-medium mb-2 leading-tight" style="font-size: 0.7rem; line-height: 1.35;">
-            Questo esercizio è l'ultimo della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata questa serie, effettua il recupero previsto prima di ricominciare il giro.
-          </p>
-          <p v-else class="text-slate font-weight-medium mb-2 leading-tight" style="font-size: 0.7rem; line-height: 1.35;">
-            Questo esercizio fa parte della <strong>Superserie {{ workout.alf_superserie }}</strong>. Completata una serie di questo esercizio, passa immediatamente all'esercizio successivo prima del recupero.
-          </p>
-          
-          <!-- Esercizi correlati nella superserie -->
-          <div v-if="eserciziSupersetCollegati.length > 0">
-            <div class="text-super-caption text-muted font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-              Altri esercizi in questa superserie:
+          <div
+            v-for="connEx in eserciziSupersetCollegati.slice(0, 1)"
+            :key="connEx.id"
+            class="d-flex align-center py-1 px-2 rounded-lg bg-slate-900 border-soft clickable-item"
+            @click="vaiAdEsercizioCollegato(connEx.id)"
+            style="cursor: pointer;"
+          >
+            <div class="rounded overflow-hidden mr-2 bg-black border-soft" style="width: 32px; height: 32px; flex-shrink: 0;">
+              <v-img :src="getGifUrl(connEx.UrlNormal)" width="32" height="32" cover></v-img>
             </div>
-            
-            <div class="superset-connected-list rounded-lg overflow-hidden card-glass border">
-              <div
-                v-for="connEx in eserciziSupersetCollegati"
-                :key="connEx.id"
-                class="connected-exercise-item d-flex align-center py-1.5 px-2.5 clickable-item border-bottom-soft"
-                @click="vaiAdEsercizioCollegato(connEx.id)"
-                style="cursor: pointer;"
-              >
-                <div class="connected-thumb mr-2 rounded overflow-hidden" style="width: 40px; height: 40px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
-                  <v-img
-                    :src="getGifUrl(connEx.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
-                    width="40"
-                    height="40"
-                    cover
-                  ></v-img>
-                </div>
-                <div class="flex-grow-1 min-width-0 text-left">
-                  <div class="text-caption font-weight-black text-slate-dark text-truncate" style="font-size: 0.78rem !important;">
-                    {{ connEx.des_esercizio }}
-                  </div>
-                  <div class="text-super-caption text-orange-darken-3 font-weight-bold" style="font-size: 0.58rem;">
-                    {{ connEx.des_settore || 'Corpo Libero' }} • {{ formatPrescrizioneSuperset(connEx) }}
-                    <span v-if="connEx.des_rec_report" class="text-amber-lighten-2 ml-1">⏱️ {{ connEx.des_rec_report }}</span>
-                    <span v-else class="text-green-lighten-2 ml-1">⚡ No Pausa</span>
-                  </div>
-                </div>
-                <v-icon size="16" color="orange-darken-3">mdi-arrow-right-circle-outline</v-icon>
-              </div>
+            <div class="flex-grow-1 text-truncate">
+              <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.75rem !important;">{{ connEx.des_esercizio }}</div>
+              <div class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.55rem;">{{ formatPrescrizioneSuperset(connEx) }}</div>
             </div>
+            <v-icon size="16" color="green-accent-3" class="ml-1">mdi-arrow-right-circle</v-icon>
           </div>
-        </v-card>
+          
+          <div v-if="eserciziSupersetCollegati.length > 1" class="text-super-caption text-muted mt-1 font-weight-bold" style="font-size: 0.52rem; letter-spacing: 0.05em;">
+             + ALTRI {{ eserciziSupersetCollegati.length - 1 }} ESERCIZI NELLA SERIE
+          </div>
+        </div>
       </div>
 
 
@@ -397,27 +357,6 @@
       </v-card>
 
       <div class="weeks-stacked-list mb-4">
-        <!-- Raccomandazione Carico Week 1 (Proposta automatica) -->
-        <v-card
-          v-if="settimanaAttiva === 1 && propostaWeek1"
-          class="py-3.5 px-4 mb-4 text-left border position-relative overflow-hidden"
-          style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; border: 1.5px solid rgba(234, 88, 12, 0.35) !important; box-shadow: 0 8px 24px rgba(234, 88, 12, 0.1) !important; border-radius: 16px !important;"
-        >
-          <div class="d-flex align-start">
-            <v-icon color="orange-darken-1" class="mr-3 mt-1 flex-shrink-0" size="24">mdi-lightbulb-on</v-icon>
-            <div class="flex-grow-1">
-              <div class="text-subtitle-2 font-weight-black text-orange-lighten-1 mb-1" style="font-size: 0.9rem;">
-                Carico Consigliato per Week 1: <span class="text-white font-weight-black text-h6 ml-1" style="font-size: 1.15rem !important;">{{ propostaWeek1.peso }} KG</span>
-              </div>
-              <div class="text-slate font-weight-medium" style="font-size: 0.72rem; line-height: 1.45; color: #cbd5e1 !important;">
-                Proposta calcolata sul carico della Week 6 del mesociclo precedente (Scheda {{ previousWorkout.num_scheda }}):
-                <strong>{{ propostaWeek1.prevPeso }} KG</strong> per <strong>{{ propostaWeek1.prevReps }} reps</strong> con fatica <strong>{{ propostaWeek1.fatica }}</strong>.
-                L'algoritmo ha scalato il carico sulle <strong>{{ propostaWeek1.currReps }} reps</strong> previste per questa Week 1.
-              </div>
-            </div>
-          </div>
-        </v-card>
-
         <!-- Nota Esponenti (Ripetizioni di Riserva RIR) -->
          <v-card
           v-if="haEsponenti"
@@ -457,10 +396,6 @@
                 </span>
                 <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
                   ({{ workout['des_week' + sett] }})
-                </span>
-                <!-- Suggerimento Peso Week 2 per Scarico Week 4 -->
-                <span v-if="sett === 4 && isWeek4Scarico" class="ml-1 text-amber-lighten-2 font-weight-bold" style="font-size: 0.72rem !important;">
-                  (Metti peso W2<span v-if="getPesoWeek2"> = {{ getPesoWeek2 }}</span>)
                 </span>
               </span>
               <v-chip
@@ -525,19 +460,6 @@
             Nessuna prescrizione
           </div>
 
-          <!-- Banner Scarico per Week 4 -->
-          <div
-            v-if="sett === 4 && isWeek4Scarico"
-            class="mt-2.5 mb-3 px-3 py-2 rounded-lg text-left"
-            style="background: rgba(249, 115, 22, 0.08) !important; border: 1px dashed rgba(249, 115, 22, 0.25) !important;"
-          >
-            <div class="d-flex align-start">
-              <v-icon color="orange-lighten-2" class="mr-2 mt-0.5 flex-shrink-0" size="16">mdi-information-outline</v-icon>
-              <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">
-                <strong class="text-orange-lighten-2">Scarico:</strong> metti il peso della Week 2<span v-if="getPesoWeek2"> (pari a <strong class="text-white">{{ getPesoWeek2 }}</strong>)</span>. Se è leggero, aumenta le reps e segnalalo nel campo peso e reps fatte.
-              </div>
-            </div>
-          </div>
 
           <!-- Istruzioni Esecuzione / Test sotto il Lavoro (LAVORO) -->
           <div 
@@ -558,38 +480,45 @@
             </div>
           </div>
 
-          <!-- Pulsante di recupero manuale -->
-          <div v-if="workout" class="d-flex align-center mb-2 mt-1 justify-start">
-            <v-chip
-              v-if="haRecupero(inputSettimane[sett].ins)"
-              color="orange-darken-3"
-              size="small"
-              class="font-weight-black text-white px-2 py-1"
-              variant="flat"
-              prepend-icon="mdi-sync"
-              @click="toggleRecuperoDettaglio(sett, false)"
-            >
-              Programmato per il recupero
-            </v-chip>
-            <v-chip
-              v-else
-              color="grey-darken-2"
-              size="small"
-              class="font-weight-bold text-slate px-2 py-1"
-              variant="outlined"
-              style="border-style: dashed !important; opacity: 0.85;"
-              prepend-icon="mdi-plus"
-              @click="toggleRecuperoDettaglio(sett, true)"
-            >
-              Recupera la prossima volta?
-            </v-chip>
-          </div>
-
-          <!-- Input di inserimento Carico (puramente testuale) -->
-          <div class="mt-3.5 mb-1">
+          <!-- Input di inserimento Carico (Ghost Lift Integrato con Icona Recupero) -->
+          <div class="mt-3.5 mb-1 position-relative">
+            <div v-if="getGhostLift(sett)" class="mb-1.5 px-1 animate-fade-in">
+              <div class="d-flex align-center justify-space-between">
+                <span v-if="!(getGhostLift(sett).isWeek1 && settimanaAttiva === 1)" class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                  <v-icon size="12" :color="getGhostLift(sett).isScarico ? 'amber-lighten-2' : 'grey'">
+                    {{ getGhostLift(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
+                  </v-icon>
+                  <span :class="{'text-amber-lighten-2': getGhostLift(sett).isScarico}">
+                    {{ getGhostLift(sett).isScarico ? 'Target Scarico (W2)' : 'Record ' + getGhostLift(sett).label }}:
+                  </span>
+                  <span class="font-weight-black ml-1" :class="getGhostLift(sett).isScarico ? 'text-white' : 'text-slate-light'" :style="getGhostLift(sett).isScarico ? 'font-size: 0.8rem; letter-spacing: 0;' : ''">
+                    {{ getGhostLift(sett).text }}
+                    <span v-if="getGhostLift(sett).isWeek1 && getGhostLift(sett).reps" class="text-muted ml-0.5" style="text-transform: lowercase; font-size: 0.6rem;">(x{{ getGhostLift(sett).reps }})</span>
+                  </span>
+                </span>
+                <span v-else></span> <!-- Spaziatore per allineare l'icona fire a destra -->
+                <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" size="14" class="animate-pulse">mdi-fire</v-icon>
+                <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" size="14">mdi-trending-down</v-icon>
+              </div>
+              
+              <div v-if="getGhostLift(sett).isScarico" class="text-super-caption font-weight-medium mt-1" style="color: #fbbf24; font-size: 0.55rem; line-height: 1.2; letter-spacing: 0.02em;">
+                💡 Se leggero, fai più reps del previsto e segnalalo nel box qui sotto.
+              </div>
+              
+              <div v-if="getGhostLift(sett).isWeek1" class="text-super-caption font-weight-medium mt-1" style="font-size: 0.58rem; line-height: 1.25; letter-spacing: 0.02em;">
+                <div class="d-flex align-center gap-1.5 mb-1" style="color: #f97316; font-size: 0.78rem;">
+                  <v-icon size="16" color="orange-darken-1">mdi-target</v-icon>
+                  <span>Target Consigliato: <strong class="text-white">{{ getGhostLift(sett).suggerito ? getGhostLift(sett).suggerito + ' KG' : 'Carico leggero' }}</strong></span>
+                </div>
+                <div v-if="getGhostLift(sett).proposta" class="text-muted" style="font-size: 0.55rem; margin-left: 22px;">
+                  W6 Prec. (S.{{ getGhostLift(sett).schedaPrec }}): <strong class="text-slate-light">{{ getGhostLift(sett).proposta.prevPeso }}kg x {{ getGhostLift(sett).proposta.prevReps }}</strong> ({{ getGhostLift(sett).proposta.fatica }}). Scalato su <strong>{{ getGhostLift(sett).proposta.currReps }} reps</strong>.
+                </div>
+              </div>
+            </div>
+            
             <v-textarea
               v-model="inputSettimane[sett].ins"
-              label="Carico inserito (es. 45kg o note)"
+              label="Carico o note (es. 45kg)"
               variant="outlined"
               density="compact"
               hide-details
@@ -597,10 +526,36 @@
               rows="1"
               auto-grow
               color="orange-darken-3"
-              class="custom-weight-input"
+              class="custom-weight-input transition-all"
+              :class="getGhostFieldClass(sett)"
               @blur="salvaDatoSettimanale(sett, 'ins')"
               :id="'input-peso-w' + sett"
-            ></v-textarea>
+            >
+              <template v-slot:append-inner>
+                <div 
+                  class="d-flex align-center gap-1 pr-1"
+                  style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
+                  @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
+                  @mouseover="$event.currentTarget.style.opacity = '1'"
+                  @mouseleave="$event.currentTarget.style.opacity = '0.85'"
+                >
+                  <span 
+                    class="font-weight-black uppercase"
+                    :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
+                    style="font-size: 0.55rem; letter-spacing: 0.05em; padding-top: 1px;"
+                  >
+                    {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'Recupera?' }}
+                  </span>
+                  <v-icon
+                    :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
+                    :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
+                    size="18"
+                  >
+                    {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
+                  </v-icon>
+                </div>
+              </template>
+            </v-textarea>
           </div>
 
           <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
@@ -2678,23 +2633,103 @@ const parsedPrescription = (str) => {
   return parsePrescription(str);
 };
 
+const getGhostLift = (sett) => {
+  if (!workout.value) return null;
+
+  // Se la settimana o l'esercizio è a percentuale, non proponiamo il carico ombra
+  const prescrizione = String(workout.value['des_week' + sett] || '');
+  const hasPercFlag = workout.value.flg_perc && String(workout.value.flg_perc).includes('V%');
+  if (prescrizione.includes('%') || hasPercFlag) {
+    return null;
+  }
+
+  // Per la Week 1, peschiamo l'ultimo log della W6 del mesociclo precedente
+  if (sett === 1) {
+    if (!previousWorkout.value) return null;
+    const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
+    if (!prevW6Text) return null;
+    const pesoStr = estraiPesoDaInput(String(prevW6Text));
+    const pesoNum = pesoStr ? parseFloat(pesoStr) : parseFloat(String(prevW6Text).replace(',', '.'));
+    if (isNaN(pesoNum)) return null;
+    
+    const p = propostaWeek1.value;
+    const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
+    const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
+
+    return { 
+      text: prevW6Text, 
+      peso: pesoNum, 
+      label: 'W6 Prec.',
+      isWeek1: true,
+      reps: repsPrecedenti,
+      suggerito: p ? p.peso : null,
+      giorni: giorniTrascorsi,
+      proposta: p,
+      schedaPrec: previousWorkout.value.num_scheda
+    };
+  }
+
+  // Gestione specifica per Week 4 (Scarico) - Propone W2 invece di W3
+  if (sett === 4 && isWeek4Scarico.value) {
+    const w2Ins = inputSettimane.value[2]?.ins;
+    if (!w2Ins) return null;
+    const pesoStrW2 = estraiPesoDaInput(w2Ins);
+    if (!pesoStrW2) return null;
+    return { text: w2Ins, peso: parseFloat(pesoStrW2), label: 'W2', isScarico: true };
+  }
+
+  // Per le Week 2, 3, 5, 6 peschiamo la settimana precedente
+  const prevIns = inputSettimane.value[sett - 1]?.ins;
+  if (!prevIns) return null;
+  const pesoStr = estraiPesoDaInput(prevIns);
+  if (!pesoStr) return null;
+  return { text: prevIns, peso: parseFloat(pesoStr), label: `W${sett - 1}` };
+};
+
+const getGhostStatus = (sett) => {
+  const currentInput = inputSettimane.value[sett]?.ins;
+  if (!currentInput || !String(currentInput).trim()) return 'empty';
+
+  const ghost = getGhostLift(sett);
+  if (!ghost) return 'filled'; // Inserito ma senza record o a % (sarà Arancione)
+
+  if (sett === 1) return 'up'; // Week 1 sempre verde come concordato
+
+  const currentPesoStr = estraiPesoDaInput(currentInput);
+  if (!currentPesoStr) return 'filled';
+
+  // LOGICA: se l'utente scrive "9 9 9" e il ghost è "8 8 8", 
+  // estraiPesoDaInput prende il 9, il ghost ha l'8. 9 > 8 -> Verde!
+  return parseFloat(currentPesoStr) >= ghost.peso ? 'up' : 'down';
+};
+
+const getGhostFieldClass = (sett) => {
+  const status = getGhostStatus(sett);
+  if (status === 'up') return 'ghost-glow-green';
+  if (status === 'down') return 'ghost-glow-blue';
+  if (status === 'filled') return 'ghost-glow-orange';
+  return ''; // Resta grigio spento solo se completamente vuoto
+};
+
 const estraiPesoDaInput = (str) => {
   if (!str) return null;
   
-  // Sostituiamo virgole con punti per uniformità nei decimali
   let clean = str.replace(/,/g, '.').trim();
+  const lowerClean = clean.toLowerCase();
   
-  // 1. Rimuoviamo il prefisso delle reps all'inizio se presente (es: "3x12RP++", "4x6", "3x8", "3 x 12")
+  // 1. Rimuoviamo il prefisso delle reps
   const repsPrefixRegex = /^\s*\d+\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g;
   clean = clean.replace(repsPrefixRegex, '').trim();
   
-  // 2. Troviamo tutti i numeri (anche decimali) nella stringa rimanente
-  // e controlliamo il loro contesto (prefissi/suffissi vietati)
-  const numberRegex = /(\+|-|rp|rpe|rpe:|rpe\s*:)?\s*(\d+(?:\.\d+)?)\s*([a-zA-Z\/%]+)?/gi;
+  // 2. Regex estesa per catturare anche il simbolo dei gradi ° e parole prima del numero
+  const numberRegex = /(?:([a-z\u00C0-\u017F]+|[\+\-]|rp|rpe|rpe:|rpe\s*:)\s+)?(\d+(?:\.\d+)?)\s*([a-z\u00C0-\u017F%°\/]+)?/gi;
   
   let match;
   const validWeights = [];
   
+  // Lista nera di parole che, se precedono o seguono un numero, indicano una "impostazione" e non un peso
+  const settingKeywords = ['panca', 'inclinazione', 'inclinata', 'buco', 'foro', 'tacca', 'tacchetta', 'posizione', 'pos', 'altezza', 'inc', 'gradi', 'grado', '°', 'seduto', 'seduta'];
+
   while ((match = numberRegex.exec(clean)) !== null) {
     const prefix = (match[1] || '').toLowerCase().trim();
     const valStr = match[2];
@@ -2702,25 +2737,26 @@ const estraiPesoDaInput = (str) => {
     const numVal = parseFloat(valStr);
     
     if (isNaN(numVal)) continue;
-    
-    // Filtri di esclusione:
-    // a) Prefissi vietati: "+", "-", "rp"
-    if (prefix.includes('+') || prefix.includes('-') || prefix.includes('rp')) {
+
+    // ECCEZIONE FONDAMENTALE: Se l'utente ha scritto esplicitamente "kg" dopo il numero, lo prendiamo sempre come peso
+    if (suffix.startsWith('k')) {
+      validWeights.push(numVal);
       continue;
     }
+
+    // CONTROLLO IMPOSTAZIONI (Eccezioni Panca 45°, Buco 3, ecc.)
+    // Se il prefisso o il suffisso sono nella lista nera, ignoriamo il numero
+    const isSetting = settingKeywords.some(word => prefix.includes(word) || suffix.includes(word));
+    if (isSetting) continue;
+
+    // Angoli comuni della panca che spesso vengono scritti senza simboli (es. "panca 30")
+    if (prefix === 'panca' && [15, 30, 45, 60, 90].includes(numVal)) continue;
+
+    // Filtri di esclusione standard
+    if (prefix.includes('+') || prefix.includes('-') || prefix.includes('rp')) continue;
     
-    // b) Suffissi vietati: "r" (reps), "rep", "reps", "gr" (grammi), "g" (tranne kg), "v" (volte), "misurino", "sec", "s", "%", "/"
-    // Il suffisso "kg" o "kg." non viene escluso (perché inizia con "k")
     if (suffix) {
-      if (
-        suffix.startsWith('/') ||
-        suffix === '%' ||
-        suffix.startsWith('r') || // r, rep, reps
-        (suffix.startsWith('g') && !suffix.startsWith('k')) || // g, gr, grammi (ma non kg!)
-        suffix.startsWith('v') || // v, volte
-        suffix.startsWith('m') || // misurino, min, minuti
-        suffix.startsWith('s')    // sec, s
-      ) {
+      if (suffix.startsWith('/') || suffix === '%' || suffix.startsWith('r') || (suffix.startsWith('g') && !suffix.startsWith('k')) || suffix.startsWith('v') || suffix.startsWith('m') || suffix.startsWith('s')) {
         continue;
       }
     }
@@ -2730,7 +2766,8 @@ const estraiPesoDaInput = (str) => {
   }
   
   if (validWeights.length > 0) {
-    // Restituiamo il valore massimo trovato come stringa
+    // Se l'utente scrive "8 8 8", validWeights sarà [8, 8, 8]. 
+    // Math.max restituisce 8. Perfetto.
     return String(Math.max(...validWeights));
   }
   
@@ -3715,24 +3752,32 @@ const tornaIndietro = () => {
   box-shadow: 0 8px 32px 0 rgba(249, 115, 22, 0.05) !important;
 }
 
-.border-superset {
-  border-left: 6px solid #ea580c !important;
+.horizontal-scroll-clean {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.horizontal-scroll-clean::-webkit-scrollbar {
+  display: none;
 }
 
-.superset-connected-list {
-  background: rgba(15, 23, 42, 0.4) !important;
+.superset-carosello-item {
+  background: rgba(30, 41, 59, 0.45) !important;
+  border: 1px solid rgba(249, 115, 22, 0.15) !important;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.connected-exercise-item {
-  transition: background-color 0.2s ease;
+.superset-carosello-item:active {
+  transform: scale(0.96);
+  background: rgba(30, 41, 59, 0.7) !important;
 }
 
-.connected-exercise-item:hover {
-  background-color: rgba(255, 255, 255, 0.04) !important;
+.border-left-orange {
+  border-left: 2px solid #ef6c00 !important;
 }
 
-.connected-thumb {
-  background: rgba(0, 0, 0, 0.2);
+.card-glass-dark {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
 }
 
 /* Matite e label trasparenti per input carico settimanale */
@@ -3755,6 +3800,45 @@ const tornaIndietro = () => {
 }
 .custom-weight-input :deep(.v-field__outline) {
   display: none !important;
+}
+
+/* Colori Caselle di Testo Dinamiche (Mai bianche/grigie se piene) */
+/* VERDE (Record Battuto o W1) */
+.ghost-glow-green :deep(.v-field) {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25) !important;
+}
+.ghost-glow-green :deep(.v-field--focused) { border-color: #10b981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important; }
+.ghost-glow-green :deep(input), .ghost-glow-green :deep(textarea) { color: #34d399 !important; font-weight: 800 !important; }
+.ghost-glow-green :deep(.v-label) { color: #34d399 !important; opacity: 0.9 !important; }
+
+/* BLU (Carico Calato) */
+.ghost-glow-blue :deep(.v-field) {
+  background: rgba(59, 130, 246, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.45) !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.25) !important;
+}
+.ghost-glow-blue :deep(.v-field--focused) { border-color: #3b82f6 !important; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important; }
+.ghost-glow-blue :deep(input), .ghost-glow-blue :deep(textarea) { color: #60a5fa !important; font-weight: 800 !important; }
+.ghost-glow-blue :deep(.v-label) { color: #60a5fa !important; opacity: 0.9 !important; }
+
+/* ARANCIONE (Testo generico senza Ghost o note) */
+.ghost-glow-orange :deep(.v-field) {
+  background: rgba(249, 115, 22, 0.1) !important;
+  border: 1px solid rgba(249, 115, 22, 0.45) !important;
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.25) !important;
+}
+.ghost-glow-orange :deep(.v-field--focused) { border-color: #f97316 !important; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4) !important; }
+.ghost-glow-orange :deep(input), .ghost-glow-orange :deep(textarea) { color: #fb923c !important; font-weight: 800 !important; }
+.ghost-glow-orange :deep(.v-label) { color: #fb923c !important; opacity: 0.9 !important; }
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Note e commenti textareas */

@@ -527,6 +527,8 @@ const gestisciCambioAtleta = async () => {
   }
 
   setSelectedAthlete(atletaSelezionato.value);
+  setSelectedSheet(''); // Azzera la scheda salvata dal precedente atleta
+  schedaSelezionata.value = null;
   await caricaSchedeAtleta();
   await caricaEmailRiferimento();
 };

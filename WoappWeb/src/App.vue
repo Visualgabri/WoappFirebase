@@ -45,7 +45,11 @@
     
     <!-- L'AREA CENTRALE: Qui appariranno le pagine del Router -->
     <v-main style="background-color: transparent; padding-bottom: 80px;">
-      <router-view></router-view>
+      <router-view v-slot="{ Component }">
+        <transition :name="globalTransition" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </v-main>
 
     <!-- LA BARRA INFERIORE DI NAVIGAZIONE (Mostrata solo se l'utente è autenticato) -->
@@ -147,11 +151,25 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta } from './authStore.js';
 
 const router = useRouter();
+const globalTransition = ref('fade');
+
+// Gestione intelligente delle transizioni globali in base alla direzione
+router.beforeEach((to, from) => {
+  if (from.name === 'Workouts' && (to.name === 'DettaglioSessione' || to.name === 'DettaglioWorkout')) {
+    globalTransition.value = 'fade'; // 1. Entra nel dettaglio (Morbido/Fade)
+  } else if (from.name === 'DettaglioSessione' && to.name === 'DettaglioWorkout') {
+    globalTransition.value = 'swipe-next'; // 2. Da Intestazione Giorno a Esercizio 1 (Avanza a sinistra)
+  } else if (from.name === 'DettaglioWorkout' && to.name === 'DettaglioSessione') {
+    globalTransition.value = 'swipe-prev'; // 3. Da Esercizio 1 torna a Intestazione Giorno (Indietro a destra)
+  } else {
+    globalTransition.value = 'fade'; // 4. Ritorno alla lista generale o altre pagine (Morbido/Fade)
+  }
+});
 
 const activeAthleteName = computed(() => {
   return getNomeAtleta(selectedAthlete.value) || 'Ospite';
@@ -310,5 +328,13 @@ const eseguiLogout = async () => {
 /* Rimuove il flash bianco durante il cambio componente */
 .v-main {
   background-color: #030712 !important;
+}
+
+/* Transizione morbida (Fade) per i cambi pagina standard (es. da Home a Grafici) */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

@@ -59,14 +59,15 @@
 
 
     <transition :name="transitionName" mode="out-in">
+    <div :key="routeIdLocal" class="swipe-transition-wrapper w-100">
     <!-- Stato di caricamento -->
-    <div v-if="caricamento" key="loading" class="text-center my-12">
+    <div v-if="caricamento" class="text-center my-12">
       <v-progress-circular indeterminate color="orange" size="48"></v-progress-circular>
       <p class="mt-2 text-caption text-muted">Caricamento dettagli esercizio...</p>
     </div>
 
     <!-- Errore o esercizio non trovato -->
-    <div v-else-if="!workout" key="error" class="text-center my-12 py-12 card-glass rounded-xl">
+    <div v-else-if="!workout" class="text-center my-12 py-12 card-glass rounded-xl">
       <v-icon size="64" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
       <h3 class="text-h6 font-weight-bold text-slate-dark">Esercizio non trovato</h3>
     </div>
@@ -921,6 +922,7 @@
         </div>
       </v-card>
 
+    </div>
     </div>
     </transition>
 
@@ -2263,7 +2265,7 @@ const applicaModificheLocali = (item) => {
   
   // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
   if (localTimestamp && item.timestamp) {
-    if (localTimestamp <= item.timestamp) {
+    if (localTimestamp < item.timestamp) {
       // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
       localStorage.removeItem(key1);
       localStorage.removeItem(key2);

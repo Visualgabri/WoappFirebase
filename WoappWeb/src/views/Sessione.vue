@@ -12,20 +12,21 @@
     </div>
 
     <transition :name="transitionName" mode="out-in">
+      <div :key="routeId" class="swipe-transition-wrapper w-100">
       <!-- Stato di caricamento -->
-      <div v-if="caricamento" key="loading" class="text-center my-12">
+      <div v-if="caricamento" class="text-center my-12">
         <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
         <p class="mt-2 text-caption text-muted">Caricamento sessione...</p>
       </div>
 
       <!-- Errore o non trovato -->
-      <div v-else-if="!workout" key="error" class="text-center my-12 py-12 card-glass rounded-xl">
+      <div v-else-if="!workout" class="text-center my-12 py-12 card-glass rounded-xl">
         <v-icon size="50" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
         <h3 class="text-caption font-weight-bold text-slate-dark">Sessione non trovata</h3>
       </div>
 
       <!-- Contenuto Principale -->
-      <div v-else key="content" class="session-detail-area">
+      <div v-else class="session-detail-area">
       <!-- Avviso Esercizi Mancanti (Buco nell'ordine numerico) -->
       <v-card
         v-if="eserciziMancantiSessione.length > 0"
@@ -407,6 +408,7 @@
         </v-row>
       </v-card>
 </div>
+</div>
     </transition>
 
     <!-- Snackbar -->
@@ -488,7 +490,7 @@ const applicaModificheLocali = (item) => {
   
   // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
   if (localTimestamp && item.timestamp) {
-    if (localTimestamp <= item.timestamp) {
+    if (localTimestamp < item.timestamp) {
       // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
       localStorage.removeItem(key1);
       localStorage.removeItem(key2);
@@ -501,7 +503,7 @@ const applicaModificheLocali = (item) => {
 
 // Helper per salvare una modifica offline nel localStorage
 const salvaModificaLocale = (campo, valore) => {
-  const key1 = `offline_storyboard_${routeId}`;
+  const key1 = `offline_storyboard_${routeId.value}`;
   let updates = {};
   const localData1 = localStorage.getItem(key1);
   if (localData1) {
@@ -648,7 +650,7 @@ const caricaDatiDaBackup = async () => {
   try {
     const res = await fetch('/storyboard_backup.json');
     const allData = await res.json();
-    const found = allData.find(item => String(item.id) === String(routeId) || String(item.num_riga) === String(routeId));
+    const found = allData.find(item => String(item.id) === String(routeId.value) || String(item.num_riga) === String(routeId.value));
     if (found) {
       workout.value = applicaModificheLocali(found);
       
@@ -1040,7 +1042,7 @@ const setWeekCompleted = async (w, val) => {
 
   // 2. Prova ad aggiornare Firestore in background (con setDoc self-healing)
   try {
-    const docRef = doc(db, 'STORYBOARD', routeId);
+    const docRef = doc(db, 'STORYBOARD', routeId.value);
     workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
     
     await setDoc(docRef, workout.value, { merge: true });
@@ -1064,7 +1066,7 @@ const salvaDato = async (campo, valore) => {
       snackbar.value = true;
 
       // 2. Prova ad aggiornare Firestore in background (con setDoc self-healing)
-      const docRef = doc(db, 'STORYBOARD', routeId);
+      const docRef = doc(db, 'STORYBOARD', routeId.value);
       workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
       await setDoc(docRef, workout.value, { merge: true });

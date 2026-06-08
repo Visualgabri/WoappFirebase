@@ -1284,7 +1284,7 @@ const applicaModificheLocali = (item) => {
   
   // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
   if (localTimestamp && item.timestamp) {
-    if (localTimestamp <= item.timestamp) {
+    if (localTimestamp < item.timestamp) {
       // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
       localStorage.removeItem(key1);
       localStorage.removeItem(key2);

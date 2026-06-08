@@ -2083,7 +2083,7 @@ const applicaModificheLocali = (item) => {
   
   // Applica solo se la modifica locale è più recente rispetto a quella su Firestore
   if (localTimestamp && item.timestamp) {
-    if (localTimestamp <= item.timestamp) {
+    if (localTimestamp < item.timestamp) {
       // Rimuovi modifiche locali obsolete per evitare inquinamento della cache
       localStorage.removeItem(key1);
       localStorage.removeItem(key2);
@@ -2371,6 +2371,7 @@ const impostaChiusuraGiorno = async (w, val) => {
   
   // Aggiorna localmente
   headerGiorno.value[campoCmp] = valString;
+  headerGiorno.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
   
   // Salva offline nel localStorage per consentire il funzionamento offline istantaneo
   const key1 = `offline_storyboard_${headerGiorno.value.id}`;
@@ -2447,6 +2448,7 @@ const segnaComeFattoRapido = async (ex) => {
 
   // Aggiorna lo stato locale immediatamente
   ex[campo] = nuovoValore;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
   
   // Salva offline nel localStorage
   const key1 = `offline_storyboard_${ex.id}`;

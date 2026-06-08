@@ -385,11 +385,11 @@
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center">
               <v-icon
-                :color="(route.query.targetWeek && sett === settimanaAttiva) ? 'red-lighten-2' : (isWeekCompleted(sett) ? 'green-darken-2' : 'grey-lighten-1')"
+                :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-lighten-2' : (isWeekCompleted(sett) ? 'green-darken-2' : 'grey-lighten-1')"
                 class="mr-2"
                 size="18"
               >
-                {{ (route.query.targetWeek && sett === settimanaAttiva) ? 'mdi-sync' : (isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline') }}
+                {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'mdi-sync' : (isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline') }}
               </v-icon>
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
@@ -401,14 +401,14 @@
                 </span>
               </span>
               <v-chip
-                v-if="sett === settimanaAttiva"
-                :color="route.query.targetWeek ? 'red-darken-2' : (isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3')"
+                v-if="sett === settimanaAttiva || haRecupero(inputSettimane[sett].ins)"
+                :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-darken-2' : (isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3')"
                 size="x-small"
                 class="ml-2 font-weight-black px-1.5 text-white"
                 style="height: 16px; font-size: 0.55rem;"
                 variant="flat"
               >
-                {{ route.query.targetWeek ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA') }}
+                {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA') }}
               </v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
             </div>
@@ -546,7 +546,7 @@
                     :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
                     style="font-size: 0.55rem; letter-spacing: 0.05em; padding-top: 1px;"
                   >
-                    {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'Recupera?' }}
+                    {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
                   </span>
                   <v-icon
                     :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"

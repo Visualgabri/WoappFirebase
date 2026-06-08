@@ -385,11 +385,11 @@
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center">
               <v-icon
-                :color="isWeekCompleted(sett) ? 'green-darken-2' : 'grey-lighten-1'"
+                :color="(route.query.targetWeek && sett === settimanaAttiva) ? 'red-lighten-2' : (isWeekCompleted(sett) ? 'green-darken-2' : 'grey-lighten-1')"
                 class="mr-2"
                 size="18"
               >
-                {{ isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline' }}
+                {{ (route.query.targetWeek && sett === settimanaAttiva) ? 'mdi-sync' : (isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline') }}
               </v-icon>
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
@@ -402,13 +402,13 @@
               </span>
               <v-chip
                 v-if="sett === settimanaAttiva"
-                :color="isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3'"
+                :color="route.query.targetWeek ? 'red-darken-2' : (isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3')"
                 size="x-small"
                 class="ml-2 font-weight-black px-1.5 text-white"
                 style="height: 16px; font-size: 0.55rem;"
                 variant="flat"
               >
-                {{ isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA' }}
+                {{ route.query.targetWeek ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA') }}
               </v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
             </div>
@@ -2319,6 +2319,12 @@ const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
 };
 
 const determinaSettimanaAttivaGiorno = () => {
+  // Se arriviamo da un link di recupero (targetWeek), forziamo la settimana attiva su quella
+  if (route.query.targetWeek) {
+    settimanaAttiva.value = parseInt(route.query.targetWeek);
+    return;
+  }
+  
   if (!riga0.value) return;
   for (let w = 1; w <= 6; w++) {
     const valCmp = riga0.value['cmp' + w];

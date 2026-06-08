@@ -2561,7 +2561,7 @@ const vaiAlDettaglio = (id, week = null) => {
   vibraTattile(10);
   const routeLocation = { name: 'DettaglioWorkout', params: { id } };
   if (week) {
-    routeLocation.query = { week };
+    routeLocation.query = { targetWeek: week };
   }
   router.push(routeLocation);
 };

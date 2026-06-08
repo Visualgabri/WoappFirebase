@@ -1,5 +1,5 @@
 <template>
-  <v-container class="px-3 py-4 max-width-container bg-slate-50 min-height-screen pb-12">
+  <v-container class="px-3 pt-1 pb-4 max-width-container bg-slate-50 min-height-screen pb-12">
     <!-- Header Sticky Wrapper -->
     <div class="sticky-detail-header">
       <!-- Barra Superiore con pulsante indietro stile AppSheet -->
@@ -945,23 +945,27 @@
     <!-- Dialog 1: Progressione Scheda Precedente (PRECEDENTE) -->
     <v-dialog v-model="dialogProgressioniPrecedente" max-width="650" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
-        <v-card-title class="pa-3 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+        <v-card-title class="px-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900" style="min-height: 40px;">
           <div class="d-flex align-center gap-2">
             <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
             <span class="font-weight-black text-white" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">Progressione Scheda Precedente</span>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogProgressioniPrecedente = false"></v-btn>
+          <!-- Pulsante X più piccolo -->
+          <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogProgressioniPrecedente = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
         
-        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
+        <!-- Tolto il padding top eccessivo (da pa-3 a pt-2) -->
+        <v-card-text class="px-3 pt-0 pb-3 scrollbar-custom" style="max-height: 85vh;">
           <div v-if="!previousWorkout" class="text-center py-6">
             <v-icon size="36" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
             <p class="text-caption text-muted">Nessun dato o scheda precedente trovata per questo esercizio.</p>
           </div>
-          <div v-else>
+          <div v-else class="pt-2">
             <!-- Info Esercizio Precedente -->
             <div class="mb-2.5 text-left" style="line-height: 1.1;">
-              <h4 class="font-weight-black text-white" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
+              <h4 class="font-weight-black text-white mt-0" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
               <div class="text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
                 Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}
               </div>
@@ -1124,53 +1128,98 @@
     <!-- Dialog 3: Riepilogo Storico Esercizi (Cronologia) -->
     <v-dialog v-model="dialogStorico" :max-width="stileStorico === 'tabella' ? 1200 : 650" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
-        <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
-          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
-            <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
-            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
-              Storico: {{ workout?.des_esercizio || 'Esercizio' }} <span class="text-orange-lighten-2">({{ targetRepsRange ? targetRepsRange + ' reps' : 'N.D.' }})</span>
-            </span>
+<v-card-title class="pa-0 border-bottom bg-slate-900">
+          <!-- Rigo 1: Titolo e Chiudi -->
+          <div class="px-3 py-2 d-flex align-center justify-space-between" style="min-height: 40px;">
+            <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+              <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
+              <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+                Storico: {{ workout?.des_esercizio || 'Esercizio' }}
+              </span>
+            </div>
+            <!-- Pulsante X più piccolo -->
+            <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogStorico = false">
+              <v-icon size="18">mdi-close</v-icon>
+            </v-btn>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogStorico = false"></v-btn>
-        </v-card-title>
-        
-        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
-          <!-- Selettore stile storico al volo -->
-          <div class="mb-3 d-flex align-center justify-space-between gap-2 flex-wrap">
-            <span class="text-super-caption text-muted font-weight-bold uppercase" style="font-size: 0.58rem; letter-spacing: 0.05em;">Stile visualizzazione:</span>
-            <div class="d-flex align-center gap-2">
-              <v-btn
-                :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
-                variant="flat"
-                size="x-small"
-                class="font-weight-black text-none"
-                style="height: 28px; font-size: 0.68rem;"
-                @click="toggleFiltroCorrispondenti"
-              >
-                <v-icon size="14" class="mr-1">
-                  {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
-                </v-icon>
-                Solo Stessi Reps ({{ targetRepsRange ? targetRepsRange : 'N.D.' }})
-              </v-btn>
-              
-              <v-btn-toggle
-                v-model="stileStorico"
-                mandatory
-                selected-class="bg-orange-darken-3 text-white"
-                density="compact"
-                rounded="lg"
-                class="card-glass border"
-                style="height: 28px;"
-              >
-                <v-btn value="timeline" class="font-weight-bold text-none px-2.5" style="min-width: 80px; height: 28px; font-size: 0.68rem;">
-                  <v-icon size="13" class="mr-1">mdi-format-list-bulleted</v-icon> Timeline
-                </v-btn>
-                <v-btn value="tabella" class="font-weight-bold text-none px-2.5" style="min-width: 80px; height: 28px; font-size: 0.68rem;">
-                  <v-icon size="13" class="mr-1">mdi-table</v-icon> Tabella
-                </v-btn>
-              </v-btn-toggle>
+          
+<!-- Rigo 2: Target Mesociclo Attuale (Fisso e compatto) -->
+          <div class="px-3 pb-2 d-flex align-center gap-1 overflow-x-auto scrollbar-hidden">
+            <span class="text-super-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.5rem; white-space: nowrap;">Reps:</span>
+            <div v-for="w in [1,2,3,4,5,6]" :key="w" 
+              class="px-1.5 py-0.5 rounded border d-flex flex-column align-center"
+              :style="{ 
+                backgroundColor: w === settimanaAttiva ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255,255,255,0.03)',
+                borderColor: w === settimanaAttiva ? '#f97316' : 'rgba(255,255,255,0.1)',
+                minWidth: '48px'
+              }"
+            >
+              <span style="font-size: 0.45rem; color: #94a3b8;" class="font-weight-bold">W{{w}}</span>
+              <span style="font-size: 0.6rem; color: #fb923c;" class="font-weight-black">
+                {{ parsedPrescription(workout?.['des_week' + w])?.reps || workout?.['des_week' + w] || '-' }}
+              </span>
             </div>
           </div>
+
+          <!-- Rigo 3: Suggerimento Peso (Colorato e Intuitivo) -->
+          <div v-if="suggerimentoRecord" class="px-3 py-1.5 bg-black d-flex align-center gap-2 border-top flex-wrap" style="border-color: rgba(249, 115, 22, 0.2) !important;">
+            <div class="d-flex align-center">
+              <v-icon color="orange-lighten-2" size="14" class="mr-1">mdi-target</v-icon>
+              <span class="text-super-caption font-weight-black text-orange-lighten-2" style="font-size: 0.65rem !important;">
+                <template v-if="suggerimentoRecord.isScarico">SCARICO:</template>
+                <template v-else>GOAL W{{settimanaAttiva}}:</template>
+              </span>
+              <span class="text-white font-weight-black ml-1" style="font-size: 0.72rem;">
+                <template v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg <span class="text-muted font-weight-medium" style="font-size:0.55rem;">(da W2)</span></template>
+                <template v-else>{{ suggerimentoRecord.target }} kg</template>
+              </span>
+            </div>
+            
+            <div v-if="suggerimentoRecord.record > 0" class="d-flex align-center pl-1 border-left-soft ml-1">
+              <v-icon color="amber-lighten-1" size="12" class="mr-1 pb-0.5">mdi-trophy</v-icon>
+              <span class="text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                Max Storico: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
+              </span>
+            </div>
+          </div>
+<!-- Rigo 4: Controlli Visualizzazione (Fissi a schermo) -->
+          <div class="px-3 py-2 bg-slate-900 d-flex align-center justify-space-between border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+            <v-btn
+              :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
+              variant="flat"
+              size="x-small"
+              class="font-weight-black text-none"
+              style="height: 28px; font-size: 0.68rem;"
+              @click="toggleFiltroCorrispondenti"
+            >
+              <v-icon size="14" class="mr-1">
+                {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
+              </v-icon>
+              Solo Stessi Reps ({{ targetRepsRange ? targetRepsRange : 'N.D.' }})
+            </v-btn>
+            
+            <v-btn-toggle
+              v-model="stileStorico"
+              mandatory
+              selected-class="bg-orange-darken-3 text-white"
+              density="compact"
+              rounded="lg"
+              class="card-glass border"
+              style="height: 28px;"
+            >
+              <!-- TABELLA PRIMO -->
+              <v-btn value="tabella" class="px-2" style="min-width: 45px; height: 28px;" title="Vista a Tabella">
+                <v-icon size="18">mdi-table</v-icon>
+              </v-btn>
+              <!-- TIMELINE SECONDO -->
+              <v-btn value="timeline" class="px-2" style="min-width: 45px; height: 28px;" title="Vista a Lista">
+                <v-icon size="18">mdi-view-sequential</v-icon>
+              </v-btn>
+            </v-btn-toggle>
+          </div>
+        </v-card-title>
+        
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-3 scrollbar-custom" style="max-height: 85vh;">
 
           <!-- Loader caricamento storico -->
           <div v-if="caricandoStorico" class="text-center py-8">
@@ -1183,34 +1232,19 @@
             <p class="text-caption text-muted">Nessuna scheda passata corrispondente trovata.</p>
           </div>
 
-          <!-- Banner Suggerimento Record (Mostrato se c'è storico caricato o scarico week 4) -->
-          <div v-if="!caricandoStorico && (storicoFiltrato.length > 0 || (settimanaAttiva === 4 && isWeek4Scarico)) && suggerimentoRecord" class="mb-4 pa-3 rounded-xl border-soft text-left" style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.2) !important;">
-            <div class="d-flex align-center gap-2 mb-1">
-              <v-icon color="orange" size="18">mdi-trophy-outline</v-icon>
-              <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem;">Obiettivo per questa settimana</span>
-            </div>
-            <p v-if="suggerimentoRecord.isScarico" class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.45; font-size: 0.72rem !important;">
-              Scarico: Metti il peso della Week 2<span v-if="suggerimentoRecord.pesoWeek2"> (pari a <strong class="text-orange-lighten-2">{{ suggerimentoRecord.pesoWeek2 }}</strong>)</span>. Se è leggero, aumenta le reps e segnalalo nel campo peso e reps fatte.
-            </p>
-            <p v-else class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.4; font-size: 0.7rem !important;">
-              Nelle schede precedenti, il carico più alto che hai usato in <strong class="text-white">Week {{ settimanaAttiva }}</strong> è stato <strong class="text-orange-lighten-2">{{ suggerimentoRecord.record }} kg</strong>.
-              Ti consiglio di puntare a <strong class="text-orange-lighten-2" style="font-size: 0.95rem; font-weight: 800;">{{ suggerimentoRecord.target }} kg</strong>
-              <span class="text-super-caption text-muted font-weight-bold ml-1">({{ suggerimentoRecord.label }})</span>.
-            </p>
-          </div>
           
           <!-- LAYOUT 1: TIMELINE (Mobile-first Cards) -->
           <div v-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'timeline'" class="d-flex flex-column gap-2.5">
             <div 
               v-for="prevEx in storicoFiltrato" 
               :key="prevEx.id" 
-              class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left" 
+              class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left position-relative" 
               style="cursor: pointer;" 
               @click="vaiADettaglioStorico(prevEx.id)"
             >
               <div 
-                class="d-flex align-center justify-space-between mb-1 px-1.5 py-0.5 rounded"
-                :class="{'red-scheda-header': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}"
+                class="d-flex align-center justify-space-between mb-1 px-1.5 py-1 rounded sticky-timeline-header"
+                :class="{'red-scheda-header': !soloCorrispondenti && haSettimanaCorrispondente(prevEx), 'bg-slate-900': soloCorrispondenti || !haSettimanaCorrispondente(prevEx)}"
               >
                 <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem !important;">
                   Scheda {{ prevEx.num_scheda }}
@@ -1241,20 +1275,21 @@
                     }"
                   >
                     <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
-                    <span 
-                      class="text-super-caption text-orange-lighten-2 font-weight-black d-block text-truncate px-0.5" 
-                      style="font-size: 0.68rem; line-height: 1.15;"
-                      :class="{'text-red font-weight-black': isMatchingReps(prevEx, w)}"
-                    >
-                      {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
-                    </span>
-                    <strong 
-                      class="text-caption font-weight-bold text-muted d-block mt-0.5" 
-                      style="font-size: 0.58rem; line-height: 1.1;"
-                      :class="{'text-red': isMatchingReps(prevEx, w)}"
-                    >
-                      {{ prevEx['ins_week' + w] || '-' }}
-                    </strong>
+<!-- Prescrizione Timeline -->
+<span 
+  class="text-super-caption text-white font-weight-medium d-block text-truncate px-0.5 opacity-70" 
+  style="font-size: 0.6rem; line-height: 1;"
+>
+  {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
+</span>
+<!-- Carico Timeline -->
+<strong 
+  class="font-weight-black d-block mt-1" 
+  style="font-size: 0.95rem; line-height: 1;"
+  :style="{ color: isMatchingReps(prevEx, w) ? '#f87171' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }"
+>
+  {{ prevEx['ins_week' + w] || '-' }}
+</strong>
                     <!-- Fatica se W6 -->
                     <span 
                       v-if="w === 6 && prevEx.num_faticaw6"
@@ -1271,17 +1306,16 @@
           </div>
 
           <!-- LAYOUT 2: TABELLA MATRICE (AppSheet Grid) -->
-          <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0" class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto">
-            <table class="premium-storico-table" style="width: 1740px; table-layout: fixed; border-collapse: collapse;">
-              <thead>
-                <tr>
-                  <th class="sticky-col header-cell text-left" style="width: 75px;">Scheda</th>
-                  <th class="header-cell" style="width: 110px;">W1</th>
-                  <th class="header-cell" style="width: 110px;">W2</th>
-                  <th class="header-cell" style="width: 110px;">W3</th>
-                  <th class="header-cell" style="width: 110px;">W4</th>
-                  <th class="header-cell" style="width: 110px;">W5</th>
-                  <th class="header-cell" style="width: 110px;">W6</th>
+<div v-else-if="!caricandoStorico && storicoFiltrato.length > 0" ref="storicoTableContainer" class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto scrollbar-hidden">
+  <table class="premium-storico-table" style="width: 1740px; table-layout: fixed; border-collapse: collapse;">
+    <thead>
+      <tr>
+<th class="sticky-col header-cell text-left" style="width: 75px;">
+  Scheda
+</th>
+        <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" :id="'col-storico-w' + w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}">
+          <div class="text-white">W{{ w }}</div>
+        </th>
                   <th class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
                   <th class="header-cell" style="width: 75px;">Peso Corp.</th>
                   <th class="header-cell" style="width: 110px;">Giorno</th>
@@ -1314,33 +1348,29 @@
                   
                   <!-- Settimane W1 - W6 -->
                   <td 
-                    v-for="w in [1, 2, 3, 4, 5, 6]" 
-                    :key="w" 
-                    class="body-cell font-weight-bold text-center"
-                    :class="{'red-cell': isMatchingReps(prevEx, w)}"
-                    style="word-wrap: break-word;"
-                  >
-                    <!-- Lavoro (des_week) in arancione con dimensione aumentata, mostrato prima -->
-                    <div 
-                      v-if="prevEx['des_week' + w]" 
-                      class="text-super-caption text-orange-lighten-2 font-weight-black" 
-                      style="font-size: 0.72rem; line-height: 1.15; word-wrap: break-word;"
-                      :class="{'text-red font-weight-black': isMatchingReps(prevEx, w)}"
-                    >
-                      {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
-                    </div>
-                    <div v-else class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.72rem; line-height: 1.15;">
-                      N.D.
-                    </div>
-                    
-                    <!-- Testo utente (ins_week) in grigio, mostrato sotto -->
-                    <div 
-                      class="text-caption font-weight-bold text-muted mt-0.5" 
-                      style="font-size: 0.58rem; line-height: 1.1; word-wrap: break-word;"
-                      :class="{'text-red': isMatchingReps(prevEx, w)}"
-                    >
-                      {{ prevEx['ins_week' + w] || '-' }}
-                    </div>
+  v-for="w in [1, 2, 3, 4, 5, 6]" 
+  :key="w" 
+  class="body-cell font-weight-bold text-center"
+  :class="{'red-cell': isMatchingReps(prevEx, w)}"
+  style="word-wrap: break-word;"
+>
+  <!-- Prescrizione: più discreta (Bianco/Slate) -->
+  <div 
+    v-if="prevEx['des_week' + w]" 
+    class="text-super-caption text-white font-weight-medium" 
+    style="font-size: 0.65rem; line-height: 1; opacity: 0.8;"
+  >
+    {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
+  </div>
+  
+  <!-- Carico Loggato: Più grande e Colorato (Arancio/Verde) -->
+  <div 
+    class="font-weight-black mt-1" 
+    style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;"
+    :style="{ color: isMatchingReps(prevEx, w) ? '#ef4444' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }"
+  >
+    {{ prevEx['ins_week' + w] || '-' }}
+  </div>
 
                     <!-- Fatica se W6 -->
                     <div 
@@ -1354,11 +1384,11 @@
                   </td>
                   
                   <!-- Miglior W6 -->
-                  <td 
-                    class="body-cell font-weight-black text-center" 
-                    style="font-size: 0.72rem; word-wrap: break-word;"
-                    :style="prevEx.num_faticaw6 ? getColoreFaticaStyle(prevEx.num_faticaw6) : { color: '#ffca28' }"
-                  >
+<td 
+  class="body-cell font-weight-black text-center" 
+  style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);"
+  :style="prevEx.num_faticaw6 ? getColoreFaticaStyle(prevEx.num_faticaw6) : { color: '#ffca28' }"
+>
                     {{ prevEx.num_ins6 ? prevEx.num_ins6 + ' kg' : '-' }}
                   </td>
                   
@@ -1518,6 +1548,8 @@ const dialogStorico = ref(false);
 const dialogGifFullScreen = ref(false);
 const eliminandoEsercizio = ref(false);
 const caricandoStorico = ref(false);
+const storicoTableContainer = ref(null);
+const storicoScrollContainer = ref(null); // Ref per lo scroll verticale
 const storicoEsercizio = ref([]);
 const snackbarMessaggio = ref('');
 
@@ -3239,27 +3271,14 @@ const eliminaEsercizio = async () => {
 // Trova il carico massimo registrato nella settimana attiva tra tutte le schede precedenti
 const suggerimentoRecord = computed(() => {
   const w = settimanaAttiva.value;
-  
-  if (w === 4 && isWeek4Scarico.value) {
-    const pesoW2 = workout.value?.ins_week2 || '';
-    return {
-      isScarico: true,
-      pesoWeek2: pesoW2,
-      record: 0,
-      target: 0,
-      label: ''
-    };
-  }
-
   let maxWeight = 0;
   
+  // Calcoliamo SEMPRE il record storico per la settimana attuale
   storicoEsercizio.value.forEach(prevEx => {
-    // Escludi la scheda attuale
     const sNum = parseInt(prevEx.num_scheda);
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     if (sNum === currentNumScheda) return;
 
-    // Considera solo schede in cui le reps della settimana corrispondono a quelle attuali
     if (!isMatchingReps(prevEx, w)) return;
 
     const val = prevEx['ins_week' + w];
@@ -3270,29 +3289,32 @@ const suggerimentoRecord = computed(() => {
       }
     }
   });
-  
-  if (maxWeight === 0) return null;
-  
-  // Calcola il target in base alla settimana:
-  // Week 1-3: conservativo, aggiungi poco (+0.5 kg) - siamo a inizio mesociclo
-  // Week 4: intermedio (+1.0 kg)
-  // Week 5-6: aggressivo (+2.0 kg) - siamo a fine mesociclo, puoi osare
+
+  // Logica incrementi
   let increment, label;
   if (w <= 3) {
     increment = 0.5;
-    label = '+0.5 kg, inizio mesociclo: approccio conservativo';
+    label = '+0.5 kg (Inizio)';
   } else if (w === 4) {
     increment = 1.0;
-    label = '+1.0 kg, metà mesociclo: approccio moderato';
+    label = '+1.0 kg (Metà)';
   } else {
     increment = 2.0;
-    label = '+2.0 kg, fine mesociclo: osa di più!';
+    label = '+2.0 kg (Spingi!)';
   }
-  
+
+  const isScarico = (w === 4 && isWeek4Scarico.value);
+  const pesoW2 = workout.value?.ins_week2 || '';
+
+  // Se non ho record e non è scarico, non mostro nulla
+  if (maxWeight === 0 && !isScarico) return null;
+
   return {
     record: maxWeight,
     target: maxWeight + increment,
-    label
+    label,
+    isScarico,
+    pesoWeek2: pesoW2
   };
 });
 
@@ -3360,9 +3382,36 @@ const apriStoricoEsercizio = async () => {
       });
       matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
       storicoEsercizio.value = matched;
-    } else {
+} else {
       storicoEsercizio.value = list;
     }
+
+// Auto-scroll alla settimana attiva e in fondo alla lista
+    setTimeout(() => {
+      
+      // 1. Scroll della Tabella (Modalità Tabella)
+      if (storicoTableContainer.value) {
+        const colWidth = 110; 
+        const scrollPosHoriz = (settimanaAttiva.value - 1) * colWidth + 17; // Ripristinato l'offset
+        
+        storicoTableContainer.value.scrollTo({
+          left: scrollPosHoriz,
+          top: storicoTableContainer.value.scrollHeight + 1000, // Ora scrolla in fondo ALL'INTERNO della tabella
+          behavior: 'smooth'
+        });
+      }
+
+      // 2. Scroll generale del Dialog (necessario per Modalità Timeline)
+      if (storicoScrollContainer.value) {
+        const scrollEl = storicoScrollContainer.value.$el || storicoScrollContainer.value;
+        scrollEl.scrollTo({
+          top: scrollEl.scrollHeight + 1000,
+          behavior: 'smooth'
+        });
+      }
+      
+    }, 450);
+
   } catch (err) {
     console.error("Errore caricamento storico esercizio:", err);
   } finally {
@@ -3641,6 +3690,14 @@ const tornaIndietro = () => {
 .max-width-container {
   max-width: 600px;
   margin: 0 auto;
+.sticky-timeline-header {
+  position: sticky;
+  top: -12px; /* Compensa esattamente il padding del dialog per incollarsi in alto */
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); /* Ombra per staccare dal contenuto che scorre sotto */
+  backdrop-filter: blur(10px);
+}
+
 }
 
 .min-height-screen {
@@ -3652,9 +3709,9 @@ const tornaIndietro = () => {
   top: 48px !important; /* sticks below the 48px height compact global app bar */
   z-index: 100 !important;
   background: #030712 !important; /* solid background matching body */
-  padding-top: 16px !important;
+  padding-top: 6px !important;
   padding-bottom: 8px !important;
-  margin-top: -16px !important;
+  margin-top: -8px !important;
 }
 
 .appsheet-top-bar {
@@ -3920,9 +3977,12 @@ const tornaIndietro = () => {
 
 .table-responsive-wrapper {
   max-width: 100%;
+  max-height: 50vh; /* Forza lo scroll verticale interno alla tabella */
   overflow-x: auto;
+  overflow-y: auto; /* Abilita lo scroll verticale qui dentro */
   -webkit-overflow-scrolling: touch;
   background: rgba(15, 23, 42, 0.4);
+  position: relative;
 }
 
 .premium-storico-table {
@@ -3934,8 +3994,8 @@ const tornaIndietro = () => {
   position: sticky;
   top: 0;
   background: rgba(30, 41, 59, 0.98);
-  color: #94a3b8;
-  font-size: 0.58rem;
+  color: #fb923c;/* Arancione per le intestazioni week */
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -3964,12 +4024,11 @@ const tornaIndietro = () => {
   background-color: rgba(255, 255, 255, 0.02);
 }
 
-/* Sticky First Column */
 .sticky-col {
   position: sticky;
   left: 0;
   background: rgba(15, 23, 42, 0.98);
-  z-index: 2;
+  z-index: 5;
   border-right: 1.5px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -3978,7 +4037,7 @@ th.sticky-col {
   left: 0;
   top: 0;
   background: rgba(30, 41, 59, 1);
-  z-index: 4;
+  z-index: 12; /* Massimo z-index per l'angolo in alto a sinistra (Scheda) */
 }
 
 /* Red highlights for matching reps range */
@@ -4061,4 +4120,39 @@ th.sticky-col {
 /* swipe-prev: il nuovo entra da sinistra (-100%), il vecchio esce a destra (100%) */
 .swipe-prev-enter-from { transform: translateX(-100%); opacity: 0; }
 .swipe-prev-leave-to { transform: translateX(100%); opacity: 0; }
+
+.header-cell {
+  position: sticky;
+  top: 0;
+  background: rgba(30, 41, 59, 0.98);
+  color: #fb923c;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 8px;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+  z-index: 10; /* Aumentato per stare sopra alle righe scorrevoli */
+  white-space: normal !important;
+  word-break: break-word !important;
+  height: 28px !important; 
+  line-height: 1 !important;
+  vertical-align: middle;
+  padding: 4px 8px !important;
+}
+
+.bg-orange-darken-4 {
+  background: #431407 !important; /* Colore evidenziatore per la colonna attiva */
+  border-bottom: 2px solid #f97316 !important;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
 </style>

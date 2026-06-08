@@ -295,9 +295,10 @@
                             <v-card
                               v-for="(recItem, idx) in gruppo.esercizi"
                               :key="idx"
-                              class="pa-3 rounded-xl d-flex align-center"
+                              class="pa-3 rounded-xl d-flex align-center cursor-pointer"
                               flat
-                              style="border: 1px solid rgba(255, 255, 255, 0.06) !important; background: rgba(15, 23, 42, 0.6) !important;"
+                              style="border: 1px solid rgba(255, 255, 255, 0.06) !important; background: rgba(15, 23, 42, 0.6) !important; transition: background 0.2s;"
+                              @click="vaiAlRecupero(recItem)"
                             >
                               <!-- Numero ordine + Thumbnail -->
                               <div class="d-flex flex-column align-center mr-3 flex-shrink-0" style="gap: 3px;">
@@ -362,6 +363,7 @@
                                     color="orange-darken-3"
                                     style="height: 26px;"
                                     class="recovery-compact-input flex-grow-1"
+                                    @click.stop
                                   ></v-text-field>
                                   <v-btn
                                     color="green-darken-3"
@@ -432,16 +434,16 @@
                   <v-expand-transition>
                     <div v-show="ordineEsecuzioneAperto" class="mt-3">
                       <div class="d-flex flex-column gap-1">
-                        <div
-                          v-for="(item, idx) in ordineEsecuzioneCompleto"
-                          :key="'ord-' + idx"
-                          class="d-flex align-center py-1.5 px-2 rounded-lg cursor-pointer"
-                          :style="{
-                            background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                            border: item.tipo === 'recupero' ? '1px solid rgba(249, 115, 22, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)',
-                          }"
-                          @click="item.id ? vaiAlDettaglio(item.id) : null"
-                        >
+<div
+                            v-for="(item, idx) in ordineEsecuzioneCompleto"
+                            :key="'ord-' + idx"
+                            class="d-flex align-center py-1.5 px-2 rounded-lg cursor-pointer"
+                            :style="{
+                              background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                              border: item.tipo === 'recupero' ? '1px solid rgba(249, 115, 22, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)',
+                            }"
+                            @click="item.id ? (item.tipo === 'recupero' ? vaiAlDettaglio(item.id, item.weekRecupero) : vaiAlDettaglio(item.id)) : null"
+                          >
                           <!-- Numero ordine -->
                           <div
                             class="d-flex align-center justify-center rounded font-weight-black flex-shrink-0 mr-2.5"
@@ -2555,9 +2557,20 @@ watch([selectedAthlete, selectedSheet], () => {
 });
 
 // Naviga al dettaglio dell'esercizio
-const vaiAlDettaglio = (id) => {
+const vaiAlDettaglio = (id, week = null) => {
   vibraTattile(10);
-  router.push({ name: 'DettaglioWorkout', params: { id } });
+  const routeLocation = { name: 'DettaglioWorkout', params: { id } };
+  if (week) {
+    routeLocation.query = { week };
+  }
+  router.push(routeLocation);
+};
+
+// Naviga all'esercizio da recuperare passando la settimana specifica
+const vaiAlRecupero = (recItem) => {
+  if (recItem && recItem.exercise && recItem.exercise.id) {
+    vaiAlDettaglio(recItem.exercise.id, recItem.week);
+  }
 };
 
 const vaiAlDettaglioSessione = (id) => {

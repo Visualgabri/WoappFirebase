@@ -295,7 +295,7 @@ const eseguiLogout = async () => {
 
 /* Swipe verso il PROSSIMO (Entra da destra, esce a sinistra) */
 .swipe-next-enter-active, .swipe-next-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .swipe-next-enter-from {
   opacity: 0;
@@ -308,7 +308,7 @@ const eseguiLogout = async () => {
 
 /* Swipe verso il PRECEDENTE (Entra da sinistra, esce a destra) */
 .swipe-prev-enter-active, .swipe-prev-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .swipe-prev-enter-from {
   opacity: 0;
@@ -332,7 +332,7 @@ const eseguiLogout = async () => {
 
 /* Transizione morbida (Fade) per i cambi pagina standard (es. da Home a Grafici) */
 .fade-enter-active, .fade-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.20s ease;
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;

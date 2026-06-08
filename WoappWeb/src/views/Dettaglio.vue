@@ -2470,7 +2470,11 @@ const caricaDatiEsercizio = async () => {
       workout.value = applicaModificheLocali({ ...cachedEx });
       const keyIdCliente = Object.keys(cachedEx).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = cachedEx[keyIdCliente] || '';
-      settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      if (route.query.targetWeek) {
+        settimanaAttiva.value = parseInt(route.query.targetWeek);
+      } else {
+        settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      }
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
 
@@ -2501,7 +2505,11 @@ const caricaDatiEsercizio = async () => {
       // Recupera la settimana attiva impostata nella Home per l'atleta specifico
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || '\uFEFF"ID_cliente"';
       const atletaId = dati[keyIdCliente] || '';
-      settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      if (route.query.targetWeek) {
+        settimanaAttiva.value = parseInt(route.query.targetWeek);
+      } else {
+        settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      }
 
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
@@ -2570,7 +2578,11 @@ const caricaEsercizioDaBackup = async () => {
       workout.value = applicaModificheLocali(found);
       const keyIdCliente = Object.keys(found).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = found[keyIdCliente] || '';
-      settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      if (route.query.targetWeek) {
+        settimanaAttiva.value = parseInt(route.query.targetWeek);
+      } else {
+        settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      }
 
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
@@ -4112,7 +4124,7 @@ th.sticky-col {
 /* Animazioni Swipe */
 .swipe-next-enter-active, .swipe-next-leave-active,
 .swipe-prev-enter-active, .swipe-prev-leave-active {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* swipe-next: il nuovo entra da destra (100%), il vecchio esce a sinistra (-100%) */

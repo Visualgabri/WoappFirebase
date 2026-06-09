@@ -1,0 +1,200 @@
+[33mcommit 79e25f5272132a3ce4577c3ba43244acae49b3df[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Mon Jun 8 22:57:58 2026 +0200
+
+    UI: descrizione delle ultime istruzioni
+
+[33mcommit 3ba865c68ad3dae592347f59067e7f975f4fd9c0[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Mon Jun 8 11:00:23 2026 +0200
+
+    UI: ottimizzazione storico, compattazione header e fix spazi dialog
+
+[33mcommit 10c08152270a7bbc9f40ed6635e3c6d465016ad5[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Mon Jun 8 00:53:25 2026 +0200
+
+    Fix caricamento e swipe sessione
+
+[33mcommit 3e00254b9c48e6e963b2fb269232a3dc3d2cdb20[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sun Jun 7 20:30:23 2026 +0200
+
+    feat: aggiornato ghost lift con logica colore 3-stati e sidebar superset
+
+[33mcommit 90bd6782df4f3ed01a88c2367c8b706d13013171[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sun Jun 7 13:48:14 2026 +0200
+
+    feat: aggiornata logica flg_ex_mai_fatto, ui storico dettagli, banner schede passate e indicatore week attiva sui giorni
+
+[33mcommit e393dedd1bde2804d897e84e93519496acfc84ec[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sun Jun 7 13:40:48 2026 +0200
+
+    feat: emoji esercizi mai fatti, icone progressione forza dinamiche e analisi tempo trascorso
+
+[33mcommit 9524293b5b77cac7cff8a25f91d8121e39ab4399[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 19:48:41 2026 +0200
+
+    feat(workouts): compute active week dynamically per day and improve close button behavior
+
+[33mcommit a73bd5ac1618564f2564e2b3c4b7d6353a990ef2[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 08:30:48 2026 +0200
+
+    Add firebase admin SDK credentials to gitignore
+
+[33mcommit 6d700ee68aab3992fa7578fe86e9962927f718a3[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 08:21:53 2026 +0200
+
+    Aggiungi controllo e notifica per buchi nell'ordine numerico degli esercizi
+
+[33mcommit 96968b5d83741b7cb7d5863f9cb2620d44a468c1[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 08:14:56 2026 +0200
+
+    Aggiorna storyboard, backup e inspect_row.js
+
+[33mcommit 3a9d757b58f04b872890cc875049846721d25500[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 01:13:17 2026 +0200
+
+    style(workouts): remove loop emoji from Esercizi da recuperare header
+
+[33mcommit e2d4c79c6eaa91acfac4e3434e517219375db799[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 01:10:58 2026 +0200
+
+    style(workouts): shrink Esercizi da recuperare section header text and icon
+
+[33mcommit f6591449c2dce42df1d50a61cb2f9fd595c00b87[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 01:09:54 2026 +0200
+
+    style(workouts): restore original recovery card paddings and center input text and placeholders
+
+[33mcommit 0fd6de1979883f2e00090a3031f98df676aa8fdf[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 01:06:34 2026 +0200
+
+    style(workouts): compress exercises to recover card layout and decrease placeholder font size to 0.62rem
+
+[33mcommit 50eb0701de10b7cac69605569b863cb15741a8a8[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 01:03:15 2026 +0200
+
+    style(workouts): shrink OK button and Esercizi da recuperare header text size
+
+[33mcommit ac0e0fc424f1402415b56c8c7fd9ed95d5714e7b[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 00:57:42 2026 +0200
+
+    feat(workouts): add mini progress bar under day selection tabs and hide default slider
+
+[33mcommit e2d2de0ba7f5aae38789aa17f8374e6c7cd798b3[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 00:51:51 2026 +0200
+
+    feat(dashboard): relocate muscle heatmap to Home.vue with scope and mode toggles, cleanup Workouts.vue headers
+
+[33mcommit ca244e353009324c108c6cf927a20b226ed701b7[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 00:42:49 2026 +0200
+
+    Implement Muscle Heatmap in day header and enhance styling of editable inputs for better visibility
+
+[33mcommit 44b53390276869074154f74e76a14e9d5b0e081b[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 00:33:51 2026 +0200
+
+    feat(workouts): add Session Energy Progress Bar and shrink Completa Giorno button
+
+[33mcommit 43e831f0e51088c315dc22e8b6b2a40af976f757[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 00:27:03 2026 +0200
+
+    fix(workouts): correctly relocate execution order card and fix recovery logic on Day A
+
+[33mcommit 3304123dae85a6f85b5a573f7075efba0c6b306f[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Sat Jun 6 00:19:14 2026 +0200
+
+    feat(workouts): merge day header card with exercise list & style adjustments
+
+[33mcommit 97c4638ead7f44d99c26c849a964af17f52810b5[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 20:18:43 2026 +0200
+
+    fix(dettaglio): filter record suggestion by matching reps range, increase main cards font size to 1.1rem
+
+[33mcommit 439269e21ac475fd1d787ea648a0543664ba4ed5[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 20:15:29 2026 +0200
+
+    fix(dettaglio): refine load parser to ignore rest-pause, reps, and doses; increase detail page prescription font size to 1.0rem
+
+[33mcommit 8d34b6c8144294264bbe666abf9cf6054593995c[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 20:12:19 2026 +0200
+
+    style(dettaglio): adjust prescription font size in main detail cards to 0.88rem
+
+[33mcommit e02db4478c7596eacc3ed62833d64838655b9b0a[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 20:11:10 2026 +0200
+
+    fix(dettaglio): restore main page prescription size, apply fatigue colors to miglior w6, clear sugg record logic and compile production build
+
+[33mcommit 257321a468f0733991d25580b904e32eab74574d[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 19:56:16 2026 +0200
+
+    Corretto bug rendering layout storico, refrasato suggerimento in prima persona e riposizionati campi aggiuntivi sotto la Week 6
+
+[33mcommit add98d46c217efb86ca1fa5eeba75700d33647be[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 19:51:27 2026 +0200
+
+    Miglioramenti storico Dettaglio: suggerimento record dinamico, colore fatica W6, navigazione su riga/card, inclusione scheda attuale e colonne note
+
+[33mcommit b7795c1c94f697d329edee0705b3dcd8bac58b42[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 19:33:05 2026 +0200
+
+    Miglioramenti vista Dettaglio: GIF a tutto schermo, ordinamento decrescente week precedente, formattazione storico coerente e visibilità prescrizioni
+
+[33mcommit 19e5b4779e210a25c290696f10b135740c74cb9b[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 12:11:37 2026 +0200
+
+    style(dettaglio): compattato layout settimana e spostato reps nell'header per guadagnare spazio su smartphone
+
+[33mcommit ecc56f5435eeae20ceb6bcd86c3104e764de146a[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 11:55:17 2026 +0200
+
+    feat: visualizzazione storico con colonne allargate, tempo trascorso rispetto alla scheda attuale, oscuramento e sfocatura dello sfondo sotto i dialog e riepilogo atleta nella barra
+
+[33mcommit 933b63b8167859ba06bf5d804845419b22fa51e8[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Fri Jun 5 07:34:58 2026 +0200
+
+    Aggiunta ordine esecuzione proposto (con recuperi) e migliorato dettaglio superset
+
+[33mcommit b9f985a8faf840c9ea8700907e132de9423b65b1[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Thu Jun 4 23:14:33 2026 +0200
+
+    UI: replace volume icons with premium glassmorphic emoji pills (V, A, B, C)
+
+[33mcommit e6dbffda62f7154c6f612568a381fa6a8b108305[m
+Author: Gabriele Belmonte <visualgabri@gmail.com>
+Date:   Thu Jun 4 23:12:19 2026 +0200
+
+    UI: parse and replace V A B C with premium icons for volume distribution
+
+[33mcommit 2c7cc06d124d42f219e21e2e04620f4cfd6a1fa3[m
+Author: Gabriele Belmonte <visualg

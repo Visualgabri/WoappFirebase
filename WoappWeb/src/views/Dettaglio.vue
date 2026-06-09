@@ -3475,6 +3475,9 @@ const haRecupero = (val) => {
   const keywords = [
     'da finire',
     'da fare',
+    'manca una serie',
+    'mancano serie',
+    'serie mancante',
     'manca',
     'mancano',
     'saltato',

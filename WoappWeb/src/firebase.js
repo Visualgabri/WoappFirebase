@@ -1,6 +1,6 @@
 // src/firebase.js
 import { initializeApp, getApps } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore } from "firebase/firestore";
 
 // Configurazione reale di Firebase per WoappWeb
 const firebaseConfig = {
@@ -16,8 +16,20 @@ const firebaseConfig = {
 // Inizializza l'app prevenendo l'errore di duplicazione durante l'HMR di Vite
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Inizializza il database e lo "esporta" per usarlo nel resto dell'app
-export const db = getFirestore(app);
+// Inizializza il database con persistenza offline locale reattiva (IndexedDB)
+let firestoreDb;
+try {
+  firestoreDb = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
+  });
+} catch (e) {
+  console.warn("Firestore già inizializzato, uso getFirestore fallback:", e);
+  firestoreDb = getFirestore(app);
+}
+
+export const db = firestoreDb;
 
 // Inizializza ed esporta Firebase Auth
 import { getAuth } from "firebase/auth";

@@ -9,7 +9,11 @@ export default defineConfig({
     vuetify({ autoImport: true }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['logo.png', 'favicon.svg', 'icons.svg'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,eot}'],
+        globIgnores: ['**/storyboard_backup.json']
+      },
       manifest: {
         name: 'Woapp - La Tua Scheda Palestra',
         short_name: 'Woapp',

@@ -2776,99 +2776,165 @@ const getGhostLift = (sett) => {
 
   const prescrizione = String(workout.value['des_week' + sett] || '');
 
-  // 1. Rileva vincoli espliciti di carico (es. [K W1], [KG W1] o [Kg W1) in modo non case-sensitive.
-  // Forza la visualizzazione dell'istruzione di vincolo anche se la settimana target è ancora vuota (?)
-  const matchKgW = prescrizione.match(/\[\s*KG?\s*W\s*(\d+)\s*\]?/i);
-  if (matchKgW) {
-    const targetW = parseInt(matchKgW[1], 10);
-    const targetIns = inputSettimane.value[targetW]?.ins || '';
-    const pesoStr = estraiPesoDaInput(targetIns);
-    return {
-      text: pesoStr ? targetIns : '?', // Se la settimana di riferimento è vuota, mostra un punto di domanda
-      peso: pesoStr ? parseFloat(pesoStr) : 0,
-      label: `W${targetW}`,
-      isMandatory: true,
-      mandatoryLabel: `USA LO STESSO CARICO DI W${targetW}`
-    };
-  }
-
-  // Se la settimana o l'esercizio è a percentuale, non proponiamo il carico ombra
+  // Se la settimana o l'esercizio è a percentuale, non proponiamo il carico ombra (Caso 1)
   const hasPercFlag = workout.value.flg_perc && String(workout.value.flg_perc).includes('V%');
   if (prescrizione.includes('%') || hasPercFlag) {
     return null;
   }
 
-  // 2. Scansione all'indietro per trovare l'ultima settimana con un input registrato (per coprire tutte le week vuote)
-  let lastLoggedWeek = null;
-  let prevIns = null;
-  let prevPeso = null;
+  // Rileva se ci sono parentesi quadre in una qualsiasi delle settimane
+  let haParentesiQuadre = false;
+  for (let w = 1; w <= 6; w++) {
+    const presc = String(workout.value['des_week' + w] || '');
+    if (presc.includes('[') || presc.includes(']')) {
+      haParentesiQuadre = true;
+      break;
+    }
+  }
 
-  if (sett > 1) {
-    for (let w = sett - 1; w >= 1; w--) {
-      const insVal = inputSettimane.value[w]?.ins;
-      if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-        const peso = parseFloat(estraiPesoDaInput(insVal));
-        if (!isNaN(peso) && peso > 0) {
-          lastLoggedWeek = w;
-          prevIns = insVal;
-          prevPeso = peso;
-          break; // Trovata l'esecuzione valida più recente!
+  if (haParentesiQuadre) {
+    // CASO 2: Presenza di parentesi quadre (Logica attuale con dicitura overload se reps scendono, tranne per week 4 che viene esclusa)
+    if (sett === 4) return null;
+
+    // Rileva vincoli espliciti di carico (es. [K W1], [KG W1] o [Kg W1]) in modo non case-sensitive.
+    const matchKgW = prescrizione.match(/\[\s*KG?\s*W\s*(\d+)\s*\]?/i);
+    if (matchKgW) {
+      const targetW = parseInt(matchKgW[1], 10);
+      const targetIns = inputSettimane.value[targetW]?.ins || '';
+      const pesoStr = estraiPesoDaInput(targetIns);
+      return {
+        text: pesoStr ? targetIns : '?', // Se la settimana di riferimento è vuota, mostra un punto di domanda
+        peso: pesoStr ? parseFloat(pesoStr) : 0,
+        label: `W${targetW}`,
+        isMandatory: true,
+        mandatoryLabel: `USA LO STESSO CARICO DI W${targetW}`
+      };
+    }
+
+    // Scansione all'indietro per trovare l'ultima settimana con un input registrato (per coprire tutte le week vuote)
+    let lastLoggedWeek = null;
+    let prevIns = null;
+    let prevPeso = null;
+
+    if (sett > 1) {
+      for (let w = sett - 1; w >= 1; w--) {
+        const insVal = inputSettimane.value[w]?.ins;
+        if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+          const peso = parseFloat(estraiPesoDaInput(insVal));
+          if (!isNaN(peso) && peso > 0) {
+            lastLoggedWeek = w;
+            prevIns = insVal;
+            prevPeso = peso;
+            break; // Trovata l'esecuzione valida più recente!
+          }
         }
       }
     }
-  }
 
-  // 3. Se abbiamo trovato una settimana precedente loggata, controlliamo se c'è un drop di ripetizioni
-  if (lastLoggedWeek) {
-    const prevPrescStr = workout.value['des_week' + lastLoggedWeek];
-    const currPrescStr = workout.value['des_week' + sett];
-    
-    const prevReps = estraiRepsDaPrescrizione(prevPrescStr);
-    const currReps = estraiRepsDaPrescrizione(currPrescStr);
-    
-    if (prevReps && currReps && currReps < prevReps) {
-      return {
-        text: prevIns,
-        peso: prevPeso,
-        label: `W${lastLoggedWeek}`,
-        isOverload: true,
-        overloadText: `AUMENTA CARICO (Meno reps rispetto a W${lastLoggedWeek})`
+    // Se abbiamo trovato una settimana precedente loggata, controlliamo se c'è un drop di ripetizioni
+    if (lastLoggedWeek) {
+      const prevPrescStr = workout.value['des_week' + lastLoggedWeek];
+      const currPrescStr = workout.value['des_week' + sett];
+      
+      const prevReps = estraiRepsDaPrescrizione(prevPrescStr);
+      const currReps = estraiRepsDaPrescrizione(currPrescStr);
+      
+      if (prevReps && currReps && currReps < prevReps) {
+        return {
+          text: prevIns,
+          peso: prevPeso,
+          label: `W${lastLoggedWeek}`,
+          isOverload: true,
+          overloadText: `AUMENTA CARICO (Meno reps rispetto a W${lastLoggedWeek})`
+        };
+      }
+    }
+
+    // Per la Week 1, peschiamo l'ultimo log della W6 del mesociclo precedente
+    if (sett === 1) {
+      if (!previousWorkout.value) return null;
+      const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
+      if (!prevW6Text) return null;
+      const pesoStr = estraiPesoDaInput(String(prevW6Text));
+      const pesoNum = pesoStr ? parseFloat(pesoStr) : parseFloat(String(prevW6Text).replace(',', '.'));
+      if (isNaN(pesoNum)) return null;
+      
+      const p = propostaWeek1.value;
+      const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
+      const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
+
+      return { 
+        text: prevW6Text, 
+        peso: pesoNum, 
+        label: 'W6 Prec.',
+        isWeek1: true,
+        reps: repsPrecedenti,
+        suggerito: p ? p.peso : null,
+        giorni: giorniTrascorsi,
+        proposta: p,
+        schedaPrec: previousWorkout.value.num_scheda
       };
     }
+
+    // Fallback: Proponiamo l'ultima settimana loggata trovata
+    if (prevIns) {
+      return { text: prevIns, peso: prevPeso, label: `W${lastLoggedWeek}` };
+    }
+
+    return null;
+  } else {
+    // CASO 3: Caso normale (senza parentesi quadre)
+    // Per la Week 1, peschiamo l'ultimo log della W6 del mesociclo precedente
+    if (sett === 1) {
+      if (!previousWorkout.value) return null;
+      const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
+      if (!prevW6Text) return null;
+      const pesoStr = estraiPesoDaInput(String(prevW6Text));
+      const pesoNum = pesoStr ? parseFloat(pesoStr) : parseFloat(String(prevW6Text).replace(',', '.'));
+      if (isNaN(pesoNum)) return null;
+      
+      const p = propostaWeek1.value;
+      const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
+      const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
+
+      return { 
+        text: prevW6Text, 
+        peso: pesoNum, 
+        label: 'W6 Prec.',
+        isWeek1: true,
+        reps: repsPrecedenti,
+        suggerito: p ? p.peso : null,
+        giorni: giorniTrascorsi,
+        proposta: p,
+        schedaPrec: previousWorkout.value.num_scheda
+      };
+    }
+
+    // Proposta specifica per Week 4 (Scarico) - se isWeek4Scarico, propone W2
+    if (sett === 4 && isWeek4Scarico.value) {
+      const w2Ins = inputSettimane.value[2]?.ins;
+      if (!w2Ins) return null;
+      const pesoStrW2 = estraiPesoDaInput(w2Ins);
+      if (!pesoStrW2) return null;
+      return { text: w2Ins, peso: parseFloat(pesoStrW2), label: 'W2', isScarico: true };
+    }
+
+    // Proposta specifica per Week 5 - propone W3 (carico superiore a quello della week 3)
+    if (sett === 5) {
+      const w3Ins = inputSettimane.value[3]?.ins;
+      if (!w3Ins) return null;
+      const pesoStrW3 = estraiPesoDaInput(w3Ins);
+      if (!pesoStrW3) return null;
+      return { text: w3Ins, peso: parseFloat(pesoStrW3), label: 'W3' };
+    }
+
+    // Per le altre week (2, 3, 4 non scarico, 6): propone la settimana precedente (sett - 1)
+    const prevIns = inputSettimane.value[sett - 1]?.ins;
+    if (!prevIns) return null;
+    const pesoStr = estraiPesoDaInput(prevIns);
+    if (!pesoStr) return null;
+    return { text: prevIns, peso: parseFloat(pesoStr), label: `W${sett - 1}` };
   }
-
-  // Per la Week 1, peschiamo l'ultimo log della W6 del mesociclo precedente
-  if (sett === 1) {
-    if (!previousWorkout.value) return null;
-    const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
-    if (!prevW6Text) return null;
-    const pesoStr = estraiPesoDaInput(String(prevW6Text));
-    const pesoNum = pesoStr ? parseFloat(pesoStr) : parseFloat(String(prevW6Text).replace(',', '.'));
-    if (isNaN(pesoNum)) return null;
-    
-    const p = propostaWeek1.value;
-    const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
-    const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
-
-    return { 
-      text: prevW6Text, 
-      peso: pesoNum, 
-      label: 'W6 Prec.',
-      isWeek1: true,
-      reps: repsPrecedenti,
-      suggerito: p ? p.peso : null,
-      giorni: giorniTrascorsi,
-      proposta: p,
-      schedaPrec: previousWorkout.value.num_scheda
-    };
-  }
-
-  // 4. Fallback: Proponiamo l'ultima settimana loggata trovata, anche se non ha calo reps (oppure l'immediata precedente)
-  if (prevIns) {
-    return { text: prevIns, peso: prevPeso, label: `W${lastLoggedWeek}` };
-  }
-
-  return null;
 };
 
 const getGhostStatus = (sett) => {

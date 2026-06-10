@@ -351,32 +351,18 @@
                                   Log parziale: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
                                 </div>
 
-                                <!-- Campo inserimento log e bottone completa -->
-                                <div class="d-flex align-center gap-2 mt-2">
-                                  <v-text-field
-                                    v-model="logRecuperi[recItem.exercise.id + '_' + recItem.week]"
-                                    placeholder="Peso o esecuzione..."
-                                    variant="outlined"
-                                    density="compact"
-                                    hide-details
-                                    rounded="lg"
-                                    color="orange-darken-3"
-                                    style="height: 26px;"
-                                    class="recovery-compact-input flex-grow-1"
-                                    @click.stop
-                                  ></v-text-field>
-                                  <v-btn
-                                    color="green-darken-3"
-                                    size="x-small"
-                                    variant="flat"
-                                    class="font-weight-black text-none text-white rounded-lg px-2"
-                                    style="height: 26px; font-size: 0.68rem !important; min-width: 44px;"
-                                    @click.stop="concludiRecuperoTesto(recItem)"
-                                  >
-                                    <v-icon size="12" class="mr-0.5">mdi-check</v-icon>
-                                    OK
-                                  </v-btn>
-                                </div>
+                                <!-- Bottone di completamento rapido senza casella di testo -->
+                                <v-btn
+                                  color="green-darken-3"
+                                  size="x-small"
+                                  variant="flat"
+                                  class="font-weight-black text-none text-white rounded-lg mt-2"
+                                  style="height: 24px; font-size: 0.65rem !important;"
+                                  @click.stop="concludiRecuperoRapido(recItem)"
+                                >
+                                  <v-icon size="12" class="mr-1">mdi-check-circle-outline</v-icon>
+                                  Segna come completato
+                                </v-btn>
                               </div>
                             </v-card>
                           </div>
@@ -3105,27 +3091,21 @@ const toggleRecupero = async (ex, attivo) => {
   await salvaValoreEsercizio(ex, w, nuovoValore);
 };
 
-const concludiRecuperoTesto = async (recItem) => {
+const concludiRecuperoRapido = async (recItem) => {
   vibraTattile(20);
   const ex = recItem.exercise;
   const w = recItem.week;
-  const key = ex.id + '_' + w;
-  const inputNuovo = (logRecuperi.value[key] || '').trim();
   
-  let valoreFinale = inputNuovo;
-  if (!valoreFinale) {
-    let original = recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim();
-    if (!original || original === '-') {
-      valoreFinale = 'Recuperato';
-    } else {
-      valoreFinale = `${original} [RECUPERATO]`;
-    }
+  let original = recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim();
+  let valoreFinale = '';
+  
+  if (!original || original === '-') {
+    valoreFinale = 'Recuperato';
   } else {
-    valoreFinale = valoreFinale.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim();
+    valoreFinale = `${original} [RECUPERATO]`;
   }
   
   await salvaValoreEsercizio(ex, w, valoreFinale);
-  logRecuperi.value[key] = '';
 };
 
 const eserciziDaRecuperare = computed(() => {

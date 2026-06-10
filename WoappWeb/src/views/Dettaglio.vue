@@ -24,8 +24,8 @@
           >
             {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
           </v-chip>
-<h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0">
-  {{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨ ' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
+<h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0" style="white-space: normal; word-break: break-word;">
+  <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
 </h3>
         </div>
         <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
@@ -96,19 +96,20 @@
       <!-- 2. Intestazione Principale con Massimale / RMT -->
       <div class="mb-2 text-left">
         <h2 
-          class="text-h6 font-weight-black leading-tight d-flex align-center flex-wrap gap-1" 
-          :class="(previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-2' : 'text-slate-dark'"
-          style="font-size: 1.1rem; line-height: 1.2;"
+          class="text-h6 font-weight-black leading-tight mb-1" 
+          :class="(previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'"
+          style="font-size: 1.1rem; line-height: 1.2; white-space: normal; word-break: break-word;"
         >
           <v-icon 
             v-if="parsedRmt(workout.des_esercizio_2)" 
             :color="getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).color" 
-            class="mr-1" 
+            class="mr-1 mb-0.5" 
             size="18"
+            style="display: inline-block; vertical-align: middle;"
           >
             {{ getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).icon }}
           </v-icon>
-          {{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨ ' : '' }}{{ workout.des_esercizio }}
+          <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout.des_esercizio }}
         </h2>
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
@@ -391,13 +392,13 @@
               >
                 {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'mdi-sync' : (isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline') }}
               </v-icon>
-              <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
+<span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
                 WEEK {{ sett }}
                 <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
                   ({{ parsedPrescription(workout['des_week' + sett]).reps }})
                 </span>
                 <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
-                  ({{ workout['des_week' + sett] }})
+                  ({{ pulisciParentesiQuadre(workout['des_week' + sett]) }})
                 </span>
               </span>
               <v-chip
@@ -482,11 +483,25 @@
             </div>
           </div>
 
-          <!-- Input di inserimento Carico (Ghost Lift Integrato con Icona Recupero) -->
+<!-- Input di inserimento Carico (Ghost Lift Integrato con Icona Recupero) -->
           <div class="mt-3.5 mb-1 position-relative">
             <div v-if="getGhostLift(sett)" class="mb-1.5 px-1 animate-fade-in">
               <div class="d-flex align-center justify-space-between">
-                <span v-if="!(getGhostLift(sett).isWeek1 && settimanaAttiva === 1)" class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                <span v-if="getGhostLift(sett).isMandatory" class="text-super-caption text-red-lighten-1 font-weight-black uppercase d-flex align-center gap-1" style="font-size: 0.62rem; letter-spacing: 0.04em;">
+                  <v-icon size="14" color="red-lighten-1">mdi-alert-decagram-outline</v-icon>
+                  <span>{{ getGhostLift(sett).mandatoryLabel }}:</span>
+                  <span class="text-white font-weight-black ml-1" style="font-size: 0.85rem;">
+                    {{ getGhostLift(sett).text }}
+                  </span>
+                </span>
+                <span v-else-if="getGhostLift(sett).isOverload" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" style="font-size: 0.62rem; letter-spacing: 0.04em;">
+                  <v-icon size="14" color="orange-lighten-2">mdi-trending-up</v-icon>
+                  <span>{{ getGhostLift(sett).overloadText }}</span>
+                  <span class="text-white font-weight-black ml-1" style="font-size: 0.85rem;">
+                    {{ getGhostLift(sett).text }}
+                  </span>
+                </span>
+                <span v-else-if="!(getGhostLift(sett).isWeek1 && settimanaAttiva === 1)" class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" style="font-size: 0.6rem; letter-spacing: 0.05em;">
                   <v-icon size="12" :color="getGhostLift(sett).isScarico ? 'amber-lighten-2' : 'grey'">
                     {{ getGhostLift(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
                   </v-icon>
@@ -981,7 +996,7 @@
                   <div class="font-weight-black text-white uppercase d-flex align-center gap-1.5" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
                     <span>Week {{ w }}</span>
                     <span class="text-orange-lighten-2 font-weight-black" style="font-size: 1.05rem !important; text-transform: none;">
-                      ({{ previousWorkout['des_week' + w] || 'N.D.' }})
+                      ({{ pulisciParentesiQuadre(previousWorkout['des_week' + w]) || 'N.D.' }})
                     </span>
                   </div>
                 </div>
@@ -1818,6 +1833,16 @@ const analisiRipetizioniCiclo = computed(() => {
   }
 
   return { isContinuitato, trend, icon, color, testo };
+});
+
+const trendFreccia = computed(() => {
+  if (!workout.value || !previousWorkout.value) return '';
+  const prevReps = parseInt(previousWorkout.value.reps_week1) || estraiRepsDaPrescrizione(previousWorkout.value.des_week1) || 0;
+  const currReps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 0;
+  if (prevReps === 0 || currReps === 0) return '';
+  if (currReps > prevReps) return '▲';
+  if (currReps < prevReps) return '▼';
+  return '';
 });
 
 const getAtletaInfo = (wObj) => {
@@ -2663,10 +2688,16 @@ onBeforeUnmount(() => {
   window.removeEventListener('touchend', handleTouchEnd);
 });
 
+const pulisciParentesiQuadre = (str) => {
+  if (!str) return '';
+  return String(str).replace(/\[\s*KG?\s*W\s*\d+\s*\]?/gi, '').trim();
+};
+
 // Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77% o 3x12(60%)|95KG 86%)
 const parsePrescription = (str) => {
   if (!str) return null;
-  const cleanStr = str.trim();
+  // Rimuove l'espressione [K WX], [KG WX] o [Kg WX prima del parsing
+  const cleanStr = pulisciParentesiQuadre(str);
   
   // Split by "|"
   const parts = cleanStr.split('|');
@@ -2735,11 +2766,67 @@ const parsedPrescription = (str) => {
 const getGhostLift = (sett) => {
   if (!workout.value) return null;
 
-  // Se la settimana o l'esercizio è a percentuale, non proponiamo il carico ombra
   const prescrizione = String(workout.value['des_week' + sett] || '');
+
+  // 1. Rileva vincoli espliciti di carico (es. [K W1], [KG W1] o [Kg W1) in modo non case-sensitive.
+  // Forza la visualizzazione dell'istruzione di vincolo anche se la settimana target è ancora vuota (?)
+  const matchKgW = prescrizione.match(/\[\s*KG?\s*W\s*(\d+)\s*\]?/i);
+  if (matchKgW) {
+    const targetW = parseInt(matchKgW[1], 10);
+    const targetIns = inputSettimane.value[targetW]?.ins || '';
+    const pesoStr = estraiPesoDaInput(targetIns);
+    return {
+      text: pesoStr ? targetIns : '?', // Se la settimana di riferimento è vuota, mostra un punto di domanda
+      peso: pesoStr ? parseFloat(pesoStr) : 0,
+      label: `W${targetW}`,
+      isMandatory: true,
+      mandatoryLabel: `USA LO STESSO CARICO DI W${targetW}`
+    };
+  }
+
+  // Se la settimana o l'esercizio è a percentuale, non proponiamo il carico ombra
   const hasPercFlag = workout.value.flg_perc && String(workout.value.flg_perc).includes('V%');
   if (prescrizione.includes('%') || hasPercFlag) {
     return null;
+  }
+
+  // 2. Scansione all'indietro per trovare l'ultima settimana con un input registrato (per coprire tutte le week vuote)
+  let lastLoggedWeek = null;
+  let prevIns = null;
+  let prevPeso = null;
+
+  if (sett > 1) {
+    for (let w = sett - 1; w >= 1; w--) {
+      const insVal = inputSettimane.value[w]?.ins;
+      if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+        const peso = parseFloat(estraiPesoDaInput(insVal));
+        if (!isNaN(peso) && peso > 0) {
+          lastLoggedWeek = w;
+          prevIns = insVal;
+          prevPeso = peso;
+          break; // Trovata l'esecuzione valida più recente!
+        }
+      }
+    }
+  }
+
+  // 3. Se abbiamo trovato una settimana precedente loggata, controlliamo se c'è un drop di ripetizioni
+  if (lastLoggedWeek) {
+    const prevPrescStr = workout.value['des_week' + lastLoggedWeek];
+    const currPrescStr = workout.value['des_week' + sett];
+    
+    const prevReps = estraiRepsDaPrescrizione(prevPrescStr);
+    const currReps = estraiRepsDaPrescrizione(currPrescStr);
+    
+    if (prevReps && currReps && currReps < prevReps) {
+      return {
+        text: prevIns,
+        peso: prevPeso,
+        label: `W${lastLoggedWeek}`,
+        isOverload: true,
+        overloadText: `AUMENTA CARICO (Meno reps rispetto a W${lastLoggedWeek})`
+      };
+    }
   }
 
   // Per la Week 1, peschiamo l'ultimo log della W6 del mesociclo precedente
@@ -2768,21 +2855,12 @@ const getGhostLift = (sett) => {
     };
   }
 
-  // Gestione specifica per Week 4 (Scarico) - Propone W2 invece di W3
-  if (sett === 4 && isWeek4Scarico.value) {
-    const w2Ins = inputSettimane.value[2]?.ins;
-    if (!w2Ins) return null;
-    const pesoStrW2 = estraiPesoDaInput(w2Ins);
-    if (!pesoStrW2) return null;
-    return { text: w2Ins, peso: parseFloat(pesoStrW2), label: 'W2', isScarico: true };
+  // 4. Fallback: Proponiamo l'ultima settimana loggata trovata, anche se non ha calo reps (oppure l'immediata precedente)
+  if (prevIns) {
+    return { text: prevIns, peso: prevPeso, label: `W${lastLoggedWeek}` };
   }
 
-  // Per le Week 2, 3, 5, 6 peschiamo la settimana precedente
-  const prevIns = inputSettimane.value[sett - 1]?.ins;
-  if (!prevIns) return null;
-  const pesoStr = estraiPesoDaInput(prevIns);
-  if (!pesoStr) return null;
-  return { text: prevIns, peso: parseFloat(pesoStr), label: `W${sett - 1}` };
+  return null;
 };
 
 const getGhostStatus = (sett) => {

@@ -949,8 +949,8 @@
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-<h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-2' : 'text-slate-dark'">
-  {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨ ' : '' }}{{ ex.des_esercizio || 'Esercizio' }}
+<h4 class="text-body-1 font-weight-black leading-tight mb-1" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+  <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>{{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}{{ ex.des_esercizio || 'Esercizio' }}
 </h4>
 
                     <!-- Settore e Emoji Sforzo -->
@@ -960,36 +960,10 @@
                     </div>
 
                     <!-- Prescrizione della settimana attiva -->
-                    <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
+                    <div class="text-caption font-weight-bold text-slate text-truncate mb-1" :style="getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report)">
                       {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
 
-                    <!-- Pulsante Recupero Manuale -->
-                    <div class="mt-1" style="z-index: 5;">
-                      <v-chip
-                        v-if="haRecupero(ex['ins_week' + settimanaAttivaGiorno])"
-                        color="orange-darken-3"
-                        size="x-small"
-                        class="font-weight-black text-white px-2"
-                        variant="flat"
-                        prepend-icon="mdi-sync"
-                        @click.stop="toggleRecupero(ex, false)"
-                      >
-                        In recupero la prossima volta
-                      </v-chip>
-                      <v-chip
-                        v-else-if="!ex['ins_week' + settimanaAttivaGiorno] || String(ex['ins_week' + settimanaAttivaGiorno]).trim() === '' || String(ex['ins_week' + settimanaAttivaGiorno]).trim() === '-'"
-                        color="grey-darken-2"
-                        size="x-small"
-                        class="font-weight-bold text-slate px-2"
-                        variant="outlined"
-                        style="border-style: dashed !important; opacity: 0.85;"
-                        prepend-icon="mdi-plus"
-                        @click.stop="toggleRecupero(ex, true)"
-                      >
-                        Recupera la prossima volta?
-                      </v-chip>
-                    </div>
 
                     <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
                       <div class="d-flex gap-1 align-center flex-wrap">
@@ -1103,8 +1077,8 @@
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-<h4 class="text-body-1 font-weight-black leading-tight mb-1 d-flex align-center flex-wrap gap-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-2' : 'text-slate-dark'">
-  {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨ ' : '' }}{{ block.exercise.des_esercizio || 'Esercizio' }}
+<h4 class="text-body-1 font-weight-black leading-tight mb-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+  <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>{{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}{{ block.exercise.des_esercizio || 'Esercizio' }}
 </h4>
 
                 <!-- Settore e Emoji Sforzo -->
@@ -1114,36 +1088,11 @@
                 </div>
 
                 <!-- Prescrizione della settimana attiva -->
-                <div class="text-caption font-weight-bold text-slate text-truncate mb-1">
+                <div class="text-caption font-weight-bold text-slate text-truncate mb-1" :style="getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report)">
                   {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                 </div>
 
-                <!-- Pulsante Recupero Manuale -->
-                <div class="mt-1" style="z-index: 5;">
-                  <v-chip
-                    v-if="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno])"
-                    color="orange-darken-3"
-                    size="x-small"
-                    class="font-weight-black text-white px-2"
-                    variant="flat"
-                    prepend-icon="mdi-sync"
-                    @click.stop="toggleRecupero(block.exercise, false)"
-                  >
-                    In recupero la prossima volta
-                  </v-chip>
-                  <v-chip
-                    v-else-if="!block.exercise['ins_week' + settimanaAttivaGiorno] || String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() === '' || String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() === '-'"
-                    color="grey-darken-2"
-                    size="x-small"
-                    class="font-weight-bold text-slate px-2"
-                    variant="outlined"
-                    style="border-style: dashed !important; opacity: 0.85;"
-                    prepend-icon="mdi-plus"
-                    @click.stop="toggleRecupero(block.exercise, true)"
-                  >
-                    Recupera la prossima volta?
-                  </v-chip>
-                </div>
+                
 
                 <!-- Cronologia Carichi Settimanali -->
                 <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
@@ -1477,10 +1426,15 @@ const avviaTimerRecupero = (recStr, label) => {
 };
 
 
+const pulisciParentesiQuadre = (str) => {
+  if (!str) return '';
+  return String(str).replace(/\[\s*KG?\s*W\s*\d+\s*\]?/gi, '').trim();
+};
+
 // Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77% o 3x6(78%)|45KG 92%)
 const parsePrescription = (str) => {
   if (!str) return null;
-  const cleanStr = str.trim();
+  const cleanStr = pulisciParentesiQuadre(str);
   
   // Split by "|"
   const parts = cleanStr.split('|');
@@ -1544,7 +1498,8 @@ const parsePrescription = (str) => {
 
 const formattaPrescrizioneSemplice = (str) => {
   if (!str) return '';
-  const parsed = parsePrescription(str);
+  const cleanStr = pulisciParentesiQuadre(str);
+  const parsed = parsePrescription(cleanStr);
   if (parsed) {
     let res = `${parsed.reps} @ ${parsed.total} kg`;
     if (parsed.side) {
@@ -1558,7 +1513,7 @@ const formattaPrescrizioneSemplice = (str) => {
     }
     return res;
   }
-  return str;
+  return cleanStr;
 };
 
 const formattaCaricoCompatto = (val) => {
@@ -1789,6 +1744,75 @@ const esisteInSchedaPrecedente = (ex) => {
            parseInt(b.num_scheda) === targetScheda &&
            parseInt(b.num_riga_giorno) > 0;
   });
+};
+
+const getLavoroStyle = (val) => {
+  const str = String(val || '').trim();
+  if (str.length > 25) {
+    return 'font-size: 0.70rem !important; line-height: 1.15;';
+  }
+  return '';
+};
+
+const estraiRepsDaPrescrizione = (prescrizioneStr) => {
+  if (!prescrizioneStr) return null;
+  const part = String(prescrizioneStr).split('|')[0].trim();
+  const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
+  
+  const matchX = cleanPart.match(/\d+\s*[xX]\s*(\d+)/);
+  if (matchX) {
+    return parseInt(matchX[1], 10);
+  }
+  
+  const matchNum = cleanPart.match(/^(\d+)$/);
+  if (matchNum) {
+    return parseInt(matchNum[1], 10);
+  }
+  
+  const matchFirstNum = cleanPart.match(/(\d+)/);
+  if (matchFirstNum) {
+    return parseInt(matchFirstNum[1], 10);
+  }
+  
+  return null;
+};
+
+const getTrendFreccia = (ex) => {
+  if (!ex || !allExercisesBackup.value.length) return '';
+  
+  const currentNumScheda = parseInt(ex.num_scheda);
+  if (isNaN(currentNumScheda) || currentNumScheda <= 1) return '';
+  
+  const nomeEx = String(ex.des_esercizio || '').trim().toLowerCase();
+  const keyIdCliente = Object.keys(ex).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  const atletaId = ex[keyIdCliente] || '';
+
+  if (!nomeEx || !atletaId) return '';
+
+  // Applica la stessa logica di richiamo dello storico: trova la scheda precedente più recente (< currentNumScheda)
+  let prevEx = null;
+  allExercisesBackup.value.forEach(b => {
+    const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+    if (String(bAtletaId) === String(atletaId) &&
+        String(b.des_esercizio || '').trim().toLowerCase() === nomeEx) {
+      const sNum = parseInt(b.num_scheda);
+      if (sNum < currentNumScheda && parseInt(b.num_riga_giorno) > 0) {
+        if (!prevEx || sNum > parseInt(prevEx.num_scheda)) {
+          prevEx = b;
+        }
+      }
+    }
+  });
+
+  if (!prevEx) return '';
+
+  const prevReps = parseInt(prevEx.reps_week1) || estraiRepsDaPrescrizione(prevEx.des_week1) || 0;
+  const currReps = parseInt(ex.reps_week1) || estraiRepsDaPrescrizione(ex.des_week1) || 0;
+
+  if (prevReps === 0 || currReps === 0) return '';
+  if (currReps > prevReps) return '▲';
+  if (currReps < prevReps) return '▼';
+  return '';
 };
 
 const listaGiorniDisponibili = computed(() => {

@@ -35,11 +35,11 @@ export const setSelectedSheet = (val) => {
 // Avvia o aggiorna la sessione utente locale
 export const inizializzaSessione = (email, idCli, rlo) => {
   const cleanEmail = String(email || '').trim().toLowerCase();
-  
+
   // Forza il ruolo a 'coach' per l'email del Coach (visualgabri@gmail.com)
   let finalRuolo = rlo || 'atleta';
   let finalIdCliente = idCli || '';
-  
+
   if (cleanEmail === 'visualgabri@gmail.com') {
     finalRuolo = 'coach';
     finalIdCliente = '1';
@@ -98,14 +98,14 @@ const startBackgroundKeepAlive = () => {
     if (silentAudioCtx) return;
 
     silentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+
     // Create a 1-second silent buffer (zeros)
     const buffer = silentAudioCtx.createBuffer(1, silentAudioCtx.sampleRate, silentAudioCtx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < data.length; i++) {
       data[i] = 0;
     }
-    
+
     silentSource = silentAudioCtx.createBufferSource();
     silentSource.buffer = buffer;
     silentSource.loop = true;
@@ -135,21 +135,21 @@ const stopBackgroundKeepAlive = () => {
 const playBeepSequence = () => {
   try {
     const alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+
     const playBeep = (startTime) => {
       const osc = alarmCtx.createOscillator();
       const gainNode = alarmCtx.createGain();
-      
+
       osc.connect(gainNode);
       gainNode.connect(alarmCtx.destination);
-      
+
       osc.type = 'sine';
       osc.frequency.setValueAtTime(880, startTime); // Nota A5
-      
+
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.05);
       gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.35);
-      
+
       osc.start(startTime);
       osc.stop(startTime + 0.4);
     };
@@ -157,11 +157,11 @@ const playBeepSequence = () => {
     playBeep(alarmCtx.currentTime);
     playBeep(alarmCtx.currentTime + 0.5);
     playBeep(alarmCtx.currentTime + 1.0);
-    
+
     setTimeout(() => {
       try {
         alarmCtx.close();
-      } catch (e) {}
+      } catch (e) { }
     }, 2000);
   } catch (err) {
     console.error("Non è stato possibile riprodurre la sequenza di beeps:", err);
@@ -216,7 +216,7 @@ export const resumeGlobalTimer = () => {
   if (navigator.vibrate) {
     navigator.vibrate(35);
   }
-  
+
   startBackgroundKeepAlive();
 
   activeTimer.value.intervalId = setInterval(() => {
@@ -232,13 +232,13 @@ export const resumeGlobalTimer = () => {
       if (navigator.vibrate) {
         navigator.vibrate([150, 80, 150, 80, 200]);
       }
-      
+
       playBeepSequence();
-      
+
       if (document.visibilityState === 'hidden') {
         sendTimerNotification(activeTimer.value.label);
       }
-      
+
       clearInterval(activeTimer.value.intervalId);
       activeTimer.value = null;
     }
@@ -337,4 +337,15 @@ export const getStileStoricoAtleta = (id) => {
 export const getModalitaSettimaneAtleta = (id) => {
   const cleanId = String(id || '').trim();
   return MAPPA_CLIENTI[cleanId]?.modalitaSettimane || 'dinamica'; // Default a dinamica
+};
+
+// Nuove opzioni UI per la pagina Workouts
+export const getVisualizzazioneCronologiaAtleta = (id) => {
+  const cleanId = String(id || '').trim();
+  return localStorage.getItem('visualizzazioneCronologia_' + cleanId) || 'completa'; // 'completa', 'comparativa', 'minimalista'
+};
+
+export const getDensitaLayoutAtleta = (id) => {
+  const cleanId = String(id || '').trim();
+  return localStorage.getItem('densitaLayout_' + cleanId) || 'standard'; // 'standard', 'compatta'
 };

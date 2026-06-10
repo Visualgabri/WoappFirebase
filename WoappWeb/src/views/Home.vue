@@ -866,7 +866,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, getNomeAtleta } from '../authStore.js';
+import { selectedAthlete, selectedSheet, getNomeAtleta, setGlobalHaEserciziDaFare } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -1908,6 +1908,23 @@ const selezionaGiornoRapido = (giorno) => {
   giornoAttivo.value = giorno;
   localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giorno);
 };
+
+const haEserciziDaFareGiornoAttivo = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return false;
+  const g = giornoAttivo.value;
+  const w = settimanaAttiva.value;
+  const exDelGiorno = allExercises.value.filter(
+    e => (e.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(e.num_riga_giorno) > 0
+  );
+  return exDelGiorno.some(ex => {
+    const val = ex['ins_week' + w];
+    return !val || val.trim() === '' || val.trim() === '-';
+  });
+});
+
+watch(haEserciziDaFareGiornoAttivo, (newVal) => {
+  setGlobalHaEserciziDaFare(newVal);
+}, { immediate: true });
 
 onMounted(() => {
   caricaDatiScheda();

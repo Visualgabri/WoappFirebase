@@ -82,6 +82,19 @@ export const logout = async () => {
 // Stato di Timer Globale per il Recupero (Premium UX)
 export const activeTimer = ref(null); // { remainingSeconds, totalSeconds, label, isPaused, intervalId }
 
+// Stato per il pulsante fluttuante Play globale "Vai al da fare"
+export const globalHaEserciziDaFare = ref(localStorage.getItem('globalHaEserciziDaFare') === 'true');
+export const playClickTrigger = ref(0);
+
+export const setGlobalHaEserciziDaFare = (val) => {
+  globalHaEserciziDaFare.value = !!val;
+  localStorage.setItem('globalHaEserciziDaFare', val ? 'true' : 'false');
+};
+
+export const triggerPlayClick = () => {
+  playClickTrigger.value++;
+};
+
 let silentAudioCtx = null;
 let silentSource = null;
 

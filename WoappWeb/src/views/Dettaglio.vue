@@ -4255,5 +4255,4 @@ th.sticky-col {
   scrollbar-width: none;
 }
 
-
 </style>

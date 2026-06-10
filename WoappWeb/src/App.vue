@@ -147,13 +147,29 @@
       </v-card>
     </v-fade-transition>
 
+    <!-- Pulsante Fluttuante Persistente Play (Fisso sopra la barra di navigazione) -->
+    <v-fade-transition>
+      <v-btn
+        v-if="utente && globalHaEserciziDaFare"
+        color="orange-darken-3"
+        icon
+        size="large"
+        class="fixed-play-fab elevation-6 animate-pulse-slow"
+        :style="{ bottom: activeTimer ? '160px' : '80px' }"
+        @click="cliccaPlayGlobale"
+        id="fab-play-da-fare"
+      >
+        <v-icon size="32" color="white">mdi-play</v-icon>
+      </v-btn>
+    </v-fade-transition>
+
   </v-app>
 </template>
 
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, triggerPlayClick } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');
@@ -229,6 +245,16 @@ const eseguiLogout = async () => {
     console.error("Errore durante il logout:", error);
   }
 };
+
+const cliccaPlayGlobale = () => {
+  vibraTattile(12);
+  if (router.currentRoute.value.name === 'Workouts') {
+    triggerPlayClick();
+  } else {
+    localStorage.setItem('scrollPrimoEsercizioDaFare', 'true');
+    router.push('/');
+  }
+};
 </script>
 
 <style scoped>
@@ -287,6 +313,20 @@ const eseguiLogout = async () => {
   100% {
     border-color: rgba(249, 115, 22, 0.5) !important;
   }
+}
+
+.fixed-play-fab {
+  position: fixed !important;
+  right: 20px !important;
+  z-index: 998 !important;
+  width: 56px !important;
+  height: 56px !important;
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4) !important;
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease !important;
+}
+
+.fixed-play-fab:active {
+  transform: scale(0.92) !important;
 }
 </style>
 

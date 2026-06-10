@@ -554,18 +554,6 @@
                   </div>
                 </div>
               </div>
-              <v-btn
-                v-if="haEserciziDaFare"
-                color="orange-darken-3"
-                size="small"
-                variant="flat"
-                class="font-weight-black text-white px-3 flex-shrink-0 align-self-center elevation-1"
-                style="font-size: 0.7rem; border-radius: 8px; height: 32px;"
-                @click.stop="vaiAlPrimoEsercizioDaFare"
-              >
-                VAI AL DA FARE
-                <v-icon right class="ml-1" size="14">mdi-arrow-down-bold-circle-outline</v-icon>
-              </v-btn>
             </div>
 
             <!-- Griglia dei Tempi e Densità con Medie -->
@@ -717,18 +705,6 @@
                   </div>
                 </div>
               </div>
-              <v-btn
-                v-if="haEserciziDaFare"
-                color="orange-darken-3"
-                size="small"
-                variant="flat"
-                class="font-weight-black text-white px-3 flex-shrink-0 align-self-center elevation-1"
-                style="font-size: 0.7rem; border-radius: 8px; height: 32px;"
-                @click.stop="vaiAlPrimoEsercizioDaFare"
-              >
-                VAI AL DA FARE
-                <v-icon right class="ml-1" size="14">mdi-arrow-down-bold-circle-outline</v-icon>
-              </v-btn>
             </div>
 
             <!-- Informazioni RMT o Volumi se presenti (spostate sotto e rese indipendenti) -->
@@ -1316,6 +1292,8 @@
       </v-card>
     </v-dialog>
 
+    <!-- Pulsante Fluttuante Persistente Play rimosso da qui ed integrato a livello globale in App.vue -->
+
   </v-container>
 </template>
 
@@ -1324,7 +1302,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2498,6 +2476,14 @@ const haEserciziDaFare = computed(() => {
     const val = ex['ins_week' + w];
     return !val || val.trim() === '' || val.trim() === '-';
   });
+});
+
+watch(haEserciziDaFare, (newVal) => {
+  setGlobalHaEserciziDaFare(newVal);
+}, { immediate: true });
+
+watch(playClickTrigger, () => {
+  vaiAlPrimoEsercizioDaFare();
 });
 
 const vaiAlPrimoEsercizioDaFare = () => {

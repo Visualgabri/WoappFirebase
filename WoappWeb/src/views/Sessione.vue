@@ -601,9 +601,11 @@ const caricaDati = async () => {
 
   if (cachedFromList) {
     workout.value = cachedFromList;
+    selectedWeek.value = activeUncompletedWeek.value;
     caricamento.value = false;
   } else if (cachedFromLocal.des_esercizio) {
     workout.value = cachedFromLocal;
+    selectedWeek.value = activeUncompletedWeek.value;
     caricamento.value = false;
   } else {
     caricamento.value = true;
@@ -616,6 +618,7 @@ const caricaDati = async () => {
     if (docSnap.exists()) {
       const dati = docSnap.data();
       workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });
+      selectedWeek.value = activeUncompletedWeek.value;
       
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = dati[keyIdCliente] || '';

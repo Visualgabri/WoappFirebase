@@ -1113,6 +1113,7 @@
               :color="isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'green-darken-3' : 'orange-darken-3'"
               style="height: 42px;"
               @click.stop="toggleGiornoAttivoRapido"
+              id="btn-completa-giorno"
             >
               <v-icon class="mr-2" size="18">
                 {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'mdi-check-circle' : 'mdi-check-all' }}
@@ -1302,7 +1303,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2478,12 +2479,41 @@ const haEserciziDaFare = computed(() => {
   });
 });
 
+const determinaGiornoAttivo = () => {
+  const w = settimanaAttiva.value;
+  for (const g of listaGiorniDisponibili.value) {
+    const header = listaAllenamenti.value.find(
+      item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(item.num_riga_giorno) === 0
+    );
+    const completato = header ? isCmpTrue(header['cmp' + w]) : false;
+    if (!completato) {
+      return g;
+    }
+  }
+  return listaGiorniDisponibili.value[0] || 'A';
+};
+
 watch(haEserciziDaFare, (newVal) => {
   setGlobalHaEserciziDaFare(newVal);
 }, { immediate: true });
 
+watch(mostraPromemoriaChiusura, (newVal) => {
+  setGlobalSettimanaDaChiudere(newVal);
+}, { immediate: true });
+
 watch(playClickTrigger, () => {
-  vaiAlPrimoEsercizioDaFare();
+  const giornoGiusto = determinaGiornoAttivo();
+  if (giornoSelezionato.value !== giornoGiusto) {
+    giornoSelezionato.value = giornoGiusto;
+    salvaGiornoSelezionato(giornoGiusto);
+    nextTick(() => {
+      setTimeout(() => {
+        vaiAlPrimoEsercizioDaFare();
+      }, 300);
+    });
+  } else {
+    vaiAlPrimoEsercizioDaFare();
+  }
 });
 
 const vaiAlPrimoEsercizioDaFare = () => {
@@ -2501,12 +2531,26 @@ const vaiAlPrimoEsercizioDaFare = () => {
         el.classList.remove('highlight-exercise');
       }, 1500);
     }
+  } else {
+    const el = document.getElementById('btn-completa-giorno');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('highlight-exercise');
+      setTimeout(() => {
+        el.classList.remove('highlight-exercise');
+      }, 1500);
+    }
   }
 };
 
 const gestisciScrollIniziale = () => {
   if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
     localStorage.removeItem('scrollPrimoEsercizioDaFare');
+    const giornoGiusto = determinaGiornoAttivo();
+    if (giornoSelezionato.value !== giornoGiusto) {
+      giornoSelezionato.value = giornoGiusto;
+      salvaGiornoSelezionato(giornoGiusto);
+    }
     nextTick(() => {
       setTimeout(() => {
         vaiAlPrimoEsercizioDaFare();

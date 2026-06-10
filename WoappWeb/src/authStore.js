@@ -84,11 +84,17 @@ export const activeTimer = ref(null); // { remainingSeconds, totalSeconds, label
 
 // Stato per il pulsante fluttuante Play globale "Vai al da fare"
 export const globalHaEserciziDaFare = ref(localStorage.getItem('globalHaEserciziDaFare') === 'true');
+export const globalSettimanaDaChiudere = ref(localStorage.getItem('globalSettimanaDaChiudere') === 'true');
 export const playClickTrigger = ref(0);
 
 export const setGlobalHaEserciziDaFare = (val) => {
   globalHaEserciziDaFare.value = !!val;
   localStorage.setItem('globalHaEserciziDaFare', val ? 'true' : 'false');
+};
+
+export const setGlobalSettimanaDaChiudere = (val) => {
+  globalSettimanaDaChiudere.value = !!val;
+  localStorage.setItem('globalSettimanaDaChiudere', val ? 'true' : 'false');
 };
 
 export const triggerPlayClick = () => {

@@ -866,7 +866,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, getNomeAtleta, setGlobalHaEserciziDaFare } from '../authStore.js';
+import { selectedAthlete, selectedSheet, getNomeAtleta, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -1922,8 +1922,40 @@ const haEserciziDaFareGiornoAttivo = computed(() => {
   });
 });
 
+const settimanaDaChiudereGiornoAttivo = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return false;
+  const g = giornoAttivo.value;
+  const w = settimanaAttiva.value;
+  
+  // Cerca intestazione riga 0 per vedere se è già chiusa
+  const header = allExercises.value.find(
+    item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(item.num_riga_giorno) === 0
+  );
+  if (!header) return false;
+  
+  const isChiusa = isTrue(header['cmp' + w]);
+  if (isChiusa) return false;
+
+  // Esercizi reali del giorno
+  const exDelGiorno = allExercises.value.filter(
+    e => (e.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(e.num_riga_giorno) > 0
+  );
+  if (exDelGiorno.length === 0) return false;
+
+  // Se tutti gli esercizi sono compilati
+  const tuttiCompilati = exDelGiorno.every(ex => {
+    const val = ex['ins_week' + w];
+    return val && val.trim() !== '';
+  });
+  return tuttiCompilati;
+});
+
 watch(haEserciziDaFareGiornoAttivo, (newVal) => {
   setGlobalHaEserciziDaFare(newVal);
+}, { immediate: true });
+
+watch(settimanaDaChiudereGiornoAttivo, (newVal) => {
+  setGlobalSettimanaDaChiudere(newVal);
 }, { immediate: true });
 
 onMounted(() => {

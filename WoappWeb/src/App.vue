@@ -150,7 +150,7 @@
     <!-- Pulsante Fluttuante Persistente Play (Fisso sopra la barra di navigazione) -->
     <v-fade-transition>
       <v-btn
-        v-if="utente && globalHaEserciziDaFare"
+        v-if="utente && (globalHaEserciziDaFare || globalSettimanaDaChiudere)"
         color="orange-darken-3"
         icon
         size="large"
@@ -163,13 +163,32 @@
       </v-btn>
     </v-fade-transition>
 
+    <!-- Dialog Avviso Chiusura Settimana -->
+    <v-dialog v-model="mostraDialogAvvisoChiusura" max-width="400" rounded="xl">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0">
+          <v-icon color="orange-darken-3" class="mr-2">mdi-alert-circle-outline</v-icon>
+          Allenamento Completato! ⚡
+        </v-card-title>
+        <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+          Ottimo lavoro! Hai completato tutti gli esercizi dell'allenamento di oggi. 
+          Ora devi <strong>chiudere la settimana</strong> per registrare i tuoi progressi.
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0">
+          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="confermaVaiAlWorkout" class="text-white font-weight-bold">
+            Vai a Chiudere la Settimana
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-app>
 </template>
 
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, triggerPlayClick } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');
@@ -246,8 +265,23 @@ const eseguiLogout = async () => {
   }
 };
 
+const mostraDialogAvvisoChiusura = ref(false);
+
 const cliccaPlayGlobale = () => {
   vibraTattile(12);
+  if (globalSettimanaDaChiudere.value && !globalHaEserciziDaFare.value) {
+    mostraDialogAvvisoChiusura.value = true;
+  } else {
+    eseguiAzionePlay();
+  }
+};
+
+const confermaVaiAlWorkout = () => {
+  mostraDialogAvvisoChiusura.value = false;
+  eseguiAzionePlay();
+};
+
+const eseguiAzionePlay = () => {
   if (router.currentRoute.value.name === 'Workouts') {
     triggerPlayClick();
   } else {

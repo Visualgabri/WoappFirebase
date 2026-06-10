@@ -922,7 +922,11 @@
                     </div>
 
                     <!-- Prescrizione della settimana attiva -->
-                    <div class="text-caption font-weight-bold text-slate text-truncate mb-1" :style="getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report)">
+                    <div 
+                      class="text-caption font-weight-bold text-slate text-truncate mb-1" 
+                      :style="getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report) + '; cursor: pointer;'"
+                      @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno])"
+                    >
                       {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
 
@@ -1050,7 +1054,11 @@
                 </div>
 
                 <!-- Prescrizione della settimana attiva -->
-                <div class="text-caption font-weight-bold text-slate text-truncate mb-1" :style="getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report)">
+                <div 
+                  class="text-caption font-weight-bold text-slate text-truncate mb-1" 
+                  :style="getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report) + '; cursor: pointer;'"
+                  @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno])"
+                >
                   {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                 </div>
 
@@ -1303,7 +1311,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2515,6 +2523,15 @@ watch(playClickTrigger, () => {
     vaiAlPrimoEsercizioDaFare();
   }
 });
+
+const apriCalcolatoreDaPrescrizione = (prescrizioneStr) => {
+  if (!prescrizioneStr) return;
+  const cleanStr = pulisciParentesiQuadre(prescrizioneStr);
+  const parsed = parsePrescription(cleanStr);
+  if (parsed && parsed.total) {
+    apriCalcolatoreDischi(parsed.total, parsed.side, 'totale');
+  }
+};
 
 const vaiAlPrimoEsercizioDaFare = () => {
   const w = settimanaAttivaGiorno.value;

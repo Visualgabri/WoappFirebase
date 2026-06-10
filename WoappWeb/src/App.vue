@@ -182,13 +182,122 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog Calcolatore Dischi (Plate Calculator) -->
+    <v-dialog v-model="mostraDialogCalcolatoreDischi" max-width="450" rounded="xl">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) !important;">
+        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-2">
+          <div class="d-flex align-center">
+            <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-weight-lifter</v-icon>
+            Calcolatore Dischi 🏋️
+          </div>
+          <v-btn icon size="small" variant="text" color="slate-dark" @click="mostraDialogCalcolatoreDischi = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="px-0 py-2">
+          <!-- Input/Visualizzazione Pesi -->
+          <div class="d-flex align-center gap-3 mb-4">
+            <div class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: rgba(15, 23, 42, 0.4) !important;">
+              <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Peso Totale Target</span>
+              <span class="text-h6 font-weight-black text-white">
+                {{ targetPesoTotale }} <span class="text-caption text-muted">KG</span>
+              </span>
+            </div>
+            <div class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: rgba(15, 23, 42, 0.4) !important;">
+              <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Peso Per Lato</span>
+              <span class="text-h6 font-weight-black text-blue-lighten-2">
+                {{ targetPesoLato }} <span class="text-caption text-muted">KG</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Selettore del Bilanciere -->
+          <div class="mb-4">
+            <span class="text-caption font-weight-black text-slate-dark d-block mb-2" style="font-size: 0.75rem;">Tipo Bilanciere / Attrezzo:</span>
+            <v-select
+              v-model="tipoBilanciere"
+              :items="opzioniBilanciere"
+              item-title="label"
+              item-value="peso"
+              variant="outlined"
+              density="comfortable"
+              rounded="lg"
+              color="orange-darken-3"
+              bg-color="rgba(15, 23, 42, 0.4)"
+              hide-details
+            ></v-select>
+          </div>
+
+          <!-- Risultato Dischi -->
+          <div class="pa-4 rounded-xl border border-orange-darken-3-op bg-slate-900-op text-center" style="background: rgba(15, 23, 42, 0.5) !important;">
+            <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-block mb-3" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+              Dischi da inserire su CIASCUN LATO:
+            </span>
+
+            <div v-if="pesoDischiDaCalcolare < 0" class="text-caption font-weight-black text-red-lighten-2 py-3">
+              ⚠️ Il peso totale è inferiore al peso del bilanciere!
+            </div>
+            <div v-else-if="elencoDischiPerLato.length === 0" class="text-caption font-weight-black text-slate py-4" style="color: #94a3b8 !important;">
+              Nessun disco necessario (carico a corpo libero o solo bilanciere).
+            </div>
+            <div v-else class="d-flex flex-column gap-2.5">
+              <!-- Visualizzazione Grafica delle Piastre stacked -->
+              <div class="d-flex align-center justify-center gap-1.5 py-3 border-bottom-soft mb-2 overflow-x-auto min-height-50" style="min-height: 85px;">
+                <!-- Sleeve line -->
+                <div class="barbell-sleeve-line"></div>
+                <div
+                  v-for="disco in elencoDischiGrafica"
+                  :key="disco.id"
+                  class="plate-graphic-item font-weight-black d-flex align-center justify-center"
+                  :class="'plate-' + String(disco.size).replace('.', '_')"
+                  :title="disco.size + ' kg'"
+                >
+                  {{ disco.size }}
+                </div>
+              </div>
+
+              <!-- Elenco Testuale dei dischi -->
+              <div
+                v-for="item in elencoDischiPerLato"
+                :key="item.size"
+                class="d-flex align-center justify-space-between py-1.5 px-3 rounded-lg"
+                style="background: rgba(15, 23, 42, 0.4) !important;"
+              >
+                <div class="d-flex align-center">
+                  <div class="plate-color-indicator mr-2.5" :class="'plate-bg-' + String(item.size).replace('.', '_')"></div>
+                  <span class="font-weight-black text-white" style="font-size: 0.95rem;">
+                    Disco da {{ item.size }} kg
+                  </span>
+                </div>
+                <span class="text-h6 font-weight-black text-orange-lighten-1">
+                  x {{ item.count }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Rimanenza se presente -->
+            <div v-if="rimanenzaDischi > 0" class="text-super-caption text-amber-lighten-2 mt-3 text-left" style="font-size: 0.65rem; line-height: 1.3; color: #fbbf24 !important;">
+              ⚠️ Nota: Rimangono <strong>{{ rimanenzaDischi }} kg</strong> non configurabili con i tagli disponibili (minimo 1.25 kg per lato).
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="px-0 pt-4 pb-0">
+          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraDialogCalcolatoreDischi = false" class="text-white font-weight-bold">
+            Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-app>
 </template>
 
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');
@@ -289,6 +398,71 @@ const eseguiAzionePlay = () => {
     router.push('/');
   }
 };
+
+// Calcolatore Dischi
+const opzioniBilanciere = [
+  { label: 'Bilanciere Olimpico Standard (20 kg)', peso: 20 },
+  { label: 'Bilanciere Olimpico Donna/Junior (15 kg)', peso: 15 },
+  { label: 'Bilanciere EZ o Standard (12 kg)', peso: 12 },
+  { label: 'Bilanciere Standard Leggero (10 kg)', peso: 10 },
+  { label: 'Bilanciere Super Leggero (8 kg)', peso: 8 },
+  { label: 'Manubrio / Macchina a Carrucola (0 kg)', peso: 0 }
+];
+
+watch(tipoBilanciere, (newBar) => {
+  if (modalitaCalcolo.value === 'totale') {
+    const tot = targetPesoTotale.value;
+    const latoCalc = (tot - newBar) / 2;
+    targetPesoLato.value = latoCalc > 0 ? latoCalc : 0;
+  } else {
+    const lat = targetPesoLato.value;
+    targetPesoTotale.value = lat * 2 + newBar;
+  }
+});
+
+const pesoDischiDaCalcolare = computed(() => {
+  return targetPesoLato.value;
+});
+
+const elencoDischiPerLato = computed(() => {
+  let remaining = targetPesoLato.value;
+  if (remaining <= 0) return [];
+  
+  const plates = [20, 10, 5, 2.5, 1.25];
+  const result = [];
+  
+  for (const p of plates) {
+    const count = Math.floor(remaining / p);
+    if (count > 0) {
+      result.push({ size: p, count });
+      remaining = parseFloat((remaining - (count * p)).toFixed(2));
+    }
+  }
+  return result;
+});
+
+const rimanenzaDischi = computed(() => {
+  let remaining = targetPesoLato.value;
+  if (remaining <= 0) return 0;
+  
+  const plates = [20, 10, 5, 2.5, 1.25];
+  for (const p of plates) {
+    const count = Math.floor(remaining / p);
+    remaining = parseFloat((remaining - (count * p)).toFixed(2));
+  }
+  return remaining;
+});
+
+const elencoDischiGrafica = computed(() => {
+  const result = [];
+  let idCounter = 0;
+  for (const item of elencoDischiPerLato.value) {
+    for (let i = 0; i < item.count; i++) {
+      result.push({ id: idCounter++, size: item.size });
+    }
+  }
+  return result.sort((a, b) => b.size - a.size);
+});
 </script>
 
 <style scoped>
@@ -362,6 +536,75 @@ const eseguiAzionePlay = () => {
 .fixed-play-fab:active {
   transform: scale(0.92) !important;
 }
+
+/* Stili per Calcolatore Dischi */
+.barbell-sleeve-line {
+  height: 6px;
+  background: #64748b;
+  width: 25px;
+  border-radius: 3px;
+  margin-right: -4px;
+}
+
+.plate-graphic-item {
+  border-radius: 3px;
+  color: white;
+  font-size: 0.65rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plate-graphic-item:hover {
+  transform: scale(1.08);
+}
+
+/* Dimensioni e colori delle piastre */
+.plate-20 {
+  width: 14px;
+  height: 72px;
+  background: linear-gradient(180deg, #1d4ed8, #1e3a8a) !important; /* Blue */
+}
+.plate-10 {
+  width: 13px;
+  height: 60px;
+  background: linear-gradient(180deg, #15803d, #14532d) !important; /* Green */
+}
+.plate-5 {
+  width: 12px;
+  height: 48px;
+  background: linear-gradient(180deg, #d1d5db, #4b5563) !important; /* White/Grey */
+  color: #111827 !important;
+  text-shadow: none !important;
+}
+.plate-2_5 {
+  width: 11px;
+  height: 38px;
+  background: linear-gradient(180deg, #374151, #111827) !important; /* Black */
+}
+.plate-1_25 {
+  width: 10px;
+  height: 30px;
+  background: linear-gradient(180deg, #9ca3af, #6b7280) !important; /* Chrome */
+}
+
+/* Indicatori di colore nel testo */
+.plate-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.plate-bg-20 { background: #1d4ed8; }
+.plate-bg-10 { background: #15803d; }
+.plate-bg-5 { background: #d1d5db; }
+.plate-bg-2_5 { background: #374151; }
+.plate-bg-1_25 { background: #9ca3af; }
 </style>
 
 <style>

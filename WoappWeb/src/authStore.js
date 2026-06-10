@@ -101,6 +101,42 @@ export const triggerPlayClick = () => {
   playClickTrigger.value++;
 };
 
+// Stato per il Calcolatore dei Dischi (Plate Calculator)
+export const mostraDialogCalcolatoreDischi = ref(false);
+export const targetPesoTotale = ref(0);
+export const targetPesoLato = ref(0);
+export const modalitaCalcolo = ref('totale'); // 'totale' o 'lato'
+export const tipoBilanciere = ref(20);
+
+export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu) => {
+  modalitaCalcolo.value = cliccatoSu || 'totale';
+
+  const parseWeight = (val) => {
+    if (val === undefined || val === null) return 0;
+    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, '').trim();
+    const num = parseFloat(clean);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const tot = parseWeight(pesoTotaleStr);
+  const lat = parseWeight(pesoLatoStr);
+
+  if (cliccatoSu === 'lato') {
+    targetPesoLato.value = lat;
+    const bar = lat * 2 > 20 ? 20 : (lat * 2 > 15 ? 15 : 0);
+    tipoBilanciere.value = bar;
+    targetPesoTotale.value = lat * 2 + bar;
+  } else {
+    targetPesoTotale.value = tot;
+    const bar = tot > 20 ? 20 : (tot > 15 ? 15 : 0);
+    tipoBilanciere.value = bar;
+    const latoCalc = (tot - bar) / 2;
+    targetPesoLato.value = latoCalc > 0 ? latoCalc : 0;
+  }
+
+  mostraDialogCalcolatoreDischi.value = true;
+};
+
 let silentAudioCtx = null;
 let silentSource = null;
 

@@ -421,7 +421,11 @@
             <v-row dense>
               <!-- Carico Totale -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
-                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
+                <div 
+                  class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  style="cursor: pointer;"
+                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'totale')"
+                >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Carico</span>
                   <span class="text-caption font-weight-black text-slate-dark text-truncate" style="font-size: 0.85rem !important;">
                     {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-super-caption text-muted" style="font-size: 0.60rem;">KG</span>
@@ -430,7 +434,11 @@
               </v-col>
               <!-- Peso per Lato (solo se presente) -->
               <v-col v-if="parsedPrescription(workout['des_week' + sett]).side" cols="3">
-                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
+                <div 
+                  class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  style="cursor: pointer;"
+                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'lato')"
+                >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Lato</span>
                   <span class="text-caption font-weight-black text-blue-lighten-2 text-truncate" style="font-size: 0.85rem !important;">
                     {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted" style="font-size: 0.60rem;">KG</span>
@@ -1553,7 +1561,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();

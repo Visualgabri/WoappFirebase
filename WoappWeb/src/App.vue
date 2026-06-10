@@ -216,10 +216,10 @@
           <div class="mb-4">
             <span class="text-caption font-weight-black text-slate-dark d-block mb-2" style="font-size: 0.75rem;">Tipo Bilanciere / Attrezzo:</span>
             <v-select
-              v-model="tipoBilanciere"
+              v-model="selectedBilanciereId"
               :items="opzioniBilanciere"
               item-title="label"
-              item-value="peso"
+              item-value="id"
               variant="outlined"
               density="comfortable"
               rounded="lg"
@@ -401,13 +401,37 @@ const eseguiAzionePlay = () => {
 
 // Calcolatore Dischi
 const opzioniBilanciere = [
-  { label: 'Bilanciere Olimpico Standard (20 kg)', peso: 20 },
-  { label: 'Bilanciere Olimpico Donna/Junior (15 kg)', peso: 15 },
-  { label: 'Bilanciere EZ o Standard (12 kg)', peso: 12 },
-  { label: 'Bilanciere Standard Leggero (10 kg)', peso: 10 },
-  { label: 'Bilanciere Super Leggero (8 kg)', peso: 8 },
-  { label: 'Manubrio / Macchina a Carrucola (0 kg)', peso: 0 }
+  { id: 'olimpico-20', label: 'Bilanciere Olimpico Standard (20 kg)', peso: 20 },
+  { id: 'olimpico-15', label: 'Bilanciere Olimpico Donna/Junior (15 kg)', peso: 15 },
+  { id: 'standard-12', label: 'Bilanciere EZ o Standard (12 kg)', peso: 12 },
+  { id: 'standard-10', label: 'Bilanciere Standard Leggero (10 kg)', peso: 10 },
+  { id: 'standard-8',  label: 'Bilanciere Super Leggero (8 kg)', peso: 8 },
+  { id: 'carrucola-0',  label: 'Manubrio / Macchina a Carrucola (0 kg)', peso: 0 },
+  { id: 'senza-0',     label: 'Senza Bilanciere (0 kg)', peso: 0 }
 ];
+
+const ultimoIdSelezionatoPesoZero = ref(localStorage.getItem('ultimoIdSelezionatoPesoZero') || 'senza-0');
+
+const selectedBilanciereId = computed({
+  get() {
+    const peso = tipoBilanciere.value;
+    if (peso === 0) {
+      return ultimoIdSelezionatoPesoZero.value;
+    }
+    const trovato = opzioniBilanciere.find(o => o.peso === peso);
+    return trovato ? trovato.id : 'olimpico-20';
+  },
+  set(id) {
+    const trovato = opzioniBilanciere.find(o => o.id === id);
+    if (trovato) {
+      if (trovato.peso === 0) {
+        ultimoIdSelezionatoPesoZero.value = id;
+        localStorage.setItem('ultimoIdSelezionatoPesoZero', id);
+      }
+      tipoBilanciere.value = trovato.peso;
+    }
+  }
+});
 
 watch(tipoBilanciere, (newBar) => {
   if (modalitaCalcolo.value === 'totale') {

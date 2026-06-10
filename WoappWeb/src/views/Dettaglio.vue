@@ -2807,7 +2807,7 @@ const getGhostLift = (sett) => {
         peso: pesoStr ? parseFloat(pesoStr) : 0,
         label: `W${targetW}`,
         isMandatory: true,
-        mandatoryLabel: `USA LO STESSO CARICO DI W${targetW}`
+        mandatoryLabel: `USA LO STESSO PESO DI W${targetW}`
       };
     }
 
@@ -2845,7 +2845,7 @@ const getGhostLift = (sett) => {
           peso: prevPeso,
           label: `W${lastLoggedWeek}`,
           isOverload: true,
-          overloadText: `AUMENTA CARICO (Meno reps rispetto a W${lastLoggedWeek})`
+          overloadText: `Aumenta peso, metti più di `
         };
       }
     }

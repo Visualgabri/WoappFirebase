@@ -12,7 +12,23 @@ export default defineConfig({
       includeAssets: ['logo.png', 'favicon.svg', 'icons.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,eot}'],
-        globIgnores: ['**/storyboard_backup.json']
+        globIgnores: ['**/storyboard_backup.json'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/visualgabri\.github\.io\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'external-gifs-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 giorni
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          }
+        ]
       },
       manifest: {
         name: 'Woapp - La Tua Scheda Palestra',

@@ -2501,39 +2501,39 @@ const handleTouchEnd = (e) => {
 
 // Carica l'esercizio ed estrai i dati
 const caricaDatiEsercizio = async () => {
+  // CACHE REATTIVA PER SWIPE
+  const cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+  if (cachedEx) {
+    workout.value = applicaModificheLocali({ ...cachedEx });
+    const keyIdCliente = Object.keys(cachedEx).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    const atletaId = cachedEx[keyIdCliente] || '';
+    if (route.query.targetWeek) {
+      settimanaAttiva.value = parseInt(route.query.targetWeek);
+    } else {
+      settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+    }
+    stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
+    modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+
+    for (let w = 1; w <= 6; w++) {
+      inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
+      inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
+    }
+    noteAttrezzo.value = workout.value.des_note_attrezzo || '';
+    noteEsercizio.value = workout.value.ins_esercizio || '';
+    commentiAtleta.value = workout.value.des_commenti || '';
+    numIns6Val.value = workout.value.num_ins6 || '';
+    numFaticaw6Val.value = workout.value.num_faticaw6 || '';
+    indRepsStartVal.value = workout.value.ind_reps_start || '';
+
+    await caricaEsercizioPrecedente();
+    indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
+    caricamento.value = false;
+    return;
+  }
+
   caricamento.value = true;
   try {
-    // CACHE REATTIVA PER SWIPE
-    const cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
-    if (cachedEx) {
-      workout.value = applicaModificheLocali({ ...cachedEx });
-      const keyIdCliente = Object.keys(cachedEx).find(k => k.includes('ID_cliente')) || 'ID_cliente';
-      const atletaId = cachedEx[keyIdCliente] || '';
-      if (route.query.targetWeek) {
-        settimanaAttiva.value = parseInt(route.query.targetWeek);
-      } else {
-        settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
-      }
-      stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
-      modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
-
-      for (let w = 1; w <= 6; w++) {
-        inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
-        inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
-      }
-      noteAttrezzo.value = workout.value.des_note_attrezzo || '';
-      noteEsercizio.value = workout.value.ins_esercizio || '';
-      commentiAtleta.value = workout.value.des_commenti || '';
-      numIns6Val.value = workout.value.num_ins6 || '';
-      numFaticaw6Val.value = workout.value.num_faticaw6 || '';
-      indRepsStartVal.value = workout.value.ind_reps_start || '';
-
-      await caricaEsercizioPrecedente();
-      indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
-      caricamento.value = false;
-      return;
-    }
-
     const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
     const docSnap = await getDoc(docRef);
 

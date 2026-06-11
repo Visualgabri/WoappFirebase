@@ -82,7 +82,18 @@
           <div class="d-flex align-center mt-1.5 text-super-caption text-muted font-weight-medium compact-header-metrics flex-wrap gap-x-2">
             <span>⏱️ Target: {{ parseDayHeader(workout.des_esercizio)?.tempoMedia || '60 min' }}</span>
             <span class="text-muted">•</span>
-            <span>⚡ Densità: {{ parseDayHeader(workout.des_esercizio)?.densitaMedia || '60' }}%</span>
+            <span class="d-inline-flex align-center gap-1">
+              <span>{{ getDensityZoneInfo(parseDayHeader(workout.des_esercizio)?.densitaMedia).emoji }} Densità: {{ parseDayHeader(workout.des_esercizio)?.densitaMedia || '60' }}%</span>
+              <v-chip 
+                :color="getDensityZoneInfo(parseDayHeader(workout.des_esercizio)?.densitaMedia).color" 
+                size="x-small" 
+                class="font-weight-black text-white px-1.5 ml-1"
+                variant="flat"
+                style="height: 14px; font-size: 0.52rem; line-height: 1;"
+              >
+                {{ getDensityZoneInfo(parseDayHeader(workout.des_esercizio)?.densitaMedia).label }}
+              </v-chip>
+            </span>
             <span class="text-muted">•</span>
             <span>🏋️ Vol: {{ parseVolumes(workout.ins_esercizio)?.totale || '20' }} serie</span>
           </div>
@@ -1019,6 +1030,36 @@ const parseVolumes = (str) => {
     };
   }
   return null;
+};
+
+// Density Focus Zone Helper
+const getDensityZoneInfo = (val) => {
+  const d = parseInt(val) || 60;
+  if (d < 20) {
+    return {
+      color: '#38bdf8', // blue
+      colorClass: 'text-light-blue',
+      emoji: '🔵',
+      label: 'Focus Forza / Neurale',
+      textClass: 'text-blue-lighten-2'
+    };
+  } else if (d <= 35) {
+    return {
+      color: '#f97316', // orange
+      colorClass: 'text-orange',
+      emoji: '🟠',
+      label: 'Focus Ipertrofia',
+      textClass: 'text-orange-lighten-1'
+    };
+  } else {
+    return {
+      color: '#ef4444', // red
+      colorClass: 'text-red',
+      emoji: '🔴',
+      label: 'Focus Metabolico / Lattacido',
+      textClass: 'text-red-lighten-1'
+    };
+  }
 };
 
 // Campi di inizio e fine

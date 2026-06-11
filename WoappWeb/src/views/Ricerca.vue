@@ -161,20 +161,18 @@
             <p class="text-caption text-muted px-4 leading-tight">Nessuna scheda trovata per questo atleta.</p>
           </div>
 
-          <!-- Griglia pulsanti quadrati premium -->
-          <div v-else class="scheda-grid">
+          <!-- Selettore schede a scorrimento orizzontale compatto -->
+          <div v-else class="scheda-scroll-container">
             <button
               v-for="scheda in listaSchede"
               :key="scheda"
-              class="scheda-grid-btn"
-              :class="{ 'scheda-grid-btn-active': schedaSelezionata === scheda }"
+              class="scheda-scroll-btn"
+              :class="{ 'scheda-scroll-btn-active': schedaSelezionata === scheda }"
               @click="gestisciSelezioneScheda(scheda)"
               :id="'btn-scheda-' + scheda"
             >
-              <div class="d-flex flex-column align-center">
-                <span class="font-weight-black" style="font-size: 1.25rem;">{{ scheda }}</span>
-                <span class="text-super-caption uppercase opacity-75 mt-0.5" style="font-size: 0.52rem; font-weight: 700;">Scheda</span>
-              </div>
+              <span class="scheda-num">{{ scheda }}</span>
+              <span class="scheda-lbl">SCHEDA</span>
             </button>
           </div>
         </div>
@@ -212,20 +210,40 @@
             <div 
               v-for="g in giorniPreview" 
               :key="g.giorno" 
-              class="preview-day-card d-flex align-center pa-3 mb-3 rounded-xl border-soft bg-slate-900-op"
+              class="preview-day-card pa-3 mb-2.5 rounded-xl border-soft bg-slate-900-op position-relative overflow-hidden"
             >
-              <div class="day-letter-badge mr-3">{{ g.giorno }}</div>
-              <div class="flex-grow-1 min-width-0">
-                <h4 class="text-body-2 font-weight-black text-slate-dark text-truncate leading-tight">
-                  Focus: {{ getFocusGiorno(g.exercises) }}
-                </h4>
-                <span class="text-super-caption text-muted font-weight-bold uppercase" style="font-size: 0.6rem;">
-                  {{ g.exercises.length }} esercizi configurati
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center min-width-0">
+                  <div class="day-letter-badge mr-2 flex-shrink-0">{{ g.giorno }}</div>
+                  <div class="min-width-0 text-left">
+                    <h4 class="text-body-2 font-weight-black text-slate-dark text-truncate leading-tight" style="font-size: 0.82rem !important;">
+                      Focus: {{ getFocusGiorno(g.exercises) }}
+                    </h4>
+                  </div>
+                </div>
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black px-2 flex-shrink-0" style="height: 16px; font-size: 0.55rem;">
+                  Giorno {{ g.giorno }}
+                </v-chip>
+              </div>
+
+              <!-- Griglia di Metriche Ultra Compatta -->
+              <div class="d-flex flex-wrap gap-1.5 mt-1.5">
+                <span class="preview-mini-pill">
+                  🏋️ <span class="lbl">Ex:</span> <strong>{{ g.exercises.length }}</strong>
+                </span>
+                <span v-if="parseVolumes(g.ins_esercizio)" class="preview-mini-pill">
+                  📊 <span class="lbl">Vol:</span> <strong>{{ parseVolumes(g.ins_esercizio).totale }}s</strong>
+                </span>
+                <span v-if="parseDayHeader(g.titolo)" class="preview-mini-pill">
+                  ⏱️ <span class="lbl">Target:</span> <strong>{{ parseDayHeader(g.titolo).tempoMedia }}</strong>
+                </span>
+                <span v-if="parseDayHeader(g.titolo)" class="preview-mini-pill">
+                  ⚡ <span class="lbl">Dens:</span> <strong>{{ parseDayHeader(g.titolo).densitaMedia }}%</strong>
+                </span>
+                <span v-if="parseDayHeader(g.titolo)" class="preview-mini-pill">
+                  🔥 <span class="lbl">Kcal:</span> <strong>{{ parseDayHeader(g.titolo).calorie }}</strong>
                 </span>
               </div>
-              <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black">
-                Giorno {{ g.giorno }}
-              </v-chip>
             </div>
           </div>
 
@@ -329,13 +347,14 @@ const giorniPreview = computed(() => {
     const rigaGiorno = parseInt(ex.num_riga_giorno) || 0;
     if (rigaGiorno === 0) {
       if (!giorniMap[giorno]) {
-        giorniMap[giorno] = { giorno, titolo: ex.des_esercizio, exercises: [] };
+        giorniMap[giorno] = { giorno, titolo: ex.des_esercizio, ins_esercizio: ex.ins_esercizio, exercises: [] };
       } else {
         giorniMap[giorno].titolo = ex.des_esercizio;
+        giorniMap[giorno].ins_esercizio = ex.ins_esercizio;
       }
     } else {
       if (!giorniMap[giorno]) {
-        giorniMap[giorno] = { giorno, titolo: `Allenamento Giorno ${giorno}`, exercises: [] };
+        giorniMap[giorno] = { giorno, titolo: `Allenamento Giorno ${giorno}`, ins_esercizio: '', exercises: [] };
       }
       giorniMap[giorno].exercises.push(ex);
     }
@@ -594,6 +613,83 @@ const navigaAiWorkouts = () => {
   vibraTattile(15);
   router.push('/');
 };
+
+// Intestazione & Volume Parser
+const parseDayHeader = (str) => {
+  if (!str) return null;
+  const cleanStr = str.trim();
+  const regex = /WO\s+([A-D])\s*\[\s*([^%]+?)\s+(\d+)\s*%\s*\/\s*([^%]+?)\s+(\d+)\s*%\s*\]\s*K:\s*(\d+)/i;
+  const match = cleanStr.match(regex);
+  if (match) {
+    const giorno = match[1];
+    const t1 = match[2];
+    const d1 = parseInt(match[3]);
+    const t2 = match[4];
+    const d2 = parseInt(match[5]);
+    const calorie = parseInt(match[6]);
+    
+    const parseTimeToMins = (tStr) => {
+      if (!tStr) return 0;
+      const clean = tStr.toLowerCase().replace('min', '').replace('m', '').trim();
+      if (clean.includes(':')) {
+        const parts = clean.split(':');
+        if (parts.length === 2) {
+          return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+        }
+      }
+      return parseInt(clean, 10) || 0;
+    };
+    
+    const formatMinsToTime = (totalMins) => {
+      const hours = Math.floor(totalMins / 60);
+      const mins = Math.round(totalMins % 60);
+      if (hours > 0) {
+        return `${hours}:${String(mins).padStart(2, '0')}`;
+      }
+      return `${mins} min`;
+    };
+    
+    const m1 = parseTimeToMins(t1);
+    const m2 = parseTimeToMins(t2);
+    const mediaMins = Math.round((m1 + m2) / 2);
+    const tempoMedia = formatMinsToTime(mediaMins);
+    
+    const densitaMedia = Math.round((d1 + d2) / 2);
+    
+    return {
+      giorno,
+      tempo1: t1.trim(),
+      densita1: d1,
+      tempo2: t2.trim(),
+      densita2: d2,
+      tempoMedia,
+      densitaMedia,
+      calorie
+    };
+  }
+  return null;
+};
+
+const parseVolumes = (str) => {
+  if (!str) return null;
+  const cleanStr = str.trim();
+  const regex = /VOL:\s*([\d,.]+)\s+A:\s*([\d,.]+)\s+B:\s*([\d,.]+)(?:\s+C:\s*([\d,.]+))?/i;
+  const match = cleanStr.match(regex);
+  if (match) {
+    const cleanFloat = (valStr) => {
+      if (!valStr) return 0;
+      const clean = valStr.replace(',', '.');
+      return parseFloat(clean) || 0;
+    };
+    return {
+      totale: cleanFloat(match[1]),
+      alta: cleanFloat(match[2]),
+      bassa: cleanFloat(match[3]),
+      centrale: match[4] ? cleanFloat(match[4]) : 0
+    };
+  }
+  return null;
+};
 </script>
 
 <style scoped>
@@ -716,43 +812,83 @@ const navigaAiWorkouts = () => {
   border-radius: inherit;
 }
 
-/* Griglia pulsanti scheda */
-.scheda-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  gap: 12px;
-  justify-content: center;
+/* Selettore schede a scorrimento orizzontale compatto */
+.scheda-scroll-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px 2px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
-
-.scheda-grid-btn {
+.scheda-scroll-container::-webkit-scrollbar {
+  height: 4px;
+}
+.scheda-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.3);
+  border-radius: 4px;
+}
+.scheda-scroll-btn {
+  flex: 0 0 auto;
+  width: 58px;
+  height: 52px;
   background: rgba(30, 41, 59, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.06);
   color: #cbd5e1;
   font-weight: 800;
-  height: 60px;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
-
-.scheda-grid-btn:hover {
+.scheda-scroll-btn:hover {
   border-color: rgba(249, 115, 22, 0.4);
   background: rgba(249, 115, 22, 0.05);
 }
-
-.scheda-grid-btn:active {
+.scheda-scroll-btn:active {
   transform: scale(0.95);
 }
-
-.scheda-grid-btn-active {
+.scheda-scroll-btn-active {
   background: linear-gradient(135deg, #ea580c, #f97316) !important;
   border-color: #f97316 !important;
   color: white !important;
-  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4) !important;
-  transform: scale(1.04);
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35) !important;
+}
+.scheda-num {
+  font-size: 1.15rem;
+  line-height: 1.1;
+  font-weight: 900;
+}
+.scheda-lbl {
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* Micro pillole per l'anteprima Step 3 */
+.preview-mini-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  gap: 3px;
+  white-space: nowrap;
+}
+.preview-mini-pill .lbl {
+  color: #94a3b8;
+  font-weight: 500;
+}
+.preview-mini-pill strong {
+  color: #f8fafc;
 }
 
 /* Anteprime dei giorni */

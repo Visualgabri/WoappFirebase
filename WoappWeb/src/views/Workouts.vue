@@ -556,27 +556,57 @@
               </div>
             </div>
 
-            <!-- Griglia dei Tempi e Densità con Medie -->
+            <!-- Griglia dei Tempi e Densità con Medie (Dinamica & Focus Zone) -->
             <v-row dense class="mb-3 text-center">
               <v-col cols="4">
-                <div class="prescription-chip-box px-2 py-1.5 rounded-lg">
+                <div 
+                  class="prescription-chip-box px-2 py-1.5 rounded-lg"
+                  :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita1)"
+                >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 1</span>
-                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ parseDayHeader(headerGiorno.des_esercizio).tempo1 }}</span>
-                  <span class="text-super-caption text-orange-lighten-1 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita1 }}%</span>
+                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ getDinamicoTempo(headerGiorno, 1) }}</span>
+                  <div class="mt-1 d-flex flex-column align-center justify-center">
+                    <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).textClass" style="font-size: 0.62rem; line-height: 1;">
+                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).emoji }} Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita1 }}%
+                    </span>
+                    <span class="text-super-caption font-weight-black uppercase mt-1 text-center" :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).color, fontSize: '0.45rem', letterSpacing: '0.01em', lineHeight: 1.1 }">
+                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).label }}
+                    </span>
+                  </div>
                 </div>
               </v-col>
               <v-col cols="4">
-                <div class="prescription-chip-box px-2 py-1.5 rounded-lg border-orange-darken-3-op bg-orange-darken-3-op">
+                <div 
+                  class="prescription-chip-box px-2 py-1.5 rounded-lg"
+                  :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densitaMedia)"
+                >
                   <span class="text-super-caption text-orange-darken-3 uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Media</span>
-                  <span class="text-body-2 font-weight-black text-orange-darken-3 d-block mb-0.5">⏱️ {{ parseDayHeader(headerGiorno.des_esercizio).tempoMedia }}</span>
-                  <span class="text-super-caption text-orange-darken-3 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%</span>
+                  <span class="text-body-2 font-weight-black text-orange-darken-3 d-block mb-0.5">⏱️ {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
+                  <div class="mt-1 d-flex flex-column align-center justify-center">
+                    <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).textClass" style="font-size: 0.62rem; line-height: 1;">
+                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }} Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
+                    </span>
+                    <span class="text-super-caption font-weight-black uppercase mt-1 text-center" :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).color, fontSize: '0.45rem', letterSpacing: '0.01em', lineHeight: 1.1 }">
+                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label }}
+                    </span>
+                  </div>
                 </div>
               </v-col>
               <v-col cols="4">
-                <div class="prescription-chip-box px-2 py-1.5 rounded-lg">
+                <div 
+                  class="prescription-chip-box px-2 py-1.5 rounded-lg"
+                  :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita2)"
+                >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 6</span>
-                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ parseDayHeader(headerGiorno.des_esercizio).tempo2 }}</span>
-                  <span class="text-super-caption text-orange-lighten-1 font-weight-black" style="font-size: 0.65rem;">Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita2 }}%</span>
+                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ getDinamicoTempo(headerGiorno, 6) }}</span>
+                  <div class="mt-1 d-flex flex-column align-center justify-center">
+                    <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).textClass" style="font-size: 0.62rem; line-height: 1;">
+                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).emoji }} Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita2 }}%
+                    </span>
+                    <span class="text-super-caption font-weight-black uppercase mt-1 text-center" :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).color, fontSize: '0.45rem', letterSpacing: '0.01em', lineHeight: 1.1 }">
+                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).label }}
+                    </span>
+                  </div>
                 </div>
               </v-col>
             </v-row>
@@ -798,9 +828,9 @@
 
           <!-- Progress Bar Session Energy (unificata visivamente) -->
           <div class="mt-3 pt-2.5 border-top-soft text-left" @click.stop>
-            <div class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-grey-lighten-1 mb-1.5" style="font-size: 0.62rem; letter-spacing: 0.05em;">
-              <span>🔋 Avanzamento Allenamento</span>
-              <span class="text-orange-lighten-2">{{ progressoSessione.completate }} di {{ progressoSessione.totali }} esercizi completati • {{ progressoSessione.percentuale }}%</span>
+            <div class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-grey-lighten-1 mb-1.5" style="font-size: 0.6rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <span>🔋 Avanzamento</span>
+              <span class="text-orange-lighten-2">{{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%</span>
             </div>
             <div class="session-progress-bar-container rounded-full overflow-hidden" style="height: 5px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.03);">
               <div
@@ -1632,6 +1662,120 @@ const parseVolumes = (str) => {
     };
   }
   return null;
+};
+
+// Data, Durata e Densità Helpers
+const parseCustomDate = (dateStr) => {
+  if (!dateStr) return null;
+  if (dateStr.includes('T') || dateStr.includes('-')) {
+    const d = new Date(dateStr);
+    if (!isNaN(d)) return d;
+  }
+  const match = dateStr.trim().match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const year = parseInt(match[3], 10);
+    const hour = parseInt(match[4], 10);
+    const minute = parseInt(match[5], 10);
+    const second = match[6] ? parseInt(match[6], 10) : 0;
+    const d = new Date(year, month, day, hour, minute, second);
+    if (!isNaN(d)) return d;
+  }
+  const dFallback = new Date(dateStr);
+  return isNaN(dFallback) ? null : dFallback;
+};
+
+const getDurataMinuti = (start, end) => {
+  if (!start || !end) return 0;
+  const startDate = parseCustomDate(start);
+  const endDate = parseCustomDate(end);
+  if (!startDate || !endDate) return 0;
+  const diffMs = endDate - startDate;
+  return diffMs > 0 ? Math.floor(diffMs / (1000 * 60)) : 0;
+};
+
+const getDinamicoTempo = (header, type) => {
+  if (!header) return '';
+  const parsed = parseDayHeader(header.des_esercizio);
+  if (!parsed) return '';
+  
+  if (type === 1) {
+    const start = header.start_wo;
+    const end = header.end_wo;
+    const mins = getDurataMinuti(start, end);
+    return mins > 0 ? `${mins} min` : parsed.tempo1;
+  } else if (type === 6) {
+    const start = header.start6_wo;
+    const end = header.end6_wo;
+    const mins = getDurataMinuti(start, end);
+    return mins > 0 ? `${mins} min` : parsed.tempo2;
+  } else if (type === 'media') {
+    let sum = 0;
+    let count = 0;
+    
+    // Check week 1
+    const w1Mins = getDurataMinuti(header.start_wo, header.end_wo);
+    if (w1Mins > 0) { sum += w1Mins; count++; }
+    
+    // Check weeks 2 to 6
+    for (let w = 2; w <= 6; w++) {
+      const startKey = `start${w}_wo`;
+      const endKey = `end${w}_wo`;
+      const start = header[startKey];
+      const end = header[endKey];
+      const mins = getDurataMinuti(start, end);
+      if (mins > 0) {
+        sum += mins;
+        count++;
+      }
+    }
+    
+    if (count > 0) {
+      return `${Math.round(sum / count)} min`;
+    }
+    return parsed.tempoMedia;
+  }
+  return '';
+};
+
+const getDensityZoneInfo = (val) => {
+  const d = parseInt(val) || 0;
+  if (d < 20) {
+    return {
+      color: '#38bdf8', // blue
+      colorClass: 'text-light-blue',
+      emoji: '🔵',
+      label: 'Focus Forza / Neurale',
+      textClass: 'text-blue-lighten-2'
+    };
+  } else if (d <= 35) {
+    return {
+      color: '#f97316', // orange
+      colorClass: 'text-orange',
+      emoji: '🟠',
+      label: 'Focus Ipertrofia',
+      textClass: 'text-orange-lighten-1'
+    };
+  } else {
+    return {
+      color: '#ef4444', // red
+      colorClass: 'text-red',
+      emoji: '🔴',
+      label: 'Focus Metabolico / Lattacido',
+      textClass: 'text-red-lighten-1'
+    };
+  }
+};
+
+const getDensityBoxStyle = (val) => {
+  const zone = getDensityZoneInfo(val);
+  const percent = Math.min(Math.max(parseInt(val) || 0, 0), 100);
+  return {
+    background: `linear-gradient(90deg, ${zone.color}25 0%, ${zone.color}25 ${percent}%, rgba(30, 41, 59, 0.35) ${percent}%, rgba(30, 41, 59, 0.35) 100%)`,
+    border: `1.5px solid ${zone.color}50`,
+    transition: 'all 0.3s ease'
+  };
 };
 
 // Funzione per rimappare gli URL delle GIF dal dominio scaduto o vecchio a GitHub Pages con cartelle corrette
@@ -3406,7 +3550,7 @@ const recuperiRaggruppati = computed(() => {
   background: rgba(30, 41, 59, 0.4) !important;
 }
 .prescription-chip-box {
-  background: rgba(30, 41, 59, 0.35) !important;
+  background: rgba(30, 41, 59, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 .text-super-caption {

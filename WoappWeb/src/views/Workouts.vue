@@ -1704,6 +1704,46 @@
             </div>
           </div>
 
+          <div class="mb-5">
+            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-2">📐 Densità del Layout Dettaglio</span>
+            <v-btn-toggle
+              v-model="layoutDettaglio"
+              mandatory
+              selected-class="bg-orange-darken-3 text-white"
+              density="comfortable"
+              rounded="xl"
+              class="w-100 card-glass border mb-2"
+              style="height: 38px;"
+            >
+              <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+                Auto
+              </v-btn>
+              <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+                Super Comp
+              </v-btn>
+              <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+                Compatto
+              </v-btn>
+              <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+                Standard
+              </v-btn>
+            </v-btn-toggle>
+            <div class="text-super-caption text-muted font-italic leading-tight">
+              <template v-if="layoutDettaglio === 'auto'">
+                * Auto: Segue la modalità scelta per la lista principale ({{ layoutEsercizi }}).
+              </template>
+              <template v-else-if="layoutDettaglio === 'super_compatto'">
+                * Super Compatto: Nasconde la GIF e riduce al minimo gli spazi/scritte nel dettaglio.
+              </template>
+              <template v-else-if="layoutDettaglio === 'compatto'">
+                * Compatto: Riduce la dimensione della GIF e ottimizza gli spazi e le scritte.
+              </template>
+              <template v-else>
+                * Standard: Layout esteso classico con GIF completa e spaziature originali.
+              </template>
+            </div>
+          </div>
+
           <v-divider class="mb-4" style="border-color: rgba(255,255,255,0.06) !important;"></v-divider>
 
           <!-- Sezione 2: Parametri Fissi -->
@@ -1815,7 +1855,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2326,6 +2366,7 @@ const giornoSelezionato = ref('A');
 // Stato Impostazioni e Personalizzazione (Salvate in LocalStorage)
 const dialogImpostazioni = ref(false);
 const layoutEsercizi = layoutEserciziGlobal;
+const layoutDettaglio = layoutDettaglioGlobal;
 const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
 const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
 const avvioAutoTimer = ref(localStorage.getItem('woapp_avvio_auto_timer') === 'true');
@@ -2334,6 +2375,9 @@ const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_r
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {
   localStorage.setItem('woapp_layout_esercizi', newVal);
+});
+watch(layoutDettaglio, (newVal) => {
+  localStorage.setItem('woapp_layout_dettaglio', newVal);
 });
 watch(defaultBilanciere, (newVal) => {
   localStorage.setItem('woapp_default_bilanciere', String(newVal));

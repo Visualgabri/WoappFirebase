@@ -3,7 +3,7 @@
     <!-- Header Sticky Wrapper -->
     <div class="sticky-detail-header">
       <!-- Barra Superiore con pulsante indietro stile AppSheet -->
-      <div class="d-flex align-center justify-space-between mb-3 appsheet-top-bar">
+      <div class="d-flex align-center justify-space-between appsheet-top-bar" :class="layoutCorrente === 'super_compatto' ? 'mb-1.5' : (layoutCorrente === 'compatto' ? 'mb-2' : 'mb-3')">
         <v-btn
           icon
           color="orange-darken-3"
@@ -11,7 +11,7 @@
           @click="tornaIndietro"
           id="btn-dettaglio-indietro"
         >
-          <v-icon size="28">mdi-arrow-left</v-icon>
+          <v-icon :size="layoutCorrente === 'super_compatto' ? 22 : (layoutCorrente === 'compatto' ? 24 : 28)">mdi-arrow-left</v-icon>
         </v-btn>
         <div class="d-flex align-center justify-center flex-grow-1 px-2 text-truncate" style="gap: 8px;">
           <v-chip
@@ -24,7 +24,7 @@
           >
             {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
           </v-chip>
-<h3 class="text-subtitle-1 font-weight-black text-slate-dark text-truncate mb-0" style="white-space: normal; word-break: break-word;">
+<h3 class="font-weight-black text-slate-dark text-truncate mb-0" :class="layoutCorrente === 'super_compatto' ? 'text-body-2' : (layoutCorrente === 'compatto' ? 'text-body-1' : 'text-subtitle-1')" style="white-space: normal; word-break: break-word;">
   <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
 </h3>
         </div>
@@ -34,12 +34,13 @@
       <!-- Avviso Scheda Passata (Modalità Storico) -->
       <v-card
         v-if="isSchedaPassata"
-        class="py-2 px-3 mb-3 text-left border d-flex align-start card-glass"
+        class="text-left border d-flex align-start card-glass"
+        :class="layoutCorrente === 'super_compatto' ? 'py-1 px-2 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-1.5 px-2.5 mb-2' : 'py-2 px-3 mb-3')"
         style="background: rgba(239, 68, 68, 0.08) !important; border: 1.5px solid rgba(239, 68, 68, 0.3) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1); border-radius: 10px !important;"
       >
         <v-icon color="red-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-history</v-icon>
-        <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.35;">
-          <strong class="text-red-lighten-2 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Modalità Storico</strong><br>
+        <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem', lineSpace: 1.35 }">
+          <strong class="text-red-lighten-2 text-uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Modalità Storico</strong><br>
           Stai guardando l'esercizio della <strong class="text-white">Scheda {{ workout.num_scheda }}</strong>. Le modifiche qui alterano il passato.
         </div>
       </v-card>
@@ -47,11 +48,12 @@
       <!-- Avviso Giorno Completato -->
       <v-card
         v-if="workout && isWeekCompleted(settimanaAttiva) && !isSchedaPassata"
-        class="py-2.5 px-4 mb-3 text-left border d-flex align-center card-glass"
+        class="text-left border d-flex align-center card-glass"
+        :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5 mb-2' : 'py-2.5 px-4 mb-3')"
         style="background: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid rgba(16, 185, 129, 0.25) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05); border-radius: 12px !important;"
       >
-        <v-icon color="green-lighten-2" class="mr-3 flex-shrink-0" size="20">mdi-check-circle-outline</v-icon>
-        <div class="text-slate-dark" style="font-size: 0.75rem; line-height: 1.45;">
+        <v-icon color="green-lighten-2" class="mr-3 flex-shrink-0" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-check-circle-outline</v-icon>
+        <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineSpace: 1.45 }">
           <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>.
         </div>
       </v-card>
@@ -76,7 +78,13 @@
     <div v-else class="exercise-detail-area">
 
       <!-- 1. Grande GIF dell'Esercizio in alto -->
-      <v-card class="image-premium-frame rounded-xl overflow-hidden mb-3 elevation-2 bg-black mx-auto" max-width="280" height="150">
+      <v-card 
+        v-if="layoutCorrente !== 'super_compatto'"
+        class="image-premium-frame rounded-xl overflow-hidden elevation-2 bg-black mx-auto" 
+        :class="layoutCorrente === 'compatto' ? 'mb-2' : 'mb-3'"
+        :max-width="layoutCorrente === 'compatto' ? 200 : 280" 
+        :height="layoutCorrente === 'compatto' ? 100 : 150"
+      >
         <v-img
           :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
           contain
@@ -96,15 +104,15 @@
       <!-- 2. Intestazione Principale con Massimale / RMT -->
       <div class="mb-2 text-left">
         <h2 
-          class="text-h6 font-weight-black leading-tight mb-1" 
+          class="font-weight-black leading-tight mb-1" 
           :class="(previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'"
-          style="font-size: 1.1rem; line-height: 1.2; white-space: normal; word-break: break-word;"
+          :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.92rem' : (layoutCorrente === 'compatto' ? '1.0rem' : '1.1rem'), lineHeight: 1.2, whiteSpace: 'normal', wordBreak: 'break-word' }"
         >
           <v-icon 
             v-if="parsedRmt(workout.des_esercizio_2)" 
             :color="getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).color" 
             class="mr-1 mb-0.5" 
-            size="18"
+            :size="layoutCorrente === 'super_compatto' ? 14 : 18"
             style="display: inline-block; vertical-align: middle;"
           >
             {{ getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).icon }}
@@ -113,16 +121,20 @@
         </h2>
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
-        <div v-if="parsedRmt(workout.des_esercizio_2)" class="rmt-premium-card mt-3 pa-3 rounded-xl card-glass border-orange-darken-3-op">
+        <div 
+          v-if="parsedRmt(workout.des_esercizio_2)" 
+          class="rmt-premium-card rounded-xl card-glass border-orange-darken-3-op"
+          :class="layoutCorrente === 'super_compatto' ? 'mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'mt-2 pa-2.5' : 'mt-3 pa-3')"
+        >
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="d-flex align-center gap-1.5 flex-wrap">
-              <span class="text-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.65rem;">Livello Forza:</span>
+            <div class="d-flex align-center gap-1 flex-wrap">
+              <span class="text-caption text-muted font-weight-black uppercase mr-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Livello Forza:</span>
               <div class="d-flex align-center gap-0.5">
                 <v-icon
                   v-for="i in parsedRmt(workout.des_esercizio_2).stelle"
                   :key="i"
                   color="amber-darken-2"
-                  size="16"
+                  :size="layoutCorrente === 'super_compatto' ? 12 : (layoutCorrente === 'compatto' ? 14 : 16)"
                 >
                   mdi-star
                 </v-icon>
@@ -130,71 +142,72 @@
               <v-chip
                 :color="parsedRmt(workout.des_esercizio_2).livelloColore"
                 size="x-small"
-                class="font-weight-black uppercase text-super-caption px-2 py-0.5 ml-1.5 elevation-1"
+                class="font-weight-black uppercase text-super-caption px-1.5 py-0.5 ml-1 elevation-1"
                 variant="flat"
-                style="letter-spacing: 0.05em;"
+                style="letter-spacing: 0.05em; height: 16px; font-size: 0.52rem;"
               >
                 {{ parsedRmt(workout.des_esercizio_2).livelloTesto }}
               </v-chip>
             </div>
             <div class="d-flex align-center gap-2">
-              <span v-if="parsedRmt(workout.des_esercizio_2).variazione" class="text-super-caption font-weight-black px-1.5 py-0.5 rounded-lg d-flex align-center animate-pulse" :style="{ backgroundColor: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)', color: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '#f87171' : '#34d399', fontSize: '0.62rem', border: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)' }">
+              <span v-if="parsedRmt(workout.des_esercizio_2).variazione" class="text-super-caption font-weight-black px-1 py-0.5 rounded d-flex align-center animate-pulse" :style="{ backgroundColor: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)', color: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '#f87171' : '#34d399', fontSize: '0.55rem', border: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)' }">
                 {{ parsedRmt(workout.des_esercizio_2).variazione }}
               </span>
-              <span class="text-super-caption text-muted font-weight-bold">
-                Aggiornato il {{ parsedRmt(workout.des_esercizio_2).data }}
+              <span class="text-super-caption text-muted font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
+                {{ parsedRmt(workout.des_esercizio_2).data }}
               </span>
             </div>
           </div>
-
+ 
           <v-row dense class="align-center">
             <v-col cols="6" class="border-right-soft">
               <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block">Massimale Teorico (1RMT)</span>
-                <span class="text-h6 font-weight-black text-orange-darken-3">
-                  {{ parsedRmt(workout.des_esercizio_2).massimale }} <span class="text-caption text-muted">KG</span>
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">1RMT</span>
+                <span class="font-weight-black text-orange-darken-3" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                  {{ parsedRmt(workout.des_esercizio_2).massimale }} <span class="text-super-caption text-muted">KG</span>
                 </span>
               </div>
             </v-col>
             <v-col cols="6">
               <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block">Target Prossimo Livello</span>
-                <span class="text-h6 font-weight-black text-slate-dark">
-                  ~{{ parsedRmt(workout.des_esercizio_2).prossimoLivello }} <span class="text-caption text-muted">KG</span>
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Target Prossimo</span>
+                <span class="font-weight-black text-slate-dark" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                  ~{{ parsedRmt(workout.des_esercizio_2).prossimoLivello }} <span class="text-super-caption text-muted">KG</span>
                 </span>
               </div>
             </v-col>
           </v-row>
-
+ 
           <!-- RPG Level-up Progress Bar -->
-          <div class="mt-3 px-1 border-top-soft pt-2">
+          <div v-if="layoutCorrente !== 'super_compatto'" class="mt-2.5 px-1 border-top-soft pt-2">
             <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Progresso Prossima Stella</span>
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Progresso Stella</span>
               <span class="text-super-caption text-amber-darken-2 font-weight-black" style="font-size: 0.6rem;">
-                {{ getRmtProgress(parsedRmt(workout.des_esercizio_2)) }}% completato
+                {{ getRmtProgress(parsedRmt(workout.des_esercizio_2)) }}%
               </span>
             </div>
             <v-progress-linear
               :model-value="getRmtProgress(parsedRmt(workout.des_esercizio_2))"
               color="amber-darken-2"
-              height="5"
+              height="4"
               rounded
               striped
               active
               class="elevation-1"
             ></v-progress-linear>
-            <span class="text-super-caption text-muted font-weight-bold d-block mt-1 text-right" style="font-size: 0.58rem;">
-              Carica ancora <span class="text-amber-lighten-2 font-weight-black">~{{ parsedRmt(workout.des_esercizio_2).prossimoLivello }} KG</span> per salire di livello!
-            </span>
           </div>
         </div>
-
+ 
         <!-- Alternativo se des_esercizio_2 è una stringa Volume speciale -->
-        <div v-else-if="isVolumeString(workout.des_esercizio_2)" class="mt-3 pa-3 rounded-xl card-glass border-soft">
-          <div class="text-super-caption text-muted font-weight-black uppercase mb-2" style="font-size: 0.65rem;">
-            📊 Distribuzione Volumi Allenamento
+        <div 
+          v-else-if="isVolumeString(workout.des_esercizio_2)" 
+          class="rounded-xl card-glass border-soft"
+          :class="layoutCorrente === 'super_compatto' ? 'mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'mt-2 pa-2.5' : 'mt-3 pa-3')"
+        >
+          <div class="text-super-caption text-muted font-weight-black uppercase mb-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">
+            📊 Volumi Allenamento
           </div>
-          <div class="d-flex align-center flex-wrap gap-1.5">
+          <div class="d-flex align-center flex-wrap" :class="layoutCorrente === 'super_compatto' ? 'gap-1' : 'gap-1.5'">
             <span class="vol-pill vol-pill-total" title="Volume Globale (V)">
               <span class="mr-1">📊</span>
               <span class="vol-label">Vol</span>
@@ -219,7 +232,7 @@
         </div>
 
         <!-- Rigo Dettaglio Rapido -->
-        <div class="text-caption font-weight-bold text-slate mt-1 d-flex align-center flex-wrap gap-1.5">
+        <div :class="[layoutCorrente === 'super_compatto' ? 'mt-0.5 gap-1' : (layoutCorrente === 'compatto' ? 'mt-1 gap-1.25' : 'mt-1 gap-1.5'), 'text-caption font-weight-bold text-slate d-flex align-center flex-wrap']">
           <!-- 1. Settore Muscolare (Clickable) -->
           <v-chip
             color="orange-darken-3"
@@ -252,7 +265,7 @@
             v-if="workout.des_rec_report"
             color="orange-darken-3"
             variant="flat"
-            size="small"
+            :size="layoutCorrente === 'super_compatto' ? 'x-small' : (layoutCorrente === 'compatto' ? 'x-small' : 'small')"
             class="font-weight-black clickable-timer-chip recovery-standout-chip px-3 py-1.5"
             prepend-icon="mdi-clock-outline"
             @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
@@ -301,7 +314,7 @@
         </v-expand-transition>
 
         <!-- Action Row (Precedente, Elimina, Storico, WhatsApp) -->
-        <div class="d-flex align-center justify-space-between mt-2 mb-1 px-1 border-top-soft pt-2 gap-2 flex-wrap">
+        <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5 pt-1' : 'mt-2 mb-1 pt-2', 'd-flex align-center justify-space-between px-1 border-top-soft gap-2 flex-wrap']">
           <div class="d-flex align-center gap-2">
             <!-- Tasto PRECEDENTE -->
             <v-btn
@@ -310,9 +323,9 @@
               variant="text"
               color="orange-darken-3"
               class="font-weight-black text-none px-2"
-              size="small"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="dialogProgressioniPrecedente = true"
-              style="font-size: 0.72rem; letter-spacing: 0.05em;"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem', letterSpacing: '0.05em' }"
             >
               PRECEDENTE
             </v-btn>
@@ -324,9 +337,9 @@
               variant="text"
               color="red-lighten-2"
               class="font-weight-black text-none px-2"
-              size="small"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="dialogElimina = true"
-              style="font-size: 0.72rem; letter-spacing: 0.05em;"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem', letterSpacing: '0.05em' }"
             >
               ELIMINA
             </v-btn>
@@ -338,11 +351,11 @@
               icon
               variant="text"
               color="orange-darken-3"
-              size="small"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="apriStoricoEsercizio"
               title="Storico Esercizio"
             >
-              <v-icon size="22">mdi-history</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 22">mdi-history</v-icon>
             </v-btn>
 
             <!-- Tasto Aereo (WhatsApp) -->
@@ -350,25 +363,25 @@
               icon
               variant="text"
               color="orange-darken-3"
-              size="small"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="inviaVideoWhatsApp"
               title="Invia Video al Coach"
             >
-              <v-icon size="20">mdi-send</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-send</v-icon>
             </v-btn>
           </div>
         </div>
       </div>
 
       <!-- Barra Laterale Superset (Opzione B) -->
-      <div v-if="workout.alf_superserie" class="mb-4 mt-1">
+      <div v-if="workout.alf_superserie" :class="layoutCorrente === 'super_compatto' ? 'mb-2 mt-0.5' : (layoutCorrente === 'compatto' ? 'mb-3 mt-1' : 'mb-4 mt-1')">
         <div class="text-left border-left-orange pl-3 position-relative">
           <div class="d-flex align-center mb-1">
-            <span class="text-super-caption font-weight-black text-orange-darken-3 mr-2" style="font-size: 0.6rem;">⚡ SUPERSET {{ workout.alf_superserie }}</span>
+            <span class="text-super-caption font-weight-black text-orange-darken-3 mr-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem' }">⚡ SUPERSET {{ workout.alf_superserie }}</span>
             <span 
               class="text-super-caption font-weight-black uppercase" 
               :class="workout.des_rec_report ? 'text-amber-lighten-2' : 'text-green-accent-3'"
-              style="font-size: 0.58rem; letter-spacing: 0.05em;"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem', letterSpacing: '0.05em' }"
             >
               {{ workout.des_rec_report ? 'Recupera' : 'Vola al prossimo' }}
             </span>
@@ -381,17 +394,17 @@
             @click="vaiAdEsercizioCollegato(connEx.id)"
             style="cursor: pointer;"
           >
-            <div class="rounded overflow-hidden mr-2 bg-black border-soft" style="width: 32px; height: 32px; flex-shrink: 0;">
-              <v-img :src="getGifUrl(connEx.UrlNormal)" width="32" height="32" cover></v-img>
+            <div class="rounded overflow-hidden mr-2 bg-black border-soft" :style="{ width: layoutCorrente === 'super_compatto' ? '24px' : '32px', height: layoutCorrente === 'super_compatto' ? '24px' : '32px', flexShrink: 0 }">
+              <v-img :src="getGifUrl(connEx.UrlNormal)" :width="layoutCorrente === 'super_compatto' ? 24 : 32" :height="layoutCorrente === 'super_compatto' ? 24 : 32" cover></v-img>
             </div>
             <div class="flex-grow-1 text-truncate">
-              <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.75rem !important;">{{ connEx.des_esercizio }}</div>
-              <div class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.55rem;">{{ formatPrescrizioneSuperset(connEx) }}</div>
+              <div class="text-caption font-weight-black text-white text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem !important' : '0.75rem !important' }">{{ connEx.des_esercizio }}</div>
+              <div class="text-super-caption text-orange-lighten-2 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem' }">{{ formatPrescrizioneSuperset(connEx) }}</div>
             </div>
-            <v-icon size="16" color="green-accent-3" class="ml-1">mdi-arrow-right-circle</v-icon>
+            <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16" color="green-accent-3" class="ml-1">mdi-arrow-right-circle</v-icon>
           </div>
           
-          <div v-if="eserciziSupersetCollegati.length > 1" class="text-super-caption text-muted mt-1 font-weight-bold" style="font-size: 0.52rem; letter-spacing: 0.05em;">
+          <div v-if="eserciziSupersetCollegati.length > 1" class="text-super-caption text-muted mt-1 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.52rem', letterSpacing: '0.05em' }">
              + ALTRI {{ eserciziSupersetCollegati.length - 1 }} ESERCIZI NELLA SERIE
           </div>
         </div>
@@ -402,11 +415,12 @@
       <!-- 3. Coaching Note Card (Compact callout) -->
       <v-card
         v-if="workout && workout.des_note && String(workout.des_note).trim()"
-        class="py-2 px-3 rounded-lg mb-5 elevation-0 text-left d-flex align-center"
+        class="rounded-lg elevation-0 text-left d-flex align-center"
+        :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2 mb-3' : (layoutCorrente === 'compatto' ? 'py-2 px-2.5 mb-4' : 'py-2 px-3 mb-5')"
         style="background: rgba(249, 115, 22, 0.08) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important; border-left: 4px solid #f97316 !important;"
       >
         <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0" size="15">mdi-information-outline</v-icon>
-        <span class="text-orange-lighten-4 font-weight-medium" style="font-size: 0.75rem; line-height: 1.35; color: #ffedd5 !important;">
+        <span class="text-orange-lighten-4 font-weight-medium" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineHeight: 1.35, color: '#ffedd5 !important' }">
           {{ String(workout.des_note).trim() }}
         </span>
       </v-card>
@@ -415,11 +429,12 @@
         <!-- Nota Esponenti (Ripetizioni di Riserva RIR) -->
          <v-card
           v-if="haEsponenti"
-          class="py-2.5 px-3.5 mb-4 text-left border d-flex align-start"
+          class="text-left border d-flex align-start"
+          :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-2.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3 mb-3' : 'py-2.5 px-3.5 mb-4')"
           style="background: rgba(15, 23, 42, 0.45) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important;"
         >
           <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-information-outline</v-icon>
-          <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">
+          <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem', lineHeight: 1.4 }">
             <strong class="text-orange-lighten-2">Nota sulle Ripetizioni di Riserva (RIR):</strong> I numeri ad esponente (es. 8² o 10³) indicano il margine dal cedimento muscolare. Ad esempio, 8² significa eseguire 8 ripetizioni con una riserva di altre 2 ripetizioni possibili prima del cedimento completo.
           </div>
         </v-card>
@@ -427,29 +442,35 @@
         <v-card
           v-for="sett in settimaneVisualizzate"
           :key="sett"
-          class="week-log-card rounded-xl py-2.5 px-3 mb-6 border transition-all"
-          :class="{
-            'week-active-border': sett === settimanaAttiva,
-            'week-secondary-card': modalitaSettimane === 'dinamica' && sett !== settimanaAttiva
-          }"
+          class="week-log-card rounded-xl border transition-all"
+          :class="[
+            layoutCorrente === 'super_compatto' ? 'py-1.5 px-2 mb-2.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3 mb-4' : 'py-2.5 px-3 mb-6'),
+            {
+              'week-active-border': sett === settimanaAttiva,
+              'week-secondary-card': modalitaSettimane === 'dinamica' && sett !== settimanaAttiva
+            }
+          ]"
+          :style="[
+            sett === settimanaAttiva ? (layoutCorrente === 'super_compatto' ? 'padding: 10px 10px 10px 10px !important;' : (layoutCorrente === 'compatto' ? 'padding: 12px 12px 14px 12px !important;' : 'padding: 14px 14px 16px 14px !important;')) : (modalitaSettimane === 'dinamica' ? 'opacity: 0.25 !important;' : '')
+          ]"
           elevation="1"
         >
           <!-- Intestazione della Settimana -->
-          <div class="d-flex align-center justify-space-between mb-2">
+          <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
             <div class="d-flex align-center">
               <v-icon
                 :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-lighten-2' : (isWeekCompleted(sett) ? 'green-darken-2' : 'grey-lighten-1')"
                 class="mr-2"
-                size="18"
+                :size="layoutCorrente === 'super_compatto' ? 14 : 18"
               >
                 {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'mdi-sync' : (isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline') }}
               </v-icon>
-<span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" style="font-size: 0.8rem !important;">
+              <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem !important' : '0.8rem !important' }">
                 WEEK {{ sett }}
-                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
+                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
                   ({{ parsedPrescription(workout['des_week' + sett]).reps }})
                 </span>
-                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" style="font-size: 1.1rem !important;">
+                <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
                   ({{ pulisciParentesiQuadre(workout['des_week' + sett]) }})
                 </span>
               </span>
@@ -458,7 +479,7 @@
                 :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-darken-2' : (isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3')"
                 size="x-small"
                 class="ml-2 font-weight-black px-1.5 text-white"
-                style="height: 16px; font-size: 0.55rem;"
+                :style="{ height: '16px', fontSize: '0.55rem' }"
                 variant="flat"
               >
                 {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA') }}
@@ -468,49 +489,57 @@
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
-          <div v-if="parsedPrescription(workout['des_week' + sett])" class="mb-2 px-1">
+          <div v-if="parsedPrescription(workout['des_week' + sett])" :class="layoutCorrente === 'super_compatto' ? 'mb-1 px-0.5' : 'mb-2 px-1'">
             <!-- Rigo Unico con Dettagli Carico e Intensità -->
             <v-row dense>
               <!-- Carico Totale -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
                 <div 
-                  class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
                   style="cursor: pointer;"
                   @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'totale', workout?.des_esercizio)"
                 >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Carico</span>
-                  <span class="text-caption font-weight-black text-slate-dark text-truncate" style="font-size: 0.85rem !important;">
-                    {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-super-caption text-muted" style="font-size: 0.60rem;">KG</span>
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Carico</span>
+                  <span class="text-caption font-weight-black text-slate-dark text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
+                    {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
                   </span>
                 </div>
               </v-col>
               <!-- Peso per Lato (solo se presente) -->
               <v-col v-if="parsedPrescription(workout['des_week' + sett]).side" cols="3">
                 <div 
-                  class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
                   style="cursor: pointer;"
                   @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'lato', workout?.des_esercizio)"
                 >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Lato</span>
-                  <span class="text-caption font-weight-black text-blue-lighten-2 text-truncate" style="font-size: 0.85rem !important;">
-                    {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted" style="font-size: 0.60rem;">KG</span>
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Lato</span>
+                  <span class="text-caption font-weight-black text-blue-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
+                    {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
                   </span>
                 </div>
               </v-col>
               <!-- % Massimale -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
-                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">% 1RM</span>
-                  <span class="text-caption font-weight-black text-orange-lighten-2 text-truncate" style="font-size: 0.85rem !important;">
+                <div 
+                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
+                >
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">% 1RM</span>
+                  <span class="text-caption font-weight-black text-orange-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
                     {{ parsedPrescription(workout['des_week' + sett]).max || '-' }}
                   </span>
                 </div>
               </v-col>
               <!-- % Sforzo -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
-                <div class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Sforzo</span>
-                  <span class="text-caption font-weight-black text-green-lighten-2 text-truncate" style="font-size: 0.85rem !important;">
+                <div 
+                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
+                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
+                >
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Sforzo</span>
+                  <span class="text-caption font-weight-black text-green-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
                     {{ parsedPrescription(workout['des_week' + sett]).effort || '-' }}
                   </span>
                 </div>
@@ -544,50 +573,50 @@
           </div>
 
 <!-- Input di inserimento Carico (Ghost Lift Integrato con Icona Recupero) -->
-          <div class="mt-3.5 mb-1 position-relative">
-            <div v-if="getGhostLift(sett)" class="mb-1.5 px-1 animate-fade-in">
+          <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5' : (layoutCorrente === 'compatto' ? 'mt-2 mb-0.5' : 'mt-3.5 mb-1'), 'position-relative']">
+            <div v-if="getGhostLift(sett)" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5 px-1 animate-fade-in' : 'mb-1.5 px-1 animate-fade-in'">
               <div class="d-flex align-center justify-space-between">
-                <span v-if="getGhostLift(sett).isMandatory" class="text-super-caption text-red-lighten-1 font-weight-black uppercase d-flex align-center gap-1" style="font-size: 0.62rem; letter-spacing: 0.04em;">
-                  <v-icon size="14" color="red-lighten-1">mdi-alert-decagram-outline</v-icon>
+                <span v-if="getGhostLift(sett).isMandatory" class="text-super-caption text-red-lighten-1 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="red-lighten-1">mdi-alert-decagram-outline</v-icon>
                   <span>{{ getGhostLift(sett).mandatoryLabel }}:</span>
-                  <span class="text-white font-weight-black ml-1" style="font-size: 0.85rem;">
+                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLift(sett).text }}
                   </span>
                 </span>
-                <span v-else-if="getGhostLift(sett).isOverload" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" style="font-size: 0.62rem; letter-spacing: 0.04em;">
-                  <v-icon size="14" color="orange-lighten-2">mdi-trending-up</v-icon>
+                <span v-else-if="getGhostLift(sett).isOverload" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-trending-up</v-icon>
                   <span>{{ getGhostLift(sett).overloadText }}</span>
-                  <span class="text-white font-weight-black ml-1" style="font-size: 0.85rem;">
+                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLift(sett).text }}
                   </span>
                 </span>
-                <span v-else-if="!(getGhostLift(sett).isWeek1 && settimanaAttiva === 1)" class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" style="font-size: 0.6rem; letter-spacing: 0.05em;">
-                  <v-icon size="12" :color="getGhostLift(sett).isScarico ? 'amber-lighten-2' : 'grey'">
+                <span v-else-if="!(getGhostLift(sett).isWeek1 && settimanaAttiva === 1)" class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" :color="getGhostLift(sett).isScarico ? 'amber-lighten-2' : 'grey'">
                     {{ getGhostLift(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
                   </v-icon>
                   <span :class="{'text-amber-lighten-2': getGhostLift(sett).isScarico}">
                     {{ getGhostLift(sett).isScarico ? 'Target Scarico (W2)' : 'Record ' + getGhostLift(sett).label }}:
                   </span>
-                  <span class="font-weight-black ml-1" :class="getGhostLift(sett).isScarico ? 'text-white' : 'text-slate-light'" :style="getGhostLift(sett).isScarico ? 'font-size: 0.8rem; letter-spacing: 0;' : ''">
+                  <span class="font-weight-black ml-1" :class="getGhostLift(sett).isScarico ? 'text-white' : 'text-slate-light'" :style="getGhostLift(sett).isScarico ? (layoutCorrente === 'super_compatto' ? 'font-size: 0.7rem; letter-spacing: 0;' : 'font-size: 0.8rem; letter-spacing: 0;') : (layoutCorrente === 'super_compatto' ? 'font-size: 0.72rem;' : '')">
                     {{ getGhostLift(sett).text }}
                     <span v-if="getGhostLift(sett).isWeek1 && getGhostLift(sett).reps" class="text-muted ml-0.5" style="text-transform: lowercase; font-size: 0.6rem;">(x{{ getGhostLift(sett).reps }})</span>
                   </span>
                 </span>
                 <span v-else></span> <!-- Spaziatore per allineare l'icona fire a destra -->
-                <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" size="14" class="animate-pulse">mdi-fire</v-icon>
-                <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" size="14">mdi-trending-down</v-icon>
+                <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" :size="layoutCorrente === 'super_compatto' ? 12 : 14" class="animate-pulse">mdi-fire</v-icon>
+                <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-down</v-icon>
               </div>
               
-              <div v-if="getGhostLift(sett).isScarico" class="text-super-caption font-weight-medium mt-1" style="color: #fbbf24; font-size: 0.55rem; line-height: 1.2; letter-spacing: 0.02em;">
+              <div v-if="getGhostLift(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
                 💡 Se leggero, fai più reps del previsto e segnalalo nel box qui sotto.
               </div>
               
-              <div v-if="getGhostLift(sett).isWeek1" class="text-super-caption font-weight-medium mt-1" style="font-size: 0.58rem; line-height: 1.25; letter-spacing: 0.02em;">
-                <div class="d-flex align-center gap-1.5 mb-1" style="color: #f97316; font-size: 0.78rem;">
-                  <v-icon size="16" color="orange-darken-1">mdi-target</v-icon>
+              <div v-if="getGhostLift(sett).isWeek1" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', lineSpace: 1.25, letterSpacing: '0.02em' }">
+                <div class="d-flex align-center gap-1.5" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5' : 'mb-1'" style="color: #f97316;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '0.78rem' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16" color="orange-darken-1">mdi-target</v-icon>
                   <span>Target Consigliato: <strong class="text-white">{{ getGhostLift(sett).suggerito ? getGhostLift(sett).suggerito + ' KG' : 'Carico leggero' }}</strong></span>
                 </div>
-                <div v-if="getGhostLift(sett).proposta" class="text-muted" style="font-size: 0.55rem; margin-left: 22px;">
+                <div v-if="getGhostLift(sett).proposta" class="text-muted" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', marginLeft: layoutCorrente === 'super_compatto' ? '16px' : '22px' }">
                   W6 Prec. (S.{{ getGhostLift(sett).schedaPrec }}): <strong class="text-slate-light">{{ getGhostLift(sett).proposta.prevPeso }}kg x {{ getGhostLift(sett).proposta.prevReps }}</strong> ({{ getGhostLift(sett).proposta.fatica }}). Scalato su <strong>{{ getGhostLift(sett).proposta.currReps }} reps</strong>.
                 </div>
               </div>
@@ -604,7 +633,7 @@
               auto-grow
               color="orange-darken-3"
               class="custom-weight-input transition-all"
-              :class="getGhostFieldClass(sett)"
+              :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
               @blur="salvaDatoSettimanale(sett, 'ins')"
               :id="'input-peso-w' + sett"
             >
@@ -619,14 +648,14 @@
                   <span 
                     class="font-weight-black uppercase"
                     :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
-                    style="font-size: 0.55rem; letter-spacing: 0.05em; padding-top: 1px;"
+                    :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
                   >
                     {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
                   </span>
                   <v-icon
                     :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
                     :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
-                    size="18"
+                    :size="layoutCorrente === 'super_compatto' ? 14 : 18"
                   >
                     {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
                   </v-icon>
@@ -636,64 +665,65 @@
           </div>
 
           <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
-          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%'))" class="mt-4 pt-4 border-top-soft">
-            <div class="d-flex align-center justify-space-between mb-2">
+          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%'))" :class="[layoutCorrente === 'super_compatto' ? 'mt-2 pt-2' : 'mt-4 pt-4', 'border-top-soft']">
+            <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
               <div>
-                <span class="text-caption font-weight-black text-slate-dark d-block">Miglior Carico (W6) *</span>
-                <span class="text-super-caption text-orange-darken-3" style="font-size: 0.58rem;">(Solo valore numerico)</span>
+                <span class="text-caption font-weight-black text-slate-dark d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.8rem' }">Miglior Carico (W6) *</span>
+                <span class="text-super-caption text-orange-darken-3" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem' }">(Solo valore numerico)</span>
               </div>
               
               <!-- Stepper per Miglior Carico W6 -->
-              <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+              <div class="d-flex align-center card-glass border rounded-xl" :class="layoutCorrente === 'super_compatto' ? 'px-0.5 py-0' : 'px-1 py-0.5'" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
                 <v-btn
                   icon
-                  size="x-small"
+                  :size="layoutCorrente === 'super_compatto' ? '20px' : 'x-small'"
                   variant="text"
                   color="orange-lighten-2"
                   @click="decrementaKgUnico"
                   id="btn-decrementa-kg-unico"
                 >
-                  <v-icon size="18">mdi-minus</v-icon>
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 18">mdi-minus</v-icon>
                 </v-btn>
                 <input
                   v-model="numIns6Val"
                   type="text"
                   class="text-center font-weight-black text-white px-1"
-                  style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
+                  :style="{ width: layoutCorrente === 'super_compatto' ? '45px' : '55px', border: 'none', outline: 'none', background: 'transparent', fontSize: layoutCorrente === 'super_compatto' ? '0.8rem' : '0.9rem' }"
                   @blur="salvaKgUnico"
                   id="input-kg-unico-w6"
                 />
                 <v-btn
                   icon
-                  size="x-small"
+                  :size="layoutCorrente === 'super_compatto' ? '20px' : 'x-small'"
                   variant="text"
                   color="orange-lighten-2"
                   @click="incrementaKgUnico"
                   id="btn-incrementa-kg-unico"
                 >
-                  <v-icon size="18">mdi-plus</v-icon>
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 18">mdi-plus</v-icon>
                 </v-btn>
               </div>
             </div>
 
-            <p class="text-super-caption text-italic text-muted text-left mb-4" style="line-height: 1.35; font-size: 0.65rem !important;">
+            <p class="text-super-caption text-italic text-muted text-left" :class="layoutCorrente === 'super_compatto' ? 'mb-2.5' : 'mb-4'" :style="{ lineHeight: 1.35, fontSize: layoutCorrente === 'super_compatto' ? '0.58rem !important' : '0.65rem !important' }">
               Inserisci qui sopra il massimo peso della week6 e qui sotto la tua percezione di sforzo. È essenziale per calcolare il peso della week1 nel prossimo mesociclo.
             </p>
 
             <!-- Selettore Sforzo Percepito W6 -->
             <div class="text-left mb-2">
-              <span class="text-caption font-weight-black text-slate-dark d-block mb-2">Sforzo Percepito (W6)</span>
+              <span class="text-caption font-weight-black text-slate-dark d-block mb-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.8rem', marginBottom: layoutCorrente === 'super_compatto' ? '4px !important' : '8px !important' }">Sforzo Percepito (W6)</span>
               <v-row dense class="gap-2 justify-space-between">
                 <v-col cols="4">
                   <v-btn
                     block
                     variant="flat"
                     :color="numFaticaw6Val === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
-                    size="small"
+                    :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
                     rounded="lg"
                     class="font-weight-black text-none"
                     :class="{'text-white': numFaticaw6Val === 'Media', 'text-slate': numFaticaw6Val !== 'Media'}"
-                    style="font-size: 0.72rem; height: 32px;"
+                    style="font-size: 0.72rem;"
+                    :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
                     @click="salvaFatica('Media')"
                     id="btn-fatica-media"
                   >
@@ -705,11 +735,12 @@
                     block
                     variant="flat"
                     :color="numFaticaw6Val === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
-                    size="small"
+                    :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
                     rounded="lg"
                     class="font-weight-black text-none"
                     :class="{'text-white': numFaticaw6Val === 'Pesante', 'text-slate': numFaticaw6Val !== 'Pesante'}"
-                    style="font-size: 0.72rem; height: 32px;"
+                    style="font-size: 0.72rem;"
+                    :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
                     @click="salvaFatica('Pesante')"
                     id="btn-fatica-pesante"
                   >
@@ -721,11 +752,12 @@
                     block
                     variant="flat"
                     :color="numFaticaw6Val === 'Devastante' ? 'red-darken-4' : 'grey-darken-3'"
-                    size="small"
+                    :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
                     rounded="lg"
                     class="font-weight-black text-none"
                     :class="{'text-white': numFaticaw6Val === 'Devastante', 'text-slate': numFaticaw6Val !== 'Devastante'}"
-                    style="font-size: 0.72rem; height: 32px;"
+                    style="font-size: 0.72rem;"
+                    :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
                     @click="salvaFatica('Devastante')"
                     id="btn-fatica-devastante"
                   >
@@ -1638,7 +1670,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -1654,6 +1686,13 @@ const storicoTableContainer = ref(null);
 const storicoScrollContainer = ref(null); // Ref per lo scroll verticale
 const storicoEsercizio = ref([]);
 const snackbarMessaggio = ref('');
+
+const layoutCorrente = computed(() => {
+  if (layoutDettaglioGlobal.value === 'auto') {
+    return layoutEserciziGlobal.value;
+  }
+  return layoutDettaglioGlobal.value;
+});
 
 // Previous Workout Editing States
 const inputSettimanePrecedente = ref({
@@ -4084,7 +4123,6 @@ const tornaIndietro = () => {
   border: 2px solid #f97316 !important;
   background-color: rgba(249, 115, 22, 0.03) !important;
   box-shadow: 0 0 15px rgba(249, 115, 22, 0.15) !important;
-  padding: 14px 14px 16px 14px !important;
 }
 
 .week-prescription-text {
@@ -4108,7 +4146,7 @@ const tornaIndietro = () => {
 
 /* Stile speciale per le settimane secondarie in visualizzazione Dinamica */
 .week-secondary-card {
-  opacity: 0.55;
+  opacity: 0.25;
   background: rgba(15, 23, 42, 0.2) !important;
   border: 1px dashed rgba(255, 255, 255, 0.08) !important;
   transform: scale(0.975);
@@ -4245,6 +4283,28 @@ const tornaIndietro = () => {
 }
 .custom-weight-input :deep(.v-field__outline) {
   display: none !important;
+}
+
+/* Stile per input compatto */
+.custom-compact-textarea :deep(.v-field) {
+  min-height: 28px !important;
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+  border-radius: 6px !important;
+}
+.custom-compact-textarea :deep(input),
+.custom-compact-textarea :deep(textarea) {
+  font-size: 0.75rem !important;
+  line-height: 1.1 !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+.custom-compact-textarea :deep(.v-label) {
+  font-size: 0.65rem !important;
+  top: 6px !important;
+}
+.custom-compact-textarea :deep(.v-field__append-inner) {
+  padding-top: 2px !important;
 }
 
 /* Colori Caselle di Testo Dinamiche (Mai bianche/grigie se piene) */

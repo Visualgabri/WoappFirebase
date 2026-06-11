@@ -539,10 +539,12 @@
                       :key="w"
                       class="mini-week-capsule"
                       :class="{
-                        'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
-                        'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
-                        'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
+                        'capsule-active': w === settimanaAttivaGiorno,
+                        'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno,
+                        'capsule-pending': !isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno
                       }"
+                      @click.stop="selezionaSettimanaManuale(w)"
+                      style="cursor: pointer;"
                     >
                       <span class="capsule-num">W{{ w }}</span>
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
@@ -717,10 +719,12 @@
                       :key="w"
                       class="mini-week-capsule"
                       :class="{
-                        'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]),
-                        'capsule-active': w === settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w]),
-                        'capsule-pending': w !== settimanaAttivaGiorno && !isCmpTrue(headerGiorno['cmp' + w])
+                        'capsule-active': w === settimanaAttivaGiorno,
+                        'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno,
+                        'capsule-pending': !isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno
                       }"
+                      @click.stop="selezionaSettimanaManuale(w)"
+                      style="cursor: pointer;"
                     >
                       <span class="capsule-num">W{{ w }}</span>
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
@@ -961,11 +965,12 @@
                           :key="w"
                           class="mini-week-capsule d-inline-flex align-center"
                           :class="{
-                            'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim(),
-                            'capsule-active': w === settimanaAttivaGiorno && !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()),
-                            'capsule-pending': w !== settimanaAttivaGiorno && !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim())
+                            'capsule-active': w === settimanaAttivaGiorno,
+                            'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                            'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                           }"
-                          style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
+                          style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
+                          @click.stop="selezionaSettimanaManuale(w)"
                         >
                           <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
                           <span class="ml-1 font-weight-black" style="font-size: 0.55rem;">
@@ -1095,11 +1100,12 @@
                       :key="w"
                       class="mini-week-capsule d-inline-flex align-center"
                       :class="{
-                        'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim(),
-                        'capsule-active': w === settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()),
-                        'capsule-pending': w !== settimanaAttivaGiorno && !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim())
+                        'capsule-active': w === settimanaAttivaGiorno,
+                        'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                        'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                       }"
-                      style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px;"
+                      style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
+                      @click.stop="selezionaSettimanaManuale(w)"
                     >
                       <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
                       <span class="ml-1 font-weight-black" style="font-size: 0.55rem;">
@@ -1973,6 +1979,11 @@ watch(giornoSelezionato, (newVal, oldVal) => {
   }
 });
 
+// Reset override della settimana se cambiano atleta, scheda o giorno selezionato
+watch([selectedAthlete, selectedSheet, giornoSelezionato], () => {
+  overrideWeek.value = null;
+});
+
 // Stato di completamento dei giorni per la settimana attiva globale
 const statoGiorni = computed(() => {
   const result = {};
@@ -2173,7 +2184,17 @@ const ordineEsecuzioneCompleto = computed(() => {
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
 
+const overrideWeek = ref(null);
+
+const selezionaSettimanaManuale = (w) => {
+  vibraTattile(8);
+  overrideWeek.value = w;
+};
+
 const settimanaAttivaGiorno = computed(() => {
+  if (overrideWeek.value !== null) {
+    return overrideWeek.value;
+  }
   if (!headerGiorno.value) return settimanaAttiva.value;
   for (let w = 1; w <= 6; w++) {
     if (!isCmpTrue(headerGiorno.value['cmp' + w])) {

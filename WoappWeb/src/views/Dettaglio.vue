@@ -1261,11 +1261,11 @@
               </span>
             </div>
 
-            <!-- Record Assoluto (Altre Weeks) -->
+            <!-- Record Assoluto (Altre Weeks con stesse Reps) -->
             <div v-if="suggerimentoRecord.recordAbsolute > 0" class="d-flex align-center" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
               <v-icon color="cyan-lighten-2" size="12" class="mr-1 pb-0.5">mdi-fire</v-icon>
               <span class="text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Max Assoluto: <span class="text-white ml-0.5">{{ suggerimentoRecord.recordAbsolute }} kg</span>
+                Max Assoluto: <span class="text-white ml-0.5">{{ suggerimentoRecord.recordAbsolute }} kg <span class="text-muted lowercase" style="font-size: 0.55rem; font-weight: bold;">(in W{{ suggerimentoRecord.recordAbsoluteWeek }})</span></span>
               </span>
             </div>
           </div>
@@ -3518,24 +3518,28 @@ const eliminaEsercizio = async () => {
 };
 
 // Computed per record e suggerimenti nello storico
-// Trova il carico massimo registrato nella settimana attiva e quello assoluto tra tutte le schede precedenti
+// Trova il carico massimo registrato nella settimana attiva e quello assoluto (con stesse reps) tra tutte le schede precedenti
 const suggerimentoRecord = computed(() => {
   const w = settimanaAttiva.value;
   let maxWeight = 0;
   let maxAbsolute = 0;
+  let maxAbsoluteWeek = 0;
   
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     if (sNum === currentNumScheda) return;
 
-    // Trova il massimo assoluto in qualsiasi settimana (1-6)
+    // Trova il massimo assoluto in qualsiasi settimana (1-6) con reps corrispondenti
     for (let i = 1; i <= 6; i++) {
-      const valAny = prevEx['ins_week' + i];
-      if (valAny) {
-        const pesoNumAny = parseFloat(estraiPesoDaInput(valAny));
-        if (!isNaN(pesoNumAny) && pesoNumAny > maxAbsolute) {
-          maxAbsolute = pesoNumAny;
+      if (isMatchingReps(prevEx, i)) {
+        const valAny = prevEx['ins_week' + i];
+        if (valAny) {
+          const pesoNumAny = parseFloat(estraiPesoDaInput(valAny));
+          if (!isNaN(pesoNumAny) && pesoNumAny > maxAbsolute) {
+            maxAbsolute = pesoNumAny;
+            maxAbsoluteWeek = i;
+          }
         }
       }
     }
@@ -3573,6 +3577,7 @@ const suggerimentoRecord = computed(() => {
   return {
     record: maxWeight,
     recordAbsolute: maxAbsolute,
+    recordAbsoluteWeek: maxAbsoluteWeek,
     target: maxWeight + increment,
     label,
     isScarico,

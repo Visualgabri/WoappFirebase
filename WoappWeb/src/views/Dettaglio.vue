@@ -476,7 +476,7 @@
                 <div 
                   class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center"
                   style="cursor: pointer;"
-                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'totale')"
+                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'totale', workout?.des_esercizio)"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Carico</span>
                   <span class="text-caption font-weight-black text-slate-dark text-truncate" style="font-size: 0.85rem !important;">
@@ -489,7 +489,7 @@
                 <div 
                   class="prescription-chip-box px-2 py-1 rounded-lg text-left fill-height d-flex flex-column justify-center"
                   style="cursor: pointer;"
-                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'lato')"
+                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'lato', workout?.des_esercizio)"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem; line-height: 1;">Lato</span>
                   <span class="text-caption font-weight-black text-blue-lighten-2 text-truncate" style="font-size: 0.85rem !important;">

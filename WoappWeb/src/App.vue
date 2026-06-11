@@ -204,7 +204,7 @@
                 {{ targetPesoTotale }} <span class="text-caption text-muted">KG</span>
               </span>
             </div>
-            <div class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: rgba(15, 23, 42, 0.4) !important;">
+            <div v-if="!nascondiLato" class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: rgba(15, 23, 42, 0.4) !important;">
               <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Peso Per Lato</span>
               <span class="text-h6 font-weight-black text-blue-lighten-2">
                 {{ targetPesoLato }} <span class="text-caption text-muted">KG</span>
@@ -297,7 +297,7 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');

@@ -872,14 +872,14 @@
               <!-- Intestazione del Superset -->
               <div class="superset-header d-flex align-center justify-space-between" :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : 'mb-3'">
                 <div class="d-flex align-center flex-wrap gap-2">
-                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-1 mr-1" variant="flat" size="x-small">
+                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-1 mr-1" variant="flat" size="x-small" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit') }">
                     ⚡ SUPERSET {{ block.letter }}
                   </v-chip>
                   <span v-if="layoutEsercizi !== 'super_compatto'" class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
                     Esegui in sequenza senza pausa
                   </span>
                 </div>
-                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2">
+                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit') }">
                   {{ block.exercises.length }} ESERCIZI
                 </v-chip>
               </div>
@@ -966,7 +966,7 @@
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-                    <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark', layoutEsercizi === 'super_compatto' ? 'text-body-2' : 'text-body-1']" style="white-space: normal; word-break: break-word;">
+                    <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark']" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.72rem !important' : (layoutEsercizi === 'compatto' ? '0.82rem !important' : '0.98rem'), lineHeight: layoutEsercizi === 'super_compatto' ? '1.1 !important' : (layoutEsercizi === 'compatto' ? '1.2 !important' : 'inherit'), whiteSpace: 'normal', wordBreak: 'break-word' }">
                       <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                       {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                       {{ ex.des_esercizio || 'Esercizio' }}
@@ -978,15 +978,15 @@
 
                     <!-- Settore e Emoji Sforzo -->
                     <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
-                      <span :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.62rem' : 'inherit' }">{{ ex.des_settore || 'Corpo Libero' }}</span>
+                      <span :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.56rem !important' : (layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit') }">{{ ex.des_settore || 'Corpo Libero' }}</span>
                       <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                     </div>
 
                     <!-- Prescrizione della settimana attiva -->
                     <div 
                       class="text-caption font-weight-bold text-slate text-truncate mb-1" 
-                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'super_compatto' ? '0.7rem' : 'inherit' }]"
-                      @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno])"
+                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'super_compatto' ? '0.62rem !important' : (layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit') }]"
+                      @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno], ex.des_esercizio)"
                     >
                       {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
@@ -1022,13 +1022,14 @@
 
                     <!-- Timer Recupero / Chaining Clickable -->
                     <div class="mt-1" v-if="ex.des_rec_report || (ex.alf_superserie && ex.alf_superserie.trim())">
-                      <v-chip
+                       <v-chip
                         v-if="ex.des_rec_report"
                         color="orange-darken-3"
                         variant="tonal"
                         size="x-small"
                         class="font-weight-black clickable-timer-chip"
                         prepend-icon="mdi-clock-outline"
+                        :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : 'auto') }"
                         @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
                       >
                         ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
@@ -1040,6 +1041,7 @@
                         size="x-small"
                         class="font-weight-black text-white"
                         prepend-icon="mdi-arrow-right-bold-circle-outline"
+                        :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : 'auto') }"
                       >
                         ⚡ VAI AL PROSSIMO (NO PAUSA)
                       </v-chip>
@@ -1133,7 +1135,7 @@
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-                <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark', layoutEsercizi === 'super_compatto' ? 'text-body-2' : 'text-body-1']" style="white-space: normal; word-break: break-word;">
+                <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark']" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.72rem !important' : (layoutEsercizi === 'compatto' ? '0.82rem !important' : '0.98rem'), lineHeight: layoutEsercizi === 'super_compatto' ? '1.1 !important' : (layoutEsercizi === 'compatto' ? '1.2 !important' : 'inherit'), whiteSpace: 'normal', wordBreak: 'break-word' }">
                   <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                   {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                   {{ block.exercise.des_esercizio || 'Esercizio' }}
@@ -1145,15 +1147,15 @@
 
                 <!-- Settore e Emoji Sforzo -->
                 <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
-                  <span :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.62rem' : 'inherit' }">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                  <span :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.56rem !important' : (layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit') }">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
                   <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                 </div>
 
                 <!-- Prescrizione della settimana attiva -->
                 <div 
                   class="text-caption font-weight-bold text-slate text-truncate mb-1" 
-                  :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'super_compatto' ? '0.7rem' : 'inherit' }]"
-                  @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno])"
+                  :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'super_compatto' ? '0.62rem !important' : (layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit') }]"
+                  @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno], block.exercise.des_esercizio)"
                 >
                   {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                 </div>
@@ -1195,6 +1197,7 @@
                     size="x-small"
                     class="font-weight-black clickable-timer-chip"
                     prepend-icon="mdi-clock-outline"
+                    :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : 'auto') }"
                     @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                   >
                     ⏱️ {{ block.exercise.des_rec_report }}
@@ -2948,12 +2951,12 @@ watch(playClickTrigger, () => {
   }
 });
 
-const apriCalcolatoreDaPrescrizione = (prescrizioneStr) => {
+const apriCalcolatoreDaPrescrizione = (prescrizioneStr, nomeEsercizio = '') => {
   if (!prescrizioneStr) return;
   const cleanStr = pulisciParentesiQuadre(prescrizioneStr);
   const parsed = parsePrescription(cleanStr);
   if (parsed && parsed.total) {
-    apriCalcolatoreDischi(parsed.total, parsed.side, 'totale');
+    apriCalcolatoreDischi(parsed.total, parsed.side, 'totale', nomeEsercizio);
   }
 };
 

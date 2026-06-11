@@ -117,9 +117,40 @@ export const targetPesoTotale = ref(0);
 export const targetPesoLato = ref(0);
 export const modalitaCalcolo = ref('totale'); // 'totale' o 'lato'
 export const tipoBilanciere = ref(20);
+export const nascondiLato = ref(false);
 
-export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu) => {
+const rilevaPesoBilanciereSmart = (nomeEsercizio, savedBar) => {
+  if (!nomeEsercizio) return savedBar;
+  const lower = String(nomeEsercizio).toLowerCase();
+  
+  // Se contiene esplicitamente "bilanciere", "bil.", "ez" o "barbell", allora usa il bilanciere di default (savedBar)
+  if (lower.includes('bilanciere') || lower.includes('bil.') || lower.includes('ez') || lower.includes('barbell')) {
+    return savedBar;
+  }
+  
+  // Altrimenti, se contiene parole chiave tipiche di macchine, manubri, cavi o corpo libero, metti 0
+  const zeroKeywords = [
+    'pressa', 'press', 'cavo', 'cavi', 'cable', 'macchina', 'machine', 
+    'manubri', 'manubrio', 'db', 'dumbbell', 'trazioni', 'dip', 'piegamenti',
+    'corpo libero', 'crunch', 'addome', 'plank', 'pulley', 'pectoral',
+    'extension', 'curl', 'adductor', 'abductor', 'multipower', 'hack squat',
+    'smith', 'glute', 'vertical traction', 'low row', 'rower', 'calf',
+    'crossover', 'lat', 'peck'
+  ];
+  
+  if (zeroKeywords.some(k => lower.includes(k))) {
+    return 0; // Macchina / Senza bilanciere
+  }
+  
+  return savedBar;
+};
+
+export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu, nomeEsercizio = '') => {
   modalitaCalcolo.value = cliccatoSu || 'totale';
+
+  // Verifica se l'esercizio ha il peso per lato
+  const haPesoLato = !!(pesoLatoStr && String(pesoLatoStr).trim() !== '' && String(pesoLatoStr).trim() !== '0');
+  nascondiLato.value = !haPesoLato;
 
   const parseWeight = (val) => {
     if (val === undefined || val === null) return 0;
@@ -133,15 +164,24 @@ export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu) =>
 
   const savedBar = parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20');
 
-  if (cliccatoSu === 'lato') {
+  // Determina il bilanciere di default in base a smart-detection e presenza del peso per lato
+  let defaultBar = savedBar;
+  if (!haPesoLato) {
+    defaultBar = 0; // Se non ha il peso per lato, metti come default Senza bilanciere (0)
+  } else {
+    defaultBar = rilevaPesoBilanciereSmart(nomeEsercizio, savedBar);
+  }
+
+  if (cliccatoSu === 'lato' && haPesoLato) {
     targetPesoLato.value = lat;
-    const bar = (lat * 2 >= savedBar) ? savedBar : 0;
+    const bar = (lat * 2 >= defaultBar) ? defaultBar : 0;
     tipoBilanciere.value = bar;
     targetPesoTotale.value = lat * 2 + bar;
   } else {
     targetPesoTotale.value = tot;
-    const bar = (tot >= savedBar) ? savedBar : 0;
-    tipoBilanciere.value = bar;
+    tipoBilanciere.value = defaultBar;
+    
+    const bar = defaultBar;
     const latoCalc = (tot - bar) / 2;
     targetPesoLato.value = latoCalc > 0 ? latoCalc : 0;
   }

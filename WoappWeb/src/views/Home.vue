@@ -1,7 +1,18 @@
 <template>
-  <v-container class="px-4 py-6 max-width-container min-height-screen home-dashboard">
+  <v-container 
+    class="px-4 max-width-container min-height-screen home-dashboard"
+    :class="layoutEserciziGlobal === 'super_compatto' ? 'py-2' : (layoutEserciziGlobal === 'compatto' ? 'py-4' : 'py-6')"
+  >
     <!-- Header Premium e Moderno (Sticky & Compatto) -->
-    <div class="sticky-dashboard-header d-flex align-center justify-space-between animate-slide-down">
+    <div 
+      class="sticky-dashboard-header d-flex align-center justify-space-between animate-slide-down"
+      :style="{
+        paddingTop: (layoutEserciziGlobal === 'super_compatto' ? '6px' : (layoutEserciziGlobal === 'compatto' ? '10px' : '16px')) + ' !important',
+        paddingBottom: (layoutEserciziGlobal === 'super_compatto' ? '4px' : (layoutEserciziGlobal === 'compatto' ? '6px' : '8px')) + ' !important',
+        marginTop: (layoutEserciziGlobal === 'super_compatto' ? '-6px' : (layoutEserciziGlobal === 'compatto' ? '-10px' : '-16px')) + ' !important',
+        marginBottom: (layoutEserciziGlobal === 'super_compatto' ? '8px' : (layoutEserciziGlobal === 'compatto' ? '14px' : '20px')) + ' !important'
+      }"
+    >
       <div class="d-flex align-center min-width-0">
         <v-avatar size="36" class="profile-avatar elevation-2 bg-transparent border-orange mr-3 flex-shrink-0">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
@@ -62,7 +73,8 @@
         align-tabs="center"
         grow
         height="38"
-        class="custom-dashboard-tabs mb-5 rounded-xl border-soft"
+        class="custom-dashboard-tabs rounded-xl border-soft"
+        :class="layoutEserciziGlobal === 'super_compatto' ? 'mb-2' : (layoutEserciziGlobal === 'compatto' ? 'mb-3' : 'mb-5')"
         style="background: rgba(15, 23, 42, 0.4) !important;"
       >
         <v-tab value="dati" class="font-weight-black text-none" style="font-size: 0.72rem; letter-spacing: 0.05em; min-height: 38px;">DASHBOARD</v-tab>
@@ -97,7 +109,12 @@
           </v-card>
 
           <!-- Card Allenamento Attivo (Gamified Hero Card con bagliore neon) - Mostrata solo se non completato -->
-          <v-card v-if="settimaneChiuse < 6" class="premium-hero-card rounded-2xl pa-5 mb-6 text-left border position-relative overflow-hidden" elevation="3">
+          <v-card 
+            v-if="settimaneChiuse < 6" 
+            class="premium-hero-card rounded-2xl text-left border position-relative overflow-hidden" 
+            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4 mb-4.5' : 'pa-5 mb-6')"
+            elevation="3"
+          >
             <!-- Neon background accent -->
             <div class="glowing-accent"></div>
             
@@ -291,7 +308,13 @@
           </v-card>
 
           <!-- Card Programma Completato (mostrato quando settimaneChiuse === 6) -->
-          <v-card v-else class="premium-hero-card rounded-2xl pa-5 mb-6 text-left border position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.05)) !important; border: 1.5px solid rgba(16, 185, 129, 0.4) !important;" elevation="3">
+          <v-card 
+            v-else 
+            class="premium-hero-card rounded-2xl text-left border position-relative overflow-hidden" 
+            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4 mb-4.5' : 'pa-5 mb-6')"
+            style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.05)) !important; border: 1.5px solid rgba(16, 185, 129, 0.4) !important;" 
+            elevation="3"
+          >
             <div class="glowing-accent" style="background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%) !important;"></div>
             <div class="d-flex align-center justify-space-between mb-4">
               <span class="text-super-caption text-green-lighten-2 font-weight-black uppercase tracking-widest" style="font-size: 0.6rem;">
@@ -347,7 +370,11 @@
           </v-card>
 
           <!-- Avanzamento Mesociclo Premium (Timeline Orizzontale a Sfere di Cristallo) -->
-          <v-card class="mesocycle-progress-card rounded-2xl pa-4 mb-5 border text-left" elevation="2">
+          <v-card 
+            class="mesocycle-progress-card rounded-2xl border text-left" 
+            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-2.5' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-3.5' : 'pa-4 mb-5')"
+            elevation="2"
+          >
             <div class="d-flex align-center justify-space-between mb-4">
               <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.62rem;">
                 Avanzamento del Mesociclo
@@ -395,7 +422,13 @@
           </v-card>
 
           <!-- Card Dettagli Programma WORKOUT_T (Spostata qui per avere l'allenamento del giorno come prima card) -->
-          <v-card v-if="workoutTData" class="premium-card rounded-2xl pa-4 mb-4 text-left border animate-fade-in" elevation="2" style="background: rgba(30, 41, 59, 0.45) !important;">
+          <v-card 
+            v-if="workoutTData" 
+            class="premium-card rounded-2xl text-left border animate-fade-in" 
+            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-2.5' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-3' : 'pa-4 mb-4')"
+            elevation="2" 
+            style="background: rgba(30, 41, 59, 0.45) !important;"
+          >
             <div class="d-flex align-center justify-space-between mb-3">
               <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.65rem;">
                 Dettagli Programma (Workout T)
@@ -564,7 +597,11 @@
 
         <!-- WINDOW 2: CONFIGURAZIONE SCHEDA -->
         <v-window-item value="impostazioni">
-          <v-card class="premium-card rounded-2xl pa-5 text-left border" elevation="2">
+          <v-card 
+            class="premium-card rounded-2xl text-left border" 
+            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
+            elevation="2"
+          >
             <h3 class="text-h6 font-weight-black text-slate-dark mb-4 d-flex align-center">
               <v-icon color="orange-darken-3" class="mr-2">mdi-cog-outline</v-icon>
               Configura Scheda Attiva
@@ -866,7 +903,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, inizializzaSessione, utente, getNomeAtleta, activeTimer, stopGlobalTimer, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, globalStoryboard, loadingStoryboard } from '../authStore.js';
+import { selectedAthlete, selectedSheet, inizializzaSessione, utente, getNomeAtleta, activeTimer, stopGlobalTimer, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, globalStoryboard, loadingStoryboard, layoutEserciziGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();

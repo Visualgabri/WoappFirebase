@@ -1,7 +1,13 @@
 <template>
-  <v-container class="px-3 py-6 max-width-container min-height-screen">
+  <v-container 
+    class="px-3 max-width-container min-height-screen"
+    :class="layoutEserciziGlobal === 'super_compatto' ? 'py-2' : (layoutEserciziGlobal === 'compatto' ? 'py-4' : 'py-6')"
+  >
     <!-- Header Premium -->
-    <div class="appsheet-header mb-6 d-flex align-center justify-space-between">
+    <div 
+      class="appsheet-header d-flex align-center justify-space-between"
+      :class="layoutEserciziGlobal === 'super_compatto' ? 'mb-2' : (layoutEserciziGlobal === 'compatto' ? 'mb-4' : 'mb-6')"
+    >
       <div class="d-flex align-center">
         <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
@@ -27,7 +33,10 @@
 
     <!-- Contenuto dei Grafici (Sdoppiati Upper & Lower stile AppSheet) -->
     <div v-else>
-      <div class="text-subtitle-1 font-weight-bold text-slate mb-6 d-flex align-center">
+      <div 
+        class="text-subtitle-1 font-weight-bold text-slate d-flex align-center"
+        :class="layoutEserciziGlobal === 'super_compatto' ? 'mb-3' : (layoutEserciziGlobal === 'compatto' ? 'mb-4.5' : 'mb-6')"
+      >
         <v-icon color="orange-darken-3" class="mr-2" size="22">mdi-account-circle-outline</v-icon>
         Atleta: <strong class="text-orange-darken-4 ml-1">{{ nomeAtleta || 'Caricamento...' }}</strong>
       </div>
@@ -45,8 +54,11 @@
 
       <div v-else class="charts-stacked-layout">
         
-        <!-- GRAFICO 1: Grafico mesocicli upper -->
-        <v-card class="premium-chart-card rounded-2xl pa-4 mb-8 elevation-2" border="top">
+        <v-card 
+          class="premium-chart-card rounded-2xl elevation-2" 
+          :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-4' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-6' : 'pa-4 mb-8')"
+          border="top"
+        >
           <div class="d-flex justify-space-between align-center mb-4">
             <h3 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center">
               <v-icon color="orange-darken-3" class="mr-2">mdi-hand-back-right-outline</v-icon>
@@ -64,8 +76,11 @@
           </div>
         </v-card>
 
-        <!-- GRAFICO 2: Grafico mesocicli lower -->
-        <v-card class="premium-chart-card rounded-2xl pa-4 mb-6 elevation-2" border="top">
+        <v-card 
+          class="premium-chart-card rounded-2xl elevation-2" 
+          :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-4.5' : 'pa-4 mb-6')"
+          border="top"
+        >
           <div class="d-flex justify-space-between align-center mb-4">
             <h3 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center">
               <v-icon color="orange-darken-3" class="mr-2">mdi-run</v-icon>
@@ -92,7 +107,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, getNomeAtleta } from '../authStore.js';
+import { selectedAthlete, getNomeAtleta, layoutEserciziGlobal } from '../authStore.js';
 
 // Chart.js e Vue-Chartjs
 import { Bar } from 'vue-chartjs';

@@ -477,6 +477,8 @@ export const getDensitaLayoutAtleta = (id) => {
   return localStorage.getItem('densitaLayout_' + cleanId) || 'standard'; // 'standard', 'compatta'
 };
 
+export const layoutEserciziGlobal = ref(localStorage.getItem('woapp_layout_esercizi') || 'standard');
+
 // Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
 export const globalStoryboard = ref([]);
 export const loadingStoryboard = ref(false);

@@ -1,7 +1,13 @@
 <template>
-  <v-container class="px-3 py-6 max-width-container min-height-screen">
+  <v-container 
+    class="px-3 max-width-container min-height-screen"
+    :class="layoutEsercizi === 'super_compatto' ? 'pt-1.5 pb-4' : (layoutEsercizi === 'compatto' ? 'pt-3 pb-5' : 'pt-4 pb-6')"
+  >
     <!-- Header Premium -->
-    <div class="appsheet-header mb-6 d-flex align-center justify-space-between">
+    <div 
+      class="appsheet-header d-flex align-center justify-space-between"
+      :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : (layoutEsercizi === 'compatto' ? 'mb-2.5' : 'mb-4')"
+    >
       <div class="d-flex align-center">
         <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
@@ -60,12 +66,14 @@
       
       <!-- Sticky wrapper for the day selector tabs -->
       <div
-        class="sticky-tabs-container mb-4"
+        class="sticky-tabs-container"
+        :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3')"
         :style="{ top: utente ? '48px' : '0px' }"
       >
         <div 
           v-if="!caricamento && listaGiorniDisponibili.length > 0"
-          class="card-glass rounded-xl mb-1.5 text-center font-weight-black tracking-widest"
+          class="card-glass rounded-xl text-center font-weight-black tracking-widest"
+          :class="layoutEsercizi === 'super_compatto' ? 'mb-1' : (layoutEsercizi === 'compatto' ? 'mb-1' : 'mb-1.5')"
           :style="settimanaAttiva === 6 ? 'font-size: 0.65rem; border: 1.5px solid rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; padding: 6px 4px;' : 'font-size: 0.62rem; border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px 4px;'"
           style="color: rgba(255, 255, 255, 0.6);"
         >
@@ -1807,7 +1815,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2315,7 +2323,7 @@ const giornoSelezionato = ref('A');
 
 // Stato Impostazioni e Personalizzazione (Salvate in LocalStorage)
 const dialogImpostazioni = ref(false);
-const layoutEsercizi = ref(localStorage.getItem('woapp_layout_esercizi') || 'standard');
+const layoutEsercizi = layoutEserciziGlobal;
 const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
 const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
 const avvioAutoTimer = ref(localStorage.getItem('woapp_avvio_auto_timer') === 'true');

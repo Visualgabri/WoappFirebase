@@ -1,7 +1,13 @@
 <template>
-  <v-container class="px-4 py-8 max-width-container min-height-screen pb-12">
+  <v-container 
+    class="px-4 max-width-container min-height-screen pb-12"
+    :class="layoutEserciziGlobal === 'super_compatto' ? 'py-2' : (layoutEserciziGlobal === 'compatto' ? 'py-4' : 'py-8')"
+  >
     <!-- Header Premium con stile AppSheet Evoluto (Coerente Dark Mode) -->
-    <div class="premium-header card-glass rounded-2xl pa-4 mb-6 d-flex align-center justify-space-between elevation-2 border-bottom-soft">
+    <div 
+      class="premium-header card-glass rounded-2xl d-flex align-center justify-space-between elevation-2 border-bottom-soft"
+      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-4.5' : 'pa-4 mb-6')"
+    >
       <div class="d-flex align-center">
         <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1 profile-avatar">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
@@ -20,7 +26,11 @@
     <div class="steps-flow-container">
 
       <!-- STEP 1: SELEZIONE ATLETA -->
-      <v-card class="premium-card rounded-2xl pa-5 mb-5 text-left border position-relative" elevation="2">
+      <v-card 
+        class="premium-card rounded-2xl text-left border position-relative" 
+        :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4 mb-4' : 'pa-5 mb-5')"
+        elevation="2"
+      >
         <div class="d-flex align-start mb-4">
           <!-- Circular Step Badge -->
           <div class="step-badge mr-3 flex-shrink-0">01</div>
@@ -120,8 +130,11 @@
 
       <!-- STEP 2: SELEZIONE SCHEDA (MESOCICLO) -->
       <v-card 
-        class="premium-card rounded-2xl pa-5 mb-5 text-left border position-relative transition-all" 
-        :class="{ 'locked-card-state': !atletaSelezionato }"
+        class="premium-card rounded-2xl text-left border position-relative transition-all" 
+        :class="[
+          !atletaSelezionato ? 'locked-card-state' : '',
+          layoutEserciziGlobal === 'super_compatto' ? 'pa-3 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4 mb-4' : 'pa-5 mb-5')
+        ]"
         elevation="2"
       >
         <!-- Overlay di blocco se atleta non selezionato -->
@@ -180,8 +193,11 @@
 
       <!-- STEP 3: ANTEPRIMA ALLENAMENTI & AVVIO -->
       <v-card 
-        class="premium-card rounded-2xl pa-5 mb-6 text-left border position-relative transition-all" 
-        :class="{ 'locked-card-state': !schedaSelezionata }"
+        class="premium-card rounded-2xl text-left border position-relative transition-all" 
+        :class="[
+          !schedaSelezionata ? 'locked-card-state' : '',
+          layoutEserciziGlobal === 'super_compatto' ? 'pa-3 mb-4' : (layoutEserciziGlobal === 'compatto' ? 'pa-4 mb-5' : 'pa-5 mb-6')
+        ]"
         elevation="2"
       >
         <!-- Overlay di blocco se scheda non selezionata -->
@@ -294,7 +310,8 @@ import {
   isAtletaObsoleto,
   getSchedaSelezionataAtleta,
   getVistaDettagliAtleta,
-  ORDINE_ORIGINALE_ATLETI
+  ORDINE_ORIGINALE_ATLETI,
+  layoutEserciziGlobal
 } from '../authStore.js';
 
 const router = useRouter();

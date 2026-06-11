@@ -185,7 +185,7 @@
     <!-- Dialog Calcolatore Dischi (Plate Calculator) -->
     <v-dialog v-model="mostraDialogCalcolatoreDischi" max-width="450" rounded="xl">
       <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) !important;">
-        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-2">
+        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-1">
           <div class="d-flex align-center">
             <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-weight-lifter</v-icon>
             Calcolatore Dischi 🏋️
@@ -194,6 +194,11 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
+
+        <!-- Nome dell'esercizio corrente nel calcolatore -->
+        <div v-if="nomeEsercizioCalcolatore" class="text-caption font-weight-bold text-orange-lighten-3 mb-3 text-left px-0" style="line-height: 1.2;">
+          {{ nomeEsercizioCalcolatore }}
+        </div>
 
         <v-card-text class="px-0 py-2">
           <!-- Input/Visualizzazione Pesi -->
@@ -241,11 +246,11 @@
               selected-class="bg-orange-darken-3 text-white"
               style="height: 38px; display: flex;"
             >
-              <v-btn :value="false" class="flex-grow-1 text-caption font-weight-bold py-1" style="height: 38px;">
+              <v-btn value="doppio" class="flex-grow-1 text-caption font-weight-bold py-1" style="height: 38px;">
                 <v-icon size="16" class="mr-1">mdi-arrow-split-vertical</v-icon>
                 Due Lati (x2)
               </v-btn>
-              <v-btn :value="true" class="flex-grow-1 text-caption font-weight-bold py-1" style="height: 38px;">
+              <v-btn value="singolo" class="flex-grow-1 text-caption font-weight-bold py-1" style="height: 38px;">
                 <v-icon size="16" class="mr-1">mdi-arrow-right</v-icon>
                 Singolo / Cintura
               </v-btn>
@@ -255,7 +260,7 @@
           <!-- Risultato Dischi -->
           <div class="pa-4 rounded-xl border border-orange-darken-3-op bg-slate-900-op text-center" style="background: rgba(15, 23, 42, 0.5) !important;">
             <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-block mb-3" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-              {{ caricoMonolaterale ? 'Dischi da inserire (Carico Singolo / Cintura):' : 'Dischi da inserire su CIASCUN LATO:' }}
+              {{ caricoMonolaterale === 'singolo' ? 'Dischi da inserire (Carico Singolo / Cintura):' : 'Dischi da inserire su CIASCUN LATO:' }}
             </span>
 
             <div v-if="pesoDischiDaCalcolare < 0" class="text-caption font-weight-black text-red-lighten-2 py-3">
@@ -320,7 +325,7 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');
@@ -457,7 +462,7 @@ const selectedBilanciereId = computed({
 });
 
 watch([tipoBilanciere, caricoMonolaterale], () => {
-  const isMono = caricoMonolaterale.value;
+  const isMono = caricoMonolaterale.value === 'singolo';
   const divider = isMono ? 1 : 2;
   const multiplier = isMono ? 1 : 2;
   const newBar = tipoBilanciere.value;
@@ -657,6 +662,22 @@ const elencoDischiGrafica = computed(() => {
 .plate-bg-5 { background: #d1d5db; }
 .plate-bg-2_5 { background: #374151; }
 .plate-bg-1_25 { background: #9ca3af; }
+
+/* Stile Premium Selettori Caricamento Singolo/Doppio */
+.premium-toggle-group {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.premium-toggle-group .v-btn {
+  border: none !important;
+  color: #94a3b8 !important;
+  text-transform: none !important;
+}
+.premium-toggle-group .v-btn--selected {
+  background: #f97316 !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4) !important;
+}
 </style>
 
 <style>

@@ -118,17 +118,18 @@ export const targetPesoLato = ref(0);
 export const modalitaCalcolo = ref('totale'); // 'totale' o 'lato'
 export const tipoBilanciere = ref(20);
 export const nascondiLato = ref(false);
-export const caricoMonolaterale = ref(false);
+export const caricoMonolaterale = ref('doppio'); // 'doppio' o 'singolo'
+export const nomeEsercizioCalcolatore = ref('');
 
 const rilevaCaricoMonolateraleSmart = (nomeEsercizio) => {
-  if (!nomeEsercizio) return false;
+  if (!nomeEsercizio) return 'doppio';
   const lower = String(nomeEsercizio).toLowerCase();
   const keywords = [
     'hip thrust', 'hipthrust', 'belt', 'cintura', 'dip', 'trazioni', 
     'zavorra', 'zavorrate', 'monolaterale', 'singolo', 'one arm',
     'sovraccarico'
   ];
-  return keywords.some(k => lower.includes(k));
+  return keywords.some(k => lower.includes(k)) ? 'singolo' : 'doppio';
 };
 
 const rilevaPesoBilanciereSmart = (nomeEsercizio, savedBar) => {
@@ -159,6 +160,7 @@ const rilevaPesoBilanciereSmart = (nomeEsercizio, savedBar) => {
 
 export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu, nomeEsercizio = '') => {
   modalitaCalcolo.value = cliccatoSu || 'totale';
+  nomeEsercizioCalcolatore.value = nomeEsercizio;
 
   // Verifica se l'esercizio ha il peso per lato
   const haPesoLato = !!(pesoLatoStr && String(pesoLatoStr).trim() !== '' && String(pesoLatoStr).trim() !== '0');
@@ -187,8 +189,8 @@ export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu, no
     defaultBar = rilevaPesoBilanciereSmart(nomeEsercizio, savedBar);
   }
 
-  const divider = caricoMonolaterale.value ? 1 : 2;
-  const multiplier = caricoMonolaterale.value ? 1 : 2;
+  const divider = caricoMonolaterale.value === 'singolo' ? 1 : 2;
+  const multiplier = caricoMonolaterale.value === 'singolo' ? 1 : 2;
 
   if (cliccatoSu === 'lato' && haPesoLato) {
     targetPesoLato.value = lat;

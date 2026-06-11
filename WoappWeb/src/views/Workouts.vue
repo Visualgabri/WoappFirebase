@@ -902,55 +902,87 @@
                   <div v-if="index < block.exercises.length - 1 && layoutEsercizi !== 'super_compatto'" class="superset-connector-line"></div>
                   
                   <!-- VISUALIZZAZIONE SUPER COMPATTA (UNICA RIGA) -->
-                  <div v-if="layoutEsercizi === 'super_compatto'" class="d-flex align-center w-100 py-1" style="font-size: 0.72rem; z-index: 2;">
+                  <div v-if="layoutEsercizi === 'super_compatto'" class="d-flex align-center w-100 py-1" style="z-index: 2;">
                     <!-- Checkbox -->
                     <div class="mr-2 flex-shrink-0">
                       <v-btn
                         icon
                         variant="text"
                         density="compact"
-                        width="32"
-                        height="32"
+                        width="30"
+                        height="30"
                         :color="ex['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
                         @click.stop="segnaComeFattoRapido(ex)"
+                        class="super-compact-check-btn"
                       >
-                        <v-icon size="20">
-                          {{ ex['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                        <v-icon size="18">
+                          {{ ex['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
                         </v-icon>
                       </v-btn>
                     </div>
                     
                     <!-- Ordine, Titolo e Settore -->
-                    <div class="font-weight-black text-slate-dark text-truncate mr-2 flex-grow-1 text-left" style="font-size: 0.72rem !important; line-height: 1.15;">
-                      <span class="text-muted mr-1">{{ block.letter }}{{ index + 1 }}.</span>
-                      {{ ex.des_esercizio }}
-                      <span class="text-super-caption text-orange-darken-3 ml-1.5 font-weight-bold" style="font-size: 0.58rem;">
-                        {{ ex.des_settore }}
-                      </span>
+                    <div class="d-flex flex-column text-left min-width-0 flex-grow-1 mr-2">
+                      <div class="d-flex align-center min-width-0">
+                        <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
+                          {{ block.letter }}{{ index + 1 }}.
+                        </span>
+                        <span class="text-caption font-weight-bold text-slate-dark text-truncate" style="font-size: 0.75rem !important; line-height: 1.25;">
+                          {{ ex.des_esercizio }}
+                        </span>
+                      </div>
+                      <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" style="font-size: 0.58rem; line-height: 1;">
+                        <span class="text-muted uppercase font-weight-black mr-2">{{ ex.des_settore }}</span>
+                        <!-- Prescrizione Calcolabile Clickable -->
+                        <span 
+                          class="text-orange-lighten-3 font-weight-bold cursor-pointer hover-underline d-inline-flex align-center"
+                          @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno] || ex.des_qta_report, ex.des_esercizio)"
+                        >
+                          <v-icon size="10" class="mr-0.5">mdi-calculator</v-icon>
+                          {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescr.' }}
+                        </span>
+                      </div>
                     </div>
 
-                    <!-- Prescrizione -->
-                    <div 
-                      class="font-weight-black text-slate mr-2 flex-shrink-0"
-                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { cursor: 'pointer', fontSize: '0.66rem !important' }]"
-                      @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno], ex.des_esercizio)"
-                    >
-                      {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione' }}
-                    </div>
-
-                    <!-- Valore Inserito / Done Badge -->
-                    <div class="flex-shrink-0 ml-1">
+                    <!-- Action/Logged Weight on the right -->
+                    <div class="flex-shrink-0 d-flex align-center">
+                      <!-- If completed with weight/reps -->
                       <v-chip 
                         v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="x-small" 
                         color="green-darken-3" 
-                        class="font-weight-black text-white px-1.5" 
+                        class="font-weight-black text-white px-2 py-0.5" 
                         variant="flat" 
-                        style="height: 16px; font-size: 0.58rem;"
+                        style="height: 20px; font-size: 0.62rem;"
                       >
                         {{ ex['ins_week' + settimanaAttivaGiorno] }}
                       </v-chip>
-                      <span v-else class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">DA FARE</span>
+                      <!-- If completed with simple check -->
+                      <v-chip 
+                        v-else-if="ex['ins_week' + settimanaAttivaGiorno] === '-'" 
+                        size="x-small" 
+                        color="green-darken-3" 
+                        class="font-weight-black text-white px-2 py-0.5" 
+                        variant="flat" 
+                        style="height: 20px; font-size: 0.62rem;"
+                      >
+                        Fatto ✔️
+                      </v-chip>
+                      <!-- If not completed, show "+ Registra" -->
+                      <v-btn 
+                        v-else 
+                        size="x-small" 
+                        variant="outlined" 
+                        color="orange-darken-3" 
+                        class="font-weight-black px-2 py-0.5 text-none"
+                        style="height: 20px; font-size: 0.6rem; border-color: rgba(249, 115, 22, 0.4) !important;"
+                        @click.stop="vaiAlDettaglio(ex.id)"
+                      >
+                        + Registra
+                      </v-btn>
+                      
+                      <!-- Trailing Chevron -->
+                      <v-icon size="14" color="slate-dark" class="ml-1 opacity-50">mdi-chevron-right</v-icon>
                     </div>
                   </div>
 
@@ -1057,28 +1089,28 @@
                       <!-- Timer Recupero / Chaining Clickable -->
                       <div class="mt-1" v-if="ex.des_rec_report || (ex.alf_superserie && ex.alf_superserie.trim())">
                          <v-chip
-                          v-if="ex.des_rec_report"
-                          color="orange-darken-3"
-                          variant="tonal"
-                          size="x-small"
-                          class="font-weight-black clickable-timer-chip"
-                          prepend-icon="mdi-clock-outline"
-                          :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit', height: layoutEsercizi === 'compatto' ? '18px' : 'auto' }"
-                          @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
-                        >
-                          ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
-                        </v-chip>
-                        <v-chip
-                          v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
-                          color="green-darken-3"
-                          variant="flat"
-                          size="x-small"
-                          class="font-weight-black text-white"
-                          prepend-icon="mdi-arrow-right-bold-circle-outline"
-                          :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit', height: layoutEsercizi === 'compatto' ? '18px' : 'auto' }"
-                        >
-                          ⚡ VAI AL PROSSIMO (NO PAUSA)
-                        </v-chip>
+                           v-if="ex.des_rec_report"
+                           color="orange-darken-3"
+                           variant="tonal"
+                           size="x-small"
+                           class="font-weight-black clickable-timer-chip"
+                           prepend-icon="mdi-clock-outline"
+                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '18px' : '22px' }"
+                           @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
+                         >
+                           ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
+                         </v-chip>
+                         <v-chip
+                           v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
+                           color="green-darken-3"
+                           variant="flat"
+                           size="x-small"
+                           class="font-weight-black text-white"
+                           prepend-icon="mdi-arrow-right-bold-circle-outline"
+                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '18px' : '22px' }"
+                         >
+                           ⚡ VAI AL PROSSIMO (NO PAUSA)
+                         </v-chip>
                       </div>
                     </div>
 
@@ -1107,55 +1139,87 @@
             >
               <!-- VISUALIZZAZIONE SUPER COMPATTA (UNICA RIGA) -->
               <template v-if="layoutEsercizi === 'super_compatto'">
-                <div class="d-flex align-center w-100 py-1" style="font-size: 0.72rem; z-index: 2;">
+                <div class="d-flex align-center w-100 py-1" style="z-index: 2;">
                   <!-- Checkbox -->
                   <div class="mr-2 flex-shrink-0">
                     <v-btn
                       icon
                       variant="text"
                       density="compact"
-                      width="32"
-                      height="32"
+                      width="30"
+                      height="30"
                       :color="block.exercise['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
                       @click.stop="segnaComeFattoRapido(block.exercise)"
+                      class="super-compact-check-btn"
                     >
-                      <v-icon size="20">
-                        {{ block.exercise['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                      <v-icon size="18">
+                        {{ block.exercise['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
                       </v-icon>
                     </v-btn>
                   </div>
                   
-                  <!-- Ordine, Titolo e Settore -->
-                  <div class="font-weight-black text-slate-dark text-truncate mr-2 flex-grow-1 text-left" style="font-size: 0.72rem !important; line-height: 1.15;">
-                    <span class="text-muted mr-1">{{ block.exercise.num_riga_giorno }}.</span>
-                    {{ block.exercise.des_esercizio }}
-                    <span class="text-super-caption text-orange-darken-3 ml-1.5 font-weight-bold" style="font-size: 0.58rem;">
-                      {{ block.exercise.des_settore }}
-                    </span>
+                  <!-- Info Area: Index, Exercise name, muscle group -->
+                  <div class="d-flex flex-column text-left min-width-0 flex-grow-1 mr-2">
+                    <div class="d-flex align-center min-width-0">
+                      <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
+                        {{ block.exercise.num_riga_giorno }}.
+                      </span>
+                      <span class="text-caption font-weight-bold text-slate-dark text-truncate" style="font-size: 0.75rem !important; line-height: 1.25;">
+                        {{ block.exercise.des_esercizio }}
+                      </span>
+                    </div>
+                    <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" style="font-size: 0.58rem; line-height: 1;">
+                      <span class="text-muted uppercase font-weight-black mr-2">{{ block.exercise.des_settore }}</span>
+                      <!-- Prescrizione Calcolabile Clickable -->
+                      <span 
+                        class="text-orange-lighten-3 font-weight-bold cursor-pointer hover-underline d-inline-flex align-center"
+                        @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno] || block.exercise.des_qta_report, block.exercise.des_esercizio)"
+                      >
+                        <v-icon size="10" class="mr-0.5">mdi-calculator</v-icon>
+                        {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescr.' }}
+                      </span>
+                    </div>
                   </div>
 
-                  <!-- Prescrizione -->
-                  <div 
-                    class="font-weight-black text-slate mr-2 flex-shrink-0"
-                    :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { cursor: 'pointer', fontSize: '0.66rem !important' }]"
-                    @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno], block.exercise.des_esercizio)"
-                  >
-                    {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione' }}
-                  </div>
-
-                  <!-- Valore Inserito / Done Badge -->
-                  <div class="flex-shrink-0 ml-1">
+                  <!-- Action/Logged Weight on the right -->
+                  <div class="flex-shrink-0 d-flex align-center">
+                    <!-- If completed with weight/reps -->
                     <v-chip 
                       v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                       size="x-small" 
                       color="green-darken-3" 
-                      class="font-weight-black text-white px-1.5" 
+                      class="font-weight-black text-white px-2 py-0.5" 
                       variant="flat" 
-                      style="height: 16px; font-size: 0.58rem;"
+                      style="height: 20px; font-size: 0.62rem;"
                     >
                       {{ block.exercise['ins_week' + settimanaAttivaGiorno] }}
                     </v-chip>
-                    <span v-else class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">DA FARE</span>
+                    <!-- If completed with simple check -->
+                    <v-chip 
+                      v-else-if="block.exercise['ins_week' + settimanaAttivaGiorno] === '-'" 
+                      size="x-small" 
+                      color="green-darken-3" 
+                      class="font-weight-black text-white px-2 py-0.5" 
+                      variant="flat" 
+                      style="height: 20px; font-size: 0.62rem;"
+                    >
+                      Fatto ✔️
+                    </v-chip>
+                    <!-- If not completed, show "+ Registra" -->
+                    <v-btn 
+                      v-else 
+                      size="x-small" 
+                      variant="outlined" 
+                      color="orange-darken-3" 
+                      class="font-weight-black px-2 py-0.5 text-none"
+                      style="height: 20px; font-size: 0.6rem; border-color: rgba(249, 115, 22, 0.4) !important;"
+                      @click.stop="vaiAlDettaglio(block.exercise.id)"
+                    >
+                      + Registra
+                    </v-btn>
+                    
+                    <!-- Trailing Chevron -->
+                    <v-icon size="14" color="slate-dark" class="ml-1 opacity-50">mdi-chevron-right</v-icon>
                   </div>
                 </div>
               </template>
@@ -1268,7 +1332,7 @@
                       size="x-small"
                       class="font-weight-black clickable-timer-chip"
                       prepend-icon="mdi-clock-outline"
-                      :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit', height: layoutEsercizi === 'compatto' ? '18px' : 'auto' }"
+                      :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '18px' : '22px' }"
                       @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                     >
                       ⏱️ {{ block.exercise.des_rec_report }}

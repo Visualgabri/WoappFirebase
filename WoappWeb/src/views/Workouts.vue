@@ -2115,22 +2115,24 @@ const parseDayHeader = (str) => {
 
 const isVolumeString = (str) => {
   if (!str) return false;
-  return /V:\s*[\d,.]+\s+A:\s*[\d,.]+/i.test(str);
+  return /V:\s*[\d,.]+/i.test(str) && /(?:A|B|C):\s*[\d,.]+/i.test(str);
 };
 
 const parseVolumeString = (str) => {
-  if (!str) return null;
-  const regex = /V:\s*([\d,.]+)\s+A:\s*([\d,.]+)\s+B:\s*([\d,.]+)(?:\s+C:\s*([\d,.]+))?/i;
-  const match = str.trim().match(regex);
-  if (match) {
-    return {
-      v: match[1],
-      a: match[2],
-      b: match[3],
-      c: match[4] || '0'
-    };
-  }
-  return null;
+  if (!str) return { v: '0', a: '0', b: '0', c: '0' };
+  
+  const getVal = (prefix) => {
+    const regex = new RegExp(`${prefix}:\\s*([\\d,.]+)`, 'i');
+    const match = str.match(regex);
+    return match ? match[1] : '0';
+  };
+  
+  return {
+    v: getVal('V'),
+    a: getVal('A'),
+    b: getVal('B'),
+    c: getVal('C')
+  };
 };
 
 const parseVolumes = (str) => {

@@ -77,7 +77,11 @@
         </div>
 
         <!-- Skeleton tabs durante il caricamento per evitare sflash dei giorni A B C D -->
-        <div v-if="caricamento" class="card-glass rounded-xl elevation-1 d-flex justify-space-around align-center" style="height: 48px;">
+        <div 
+          v-if="caricamento" 
+          class="card-glass rounded-xl elevation-1 d-flex justify-space-around align-center" 
+          :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
+        >
           <div class="skeleton-tab-item"></div>
           <div class="skeleton-tab-item"></div>
           <div class="skeleton-tab-item"></div>
@@ -92,16 +96,28 @@
           hide-slider
           class="card-glass rounded-xl elevation-1"
           @update:model-value="salvaGiornoSelezionato"
-          style="height: 62px;"
+          :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
         >
-          <v-tab v-for="giorno in listaGiorniDisponibili" :key="giorno" :value="giorno" class="px-2" style="height: 62px;">
+          <v-tab 
+            v-for="giorno in listaGiorniDisponibili" 
+            :key="giorno" 
+            :value="giorno" 
+            class="px-2" 
+            :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
+          >
             <div class="d-flex flex-column align-center justify-center py-1 w-100">
               <div class="d-flex align-center">
-                <span class="font-weight-black text-h6" style="line-height: 1.1;">{{ giorno }}</span>
+                <span 
+                  class="font-weight-black" 
+                  :class="layoutEsercizi === 'super_compatto' ? 'text-body-1' : (layoutEsercizi === 'compatto' ? 'text-subtitle-1' : 'text-h6')" 
+                  style="line-height: 1.1;"
+                >
+                  {{ giorno }}
+                </span>
                 <v-icon
                   v-if="giornoHaBuchi(giorno)"
                   color="red-lighten-1"
-                  size="14"
+                  :size="layoutEsercizi === 'super_compatto' ? 10 : 12"
                   class="ml-1"
                   title="Esercizi mancanti (buco nell'ordine)"
                 >
@@ -110,7 +126,7 @@
                 <v-icon
                   v-if="statoGiorni[giorno] === 'completed'"
                   color="green-accent-4"
-                  size="14"
+                  :size="layoutEsercizi === 'super_compatto' ? 10 : 12"
                   class="ml-1"
                 >
                   mdi-check-bold
@@ -118,22 +134,31 @@
                 <v-icon
                   v-else-if="statoGiorni[giorno] === 'pending'"
                   color="orange-darken-3"
-                  size="14"
+                  :size="layoutEsercizi === 'super_compatto' ? 10 : 12"
                   class="ml-1 pulse-active-tab-icon"
                 >
                   mdi-lock-open-outline
                 </v-icon>
               </div>
               <span 
-                v-if="settimanaDaChiuderePerGiorno(giorno)" 
+                v-if="layoutEsercizi !== 'super_compatto' && settimanaDaChiuderePerGiorno(giorno)" 
                 class="text-super-caption font-weight-black" 
                 :class="settimanaDaChiuderePerGiorno(giorno) === 'FINE' ? 'text-green-accent-4' : 'text-orange-lighten-2'"
-                style="font-size: 0.62rem; margin-top: 1.5px; line-height: 1; opacity: 0.9;"
+                style="font-size: 0.58rem; margin-top: 1.5px; line-height: 1; opacity: 0.9;"
               >
                 {{ settimanaDaChiuderePerGiorno(giorno) }}
               </span>
               <!-- Mini barra di avanzamento del giorno -->
-              <div class="day-tab-progress-bg mt-1" style="width: 75%; height: 3px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden;">
+              <div 
+                class="day-tab-progress-bg mt-1" 
+                :style="{ 
+                  width: '75%', 
+                  height: layoutEsercizi === 'super_compatto' ? '2px' : '3px', 
+                  background: 'rgba(255, 255, 255, 0.08)', 
+                  borderRadius: '2px', 
+                  overflow: 'hidden' 
+                }"
+              >
                 <div 
                   class="day-tab-progress-fill"
                   :style="{ 
@@ -510,17 +535,38 @@
         >
           <!-- Intestazione Sessione (ex Day Header Card) -->
           <div
-            class="day-header-section pa-4 clickable-header position-relative"
+            class="day-header-section clickable-header position-relative"
+            :class="{
+              'pa-2': layoutEsercizi === 'super_compatto',
+              'pa-3': layoutEsercizi === 'compatto',
+              'pa-4': layoutEsercizi === 'standard'
+            }"
             style="border-bottom: 1.5px solid rgba(255, 255, 255, 0.08); transition: background 0.2s;"
             @click="vaiAlDettaglioSessione(headerGiorno.id)"
           >
           <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
           <div v-if="parseDayHeader(headerGiorno.des_esercizio)" class="w-100">
-            <div class="d-flex align-start justify-space-between w-100 mb-3 flex-wrap gap-2">
+            <div 
+              class="d-flex align-start justify-space-between w-100 flex-wrap gap-2"
+              :class="layoutEsercizi === 'super_compatto' ? 'mb-1' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3')"
+            >
               <div class="d-flex align-center">
-                <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
+                <div 
+                  class="giorno-big-letter mr-3"
+                  :style="{ 
+                    width: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
+                    height: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
+                    fontSize: layoutEsercizi === 'super_compatto' ? '1rem' : (layoutEsercizi === 'compatto' ? '1.2rem' : '1.5rem'),
+                    borderRadius: layoutEsercizi === 'super_compatto' ? '8px' : '12px'
+                  }"
+                >
+                  {{ giornoSelezionato }}
+                </div>
                 <div class="text-left">
-                  <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 mb-0">
+                  <h3 
+                    class="font-weight-black text-orange-darken-4 mb-0"
+                    :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
+                  >
                     Workout Giorno {{ giornoSelezionato }}
                   </h3>
                   <!-- Promemoria Chiusura Settimana -->
@@ -536,7 +582,10 @@
                     </v-chip>
                   </div>
                   <!-- Progresso Settimane (Tracker Week) -->
-                  <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
+                  <div 
+                    class="d-flex gap-1 align-center mini-weeks-progression"
+                    :class="layoutEsercizi === 'super_compatto' ? 'mt-0.5' : 'mt-1'"
+                  >
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
                       :key="w"
@@ -547,13 +596,21 @@
                         'capsule-pending': !isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno
                       }"
                       @click.stop="selezionaSettimanaManuale(w)"
-                      style="cursor: pointer;"
+                      :style="{ 
+                        cursor: 'pointer',
+                        padding: layoutEsercizi === 'super_compatto' ? '1px 3px' : '2px 5px',
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.55rem' : '0.62rem'
+                      }"
                     >
                       <span class="capsule-num">W{{ w }}</span>
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
-                  <div class="text-caption text-muted font-weight-bold d-flex align-center mt-1" style="font-size: 0.7rem;">
+                  <div 
+                    v-if="layoutEsercizi !== 'super_compatto'"
+                    class="text-caption text-muted font-weight-bold d-flex align-center mt-1" 
+                    style="font-size: 0.7rem;"
+                  >
                     <v-icon size="13" color="orange" class="mr-1">mdi-fire</v-icon>
                     Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
                   </div>
@@ -602,7 +659,11 @@
             </v-row>
 
             <!-- Focus Zone del Giorno (Unificato & Compatto) -->
-            <div class="text-center mt-2 pb-1 text-super-caption font-weight-bold d-flex align-center justify-center gap-1.5" style="font-size: 0.68rem;">
+            <div 
+              v-if="layoutEsercizi !== 'super_compatto'"
+              class="text-center mt-2 pb-1 text-super-caption font-weight-bold d-flex align-center justify-center gap-1.5" 
+              style="font-size: 0.68rem;"
+            >
               <span>🎯 Focus Giorno:</span>
               <span :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).color }" class="font-weight-black">
                 {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }} {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label }}
@@ -610,7 +671,10 @@
             </div>
 
             <!-- Sezione Volumi (VOL A, B, C) -->
-            <div v-if="parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left">
+            <div 
+              v-if="layoutEsercizi !== 'super_compatto' && parseVolumes(headerGiorno.ins_esercizio)" 
+              class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left"
+            >
               <div class="d-flex align-center justify-space-between mb-1.5 px-1">
                 <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">
                   📊 Distribuzione Volumi (Serie Totali: {{ parseVolumes(headerGiorno.ins_esercizio).totale }})
@@ -660,7 +724,10 @@
             </div>
 
             <!-- Informazioni RMT o Volumi se presenti -->
-            <div v-if="headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft text-left d-flex align-center">
+            <div 
+              v-if="layoutEsercizi !== 'super_compatto' && headerGiorno.des_esercizio_2" 
+              class="mt-2 pt-2 border-top-soft text-left d-flex align-center"
+            >
               <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
                 <div class="d-flex align-center flex-wrap gap-1.5">
                   <span class="vol-pill vol-pill-total" title="Volume Globale (V)">
@@ -696,11 +763,27 @@
 
           <!-- Fallback se non si può parsare -->
           <div v-else class="w-100">
-            <div class="d-flex align-start justify-space-between w-100 mb-3 flex-wrap gap-2">
+            <div 
+              class="d-flex align-start justify-space-between w-100 flex-wrap gap-2"
+              :class="layoutEsercizi === 'super_compatto' ? 'mb-1' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3')"
+            >
               <div class="d-flex align-center">
-                <div class="giorno-big-letter mr-3">{{ giornoSelezionato }}</div>
+                <div 
+                  class="giorno-big-letter mr-3"
+                  :style="{ 
+                    width: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
+                    height: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
+                    fontSize: layoutEsercizi === 'super_compatto' ? '1rem' : (layoutEsercizi === 'compatto' ? '1.2rem' : '1.5rem'),
+                    borderRadius: layoutEsercizi === 'super_compatto' ? '8px' : '12px'
+                  }"
+                >
+                  {{ giornoSelezionato }}
+                </div>
                 <div class="text-left min-width-0">
-                  <h3 class="text-subtitle-1 font-weight-black text-orange-darken-4 text-truncate mb-0">
+                  <h3 
+                    class="font-weight-black text-orange-darken-4 text-truncate mb-0"
+                    :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
+                  >
                     {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
                   </h3>
                   <!-- Promemoria Chiusura Settimana -->
@@ -716,7 +799,10 @@
                     </v-chip>
                   </div>
                   <!-- Progresso Settimane (Tracker Week) -->
-                  <div class="d-flex gap-1 align-center mini-weeks-progression mt-1">
+                  <div 
+                    class="d-flex gap-1 align-center mini-weeks-progression"
+                    :class="layoutEsercizi === 'super_compatto' ? 'mt-0.5' : 'mt-1'"
+                  >
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
                       :key="w"
@@ -727,7 +813,11 @@
                         'capsule-pending': !isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno
                       }"
                       @click.stop="selezionaSettimanaManuale(w)"
-                      style="cursor: pointer;"
+                      :style="{ 
+                        cursor: 'pointer',
+                        padding: layoutEsercizi === 'super_compatto' ? '1px 3px' : '2px 5px',
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.55rem' : '0.62rem'
+                      }"
                     >
                       <span class="capsule-num">W{{ w }}</span>
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
@@ -738,7 +828,7 @@
             </div>
 
             <!-- Informazioni RMT o Volumi se presenti (spostate sotto e rese indipendenti) -->
-            <div v-if="headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft">
+            <div v-if="layoutEsercizi !== 'super_compatto' && headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft">
                 <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
                   <div class="d-flex align-center flex-wrap gap-1.5">
                     <span class="vol-pill vol-pill-total" title="Volume Globale (V)">
@@ -772,7 +862,7 @@
               </div>
               
               <!-- Sezione Volumi (VOL A, B, C) in fallback -->
-              <div v-if="parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left mt-2">
+              <div v-if="layoutEsercizi !== 'super_compatto' && parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left mt-2">
                 <div class="d-flex align-center justify-space-between mb-1.5 px-1">
                   <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">
                     📊 Distribuzione Volumi (Serie Totali: {{ parseVolumes(headerGiorno.ins_esercizio).totale }})
@@ -820,19 +910,27 @@
                   </v-col>
                 </v-row>
               </div>
-              <div v-else-if="headerGiorno.ins_esercizio" class="text-caption text-muted mt-1 leading-tight text-truncate">
+              <div v-else-if="layoutEsercizi !== 'super_compatto' && headerGiorno.ins_esercizio" class="text-caption text-muted mt-1 leading-tight text-truncate">
                 {{ headerGiorno.ins_esercizio }}
               </div>
             <v-icon color="orange-darken-3" class="ml-2">mdi-chevron-right</v-icon>
           </div>
 
           <!-- Progress Bar Session Energy (unificata visivamente) -->
-          <div class="mt-3 pt-2.5 border-top-soft text-left" @click.stop>
-            <div class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-grey-lighten-1 mb-1.5" style="font-size: 0.6rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <div 
+            class="border-top-soft text-left" 
+            :class="layoutEsercizi === 'super_compatto' ? 'mt-1.5 pt-1.5' : (layoutEsercizi === 'compatto' ? 'mt-2 pt-2' : 'mt-3 pt-2.5')"
+            @click.stop
+          >
+            <div 
+              v-if="layoutEsercizi !== 'super_compatto'"
+              class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-grey-lighten-1 mb-1.5" 
+              style="font-size: 0.6rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+            >
               <span>🔋 Avanzamento</span>
               <span class="text-orange-lighten-2">{{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%</span>
             </div>
-            <div class="session-progress-bar-container rounded-full overflow-hidden" style="height: 5px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.03);">
+            <div class="session-progress-bar-container rounded-full overflow-hidden" :style="{ height: layoutEsercizi === 'super_compatto' ? '3px' : '5px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.03)' }">
               <div
                 class="session-progress-bar-fill rounded-full"
                 :style="{
@@ -848,7 +946,15 @@
           </div>
 
           <!-- Sezione Esercizi della Sessione (unita visivamente) -->
-          <div class="day-exercises-section pa-3" style="background: rgba(15, 23, 42, 0.25);">
+          <div 
+            class="day-exercises-section" 
+            :class="{
+              'pa-1.5': layoutEsercizi === 'super_compatto',
+              'pa-2': layoutEsercizi === 'compatto',
+              'pa-3': layoutEsercizi === 'standard'
+            }"
+            style="background: rgba(15, 23, 42, 0.25);"
+          >
             <!-- Stato Vuoto se nessun esercizio -->
             <div v-if="eserciziFiltrati.length === 0" class="text-center my-10 py-6">
               <v-icon color="grey-lighten-1" size="48">mdi-dumbbell-off</v-icon>

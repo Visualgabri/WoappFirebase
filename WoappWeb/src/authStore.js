@@ -131,14 +131,16 @@ export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu) =>
   const tot = parseWeight(pesoTotaleStr);
   const lat = parseWeight(pesoLatoStr);
 
+  const savedBar = parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20');
+
   if (cliccatoSu === 'lato') {
     targetPesoLato.value = lat;
-    const bar = lat * 2 > 20 ? 20 : (lat * 2 > 15 ? 15 : 0);
+    const bar = (lat * 2 >= savedBar) ? savedBar : 0;
     tipoBilanciere.value = bar;
     targetPesoTotale.value = lat * 2 + bar;
   } else {
     targetPesoTotale.value = tot;
-    const bar = tot > 20 ? 20 : (tot > 15 ? 15 : 0);
+    const bar = (tot >= savedBar) ? savedBar : 0;
     tipoBilanciere.value = bar;
     const latoCalc = (tot - bar) / 2;
     targetPesoLato.value = latoCalc > 0 ? latoCalc : 0;

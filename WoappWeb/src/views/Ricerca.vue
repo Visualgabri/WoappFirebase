@@ -526,8 +526,8 @@ const caricaEmailRiferimento = async () => {
   }
 };
 
-// Micro-vibrazione tattile per smartphone
 const vibraTattile = (ms = 12) => {
+  if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
   if (navigator.vibrate) {
     navigator.vibrate(ms);
   }

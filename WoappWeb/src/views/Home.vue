@@ -871,8 +871,8 @@ import { jsPDF } from 'jspdf';
 
 const router = useRouter();
 
-// Micro-vibrazione tattile per smartphone (Haptic feedback)
 const vibraTattile = (ms = 12) => {
+  if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
   if (navigator.vibrate) {
     navigator.vibrate(ms);
   }

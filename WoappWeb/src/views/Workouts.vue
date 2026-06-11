@@ -35,7 +35,10 @@
           </div>
         </div>
       </div>
-      <div class="header-actions">
+      <div class="header-actions d-flex align-center gap-1">
+        <v-btn icon color="slate-dark" variant="text" @click="dialogImpostazioni = true" id="btn-workouts-settings">
+          <v-icon>mdi-cog-outline</v-icon>
+        </v-btn>
         <v-btn icon color="slate-dark" variant="text" @click="caricaAllenamenti"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
     </div>
@@ -859,15 +862,20 @@
             <!-- CASO 1: GRUPPO SUPERSET (SUPERSERIE) -->
             <v-card
               v-if="block.type === 'superset'"
-              class="superset-group-card rounded-2xl pa-4 mb-4 border-superset elevation-2 text-left"
+              class="superset-group-card rounded-2xl mb-4 border-superset elevation-2 text-left"
+              :class="{
+                'pa-2': layoutEsercizi === 'super_compatto',
+                'pa-3': layoutEsercizi === 'compatto',
+                'pa-4': layoutEsercizi === 'standard'
+              }"
             >
               <!-- Intestazione del Superset -->
-              <div class="superset-header d-flex align-center justify-space-between mb-3">
+              <div class="superset-header d-flex align-center justify-space-between" :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : 'mb-3'">
                 <div class="d-flex align-center flex-wrap gap-2">
                   <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-1 mr-1" variant="flat" size="x-small">
                     ⚡ SUPERSET {{ block.letter }}
                   </v-chip>
-                  <span class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
+                  <span v-if="layoutEsercizi !== 'super_compatto'" class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
                     Esegui in sequenza senza pausa
                   </span>
                 </div>
@@ -881,29 +889,49 @@
                   v-for="(ex, index) in block.exercises"
                   :key="ex.id"
                   :id="'esercizio-' + ex.id"
-                  class="superset-exercise-item position-relative d-flex align-center py-3"
+                  class="superset-exercise-item position-relative d-flex align-center"
                   :class="{
-                    'border-bottom-soft': index < block.exercises.length - 1
+                    'border-bottom-soft': index < block.exercises.length - 1,
+                    'py-1.5': layoutEsercizi === 'super_compatto',
+                    'py-2.5': layoutEsercizi === 'compatto',
+                    'py-3': layoutEsercizi === 'standard'
                   }"
                   @click="vaiAlDettaglio(ex.id)"
                 >
                   <!-- Linea di collegamento tratteggiata tra le miniature degli esercizi in superset -->
-                  <div v-if="index < block.exercises.length - 1" class="superset-connector-line"></div>
+                  <div v-if="index < block.exercises.length - 1 && layoutEsercizi !== 'super_compatto'" class="superset-connector-line"></div>
                   
+                  <!-- Checkbox / Click target per Super Compatto -->
+                  <div v-if="layoutEsercizi === 'super_compatto'" class="mr-2.5 flex-shrink-0">
+                    <v-btn
+                      icon
+                      variant="text"
+                      density="compact"
+                      width="32"
+                      height="32"
+                      :color="ex['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
+                      @click.stop="segnaComeFattoRapido(ex)"
+                    >
+                      <v-icon size="20">
+                        {{ ex['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                      </v-icon>
+                    </v-btn>
+                  </div>
+
                   <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
-                  <div class="d-flex flex-column align-center mr-4" style="width: 76px; min-width: 76px;">
-                    <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-1" style="z-index: 2; width: 76px; height: 76px;">
+                  <div v-if="layoutEsercizi !== 'super_compatto'" class="d-flex flex-column align-center mr-3" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '76px', minWidth: layoutEsercizi === 'compatto' ? '48px' : '76px' }">
+                    <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-1" :style="{ zIndex: 2, width: layoutEsercizi === 'compatto' ? '48px' : '76px', height: layoutEsercizi === 'compatto' ? '48px' : '76px' }">
                       <v-img
                         :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                        width="76"
-                        height="76"
+                        :width="layoutEsercizi === 'compatto' ? '48px' : '76px'"
+                        :height="layoutEsercizi === 'compatto' ? '48px' : '76px'"
                         cover
                         alt="Esercizio"
                         class="bg-grey-lighten-4"
                       >
                         <template v-slot:placeholder>
                           <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                            <v-icon color="grey-lighten-1" size="20">mdi-dumbbell</v-icon>
+                            <v-icon color="grey-lighten-1" :size="layoutEsercizi === 'compatto' ? 16 : 20">mdi-dumbbell</v-icon>
                           </div>
                         </template>
                       </v-img>
@@ -938,27 +966,33 @@
                   <!-- Dettagli Centrali -->
                   <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                     <!-- Titolo Esercizio -->
-<h4 class="text-body-1 font-weight-black leading-tight mb-1" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
-  <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>{{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}{{ ex.des_esercizio || 'Esercizio' }}
-</h4>
+                    <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark', layoutEsercizi === 'super_compatto' ? 'text-body-2' : 'text-body-1']" style="white-space: normal; word-break: break-word;">
+                      <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
+                      {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
+                      {{ ex.des_esercizio || 'Esercizio' }}
+                      <!-- Mostra peso inserito inline in modalità super_compatto -->
+                      <v-chip v-if="layoutEsercizi === 'super_compatto' && ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" size="x-small" color="green-darken-3" class="ml-2 font-weight-black text-white px-1.5" variant="flat">
+                        {{ ex['ins_week' + settimanaAttivaGiorno] }}
+                      </v-chip>
+                    </h4>
 
                     <!-- Settore e Emoji Sforzo -->
                     <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
-                      <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
+                      <span :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.62rem' : 'inherit' }">{{ ex.des_settore || 'Corpo Libero' }}</span>
                       <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                     </div>
 
                     <!-- Prescrizione della settimana attiva -->
                     <div 
                       class="text-caption font-weight-bold text-slate text-truncate mb-1" 
-                      :style="getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report) + '; cursor: pointer;'"
+                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'super_compatto' ? '0.7rem' : 'inherit' }]"
                       @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno])"
                     >
                       {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                     </div>
 
-
-                    <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                    <!-- Cronologia Carichi Settimanali -->
+                    <div v-if="layoutEsercizi !== 'super_compatto'" class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
                       <div class="d-flex gap-1 align-center flex-wrap">
                         <div
                           v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -969,11 +1003,17 @@
                             'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                             'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                           }"
-                          style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
+                          :style="{
+                            fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
+                            padding: layoutEsercizi === 'compatto' ? '0px 3px' : '1px 4px',
+                            height: layoutEsercizi === 'compatto' ? '13px' : '16px',
+                            minWidth: layoutEsercizi === 'compatto' ? '24px' : '32px',
+                            cursor: 'pointer'
+                          }"
                           @click.stop="selezionaSettimanaManuale(w)"
                         >
                           <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
-                          <span class="ml-1 font-weight-black" style="font-size: 0.55rem;">
+                          <span class="ml-0.5 font-weight-black" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem' }">
                             {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
                           </span>
                         </div>
@@ -981,7 +1021,7 @@
                     </div>
 
                     <!-- Timer Recupero / Chaining Clickable -->
-                    <div class="mt-1">
+                    <div class="mt-1" v-if="ex.des_rec_report || (ex.alf_superserie && ex.alf_superserie.trim())">
                       <v-chip
                         v-if="ex.des_rec_report"
                         color="orange-darken-3"
@@ -991,7 +1031,7 @@
                         prepend-icon="mdi-clock-outline"
                         @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
                       >
-                        ⏱️ Recupero: {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
+                        ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
                       </v-chip>
                       <v-chip
                         v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
@@ -1008,7 +1048,7 @@
 
                   <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
                   <div class="d-flex flex-column align-end justify-center pl-2 position-relative" style="z-index: 2;">
-                    <div class="text-caption font-weight-black text-slate-dark">
+                    <div class="text-caption font-weight-black text-slate-dark" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.65rem' : 'inherit' }">
                       {{ ex.num_riga_giorno }}
                     </div>
                   </div>
@@ -1020,23 +1060,45 @@
             <v-card
               v-else
               :id="'esercizio-' + block.exercise.id"
-              class="exercise-item-card rounded-xl pa-3 mb-4 elevation-1 d-flex align-center"
+              class="exercise-item-card rounded-xl elevation-1 d-flex align-center"
+              :class="{
+                'pa-1.5 mb-2': layoutEsercizi === 'super_compatto',
+                'pa-2.5 mb-3': layoutEsercizi === 'compatto',
+                'pa-3 mb-4': layoutEsercizi === 'standard'
+              }"
               @click="vaiAlDettaglio(block.exercise.id)"
             >
+              <!-- Checkbox / Click target per Super Compatto -->
+              <div v-if="layoutEsercizi === 'super_compatto'" class="mr-2.5 flex-shrink-0">
+                <v-btn
+                  icon
+                  variant="text"
+                  density="compact"
+                  width="32"
+                  height="32"
+                  :color="block.exercise['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
+                  @click.stop="segnaComeFattoRapido(block.exercise)"
+                >
+                  <v-icon size="20">
+                    {{ block.exercise['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                  </v-icon>
+                </v-btn>
+              </div>
+
               <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
-              <div class="d-flex flex-column align-center mr-4" style="width: 84px; min-width: 84px;">
-                <div class="thumbnail-wrapper rounded-lg overflow-hidden mb-1" style="width: 84px; height: 84px;">
+              <div v-if="layoutEsercizi !== 'super_compatto'" class="d-flex flex-column align-center mr-3" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '84px', minWidth: layoutEsercizi === 'compatto' ? '48px' : '84px' }">
+                <div class="thumbnail-wrapper rounded-lg overflow-hidden mb-1" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '84px', height: layoutEsercizi === 'compatto' ? '48px' : '84px' }">
                   <v-img
                     :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                    width="84"
-                    height="84"
+                    :width="layoutEsercizi === 'compatto' ? '48px' : '84px'"
+                    :height="layoutEsercizi === 'compatto' ? '48px' : '84px'"
                     cover
                     alt="Esercizio"
                     class="bg-grey-lighten-4"
                   >
                     <template v-slot:placeholder>
                       <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                        <v-icon color="grey-lighten-1">mdi-dumbbell</v-icon>
+                        <v-icon color="grey-lighten-1" :size="layoutEsercizi === 'compatto' ? 16 : 24">mdi-dumbbell</v-icon>
                       </div>
                     </template>
                   </v-img>
@@ -1071,29 +1133,33 @@
               <!-- Dettagli Centrali -->
               <div class="flex-grow-1 text-left min-width-0">
                 <!-- Titolo Esercizio -->
-<h4 class="text-body-1 font-weight-black leading-tight mb-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
-  <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>{{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}{{ block.exercise.des_esercizio || 'Esercizio' }}
-</h4>
+                <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark', layoutEsercizi === 'super_compatto' ? 'text-body-2' : 'text-body-1']" style="white-space: normal; word-break: break-word;">
+                  <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
+                  {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
+                  {{ block.exercise.des_esercizio || 'Esercizio' }}
+                  <!-- Mostra peso inserito inline in modalità super_compatto -->
+                  <v-chip v-if="layoutEsercizi === 'super_compatto' && block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" size="x-small" color="green-darken-3" class="ml-2 font-weight-black text-white px-1.5" variant="flat">
+                    {{ block.exercise['ins_week' + settimanaAttivaGiorno] }}
+                  </v-chip>
+                </h4>
 
                 <!-- Settore e Emoji Sforzo -->
                 <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
-                  <span>{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                  <span :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.62rem' : 'inherit' }">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
                   <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                 </div>
 
                 <!-- Prescrizione della settimana attiva -->
                 <div 
                   class="text-caption font-weight-bold text-slate text-truncate mb-1" 
-                  :style="getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report) + '; cursor: pointer;'"
+                  :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'super_compatto' ? '0.7rem' : 'inherit' }]"
                   @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno])"
                 >
                   {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                 </div>
 
-                
-
                 <!-- Cronologia Carichi Settimanali -->
-                <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                <div v-if="layoutEsercizi !== 'super_compatto'" class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
                   <div class="d-flex gap-1 align-center flex-wrap">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -1104,11 +1170,17 @@
                         'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                         'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                       }"
-                      style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
+                      :style="{
+                        fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
+                        padding: layoutEsercizi === 'compatto' ? '0px 3px' : '1px 4px',
+                        height: layoutEsercizi === 'compatto' ? '13px' : '16px',
+                        minWidth: layoutEsercizi === 'compatto' ? '24px' : '32px',
+                        cursor: 'pointer'
+                      }"
                       @click.stop="selezionaSettimanaManuale(w)"
                     >
                       <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
-                      <span class="ml-1 font-weight-black" style="font-size: 0.55rem;">
+                      <span class="ml-0.5 font-weight-black" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem' }">
                         {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
                       </span>
                     </div>
@@ -1125,14 +1197,14 @@
                     prepend-icon="mdi-clock-outline"
                     @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                   >
-                    ⏱️ Recupero: {{ block.exercise.des_rec_report }}
+                    ⏱️ {{ block.exercise.des_rec_report }}
                   </v-chip>
                 </div>
               </div>
 
               <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
               <div class="d-flex flex-column align-end justify-center pl-2">
-                <div class="text-caption font-weight-black text-slate-dark">
+                <div class="text-caption font-weight-black text-slate-dark" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.65rem' : 'inherit' }">
                   {{ block.exercise.num_riga_giorno }}
                 </div>
               </div>
@@ -1330,6 +1402,156 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog Impostazioni (Settings Panel) -->
+    <v-dialog v-model="dialogImpostazioni" max-width="480">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange-darken-3" size="22">mdi-cog-outline</v-icon>
+            <span class="text-subtitle-1 font-weight-black text-white">Opzioni e Impostazioni</span>
+          </div>
+          <v-btn icon variant="text" width="28" height="28" color="grey" @click="dialogImpostazioni = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-4 text-slate font-weight-medium overflow-y-auto" style="font-size: 0.85rem; max-height: 70vh;">
+          <!-- Sezione 1: Densità Layout -->
+          <div class="mb-5">
+            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-2">📐 Densità del Layout Lista</span>
+            <v-btn-toggle
+              v-model="layoutEsercizi"
+              mandatory
+              selected-class="bg-orange-darken-3 text-white"
+              density="comfortable"
+              rounded="xl"
+              class="w-100 card-glass border mb-2"
+              style="height: 38px;"
+            >
+              <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+                Super Compatto
+              </v-btn>
+              <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+                Compatto
+              </v-btn>
+              <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+                Standard
+              </v-btn>
+            </v-btn-toggle>
+            <div class="text-super-caption text-muted font-italic leading-tight">
+              <template v-if="layoutEsercizi === 'super_compatto'">
+                * Super Compatto: Rimuove miniature (immagini/GIF) e capsule W1-W6 della cronologia per la massima densità (card da 50px).
+              </template>
+              <template v-else-if="layoutEsercizi === 'compatto'">
+                * Compatto: Miniature ridotte (48px), layout in linea e capsule W1-W6 compresse (card da 80px).
+              </template>
+              <template v-else>
+                * Standard: Layout esteso classico con miniature da 84px e capsule W1-W6 carichi complete.
+              </template>
+            </div>
+          </div>
+
+          <v-divider class="mb-4" style="border-color: rgba(255,255,255,0.06) !important;"></v-divider>
+
+          <!-- Sezione 2: Parametri Fissi -->
+          <div class="mb-4 d-flex flex-column gap-3.5">
+            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-1">🏋️ Parametri Fissi di Allenamento</span>
+            
+            <!-- Peso Bilanciere Default -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Peso Bilanciere Default</span>
+                <span class="text-super-caption text-muted">Usato nel calcolatore dischi</span>
+              </div>
+              <div style="width: 130px;">
+                <v-select
+                  v-model="defaultBilanciere"
+                  :items="[
+                    { title: '20 kg (Olimpico)', value: 20 },
+                    { title: '15 kg (Femminile)', value: 15 },
+                    { title: '12 kg (Leggero)', value: 12 },
+                    { title: '10 kg (Junior)', value: 10 },
+                    { title: '0 kg (Manubri/Libero)', value: 0 }
+                  ]"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  rounded="lg"
+                  color="orange-darken-3"
+                  style="font-size: 0.8rem;"
+                ></v-select>
+              </div>
+            </div>
+
+            <!-- Feedback Tattile (Vibrazione) -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Vibrazione Tattile</span>
+                <span class="text-super-caption text-muted">Micro-feedback sui tasti ed inserimenti</span>
+              </div>
+              <div>
+                <v-switch
+                  v-model="vibrazioneAttiva"
+                  color="orange-darken-3"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
+            </div>
+
+            <!-- Avvio Automatico Recupero -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Avvio Auto Recupero</span>
+                <span class="text-super-caption text-muted">Avvia il timer quando completi una week</span>
+              </div>
+              <div>
+                <v-switch
+                  v-model="avvioAutoTimer"
+                  color="orange-darken-3"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
+            </div>
+
+            <!-- Tempo Default Recupero -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Durata Recupero Default</span>
+                <span class="text-super-caption text-muted">Se non specificato dall'esercizio</span>
+              </div>
+              <div style="width: 130px;">
+                <v-select
+                  v-model="defaultTimerRec"
+                  :items="[
+                    { title: '45 secondi', value: 45 },
+                    { title: '60 secondi (1m)', value: 60 },
+                    { title: '90 secondi (1m 30s)', value: 90 },
+                    { title: '120 secondi (2m)', value: 120 },
+                    { title: '150 secondi (2m 30s)', value: 150 },
+                    { title: '180 secondi (3m)', value: 180 }
+                  ]"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  rounded="lg"
+                  color="orange-darken-3"
+                  style="font-size: 0.8rem;"
+                ></v-select>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+        
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogImpostazioni = false" style="height: 38px;">
+            Salva e Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Pulsante Fluttuante Persistente Play rimosso da qui ed integrato a livello globale in App.vue -->
 
   </v-container>
@@ -1418,8 +1640,9 @@ const parseTimeToSeconds = (tStr) => {
     if (lowerVal > 0) return lowerVal;
   }
 
+  const defaultTimer = parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10);
   const val = parseSinglePartToSeconds(clean);
-  return val > 0 ? val : 90;
+  return val > 0 ? val : defaultTimer;
 };
 
 const avviaTimerRecupero = (recStr, label) => {
@@ -1845,6 +2068,31 @@ const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
 const giornoSelezionato = ref('A');
 
+// Stato Impostazioni e Personalizzazione (Salvate in LocalStorage)
+const dialogImpostazioni = ref(false);
+const layoutEsercizi = ref(localStorage.getItem('woapp_layout_esercizi') || 'standard');
+const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
+const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
+const avvioAutoTimer = ref(localStorage.getItem('woapp_avvio_auto_timer') === 'true');
+const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
+
+// Salvataggio automatico al cambio
+watch(layoutEsercizi, (newVal) => {
+  localStorage.setItem('woapp_layout_esercizi', newVal);
+});
+watch(defaultBilanciere, (newVal) => {
+  localStorage.setItem('woapp_default_bilanciere', String(newVal));
+});
+watch(vibrazioneAttiva, (newVal) => {
+  localStorage.setItem('woapp_vibrazione_attiva', String(newVal));
+});
+watch(avvioAutoTimer, (newVal) => {
+  localStorage.setItem('woapp_avvio_auto_timer', String(newVal));
+});
+watch(defaultTimerRec, (newVal) => {
+  localStorage.setItem('woapp_default_timer_rec', String(newVal));
+});
+
 const caricamento = ref(true);
 const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
@@ -1878,9 +2126,9 @@ const esisteInSchedaPrecedente = (ex) => {
 const getLavoroStyle = (val) => {
   const str = String(val || '').trim();
   if (str.length > 25) {
-    return 'font-size: 0.70rem !important; line-height: 1.15;';
+    return { fontSize: '0.70rem', lineHeight: '1.15' };
   }
-  return '';
+  return {};
 };
 
 const estraiRepsDaPrescrizione = (prescrizioneStr) => {
@@ -2640,6 +2888,11 @@ const segnaComeFattoRapido = async (ex) => {
     console.warn("Errore salvataggio esercizio rapido Firebase:", err);
   }
 
+  // Avvio automatico del timer di recupero se abilitato
+  if (nuovoValore === '-' && avvioAutoTimer.value) {
+    avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio);
+  }
+
   // Esegui il controllo per la chiusura automatica
   controllaEChiudiGiornoAutomatico();
 };
@@ -2818,6 +3071,7 @@ const vaiAlDettaglioSessione = (id) => {
 };
 
 const vibraTattile = (ms = 12) => {
+  if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
   if (navigator.vibrate) {
     navigator.vibrate(ms);
   }

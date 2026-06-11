@@ -544,8 +544,8 @@ const inputNote = ref('');
 const inputStart = ref('');
 const inputEnd = ref('');
 
-// Micro-vibrazione tattile
 const vibraTattile = (ms = 12) => {
+  if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
   if (navigator.vibrate) {
     navigator.vibrate(ms);
   }

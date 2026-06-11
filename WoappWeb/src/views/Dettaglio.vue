@@ -1240,7 +1240,8 @@
 
           <!-- Rigo 3: Suggerimento Peso (Colorato e Intuitivo) -->
           <div v-if="suggerimentoRecord" class="px-3 py-1.5 bg-black d-flex align-center gap-2 border-top flex-wrap" style="border-color: rgba(249, 115, 22, 0.2) !important;">
-            <div class="d-flex align-center">
+            <!-- Goal -->
+            <div v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico" class="d-flex align-center mr-3">
               <v-icon color="orange-lighten-2" size="14" class="mr-1">mdi-target</v-icon>
               <span class="text-super-caption font-weight-black text-orange-lighten-2" style="font-size: 0.65rem !important;">
                 <template v-if="suggerimentoRecord.isScarico">SCARICO:</template>
@@ -1252,10 +1253,19 @@
               </span>
             </div>
             
-            <div v-if="suggerimentoRecord.record > 0" class="d-flex align-center pl-1 border-left-soft ml-1">
+            <!-- Record Week Corrente -->
+            <div v-if="suggerimentoRecord.record > 0" class="d-flex align-center mr-3" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
               <v-icon color="amber-lighten-1" size="12" class="mr-1 pb-0.5">mdi-trophy</v-icon>
               <span class="text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Max Storico: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
+                Record W{{settimanaAttiva}}: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
+              </span>
+            </div>
+
+            <!-- Record Assoluto (Altre Weeks) -->
+            <div v-if="suggerimentoRecord.recordAbsolute > 0" class="d-flex align-center" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
+              <v-icon color="cyan-lighten-2" size="12" class="mr-1 pb-0.5">mdi-fire</v-icon>
+              <span class="text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                Max Assoluto: <span class="text-white ml-0.5">{{ suggerimentoRecord.recordAbsolute }} kg</span>
               </span>
             </div>
           </div>
@@ -3508,16 +3518,27 @@ const eliminaEsercizio = async () => {
 };
 
 // Computed per record e suggerimenti nello storico
-// Trova il carico massimo registrato nella settimana attiva tra tutte le schede precedenti
+// Trova il carico massimo registrato nella settimana attiva e quello assoluto tra tutte le schede precedenti
 const suggerimentoRecord = computed(() => {
   const w = settimanaAttiva.value;
   let maxWeight = 0;
+  let maxAbsolute = 0;
   
-  // Calcoliamo SEMPRE il record storico per la settimana attuale
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     if (sNum === currentNumScheda) return;
+
+    // Trova il massimo assoluto in qualsiasi settimana (1-6)
+    for (let i = 1; i <= 6; i++) {
+      const valAny = prevEx['ins_week' + i];
+      if (valAny) {
+        const pesoNumAny = parseFloat(estraiPesoDaInput(valAny));
+        if (!isNaN(pesoNumAny) && pesoNumAny > maxAbsolute) {
+          maxAbsolute = pesoNumAny;
+        }
+      }
+    }
 
     if (!isMatchingReps(prevEx, w)) return;
 
@@ -3547,10 +3568,11 @@ const suggerimentoRecord = computed(() => {
   const pesoW2 = workout.value?.ins_week2 || '';
 
   // Se non ho record e non è scarico, non mostro nulla
-  if (maxWeight === 0 && !isScarico) return null;
+  if (maxWeight === 0 && maxAbsolute === 0 && !isScarico) return null;
 
   return {
     record: maxWeight,
+    recordAbsolute: maxAbsolute,
     target: maxWeight + increment,
     label,
     isScarico,

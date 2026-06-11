@@ -560,7 +560,7 @@
             <v-row dense class="mb-2 text-center align-stretch">
               <v-col cols="4">
                 <div 
-                  class="prescription-chip-box px-2 py-1.5 rounded-lg"
+                  class="prescription-chip-box px-2 py-1 rounded-lg"
                   :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita1)"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.6rem; letter-spacing: 0.02em; line-height: 1;">Week 1</span>
@@ -572,7 +572,7 @@
               </v-col>
               <v-col cols="4">
                 <div 
-                  class="prescription-chip-box px-2 py-1.5 rounded-lg"
+                  class="prescription-chip-box px-2 py-1 rounded-lg"
                   :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densitaMedia)"
                 >
                   <span class="text-super-caption text-orange-darken-3 uppercase font-weight-black d-block mb-1" style="font-size: 0.6rem; letter-spacing: 0.02em; line-height: 1;">Media</span>
@@ -584,7 +584,7 @@
               </v-col>
               <v-col cols="4">
                 <div 
-                  class="prescription-chip-box px-2 py-1.5 rounded-lg"
+                  class="prescription-chip-box px-2 py-1 rounded-lg"
                   :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita2)"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.6rem; letter-spacing: 0.02em; line-height: 1;">Week 6</span>
@@ -1591,7 +1591,15 @@ const parseDayHeader = (str) => {
     
     const parseTimeToMins = (tStr) => {
       if (!tStr) return 0;
-      const clean = tStr.toLowerCase().replace('min', '').replace('m', '').trim();
+      let clean = tStr.toLowerCase().trim();
+      if (clean.includes('h')) {
+        const parts = clean.split('h');
+        const hours = parseInt(parts[0], 10) || 0;
+        const minsStr = parts[1] ? parts[1].replace('min', '').replace('m', '').trim() : '';
+        const mins = parseInt(minsStr, 10) || 0;
+        return hours * 60 + mins;
+      }
+      clean = clean.replace('min', '').replace('m', '').trim();
       if (clean.includes(':')) {
         const parts = clean.split(':');
         if (parts.length === 2) {
@@ -3554,7 +3562,7 @@ const recuperiRaggruppati = computed(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 68px;
+  min-height: 52px;
 }
 .text-super-caption {
   font-size: 0.65rem !important;

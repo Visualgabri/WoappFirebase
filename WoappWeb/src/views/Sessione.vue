@@ -986,7 +986,15 @@ const parseDayHeader = (str) => {
     
     const parseTimeToMins = (tStr) => {
       if (!tStr) return 0;
-      const clean = tStr.toLowerCase().replace('min', '').replace('m', '').trim();
+      let clean = tStr.toLowerCase().trim();
+      if (clean.includes('h')) {
+        const parts = clean.split('h');
+        const hours = parseInt(parts[0], 10) || 0;
+        const minsStr = parts[1] ? parts[1].replace('min', '').replace('m', '').trim() : '';
+        const mins = parseInt(minsStr, 10) || 0;
+        return hours * 60 + mins;
+      }
+      clean = clean.replace('min', '').replace('m', '').trim();
       if (clean.includes(':')) {
         const parts = clean.split(':');
         if (parts.length === 2) {

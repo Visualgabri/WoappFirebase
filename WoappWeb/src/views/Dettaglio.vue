@@ -220,48 +220,53 @@
 
         <!-- Rigo Dettaglio Rapido -->
         <div class="text-caption font-weight-bold text-slate mt-1 d-flex align-center flex-wrap gap-1.5">
+          <!-- 1. Settore Muscolare (Clickable) -->
           <v-chip
             color="orange-darken-3"
-            size="x-small"
-            class="font-weight-black px-2 py-0.5"
+            size="small"
+            class="font-weight-black clickable-sector-chip px-2.5 py-1"
             variant="flat"
             style="cursor: pointer;"
+            append-icon="mdi-chevron-right"
             @click="apriListaSettore"
           >
             {{ workout.des_settore }}
           </v-chip>
+
+          <!-- 2. Chip TUT (se presente) - Prima del recupero -->
+          <v-chip
+            v-if="parsedTut"
+            color="orange-darken-3"
+            variant="tonal"
+            size="small"
+            class="font-weight-black clickable-timer-chip px-2.5 py-1"
+            prepend-icon="mdi-clock-outline"
+            :append-icon="mostraSpiegazioneTut ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+            @click="mostraSpiegazioneTut = !mostraSpiegazioneTut"
+          >
+            ⏱️ TUT {{ parsedTut.digits }} • Nota
+          </v-chip>
+
+          <!-- 3. Recupero (se presente) -->
           <v-chip
             v-if="workout.des_rec_report"
             color="orange-darken-3"
             variant="tonal"
-            size="x-small"
-            class="font-weight-black clickable-timer-chip px-2 py-0.5"
+            size="small"
+            class="font-weight-black clickable-timer-chip px-2.5 py-1"
             prepend-icon="mdi-clock-outline"
             @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
           >
             ⏱️ {{ workout.des_rec_report }}
           </v-chip>
 
-          <!-- Chip TUT se presente nella descrizione -->
-          <v-chip
-            v-if="parsedTut"
-            color="orange-darken-3"
-            variant="tonal"
-            size="x-small"
-            class="font-weight-black clickable-timer-chip px-2 py-0.5"
-            prepend-icon="mdi-clock-outline"
-            @click="mostraSpiegazioneTut = !mostraSpiegazioneTut"
-          >
-            ⏱️ TUT {{ parsedTut.digits }}
-          </v-chip>
-
-          <!-- Fallback Chip per altre descrizioni -->
+          <!-- 4. Fallback Chip per altre descrizioni -->
           <v-chip
             v-else-if="workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2)"
             color="orange-darken-3"
             variant="tonal"
-            size="x-small"
-            class="font-weight-black px-2 py-0.5"
+            size="small"
+            class="font-weight-black px-2.5 py-1"
           >
             {{ workout.des_esercizio_2 }}
           </v-chip>
@@ -4087,6 +4092,15 @@ const tornaIndietro = () => {
 }
 .clickable-timer-chip:hover {
   background: rgba(249, 115, 22, 0.2) !important;
+  transform: translateY(-1px) scale(1.02);
+}
+
+.clickable-sector-chip {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+.clickable-sector-chip:hover {
+  filter: brightness(1.15) !important;
   transform: translateY(-1px) scale(1.02);
 }
 

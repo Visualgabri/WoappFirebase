@@ -1261,11 +1261,26 @@
               </span>
             </div>
 
-            <!-- Record Assoluto (Altre Weeks con stesse Reps) -->
+            <!-- Record Assoluto (Altre Weeks con stesse Reps o Tutte le Reps) -->
             <div v-if="suggerimentoRecord.recordAbsolute > 0" class="d-flex align-center" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
               <v-icon color="cyan-lighten-2" size="12" class="mr-1 pb-0.5">mdi-fire</v-icon>
               <span class="text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Max Assoluto: <span class="text-white ml-0.5">{{ suggerimentoRecord.recordAbsolute }} kg <span class="text-muted lowercase" style="font-size: 0.55rem; font-weight: bold;">(in W{{ suggerimentoRecord.recordAbsoluteWeek }})</span></span>
+                Max Assoluto: 
+                <span class="text-white ml-0.5">
+                  {{ suggerimentoRecord.recordAbsolute }} kg
+                  <span class="text-muted lowercase font-weight-bold" style="font-size: 0.55rem;">
+                    <template v-if="soloCorrispondenti">
+                      (in W{{ suggerimentoRecord.recordAbsoluteWeek }})
+                    </template>
+                    <template v-else>
+                      (in W{{ suggerimentoRecord.recordAbsoluteWeek }}, 
+                      <template v-if="suggerimentoRecord.recordAbsoluteReps !== null">{{ suggerimentoRecord.recordAbsoluteReps }} reps, </template>
+                      Sch {{ suggerimentoRecord.recordAbsoluteSheet }}
+                      <template v-if="suggerimentoRecord.recordAbsoluteDay"> {{ suggerimentoRecord.recordAbsoluteDay }}</template>, 
+                      {{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) || formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }})
+                    </template>
+                  </span>
+                </span>
               </span>
             </div>
           </div>
@@ -3524,21 +3539,36 @@ const suggerimentoRecord = computed(() => {
   let maxWeight = 0;
   let maxAbsolute = 0;
   let maxAbsoluteWeek = 0;
+  let maxAbsoluteReps = null;
+  let maxAbsoluteSheet = null;
+  let maxAbsoluteDay = null;
+  let maxAbsoluteDate = null;
   
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     if (sNum === currentNumScheda) return;
 
-    // Trova il massimo assoluto in qualsiasi settimana (1-6) con reps corrispondenti
+    // Trova il massimo assoluto in qualsiasi settimana (1-6)
     for (let i = 1; i <= 6; i++) {
-      if (isMatchingReps(prevEx, i)) {
+      const shouldMatch = soloCorrispondenti.value ? isMatchingReps(prevEx, i) : true;
+      if (shouldMatch) {
         const valAny = prevEx['ins_week' + i];
         if (valAny) {
           const pesoNumAny = parseFloat(estraiPesoDaInput(valAny));
           if (!isNaN(pesoNumAny) && pesoNumAny > maxAbsolute) {
             maxAbsolute = pesoNumAny;
             maxAbsoluteWeek = i;
+            
+            // Estrarre i metadati
+            let reps = prevEx['reps_week' + i];
+            if (!reps) {
+              reps = estraiRepsDaPrescrizione(prevEx['des_week' + i]);
+            }
+            maxAbsoluteReps = reps ? parseInt(reps, 10) : null;
+            maxAbsoluteSheet = prevEx.num_scheda;
+            maxAbsoluteDay = prevEx.des_giorno;
+            maxAbsoluteDate = prevEx.dat_scheda_ult_ex || prevEx.timestamp;
           }
         }
       }
@@ -3578,6 +3608,10 @@ const suggerimentoRecord = computed(() => {
     record: maxWeight,
     recordAbsolute: maxAbsolute,
     recordAbsoluteWeek: maxAbsoluteWeek,
+    recordAbsoluteReps: maxAbsoluteReps,
+    recordAbsoluteSheet: maxAbsoluteSheet,
+    recordAbsoluteDay: maxAbsoluteDay,
+    recordAbsoluteDate: maxAbsoluteDate,
     target: maxWeight + increment,
     label,
     isScarico,

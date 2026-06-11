@@ -229,10 +229,33 @@
             ></v-select>
           </div>
 
+          <!-- Configurazione Caricamento (Due lati o Lato singolo) -->
+          <div class="mb-4">
+            <span class="text-caption font-weight-black text-slate-dark d-block mb-2" style="font-size: 0.75rem;">Configurazione Caricamento:</span>
+            <v-btn-toggle
+              v-model="caricoMonolaterale"
+              mandatory
+              color="orange-darken-3"
+              variant="outlined"
+              class="w-100 premium-toggle-group rounded-lg"
+              selected-class="bg-orange-darken-3 text-white"
+              style="height: 38px; display: flex;"
+            >
+              <v-btn :value="false" class="flex-grow-1 text-caption font-weight-bold py-1" style="height: 38px;">
+                <v-icon size="16" class="mr-1">mdi-arrow-split-vertical</v-icon>
+                Due Lati (x2)
+              </v-btn>
+              <v-btn :value="true" class="flex-grow-1 text-caption font-weight-bold py-1" style="height: 38px;">
+                <v-icon size="16" class="mr-1">mdi-arrow-right</v-icon>
+                Singolo / Cintura
+              </v-btn>
+            </v-btn-toggle>
+          </div>
+
           <!-- Risultato Dischi -->
           <div class="pa-4 rounded-xl border border-orange-darken-3-op bg-slate-900-op text-center" style="background: rgba(15, 23, 42, 0.5) !important;">
             <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-block mb-3" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-              Dischi da inserire su CIASCUN LATO:
+              {{ caricoMonolaterale ? 'Dischi da inserire (Carico Singolo / Cintura):' : 'Dischi da inserire su CIASCUN LATO:' }}
             </span>
 
             <div v-if="pesoDischiDaCalcolare < 0" class="text-caption font-weight-black text-red-lighten-2 py-3">
@@ -297,7 +320,7 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');
@@ -433,14 +456,19 @@ const selectedBilanciereId = computed({
   }
 });
 
-watch(tipoBilanciere, (newBar) => {
+watch([tipoBilanciere, caricoMonolaterale], () => {
+  const isMono = caricoMonolaterale.value;
+  const divider = isMono ? 1 : 2;
+  const multiplier = isMono ? 1 : 2;
+  const newBar = tipoBilanciere.value;
+
   if (modalitaCalcolo.value === 'totale') {
     const tot = targetPesoTotale.value;
-    const latoCalc = (tot - newBar) / 2;
+    const latoCalc = (tot - newBar) / divider;
     targetPesoLato.value = latoCalc > 0 ? latoCalc : 0;
   } else {
     const lat = targetPesoLato.value;
-    targetPesoTotale.value = lat * 2 + newBar;
+    targetPesoTotale.value = lat * multiplier + newBar;
   }
 });
 

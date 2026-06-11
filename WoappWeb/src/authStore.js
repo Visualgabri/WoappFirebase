@@ -118,6 +118,18 @@ export const targetPesoLato = ref(0);
 export const modalitaCalcolo = ref('totale'); // 'totale' o 'lato'
 export const tipoBilanciere = ref(20);
 export const nascondiLato = ref(false);
+export const caricoMonolaterale = ref(false);
+
+const rilevaCaricoMonolateraleSmart = (nomeEsercizio) => {
+  if (!nomeEsercizio) return false;
+  const lower = String(nomeEsercizio).toLowerCase();
+  const keywords = [
+    'hip thrust', 'hipthrust', 'belt', 'cintura', 'dip', 'trazioni', 
+    'zavorra', 'zavorrate', 'monolaterale', 'singolo', 'one arm',
+    'sovraccarico'
+  ];
+  return keywords.some(k => lower.includes(k));
+};
 
 const rilevaPesoBilanciereSmart = (nomeEsercizio, savedBar) => {
   if (!nomeEsercizio) return savedBar;
@@ -152,6 +164,9 @@ export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu, no
   const haPesoLato = !!(pesoLatoStr && String(pesoLatoStr).trim() !== '' && String(pesoLatoStr).trim() !== '0');
   nascondiLato.value = !haPesoLato;
 
+  // Rileva se si tratta di caricamento monolaterale/cintura zavorra
+  caricoMonolaterale.value = rilevaCaricoMonolateraleSmart(nomeEsercizio);
+
   const parseWeight = (val) => {
     if (val === undefined || val === null) return 0;
     const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, '').trim();
@@ -172,17 +187,20 @@ export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu, no
     defaultBar = rilevaPesoBilanciereSmart(nomeEsercizio, savedBar);
   }
 
+  const divider = caricoMonolaterale.value ? 1 : 2;
+  const multiplier = caricoMonolaterale.value ? 1 : 2;
+
   if (cliccatoSu === 'lato' && haPesoLato) {
     targetPesoLato.value = lat;
-    const bar = (lat * 2 >= defaultBar) ? defaultBar : 0;
+    const bar = (lat * multiplier >= defaultBar) ? defaultBar : 0;
     tipoBilanciere.value = bar;
-    targetPesoTotale.value = lat * 2 + bar;
+    targetPesoTotale.value = lat * multiplier + bar;
   } else {
     targetPesoTotale.value = tot;
     tipoBilanciere.value = defaultBar;
     
     const bar = defaultBar;
-    const latoCalc = (tot - bar) / 2;
+    const latoCalc = (tot - bar) / divider;
     targetPesoLato.value = latoCalc > 0 ? latoCalc : 0;
   }
 

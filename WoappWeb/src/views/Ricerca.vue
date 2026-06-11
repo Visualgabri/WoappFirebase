@@ -668,6 +668,7 @@ const parseDayHeader = (str) => {
       densita1: d1,
       tempo2Raw: t2.trim(),
       tempo2Mins: m2,
+      densita2: d2,
       tempoMediaMins: mediaMins,
       densitaMedia,
       calorie

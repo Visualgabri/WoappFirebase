@@ -434,7 +434,7 @@ import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'; // Aggiunto onBeforeRouteLeave
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete } from '../authStore.js';
+import { selectedAthlete, globalStoryboard } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -617,15 +617,34 @@ const caricaDati = async () => {
   } else if (cachedFromLocal.des_esercizio) {
     workout.value = cachedFromLocal;
     selectedWeek.value = activeUncompletedWeek.value;
-    caricamento.value = false;
-  } else {
-    caricamento.value = true;
   }
 
-  try {
-    const docRef = doc(db, 'STORYBOARD', currentId);
-    const docSnap = await getDoc(docRef);
+  // 1. Prova prima dallo Store Globale in tempo reale (memoria istantanea)
+  const cachedHeader = globalStoryboard.value.find(item => item.id === currentId);
+  if (cachedHeader) {
+    workout.value = applicaModificheLocali(cachedHeader);
+    selectedWeek.value = activeUncompletedWeek.value;
+    
+    const keyIdCliente = Object.keys(workout.value).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    const atletaId = workout.value[keyIdCliente] || '';
+    
+    if (atletaId && workout.value.num_scheda && workout.value.des_giorno) {
+      const temp = globalStoryboard.value
+        .filter(item => 
+          String(item[keyIdCliente]) === String(atletaId) && 
+          String(item.num_scheda) === String(workout.value.num_scheda) && 
+          String(item.des_giorno).trim() === String(workout.value.des_giorno).trim()
+        )
+        .map(item => applicaModificheLocali(item));
+      allExercises.value = temp;
+    }
+    caricamento.value = false;
+    return;
+  }
 
+  // 2. Fallback: fetch diretto da Firestore
+  try {
+    const docSnap = await getDoc(doc(db, 'STORYBOARD', currentId));
     if (docSnap.exists()) {
       const dati = docSnap.data();
       workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });

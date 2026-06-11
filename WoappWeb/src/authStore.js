@@ -1,4 +1,6 @@
 import { ref } from 'vue';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from './firebase.js';
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
 const emailSalvata = localStorage.getItem('utenteEmail');
@@ -24,12 +26,14 @@ export const selectedSheet = ref(localStorage.getItem('selectedSheet') || '');
 export const setSelectedAthlete = (val) => {
   selectedAthlete.value = val;
   localStorage.setItem('selectedAthlete', val);
+  syncStoryboardListener();
 };
 
 // Aggiorna Scheda selezionata globally
 export const setSelectedSheet = (val) => {
   selectedSheet.value = val;
   localStorage.setItem('selectedSheet', val);
+  syncStoryboardListener();
 };
 
 // Avvia o aggiorna la sessione utente locale
@@ -77,6 +81,12 @@ export const logout = async () => {
   localStorage.removeItem('ruolo');
   localStorage.removeItem('selectedAthlete');
   localStorage.removeItem('selectedSheet');
+
+  if (storyboardUnsubscribe) {
+    storyboardUnsubscribe();
+    storyboardUnsubscribe = null;
+  }
+  globalStoryboard.value = [];
 };
 
 // Stato di Timer Globale per il Recupero (Premium UX)
@@ -404,3 +414,48 @@ export const getDensitaLayoutAtleta = (id) => {
   const cleanId = String(id || '').trim();
   return localStorage.getItem('densitaLayout_' + cleanId) || 'standard'; // 'standard', 'compatta'
 };
+
+// Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
+export const globalStoryboard = ref([]);
+export const loadingStoryboard = ref(false);
+let storyboardUnsubscribe = null;
+
+export const syncStoryboardListener = () => {
+  if (storyboardUnsubscribe) {
+    storyboardUnsubscribe();
+    storyboardUnsubscribe = null;
+  }
+
+  const athlete = selectedAthlete.value;
+  const sheet = selectedSheet.value;
+
+  if (!athlete || !sheet) {
+    globalStoryboard.value = [];
+    return;
+  }
+
+  loadingStoryboard.value = true;
+
+  const q = query(
+    collection(db, 'STORYBOARD'),
+    where('ID_cliente', '==', athlete),
+    where('num_scheda', '==', sheet)
+  );
+
+  storyboardUnsubscribe = onSnapshot(q, (snapshot) => {
+    const data = [];
+    snapshot.forEach((doc) => {
+      data.push({ id: doc.id, ...doc.data() });
+    });
+    globalStoryboard.value = data;
+    loadingStoryboard.value = false;
+  }, (error) => {
+    console.error("Errore nel listener in tempo reale dello Storyboard:", error);
+    loadingStoryboard.value = false;
+  });
+};
+
+// Avvia il listener al caricamento se abbiamo già un atleta e una scheda salvati
+if (selectedAthlete.value && selectedSheet.value) {
+  syncStoryboardListener();
+}

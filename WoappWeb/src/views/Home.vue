@@ -866,7 +866,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, getNomeAtleta, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere } from '../authStore.js';
+import { selectedAthlete, selectedSheet, inizializzaSessione, utente, getNomeAtleta, activeTimer, stopGlobalTimer, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, globalStoryboard, loadingStoryboard } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -1555,6 +1555,7 @@ const caricaDatiScheda = async () => {
   atletaSelezionato.value = selectedAthlete.value;
   schedaSelezionata.value = selectedSheet.value;
 
+  caricamento.value = true;
   await caricaDatiWorkoutT();
 
   // Carica il nome reale dell'atleta dalla mappa CLIENTI statica, altrimenti fallback su UTENTI
@@ -1565,118 +1566,10 @@ const caricaDatiScheda = async () => {
     nomeAtleta.value = '';
   }
   
-  try {
-    // Cerca l'atleta per estrarre il nome effettivo (solo se non era presente in anagrafica statica)
-    const qAtleta = query(collection(db, 'UTENTI'), where('ID_cliente', '==', selectedAthlete.value));
-    const snapAtleta = await getDocs(qAtleta);
-    snapAtleta.forEach(d => {
-      if (!nomeMappato) {
-        const email = d.data().email || '';
-        nomeAtleta.value = email.split('@')[0].toUpperCase();
-      }
-    });
+  await aggiornaDatiSchedaDaStore();
 
-    // Carica gli esercizi per estrarre i test, i video e le note
-    const qEx = query(
-      collection(db, 'STORYBOARD'),
-      where('ID_cliente', '==', selectedAthlete.value),
-      where('num_scheda', '==', selectedSheet.value)
-    );
-    const snapEx = await getDocs(qEx);
-    
-    let tempFilmati = [];
-    let tempTest = [];
-    let tempExercises = [];
-    let noteScheda = '';
-
-    snapEx.forEach(d => {
-      const data = d.data();
-      const mappedEx = applicaModificheLocali({ id: d.id, ...data });
-      tempExercises.push(mappedEx);
-      
-      // Esercizi da filmare (flg_video === 'true')
-      if (mappedEx.flg_video === 'true') {
-        tempFilmati.push(mappedEx);
-      }
-
-      // Esercizi da testare (ad es. AMRAP o test in des_qta_report o tecnica)
-      const qta = (mappedEx.des_qta_report || '').toLowerCase();
-      if (qta.includes('amrap') || qta.includes('test') || qta.includes('ramp')) {
-        tempTest.push(mappedEx);
-      }
-
-      // Estrai le note generali del coach
-      if (mappedEx.des_note && !noteScheda) {
-        noteScheda = mappedEx.des_note;
-      }
-    });
-
-    // CONTROLLO DI SICUREZZA: se mancano le righe 0 in Firestore, carichiamole dal backup!
-    const giorniHeader = ['A', 'B', 'C', 'D'];
-    let haMancantiHome = giorniHeader.some(g => !tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0));
-    if (haMancantiHome) {
-      try {
-        const res = await fetch('/storyboard_backup.json');
-        const allData = await res.json();
-        giorniHeader.forEach(g => {
-          const giaPresente = tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0);
-          if (!giaPresente) {
-            const backupHeader = allData.find(
-              item => String(item.ID_cliente) === String(selectedAthlete.value) &&
-              String(item.num_scheda) === String(selectedSheet.value) &&
-              (item.des_giorno || '').trim() === g &&
-              parseInt(item.num_riga_giorno) === 0
-            );
-            if (backupHeader) {
-              tempExercises.push(applicaModificheLocali(backupHeader));
-            }
-          }
-        });
-      } catch (err) {
-        console.error("Errore caricamento righe 0 da backup in Home try block:", err);
-      }
-    }
-
-    allExercises.value = tempExercises;
-    filmatiList.value = tempFilmati;
-    countFilmati.value = tempFilmati.length;
-
-    testList.value = tempTest;
-    countTest.value = tempTest.length;
-
-    if (!coachMessage.value) {
-      coachMessage.value = noteScheda;
-    }
-
-    // Calcola e aggiorna la settimana attiva globale
-    const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
-    settimanaAttiva.value = activeW;
-    localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
-
-    // Auto-seleziona il primo giorno non completato per la settimana attiva
-    const giorni = ['A', 'B', 'C', 'D'];
-    let giornoDaFare = '';
-    for (const g of giorni) {
-      const header = tempExercises.find(
-        item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
-      );
-      const completato = header ? isTrue(header['cmp' + activeW]) : false;
-      if (!completato) {
-        giornoDaFare = g;
-        break;
-      }
-    }
-    if (giornoDaFare) {
-      giornoAttivo.value = giornoDaFare;
-      localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
-    }
-
-    // Fallback se i dati di WORKOUT_T sono mancanti o nulli
-    applicaFallbackWorkoutT(tempExercises);
-
-  } catch (error) {
-    console.warn("Errore caricamento dettagli Home da Firestore (quota esaurita), provo da backup locale:", error);
-    await caricaDatiWorkoutT();
+  if (allExercises.value.length === 0 && !loadingStoryboard.value) {
+    // Prova il fallback da backup locale
     try {
       const res = await fetch('/storyboard_backup.json');
       const allData = await res.json();
@@ -1689,31 +1582,20 @@ const caricaDatiScheda = async () => {
       let tempTest = [];
       let noteScheda = '';
 
-      tempExercises.forEach(data => {
-        if (data.flg_video === 'true') {
-          tempFilmati.push(data);
-        }
-        const qta = (data.des_qta_report || '').toLowerCase();
-        if (qta.includes('amrap') || qta.includes('test') || qta.includes('ramp')) {
-          tempTest.push(data);
-        }
-        if (data.des_note && !noteScheda) {
-          noteScheda = data.des_note;
-        }
+      tempExercises.forEach(mappedEx => {
+        if (mappedEx.flg_video === 'true') tempFilmati.push(mappedEx);
+        const qta = (mappedEx.des_qta_report || '').toLowerCase();
+        if (qta.includes('amrap') || qta.includes('test') || qta.includes('ramp')) tempTest.push(mappedEx);
+        if (mappedEx.des_note && !noteScheda) noteScheda = mappedEx.des_note;
       });
 
       allExercises.value = tempExercises;
       filmatiList.value = tempFilmati;
       countFilmati.value = tempFilmati.length;
-
       testList.value = tempTest;
       countTest.value = tempTest.length;
+      if (!coachMessage.value) coachMessage.value = noteScheda;
 
-      if (!coachMessage.value) {
-        coachMessage.value = noteScheda;
-      }
-
-      // Calcola e aggiorna la settimana attiva globale
       const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
       settimanaAttiva.value = activeW;
       localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
@@ -1721,9 +1603,7 @@ const caricaDatiScheda = async () => {
       const giorni = ['A', 'B', 'C', 'D'];
       let giornoDaFare = '';
       for (const g of giorni) {
-        const header = tempExercises.find(
-          item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
-        );
+        const header = tempExercises.find(item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0));
         const completato = header ? isTrue(header['cmp' + activeW]) : false;
         if (!completato) {
           giornoDaFare = g;
@@ -1734,13 +1614,107 @@ const caricaDatiScheda = async () => {
         giornoAttivo.value = giornoDaFare;
         localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
       }
-
-      // Fallback se i dati di WORKOUT_T sono mancanti o nulli
       applicaFallbackWorkoutT(tempExercises);
-    } catch (errBackup) {
-      console.error("Errore nel caricamento del backup locale in Home:", errBackup);
+    } catch (e) {
+      console.warn("Impossibile fare fallback locale:", e);
     }
   }
+
+  if (!loadingStoryboard.value) {
+    caricamento.value = false;
+  }
+};
+
+const aggiornaDatiSchedaDaStore = async () => {
+  // Prendi i dati grezzi direttamente da globalStoryboard
+  let tempExercises = globalStoryboard.value.map(doc => {
+    return applicaModificheLocali({ id: doc.id, ...doc });
+  });
+
+  let tempFilmati = [];
+  let tempTest = [];
+  let noteScheda = '';
+
+  tempExercises.forEach(mappedEx => {
+    // Esercizi da filmare (flg_video === 'true')
+    if (mappedEx.flg_video === 'true') {
+      tempFilmati.push(mappedEx);
+    }
+
+    // Esercizi da testare (ad es. AMRAP o test in des_qta_report o tecnica)
+    const qta = (mappedEx.des_qta_report || '').toLowerCase();
+    if (qta.includes('amrap') || qta.includes('test') || qta.includes('ramp')) {
+      tempTest.push(mappedEx);
+    }
+
+    // Estrai le note generali del coach
+    if (mappedEx.des_note && !noteScheda) {
+      noteScheda = mappedEx.des_note;
+    }
+  });
+
+  // CONTROLLO DI SICUREZZA: se mancano le righe 0 in Firestore, carichiamole dal backup!
+  const giorniHeader = ['A', 'B', 'C', 'D'];
+  let haMancantiHome = giorniHeader.some(g => !tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0));
+  if (haMancantiHome) {
+    try {
+      const res = await fetch('/storyboard_backup.json');
+      const allData = await res.json();
+      giorniHeader.forEach(g => {
+        const giaPresente = tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0);
+        if (!giaPresente) {
+          const backupHeader = allData.find(
+            item => String(item.ID_cliente) === String(selectedAthlete.value) &&
+            String(item.num_scheda) === String(selectedSheet.value) &&
+            (item.des_giorno || '').trim() === g &&
+            parseInt(item.num_riga_giorno) === 0
+          );
+          if (backupHeader) {
+            tempExercises.push(applicaModificheLocali(backupHeader));
+          }
+        }
+      });
+    } catch (err) {
+      console.error("Errore caricamento righe 0 da backup in Home try block:", err);
+    }
+  }
+
+  allExercises.value = tempExercises;
+  filmatiList.value = tempFilmati;
+  countFilmati.value = tempFilmati.length;
+
+  testList.value = tempTest;
+  countTest.value = tempTest.length;
+
+  if (!coachMessage.value) {
+    coachMessage.value = noteScheda;
+  }
+
+  // Calcola e aggiorna la settimana attiva globale
+  const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
+  settimanaAttiva.value = activeW;
+  localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+
+  // Auto-seleziona il primo giorno non completato per la settimana attiva
+  const giorni = ['A', 'B', 'C', 'D'];
+  let giornoDaFare = '';
+  for (const g of giorni) {
+    const header = tempExercises.find(
+      item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
+    );
+    const completato = header ? isTrue(header['cmp' + activeW]) : false;
+    if (!completato) {
+      giornoDaFare = g;
+      break;
+    }
+  }
+  if (giornoDaFare) {
+    giornoAttivo.value = giornoDaFare;
+    localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
+  }
+
+  // Fallback se i dati di WORKOUT_T sono mancanti o nulli
+  applicaFallbackWorkoutT(tempExercises);
 };
 
 // Parser delle stringhe di intestazione del giorno e dei volumi (coordinato con Workouts.vue)
@@ -1975,6 +1949,15 @@ watch([selectedAthlete, selectedSheet], () => {
   caricaDatiScheda();
   settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2;
   giornoAttivo.value = localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'C';
+});
+
+// Watch per aggiornare i dati da globalStoryboard in tempo reale
+watch(globalStoryboard, () => {
+  aggiornaDatiSchedaDaStore();
+}, { deep: true });
+
+watch(loadingStoryboard, (newVal) => {
+  caricamento.value = newVal;
 });
 
 // Configurazione dalle Impostazioni

@@ -556,23 +556,18 @@
               </div>
             </div>
 
-            <!-- Griglia dei Tempi e Densità con Medie (Dinamica & Focus Zone) -->
-            <v-row dense class="mb-3 text-center">
+            <!-- Griglia dei Tempi e Densità con Medie (Dinamica & Focus Zone Compatta) -->
+            <v-row dense class="mb-2 text-center">
               <v-col cols="4">
                 <div 
                   class="prescription-chip-box px-2 py-1.5 rounded-lg"
                   :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita1)"
                 >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 1</span>
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.02em;">Week 1</span>
                   <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ getDinamicoTempo(headerGiorno, 1) }}</span>
-                  <div class="mt-1 d-flex flex-column align-center justify-center">
-                    <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).textClass" style="font-size: 0.62rem; line-height: 1;">
-                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).emoji }} Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita1 }}%
-                    </span>
-                    <span class="text-super-caption font-weight-black uppercase mt-1 text-center" :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).color, fontSize: '0.45rem', letterSpacing: '0.01em', lineHeight: 1.1 }">
-                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).label }}
-                    </span>
-                  </div>
+                  <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5 mt-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).textClass" style="font-size: 0.62rem; line-height: 1;">
+                    {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).emoji }} {{ parseDayHeader(headerGiorno.des_esercizio).densita1 }}%
+                  </span>
                 </div>
               </v-col>
               <v-col cols="4">
@@ -580,16 +575,11 @@
                   class="prescription-chip-box px-2 py-1.5 rounded-lg"
                   :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densitaMedia)"
                 >
-                  <span class="text-super-caption text-orange-darken-3 uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Media</span>
+                  <span class="text-super-caption text-orange-darken-3 uppercase font-weight-black d-block mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.02em;">Media</span>
                   <span class="text-body-2 font-weight-black text-orange-darken-3 d-block mb-0.5">⏱️ {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
-                  <div class="mt-1 d-flex flex-column align-center justify-center">
-                    <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).textClass" style="font-size: 0.62rem; line-height: 1;">
-                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }} Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
-                    </span>
-                    <span class="text-super-caption font-weight-black uppercase mt-1 text-center" :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).color, fontSize: '0.45rem', letterSpacing: '0.01em', lineHeight: 1.1 }">
-                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label }}
-                    </span>
-                  </div>
+                  <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5 mt-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).textClass" style="font-size: 0.62rem; line-height: 1;">
+                    {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }} {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
+                  </span>
                 </div>
               </v-col>
               <v-col cols="4">
@@ -597,19 +587,22 @@
                   class="prescription-chip-box px-2 py-1.5 rounded-lg"
                   :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita2)"
                 >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.65rem;">Week 6</span>
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.02em;">Week 6</span>
                   <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-0.5">⏱️ {{ getDinamicoTempo(headerGiorno, 6) }}</span>
-                  <div class="mt-1 d-flex flex-column align-center justify-center">
-                    <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).textClass" style="font-size: 0.62rem; line-height: 1;">
-                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).emoji }} Densità: {{ parseDayHeader(headerGiorno.des_esercizio).densita2 }}%
-                    </span>
-                    <span class="text-super-caption font-weight-black uppercase mt-1 text-center" :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).color, fontSize: '0.45rem', letterSpacing: '0.01em', lineHeight: 1.1 }">
-                      {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).label }}
-                    </span>
-                  </div>
+                  <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5 mt-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).textClass" style="font-size: 0.62rem; line-height: 1;">
+                    {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).emoji }} {{ parseDayHeader(headerGiorno.des_esercizio).densita2 }}%
+                  </span>
                 </div>
               </v-col>
             </v-row>
+
+            <!-- Focus Zone del Giorno (Unificato & Compatto) -->
+            <div class="text-center mt-2 pb-1 text-super-caption font-weight-bold d-flex align-center justify-center gap-1.5" style="font-size: 0.68rem;">
+              <span>🎯 Focus Giorno:</span>
+              <span :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).color }" class="font-weight-black">
+                {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }} {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label }}
+              </span>
+            </div>
 
             <!-- Sezione Volumi (VOL A, B, C) -->
             <div v-if="parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left">
@@ -1568,6 +1561,21 @@ const formattaRmtSemplice = (str) => {
   return str;
 };
 
+const formattaDurataLeggibile = (totalMins) => {
+  if (!totalMins) return '0 min';
+  const mins = Math.round(totalMins);
+  if (mins < 60) {
+    return `${mins} min`;
+  } else {
+    const hours = Math.floor(mins / 60);
+    const remainingMins = mins % 60;
+    if (remainingMins === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${remainingMins}m`;
+  }
+};
+
 const parseDayHeader = (str) => {
   if (!str) return null;
   const cleanStr = str.trim();
@@ -1593,29 +1601,20 @@ const parseDayHeader = (str) => {
       return parseInt(clean, 10) || 0;
     };
     
-    const formatMinsToTime = (totalMins) => {
-      const hours = Math.floor(totalMins / 60);
-      const mins = Math.round(totalMins % 60);
-      if (hours > 0) {
-        return `${hours}:${String(mins).padStart(2, '0')}`;
-      }
-      return `${mins} min`;
-    };
-    
     const m1 = parseTimeToMins(t1);
     const m2 = parseTimeToMins(t2);
     const mediaMins = Math.round((m1 + m2) / 2);
-    const tempoMedia = formatMinsToTime(mediaMins);
     
     const densitaMedia = Math.round((d1 + d2) / 2);
     
     return {
       giorno,
-      tempo1: t1.trim(),
+      tempo1Raw: t1.trim(),
+      tempo1Mins: m1,
       densita1: d1,
-      tempo2: t2.trim(),
-      densita2: d2,
-      tempoMedia,
+      tempo2Raw: t2.trim(),
+      tempo2Mins: m2,
+      tempoMediaMins: mediaMins,
       densitaMedia,
       calorie
     };
@@ -1704,21 +1703,19 @@ const getDinamicoTempo = (header, type) => {
     const start = header.start_wo;
     const end = header.end_wo;
     const mins = getDurataMinuti(start, end);
-    return mins > 0 ? `${mins} min` : parsed.tempo1;
+    return mins > 0 ? formattaDurataLeggibile(mins) : formattaDurataLeggibile(parsed.tempo1Mins);
   } else if (type === 6) {
     const start = header.start6_wo;
     const end = header.end6_wo;
     const mins = getDurataMinuti(start, end);
-    return mins > 0 ? `${mins} min` : parsed.tempo2;
+    return mins > 0 ? formattaDurataLeggibile(mins) : formattaDurataLeggibile(parsed.tempo2Mins);
   } else if (type === 'media') {
     let sum = 0;
     let count = 0;
     
-    // Check week 1
     const w1Mins = getDurataMinuti(header.start_wo, header.end_wo);
     if (w1Mins > 0) { sum += w1Mins; count++; }
     
-    // Check weeks 2 to 6
     for (let w = 2; w <= 6; w++) {
       const startKey = `start${w}_wo`;
       const endKey = `end${w}_wo`;
@@ -1732,9 +1729,9 @@ const getDinamicoTempo = (header, type) => {
     }
     
     if (count > 0) {
-      return `${Math.round(sum / count)} min`;
+      return formattaDurataLeggibile(sum / count);
     }
-    return parsed.tempoMedia;
+    return formattaDurataLeggibile(parsed.tempoMediaMins);
   }
   return '';
 };

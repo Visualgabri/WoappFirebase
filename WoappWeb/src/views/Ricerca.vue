@@ -235,7 +235,7 @@
                   📊 <span class="lbl">Vol:</span> <strong>{{ parseVolumes(g.ins_esercizio).totale }}s</strong>
                 </span>
                 <span v-if="parseDayHeader(g.titolo)" class="preview-mini-pill">
-                  ⏱️ <span class="lbl">Target:</span> <strong>{{ parseDayHeader(g.titolo).tempoMedia }}</strong>
+                  ⏱️ <span class="lbl">Target:</span> <strong>{{ formattaDurataLeggibile(parseDayHeader(g.titolo).tempoMediaMins) }}</strong>
                 </span>
                 <span v-if="parseDayHeader(g.titolo)" class="preview-mini-pill">
                   ⚡ <span class="lbl">Dens:</span> <strong>{{ parseDayHeader(g.titolo).densitaMedia }}%</strong>
@@ -614,6 +614,21 @@ const navigaAiWorkouts = () => {
   router.push('/');
 };
 
+const formattaDurataLeggibile = (totalMins) => {
+  if (!totalMins) return '0 min';
+  const mins = Math.round(totalMins);
+  if (mins < 60) {
+    return `${mins} min`;
+  } else {
+    const hours = Math.floor(mins / 60);
+    const remainingMins = mins % 60;
+    if (remainingMins === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${remainingMins}m`;
+  }
+};
+
 // Intestazione & Volume Parser
 const parseDayHeader = (str) => {
   if (!str) return null;
@@ -640,29 +655,20 @@ const parseDayHeader = (str) => {
       return parseInt(clean, 10) || 0;
     };
     
-    const formatMinsToTime = (totalMins) => {
-      const hours = Math.floor(totalMins / 60);
-      const mins = Math.round(totalMins % 60);
-      if (hours > 0) {
-        return `${hours}:${String(mins).padStart(2, '0')}`;
-      }
-      return `${mins} min`;
-    };
-    
     const m1 = parseTimeToMins(t1);
     const m2 = parseTimeToMins(t2);
     const mediaMins = Math.round((m1 + m2) / 2);
-    const tempoMedia = formatMinsToTime(mediaMins);
     
     const densitaMedia = Math.round((d1 + d2) / 2);
     
     return {
       giorno,
-      tempo1: t1.trim(),
+      tempo1Raw: t1.trim(),
+      tempo1Mins: m1,
       densita1: d1,
-      tempo2: t2.trim(),
-      densita2: d2,
-      tempoMedia,
+      tempo2Raw: t2.trim(),
+      tempo2Mins: m2,
+      tempoMediaMins: mediaMins,
       densitaMedia,
       calorie
     };

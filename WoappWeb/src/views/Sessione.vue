@@ -80,7 +80,7 @@
           </div>
           
           <div class="d-flex align-center mt-1.5 text-super-caption text-muted font-weight-medium compact-header-metrics flex-wrap gap-x-2">
-            <span>⏱️ Target: {{ parseDayHeader(workout.des_esercizio)?.tempoMedia || '60 min' }}</span>
+            <span>⏱️ Target: {{ formattaDurataLeggibile(parseDayHeader(workout.des_esercizio)?.tempoMediaMins) || '60 min' }}</span>
             <span class="text-muted">•</span>
             <span class="d-inline-flex align-center gap-1">
               <span>{{ getDensityZoneInfo(parseDayHeader(workout.des_esercizio)?.densitaMedia).emoji }} Densità: {{ parseDayHeader(workout.des_esercizio)?.densitaMedia || '60' }}%</span>
@@ -956,6 +956,21 @@ const getRmtProgress = (rmt) => {
   return Math.round((current / (current + targetDiff)) * 100);
 };
 
+const formattaDurataLeggibile = (totalMins) => {
+  if (!totalMins) return '0 min';
+  const mins = Math.round(totalMins);
+  if (mins < 60) {
+    return `${mins} min`;
+  } else {
+    const hours = Math.floor(mins / 60);
+    const remainingMins = mins % 60;
+    if (remainingMins === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${remainingMins}m`;
+  }
+};
+
 const parseDayHeader = (str) => {
   if (!str) return null;
   const cleanStr = str.trim();
@@ -981,29 +996,20 @@ const parseDayHeader = (str) => {
       return parseInt(clean, 10) || 0;
     };
     
-    const formatMinsToTime = (totalMins) => {
-      const hours = Math.floor(totalMins / 60);
-      const mins = Math.round(totalMins % 60);
-      if (hours > 0) {
-        return `${hours}:${String(mins).padStart(2, '0')}`;
-      }
-      return `${mins} min`;
-    };
-    
     const m1 = parseTimeToMins(t1);
     const m2 = parseTimeToMins(t2);
     const mediaMins = Math.round((m1 + m2) / 2);
-    const tempoMedia = formatMinsToTime(mediaMins);
     
     const densitaMedia = Math.round((d1 + d2) / 2);
     
     return {
       giorno,
-      tempo1: t1.trim(),
+      tempo1Raw: t1.trim(),
+      tempo1Mins: m1,
       densita1: d1,
-      tempo2: t2.trim(),
-      densita2: d2,
-      tempoMedia,
+      tempo2Raw: t2.trim(),
+      tempo2Mins: m2,
+      tempoMediaMins: mediaMins,
       densitaMedia,
       calorie
     };

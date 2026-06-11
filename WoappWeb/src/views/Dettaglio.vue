@@ -223,8 +223,8 @@
           <!-- 1. Settore Muscolare (Clickable) -->
           <v-chip
             color="orange-darken-3"
-            size="small"
-            class="font-weight-black clickable-sector-chip px-2.5 py-1"
+            size="x-small"
+            class="font-weight-black clickable-sector-chip px-2 py-0.5"
             variant="flat"
             style="cursor: pointer;"
             append-icon="mdi-chevron-right"
@@ -238,8 +238,8 @@
             v-if="parsedTut"
             color="orange-darken-3"
             variant="tonal"
-            size="small"
-            class="font-weight-black clickable-timer-chip px-2.5 py-1"
+            size="x-small"
+            class="font-weight-black clickable-timer-chip px-2 py-0.5"
             prepend-icon="mdi-clock-outline"
             :append-icon="mostraSpiegazioneTut ? 'mdi-chevron-up' : 'mdi-chevron-down'"
             @click="mostraSpiegazioneTut = !mostraSpiegazioneTut"
@@ -247,13 +247,13 @@
             ⏱️ TUT {{ parsedTut.digits }} • Nota
           </v-chip>
 
-          <!-- 3. Recupero (se presente) -->
+          <!-- 3. Recupero (se presente) - GRANDE e EVIDENZIATO con animazione e gradiente -->
           <v-chip
             v-if="workout.des_rec_report"
             color="orange-darken-3"
-            variant="tonal"
+            variant="flat"
             size="small"
-            class="font-weight-black clickable-timer-chip px-2.5 py-1"
+            class="font-weight-black clickable-timer-chip recovery-standout-chip px-3 py-1.5"
             prepend-icon="mdi-clock-outline"
             @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
           >
@@ -265,8 +265,8 @@
             v-else-if="workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2)"
             color="orange-darken-3"
             variant="tonal"
-            size="small"
-            class="font-weight-black px-2.5 py-1"
+            size="x-small"
+            class="font-weight-black px-2 py-0.5"
           >
             {{ workout.des_esercizio_2 }}
           </v-chip>
@@ -4102,6 +4102,28 @@ const tornaIndietro = () => {
 .clickable-sector-chip:hover {
   filter: brightness(1.15) !important;
   transform: translateY(-1px) scale(1.02);
+}
+
+.recovery-standout-chip {
+  background: linear-gradient(135deg, #f97316, #ea580c) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.45) !important;
+  animation: pulse-glow-recovery 2.5s infinite alternate ease-in-out;
+}
+.recovery-standout-chip:hover {
+  filter: brightness(1.1) !important;
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.8) !important;
+  animation-play-state: paused;
+}
+@keyframes pulse-glow-recovery {
+  0% {
+    box-shadow: 0 0 4px rgba(249, 115, 22, 0.3);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 14px rgba(249, 115, 22, 0.8), 0 0 3px rgba(255, 255, 255, 0.3);
+    transform: scale(1.04);
+  }
 }
 
 /* Nuovi Stili Premium per Superserie in Dettaglio */

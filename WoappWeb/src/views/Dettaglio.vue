@@ -218,37 +218,6 @@
           </div>
         </div>
 
-        <!-- Fallback se des_esercizio_2 non è una stringa RMT speciale nè volume -->
-        <div v-else-if="workout.des_esercizio_2" class="text-subtitle-2 font-weight-black text-red-darken-3 mt-1 uppercase">
-          {{ workout.des_esercizio_2 }}
-        </div>
-
-        <!-- Pillola esplicativa per il TUT -->
-        <v-card
-          v-if="parsedTut"
-          class="py-2.5 px-3.5 mt-3 text-left border card-glass"
-          style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important;"
-        >
-          <div class="d-flex align-center mb-2">
-            <v-icon color="orange-lighten-2" class="mr-2" size="18">mdi-clock-outline</v-icon>
-            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase">Tempo Sotto Tensione (TUT {{ parsedTut.digits }})</span>
-          </div>
-          <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.45;">
-            <div class="mb-1">
-              ⏱️ <strong class="text-white">1ª Cifra ({{ parsedTut.f1 }}s):</strong> Fase iniziale del movimento (da quando parte l’esercizio).
-            </div>
-            <div class="mb-1">
-              ⏱️ <strong class="text-white">2ª Cifra ({{ parsedTut.f2 }}s):</strong> Fase di contrazione (mantenere la tensione).
-            </div>
-            <div class="mb-1.5">
-              ⏱️ <strong class="text-white">3ª Cifra ({{ parsedTut.f3 }}s):</strong> Fase di ritorno (quando il movimento torna indietro o si conclude).
-            </div>
-            <div class="pt-2 text-super-caption text-muted font-italic" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
-              Attenzione: la prima e la terza fase non sono per forza concentrica o eccentrica in modo fisso, dipende da come inizia l’esercizio (1ª fase da quando parte, 2ª in contrazione, 3ª di ritorno o chiusura).
-            </div>
-          </div>
-        </v-card>
-
         <!-- Rigo Dettaglio Rapido -->
         <div class="text-caption font-weight-bold text-slate mt-1 d-flex align-center flex-wrap gap-1.5">
           <v-chip
@@ -272,7 +241,59 @@
           >
             ⏱️ {{ workout.des_rec_report }}
           </v-chip>
+
+          <!-- Chip TUT se presente nella descrizione -->
+          <v-chip
+            v-if="parsedTut"
+            color="orange-darken-3"
+            variant="tonal"
+            size="x-small"
+            class="font-weight-black clickable-timer-chip px-2 py-0.5"
+            prepend-icon="mdi-clock-outline"
+            @click="mostraSpiegazioneTut = !mostraSpiegazioneTut"
+          >
+            ⏱️ TUT {{ parsedTut.digits }}
+          </v-chip>
+
+          <!-- Fallback Chip per altre descrizioni -->
+          <v-chip
+            v-else-if="workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2)"
+            color="orange-darken-3"
+            variant="tonal"
+            size="x-small"
+            class="font-weight-black px-2 py-0.5"
+          >
+            {{ workout.des_esercizio_2 }}
+          </v-chip>
         </div>
+
+        <!-- Spiegazione espandibile del TUT -->
+        <v-expand-transition>
+          <v-card
+            v-if="parsedTut && mostraSpiegazioneTut"
+            class="py-2.5 px-3.5 mt-3 text-left border card-glass"
+            style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important;"
+          >
+            <div class="d-flex align-center mb-2">
+              <v-icon color="orange-lighten-2" class="mr-2" size="18">mdi-clock-outline</v-icon>
+              <span class="text-caption font-weight-black text-orange-lighten-2 uppercase">Tempo Sotto Tensione (TUT {{ parsedTut.digits }})</span>
+            </div>
+            <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.45;">
+              <div class="mb-1">
+                ⏱️ <strong class="text-white">1ª Cifra ({{ parsedTut.f1 }}s):</strong> Fase iniziale del movimento (da quando parte l’esercizio).
+              </div>
+              <div class="mb-1">
+                ⏱️ <strong class="text-white">2ª Cifra ({{ parsedTut.f2 }}s):</strong> Fase di contrazione (mantenere la tensione).
+              </div>
+              <div class="mb-1.5">
+                ⏱️ <strong class="text-white">3ª Cifra ({{ parsedTut.f3 }}s):</strong> Fase di ritorno (quando il movimento torna indietro o si conclude).
+              </div>
+              <div class="pt-2 text-super-caption text-muted font-italic" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                Attenzione: la prima e la terza fase non sono per forza concentrica o eccentrica in modo fisso, dipende da come inizia l’esercizio (1ª fase da quando parte, 2ª in contrazione, 3ª di ritorno o chiusura).
+              </div>
+            </div>
+          </v-card>
+        </v-expand-transition>
 
         <!-- Action Row (Precedente, Elimina, Storico, WhatsApp) -->
         <div class="d-flex align-center justify-space-between mt-2 mb-1 px-1 border-top-soft pt-2 gap-2 flex-wrap">
@@ -1710,6 +1731,7 @@ const isSchedaPassata = computed(() => {
 const workout = ref(null);
 const riga0 = ref(null);
 const caricamento = ref(true);
+const mostraSpiegazioneTut = ref(false);
 
 // Trova altri esercizi dello stesso blocco superserie consecutivo (stessa logica di Workouts.vue)
 const eserciziSupersetCollegati = computed(() => {

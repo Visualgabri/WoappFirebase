@@ -156,37 +156,6 @@
         </div>
       </div>
 
-      <!-- Fallback se des_esercizio_2 non è una stringa RMT speciale nè volume -->
-      <div v-else-if="workout.des_esercizio_2" class="text-subtitle-2 font-weight-black text-red-darken-3 mt-1 uppercase mb-4 text-left">
-        {{ workout.des_esercizio_2 }}
-      </div>
-
-      <!-- Pillola esplicativa per il TUT -->
-      <v-card
-        v-if="parsedTut"
-        class="py-2.5 px-3.5 mb-4 text-left border card-glass"
-        style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important;"
-      >
-        <div class="d-flex align-center mb-2">
-          <v-icon color="orange-lighten-2" class="mr-2" size="18">mdi-clock-outline</v-icon>
-          <span class="text-caption font-weight-black text-orange-lighten-2 uppercase">Tempo Sotto Tensione (TUT {{ parsedTut.digits }})</span>
-        </div>
-        <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.45;">
-          <div class="mb-1">
-            ⏱️ <strong class="text-white">1ª Cifra ({{ parsedTut.f1 }}s):</strong> Fase iniziale del movimento (da quando parte l’esercizio).
-          </div>
-          <div class="mb-1">
-            ⏱️ <strong class="text-white">2ª Cifra ({{ parsedTut.f2 }}s):</strong> Fase di contrazione (mantenere la tensione).
-          </div>
-          <div class="mb-1.5">
-            ⏱️ <strong class="text-white">3ª Cifra ({{ parsedTut.f3 }}s):</strong> Fase di ritorno (quando il movimento torna indietro o si conclude).
-          </div>
-          <div class="pt-2 text-super-caption text-muted font-italic" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
-            Attenzione: la prima e la terza fase non sono per forza concentrica o eccentrica in modo fisso, dipende da come inizia l’esercizio (1ª fase da quando parte, 2ª in contrazione, 3ª di ritorno o chiusura).
-          </div>
-        </div>
-      </v-card>
-
       <!-- 2. Progressioni delle 6 Settimane in Card Espandibili -->
       <div class="week-selector-section mb-6 text-left">
         <div class="text-super-caption text-muted font-weight-black uppercase tracking-wider mb-3" style="font-size: 0.62rem; letter-spacing: 0.05em;">
@@ -894,21 +863,6 @@ const getWeekSummaryLine = (w) => {
   return parts.join('  •  ');
 };
 
-
-const parsedTut = computed(() => {
-  const str = workout.value?.des_esercizio_2;
-  if (!str) return null;
-  const match = str.match(/TUT\s*(\d)\s*[-/.]?\s*(\d)\s*[-/.]?\s*(\d)/i);
-  if (match) {
-    return {
-      digits: `${match[1]}${match[2]}${match[3]}`,
-      f1: match[1],
-      f2: match[2],
-      f3: match[3]
-    };
-  }
-  return null;
-});
 
 const isVolumeString = (str) => {
   if (!str) return false;

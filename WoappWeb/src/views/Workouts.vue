@@ -271,7 +271,16 @@
                         ESERCIZI DA RECUPERARE
                       </span>
                     </div>
-                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat" style="height: 18px; font-size: 0.58rem;">
+                    <v-chip 
+                      color="orange-darken-3" 
+                      size="x-small" 
+                      class="font-weight-black text-white px-2" 
+                      variant="flat" 
+                      :style="{
+                        height: layoutEsercizi === 'super_compatto' ? '15px' : '18px',
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem'
+                      }"
+                    >
                       {{ eserciziDaRecuperare.length }} TOTALI
                     </v-chip>
                   </div>
@@ -307,7 +316,16 @@
                           </div>
                         </div>
                         <div class="d-flex align-center gap-2">
-                          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">
+                          <v-chip 
+                            color="orange-darken-3" 
+                            size="x-small" 
+                            variant="flat" 
+                            class="font-weight-black text-white px-2"
+                            :style="{
+                              height: layoutEsercizi === 'super_compatto' ? '15px' : '18px',
+                              fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem'
+                            }"
+                          >
                             {{ gruppo.esercizi.length }}
                           </v-chip>
                           <v-icon size="18" color="orange-lighten-2" :style="{ transform: recuperoAccordionAperto === gruppo.giorno ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
@@ -584,7 +602,10 @@
                       color="amber-darken-3"
                       class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
                       variant="flat"
-                      style="font-size: 0.58rem; height: 18px;"
+                      :style="{
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem',
+                        height: layoutEsercizi === 'super_compatto' ? '15px' : '18px'
+                      }"
                     >
                       ⚠️ SETTIMANA DA CHIUDERE
                     </v-chip>
@@ -801,7 +822,10 @@
                       color="amber-darken-3"
                       class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
                       variant="flat"
-                      style="font-size: 0.58rem; height: 18px;"
+                      :style="{
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem',
+                        height: layoutEsercizi === 'super_compatto' ? '15px' : '18px'
+                      }"
                     >
                       ⚠️ SETTIMANA DA CHIUDERE
                     </v-chip>
@@ -986,14 +1010,14 @@
               <!-- Intestazione del Superset -->
               <div class="superset-header d-flex align-center justify-space-between" :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : 'mb-3'">
                 <div class="d-flex align-center flex-wrap gap-2">
-                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-1 mr-1" variant="flat" size="x-small" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit') }">
+                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-0.5 mr-1" variant="flat" size="x-small" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : 'auto') }">
                     ⚡ SUPERSET {{ block.letter }}
                   </v-chip>
                   <span v-if="layoutEsercizi !== 'super_compatto'" class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
                     Esegui in sequenza senza pausa
                   </span>
                 </div>
-                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit') }">
+                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2 py-0.5" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : 'auto') }">
                   {{ block.exercises.length }} ESERCIZI
                 </v-chip>
               </div>
@@ -1057,7 +1081,7 @@
                         color="green-darken-3" 
                         class="font-weight-black text-white px-2 py-0.5" 
                         variant="flat" 
-                        style="height: 20px; font-size: 0.62rem;"
+                        style="height: 16px; font-size: 0.52rem;"
                       >
                         {{ ex['ins_week' + settimanaAttivaGiorno] }}
                       </v-chip>
@@ -1068,7 +1092,7 @@
                         color="green-darken-3" 
                         class="font-weight-black text-white px-2 py-0.5" 
                         variant="flat" 
-                        style="height: 20px; font-size: 0.62rem;"
+                        style="height: 16px; font-size: 0.52rem;"
                       >
                         Fatto ✔️
                       </v-chip>
@@ -1079,7 +1103,7 @@
                         variant="outlined" 
                         color="orange-darken-3" 
                         class="font-weight-black px-2 py-0.5 text-none"
-                        style="height: 20px; font-size: 0.6rem; border-color: rgba(249, 115, 22, 0.4) !important;"
+                        style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important;"
                       >
                         + Registra
                       </v-chip>
@@ -1294,7 +1318,7 @@
                       color="green-darken-3" 
                       class="font-weight-black text-white px-2 py-0.5" 
                       variant="flat" 
-                      style="height: 20px; font-size: 0.62rem;"
+                      style="height: 16px; font-size: 0.52rem;"
                     >
                       {{ block.exercise['ins_week' + settimanaAttivaGiorno] }}
                     </v-chip>
@@ -1305,7 +1329,7 @@
                       color="green-darken-3" 
                       class="font-weight-black text-white px-2 py-0.5" 
                       variant="flat" 
-                      style="height: 20px; font-size: 0.62rem;"
+                      style="height: 16px; font-size: 0.52rem;"
                     >
                       Fatto ✔️
                     </v-chip>
@@ -1316,7 +1340,7 @@
                       variant="outlined" 
                       color="orange-darken-3" 
                       class="font-weight-black px-2 py-0.5 text-none"
-                      style="height: 20px; font-size: 0.6rem; border-color: rgba(249, 115, 22, 0.4) !important;"
+                      style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important;"
                     >
                       + Registra
                     </v-chip>
@@ -1465,17 +1489,18 @@
 
           <!-- Grande pulsante di completamento giorno in fondo alla lista -->
           <div 
-            :class="layoutEsercizi === 'super_compatto' ? 'mt-3 mb-3 px-1' : (layoutEsercizi === 'compatto' ? 'mt-3 mb-3 px-1' : 'mt-4 mb-4 px-1')"
+            :class="layoutEsercizi === 'super_compatto' ? 'mt-2 mb-2 px-1' : (layoutEsercizi === 'compatto' ? 'mt-2.5 mb-2.5 px-1' : 'mt-4 mb-4 px-1')"
           >
             <v-btn
               v-if="headerGiorno"
               block
-              size="large"
-              class="font-weight-black text-none elevation-2 rounded-xl"
+              :size="layoutEsercizi === 'super_compatto' ? 'small' : (layoutEsercizi === 'compatto' ? 'default' : 'large')"
+              class="font-weight-black text-none elevation-2"
+              :class="layoutEsercizi === 'super_compatto' ? 'rounded-lg' : 'rounded-xl'"
               :color="isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'green-darken-3' : 'orange-darken-3'"
               :style="{
-                height: '48px',
-                fontSize: '0.9rem'
+                height: layoutEsercizi === 'super_compatto' ? '36px' : (layoutEsercizi === 'compatto' ? '42px' : '48px'),
+                fontSize: layoutEsercizi === 'super_compatto' ? '0.75rem' : (layoutEsercizi === 'compatto' ? '0.82rem' : '0.9rem')
               }"
               @click.stop="toggleGiornoAttivoRapido"
               id="btn-completa-giorno"

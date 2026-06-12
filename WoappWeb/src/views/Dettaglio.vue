@@ -77,32 +77,41 @@
     <!-- Contenuto Principale (Stile AppSheet verticale fedele) -->
     <div v-else class="exercise-detail-area">
 
-      <!-- 1. Grande GIF dell'Esercizio in alto -->
-      <v-card 
-        v-if="layoutCorrente !== 'super_compatto'"
-        class="image-premium-frame rounded-xl overflow-hidden elevation-2 bg-black mx-auto" 
-        :class="layoutCorrente === 'compatto' ? 'mb-2' : 'mb-3'"
-        :max-width="layoutCorrente === 'compatto' ? 200 : 280" 
-        :height="layoutCorrente === 'compatto' ? 100 : 150"
+      <!-- Layout Flessibile per GIF a sinistra e scritte a destra in modalità compatto/super_compatto -->
+      <div 
+        :class="{'d-flex align-start': ['compatto', 'super_compatto'].includes(layoutCorrente)}" 
+        :style="['compatto', 'super_compatto'].includes(layoutCorrente) ? 'gap: 12px;' : ''"
       >
-        <v-img
-          :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
-          contain
-          class="bg-black"
-          height="100%"
-          style="cursor: pointer;"
-          @click="dialogGifFullScreen = true"
+        <!-- 1. GIF dell'Esercizio -->
+        <v-card 
+          class="image-premium-frame rounded-xl overflow-hidden elevation-2 bg-black flex-shrink-0" 
+          :class="{
+            'mx-auto mb-3': !['compatto', 'super_compatto'].includes(layoutCorrente)
+          }"
+          :style="{
+            width: layoutCorrente === 'super_compatto' ? '90px' : (layoutCorrente === 'compatto' ? '120px' : '100%'),
+            maxWidth: layoutCorrente === 'super_compatto' ? '90px' : (layoutCorrente === 'compatto' ? '120px' : '280px'),
+            height: layoutCorrente === 'super_compatto' ? '70px' : (layoutCorrente === 'compatto' ? '95px' : '150px')
+          }"
         >
-          <template v-slot:placeholder>
-            <div class="fill-height d-flex align-center justify-center bg-black">
-              <v-progress-circular indeterminate color="orange"></v-progress-circular>
-            </div>
-          </template>
-        </v-img>
-      </v-card>
+          <v-img
+            :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
+            contain
+            class="bg-black"
+            height="100%"
+            style="cursor: pointer;"
+            @click="dialogGifFullScreen = true"
+          >
+            <template v-slot:placeholder>
+              <div class="fill-height d-flex align-center justify-center bg-black">
+                <v-progress-circular indeterminate color="orange" size="16"></v-progress-circular>
+              </div>
+            </template>
+          </v-img>
+        </v-card>
 
-      <!-- 2. Intestazione Principale con Massimale / RMT -->
-      <div class="mb-2 text-left">
+        <!-- 2. Intestazione Principale con Massimale / RMT -->
+        <div class="mb-2 text-left flex-grow-1" style="min-width: 0;">
         <h2 
           class="font-weight-black leading-tight mb-1" 
           :class="(previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'"
@@ -372,6 +381,7 @@
           </div>
         </div>
       </div>
+    </div>
 
       <!-- Barra Laterale Superset (Opzione B) -->
       <div v-if="workout.alf_superserie" :class="layoutCorrente === 'super_compatto' ? 'mb-2 mt-0.5' : (layoutCorrente === 'compatto' ? 'mb-3 mt-1' : 'mb-4 mt-1')">
@@ -773,17 +783,19 @@
         </v-card>
 
         <!-- Bottone Premium per Espandere/Nascondere le altre settimane in modalità Dinamica -->
-        <div v-if="modalitaSettimane === 'dinamica'" class="text-center mt-2 mb-4">
+        <div v-if="modalitaSettimane === 'dinamica'" class="text-center" :class="layoutCorrente === 'super_compatto' ? 'mt-1 mb-2' : 'mt-2 mb-4'">
           <v-btn
             variant="text"
             color="orange-darken-3"
             class="font-weight-black text-none"
-            density="comfortable"
+            :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
+            :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
             rounded="xl"
             @click="toggleAltreDinamiche"
             id="btn-toggle-altre-dinamica"
+            :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
           >
-            <v-icon class="mr-1" size="18">
+            <v-icon class="mr-1" :size="layoutCorrente === 'super_compatto' ? 14 : 18">
               {{ mostraAltreDinamica ? 'mdi-chevron-double-up' : 'mdi-chevron-double-down' }}
             </v-icon>
             {{ mostraAltreDinamica ? 'Nascondi le altre settimane' : 'Mostra le altre settimane (5)' }}
@@ -792,11 +804,18 @@
       </div>
 
       <!-- Opzioni di Visualizzazione delle Settimane (Spostato a fondo lista per non disturbare) -->
-      <v-expansion-panels class="mb-6 card-glass border-soft rounded-2xl overflow-hidden shadow-sm" style="background: rgba(15, 23, 42, 0.4);">
+      <v-expansion-panels 
+        class="card-glass border-soft overflow-hidden shadow-sm animate-all" 
+        :class="layoutCorrente === 'super_compatto' ? 'mb-3 rounded-xl' : (layoutCorrente === 'compatto' ? 'mb-4.5' : 'mb-6 rounded-2xl')"
+        style="background: rgba(15, 23, 42, 0.4);"
+      >
         <v-expansion-panel bg-color="transparent" class="elevation-0">
-          <v-expansion-panel-title class="py-2.5 px-4 font-weight-black text-subtitle-2 text-slate-dark d-flex align-center">
-            <v-icon color="orange" class="mr-2" size="18">mdi-cog-outline</v-icon>
-            Opzioni Visualizzazione Settimane
+          <v-expansion-panel-title 
+            class="font-weight-black text-slate-dark d-flex align-center"
+            :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-3 text-caption' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5 text-subtitle-2' : 'py-2.5 px-4 text-subtitle-2')"
+          >
+            <v-icon color="orange" class="mr-2" :size="layoutCorrente === 'super_compatto' ? 14 : 18">mdi-cog-outline</v-icon>
+            <span :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '' }">Opzioni Visualizzazione Settimane</span>
           </v-expansion-panel-title>
           <v-expansion-panel-text class="px-2 pb-3">
             <div class="d-flex flex-column gap-2 text-left pt-1">
@@ -805,15 +824,16 @@
                 v-model="modalitaSettimane"
                 mandatory
                 selected-class="bg-orange-darken-3 text-white"
-                density="comfortable"
+                :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
                 rounded="xl"
                 class="w-100 card-glass border"
+                :style="{ height: layoutCorrente === 'super_compatto' ? '32px' : '38px' }"
               >
-                <v-btn value="dinamica" class="font-weight-bold flex-grow-1" id="btn-toggle-dinamica" style="min-width: 50%;">
-                  <v-icon size="16" class="mr-1">mdi-target</v-icon> Dinamica
+                <v-btn value="dinamica" class="font-weight-bold flex-grow-1" id="btn-toggle-dinamica" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 16" class="mr-1">mdi-target</v-icon> Dinamica
                 </v-btn>
-                <v-btn value="fissa" class="font-weight-bold flex-grow-1" id="btn-toggle-fissa" style="min-width: 50%;">
-                  <v-icon size="16" class="mr-1">mdi-calendar-month</v-icon> Fissa
+                <v-btn value="fissa" class="font-weight-bold flex-grow-1" id="btn-toggle-fissa" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 16" class="mr-1">mdi-calendar-month</v-icon> Fissa
                 </v-btn>
               </v-btn-toggle>
               <p class="text-super-caption text-muted mt-2 leading-snug">
@@ -826,47 +846,90 @@
       </v-expansion-panels>
 
       <!-- 5. Dettagli Tecnici Esercizio (Stile Grid ultra-compatto per evitare dispersioni) -->
-      <div class="d-flex align-center justify-space-between mb-4 text-left">
-        <h3 class="text-subtitle-2 font-weight-black text-slate-dark d-flex align-center">
-          <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-cogs</v-icon>
+      <div class="d-flex align-center justify-space-between text-left" :class="layoutCorrente === 'super_compatto' ? 'mb-2' : 'mb-4'">
+        <h3 
+          class="font-weight-black text-slate-dark d-flex align-center"
+          :class="layoutCorrente === 'super_compatto' ? 'text-caption' : 'text-subtitle-2'"
+        >
+          <v-icon color="orange-darken-3" class="mr-2" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-cogs</v-icon>
           Dettagli Tecnici Esercizio
         </h3>
       </div>
 
       <!-- Griglia compattata dei Dettagli statici (2x2) -->
-      <v-row dense class="mb-4">
+      <v-row dense :class="layoutCorrente === 'super_compatto' ? 'mb-2.5' : 'mb-4'">
         <!-- Scheda -->
         <v-col cols="6">
-          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Scheda</span>
-            <span class="text-body-2 font-weight-black text-orange-lighten-2 text-truncate d-block">
+          <div 
+            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
+            :class="[
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+            ]"
+            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
+          >
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Scheda</span>
+            <span 
+              class="font-weight-black text-orange-lighten-2 text-truncate d-block"
+              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+            >
               Numero {{ workout.num_scheda }}
             </span>
           </div>
         </v-col>
         <!-- Giorno -->
         <v-col cols="6">
-          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Giorno</span>
-            <span class="text-body-2 font-weight-black text-orange-lighten-1 text-truncate d-block">
+          <div 
+            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
+            :class="[
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+            ]"
+            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
+          >
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Giorno</span>
+            <span 
+              class="font-weight-black text-orange-lighten-1 text-truncate d-block"
+              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+            >
               Giorno {{ workout.des_giorno }}
             </span>
           </div>
         </v-col>
         <!-- Muscolo Target -->
         <v-col cols="6">
-          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Muscolo Target</span>
-            <span class="text-body-2 font-weight-black text-slate-dark text-truncate d-block">
+          <div 
+            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
+            :class="[
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+            ]"
+            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
+          >
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Muscolo Target</span>
+            <span 
+              class="font-weight-black text-slate-dark text-truncate d-block"
+              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+            >
               {{ workout.des_settore || 'Generico' }}
             </span>
           </div>
         </v-col>
         <!-- Posizione / Superserie -->
         <v-col cols="6">
-          <div class="pa-2.5 rounded-xl border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;">
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">Posizione</span>
-            <span class="text-body-2 font-weight-black text-slate-dark text-truncate d-block">
+          <div 
+            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
+            :class="[
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+            ]"
+            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
+          >
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Posizione</span>
+            <span 
+              class="font-weight-black text-slate-dark text-truncate d-block"
+              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+            >
               N. {{ workout.num_riga_giorno }}{{ workout.alf_superserie ? ' (' + workout.alf_superserie + ')' : '' }}
             </span>
           </div>
@@ -874,13 +937,19 @@
       </v-row>
 
       <!-- Card Note e Commenti (Campi Modificabili) -->
-      <v-card class="premium-card rounded-2xl pa-4 mb-6" elevation="2">
-        <div class="text-left d-flex flex-column gap-4">
+      <v-card 
+        :class="[
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6'),
+          'premium-card'
+        ]" 
+        elevation="2"
+      >
+        <div class="text-left d-flex flex-column" :class="layoutCorrente === 'super_compatto' ? 'gap-2.5' : 'gap-4'">
           <!-- Note Attrezzo -->
           <div>
-            <div class="d-flex align-center justify-space-between mb-1.5">
-              <span class="text-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Note attrezzo:</span>
-              <v-icon size="14" color="orange-darken-3">mdi-wrench-outline</v-icon>
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Note attrezzo:</span>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-darken-3">mdi-wrench-outline</v-icon>
             </div>
             <v-textarea
               v-model="noteAttrezzo"
@@ -892,6 +961,7 @@
               auto-grow
               color="orange-darken-3"
               class="custom-textarea-input"
+              :class="layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : ''"
               @blur="salvaDatoGenerale('des_note_attrezzo', noteAttrezzo)"
               id="input-detail-note-attrezzo"
             ></v-textarea>
@@ -899,9 +969,9 @@
 
           <!-- Note Esercizio -->
           <div>
-            <div class="d-flex align-center justify-space-between mb-1.5">
-              <span class="text-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Note esercizio:</span>
-              <v-icon size="14" color="orange-darken-3">mdi-note-text-outline</v-icon>
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Note esercizio:</span>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-darken-3">mdi-note-text-outline</v-icon>
             </div>
             <v-textarea
               v-model="noteEsercizio"
@@ -912,6 +982,7 @@
               rows="2"
               color="orange-darken-3"
               class="custom-textarea-input"
+              :class="layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : ''"
               @blur="salvaDatoGenerale('ins_esercizio', noteEsercizio)"
               id="input-detail-note-esercizio"
             ></v-textarea>
@@ -919,9 +990,9 @@
 
           <!-- Commenti Atleta -->
           <div>
-            <div class="d-flex align-center justify-space-between mb-1.5">
-              <span class="text-caption text-muted font-weight-bold uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Commenti personali:</span>
-              <v-icon size="14" color="orange-darken-3">mdi-comment-text-outline</v-icon>
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Commenti personali:</span>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-darken-3">mdi-comment-text-outline</v-icon>
             </div>
             <v-textarea
               v-model="commentiAtleta"
@@ -932,6 +1003,7 @@
               rows="3"
               color="orange-darken-3"
               class="custom-textarea-input"
+              :class="layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : ''"
               @blur="salvaDatoGenerale('des_commenti', commentiAtleta)"
               id="input-detail-commenti"
             ></v-textarea>
@@ -940,16 +1012,22 @@
       </v-card>
 
       <!-- Card Feedback Feeling Esercizio (ind_reps_start) -->
-      <v-card class="premium-card rounded-2xl pa-4 mb-6" elevation="2">
+      <v-card 
+        :class="[
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6'),
+          'premium-card'
+        ]" 
+        elevation="2"
+      >
         <div class="text-left">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption font-weight-black text-slate-dark uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+            <span class="text-caption font-weight-black text-slate-dark uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
               Dai un voto da 1 a 5 sul feeling dell'esercizio
             </span>
-            <v-icon size="16" color="orange">mdi-emoticon-happy-outline</v-icon>
+            <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16" color="orange">mdi-emoticon-happy-outline</v-icon>
           </div>
           
-          <div class="d-flex align-center justify-space-between mt-3 px-1 gap-2">
+          <div class="d-flex align-center justify-space-between mt-3 px-1" :class="layoutCorrente === 'super_compatto' ? 'gap-1' : 'gap-2'">
             <v-btn
               v-for="voto in [1, 2, 3, 4, 5]"
               :key="voto"
@@ -957,7 +1035,12 @@
               :color="parseInt(indRepsStartVal) === voto ? 'orange-darken-3' : 'grey-darken-3'"
               class="font-weight-black rounded-lg text-none flex-grow-1"
               :class="{'text-white': parseInt(indRepsStartVal) === voto, 'text-slate': parseInt(indRepsStartVal) !== voto}"
-              style="min-width: 45px; height: 40px; font-size: 0.9rem;"
+              :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
+              :style="{
+                minWidth: layoutCorrente === 'super_compatto' ? '35px' : '45px', 
+                height: layoutCorrente === 'super_compatto' ? '30px' : '40px', 
+                fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.9rem'
+              }"
               @click="salvaVotoFeeling(voto)"
               :id="'btn-feeling-' + voto"
             >
@@ -970,14 +1053,20 @@
       <!-- Stato Esercizio Mai Fatto -->
       <v-card 
         v-if="workout && (workout.flg_ex_mai_fatto === 'false' || workout.flg_ex_mai_fatto === false) && String(workout.num_scheda) !== '1'"
-        class="premium-card rounded-2xl pa-4 mb-6 card-glass text-center border-soft"
+        class="premium-card card-glass text-center border-soft"
+        :class="[
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6')
+        ]"
         elevation="1"
         style="border: 1px solid rgba(255, 255, 255, 0.08);"
       >
-        <div class="text-super-caption text-muted font-weight-black uppercase mb-1" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+        <div class="text-super-caption text-muted font-weight-black uppercase mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
           Stato Esercizio
         </div>
-        <div class="text-body-2 font-weight-bold text-slate-light">
+        <div 
+          class="font-weight-bold text-slate-light"
+          :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+        >
           🌱 Questo esercizio non è mai stato eseguito in precedenza.
         </div>
       </v-card>
@@ -985,19 +1074,26 @@
       <!-- Analisi Ripetizioni (Continuità o Storico) - CLICCABILE -->
       <v-card 
         v-else-if="previousWorkout && analisiRipetizioniCiclo"
-        class="premium-card rounded-2xl pa-4 mb-6 card-glass text-left border-soft clickable-timer-chip"
+        class="premium-card card-glass text-left border-soft clickable-timer-chip"
+        :class="[
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6')
+        ]"
         elevation="2"
         style="border: 1px solid rgba(255, 255, 255, 0.08);"
         @click="vaiADettaglioStorico(previousWorkout.id)"
       >
         <div class="d-flex align-center justify-space-between mb-2">
-          <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+          <span class="text-super-caption text-muted font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
             {{ analisiRipetizioniCiclo.isContinuitato ? 'Continuità Mesociclo' : 'Richiamo Esercizio Storico' }}
           </span>
-          <v-icon color="orange-lighten-2" size="16">mdi-open-in-new</v-icon>
+          <v-icon color="orange-lighten-2" :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-open-in-new</v-icon>
         </div>
         
-        <div class="text-body-2 font-weight-medium text-slate-dark" style="line-height: 1.45;">
+        <div 
+          class="font-weight-medium text-slate-dark" 
+          :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+          style="line-height: 1.45;"
+        >
           <template v-if="analisiRipetizioniCiclo.isContinuitato">
             Questo esercizio era presente nella <strong>scheda precedente</strong> (Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>).<br>
           </template>
@@ -1006,11 +1102,14 @@
           </template>
           
           Prosegue il ciclo con <strong :class="'text-' + analisiRipetizioniCiclo.color">{{ analisiRipetizioniCiclo.testo }}</strong>
-          <v-icon :color="analisiRipetizioniCiclo.color" size="18" class="ml-1 mb-1">{{ analisiRipetizioniCiclo.icon }}</v-icon>
+          <v-icon :color="analisiRipetizioniCiclo.color" :size="layoutCorrente === 'super_compatto' ? 15 : 18" class="ml-1 mb-1">{{ analisiRipetizioniCiclo.icon }}</v-icon>
         </div>
         
-        <div class="text-super-caption text-muted mt-3 pt-2 border-top-soft d-flex align-center">
-          <v-icon size="14" color="grey" class="mr-1">mdi-gesture-tap</v-icon>
+        <div 
+          class="text-super-caption text-muted mt-3 pt-2 border-top-soft d-flex align-center"
+          :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '' }"
+        >
+          <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="grey" class="mr-1">mdi-gesture-tap</v-icon>
           <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(previousWorkout.dat_scheda_ult_ex || previousWorkout.timestamp) }} - Clicca per i dettagli</span>
           <span v-else>Clicca per vedere pesi e note di questa esecuzione</span>
         </div>
@@ -1019,14 +1118,21 @@
       <!-- Fallback Sicurezza (Se JSON non ha ancora scaricato l'oggetto previousWorkout) -->
       <v-card 
         v-else-if="workout && (workout.dat_scheda_ult_ex || workout.timestamp)"
-        class="premium-card rounded-2xl pa-4 mb-6 card-glass text-center border-soft"
+        class="premium-card card-glass text-center border-soft"
+        :class="[
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6')
+        ]"
         elevation="1"
         style="border: 1px solid rgba(255, 255, 255, 0.08);"
       >
-        <div class="text-super-caption text-muted font-weight-black uppercase mb-1" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+        <div class="text-super-caption text-muted font-weight-black uppercase mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
           Tempo Trascorso dall'Ultima Esecuzione
         </div>
-        <div class="text-body-2 font-weight-bold text-slate-dark" style="line-height: 1.4;">
+        <div 
+          class="font-weight-bold text-slate-dark" 
+          :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+          style="line-height: 1.4;"
+        >
           Eseguito l'ultima volta su Wo <span class="text-white font-weight-black">{{ workout.num_scheda_ult_ex || '?' }} {{ workout.num_coord_ex_wo_prec || '' }}</span> il: <span class="text-orange-lighten-2">{{ formattaDataStorico(workout.dat_scheda_ult_ex || workout.timestamp) }}</span> 
           <span class="text-white ml-1 font-weight-black">({{ tempoTrascorso(workout.dat_scheda_ult_ex || workout.timestamp) }})</span>
         </div>

@@ -837,14 +837,14 @@
             variant="text"
             color="orange-darken-3"
             class="font-weight-black text-none"
-            :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
-            :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
+            :size="layoutCorrente === 'super_compatto' ? 'x-small' : (layoutCorrente === 'compatto' ? 'small' : 'default')"
+            :density="layoutCorrente === 'super_compatto' ? 'compact' : (layoutCorrente === 'compatto' ? 'compact' : 'comfortable')"
             rounded="xl"
             @click="toggleAltreDinamiche"
             id="btn-toggle-altre-dinamica"
-            :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+            :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.70rem' : (layoutCorrente === 'compatto' ? '0.75rem' : '0.85rem') }"
           >
-            <v-icon class="mr-1" :size="layoutCorrente === 'super_compatto' ? 14 : 18">
+            <v-icon class="mr-1" :size="layoutCorrente === 'super_compatto' ? 13 : (layoutCorrente === 'compatto' ? 15 : 18)">
               {{ mostraAltreDinamica ? 'mdi-chevron-double-up' : 'mdi-chevron-double-down' }}
             </v-icon>
             {{ mostraAltreDinamica ? 'Nascondi le altre settimane' : 'Mostra le altre settimane (5)' }}
@@ -861,31 +861,31 @@
         <v-expansion-panel bg-color="transparent" class="elevation-0">
           <v-expansion-panel-title 
             class="font-weight-black text-slate-dark d-flex align-center"
-            :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-3 text-caption' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5 text-subtitle-2' : 'py-2.5 px-4 text-subtitle-2')"
+            :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-3' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5' : 'py-2.5 px-4')"
           >
-            <v-icon color="orange" class="mr-2" :size="layoutCorrente === 'super_compatto' ? 14 : 18">mdi-cog-outline</v-icon>
-            <span :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '' }">Opzioni Visualizzazione Settimane</span>
+            <v-icon color="orange" class="mr-2" :size="layoutCorrente === 'super_compatto' ? 13 : (layoutCorrente === 'compatto' ? 15 : 18)">mdi-cog-outline</v-icon>
+            <span :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : (layoutCorrente === 'compatto' ? '0.78rem' : '0.85rem') }">Opzioni Visualizzazione Settimane</span>
           </v-expansion-panel-title>
-          <v-expansion-panel-text class="px-2 pb-3">
+          <v-expansion-panel-text :class="layoutCorrente === 'super_compatto' ? 'px-1 pb-1.5' : (layoutCorrente === 'compatto' ? 'px-1.5 pb-2' : 'px-2 pb-3')">
             <div class="d-flex flex-column gap-2 text-left pt-1">
-              <span class="text-super-caption text-muted font-weight-bold uppercase mb-1" style="font-size: 0.6rem;">Modalità elenco settimane:</span>
+              <span class="text-super-caption text-muted font-weight-bold uppercase mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : (layoutCorrente === 'compatto' ? '0.55rem' : '0.6rem') }">Modalità elenco settimane:</span>
               <v-btn-toggle
                 v-model="modalitaSettimane"
                 mandatory
                 selected-class="bg-orange-darken-3 text-white"
-                :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
+                :density="layoutCorrente === 'super_compatto' ? 'compact' : (layoutCorrente === 'compatto' ? 'compact' : 'comfortable')"
                 :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'xl')"
                 class="w-100 card-glass border"
-                :style="{ height: layoutCorrente === 'super_compatto' ? '32px' : '38px' }"
+                :style="{ height: layoutCorrente === 'super_compatto' ? '30px' : (layoutCorrente === 'compatto' ? '34px' : '38px') }"
               >
-                <v-btn value="dinamica" class="font-weight-bold flex-grow-1" id="btn-toggle-dinamica" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 16" class="mr-1">mdi-target</v-icon> Dinamica
+                <v-btn value="dinamica" class="font-weight-bold flex-grow-1" id="btn-toggle-dinamica" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : (layoutCorrente === 'compatto' ? '0.74rem' : '0.80rem') }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 11 : (layoutCorrente === 'compatto' ? 13 : 16)" class="mr-1">mdi-target</v-icon> Dinamica
                 </v-btn>
-                <v-btn value="fissa" class="font-weight-bold flex-grow-1" id="btn-toggle-fissa" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 16" class="mr-1">mdi-calendar-month</v-icon> Fissa
+                <v-btn value="fissa" class="font-weight-bold flex-grow-1" id="btn-toggle-fissa" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : (layoutCorrente === 'compatto' ? '0.74rem' : '0.80rem') }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 11 : (layoutCorrente === 'compatto' ? 13 : 16)" class="mr-1">mdi-calendar-month</v-icon> Fissa
                 </v-btn>
               </v-btn-toggle>
-              <p class="text-super-caption text-muted mt-2 leading-snug">
+              <p class="text-super-caption text-muted mt-2 leading-snug" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : (layoutCorrente === 'compatto' ? '0.63rem' : '0.68rem') }">
                 * <strong>Dinamica</strong>: Mette in evidenza la settimana attiva ordinando le altre in sequenza.<br>
                 * <strong>Fissa</strong>: Mostra la progressione lineare classica dalla settimana 1 alla 6.
               </p>

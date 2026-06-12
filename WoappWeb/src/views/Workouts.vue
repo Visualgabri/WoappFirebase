@@ -1082,7 +1082,7 @@
                         color="green-darken-3" 
                         class="font-weight-black text-white px-2 py-0.5" 
                         variant="flat" 
-                        style="height: 16px; font-size: 0.52rem;"
+                        style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                       >
                         {{ ex['ins_week' + settimanaAttivaGiorno] }}
                       </v-chip>
@@ -1093,7 +1093,7 @@
                         color="green-darken-3" 
                         class="font-weight-black text-white px-2 py-0.5" 
                         variant="flat" 
-                        style="height: 16px; font-size: 0.52rem;"
+                        style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                       >
                         Fatto ✔️
                       </v-chip>
@@ -1104,7 +1104,7 @@
                         variant="outlined" 
                         color="orange-darken-3" 
                         class="font-weight-black px-2 py-0.5 text-none"
-                        style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important;"
+                        style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 2px;"
                       >
                         + Registra
                       </v-chip>
@@ -1142,7 +1142,15 @@
                         size="x-small"
                         class="font-weight-black uppercase text-white animate-pulse"
                         variant="flat"
-                        style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
+                        :style="{
+                          fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
+                          height: layoutEsercizi === 'standard' ? '20px' : '16px',
+                          borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
+                          padding: '0 4px',
+                          width: '100%',
+                          justifyContent: 'center',
+                          cursor: 'pointer'
+                        }"
                         @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
                       >
                         ✔️ {{ String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
@@ -1154,7 +1162,17 @@
                         size="x-small"
                         class="font-weight-bold uppercase text-slate"
                         variant="outlined"
-                        style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
+                        :style="{
+                          fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
+                          height: layoutEsercizi === 'standard' ? '20px' : '16px',
+                          borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
+                          padding: '0 4px',
+                          borderStyle: 'dashed !important',
+                          opacity: 0.65,
+                          width: '100%',
+                          justifyContent: 'center',
+                          cursor: 'pointer'
+                        }"
                         @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
                       >
                         ❌ DA FARE
@@ -1317,7 +1335,7 @@
                       color="green-darken-3" 
                       class="font-weight-black text-white px-2 py-0.5" 
                       variant="flat" 
-                      style="height: 16px; font-size: 0.52rem;"
+                      style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                     >
                       {{ block.exercise['ins_week' + settimanaAttivaGiorno] }}
                     </v-chip>
@@ -1328,7 +1346,7 @@
                       color="green-darken-3" 
                       class="font-weight-black text-white px-2 py-0.5" 
                       variant="flat" 
-                      style="height: 16px; font-size: 0.52rem;"
+                      style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                     >
                       Fatto ✔️
                     </v-chip>
@@ -1339,7 +1357,7 @@
                       variant="outlined" 
                       color="orange-darken-3" 
                       class="font-weight-black px-2 py-0.5 text-none"
-                      style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important;"
+                      style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 2px;"
                     >
                       + Registra
                     </v-chip>
@@ -1378,7 +1396,15 @@
                     size="x-small"
                     class="font-weight-black uppercase text-white animate-pulse"
                     variant="flat"
-                    style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
+                    :style="{
+                      fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
+                      height: layoutEsercizi === 'standard' ? '20px' : '16px',
+                      borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
+                      padding: '0 4px',
+                      width: '100%',
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }"
                     @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
                   >
                     ✔️ {{ String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
@@ -1390,7 +1416,17 @@
                     size="x-small"
                     class="font-weight-bold uppercase text-slate"
                     variant="outlined"
-                    style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
+                    :style="{
+                      fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
+                      height: layoutEsercizi === 'standard' ? '20px' : '16px',
+                      borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
+                      padding: '0 4px',
+                      borderStyle: 'dashed !important',
+                      opacity: 0.65,
+                      width: '100%',
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }"
                     @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
                   >
                     ❌ DA FARE

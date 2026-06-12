@@ -508,11 +508,11 @@
                               </span>
                               <v-chip
                                 v-if="item.tipo === 'recupero'"
-                                color="orange-darken-3"
+                                color="amber-darken-3"
                                 size="x-small"
                                 variant="flat"
                                 class="font-weight-black text-white flex-shrink-0"
-                                style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
+                                style="font-size: 0.50rem; height: 15px; padding: 0 4px;"
                               >
                                 🔁 REC
                               </v-chip>
@@ -522,7 +522,7 @@
                                 size="x-small"
                                 variant="tonal"
                                 class="font-weight-black flex-shrink-0"
-                                style="font-size: 0.42rem; height: 13px; padding: 0 4px;"
+                                style="font-size: 0.50rem; height: 15px; padding: 0 4px;"
                               >
                                 ⚡ {{ item.superserie }}
                               </v-chip>
@@ -1011,14 +1011,14 @@
               <!-- Intestazione del Superset -->
               <div class="superset-header d-flex align-center justify-space-between" :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : 'mb-3'">
                 <div class="d-flex align-center flex-wrap gap-2">
-                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-0.5 mr-1" variant="flat" size="x-small" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : 'auto') }">
+                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-0.5 mr-1" variant="flat" size="x-small" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : (layoutEsercizi === 'compatto' ? '0.58rem' : '0.64rem'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : '20px') }">
                     ⚡ SUPERSET {{ block.letter }}
                   </v-chip>
                   <span v-if="layoutEsercizi !== 'super_compatto'" class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
                     Esegui in sequenza senza pausa
                   </span>
                 </div>
-                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2 py-0.5" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem !important' : (layoutEsercizi === 'compatto' ? '0.58rem !important' : 'inherit'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : 'auto') }">
+                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2 py-0.5" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : (layoutEsercizi === 'compatto' ? '0.58rem' : '0.64rem'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : '20px') }">
                   {{ block.exercises.length }} ESERCIZI
                 </v-chip>
               </div>
@@ -1245,29 +1245,29 @@
 
                       <!-- Timer Recupero / Chaining Clickable -->
                       <div class="mt-1" v-if="ex.des_rec_report || (ex.alf_superserie && ex.alf_superserie.trim())">
-                         <v-chip
-                           v-if="ex.des_rec_report"
-                           color="orange-darken-3"
-                           variant="tonal"
-                           size="x-small"
-                           class="font-weight-black clickable-timer-chip"
-                           prepend-icon="mdi-clock-outline"
-                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.68rem !important' : '0.70rem !important', height: layoutEsercizi === 'compatto' ? '24px' : '24px', paddingLeft: '8px', paddingRight: '8px' }"
-                           @click.stop="layoutEsercizi === 'standard' ? avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio) : vaiAlDettaglio(ex.id)"
-                         >
-                           ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
-                         </v-chip>
-                         <v-chip
-                           v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
-                           color="green-darken-3"
-                           variant="flat"
-                           size="x-small"
-                           class="font-weight-black text-white"
-                           prepend-icon="mdi-arrow-right-bold-circle-outline"
-                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '20px' : '22px' }"
-                         >
-                           ⚡ VAI AL PROSSIMO (NO PAUSA)
-                         </v-chip>
+                          <v-chip
+                            v-if="ex.des_rec_report"
+                            color="amber-darken-3"
+                            variant="tonal"
+                            size="x-small"
+                            class="font-weight-black clickable-timer-chip"
+                            prepend-icon="mdi-clock-outline"
+                            :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.68rem !important' : '0.70rem !important', height: layoutEsercizi === 'compatto' ? '24px' : '24px', paddingLeft: '8px', paddingRight: '8px' }"
+                            @click.stop="layoutEsercizi === 'standard' ? avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio) : vaiAlDettaglio(ex.id)"
+                          >
+                            ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
+                          </v-chip>
+                          <v-chip
+                            v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
+                            color="green-darken-3"
+                            variant="flat"
+                            size="x-small"
+                            class="font-weight-black text-white"
+                            prepend-icon="mdi-arrow-right-bold-circle-outline"
+                            :style="{ fontSize: layoutEsercizi === 'standard' ? '0.64rem' : '0.58rem', height: layoutEsercizi === 'standard' ? '20px' : '18px' }"
+                          >
+                            ⚡ VAI AL PROSSIMO (NO PAUSA)
+                          </v-chip>
                       </div>
                     </div>
 
@@ -1498,7 +1498,7 @@
                   <!-- Timer Recupero Clickable -->
                   <div v-if="block.exercise.des_rec_report" class="mt-1">
                     <v-chip
-                      color="orange-darken-3"
+                      color="amber-darken-3"
                       variant="tonal"
                       size="x-small"
                       class="font-weight-black clickable-timer-chip"
@@ -3329,13 +3329,17 @@ const vaiAlPrimoEsercizioDaFare = () => {
     return !val || val.trim() === '' || val.trim() === '-';
   });
   if (daFare) {
-    const el = document.getElementById('esercizio-' + daFare.id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('highlight-exercise');
-      setTimeout(() => {
-        el.classList.remove('highlight-exercise');
-      }, 1500);
+    if (layoutEsercizi.value === 'super_compatto' || layoutEsercizi.value === 'compatto') {
+      vaiAlDettaglio(daFare.id);
+    } else {
+      const el = document.getElementById('esercizio-' + daFare.id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight-exercise');
+        setTimeout(() => {
+          el.classList.remove('highlight-exercise');
+        }, 1500);
+      }
     }
   } else {
     const el = document.getElementById('btn-completa-giorno');

@@ -287,7 +287,7 @@
           <!-- 3. Recupero (se presente) - GRANDE e EVIDENZIATO con animazione e gradiente -->
           <v-chip
             v-if="workout.des_rec_report"
-            color="orange-darken-3"
+            color="amber-darken-3"
             variant="flat"
             size="small"
             class="font-weight-black clickable-timer-chip recovery-standout-chip px-3 py-1.5"

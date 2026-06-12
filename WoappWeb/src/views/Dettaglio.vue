@@ -36,7 +36,12 @@
         v-if="isSchedaPassata"
         class="text-left border d-flex align-start card-glass"
         :class="layoutCorrente === 'super_compatto' ? 'py-1 px-2 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-1.5 px-2.5 mb-2' : 'py-2 px-3 mb-3')"
-        style="background: rgba(239, 68, 68, 0.08) !important; border: 1.5px solid rgba(239, 68, 68, 0.3) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1); border-radius: 10px !important;"
+        :style="{
+          background: 'rgba(239, 68, 68, 0.08) !important',
+          border: '1.5px solid rgba(239, 68, 68, 0.3) !important',
+          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.1)',
+          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '10px !important')
+        }"
       >
         <v-icon color="red-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-history</v-icon>
         <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem', lineSpace: 1.35 }">
@@ -50,7 +55,12 @@
         v-if="workout && isWeekCompleted(settimanaAttiva) && !isSchedaPassata"
         class="text-left border d-flex align-center card-glass"
         :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5 mb-2' : 'py-2.5 px-4 mb-3')"
-        style="background: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid rgba(16, 185, 129, 0.25) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05); border-radius: 12px !important;"
+        :style="{
+          background: 'rgba(16, 185, 129, 0.08) !important',
+          border: '1.5px solid rgba(16, 185, 129, 0.25) !important',
+          boxShadow: '0 4px 20px rgba(16, 185, 129, 0.05)',
+          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important')
+        }"
       >
         <v-icon color="green-lighten-2" class="mr-3 flex-shrink-0" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-check-circle-outline</v-icon>
         <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineSpace: 1.45 }">
@@ -69,7 +79,7 @@
     </div>
 
     <!-- Errore o esercizio non trovato -->
-    <div v-else-if="!workout" class="text-center my-12 py-12 card-glass rounded-xl">
+    <div v-else-if="!workout" class="text-center my-12 py-12 card-glass" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : (layoutCorrente === 'compatto' ? 'rounded-lg' : 'rounded-xl')">
       <v-icon size="64" color="red-lighten-2" class="mb-4">mdi-alert-circle-outline</v-icon>
       <h3 class="text-h6 font-weight-bold text-slate-dark">Esercizio non trovato</h3>
     </div>
@@ -84,10 +94,11 @@
       >
         <!-- 1. GIF dell'Esercizio -->
         <v-card 
-          class="image-premium-frame rounded-xl overflow-hidden elevation-2 bg-black flex-shrink-0" 
-          :class="{
-            'mx-auto mb-3': !['compatto', 'super_compatto'].includes(layoutCorrente)
-          }"
+          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0" 
+          :class="[
+            layoutCorrente === 'super_compatto' ? 'rounded-sm' : (layoutCorrente === 'compatto' ? 'rounded-lg' : 'rounded-xl'),
+            { 'mx-auto mb-3': !['compatto', 'super_compatto'].includes(layoutCorrente) }
+          ]"
           :style="{
             width: layoutCorrente === 'super_compatto' ? '90px' : (layoutCorrente === 'compatto' ? '120px' : '100%'),
             maxWidth: layoutCorrente === 'super_compatto' ? '90px' : (layoutCorrente === 'compatto' ? '120px' : '280px'),
@@ -132,8 +143,10 @@
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
         <div 
           v-if="parsedRmt(workout.des_esercizio_2)" 
-          class="rmt-premium-card rounded-xl card-glass border-orange-darken-3-op"
-          :class="layoutCorrente === 'super_compatto' ? 'mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'mt-2 pa-2.5' : 'mt-3 pa-3')"
+          class="rmt-premium-card card-glass border-orange-darken-3-op"
+          :class="[
+            layoutCorrente === 'super_compatto' ? 'rounded-sm mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'rounded-lg mt-2 pa-2.5' : 'rounded-xl mt-3 pa-3')
+          ]"
         >
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center gap-1 flex-wrap">
@@ -210,8 +223,10 @@
         <!-- Alternativo se des_esercizio_2 è una stringa Volume speciale -->
         <div 
           v-else-if="isVolumeString(workout.des_esercizio_2)" 
-          class="rounded-xl card-glass border-soft"
-          :class="layoutCorrente === 'super_compatto' ? 'mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'mt-2 pa-2.5' : 'mt-3 pa-3')"
+          class="card-glass border-soft"
+          :class="[
+            layoutCorrente === 'super_compatto' ? 'rounded-sm mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'rounded-lg mt-2 pa-2.5' : 'rounded-xl mt-3 pa-3')
+          ]"
         >
           <div class="text-super-caption text-muted font-weight-black uppercase mb-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">
             📊 Volumi Allenamento
@@ -299,7 +314,12 @@
           <v-card
             v-if="parsedTut && mostraSpiegazioneTut"
             class="py-2.5 px-3.5 mt-3 text-left border card-glass"
-            style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important;"
+            :style="{
+              background: 'rgba(249, 115, 22, 0.08) !important',
+              border: '1.5px solid rgba(249, 115, 22, 0.25) !important',
+              boxShadow: '0 4px 20px rgba(249, 115, 22, 0.05)',
+              borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important')
+            }"
           >
             <div class="d-flex align-center mb-2">
               <v-icon color="orange-lighten-2" class="mr-2" size="18">mdi-clock-outline</v-icon>
@@ -400,11 +420,12 @@
           <div
             v-for="connEx in eserciziSupersetCollegati.slice(0, 1)"
             :key="connEx.id"
-            class="d-flex align-center py-1 px-2 rounded-lg bg-slate-900 border-soft clickable-item"
+            class="d-flex align-center py-1 px-2 bg-slate-900 border-soft clickable-item"
+            :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : (layoutCorrente === 'compatto' ? 'rounded-md' : 'rounded-lg')"
             @click="vaiAdEsercizioCollegato(connEx.id)"
             style="cursor: pointer;"
           >
-            <div class="rounded overflow-hidden mr-2 bg-black border-soft" :style="{ width: layoutCorrente === 'super_compatto' ? '24px' : '32px', height: layoutCorrente === 'super_compatto' ? '24px' : '32px', flexShrink: 0 }">
+            <div class="overflow-hidden mr-2 bg-black border-soft" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded'" :style="{ width: layoutCorrente === 'super_compatto' ? '24px' : '32px', height: layoutCorrente === 'super_compatto' ? '24px' : '32px', flexShrink: 0 }">
               <v-img :src="getGifUrl(connEx.UrlNormal)" :width="layoutCorrente === 'super_compatto' ? 24 : 32" :height="layoutCorrente === 'super_compatto' ? 24 : 32" cover></v-img>
             </div>
             <div class="flex-grow-1 text-truncate">
@@ -425,8 +446,10 @@
       <!-- 3. Coaching Note Card (Compact callout) -->
       <v-card
         v-if="workout && workout.des_note && String(workout.des_note).trim()"
-        class="rounded-lg elevation-0 text-left d-flex align-center"
-        :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2 mb-3' : (layoutCorrente === 'compatto' ? 'py-2 px-2.5 mb-4' : 'py-2 px-3 mb-5')"
+        class="elevation-0 text-left d-flex align-center"
+        :class="[
+          layoutCorrente === 'super_compatto' ? 'rounded-sm py-1.5 px-2 mb-3' : (layoutCorrente === 'compatto' ? 'rounded-md py-2 px-2.5 mb-4' : 'rounded-lg py-2 px-3 mb-5')
+        ]"
         style="background: rgba(249, 115, 22, 0.08) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important; border-left: 4px solid #f97316 !important;"
       >
         <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0" size="15">mdi-information-outline</v-icon>
@@ -439,7 +462,13 @@
       <v-card
         v-if="workout && workout.des_estesa_start && String(workout.des_estesa_start).trim()"
         class="text-left border d-flex align-start card-glass mb-3"
-        style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important; padding: 10px 12px !important;"
+        :style="{
+          background: 'rgba(249, 115, 22, 0.08) !important',
+          border: '1.5px solid rgba(249, 115, 22, 0.25) !important',
+          boxShadow: '0 4px 20px rgba(249, 115, 22, 0.05)',
+          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important'),
+          padding: '10px 12px !important'
+        }"
       >
         <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-cog-play-outline</v-icon>
         <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">
@@ -456,7 +485,12 @@
           v-if="haEsponenti"
           class="text-left border d-flex align-start"
           :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-2.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3 mb-3' : 'py-2.5 px-3.5 mb-4')"
-          style="background: rgba(15, 23, 42, 0.45) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important;"
+          :style="{
+            background: 'rgba(15, 23, 42, 0.45) !important',
+            border: '1.5px solid rgba(249, 115, 22, 0.25) !important',
+            boxShadow: '0 4px 20px rgba(249, 115, 22, 0.05)',
+            borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important')
+          }"
         >
           <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-information-outline</v-icon>
           <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem', lineHeight: 1.4 }">
@@ -467,9 +501,9 @@
         <v-card
           v-for="sett in settimaneVisualizzate"
           :key="sett"
-          class="week-log-card rounded-xl border transition-all"
+          class="week-log-card border transition-all"
           :class="[
-            layoutCorrente === 'super_compatto' ? 'py-1.5 px-2 mb-2.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3 mb-4' : 'py-2.5 px-3 mb-6'),
+            layoutCorrente === 'super_compatto' ? 'rounded-sm py-1.5 px-2 mb-2.5' : (layoutCorrente === 'compatto' ? 'rounded-lg py-2 px-3 mb-4' : 'rounded-xl py-2.5 px-3 mb-6'),
             {
               'week-active-border': sett === settimanaAttiva,
               'week-secondary-card': modalitaSettimane === 'dinamica' && sett !== settimanaAttiva
@@ -520,8 +554,10 @@
               <!-- Carico Totale -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
                 <div 
-                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
-                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
+                  class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
+                  :class="[
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                  ]"
                   style="cursor: pointer;"
                   @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'totale', workout?.des_esercizio)"
                 >
@@ -534,8 +570,10 @@
               <!-- Peso per Lato (solo se presente) -->
               <v-col v-if="parsedPrescription(workout['des_week' + sett]).side" cols="3">
                 <div 
-                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
-                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
+                  class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
+                  :class="[
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                  ]"
                   style="cursor: pointer;"
                   @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'lato', workout?.des_esercizio)"
                 >
@@ -548,8 +586,10 @@
               <!-- % Massimale -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
                 <div 
-                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
-                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
+                  class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
+                  :class="[
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                  ]"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">% 1RM</span>
                   <span class="text-caption font-weight-black text-orange-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
@@ -560,8 +600,10 @@
               <!-- % Sforzo -->
               <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
                 <div 
-                  class="prescription-chip-box rounded-lg text-left fill-height d-flex flex-column justify-center"
-                  :class="layoutCorrente === 'super_compatto' ? 'px-1.5 py-0.5' : 'px-2 py-1'"
+                  class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
+                  :class="[
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                  ]"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Sforzo</span>
                   <span class="text-caption font-weight-black text-green-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
@@ -581,7 +623,8 @@
           <!-- Istruzioni Esecuzione / Test sotto il Lavoro (LAVORO) -->
           <div 
             v-if="workout && sett === 6 && workout.des_estesa_end && String(workout.des_estesa_end).trim()"
-            class="mt-2.5 mb-2 px-2.5 py-2 rounded-lg text-left"
+            class="mt-2.5 mb-2 px-2.5 py-2 text-left"
+            :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : (layoutCorrente === 'compatto' ? 'rounded-md' : 'rounded-lg')"
             style="background: rgba(249, 115, 22, 0.03) !important; border: 1px dashed rgba(249, 115, 22, 0.15) !important;"
           >
             <div>
@@ -630,7 +673,7 @@
                 <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-down</v-icon>
               </div>
               
-              <div v-if="getGhostLift(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
+              <div v-if="getGhostLift(sett)" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
                 💡 Se leggero, fai più reps del previsto e segnalalo nel box qui sotto.
               </div>
             </div>
@@ -641,7 +684,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              rounded="lg"
+              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
               rows="1"
               auto-grow
               color="orange-darken-3"
@@ -686,7 +729,13 @@
               </div>
               
               <!-- Stepper per Miglior Carico W6 -->
-              <div class="d-flex align-center card-glass border rounded-xl" :class="layoutCorrente === 'super_compatto' ? 'px-0.5 py-0' : 'px-1 py-0.5'" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+              <div 
+                class="d-flex align-center card-glass border" 
+                :class="[
+                  layoutCorrente === 'super_compatto' ? 'px-0.5 py-0 rounded-sm' : (layoutCorrente === 'compatto' ? 'px-1 py-0.5 rounded-lg' : 'px-1 py-0.5 rounded-xl')
+                ]" 
+                style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;"
+              >
                 <v-btn
                   icon
                   :size="layoutCorrente === 'super_compatto' ? '20px' : 'x-small'"
@@ -732,7 +781,7 @@
                     variant="flat"
                     :color="numFaticaw6Val === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
                     :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-                    rounded="lg"
+                    :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
                     class="font-weight-black text-none"
                     :class="{'text-white': numFaticaw6Val === 'Media', 'text-slate': numFaticaw6Val !== 'Media'}"
                     style="font-size: 0.72rem;"
@@ -749,7 +798,7 @@
                     variant="flat"
                     :color="numFaticaw6Val === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
                     :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-                    rounded="lg"
+                    :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
                     class="font-weight-black text-none"
                     :class="{'text-white': numFaticaw6Val === 'Pesante', 'text-slate': numFaticaw6Val !== 'Pesante'}"
                     style="font-size: 0.72rem;"
@@ -766,7 +815,7 @@
                     variant="flat"
                     :color="numFaticaw6Val === 'Devastante' ? 'red-darken-4' : 'grey-darken-3'"
                     :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-                    rounded="lg"
+                    :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
                     class="font-weight-black text-none"
                     :class="{'text-white': numFaticaw6Val === 'Devastante', 'text-slate': numFaticaw6Val !== 'Devastante'}"
                     style="font-size: 0.72rem;"
@@ -806,7 +855,7 @@
       <!-- Opzioni di Visualizzazione delle Settimane (Spostato a fondo lista per non disturbare) -->
       <v-expansion-panels 
         class="card-glass border-soft overflow-hidden shadow-sm animate-all" 
-        :class="layoutCorrente === 'super_compatto' ? 'mb-3 rounded-xl' : (layoutCorrente === 'compatto' ? 'mb-4.5' : 'mb-6 rounded-2xl')"
+        :class="layoutCorrente === 'super_compatto' ? 'mb-3 rounded-sm' : (layoutCorrente === 'compatto' ? 'mb-4.5 rounded-lg' : 'mb-6 rounded-2xl')"
         style="background: rgba(15, 23, 42, 0.4);"
       >
         <v-expansion-panel bg-color="transparent" class="elevation-0">
@@ -825,7 +874,7 @@
                 mandatory
                 selected-class="bg-orange-darken-3 text-white"
                 :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
-                rounded="xl"
+                :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'xl')"
                 class="w-100 card-glass border"
                 :style="{ height: layoutCorrente === 'super_compatto' ? '32px' : '38px' }"
               >
@@ -849,9 +898,9 @@
       <div class="d-flex align-center justify-space-between text-left" :class="layoutCorrente === 'super_compatto' ? 'mb-2' : 'mb-4'">
         <h3 
           class="font-weight-black text-slate-dark d-flex align-center"
-          :class="layoutCorrente === 'super_compatto' ? 'text-caption' : 'text-subtitle-2'"
+          :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : (layoutCorrente === 'compatto' ? '0.72rem' : '0.80rem') }"
         >
-          <v-icon color="orange-darken-3" class="mr-2" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-cogs</v-icon>
+          <v-icon color="orange-darken-3" class="mr-2" :size="layoutCorrente === 'super_compatto' ? 12 : (layoutCorrente === 'compatto' ? 14 : 16)">mdi-cogs</v-icon>
           Dettagli Tecnici Esercizio
         </h3>
       </div>
@@ -863,15 +912,14 @@
           <div 
             class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
             :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
             ]"
             style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
           >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Scheda</span>
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Scheda</span>
             <span 
               class="font-weight-black text-orange-lighten-2 text-truncate d-block"
-              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
             >
               Numero {{ workout.num_scheda }}
             </span>
@@ -882,15 +930,14 @@
           <div 
             class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
             :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
             ]"
             style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
           >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Giorno</span>
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Giorno</span>
             <span 
               class="font-weight-black text-orange-lighten-1 text-truncate d-block"
-              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
             >
               Giorno {{ workout.des_giorno }}
             </span>
@@ -901,15 +948,14 @@
           <div 
             class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
             :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
             ]"
             style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
           >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Muscolo Target</span>
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Muscolo Target</span>
             <span 
               class="font-weight-black text-slate-dark text-truncate d-block"
-              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
             >
               {{ workout.des_settore || 'Generico' }}
             </span>
@@ -920,15 +966,14 @@
           <div 
             class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
             :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')
+              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
             ]"
             style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
           >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em' }">Posizione</span>
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Posizione</span>
             <span 
               class="font-weight-black text-slate-dark text-truncate d-block"
-              :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
             >
               N. {{ workout.num_riga_giorno }}{{ workout.alf_superserie ? ' (' + workout.alf_superserie + ')' : '' }}
             </span>
@@ -939,7 +984,7 @@
       <!-- Card Note e Commenti (Campi Modificabili) -->
       <v-card 
         :class="[
-          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6'),
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6'),
           'premium-card'
         ]" 
         elevation="2"
@@ -956,7 +1001,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              rounded="lg"
+              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
               rows="1"
               auto-grow
               color="orange-darken-3"
@@ -978,7 +1023,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              rounded="lg"
+              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
               rows="2"
               color="orange-darken-3"
               class="custom-textarea-input"
@@ -999,7 +1044,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              rounded="lg"
+              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
               rows="3"
               color="orange-darken-3"
               class="custom-textarea-input"
@@ -1014,7 +1059,7 @@
       <!-- Card Feedback Feeling Esercizio (ind_reps_start) -->
       <v-card 
         :class="[
-          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6'),
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6'),
           'premium-card'
         ]" 
         elevation="2"
@@ -1033,8 +1078,11 @@
               :key="voto"
               variant="flat"
               :color="parseInt(indRepsStartVal) === voto ? 'orange-darken-3' : 'grey-darken-3'"
-              class="font-weight-black rounded-lg text-none flex-grow-1"
-              :class="{'text-white': parseInt(indRepsStartVal) === voto, 'text-slate': parseInt(indRepsStartVal) !== voto}"
+              class="font-weight-black text-none flex-grow-1"
+              :class="[
+                layoutCorrente === 'super_compatto' ? 'rounded-sm text-white' : (layoutCorrente === 'compatto' ? 'rounded-md text-white' : 'rounded-lg text-white'),
+                {'text-white': parseInt(indRepsStartVal) === voto, 'text-slate': parseInt(indRepsStartVal) !== voto}
+              ]"
               :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
               :style="{
                 minWidth: layoutCorrente === 'super_compatto' ? '35px' : '45px', 
@@ -1055,7 +1103,7 @@
         v-if="workout && (workout.flg_ex_mai_fatto === 'false' || workout.flg_ex_mai_fatto === false) && String(workout.num_scheda) !== '1'"
         class="premium-card card-glass text-center border-soft"
         :class="[
-          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6')
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
         ]"
         elevation="1"
         style="border: 1px solid rgba(255, 255, 255, 0.08);"
@@ -1076,7 +1124,7 @@
         v-else-if="previousWorkout && analisiRipetizioniCiclo"
         class="premium-card card-glass text-left border-soft clickable-timer-chip"
         :class="[
-          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6')
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
         ]"
         elevation="2"
         style="border: 1px solid rgba(255, 255, 255, 0.08);"
@@ -1120,7 +1168,7 @@
         v-else-if="workout && (workout.dat_scheda_ult_ex || workout.timestamp)"
         class="premium-card card-glass text-center border-soft"
         :class="[
-          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-xl mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-xl mb-4.5' : 'pa-4 rounded-2xl mb-6')
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
         ]"
         elevation="1"
         style="border: 1px solid rgba(255, 255, 255, 0.08);"

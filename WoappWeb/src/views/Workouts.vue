@@ -668,7 +668,7 @@
 
             <!-- Focus Zone del Giorno (Unificato & Compatto) -->
             <div 
-              v-if="layoutEsercizi !== 'super_compatto'"
+              v-if="layoutEsercizi === 'standard'"
               class="text-center mt-2 pb-1 text-super-caption font-weight-bold d-flex align-center justify-center gap-1.5" 
               style="font-size: 0.68rem;"
             >
@@ -680,7 +680,7 @@
 
             <!-- Sezione Volumi (VOL A, B, C) -->
             <div 
-              v-if="layoutEsercizi !== 'super_compatto' && parseVolumes(headerGiorno.ins_esercizio)" 
+              v-if="layoutEsercizi === 'standard' && parseVolumes(headerGiorno.ins_esercizio)" 
               class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left"
             >
               <div class="d-flex align-center justify-space-between mb-1.5 px-1">
@@ -733,7 +733,7 @@
 
             <!-- Informazioni RMT o Volumi se presenti -->
             <div 
-              v-if="layoutEsercizi !== 'super_compatto' && headerGiorno.des_esercizio_2" 
+              v-if="layoutEsercizi === 'standard' && headerGiorno.des_esercizio_2" 
               class="mt-2 pt-2 border-top-soft text-left d-flex align-center"
             >
               <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
@@ -836,7 +836,7 @@
             </div>
 
             <!-- Informazioni RMT o Volumi se presenti (spostate sotto e rese indipendenti) -->
-            <div v-if="layoutEsercizi !== 'super_compatto' && headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft">
+            <div v-if="layoutEsercizi === 'standard' && headerGiorno.des_esercizio_2" class="mt-2 pt-2 border-top-soft">
                 <template v-if="isVolumeString(headerGiorno.des_esercizio_2)">
                   <div class="d-flex align-center flex-wrap gap-1.5">
                     <span class="vol-pill vol-pill-total" title="Volume Globale (V)">
@@ -870,7 +870,7 @@
               </div>
               
               <!-- Sezione Volumi (VOL A, B, C) in fallback -->
-              <div v-if="layoutEsercizi !== 'super_compatto' && parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left mt-2">
+              <div v-if="layoutEsercizi === 'standard' && parseVolumes(headerGiorno.ins_esercizio)" class="volumes-premium-box pa-2 rounded-lg bg-slate-900 border-soft text-left mt-2">
                 <div class="d-flex align-center justify-space-between mb-1.5 px-1">
                   <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.65rem;">
                     📊 Distribuzione Volumi (Serie Totali: {{ parseVolumes(headerGiorno.ins_esercizio).totale }})
@@ -1017,22 +1017,14 @@
                   
                   <!-- VISUALIZZAZIONE SUPER COMPATTA (UNICA RIGA) -->
                   <div v-if="layoutEsercizi === 'super_compatto'" class="d-flex align-center w-100 py-1" style="z-index: 2;">
-                    <!-- Checkbox -->
-                    <div class="mr-2 flex-shrink-0">
-                      <v-btn
-                        icon
-                        variant="text"
-                        density="compact"
-                        width="30"
-                        height="30"
+                    <!-- Checkbox (non-clickable in compact layout to avoid accidental clicks) -->
+                    <div class="mr-2 flex-shrink-0 d-flex align-center justify-center" style="width: 30px; height: 30px;">
+                      <v-icon
+                        size="18"
                         :color="ex['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
-                        @click.stop="segnaComeFattoRapido(ex)"
-                        class="super-compact-check-btn"
                       >
-                        <v-icon size="18">
-                          {{ ex['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
-                        </v-icon>
-                      </v-btn>
+                        {{ ex['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
+                      </v-icon>
                     </div>
                     
                     <!-- Ordine, Titolo e Settore -->
@@ -1047,12 +1039,10 @@
                       </div>
                       <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" style="font-size: 0.58rem; line-height: 1;">
                         <span class="text-muted uppercase font-weight-black mr-2">{{ ex.des_settore }}</span>
-                        <!-- Prescrizione Calcolabile Clickable -->
+                        <!-- Prescrizione -->
                         <span 
-                          class="text-orange-lighten-3 font-weight-bold cursor-pointer hover-underline d-inline-flex align-center"
-                          @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno] || ex.des_qta_report, ex.des_esercizio)"
+                          class="text-orange-lighten-3 font-weight-bold d-inline-flex align-center"
                         >
-                          <v-icon size="10" class="mr-0.5">mdi-calculator</v-icon>
                           {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescr.' }}
                         </span>
                       </div>
@@ -1083,17 +1073,16 @@
                         Fatto ✔️
                       </v-chip>
                       <!-- If not completed, show "+ Registra" -->
-                      <v-btn 
+                      <v-chip 
                         v-else 
                         size="x-small" 
                         variant="outlined" 
                         color="orange-darken-3" 
                         class="font-weight-black px-2 py-0.5 text-none"
                         style="height: 20px; font-size: 0.6rem; border-color: rgba(249, 115, 22, 0.4) !important;"
-                        @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         + Registra
-                      </v-btn>
+                      </v-chip>
                       
                       <!-- Trailing Chevron -->
                       <v-icon size="14" color="slate-dark" class="ml-1 opacity-50">mdi-chevron-right</v-icon>
@@ -1129,7 +1118,7 @@
                         class="font-weight-black uppercase text-white animate-pulse"
                         variant="flat"
                         style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
-                        @click.stop="segnaComeFattoRapido(ex)"
+                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
                       >
                         ✔️ {{ String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
                       </v-chip>
@@ -1141,7 +1130,7 @@
                         class="font-weight-bold uppercase text-slate"
                         variant="outlined"
                         style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
-                        @click.stop="segnaComeFattoRapido(ex)"
+                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
                       >
                         ❌ DA FARE
                       </v-chip>
@@ -1174,8 +1163,7 @@
                         <div 
                           class="text-caption font-weight-bold text-slate text-truncate" 
                           :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
-                          :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
-                          @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno], ex.des_esercizio)"
+                          :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
                         >
                           {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                         </div>
@@ -1195,12 +1183,14 @@
                             }"
                             :style="{
                               fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
+                              padding: layoutEfc === 'compatto' ? '0px 3px' : '1px 4px', // custom alignment fallback
+                              fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
                               padding: layoutEsercizi === 'compatto' ? '0px 3px' : '1px 4px',
                               height: layoutEsercizi === 'compatto' ? '13px' : '16px',
                               minWidth: layoutEsercizi === 'compatto' ? '24px' : '32px',
                               cursor: 'pointer'
                             }"
-                            @click.stop="selezionaSettimanaManuale(w)"
+                            @click.stop="layoutEsercizi === 'standard' ? selezionaSettimanaManuale(w) : vaiAlDettaglio(ex.id)"
                           >
                             <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
                             <span class="ml-0.5 font-weight-black" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem' }">
@@ -1219,8 +1209,8 @@
                            size="x-small"
                            class="font-weight-black clickable-timer-chip"
                            prepend-icon="mdi-clock-outline"
-                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '18px' : '22px' }"
-                           @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
+                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.68rem !important' : '0.70rem !important', height: layoutEsercizi === 'compatto' ? '24px' : '24px', paddingLeft: '8px', paddingRight: '8px' }"
+                           @click.stop="layoutEsercizi === 'standard' ? avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio) : vaiAlDettaglio(ex.id)"
                          >
                            ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
                          </v-chip>
@@ -1231,7 +1221,7 @@
                            size="x-small"
                            class="font-weight-black text-white"
                            prepend-icon="mdi-arrow-right-bold-circle-outline"
-                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '18px' : '22px' }"
+                           :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '20px' : '22px' }"
                          >
                            ⚡ VAI AL PROSSIMO (NO PAUSA)
                          </v-chip>
@@ -1264,22 +1254,14 @@
               <!-- VISUALIZZAZIONE SUPER COMPATTA (UNICA RIGA) -->
               <template v-if="layoutEsercizi === 'super_compatto'">
                 <div class="d-flex align-center w-100 py-1" style="z-index: 2;">
-                  <!-- Checkbox -->
-                  <div class="mr-2 flex-shrink-0">
-                    <v-btn
-                      icon
-                      variant="text"
-                      density="compact"
-                      width="30"
-                      height="30"
+                  <!-- Checkbox (non-clickable in compact layout to avoid accidental clicks) -->
+                  <div class="mr-2 flex-shrink-0 d-flex align-center justify-center" style="width: 30px; height: 30px;">
+                    <v-icon
+                      size="18"
                       :color="block.exercise['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
-                      @click.stop="segnaComeFattoRapido(block.exercise)"
-                      class="super-compact-check-btn"
                     >
-                      <v-icon size="18">
-                        {{ block.exercise['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
-                      </v-icon>
-                    </v-btn>
+                      {{ block.exercise['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
+                    </v-icon>
                   </div>
                   
                   <!-- Info Area: Index, Exercise name, muscle group -->
@@ -1294,12 +1276,10 @@
                     </div>
                     <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" style="font-size: 0.58rem; line-height: 1;">
                       <span class="text-muted uppercase font-weight-black mr-2">{{ block.exercise.des_settore }}</span>
-                      <!-- Prescrizione Calcolabile Clickable -->
+                      <!-- Prescrizione -->
                       <span 
-                        class="text-orange-lighten-3 font-weight-bold cursor-pointer hover-underline d-inline-flex align-center"
-                        @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno] || block.exercise.des_qta_report, block.exercise.des_esercizio)"
+                        class="text-orange-lighten-3 font-weight-bold d-inline-flex align-center"
                       >
-                        <v-icon size="10" class="mr-0.5">mdi-calculator</v-icon>
                         {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescr.' }}
                       </span>
                     </div>
@@ -1330,17 +1310,16 @@
                       Fatto ✔️
                     </v-chip>
                     <!-- If not completed, show "+ Registra" -->
-                    <v-btn 
+                    <v-chip 
                       v-else 
                       size="x-small" 
                       variant="outlined" 
                       color="orange-darken-3" 
                       class="font-weight-black px-2 py-0.5 text-none"
                       style="height: 20px; font-size: 0.6rem; border-color: rgba(249, 115, 22, 0.4) !important;"
-                      @click.stop="vaiAlDettaglio(block.exercise.id)"
                     >
                       + Registra
-                    </v-btn>
+                    </v-chip>
                     
                     <!-- Trailing Chevron -->
                     <v-icon size="14" color="slate-dark" class="ml-1 opacity-50">mdi-chevron-right</v-icon>
@@ -1377,7 +1356,7 @@
                     class="font-weight-black uppercase text-white animate-pulse"
                     variant="flat"
                     style="font-size: 0.52rem; height: 16px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
-                    @click.stop="segnaComeFattoRapido(block.exercise)"
+                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
                   >
                     ✔️ {{ String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
                   </v-chip>
@@ -1389,7 +1368,7 @@
                     class="font-weight-bold uppercase text-slate"
                     variant="outlined"
                     style="font-size: 0.52rem; height: 16px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
-                    @click.stop="segnaComeFattoRapido(block.exercise)"
+                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
                   >
                     ❌ DA FARE
                   </v-chip>
@@ -1422,8 +1401,7 @@
                     <div 
                       class="text-caption font-weight-bold text-slate text-truncate" 
                       :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
-                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
-                      @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno], block.exercise.des_esercizio)"
+                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
                     >
                       {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                     </div>
@@ -1448,7 +1426,7 @@
                           minWidth: layoutEsercizi === 'compatto' ? '24px' : '32px',
                           cursor: 'pointer'
                         }"
-                        @click.stop="selezionaSettimanaManuale(w)"
+                        @click.stop="layoutEsercizi === 'standard' ? selezionaSettimanaManuale(w) : vaiAlDettaglio(block.exercise.id)"
                       >
                         <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
                         <span class="ml-0.5 font-weight-black" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem' }">
@@ -1466,8 +1444,8 @@
                       size="x-small"
                       class="font-weight-black clickable-timer-chip"
                       prepend-icon="mdi-clock-outline"
-                      :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.58rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '18px' : '22px' }"
-                      @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
+                      :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '20px' : '22px' }"
+                      @click.stop="layoutEsercizi === 'standard' ? avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio) : vaiAlDettaglio(block.exercise.id)"
                     >
                       ⏱️ {{ block.exercise.des_rec_report }}
                     </v-chip>
@@ -1486,18 +1464,26 @@
           </template>
 
           <!-- Grande pulsante di completamento giorno in fondo alla lista -->
-          <div class="mt-4 mb-4 px-1">
+          <div 
+            :class="layoutEsercizi === 'super_compatto' ? 'mt-3 mb-3 px-1' : (layoutEsercizi === 'compatto' ? 'mt-3 mb-3 px-1' : 'mt-4 mb-4 px-1')"
+          >
             <v-btn
               v-if="headerGiorno"
               block
-              size="default"
-              class="font-weight-black text-none rounded-lg elevation-2"
+              size="large"
+              class="font-weight-black text-none elevation-2 rounded-xl"
               :color="isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'green-darken-3' : 'orange-darken-3'"
-              style="height: 42px;"
+              :style="{
+                height: '48px',
+                fontSize: '0.9rem'
+              }"
               @click.stop="toggleGiornoAttivoRapido"
               id="btn-completa-giorno"
             >
-              <v-icon class="mr-2" size="18">
+              <v-icon 
+                class="mr-2" 
+                :size="layoutEsercizi === 'super_compatto' ? 14 : (layoutEsercizi === 'compatto' ? 16 : 20)"
+              >
                 {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'mdi-check-circle' : 'mdi-check-all' }}
               </v-icon>
               {{ isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'Giorno Completato (Riapri W' + settimanaAttivaGiorno + ')' : 'Completa Giorno ' + giornoSelezionato + ' (W' + settimanaAttivaGiorno + ')' }}
@@ -1816,7 +1802,7 @@
             <div class="d-flex align-center justify-space-between">
               <div>
                 <span class="text-body-2 font-weight-bold text-white d-block">Avvio Auto Recupero</span>
-                <span class="text-super-caption text-muted">Avvia il timer quando completi una week</span>
+                <span class="text-super-caption text-muted">Avvia il timer quando segni un esercizio come completato</span>
               </div>
               <div>
                 <v-switch

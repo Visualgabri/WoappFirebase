@@ -24,7 +24,7 @@
           >
             {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
           </v-chip>
-<h3 class="font-weight-black text-slate-dark text-truncate mb-0" :class="layoutCorrente === 'super_compatto' ? 'text-body-2' : (layoutCorrente === 'compatto' ? 'text-body-1' : 'text-subtitle-1')" style="white-space: normal; word-break: break-word;">
+<h3 class="font-weight-black text-slate-dark text-truncate mb-0" :class="layoutCorrente === 'super_compatto' ? 'text-body-2' : (layoutCorrente === 'compatto' ? 'text-body-1' : 'text-subtitle-1')" style="white-space: normal; word-break: break-word; line-height: 1.05 !important;">
   <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
 </h3>
         </div>
@@ -265,7 +265,7 @@
             v-if="workout.des_rec_report"
             color="orange-darken-3"
             variant="flat"
-            :size="layoutCorrente === 'super_compatto' ? 'x-small' : (layoutCorrente === 'compatto' ? 'x-small' : 'small')"
+            size="small"
             class="font-weight-black clickable-timer-chip recovery-standout-chip px-3 py-1.5"
             prepend-icon="mdi-clock-outline"
             @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
@@ -319,7 +319,7 @@
             <!-- Tasto PRECEDENTE -->
             <v-btn
               v-if="previousWorkout"
-              prepend-icon="mdi-arrow-left-bold-box-outline"
+              prepend-icon="mdi-calendar-arrow-left"
               variant="text"
               color="orange-darken-3"
               class="font-weight-black text-none px-2"
@@ -367,7 +367,7 @@
               @click="inviaVideoWhatsApp"
               title="Invia Video al Coach"
             >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-send</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-whatsapp</v-icon>
             </v-btn>
           </div>
         </div>
@@ -5194,24 +5194,24 @@ const tornaIndietro = () => {
 
 /* Stile per input compatto */
 .custom-compact-textarea :deep(.v-field) {
-  min-height: 28px !important;
-  padding-top: 1px !important;
-  padding-bottom: 1px !important;
-  border-radius: 6px !important;
+  min-height: 48px !important;
+  border-radius: 8px !important;
+}
+.custom-compact-textarea :deep(.v-field__input) {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
 }
 .custom-compact-textarea :deep(input),
 .custom-compact-textarea :deep(textarea) {
-  font-size: 0.75rem !important;
-  line-height: 1.1 !important;
-  padding-top: 3px !important;
-  padding-bottom: 3px !important;
+  font-size: 0.9rem !important;
+  line-height: 1.4 !important;
 }
 .custom-compact-textarea :deep(.v-label) {
-  font-size: 0.65rem !important;
-  top: 6px !important;
+  font-size: 0.8rem !important;
+  top: 14px !important;
 }
 .custom-compact-textarea :deep(.v-field__append-inner) {
-  padding-top: 2px !important;
+  padding-top: 10px !important;
 }
 
 /* Colori Caselle di Testo Dinamiche (Mai bianche/grigie se piene) */

@@ -119,8 +119,8 @@
             </v-img>
           </v-card>
 
-          <!-- Icone di Azione Rapida allineate sotto la GIF -->
-          <div class="d-flex align-center justify-center gap-2 mt-2">
+          <!-- Icone di Azione Rapida allineate sotto la GIF (solo se la colonna destra è alta) -->
+          <div v-if="haColonnaDestraAlta" class="d-flex align-center justify-center gap-2 mt-2">
             <!-- Tasto Storico -->
             <v-btn
               icon
@@ -427,7 +427,7 @@
             </v-btn>
           </div>
 
-          <div v-if="!['compatto', 'super_compatto'].includes(layoutCorrente)" class="d-flex align-center gap-2">
+          <div v-if="!['compatto', 'super_compatto'].includes(layoutCorrente) || !haColonnaDestraAlta" class="d-flex align-center gap-2">
             <!-- Tasto Freccia con Orologio (Riepilogo Storico) -->
             <v-btn
               icon
@@ -4878,6 +4878,11 @@ const isVolumeString = (str) => {
   if (!str) return false;
   return /V:\s*[\d,.]+/i.test(str) && /(?:A|B|C):\s*[\d,.]+/i.test(str);
 };
+
+const haColonnaDestraAlta = computed(() => {
+  if (!workout.value) return false;
+  return !!parsedRmt(workout.value.des_esercizio_2) || isVolumeString(workout.value.des_esercizio_2);
+});
 
 const parseVolumeString = (str) => {
   if (!str) return { v: '0', a: '0', b: '0', c: '0' };

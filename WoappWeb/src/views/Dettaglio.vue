@@ -425,6 +425,21 @@
         </span>
       </v-card>
 
+      <!-- Esecuzione Metodo/ROM (Unificata e fuori dalle week) -->
+      <v-card
+        v-if="workout && workout.des_estesa_start && String(workout.des_estesa_start).trim()"
+        class="text-left border d-flex align-start card-glass mb-3"
+        style="background: rgba(249, 115, 22, 0.08) !important; border: 1.5px solid rgba(249, 115, 22, 0.25) !important; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.05); border-radius: 12px !important; padding: 10px 12px !important;"
+      >
+        <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-cog-play-outline</v-icon>
+        <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">
+          <strong class="text-orange-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.05em;">ROM ed Esecuzione:</strong><br>
+          <span class="text-white font-weight-medium">
+            {{ getDescrizioneBreve(workout.des_estesa_start) }}
+          </span>
+        </div>
+      </v-card>
+
       <div class="weeks-stacked-list mb-4">
         <!-- Nota Esponenti (Ripetizioni di Riserva RIR) -->
          <v-card
@@ -555,19 +570,11 @@
 
           <!-- Istruzioni Esecuzione / Test sotto il Lavoro (LAVORO) -->
           <div 
-            v-if="sett === 6 && workout && ((workout.des_estesa_start && String(workout.des_estesa_start).trim()) || (workout.des_estesa_end && String(workout.des_estesa_end).trim()))"
+            v-if="workout && sett === 6 && workout.des_estesa_end && String(workout.des_estesa_end).trim()"
             class="mt-2.5 mb-2 px-2.5 py-2 rounded-lg text-left"
             style="background: rgba(249, 115, 22, 0.03) !important; border: 1px dashed rgba(249, 115, 22, 0.15) !important;"
           >
-            <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="mb-2">
-              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center mb-0.5" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                💡 ROM ed Esecuzione:
-              </span>
-              <p class="text-slate font-weight-medium mb-0" style="font-size: 0.7rem; line-height: 1.35; color: #cbd5e1 !important;">
-                {{ String(workout.des_estesa_start).trim() }}
-              </p>
-            </div>
-            <div v-if="workout.des_estesa_end && String(workout.des_estesa_end).trim()">
+            <div>
               <p v-html="'📢 ' + formattaIstruzioneFine(workout.des_estesa_end, sett)" class="text-orange-lighten-3 font-weight-bold mb-0" style="font-size: 0.72rem; line-height: 1.4; color: #ffb74d !important;"></p>
             </div>
           </div>
@@ -576,7 +583,14 @@
           <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5' : (layoutCorrente === 'compatto' ? 'mt-2 mb-0.5' : 'mt-3.5 mb-1'), 'position-relative']">
             <div v-if="getGhostLift(sett)" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5 px-1 animate-fade-in' : 'mb-1.5 px-1 animate-fade-in'">
               <div class="d-flex align-center justify-space-between">
-                <span v-if="getGhostLift(sett).isMandatory" class="text-super-caption text-red-lighten-1 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                <span v-if="getGhostLift(sett).isMetodo" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-cog-play-outline</v-icon>
+                  <span>{{ getGhostLift(sett).metodoLabel }}:</span>
+                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
+                    {{ getGhostLift(sett).text }}
+                  </span>
+                </span>
+                <span v-else-if="getGhostLift(sett).isMandatory" class="text-super-caption text-red-lighten-1 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="red-lighten-1">mdi-alert-decagram-outline</v-icon>
                   <span>{{ getGhostLift(sett).mandatoryLabel }}:</span>
                   <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
@@ -590,7 +604,7 @@
                     {{ getGhostLift(sett).text }}
                   </span>
                 </span>
-                <span v-else-if="!(getGhostLift(sett).isWeek1 && settimanaAttiva === 1)" class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
+                <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" :color="getGhostLift(sett).isScarico ? 'amber-lighten-2' : 'grey'">
                     {{ getGhostLift(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
                   </v-icon>
@@ -602,23 +616,12 @@
                     <span v-if="getGhostLift(sett).isWeek1 && getGhostLift(sett).reps" class="text-muted ml-0.5" style="text-transform: lowercase; font-size: 0.6rem;">(x{{ getGhostLift(sett).reps }})</span>
                   </span>
                 </span>
-                <span v-else></span> <!-- Spaziatore per allineare l'icona fire a destra -->
                 <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" :size="layoutCorrente === 'super_compatto' ? 12 : 14" class="animate-pulse">mdi-fire</v-icon>
                 <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-down</v-icon>
               </div>
               
               <div v-if="getGhostLift(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
                 💡 Se leggero, fai più reps del previsto e segnalalo nel box qui sotto.
-              </div>
-              
-              <div v-if="getGhostLift(sett).isWeek1" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', lineSpace: 1.25, letterSpacing: '0.02em' }">
-                <div class="d-flex align-center gap-1.5" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5' : 'mb-1'" style="color: #f97316;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '0.78rem' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16" color="orange-darken-1">mdi-target</v-icon>
-                  <span>Target Consigliato: <strong class="text-white">{{ getGhostLift(sett).suggerito ? getGhostLift(sett).suggerito + ' KG' : 'Carico leggero' }}</strong></span>
-                </div>
-                <div v-if="getGhostLift(sett).proposta" class="text-muted" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', marginLeft: layoutCorrente === 'super_compatto' ? '16px' : '22px' }">
-                  W6 Prec. (S.{{ getGhostLift(sett).schedaPrec }}): <strong class="text-slate-light">{{ getGhostLift(sett).proposta.prevPeso }}kg x {{ getGhostLift(sett).proposta.prevReps }}</strong> ({{ getGhostLift(sett).proposta.fatica }}). Scalato su <strong>{{ getGhostLift(sett).proposta.currReps }} reps</strong>.
-                </div>
               </div>
             </div>
             
@@ -1868,7 +1871,7 @@ const formatPrescrizioneSuperset = (connEx) => {
   if (parsed && parsed.reps) {
     let result = parsed.reps;
     if (parsed.total) {
-      result += ` @ ${parsed.total} kg`;
+      result += ` - ${parsed.total} kg`;
     }
     return result;
   }
@@ -2819,6 +2822,19 @@ const pulisciParentesiQuadre = (str) => {
   return String(str).replace(/\[\s*KG?\s*W\s*\d+\s*\]?/gi, '').trim();
 };
 
+const getDescrizioneBreve = (testo) => {
+  if (!testo) return '';
+  const cleanTesto = String(testo).trim().toLowerCase();
+  
+  for (const metodo of Object.values(METODI_ALLENAMENTO)) {
+    const cleanDesc = metodo.desc.trim().toLowerCase();
+    if (cleanTesto.includes(cleanDesc) || cleanDesc.includes(cleanTesto)) {
+      return metodo.descBreve;
+    }
+  }
+  return testo;
+};
+
 // Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77% o 3x12(60%)|95KG 86%)
 const parsePrescription = (str) => {
   if (!str) return null;
@@ -2889,7 +2905,898 @@ const parsedPrescription = (str) => {
   return parsePrescription(str);
 };
 
+const estraiNumeriDaInput = (str) => {
+  if (!str) return [];
+  let cleanStr = str.replace(/,/g, '.');
+  cleanStr = cleanStr.replace(/(?:@|kg)\s*\d+(?:\.\d+)?/gi, '');
+  cleanStr = cleanStr.replace(/\d+(?:\.\d+)?\s*(?:kg|@)/gi, '');
+  const regex = /(\d+(?:\.\d+)?)/g;
+  const matches = cleanStr.match(regex);
+  if (!matches) return [];
+  return matches.map(val => parseFloat(val));
+};
+
+const METODI_ALLENAMENTO = {
+  '▼': {
+    code: '▼',
+    desc: "Si inizia con una serie di ripetizioni più alte e peso leggero e si finisce con una serie di ripetizioni più basse e peso più alto. Si cala di 2 reps in ogni serie",
+    descBreve: "Serie con reps calanti di 2 in ogni set e peso crescente (piramidale).",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Aumenta peso e cala di 2 reps a ogni set`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Progressione ▼"
+      };
+    }
+  },
+  'rp': {
+    code: 'rp',
+    desc: "Una volta raggiunto l'esaurimento e appoggiato l'attrezzo si riposa per 15'' o 20'' e si riprende eseguendo un numero di ripetizioni, ovviamente inferiore al primo",
+    descBreve: "Rest-Pause: al cedimento riposa 15-20'' e fai altre reps a cedimento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Rest-Pause: al cedimento, riposa 15-20'' e fai altre reps`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo RP"
+      };
+    }
+  },
+  'sPL': {
+    code: 'sPL',
+    desc: "Nello stesso set si parte con un carico elevato ad ESAURIMENTO, subito dopo si cala il peso del 30% e si porta ad esaurimento. E' uno stripping però a due gruppi anziché tre",
+    descBreve: "Stripping a 2 blocchi: al cedimento cala il peso del 30% e vai a cedimento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Stripping 2 blocchi: al cedimento, cala il peso del 30%`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo sPL"
+      };
+    }
+  },
+  'p': {
+    code: 'p',
+    desc: "Raggiunto l'esaurimento si continua le ripetizioni usando il movimento a metà (ROM inferiore) portando a cedimento ulteriore",
+    descBreve: "ROM parziale: al cedimento continua con mezzo ROM inferiore.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Parziali: al cedimento, continua con mezzo ROM inferiore`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo P"
+      };
+    }
+  },
+  'i5': {
+    code: 'i5',
+    desc: "Fai 5 ripetizioni con un carico dell'80% del massimale (invece delle 8 o 9 portate a cedimento) recuperi 15'' o 20'' e si completi altre 5 reps, ripeti il ciclo finché non riesci più a fare 5 reps quindi finché non raggiungi cedimento",
+    descBreve: "Interrotto a 5 reps (80% 1RM), recupera 15-20'' e ripeti finché non cedi.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Interrotto a 5 reps (80% 1RM), recupera 15-20'' e ripeti finché reggi`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo i5"
+      };
+    }
+  },
+  'ĉ»': {
+    code: 'ĉ»',
+    desc: "Fai una ripetizione con il 75%, riposare 10'', fai 2 ripetizioni e riposa 10'', fai 3 ripetizioni e riposa 10'', ripeti il ciclo con le ripetizioni a salire fino al numero di reps finali scelto",
+    descBreve: "Ramp up reps (75% 1RM): 1 rep, rest 10'', 2 reps, rest 10'', 3 reps, ecc.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Ramp up reps (75% 1RM): 1 rep, riposa 10'', 2 reps, riposa 10'', 3 reps, ecc.`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo ĉ»"
+      };
+    }
+  },
+  'ĉ': {
+    code: 'ĉ',
+    desc: "Esegui una ripetizione con un carico che consente di fare la META' delle reps target ad esaurimento, si appoggia l'attrezzo si aspetta 10'' o 15'' e si esegue un'altra ripetizione, così via fino a fare tutte le ripetizioni target",
+    descBreve: "Single reps (carico per 1/2 target): 1 rep, rest 10-15'', ripeti fino a target.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Single reps interrotte (carico per 1/2 target): 1 rep, riposa 10-15''`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo ĉ"
+      };
+    }
+  },
+  '†': {
+    code: '†',
+    desc: "Si eseguono le prime ripetizioni indicate con tecnica perfetta, poi raggiunto l'esaurimento si continua con le altre reps aiutandosi con piccoli slanci o altri gruppi muscolari",
+    descBreve: "Cheating: al cedimento continua aiutandoti con piccoli slanci.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Cheating controllato: al cedimento continua con slancio/aiuto`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo †"
+      };
+    }
+  },
+  's21': {
+    code: 's21',
+    desc: "Si eseguono 7 ripetizioni complete, 7 parziali da metà in contrazione, 7 parziali da metà in allungamento",
+    descBreve: "Serie 21: 7 reps complete + 7 parz. contrazione + 7 parz. allungamento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Serie 21: 7 reps complete + 7 parz. contrazione + 7 parz. allungamento`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo s21"
+      };
+    }
+  },
+  's⅓': {
+    code: 's⅓',
+    desc: "Fai le prime serie normali, poi nell'ultimo set: quando raggiungi il cedimento fai altri tre gruppi delle stesse ripetizioni diminuendo il peso del 15% tra ciascun gruppo senza recupero",
+    descBreve: "Stripping 3 blocchi (-15% peso) nell'ultimo set a cedimento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Stripping 3 blocchi (-15% peso) nell'ultimo set a cedimento`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo s⅓"
+      };
+    }
+  },
+  'n': {
+    code: 'n',
+    desc: "Dopo aver raggiunto il cedimento muscolare, si completa solo la fase eccentrica e si chiede l'assistenza di un compagno per la fase concentrica.",
+    descBreve: "Eccentriche negative assistite: al cedimento esegui solo la discesa lenta.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Negative assistite: al cedimento, esegui solo l'eccentrica in discesa`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo n"
+      };
+    }
+  },
+  'Ƒ': {
+    code: 'Ƒ',
+    desc: "Dopo aver raggiunto il cedimento muscolare, si completano le ripetizioni con l'assistenza di un compagno.",
+    descBreve: "Forzate: al cedimento completa le reps assistito dal compagno.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Forzate: al cedimento continua con l'aiuto del compagno`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo Ƒ"
+      };
+    }
+  },
+  'iso': {
+    code: 'iso',
+    desc: "Tenere x secondi in contrazione",
+    descBreve: "Isometria: tieni la contrazione massima statica per i secondi prescritti.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Isometria: tieni la contrazione massima statica`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo iso"
+      };
+    }
+  },
+  'd⅓': {
+    code: 'd⅓',
+    desc: "Quando si è raggiunto il cedimento cambiare il modo di eseguire l'esercizio per portarlo ancora a cedimento",
+    descBreve: "Cambio esecuzione: al cedimento varia la tecnica per continuare.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Cambio esecuzione: al cedimento varia la tecnica per continuare`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo d⅓"
+      };
+    }
+  },
+  'r3': {
+    code: 'r3',
+    desc: "Si esegue 3 ripetizioni con carico leggero, senza recupero si aumenta carico e si eseguono altre 3 reps, si aumenta carico e si eseguono altre 3 reps, si ripete il ciclo fino a cedimento",
+    descBreve: "Ramp 3 reps: serie di 3 reps senza recupero a salire di peso fino a cedimento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Ramp 3 reps senza recupero a salire di peso fino a cedimento`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo r3"
+      };
+    }
+  },
+  '↕': {
+    code: '↕',
+    desc: "Si alternano il numero di ripetizioni con l'esercizio successivo",
+    descBreve: "Alterna il numero di ripetizioni con l'esercizio successivo.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Alternanza ripetizioni con l'esercizio successivo`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo ↕"
+      };
+    }
+  },
+  'Я': {
+    code: 'Я',
+    desc: "Programmazione Ciclo Russo",
+    descBreve: "Ciclo Russo: segui le progressioni di intensità/volume stabilite.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Ciclo Russo: segui le progressioni di intensità/volume`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo Я"
+      };
+    }
+  },
+  'i': {
+    code: 'i',
+    desc: "Si eseguono x ripetizioni con un carico dell'75% del massimale (non si portano a cedimento ma si tengono 2 di buffer) si recupera 10'' e si completano altre x reps, si ripete il ciclo finché non si riesce più a fare x reps",
+    descBreve: "Interrotto (75% 1RM, buffer 2): fai reps, riposa 10'', ripeti finché reggi.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Interrotto (75% 1RM, buffer 2): fai reps, riposa 10'', ripeti`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo i"
+      };
+    }
+  },
+  'oc': {
+    code: 'oc',
+    desc: "Metodo occlusivo con fasce elastiche (applicazione solo su gambe e braccia)",
+    descBreve: "BFR (Blood Flow Restriction): occlusione con fasce elastiche su braccia/gambe.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Blood Flow Restriction (BFR): occlusione con fasce elastiche`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo oc"
+      };
+    }
+  },
+  'Ƒ+2': {
+    code: 'Ƒ+2',
+    desc: "Una volta raggiunto il cedimento muscolare si eseguono subito altre 2 reps con l'aiuto di un compagno",
+    descBreve: "Forzate + 2 reps: al cedimento esegui subito altre 2 reps assistite.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Forzate + 2 reps: al cedimento esegui subito 2 reps assistite`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo Ƒ+2"
+      };
+    }
+  },
+  'JR': {
+    code: 'JR',
+    desc: "24 Reps totali in cui si scompone il ROM in 2 o tre parti, in caso di movimenti ampi si suddivide in 3 in caso di range più corti in 2, durata della serie fra 45-50 sec per atleti fibre bianche o 45-75 sec per atleti fibre rosse",
+    descBreve: "Jordan Reps (24 totali): scompone ROM in 2 o 3 parti, serie da 45-75s.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Jordan Reps (24 reps totali): scompone ROM in 2-3 parti`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo JR"
+      };
+    }
+  },
+  'RD': {
+    code: 'RD',
+    desc: "La metà delle reps scritte con ROM favorevole, l'altra metà con ROM in allungamento",
+    descBreve: "ROM diviso: metà reps con ROM favorevole, metà in allungamento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `ROM diviso: metà reps favorevoli, metà in allungamento`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo RD"
+      };
+    }
+  },
+  'MX': {
+    code: 'MX',
+    desc: "Massime ripetizioni possibili fino a cedimento",
+    descBreve: "Massime ripetizioni possibili fino a cedimento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Max reps possibili (cedimento totale)`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo MX"
+      };
+    }
+  },
+  'ST': {
+    code: 'ST',
+    desc: "Si tiene il peso in eccentrica per x secondi nel punto di massima tensione muscolare",
+    descBreve: "Tensione eccentrica: hold nel punto di massima tensione.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Hold isometrica/eccentrica nel punto di massima tensione`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo ST"
+      };
+    }
+  },
+  'i½': {
+    code: 'i½',
+    desc: "Si esegue la metà delle ripetizioni si aspetta 10 o 15'' e si porta a termine l'altra metà delle ripetizioni, il carico da scegliere è il 110% delle reps MAX",
+    descBreve: "Interrotto a metà reps (110% reps max): fai metà reps, rest 10-15'', poi le altre.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Interrotto a metà reps (110% reps max): riposa 10-15'' a metà set`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo i½"
+      };
+    }
+  },
+  'RR': {
+    code: 'RR',
+    desc: "Cali di 2 reps e di 2 secondi il recupero ad es: 7x14 viene 7x14-12-10-8-6-4-2 e recupero fra le serie di: 14-12-10-8-6-4-2 sec",
+    descBreve: "Rest-Reduction: cala 2 reps e 2s di recupero ad ogni set.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Rest-Reduction: cala 2 reps e 2s di recupero ad ogni set`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo RR"
+      };
+    }
+  },
+  'RC': {
+    code: 'RC',
+    desc: "Solo la parte di ROM centrale (no max contrazione, no max allungamento)",
+    descBreve: "ROM centrale: esegui solo la parte centrale del movimento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `ROM centrale: esegui solo la parte centrale del movimento`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo RC"
+      };
+    }
+  },
+  'RA': {
+    code: 'RA',
+    desc: "Solo la parte di ROM in allungamento",
+    descBreve: "ROM in allungamento: esegui solo la parte di massimo stiramento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `ROM in allungamento: esegui solo la parte di massimo stiramento`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo RA"
+      };
+    }
+  },
+  'RF': {
+    code: 'RF',
+    desc: "Solo la parte di ROM finale in accorciamento",
+    descBreve: "ROM finale: esegui solo la parte finale in accorciamento.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `ROM finale: esegui solo la parte finale in massimo accorciamento`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo RF"
+      };
+    }
+  },
+  'OL': {
+    code: 'OL',
+    desc: "6 serie di cui la prima con x reps, la seconda con x-1, la terza con x-2, la quarta con x reps ma con più peso, la quinta con x-1 con più peso e la sesta con x-2 con più peso se necessario farsi aiutare o forzata o cheating",
+    descBreve: "Oltre il Limite: 6 serie scalando reps e aumentando peso. Aiuto alla fine.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Oltre il Limite: 6 serie scalando reps e aumentando peso`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo OL"
+      };
+    }
+  },
+  'OC': {
+    code: 'OC',
+    desc: "6 serie di cui la prima con x reps, la seconda con x-3, la terza con x ma con più peso, la quarta con x-3 con più peso, la quinta con x con più peso ancora e la sesta con x-3 con più peso ancora, se necessario farsi aiutare o forzata o cheating",
+    descBreve: "Oltre il Cedimento: 6 serie alternate (+peso/-reps, ecc.). Aiuto alla fine.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Oltre il Cedimento: 6 serie alternate (+peso/-reps, ecc.)`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo OC"
+      };
+    }
+  },
+  'p_pos': {
+    code: 'p',
+    desc: "Solo la fase positiva, massima esplosività",
+    descBreve: "Fase positiva esplosiva (massima esplosività).",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Fase positiva esplosiva`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo p"
+      };
+    }
+  },
+  'iD': {
+    code: 'iD',
+    desc: "Ad ogni ripetizione fermarsi X secondi nel punto di massima tensione per poi fare la positiva",
+    descBreve: "Fermo X secondi nel punto di max tensione prima di ogni positiva.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Isometria nel punto di massima tensione prima di ogni concentrica`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo iD"
+      };
+    }
+  },
+  'Di': {
+    code: 'Di',
+    desc: "Ad ogni serie cambia inclinazione della panca partendo da 30° (30-45-60-75)",
+    descBreve: "Cambia inclinazione panca ad ogni serie (30° -> 45° -> 60° -> 75°).",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Cambia inclinazione panca ogni serie: 30° -> 45° -> 60° -> 75°`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo Di"
+      };
+    }
+  },
+  'iP': {
+    code: 'iP',
+    desc: "Ad ogni serie incrementa il peso arrivando a cedimento nell'ultima serie (parti sempre da un peso leggero con almeno  4 di buffer)",
+    descBreve: "Piramide: incrementa peso ogni serie, cedimento all'ultima (buffer 4 in partenza).",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Piramide: incrementa peso ogni serie, cedimento all'ultima`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo iP"
+      };
+    }
+  },
+  'rT': {
+    code: 'rT',
+    desc: "Per prepararti per il tuo test di forza massimale, devi avvicinarti al tuo peso ideale. Durante il 'ramp' di riscaldamento, fai 5 serie di esercizi con pesi crescenti, ad esempio 5 serie di 5-4-3-2-2 ripetizioni. Poi, quando sei pronto, prova a sollevare",
+    descBreve: "Ramp di riscaldamento: 5 serie (5-4-3-2-2 reps) prima del test massimale.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Riscaldamento specifico: 5 serie (5-4-3-2-2 reps) prima del test`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo rT"
+      };
+    }
+  },
+  'tMR': {
+    code: 'tMR',
+    desc: "Dopo il riscaldamento si esegue una serie con le massime ripetizioni possibili con l'ultimo carico dell'allenamento precedente.",
+    descBreve: "Test Max Reps: 1 serie a max reps possibili con carico precedente.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Test Max Reps: max reps possibili con carico allenamento precedente`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo tMR"
+      };
+    }
+  },
+  'sN': {
+    code: 'sN',
+    desc: "Porti su il peso con cheating o con compagno e fai la fase negativa molto concentrato in 4 sec",
+    descBreve: "Negative sN: fase concentrica assistita/cheating, eccentrica controllata in 4s.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Negative sN: fase concentrica con aiuto, eccentrica in 4 secondi`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo sN"
+      };
+    }
+  },
+  'sTm': {
+    code: 'sTm',
+    desc: "Mantieni lo stesso peso nelle week, quando le ripetizioni sono basse aumenta il tempo sotto tensione (vai più lento), più si alzano le reps e più vai veloce nel pompaggio. Tempo da 40-60sec",
+    descBreve: "Stesso peso. Reps basse -> esecuzione lenta (alto TUT). Reps alte -> pompaggio veloce.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Stesso peso. Reps basse -> esecuzione lenta. Reps alte -> veloce. Serie da 40-60s`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo sTm"
+      };
+    }
+  },
+  '->': {
+    code: '->',
+    desc: "Inizia dalla week1 con il minimo di ripetizioni a CEDIMENTO, mantieni lo stesso carico nelle week successive ma aumenta le reps fino al range max, solo quando hai raggiunto il max range con quel peso aumenti il peso nelle week successive ritornando al min",
+    descBreve: "Progressione reps: tieni il carico e aumenta reps fino al range max prima di aumentare peso.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Progressione reps: mantieni il peso e aumenta reps prima di salire di carico`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo ->"
+      };
+    }
+  },
+  'MAX': {
+    code: 'MAX',
+    desc: "Nella 1a week fai una media di ripetizioni sulle X serie. Dalla week 2 usi la % sulla media delle reps calcolate, arrotondando per difetto",
+    descBreve: "W1: calcola la media reps a cedimento. Dalla W2: usa la % sulla media, arrotondato per difetto.",
+    calcolaProposta: (sett, ghost, inputSettimane, workout) => {
+      const w1Ins = inputSettimane.value[1]?.ins || '';
+      const numbers = estraiNumeriDaInput(w1Ins);
+      const w1PesoStr = estraiPesoDaInput(w1Ins);
+      const pesoVal = w1PesoStr ? parseFloat(w1PesoStr) : (ghost ? ghost.peso : 0);
+
+      if (sett === 1) {
+        return {
+          text: `W1: Esegui a cedimento e scrivi le reps per calcolare la media`,
+          peso: pesoVal,
+          label: ghost ? ghost.label : '',
+          isMetodo: true,
+          metodoLabel: "W1 MAX"
+        };
+      }
+      if (numbers.length > 0) {
+        const sum = numbers.reduce((a, b) => a + b, 0);
+        const avg = sum / numbers.length;
+        const presc = String(workout.value['des_week' + sett] || '');
+        const matchPct = presc.match(/(\d+)\s*%/);
+        const pct = matchPct ? parseInt(matchPct[1], 10) / 100 : 1;
+        const targetReps = Math.floor(avg * pct);
+        return {
+          text: `Target: ${targetReps} reps per serie (media W1: ${avg.toFixed(1)} * ${Math.round(pct * 100)}%)`,
+          peso: pesoVal,
+          label: 'W1',
+          isMetodo: true,
+          metodoLabel: `W${sett} MAX`
+        };
+      }
+      return {
+        text: `Target basato sulla media di W1 (arrotondato per difetto)`,
+        peso: pesoVal,
+        label: 'W1',
+        isMetodo: true,
+        metodoLabel: `W${sett} MAX`
+      };
+    }
+  },
+  'cx': {
+    code: 'cx',
+    desc: "Si esegue una ripetizione con un carico che consente di farne le metà delle x reps target, si appoggia l'attrezzo si aspetta 15'' e si esegue un'altra ripetizione, così via fino a fare x ripetizioni",
+    descBreve: "Single reps (carico per 1/2 target): 1 rep, rest 15'', ripeti fino a target.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Single reps (carico per 1/2 target): 1 rep, riposa 15'' fino a target`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo cx"
+      };
+    }
+  },
+  'c5L': {
+    code: 'c5L',
+    desc: "La fase concentrica dura 5 sec, le altre zero",
+    descBreve: "Concentrica lenta 5 sec, ritorno immediato.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Concentrica lenta 5 sec, ritorno immediato`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo c5L"
+      };
+    }
+  },
+  'N': {
+    code: 'N',
+    desc: "Solo la fase negativa, la fase positiva la fai leggera insieme a uno spotter",
+    descBreve: "Solo fase negativa assistita (spotter esegue la positiva).",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Solo fase negativa assistita (spotter esegue la positiva)`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo N"
+      };
+    }
+  },
+  'MY': {
+    code: 'MY',
+    desc: "Fai x ripetizioni tenendo 1 di buffer, aspetti 10 o 15 sec e fai altre 3 reps con stesso carico, continui il ciclo 10'' riposo + 3 reps finche non riesci a fare 3 reps pulite",
+    descBreve: "Myo-Reps: set attivazione (buffer 1) + mini-set da 3 reps (rest 10-15'') finché pulite.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Myo-Reps: set attivazione (buffer 1) + mini-set da 3 reps (10-15'' rest)`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo MY"
+      };
+    }
+  },
+  'MED+++': {
+    code: 'MED+++',
+    desc: "Nella prima settimana, fai tutte le serie fino a non poter continuare, somma tutte le ripetizioni e calcola la media. Dalla seconda settimana, dividi per due la media e aggiungi una reps ogni settimana. Es: Nella prima week, fai 3 serie e ottieni 21 reps in totale. Dalla seconda week, fai 3 reps per serie (media di 7 diviso 2) più una reps aggiunta, quindi 4 reps per serie.",
+    descBreve: "W1: calcola media reps a cedimento. Dalla W2: media/2 + 1 rep in più a settimana.",
+    calcolaProposta: (sett, ghost, inputSettimane) => {
+      const w1Ins = inputSettimane.value[1]?.ins || '';
+      const numbers = estraiNumeriDaInput(w1Ins);
+      const w1PesoStr = estraiPesoDaInput(w1Ins);
+      const pesoVal = w1PesoStr ? parseFloat(w1PesoStr) : (ghost ? ghost.peso : 0);
+
+      if (sett === 1) {
+        return {
+          text: `W1: Esegui a cedimento e scrivi le reps per calcolare la media`,
+          peso: pesoVal,
+          label: ghost ? ghost.label : '',
+          isMetodo: true,
+          metodoLabel: "W1 MED+++"
+        };
+      }
+      if (numbers.length > 0) {
+        const sum = numbers.reduce((a, b) => a + b, 0);
+        const avg = sum / numbers.length;
+        const base = Math.floor(avg / 2);
+        const added = sett - 1;
+        const targetReps = base + added;
+        return {
+          text: `Target: ${targetReps} reps per serie (Base W1: ${base} + ${added} reps)`,
+          peso: pesoVal,
+          label: 'W1',
+          isMetodo: true,
+          metodoLabel: `W${sett} MED+++`
+        };
+      }
+      return {
+        text: `Target: media W1 diviso 2 + ${sett - 1} reps aggiunte`,
+        peso: pesoVal,
+        label: 'W1',
+        isMetodo: true,
+        metodoLabel: `W${sett} MED+++`
+      };
+    }
+  },
+  'D': {
+    code: 'D',
+    desc: "Appoggi il peso ad ogni ripetizione e riparti pulito con l'esecuzione concentrica",
+    descBreve: "Deadstop: appoggia il peso ad ogni rep e riparti pulito da fermo.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Deadstop: appoggia il peso ad ogni rep e riparti da fermo`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo D"
+      };
+    }
+  },
+  't&g': {
+    code: 't&g',
+    desc: "Appoggi attrezzo e riparti senza perdere tensione alla catena",
+    descBreve: "Touch and Go: appoggia l'attrezzo e riparti senza perdere tensione.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Touch and Go: tocca supporto e riparti senza perdere tensione`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo t&g"
+      };
+    }
+  },
+  'MSM': {
+    code: 'MSM',
+    desc: "Nella prima week somma i massimi secondi possibili su tutte le serie, nelle week successive aggiungi sempre 3 sec in più alla MEDIA",
+    descBreve: "W1: somma max secondi possibili. Nelle successive: media + 3 sec in più a settimana.",
+    calcolaProposta: (sett, ghost, inputSettimane) => {
+      const w1Ins = inputSettimane.value[1]?.ins || '';
+      const numbers = estraiNumeriDaInput(w1Ins);
+      const w1PesoStr = estraiPesoDaInput(w1Ins);
+      const pesoVal = w1PesoStr ? parseFloat(w1PesoStr) : (ghost ? ghost.peso : 0);
+
+      if (sett === 1) {
+        return {
+          text: `W1: Esegui max secondi su tutte le serie e inserisci i valori`,
+          peso: pesoVal,
+          label: ghost ? ghost.label : '',
+          isMetodo: true,
+          metodoLabel: "W1 MSM"
+        };
+      }
+      if (numbers.length > 0) {
+        const sum = numbers.reduce((a, b) => a + b, 0);
+        const avg = sum / numbers.length;
+        const added = (sett - 1) * 3;
+        const targetSec = Math.round(avg + added);
+        return {
+          text: `Target: ${targetSec}s (Media W1: ${avg.toFixed(0)}s + ${added}s)`,
+          peso: pesoVal,
+          label: 'W1',
+          isMetodo: true,
+          metodoLabel: `W${sett} MSM`
+        };
+      }
+      return {
+        text: `Target: media secondi W1 + ${(sett - 1) * 3} secondi`,
+        peso: pesoVal,
+        label: 'W1',
+        isMetodo: true,
+        metodoLabel: `W${sett} MSM`
+      };
+    }
+  },
+  'am': {
+    code: 'am',
+    desc: "Dopo il riscaldamento fai una serie col massimo di ripetizioni possibili (con x% del carico massimale). POI COMUNICAMI QUANTE REPS SEI RIUSCITO A FARE CON QUEL PESO!",
+    descBreve: "AMRAP: esegui una serie a massime reps possibili con il carico stabilito.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `AMRAP: dopo il riscaldamento, esegui max reps possibili`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo am"
+      };
+    }
+  },
+  'MAXSEC': {
+    code: 'MAXSEC',
+    desc: "Nella prima week massimi secondi possibili, nelle week successive aggiungi sempre 5 sec in più",
+    descBreve: "W1: max secondi possibili. Nelle successive: secondi W1 + 5 sec in più a settimana.",
+    calcolaProposta: (sett, ghost, inputSettimane) => {
+      const w1Ins = inputSettimane.value[1]?.ins || '';
+      const numbers = estraiNumeriDaInput(w1Ins);
+      const w1PesoStr = estraiPesoDaInput(w1Ins);
+      const pesoVal = w1PesoStr ? parseFloat(w1PesoStr) : (ghost ? ghost.peso : 0);
+
+      if (sett === 1) {
+        return {
+          text: `W1: Esegui max secondi possibili e scrivi il valore`,
+          peso: pesoVal,
+          label: ghost ? ghost.label : '',
+          isMetodo: true,
+          metodoLabel: "W1 MAXSEC"
+        };
+      }
+      if (numbers.length > 0) {
+        const base = numbers[0];
+        const added = (sett - 1) * 5;
+        const targetSec = base + added;
+        return {
+          text: `Target: ${targetSec}s (W1: ${base}s + ${added}s)`,
+          peso: pesoVal,
+          label: 'W1',
+          isMetodo: true,
+          metodoLabel: `W${sett} MAXSEC`
+        };
+      }
+      return {
+        text: `Target: secondi W1 + ${(sett - 1) * 5} secondi`,
+        peso: pesoVal,
+        label: 'W1',
+        isMetodo: true,
+        metodoLabel: `W${sett} MAXSEC`
+      };
+    }
+  },
+  'DT⏳': {
+    code: 'DT⏳',
+    desc: "In Dropset: Dopo la serie pesante, riduci le ripetizioni e fai ripetizioni lentissime in discesa (fase negativa), poi riduci ancora il peso e fai ripetizioni lentissime in salita (fase positiva)",
+    descBreve: "Dropset DT⏳: dopo la serie pesante, cala peso e fai negative lentissime, ricala e fai positive lentissime.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `Dropset DT⏳: serie pesante, poi cala e fai negative lente, poi positive lente`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo DT⏳"
+      };
+    }
+  },
+  'RP++': {
+    code: 'RP++',
+    desc: "La prima serie è sempre a cedimento senza rest pause. Dalla seconda in poi, dopo le x reps fai una pausa di 15–20 sec e aggiungi una mini-serie a cedimento con lo stesso peso. Ogni serie successiva aggiunge un blocco “pausa + cedimento” in più.",
+    descBreve: "S1 cedimento. Dalla S2+: rest-pause + cedimento. Ogni serie aggiunge un blocco rest-pause.",
+    calcolaProposta: (sett, ghost) => {
+      return {
+        text: `RP++: S1 cedimento. S2+ rest-pause + cedimento. Ogni serie aggiunge un blocco`,
+        peso: ghost ? ghost.peso : 0,
+        label: ghost ? ghost.label : '',
+        isMetodo: true,
+        metodoLabel: "Metodo RP++"
+      };
+    }
+  }
+};
+
 const getGhostLift = (sett) => {
+  if (!workout.value) return null;
+
+  // 1. Controlla se c'è un metodo attivo configurato in des_estesa_start
+  if (workout.value.des_estesa_start) {
+    const startDesc = String(workout.value.des_estesa_start).trim().toLowerCase();
+    let matchingMetodo = null;
+    
+    for (const [key, metodo] of Object.entries(METODI_ALLENAMENTO)) {
+      const cleanDesc = metodo.desc.trim().toLowerCase();
+      if (startDesc.includes(cleanDesc) || cleanDesc.includes(startDesc)) {
+        matchingMetodo = metodo;
+        break;
+      }
+    }
+    
+    if (matchingMetodo) {
+      const ghostStandard = getGhostLiftStandard(sett);
+      return matchingMetodo.calcolaProposta(sett, ghostStandard, inputSettimane, workout);
+    }
+  }
+
+  return getGhostLiftStandard(sett);
+};
+
+const getGhostLiftStandard = (sett) => {
   if (!workout.value) return null;
 
   const prescrizione = String(workout.value['des_week' + sett] || '');

@@ -270,12 +270,12 @@ const playBeepSequence = () => {
       osc.connect(gainNode);
       gainNode.connect(alarmCtx.destination);
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, startTime); // Nota A5
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1000, startTime); // 1000 Hz, nota molto udibile
 
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.05);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.35);
+      gainNode.gain.linearRampToValueAtTime(0.95, startTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.38);
 
       osc.start(startTime);
       osc.stop(startTime + 0.4);

@@ -33,4 +33,32 @@ const vuetify = createVuetify({
 const app = createApp(App)
 app.use(router) // Usiamo il router
 app.use(vuetify)
+
+// Previene la selezione del testo e il popup "Touch to Search" di Google Chrome su Android
+if (typeof window !== 'undefined') {
+  const isInputOrTextarea = (target) => {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return (
+      tagName === 'INPUT' ||
+      tagName === 'TEXTAREA' ||
+      target.isContentEditable ||
+      target.closest('[contenteditable="true"]') ||
+      target.classList.contains('selectable-text')
+    );
+  };
+
+  document.addEventListener('selectstart', (e) => {
+    if (!isInputOrTextarea(e.target)) {
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener('contextmenu', (e) => {
+    if (!isInputOrTextarea(e.target)) {
+      e.preventDefault();
+    }
+  });
+}
+
 app.mount('#app')

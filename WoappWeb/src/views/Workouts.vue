@@ -1226,8 +1226,6 @@
                             }"
                             :style="{
                               fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
-                              padding: layoutEfc === 'compatto' ? '0px 3px' : '1px 4px', // custom alignment fallback
-                              fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
                               padding: layoutEsercizi === 'compatto' ? '0px 3px' : '1px 4px',
                               height: layoutEsercizi === 'compatto' ? '13px' : '16px',
                               minWidth: layoutEsercizi === 'compatto' ? '24px' : '32px',
@@ -1802,10 +1800,42 @@
                 * Super Compatto: Nasconde la GIF e riduce al minimo gli spazi/scritte nel dettaglio.
               </template>
               <template v-else-if="layoutDettaglio === 'compatto'">
-                * Compatto: Riduce la dimensione della GIF e ottimizza gli spazi e le scritte.
+                * Standard: Layout esteso classico con GIF completa e spaziature originali.
+              </template>
+            </div>
+          </div>
+
+          <!-- Comportamento Tasto Play -->
+          <div class="mb-5">
+            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-2">▶️ Comportamento Tasto Play</span>
+            <v-btn-toggle
+              v-model="comportamentoPlay"
+              mandatory
+              selected-class="bg-orange-darken-3 text-white"
+              density="comfortable"
+              rounded="xl"
+              class="w-100 card-glass border mb-2"
+              style="height: 38px;"
+            >
+              <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+                Auto
+              </v-btn>
+              <v-btn value="dettaglio" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+                Dettaglio
+              </v-btn>
+              <v-btn value="evidenzia" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+                Evidenzia
+              </v-btn>
+            </v-btn-toggle>
+            <div class="text-super-caption text-muted font-italic leading-tight">
+              <template v-if="comportamentoPlay === 'auto'">
+                * Auto: Dettaglio in vista Compatta/Super e scorrimento in lista in vista Standard.
+              </template>
+              <template v-else-if="comportamentoPlay === 'dettaglio'">
+                * Dettaglio: Naviga sempre direttamente al dettaglio dell'esercizio.
               </template>
               <template v-else>
-                * Standard: Layout esteso classico con GIF completa e spaziature originali.
+                * Evidenzia: Scorre ed evidenzia sempre l'esercizio nella lista principale.
               </template>
             </div>
           </div>
@@ -1851,22 +1881,6 @@
               <div>
                 <v-switch
                   v-model="vibrazioneAttiva"
-                  color="orange-darken-3"
-                  hide-details
-                  density="compact"
-                ></v-switch>
-              </div>
-            </div>
-
-            <!-- Avvio Automatico Recupero -->
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <span class="text-body-2 font-weight-bold text-white d-block">Avvio Auto Recupero</span>
-                <span class="text-super-caption text-muted">Avvia il timer quando segni un esercizio come completato</span>
-              </div>
-              <div>
-                <v-switch
-                  v-model="avvioAutoTimer"
                   color="orange-darken-3"
                   hide-details
                   density="compact"
@@ -2435,7 +2449,7 @@ const layoutEsercizi = layoutEserciziGlobal;
 const layoutDettaglio = layoutDettaglioGlobal;
 const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
 const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
-const avvioAutoTimer = ref(localStorage.getItem('woapp_avvio_auto_timer') === 'true');
+const comportamentoPlay = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
 const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
 
 // Salvataggio automatico al cambio
@@ -2451,8 +2465,8 @@ watch(defaultBilanciere, (newVal) => {
 watch(vibrazioneAttiva, (newVal) => {
   localStorage.setItem('woapp_vibrazione_attiva', String(newVal));
 });
-watch(avvioAutoTimer, (newVal) => {
-  localStorage.setItem('woapp_avvio_auto_timer', String(newVal));
+watch(comportamentoPlay, (newVal) => {
+  localStorage.setItem('woapp_comportamento_play', newVal);
 });
 watch(defaultTimerRec, (newVal) => {
   localStorage.setItem('woapp_default_timer_rec', String(newVal));
@@ -3253,10 +3267,7 @@ const segnaComeFattoRapido = async (ex) => {
     console.warn("Errore salvataggio esercizio rapido Firebase:", err);
   }
 
-  // Avvio automatico del timer di recupero se abilitato
-  if (nuovoValore === '-' && avvioAutoTimer.value) {
-    avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio);
-  }
+
 
   // Esegui il controllo per la chiusura automatica
   controllaEChiudiGiornoAutomatico();
@@ -3272,7 +3283,7 @@ const haEserciziDaFare = computed(() => {
   const w = settimanaAttivaGiorno.value;
   return eserciziFiltrati.value.some(ex => {
     const val = ex['ins_week' + w];
-    return !val || val.trim() === '' || val.trim() === '-';
+    return !val || val.trim() === '';
   });
 });
 
@@ -3306,7 +3317,7 @@ watch(playClickTrigger, () => {
     nextTick(() => {
       setTimeout(() => {
         vaiAlPrimoEsercizioDaFare();
-      }, 300);
+      }, 400);
     });
   } else {
     vaiAlPrimoEsercizioDaFare();
@@ -3326,30 +3337,49 @@ const vaiAlPrimoEsercizioDaFare = () => {
   const w = settimanaAttivaGiorno.value;
   const daFare = eserciziFiltrati.value.find(ex => {
     const val = ex['ins_week' + w];
-    return !val || val.trim() === '' || val.trim() === '-';
+    return !val || val.trim() === '';
   });
   if (daFare) {
-    if (layoutEsercizi.value === 'super_compatto' || layoutEsercizi.value === 'compatto') {
+    const navigaDettaglio = comportamentoPlay.value === 'dettaglio' || 
+      (comportamentoPlay.value === 'auto' && (layoutEsercizi.value === 'super_compatto' || layoutEsercizi.value === 'compatto'));
+    
+    if (navigaDettaglio) {
       vaiAlDettaglio(daFare.id);
     } else {
-      const el = document.getElementById('esercizio-' + daFare.id);
+      // Loop di retry robusto per attendere il rendering della scheda nel DOM ed eventuali cambi scheda
+      let retries = 0;
+      const tryScroll = () => {
+        const el = document.getElementById('esercizio-' + daFare.id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('highlight-exercise');
+          setTimeout(() => {
+            el.classList.remove('highlight-exercise');
+          }, 1500);
+        } else if (retries < 15) {
+          retries++;
+          setTimeout(tryScroll, 80);
+        }
+      };
+      tryScroll();
+    }
+  } else {
+    // Loop di retry robusto per il bottone di completamento
+    let retries = 0;
+    const tryScrollComplete = () => {
+      const el = document.getElementById('btn-completa-giorno');
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         el.classList.add('highlight-exercise');
         setTimeout(() => {
           el.classList.remove('highlight-exercise');
         }, 1500);
+      } else if (retries < 15) {
+        retries++;
+        setTimeout(tryScrollComplete, 80);
       }
-    }
-  } else {
-    const el = document.getElementById('btn-completa-giorno');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('highlight-exercise');
-      setTimeout(() => {
-        el.classList.remove('highlight-exercise');
-      }, 1500);
-    }
+    };
+    tryScrollComplete();
   }
 };
 
@@ -3364,7 +3394,7 @@ const gestisciScrollIniziale = () => {
     nextTick(() => {
       setTimeout(() => {
         vaiAlPrimoEsercizioDaFare();
-      }, 300);
+      }, 400);
     });
   } else {
     scrollaAllUltimoEsercizio();
@@ -4380,16 +4410,19 @@ const recuperiRaggruppati = computed(() => {
 
 @keyframes highlight-glow {
   0% {
-    background-color: rgba(249, 115, 22, 0.25) !important;
-    box-shadow: 0 0 15px rgba(249, 115, 22, 0.4) !important;
+    background: rgba(249, 115, 22, 0.45) !important;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.6) !important;
+    border-color: rgba(249, 115, 22, 0.6) !important;
   }
   100% {
-    background-color: transparent !important;
-    box-shadow: none !important;
+    background: rgba(15, 23, 42, 0.65) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
   }
 }
 .highlight-exercise {
   animation: highlight-glow 1.5s ease-out;
+  border-radius: 8px !important;
 }
 
 /* Swipe transitions */

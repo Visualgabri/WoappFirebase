@@ -92,18 +92,71 @@
         :class="{'d-flex align-start': ['compatto', 'super_compatto'].includes(layoutCorrente)}" 
         :style="['compatto', 'super_compatto'].includes(layoutCorrente) ? 'gap: 12px;' : ''"
       >
-        <!-- 1. GIF dell'Esercizio -->
+        <!-- Colonna Sinistra (solo compatto/super_compatto): GIF + Azioni Rapide per riempire lo spazio vuoto -->
+        <div 
+          v-if="['compatto', 'super_compatto'].includes(layoutCorrente)"
+          class="d-flex flex-column align-center flex-shrink-0"
+          :style="{ width: layoutCorrente === 'super_compatto' ? '90px' : '120px' }"
+        >
+          <v-card 
+            class="image-premium-frame overflow-hidden elevation-2 bg-black w-100" 
+            :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded-lg'"
+            :style="{ height: layoutCorrente === 'super_compatto' ? '70px' : '95px' }"
+          >
+            <v-img
+              :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
+              contain
+              class="bg-black"
+              height="100%"
+              style="cursor: pointer;"
+              @click="dialogGifFullScreen = true"
+            >
+              <template v-slot:placeholder>
+                <div class="fill-height d-flex align-center justify-center bg-black">
+                  <v-progress-circular indeterminate color="orange" size="16"></v-progress-circular>
+                </div>
+              </template>
+            </v-img>
+          </v-card>
+
+          <!-- Icone di Azione Rapida allineate sotto la GIF -->
+          <div class="d-flex align-center justify-center gap-2 mt-2">
+            <!-- Tasto Storico -->
+            <v-btn
+              icon
+              variant="flat"
+              color="rgba(255, 255, 255, 0.05)"
+              class="card-glass border border-soft"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              style="width: 32px; height: 32px; min-width: 32px; border-radius: 50% !important;"
+              @click="apriStoricoEsercizio"
+              title="Storico Esercizio"
+            >
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 19" color="orange-lighten-2">mdi-history</v-icon>
+            </v-btn>
+
+            <!-- Tasto WhatsApp -->
+            <v-btn
+              icon
+              variant="flat"
+              color="rgba(255, 255, 255, 0.05)"
+              class="card-glass border border-soft"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              style="width: 32px; height: 32px; min-width: 32px; border-radius: 50% !important;"
+              @click="inviaVideoWhatsApp"
+              title="Invia Video al Coach"
+            >
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 17" color="orange-lighten-2">mdi-whatsapp</v-icon>
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- GIF dell'Esercizio Standard (per layout normale) -->
         <v-card 
-          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0" 
-          :class="[
-            layoutCorrente === 'super_compatto' ? 'rounded-sm' : (layoutCorrente === 'compatto' ? 'rounded-lg' : 'rounded-xl'),
-            { 'mx-auto mb-3': !['compatto', 'super_compatto'].includes(layoutCorrente) }
-          ]"
-          :style="{
-            width: layoutCorrente === 'super_compatto' ? '90px' : (layoutCorrente === 'compatto' ? '120px' : '100%'),
-            maxWidth: layoutCorrente === 'super_compatto' ? '90px' : (layoutCorrente === 'compatto' ? '120px' : '280px'),
-            height: layoutCorrente === 'super_compatto' ? '70px' : (layoutCorrente === 'compatto' ? '95px' : '150px')
-          }"
+          v-else
+          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0 mx-auto mb-3 rounded-xl" 
+          max-width="280px"
+          height="150px"
         >
           <v-img
             :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
@@ -374,7 +427,7 @@
             </v-btn>
           </div>
 
-          <div class="d-flex align-center gap-2">
+          <div v-if="!['compatto', 'super_compatto'].includes(layoutCorrente)" class="d-flex align-center gap-2">
             <!-- Tasto Freccia con Orologio (Riepilogo Storico) -->
             <v-btn
               icon

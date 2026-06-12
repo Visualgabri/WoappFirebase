@@ -1156,19 +1156,29 @@
                         {{ ex.des_esercizio || 'Esercizio' }}
                       </h4>
 
-                      <!-- Settore e Emoji Sforzo -->
-                      <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
-                        <span :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit' }">{{ ex.des_settore || 'Corpo Libero' }}</span>
-                        <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
-                      </div>
-
-                      <!-- Prescrizione della settimana attiva -->
+                      <!-- Settore, Emoji Sforzo e Prescrizione (in riga unica se compatto e c'entra) -->
                       <div 
-                        class="text-caption font-weight-bold text-slate text-truncate mb-1" 
-                        :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
-                        @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno], ex.des_esercizio)"
+                        :class="layoutEsercizi === 'compatto' ? 'd-flex flex-wrap align-center' : ''"
+                        :style="layoutEsercizi === 'compatto' ? 'gap: 2px 8px; margin-bottom: 4px;' : ''"
                       >
-                        {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
+                        <!-- Settore e Emoji Sforzo -->
+                        <div 
+                          class="d-flex align-center text-caption font-weight-bold text-orange-darken-3"
+                          :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
+                        >
+                          <span :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit' }">{{ ex.des_settore || 'Corpo Libero' }}</span>
+                          <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
+                        </div>
+
+                        <!-- Prescrizione della settimana attiva -->
+                        <div 
+                          class="text-caption font-weight-bold text-slate text-truncate" 
+                          :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
+                          :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
+                          @click.stop="apriCalcolatoreDaPrescrizione(ex['des_week' + settimanaAttivaGiorno], ex.des_esercizio)"
+                        >
+                          {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
+                        </div>
                       </div>
 
                       <!-- Cronologia Carichi Settimanali -->
@@ -1394,19 +1404,29 @@
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
                   </h4>
 
-                  <!-- Settore e Emoji Sforzo -->
-                  <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
-                    <span :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit' }">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
-                    <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
-                  </div>
-
-                  <!-- Prescrizione della settimana attiva -->
+                  <!-- Settore, Emoji Sforzo e Prescrizione (in riga unica se compatto e c'entra) -->
                   <div 
-                    class="text-caption font-weight-bold text-slate text-truncate mb-1" 
-                    :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
-                    @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno], block.exercise.des_esercizio)"
+                    :class="layoutEsercizi === 'compatto' ? 'd-flex flex-wrap align-center' : ''"
+                    :style="layoutEsercizi === 'compatto' ? 'gap: 2px 8px; margin-bottom: 4px;' : ''"
                   >
-                    {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
+                    <!-- Settore e Emoji Sforzo -->
+                    <div 
+                      class="d-flex align-center text-caption font-weight-bold text-orange-darken-3"
+                      :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
+                    >
+                      <span :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit' }">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                      <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
+                    </div>
+
+                    <!-- Prescrizione della settimana attiva -->
+                    <div 
+                      class="text-caption font-weight-bold text-slate text-truncate" 
+                      :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
+                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { cursor: 'pointer', fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
+                      @click.stop="apriCalcolatoreDaPrescrizione(block.exercise['des_week' + settimanaAttivaGiorno], block.exercise.des_esercizio)"
+                    >
+                      {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
+                    </div>
                   </div>
 
                   <!-- Cronologia Carichi Settimanali -->

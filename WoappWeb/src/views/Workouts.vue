@@ -88,7 +88,7 @@
         <div 
           v-if="caricamento" 
           class="card-glass elevation-1 d-flex justify-space-around align-center" 
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-sm' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-xl')"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-xl' : 'rounded-2xl')"
           :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
         >
           <div class="skeleton-tab-item"></div>
@@ -104,7 +104,7 @@
           grow
           hide-slider
           class="card-glass elevation-1"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-sm' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-xl')"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-xl' : 'rounded-2xl')"
           @update:model-value="salvaGiornoSelezionato"
           :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
         >
@@ -559,7 +559,7 @@
         <v-card
           v-if="headerGiorno"
           class="workout-session-container overflow-hidden border elevation-2 mb-6"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-sm' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-2xl')"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-xl' : 'rounded-2xl')"
           style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.35), rgba(15, 23, 42, 0.55)) !important; border: 1.5px solid rgba(255, 255, 255, 0.08) !important;"
         >
           <!-- Intestazione Sessione (ex Day Header Card) -->
@@ -1005,7 +1005,7 @@
               v-if="block.type === 'superset'"
               class="superset-group-card mb-4 border-superset elevation-2 text-left"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-sm pa-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-3' : 'rounded-2xl pa-4')
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-2' : (layoutEsercizi === 'compatto' ? 'rounded-xl pa-3' : 'rounded-2xl pa-4')
               ]"
             >
               <!-- Intestazione del Superset -->
@@ -1286,7 +1286,7 @@
               :id="'esercizio-' + block.exercise.id"
               class="exercise-item-card elevation-1 d-flex align-center"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-sm pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-2.5 mb-3' : 'rounded-xl pa-3 mb-4')
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-xl pa-2.5 mb-3' : 'rounded-2xl pa-3 mb-4')
               ]"
               @click="vaiAlDettaglio(block.exercise.id)"
             >
@@ -1914,6 +1914,30 @@
                 ></v-select>
               </div>
             </div>
+
+            <!-- Tema Grafico Timer -->
+            <div class="d-flex align-center justify-space-between mt-3">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Tema Grafico Timer</span>
+                <span class="text-super-caption text-muted">Stile visivo del widget di recupero</span>
+              </div>
+              <div style="width: 175px;">
+                <v-select
+                  v-model="timerTheme"
+                  :items="[
+                    { title: 'Accent Dark & Glass', value: 'accent-dark' },
+                    { title: 'Orange Glow Premium', value: 'orange-glow' },
+                    { title: 'Solid Contrast Orange', value: 'solid-contrast' }
+                  ]"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  rounded="lg"
+                  color="orange-darken-3"
+                  style="font-size: 0.8rem;"
+                ></v-select>
+              </div>
+            </div>
           </div>
         </v-card-text>
         
@@ -1935,7 +1959,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2451,6 +2475,7 @@ const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bil
 const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
 const comportamentoPlay = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
 const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
+const timerTheme = timerThemeGlobal;
 
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {
@@ -2470,6 +2495,9 @@ watch(comportamentoPlay, (newVal) => {
 });
 watch(defaultTimerRec, (newVal) => {
   localStorage.setItem('woapp_default_timer_rec', String(newVal));
+});
+watch(timerTheme, (newVal) => {
+  localStorage.setItem('woapp_timer_theme', newVal);
 });
 
 const caricamento = ref(true);

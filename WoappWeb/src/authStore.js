@@ -479,6 +479,7 @@ export const getDensitaLayoutAtleta = (id) => {
 
 export const layoutEserciziGlobal = ref(localStorage.getItem('woapp_layout_esercizi') || 'standard');
 export const layoutDettaglioGlobal = ref(localStorage.getItem('woapp_layout_dettaglio') || 'auto');
+export const timerThemeGlobal = ref(localStorage.getItem('woapp_timer_theme') || 'accent-dark');
 
 // Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
 export const globalStoryboard = ref([]);

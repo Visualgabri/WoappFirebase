@@ -92,56 +92,99 @@
     <v-fade-transition>
       <v-card
         v-if="activeTimer"
-        class="global-timer-pill card-glass rounded-xl pa-3 d-flex align-center justify-space-between elevation-4"
+        :class="[
+          'global-timer-pill rounded-2xl justify-space-between elevation-4',
+          timerSizeConfig.paddingClass,
+          timerThemeGlobal === 'solid-contrast' ? 'timer-theme-solid-contrast' :
+          timerThemeGlobal === 'orange-glow' ? 'timer-theme-orange-glow' : 'timer-theme-accent-dark'
+        ]"
+        :style="{ maxWidth: timerSizeConfig.maxWidth }"
       >
         <div class="d-flex align-center min-width-0 flex-grow-1 mr-3">
           <!-- Circular Progress Circle -->
           <v-progress-circular
             :model-value="(activeTimer.remainingSeconds / activeTimer.totalSeconds) * 100"
-            color="orange-darken-3"
-            size="36"
-            width="3.5"
-            class="mr-3"
+            :color="timerThemeGlobal === 'solid-contrast' ? 'white' : 'orange-darken-3'"
+            :size="timerSizeConfig.circleSize"
+            :width="timerSizeConfig.circleWidth"
+            class="mr-3 flex-shrink-0"
+            style="transition: all 0.3s ease;"
           >
-            <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.65rem;">
-              {{ activeTimer.remainingSeconds }}s
+            <span 
+              class="font-weight-black" 
+              :style="{ 
+                fontSize: timerSizeConfig.fontSizeProgress,
+                color: timerThemeGlobal === 'solid-contrast' ? '#0f172a' : '#f8fafc'
+              }"
+            >
+              {{ activeTimer.remainingSeconds }}
             </span>
           </v-progress-circular>
 
-          <div class="text-left min-width-0">
-            <div class="text-super-caption text-orange-lighten-2 uppercase font-weight-black" style="font-size: 0.6rem;">
+          <div class="text-left min-width-0 flex-grow-1">
+            <div 
+              class="text-super-caption uppercase font-weight-black" 
+              :style="{ 
+                fontSize: timerSizeConfig.fontSizeSub, 
+                color: timerThemeGlobal === 'solid-contrast' ? '#431407' : '#fdba74'
+              }"
+            >
               Recupero Attivo
+              <span v-if="timerThemeGlobal === 'accent-dark' && layoutEserciziGlobal !== 'super_compatto'"> • Totale: {{ activeTimer.totalSeconds }}s</span>
             </div>
-            <div class="text-caption font-weight-bold text-slate-dark text-truncate" style="max-width: 160px;">
+            <div 
+              class="text-truncate font-weight-bold" 
+              :style="{ 
+                fontSize: timerSizeConfig.fontSizeLabel, 
+                color: timerThemeGlobal === 'solid-contrast' ? '#0f172a' : '#f1f5f9',
+                maxWidth: layoutEserciziGlobal === 'super_compatto' ? '120px' : '180px'
+              }"
+            >
               {{ activeTimer.label }}
+            </div>
+            <!-- Tempo originario sotto per temi ad alto impatto -->
+            <div 
+              v-if="timerThemeGlobal !== 'accent-dark'" 
+              class="text-super-caption font-weight-bold"
+              :style="{ 
+                color: timerThemeGlobal === 'solid-contrast' ? '#451a03' : '#cbd5e1',
+                fontSize: timerSizeConfig.fontSizeSub,
+                marginTop: '1px'
+              }"
+            >
+              Tempo: <span class="font-weight-black">{{ activeTimer.remainingSeconds }}s</span> di {{ activeTimer.totalSeconds }}s
             </div>
           </div>
         </div>
 
-        <div class="d-flex align-center">
+        <div class="d-flex align-center flex-shrink-0">
           <!-- Play / Pause Button -->
           <v-btn
             icon
-            variant="text"
-            color="orange-lighten-1"
+            variant="flat"
+            :bg-color="timerThemeGlobal === 'solid-contrast' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.06)'"
+            :color="timerThemeGlobal === 'solid-contrast' ? '#0f172a' : 'orange-lighten-1'"
             size="small"
-            class="mr-1"
+            class="mr-2"
+            :style="{ width: timerSizeConfig.btnSize, height: timerSizeConfig.btnSize }"
             @click="activeTimer.isPaused ? riprendiTimer() : mettiInPausaTimer()"
           >
-            <v-icon size="20">
-              {{ activeTimer.isPaused ? 'mdi-play-circle-outline' : 'mdi-pause-circle-outline' }}
+            <v-icon :size="timerSizeConfig.iconSize">
+              {{ activeTimer.isPaused ? 'mdi-play' : 'mdi-pause' }}
             </v-icon>
           </v-btn>
 
           <!-- Stop / Close Button -->
           <v-btn
             icon
-            variant="text"
-            color="red-lighten-2"
+            variant="flat"
+            :bg-color="timerThemeGlobal === 'solid-contrast' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.06)'"
+            :color="timerThemeGlobal === 'solid-contrast' ? '#7f1d1d' : 'red-lighten-2'"
             size="small"
+            :style="{ width: timerSizeConfig.btnSize, height: timerSizeConfig.btnSize }"
             @click="cancellaTimer()"
           >
-            <v-icon size="20">mdi-stop-circle-outline</v-icon>
+            <v-icon :size="timerSizeConfig.iconSize - 2">mdi-stop</v-icon>
           </v-btn>
         </div>
       </v-card>
@@ -155,7 +198,7 @@
         icon
         size="large"
         class="fixed-play-fab elevation-6 animate-pulse-slow"
-        :style="{ bottom: activeTimer ? '160px' : '80px' }"
+        :style="{ bottom: activeTimer ? timerSizeConfig.bottomOffset : '80px' }"
         @click="cliccaPlayGlobale"
         id="fab-play-da-fare"
       >
@@ -325,10 +368,57 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');
+
+// Configurazione delle dimensioni del timer in base alla densità e al tema
+const timerSizeConfig = computed(() => {
+  const density = layoutEserciziGlobal.value || 'standard';
+  const theme = timerThemeGlobal.value || 'accent-dark';
+  
+  if (density === 'super_compatto') {
+    return {
+      paddingClass: 'pa-2',
+      maxWidth: '340px',
+      circleSize: theme === 'accent-dark' ? 42 : theme === 'orange-glow' ? 38 : 36,
+      circleWidth: 3.2,
+      fontSizeProgress: '0.70rem',
+      fontSizeLabel: '0.76rem',
+      fontSizeSub: '0.60rem',
+      btnSize: '28px',
+      iconSize: 14,
+      bottomOffset: '148px'
+    };
+  } else if (density === 'compatto') {
+    return {
+      paddingClass: 'pa-2.5',
+      maxWidth: '375px',
+      circleSize: theme === 'accent-dark' ? 46 : theme === 'orange-glow' ? 42 : 40,
+      circleWidth: 3.8,
+      fontSizeProgress: '0.78rem',
+      fontSizeLabel: '0.84rem',
+      fontSizeSub: '0.64rem',
+      btnSize: '30px',
+      iconSize: 16,
+      bottomOffset: '160px'
+    };
+  } else { // standard
+    return {
+      paddingClass: theme === 'orange-glow' ? 'pa-3.5' : 'pa-3',
+      maxWidth: '410px',
+      circleSize: theme === 'accent-dark' ? 52 : theme === 'orange-glow' ? 48 : 46,
+      circleWidth: theme === 'accent-dark' ? 4.5 : 4.0,
+      fontSizeProgress: theme === 'accent-dark' ? '0.85rem' : '0.78rem',
+      fontSizeLabel: theme === 'orange-glow' ? '0.95rem' : '0.88rem',
+      fontSizeSub: '0.68rem',
+      btnSize: '32px',
+      iconSize: 18,
+      bottomOffset: '176px'
+    };
+  }
+});
 
 // Gestione intelligente delle transizioni globali in base alla direzione
 router.beforeEach((to, from) => {
@@ -563,21 +653,53 @@ const elencoDischiGrafica = computed(() => {
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
-  max-width: 400px;
+  max-width: 410px;
   z-index: 999;
-  border: 1px solid rgba(249, 115, 22, 0.3) !important;
-  background: rgba(15, 23, 42, 0.8) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 15px rgba(249, 115, 22, 0.15) !important;
-  animation: pulse-border 2s infinite alternate;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes pulse-border {
+.timer-theme-accent-dark {
+  border: 2px solid rgba(249, 115, 22, 0.5) !important;
+  background: rgba(10, 15, 30, 0.94) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(249, 115, 22, 0.25) !important;
+  animation: pulse-border-accent 2s infinite alternate;
+}
+
+@keyframes pulse-border-accent {
   0% {
-    border-color: rgba(249, 115, 22, 0.2) !important;
+    border-color: rgba(249, 115, 22, 0.35) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 10px rgba(249, 115, 22, 0.15) !important;
   }
   100% {
-    border-color: rgba(249, 115, 22, 0.5) !important;
+    border-color: rgba(249, 115, 22, 0.7) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(249, 115, 22, 0.35) !important;
   }
+}
+
+.timer-theme-orange-glow {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 65%, rgba(249, 115, 22, 0.22) 100%) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 30px rgba(249, 115, 22, 0.3) !important;
+  animation: pulse-glow-orange 2.5s infinite alternate;
+}
+
+@keyframes pulse-glow-orange {
+  0% {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 15px rgba(249, 115, 22, 0.15) !important;
+  }
+  100% {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 35px rgba(249, 115, 22, 0.4) !important;
+  }
+}
+
+.timer-theme-solid-contrast {
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  box-shadow: 0 10px 25px rgba(234, 88, 12, 0.45) !important;
 }
 
 .fixed-play-fab {

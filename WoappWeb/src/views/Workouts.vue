@@ -88,7 +88,7 @@
         <div 
           v-if="caricamento" 
           class="card-glass elevation-1 d-flex justify-space-around align-center" 
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-2xl')"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
           :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
         >
           <div class="skeleton-tab-item"></div>
@@ -104,7 +104,7 @@
           grow
           hide-slider
           class="card-glass elevation-1"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-2xl')"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
           @update:model-value="salvaGiornoSelezionato"
           :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
         >
@@ -262,7 +262,7 @@
             <v-expand-transition>
               <div v-if="eserciziDaRecuperare.length > 0" class="mb-6">
                 <v-card
-                  class="pa-4 rounded-2xl border"
+                  class="pa-4 rounded-3xl border"
                   style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.1), rgba(249, 115, 22, 0.03)) !important; border: 1.5px solid rgba(249, 115, 22, 0.3) !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;"
                 >
                   <!-- Header Globale -->
@@ -559,7 +559,7 @@
         <v-card
           v-if="headerGiorno"
           class="workout-session-container overflow-hidden border elevation-2 mb-6"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-2xl')"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
           style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.35), rgba(15, 23, 42, 0.55)) !important; border: 1.5px solid rgba(255, 255, 255, 0.08) !important;"
         >
           <!-- Intestazione Sessione (ex Day Header Card) -->
@@ -1005,7 +1005,7 @@
               v-if="block.type === 'superset'"
               class="superset-group-card mb-4 border-superset elevation-2 text-left"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-3' : 'rounded-2xl pa-4')
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-3' : 'rounded-3xl pa-4')
               ]"
             >
               <!-- Intestazione del Superset -->
@@ -1286,7 +1286,7 @@
               :id="'esercizio-' + block.exercise.id"
               class="exercise-item-card elevation-1 d-flex align-center"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-2.5 mb-3' : 'rounded-2xl pa-3 mb-4')
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-2.5 mb-3' : 'rounded-3xl pa-3 mb-4')
               ]"
               @click="vaiAlDettaglio(block.exercise.id)"
             >

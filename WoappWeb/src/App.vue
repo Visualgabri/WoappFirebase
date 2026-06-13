@@ -31,6 +31,20 @@
         </span>
       </div>
 
+      <!-- Se coach, mostra pulsante Pannello Controllo -->
+      <v-btn
+        v-if="ruolo === 'coach'"
+        icon
+        color="orange-darken-3"
+        variant="text"
+        class="rounded-lg mr-2"
+        to="/admin"
+        title="Pannello di Controllo Coach"
+        id="btn-admin-panel"
+      >
+        <v-icon size="20">mdi-cog</v-icon>
+      </v-btn>
+
       <v-btn
         icon
         color="red-darken-2"

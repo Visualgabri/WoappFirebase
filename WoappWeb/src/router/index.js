@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Workouts from '../views/Workouts.vue'
 import Grafici from '../views/Grafici.vue'
 import Ricerca from '../views/Ricerca.vue'
-import { utente } from '../authStore.js'
+import { utente, ruolo } from '../authStore.js'
 
 const routes = [
   { path: '/', name: 'Workouts', component: Workouts },
@@ -12,6 +12,7 @@ const routes = [
   { path: '/workout/:id', name: 'DettaglioWorkout', component: () => import('../views/Dettaglio.vue'), props: true },
   { path: '/sessione/:id', name: 'DettaglioSessione', component: () => import('../views/Sessione.vue'), props: true },
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
+  { path: '/admin', name: 'AdminDashboard', component: () => import('../views/AdminDashboard.vue') },
 ]
 
 const router = createRouter({
@@ -25,6 +26,9 @@ router.beforeEach((to, from, next) => {
   
   if (to.name !== 'Login' && !utenteLoggato) {
     next({ name: 'Login' });
+  } else if (to.name === 'AdminDashboard' && ruolo.value !== 'coach') {
+    // Solo il Coach può accedere al pannello di amministrazione
+    next({ name: 'Workouts' });
   } else {
     next();
   }

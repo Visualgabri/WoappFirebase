@@ -32,5 +32,6 @@ try {
 export const db = firestoreDb;
 
 // Inizializza ed esporta Firebase Auth
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();

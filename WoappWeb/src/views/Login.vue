@@ -80,9 +80,8 @@
       </div>
     </v-card>
 
-    <!-- Card originale di Login (se non autenticato) -->
+    <!-- Card di Login (se non autenticato) -->
     <v-card v-else class="login-card rounded-2xl pa-8 elevation-8" max-width="480" width="100%">
-      
       <!-- Logo ed Intestazione -->
       <div class="text-center mb-6">
         <v-avatar color="orange-darken-3" size="72" class="mb-4 elevation-3">
@@ -94,172 +93,67 @@
         <p class="text-subtitle-2 text-muted mt-1">Gestisci la tua forza, monitora i tuoi progressi.</p>
       </div>
 
-      <!-- ACCESSO RAPIDO COACH (Entra Liberamente) -->
-      <v-btn
-        color="orange-darken-3"
-        variant="elevated"
-        block
-        size="large"
-        rounded="xl"
-        class="font-weight-bold text-none mb-6 py-3 coach-quick-btn"
-        @click="entraComeCoach"
-        id="btn-quick-coach"
-      >
-        Entra come Coach 📋
-        <v-icon right class="ml-2">mdi-account-multiple-outline</v-icon>
-      </v-btn>
-
-      <div class="d-flex align-center mb-6">
-        <v-divider></v-divider>
-        <span class="px-3 text-caption text-muted font-weight-bold text-uppercase">Oppure con Email</span>
-        <v-divider></v-divider>
-      </div>
-
-      <!-- Toggle tra Login e Registrazione Email -->
-      <v-tabs
-        v-model="tabScelta"
-        grow
-        color="orange-darken-3"
-        class="mb-6"
-      >
-        <v-tab value="accedi" class="font-weight-bold">Accedi con Email</v-tab>
-        <v-tab value="registrati" class="font-weight-bold">Registrati</v-tab>
-      </v-tabs>
-
       <!-- Messaggio di errore o info reattivo -->
       <v-alert
         v-if="errore"
         type="error"
         variant="tonal"
         closable
-        class="mb-4 rounded-xl text-caption"
+        class="mb-6 rounded-xl text-caption text-left"
         @click:close="errore = ''"
       >
         {{ errore }}
       </v-alert>
 
-      <v-form @submit.prevent="gestisciAutenticazione" ref="formAuth">
-        <!-- Campo Email (Passwordless) -->
-        <v-text-field
-          v-model="email"
-          label="Indirizzo Email Atleta o Coach"
-          type="email"
-          required
-          variant="outlined"
-          rounded="lg"
-          prepend-inner-icon="mdi-email-outline"
-          color="orange-darken-3"
-          placeholder="es. atleta@esempio.com"
-          class="mb-4"
-          id="login-email"
-        ></v-text-field>
+      <!-- Pulsante di Login con Google Premium -->
+      <v-btn
+        block
+        size="x-large"
+        rounded="xl"
+        class="font-weight-black text-none py-4 google-btn shadow-md"
+        style="background: #ffffff !important; color: #1f2937 !important; border: 1px solid #e5e7eb !important; height: 54px;"
+        :loading="caricando"
+        @click="accediConGoogle"
+        id="btn-google-login"
+      >
+        <!-- Icona Google SVG -->
+        <svg class="mr-3" width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle;">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        Accedi con Google
+      </v-btn>
 
-        <!-- Campi speciali visibili solo su REGISTRAZIONE -->
-        <v-window v-model="tabScelta">
-          <v-window-item value="registrati" class="py-2">
-            <!-- Selezione del Ruolo -->
-            <div class="text-subtitle-2 font-weight-bold text-slate-dark mb-2">Seleziona il tuo Ruolo</div>
-            <v-radio-group
-              v-model="ruoloScelto"
-              inline
-              color="orange-darken-3"
-              class="mb-4"
-            >
-              <v-radio label="Atleta 🏋️" value="atleta" id="role-atleta"></v-radio>
-              <v-radio label="Coach 📋" value="coach" id="role-coach"></v-radio>
-            </v-radio-group>
-
-            <!-- Selezione ID_cliente (solo per Atleti in registrazione) -->
-            <v-autocomplete
-              v-if="ruoloScelto === 'atleta'"
-              v-model="idClienteScelto"
-              :items="listaAtleti"
-              :loading="caricamentoAtleti"
-              label="Seleziona il tuo ID Atleta"
-              placeholder="Associa il tuo ID della scheda..."
-              variant="outlined"
-              rounded="lg"
-              prepend-inner-icon="mdi-card-account-details-outline"
-              color="orange-darken-3"
-              class="mb-4"
-              no-data-text="Nessun ID atleta disponibile"
-              id="register-athlete-id"
-            ></v-autocomplete>
-            <div v-if="ruoloScelto === 'atleta'" class="text-caption text-orange-darken-4 font-weight-medium mb-4 bg-orange-lighten-5 pa-3 rounded-lg">
-              <v-icon size="16" class="mr-1">mdi-alert-circle-outline</v-icon>
-              Associa la tua email all'ID corretto per caricare subito i tuoi esercizi e note.
-            </div>
-          </v-window-item>
-        </v-window>
-
-        <!-- Pulsante di Invio -->
-        <v-btn
-          type="submit"
-          variant="flat"
-          block
-          size="large"
-          rounded="xl"
-          class="font-weight-bold text-none mt-2 py-3 text-white"
-          style="background: linear-gradient(135deg, #ea580c, #f97316) !important;"
-          :loading="caricando"
-          id="btn-auth-submit"
-        >
-          {{ tabScelta === 'accedi' ? 'Entra' : 'Registra ed Entra' }}
-          <v-icon right class="ml-2">mdi-arrow-right</v-icon>
-        </v-btn>
-      </v-form>
-
+      <div class="text-center mt-6 text-caption text-muted font-italic">
+        L'accesso è consentito esclusivamente agli account Google pre-autorizzati.
+      </div>
     </v-card>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase.js';
+import { doc, getDoc } from 'firebase/firestore';
+import { signInWithPopup } from 'firebase/auth';
+import { db, auth, googleProvider } from '../firebase.js';
 import { 
   inizializzaSessione, 
   utente, 
   idCliente, 
   ruolo, 
   logout, 
-  getNomeAtleta 
+  getNomeAtleta,
+  MAPPA_CLIENTI
 } from '../authStore.js';
 
 const router = useRouter();
 
-const disconnettiAccount = async () => {
-  vibraTattile(15);
-  await logout();
-};
-
-// Stato Form
-const tabScelta = ref('accedi');
-const email = ref('');
-const ruoloScelto = ref('atleta');
-const idClienteScelto = ref(null);
-
 // Stato UI
 const caricando = ref(false);
 const errore = ref('');
-const listaAtleti = ref([]);
-const caricamentoAtleti = ref(true);
-
-// Carica ID Atleti univoci per l'associazione
-onMounted(async () => {
-  try {
-    const docRef = doc(db, 'METADATA', 'clienti');
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      listaAtleti.value = docSnap.data().lista || [];
-    }
-  } catch (error) {
-    console.error("Errore caricamento atleti:", error);
-  } finally {
-    caricamentoAtleti.value = false;
-  }
-});
 
 const vibraTattile = (ms = 12) => {
   if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
@@ -268,72 +162,66 @@ const vibraTattile = (ms = 12) => {
   }
 };
 
-// Accesso rapido come Coach (Senza password e senza email obbligatoria)
-const entraComeCoach = () => {
-  vibraTattile(20);
-  inizializzaSessione('coach@woapp.com', '', 'coach');
-  router.push('/');
+const disconnettiAccount = async () => {
+  vibraTattile(15);
+  await logout();
 };
 
-// Gestore Autenticazione Passwordless (Accedi / Registrati)
-const gestisciAutenticazione = async () => {
+// Gestore Autenticazione con Google (Google Sign-In)
+const accediConGoogle = async () => {
   errore.value = '';
   vibraTattile(15);
-  
-  if (!email.value || !email.value.includes('@')) {
-    errore.value = 'Inserisci un indirizzo email valido.';
-    return;
-  }
-
-  const emailPulita = email.value.trim().toLowerCase();
   caricando.value = true;
   
   try {
-    const userDocRef = doc(db, 'UTENTI', emailPulita);
-
-    if (tabScelta.value === 'accedi') {
-      // ACCESSO PASSWORDLESS
-      const docSnap = await getDoc(userDocRef);
-      
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        inizializzaSessione(data.email, data.ID_cliente, data.ruolo);
-        router.push('/');
-      } else {
-        errore.value = 'Email non trovata. Se è la prima volta che entri, clicca sulla scheda "Registrati" per creare il tuo profilo!';
-      }
-    } else {
-      // REGISTRAZIONE PASSWORDLESS
-      if (ruoloScelto.value === 'atleta' && !idClienteScelto.value) {
-        errore.value = 'Seleziona il tuo ID Atleta per completare la registrazione.';
-        caricando.value = false;
-        return;
-      }
-
-      // Controlla se l'email esiste già
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        errore.value = 'Questa email è già registrata. Prova ad effettuare l\'accesso!';
-        caricando.value = false;
-        return;
-      }
-
-      // Crea il profilo utente su Firestore
-      const nuovoProfilo = {
-        email: emailPulita,
-        ID_cliente: ruoloScelto.value === 'atleta' ? idClienteScelto.value : '',
-        ruolo: ruoloScelto.value,
-        creatoIl: new Date().toISOString()
-      };
-
-      await setDoc(userDocRef, nuovoProfilo);
-      inizializzaSessione(nuovoProfilo.email, nuovoProfilo.ID_cliente, nuovoProfilo.ruolo);
-      
-      router.push('/');
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    
+    if (!user || !user.email) {
+      throw new Error("Impossibile recuperare l'email dal tuo account Google.");
     }
+    
+    const emailPulita = user.email.trim().toLowerCase();
+    
+    // 1. Verifica se è il Coach
+    if (emailPulita === 'visualgabri@gmail.com') {
+      inizializzaSessione(user.email, '1', 'coach');
+      router.push('/');
+      return;
+    }
+    
+    // 2. Cerca nella mappa dei clienti statica di authStore.js
+    const matchedId = Object.keys(MAPPA_CLIENTI).find(
+      id => MAPPA_CLIENTI[id].email && MAPPA_CLIENTI[id].email.toLowerCase().trim() === emailPulita
+    );
+    
+    if (matchedId) {
+      inizializzaSessione(user.email, matchedId, 'atleta');
+      router.push('/');
+      return;
+    }
+    
+    // 3. Cerca nella collection UTENTI di Firestore (per utenti registrati dinamicamente)
+    const userDocRef = doc(db, 'UTENTI', emailPulita);
+    const docSnap = await getDoc(userDocRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      inizializzaSessione(data.email, data.ID_cliente, data.ruolo);
+      router.push('/');
+      return;
+    }
+    
+    // 4. Utente non autorizzato: blocca e mostra errore
+    errore.value = "Utente non abilitato all'accesso. Contatta il Coach per registrare la tua email.";
+    await logout(); // Disconnette l'utente da Firebase Auth e pulisce la sessione locale
+    
   } catch (err) {
-    console.error("Errore autenticazione passwordless:", err);
-    errore.value = 'Si è verificato un errore durante l\'accesso. Verifica la tua connessione.';
+    console.error("Errore durante il login con Google:", err);
+    // Non mostrare l'errore se l'utente chiude semplicemente il popup
+    if (err.code !== 'auth/popup-closed-by-user') {
+      errore.value = "Si è verificato un errore durante l'accesso. Riprova.";
+    }
   } finally {
     caricando.value = false;
   }
@@ -387,20 +275,21 @@ const gestisciAutenticazione = async () => {
   color: #94a3b8 !important;
 }
 
-.bg-orange-lighten-5 {
-  background: rgba(249, 115, 22, 0.1) !important;
-  border: 1px solid rgba(249, 115, 22, 0.3) !important;
-  border-left: 4px solid #f97316 !important;
-  color: #ea580c !important;
+.glowing-btn {
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
+  transition: all 0.2s ease !important;
 }
 
-.coach-quick-btn {
-  box-shadow: 0 8px 20px -8px rgba(239, 108, 0, 0.5) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.google-btn {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-.coach-quick-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px -8px rgba(239, 108, 0, 0.6) !important;
+.google-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15) !important;
+}
+
+.google-btn:active {
+  transform: scale(0.97) !important;
 }
 </style>

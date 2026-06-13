@@ -134,6 +134,12 @@
               <th class="col-week">W4</th>
               <th class="col-week">W5</th>
               <th class="col-week">W6</th>
+              <th class="col-ins6">Ins 6</th>
+              <th class="col-fatica">Fatica W6</th>
+              <th class="col-peso-bil">Peso Bil.</th>
+              <th class="col-commenti">Commenti</th>
+              <th class="col-note-attr">Note Attrezzo</th>
+              <th class="col-note-gen-attr">Note Gen. Attrezzo</th>
               <th class="col-url">Url Video/GIF</th>
               <th class="col-elimina">No Elimina</th>
               <th class="col-id">Riga ID</th>
@@ -304,6 +310,78 @@
                   @input="segnaModificato(row)"
                   @keydown="handleKeydown($event, rowIndex, 'ins_week' + w)"
                   :ref="el => registerInputRef(el, rowIndex, 'ins_week' + w)"
+                  :disabled="row.isDeleted"
+                />
+              </td>
+              <!-- Ins 6 -->
+              <td class="col-ins6">
+                <input
+                  v-model="row.num_ins6"
+                  type="text"
+                  class="excel-input text-center"
+                  @input="segnaModificato(row)"
+                  @keydown="handleKeydown($event, rowIndex, 'num_ins6')"
+                  :ref="el => registerInputRef(el, rowIndex, 'num_ins6')"
+                  :disabled="row.isDeleted"
+                />
+              </td>
+              <!-- Fatica W6 -->
+              <td class="col-fatica">
+                <input
+                  v-model="row.num_faticaw6"
+                  type="text"
+                  class="excel-input text-center"
+                  @input="segnaModificato(row)"
+                  @keydown="handleKeydown($event, rowIndex, 'num_faticaw6')"
+                  :ref="el => registerInputRef(el, rowIndex, 'num_faticaw6')"
+                  :disabled="row.isDeleted"
+                />
+              </td>
+              <!-- Peso Bilanciere -->
+              <td class="col-peso-bil">
+                <input
+                  v-model="row.num_peso_bilanciere"
+                  type="text"
+                  class="excel-input text-center"
+                  @input="segnaModificato(row)"
+                  @keydown="handleKeydown($event, rowIndex, 'num_peso_bilanciere')"
+                  :ref="el => registerInputRef(el, rowIndex, 'num_peso_bilanciere')"
+                  :disabled="row.isDeleted"
+                />
+              </td>
+              <!-- Commenti -->
+              <td class="col-commenti">
+                <input
+                  v-model="row.des_commenti"
+                  type="text"
+                  class="excel-input"
+                  @input="segnaModificato(row)"
+                  @keydown="handleKeydown($event, rowIndex, 'des_commenti')"
+                  :ref="el => registerInputRef(el, rowIndex, 'des_commenti')"
+                  :disabled="row.isDeleted"
+                />
+              </td>
+              <!-- Note Attrezzo -->
+              <td class="col-note-attr">
+                <input
+                  v-model="row.des_note_attrezzo"
+                  type="text"
+                  class="excel-input"
+                  @input="segnaModificato(row)"
+                  @keydown="handleKeydown($event, rowIndex, 'des_note_attrezzo')"
+                  :ref="el => registerInputRef(el, rowIndex, 'des_note_attrezzo')"
+                  :disabled="row.isDeleted"
+                />
+              </td>
+              <!-- Note Gen Attrezzo -->
+              <td class="col-note-gen-attr">
+                <input
+                  v-model="row.des_note_gen_attr"
+                  type="text"
+                  class="excel-input"
+                  @input="segnaModificato(row)"
+                  @keydown="handleKeydown($event, rowIndex, 'des_note_gen_attr')"
+                  :ref="el => registerInputRef(el, rowIndex, 'des_note_gen_attr')"
                   :disabled="row.isDeleted"
                 />
               </td>
@@ -596,7 +674,8 @@ const editColumns = [
   'des_giorno', 'num_riga_giorno', 'des_esercizio', 'des_settore', 
   'des_settore_princ', 'alf_superserie', 'des_qta_report', 'des_rec_report', 
   'des_note', 'ins_week1', 'ins_week2', 'ins_week3', 'ins_week4', 
-  'ins_week5', 'ins_week6', 'UrlNormal', 'num_riga'
+  'ins_week5', 'ins_week6', 'num_ins6', 'num_faticaw6', 'num_peso_bilanciere',
+  'des_commenti', 'des_note_attrezzo', 'des_note_gen_attr', 'UrlNormal', 'no_elimina', 'num_riga'
 ];
 
 // Configurazione Atleti per dropdown
@@ -953,9 +1032,15 @@ const handlePaste = (event) => {
       ins_week4: cells[12] ? cells[12].trim() : '',
       ins_week5: cells[13] ? cells[13].trim() : '',
       ins_week6: cells[14] ? cells[14].trim() : '',
-      UrlNormal: cells[15] ? cells[15].trim() : '',
-      no_elimina: cells[16] ? cells[16].trim().toLowerCase() === 'true' : true,
-      num_riga: cells[17] ? cells[17].trim() : String(rigaCounter++),
+      num_ins6: cells[15] ? cells[15].trim() : '',
+      num_faticaw6: cells[16] ? cells[16].trim() : '',
+      num_peso_bilanciere: cells[17] ? cells[17].trim() : '',
+      des_commenti: cells[18] ? cells[18].trim() : '',
+      des_note_attrezzo: cells[19] ? cells[19].trim() : '',
+      des_note_gen_attr: cells[20] ? cells[20].trim() : '',
+      UrlNormal: cells[21] ? cells[21].trim() : '',
+      no_elimina: cells[22] ? cells[22].trim().toLowerCase() === 'true' : true,
+      num_riga: cells[23] ? cells[23].trim() : String(rigaCounter++),
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
     };
     records.value.push(newRow);
@@ -1197,6 +1282,12 @@ const esportaCSVLocale = () => {
 .col-rec { min-width: 90px; }
 .col-note { min-width: 200px; }
 .col-week { width: 80px; min-width: 80px; }
+.col-ins6 { width: 65px; min-width: 65px; }
+.col-fatica { width: 85px; min-width: 85px; }
+.col-peso-bil { width: 75px; min-width: 75px; }
+.col-commenti { min-width: 200px; width: 250px; }
+.col-note-attr { min-width: 200px; width: 250px; }
+.col-note-gen-attr { min-width: 200px; width: 250px; }
 .col-url { min-width: 180px; }
 .col-elimina { width: 70px; min-width: 70px; }
 .col-id { width: 80px; min-width: 80px; }

@@ -89,7 +89,7 @@
           <v-icon size="40" color="white">mdi-dumbbell</v-icon>
         </v-avatar>
         <h1 class="text-h4 font-weight-black text-slate-dark tracking-tight">
-          Benvenuto su <span class="text-gradient">Woapp</span>
+          Benvenuto su <span class="text-gradient">FlexCoach</span>
         </h1>
         <p class="text-subtitle-2 text-muted mt-1">Gestisci la tua forza, monitora i tuoi progressi.</p>
       </div>

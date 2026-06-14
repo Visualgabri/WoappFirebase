@@ -2216,6 +2216,14 @@ const proposteStoricoCalcolate = computed(() => {
       if (!isNaN(sNum) && sNum >= currentNumScheda) return; // Evita di duplicare la scheda corrente
       
       for (let w = 1; w <= 6; w++) {
+        // Salta la week 4 se è una settimana di scarico per evitare stime falsate di 1RM
+        if (w === 4) {
+          const repsW4Val = prevEx.reps_week4 || estraiRepsDaPrescrizione(prevEx.des_week4);
+          const repsW3Val = prevEx.reps_week3 || estraiRepsDaPrescrizione(prevEx.des_week3);
+          const isPastW4Scarico = repsW4Val && repsW3Val && parseInt(repsW4Val, 10) > parseInt(repsW3Val, 10);
+          if (isPastW4Scarico) continue;
+        }
+        
         const insVal = prevEx['ins_week' + w];
         if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
           const weightStr = estraiPesoDaInput(insVal);
@@ -2328,6 +2336,9 @@ const proposteStoricoCalcolate = computed(() => {
   
   // 2. Aggiungi la progressione del mesociclo attuale (settimane precedenti a targetW)
   for (let w = 1; w < targetW; w++) {
+    // Salta la week 4 se è una settimana di scarico per evitare stime falsate di 1RM
+    if (w === 4 && isWeek4Scarico.value) continue;
+    
     const insVal = workout.value['ins_week' + w];
     if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
       const weightStr = estraiPesoDaInput(insVal);

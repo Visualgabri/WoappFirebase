@@ -2216,6 +2216,83 @@
               </div>
             </div>
           </div>
+
+          <!-- Pannello Regolazione Sforzo/Fatica (Solo Coach) -->
+          <div v-if="ruolo === 'coach'" class="mt-4 pt-3 border-top" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
+            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-3">
+              ⚙️ REGOLAZIONE FATICA (SOLO COACH)
+            </span>
+            
+            <div class="d-flex flex-column gap-3">
+              <!-- Fatica Pesante W1 -->
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Pesante (W1)</span>
+                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità su proposta W1 se sforzo precedente è pesante</span>
+                </div>
+                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_W1_PCT = Math.max(0, FATICA_PESANTE_W1_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-minus</v-icon>
+                  </v-btn>
+                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_PESANTE_W1_PCT }}%</span>
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_W1_PCT = FATICA_PESANTE_W1_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-plus</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+
+              <!-- Fatica Devastante W1 -->
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Devastante (W1)</span>
+                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità su proposta W1 se sforzo precedente è devastante</span>
+                </div>
+                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_W1_PCT = Math.max(0, FATICA_DEVASTANTE_W1_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-minus</v-icon>
+                  </v-btn>
+                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_DEVASTANTE_W1_PCT }}%</span>
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_W1_PCT = FATICA_DEVASTANTE_W1_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-plus</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+
+              <!-- Fatica Pesante Storico -->
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Pesante (Storico)</span>
+                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità nel calcolo storico per sforzo pesante</span>
+                </div>
+                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_STORICO_PCT = Math.max(0, FATICA_PESANTE_STORICO_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-minus</v-icon>
+                  </v-btn>
+                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_PESANTE_STORICO_PCT }}%</span>
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_STORICO_PCT = FATICA_PESANTE_STORICO_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-plus</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+
+              <!-- Fatica Devastante Storico -->
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Devastante (Storico)</span>
+                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità nel calcolo storico per sforzo devastante</span>
+                </div>
+                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_STORICO_PCT = Math.max(0, FATICA_DEVASTANTE_STORICO_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-minus</v-icon>
+                  </v-btn>
+                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_DEVASTANTE_STORICO_PCT }}%</span>
+                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_STORICO_PCT = FATICA_DEVASTANTE_STORICO_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                    <v-icon size="10">mdi-plus</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+            </div>
+          </div>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -2227,7 +2304,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -2240,6 +2317,10 @@ const INCREMENTO_PESO_POST_SCARICO_PCT = incrementoPesoPostScaricoPctGlobal;
 const SOGLIA_FORZA_MANUBRI = sogliaForzaManubriGlobal;
 const INCREMENTO_MANUBRI_LEGGERO = incrementoManubriLeggeroGlobal;
 const INCREMENTO_MANUBRI_FORTE = incrementoManubriForteGlobal;
+const FATICA_PESANTE_W1_PCT = faticaPesanteW1PctGlobal;
+const FATICA_DEVASTANTE_W1_PCT = faticaDevastanteW1PctGlobal;
+const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
+const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
 
 const inizializzaParametriProposta = (atletaId) => {
   // Gestito a livello globale in authStore.js
@@ -2320,11 +2401,13 @@ const proposteStoricoCalcolate = computed(() => {
                       coeffFatica = 1.00;
                       spiegazioneFatica = 'Fatica media (0%)';
                     } else if (faticaStr.includes('pesant') || faticaStr === '4') {
-                      coeffFatica = 0.97;
-                      spiegazioneFatica = 'Fatica pesante (-3%)';
+                      const stPes = FATICA_PESANTE_STORICO_PCT.value;
+                      coeffFatica = 1 - (stPes / 100);
+                      spiegazioneFatica = `Fatica pesante (-${stPes}%)`;
                     } else if (faticaStr.includes('devastant') || faticaStr === '5') {
-                      coeffFatica = 0.94;
-                      spiegazioneFatica = 'Fatica devastante (-6%)';
+                      const stDev = FATICA_DEVASTANTE_STORICO_PCT.value;
+                      coeffFatica = 1 - (stDev / 100);
+                      spiegazioneFatica = `Fatica devastante (-${stDev}%)`;
                     }
                   }
                   proposedWeight *= coeffFatica;
@@ -3053,9 +3136,9 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, gio
   } else if (faticaLower === 'media') {
     adjustment = 1.0; // Sforzo medio: nessun depotenziamento, inizio solido
   } else if (faticaLower === 'pesante') {
-    adjustment = 0.98; // -2% per sforzo pesante
+    adjustment = 1 - (FATICA_PESANTE_W1_PCT.value / 100);
   } else if (faticaLower === 'devastante') {
-    adjustment = 0.95; // -5% per sforzo devastante
+    adjustment = 1 - (FATICA_DEVASTANTE_W1_PCT.value / 100);
   }
   
   proposedWeight = proposedWeight * adjustment;

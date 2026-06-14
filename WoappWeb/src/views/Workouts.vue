@@ -2067,19 +2067,76 @@
                 </v-btn>
               </div>
             </div>
-
-            <!-- Incremento Manubri Forte -->
+          </div>
+            
+            <v-divider class="my-3" style="border-color: rgba(255,255,255,0.06) !important;"></v-divider>
+            
+            <div class="mb-4 d-flex flex-column gap-3.5">
+              <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-1">⚡ Regolazione Sforzo / Fatica (%)</span>
+            
+            <!-- Fatica Pesante W1 -->
             <div class="d-flex align-center justify-space-between">
               <div>
-                <span class="text-body-2 font-weight-bold text-white d-block">Inc. Manubri Forte</span>
-                <span class="text-super-caption text-muted">Incremento se peso &gt; soglia</span>
+                <span class="text-body-2 font-weight-bold text-white d-block">Taglio Fatica Pesante (W1)</span>
+                <span class="text-super-caption text-muted">Penalità su proposta W1 se sforzo pesante</span>
               </div>
               <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoManubriForte = Math.max(0, incrementoManubriForte - 0.5)">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaPesanteW1Pct = Math.max(0, faticaPesanteW1Pct - 1)">
                   <v-icon size="14">mdi-minus</v-icon>
                 </v-btn>
-                <span class="font-weight-bold text-white text-caption">+{{ incrementoManubriForte }}kg</span>
-                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoManubriForte = incrementoManubriForte + 0.5">
+                <span class="font-weight-bold text-white text-caption">-{{ faticaPesanteW1Pct }}%</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaPesanteW1Pct = faticaPesanteW1Pct + 1">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Fatica Devastante W1 -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Taglio Fatica Devastante (W1)</span>
+                <span class="text-super-caption text-muted">Penalità su proposta W1 se sforzo devastante</span>
+              </div>
+              <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaDevastanteW1Pct = Math.max(0, faticaDevastanteW1Pct - 1)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </v-btn>
+                <span class="font-weight-bold text-white text-caption">-{{ faticaDevastanteW1Pct }}%</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaDevastanteW1Pct = faticaDevastanteW1Pct + 1">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Fatica Pesante Storico -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Taglio Fatica Pesante (Storico)</span>
+                <span class="text-super-caption text-muted">Penalità storica se sforzo pesante</span>
+              </div>
+              <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaPesanteStoricoPct = Math.max(0, faticaPesanteStoricoPct - 1)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </v-btn>
+                <span class="font-weight-bold text-white text-caption">-{{ faticaPesanteStoricoPct }}%</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaPesanteStoricoPct = faticaPesanteStoricoPct + 1">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Fatica Devastante Storico -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Taglio Fatica Devastante (Storico)</span>
+                <span class="text-super-caption text-muted">Penalità storica se sforzo devastante</span>
+              </div>
+              <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaDevastanteStoricoPct = Math.max(0, faticaDevastanteStoricoPct - 1)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </v-btn>
+                <span class="font-weight-bold text-white text-caption">-{{ faticaDevastanteStoricoPct }}%</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="faticaDevastanteStoricoPct = faticaDevastanteStoricoPct + 1">
                   <v-icon size="14">mdi-plus</v-icon>
                 </v-btn>
               </div>
@@ -2105,7 +2162,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2631,6 +2688,10 @@ const incrementoPostScaricoPct = incrementoPesoPostScaricoPctGlobal;
 const sogliaForzaManubri = sogliaForzaManubriGlobal;
 const incrementoManubriLeggero = incrementoManubriLeggeroGlobal;
 const incrementoManubriForte = incrementoManubriForteGlobal;
+const faticaPesanteW1Pct = faticaPesanteW1PctGlobal;
+const faticaDevastanteW1Pct = faticaDevastanteW1PctGlobal;
+const faticaPesanteStoricoPct = faticaPesanteStoricoPctGlobal;
+const faticaDevastanteStoricoPct = faticaDevastanteStoricoPctGlobal;
 
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {

@@ -116,7 +116,7 @@
     </v-bottom-navigation>
 
     <!-- WIDGET TIMER DI RECUPERO GLOBALE FLOATING (Premium UX) -->
-    <v-fade-transition>
+    <transition name="fade-instant-leave">
       <v-card
         v-if="activeTimer"
         :class="[
@@ -215,7 +215,7 @@
           </v-btn>
         </div>
       </v-card>
-    </v-fade-transition>
+    </transition>
 
     <!-- Pulsante Fluttuante Persistente Play (Fisso sopra la barra di navigazione) -->
     <v-fade-transition>
@@ -988,6 +988,20 @@ const elencoDischiGrafica = computed(() => {
   transition: opacity 0.20s ease;
 }
 .fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* Transizione per il timer globale: fade in all'entrata, istantanea all'uscita */
+.fade-instant-leave-enter-active {
+  transition: opacity 0.2s ease;
+}
+.fade-instant-leave-enter-from {
+  opacity: 0;
+}
+.fade-instant-leave-leave-active {
+  transition: none !important;
+}
+.fade-instant-leave-leave-to {
   opacity: 0;
 }
 </style>

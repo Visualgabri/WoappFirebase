@@ -75,6 +75,22 @@ async function commitBatchOperations(operations) {
   }
 }
 
+function areRecordsEqual(rec1, rec2) {
+  const keys1 = Object.keys(rec1);
+  const keys2 = Object.keys(rec2);
+  const allKeys = new Set([...keys1, ...keys2]);
+  
+  for (const key of allKeys) {
+    if (key === 'timestamp') continue; // Salta il timestamp automatico di importazione
+    const val1 = String(rec1[key] !== undefined && rec1[key] !== null ? rec1[key] : '').trim();
+    const val2 = String(rec2[key] !== undefined && rec2[key] !== null ? rec2[key] : '').trim();
+    if (val1 !== val2) {
+      return false;
+    }
+  }
+  return true;
+}
+
 async function run() {
   console.log(`[Import Ponte] Avvio sincronizzazione: idCliente=${idCliente}, numScheda=${numScheda}, tipo=${tipo}`);
   console.log(`[Import Ponte] Lettura del file Excel: ${EXCEL_PATH}`);
@@ -195,6 +211,7 @@ async function run() {
 
     const processedDocIds = new Set();
     let updatedCount = 0;
+    let skippedCount = 0;
     let insertedCount = 0;
     let replacedCount = 0;
 
@@ -221,6 +238,7 @@ async function run() {
         const cleanNewEx = String(excelRec.des_esercizio || '').trim().toLowerCase();
         
         let mergedRecord = { ...excelRec };
+        let shouldWrite = false;
         
         if (cleanExistingEx === cleanNewEx) {
           // 1. Stesso esercizio: preserviamo i log dell'atleta
@@ -229,18 +247,28 @@ async function run() {
               mergedRecord[field] = existing.data[field];
             }
           });
-          updatedCount++;
+          
+          // Verifica se ci sono reali cambiamenti (esclusi timestamp) per evitare di sprecare quote di scrittura
+          if (!areRecordsEqual(mergedRecord, existing.data)) {
+            shouldWrite = true;
+            updatedCount++;
+          } else {
+            skippedCount++;
+          }
         } else {
           // 2. Esercizio differente: sovrascriviamo e puliamo i log dell'atleta
           console.log(`  [Sostituzione] Riga ${key}: '${existing.data.des_esercizio}' -> '${excelRec.des_esercizio}'. Log atleta ripuliti.`);
+          shouldWrite = true;
           replacedCount++;
         }
         
-        operations.push({
-          ref: existing.ref,
-          type: 'set',
-          data: mergedRecord
-        });
+        if (shouldWrite) {
+          operations.push({
+            ref: existing.ref,
+            type: 'set',
+            data: mergedRecord
+          });
+        }
       } else {
         // 3. Nuovo esercizio non presente
         const docRef = storyboardRef.doc();
@@ -268,7 +296,8 @@ async function run() {
     });
 
     console.log(`[Import Ponte] Punti di riepilogo per il Refresh:`);
-    console.log(` - Record allineati (stesso es.): ${updatedCount}`);
+    console.log(` - Record già allineati (scrittura saltata): ${skippedCount}`);
+    console.log(` - Record aggiornati (prescrizioni cambiate, log preservati): ${updatedCount}`);
     console.log(` - Record aggiornati con cambio es. (log puliti): ${replacedCount}`);
     console.log(` - Nuovi record aggiunti: ${insertedCount}`);
     console.log(` - Vecchi record rimossi: ${deletedCount}`);

@@ -2069,6 +2069,9 @@
                 <div class="d-flex align-center gap-1.5 flex-wrap">
                   <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">Scheda {{ prop.numScheda }}</span>
                   <span class="text-super-caption text-muted" style="font-size: 0.58rem;">• W{{ prop.week }} ({{ prop.data }})</span>
+                  <v-chip v-if="prop.isSameWeek" color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">STESSA SETT.</v-chip>
+                  <v-chip v-else-if="prop.isSameReps" color="cyan-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">STESSE REPS</v-chip>
+                  <v-chip v-else-if="prop.isPeakWeek" color="purple-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">PICCO W6</v-chip>
                 </div>
                 <!-- Performance originale -->
                 <div class="text-caption font-weight-bold text-white mt-0.5" style="font-size: 0.75rem;">
@@ -2151,6 +2154,7 @@ const proposteStoricoCalcolate = computed(() => {
   if (!storicoEsercizioPerAiuto.value.length || !workout.value) return [];
   
   const targetReps = targetRepsAttive.value;
+  const targetW = aiutoWeek.value;
   const list = [];
   
   storicoEsercizioPerAiuto.value.forEach(prevEx => {
@@ -2164,20 +2168,29 @@ const proposteStoricoCalcolate = computed(() => {
             const repsVal = prevEx['reps_week' + w];
             const repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
             if (repsNum && repsNum > 0) {
-              const estimated1RM = weight * (1 + repsNum / 30);
-              const proposedWeight = estimated1RM / (1 + targetReps / 30);
-              const roundedProposed = Math.round(proposedWeight * 2) / 2;
+              const isSameWeek = w === targetW;
+              const isPeakWeek = w === 6;
+              const isSameReps = repsNum === targetReps;
               
-              list.push({
-                id: prevEx.id,
-                week: w,
-                numScheda: prevEx.num_scheda,
-                data: formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp),
-                pesoOriginale: weight,
-                repsOriginali: repsNum,
-                massimaleStimato: Math.round(estimated1RM * 10) / 10,
-                pesoProposto: roundedProposed
-              });
+              if (isSameWeek || isPeakWeek || isSameReps) {
+                const estimated1RM = weight * (1 + repsNum / 30);
+                const proposedWeight = estimated1RM / (1 + targetReps / 30);
+                const roundedProposed = Math.round(proposedWeight * 2) / 2;
+                
+                list.push({
+                  id: prevEx.id,
+                  week: w,
+                  numScheda: prevEx.num_scheda,
+                  data: formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp),
+                  pesoOriginale: weight,
+                  repsOriginali: repsNum,
+                  massimaleStimato: Math.round(estimated1RM * 10) / 10,
+                  pesoProposto: roundedProposed,
+                  isSameWeek,
+                  isPeakWeek,
+                  isSameReps
+                });
+              }
             }
           }
         }
@@ -2185,11 +2198,16 @@ const proposteStoricoCalcolate = computed(() => {
     }
   });
   
-  return list.sort((a, b) => {
+  list.sort((a, b) => {
     const diffScheda = parseInt(b.numScheda) - parseInt(a.numScheda);
     if (diffScheda !== 0) return diffScheda;
-    return b.week - a.week;
+    
+    const scoreA = (a.isSameWeek ? 3 : 0) + (a.isSameReps ? 2 : 0) + (a.isPeakWeek ? 1 : 0);
+    const scoreB = (b.isSameWeek ? 3 : 0) + (b.isSameReps ? 2 : 0) + (b.isPeakWeek ? 1 : 0);
+    return scoreB - scoreA;
   });
+  
+  return list.slice(0, 5);
 });
 
 const apriAiutoCaricoDettagliato = async (sett) => {

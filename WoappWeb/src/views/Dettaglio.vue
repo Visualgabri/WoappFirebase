@@ -712,7 +712,7 @@
                 </span>
                 <span v-else-if="getGhostLift(sett).isPostScarico" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-trending-up</v-icon>
-                  <span>Aumenta peso, metti più di W3 (Proposto: {{ getGhostLift(sett).pesoProposto }}kg) - Record W3:</span>
+                  <span>Aumenta peso, metti più di W3 (Proposto: <span class="text-green-accent-3 font-weight-black">{{ getGhostLift(sett).pesoProposto }}kg</span>) - Record W3:</span>
                   <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLift(sett).text }}
                   </span>
@@ -1894,6 +1894,9 @@ const router = useRouter();
 
 // Parametri di progressione allenamento
 const INCREMENTO_PESO_POST_SCARICO_PCT = ref(2.5); // Incremento percentuale consigliato dopo lo scarico (a parametro)
+const SOGLIA_FORZA_MANUBRI = ref(20); // Peso in kg sopra il quale l'atleta è considerato "forte" per l'esercizio con manubri
+const INCREMENTO_MANUBRI_LEGGERO = ref(1); // Incremento in kg per carichi manubri <= soglia (es. +1kg)
+const INCREMENTO_MANUBRI_FORTE = ref(2); // Incremento in kg per carichi manubri > soglia (es. +2kg)
 
 // Dialogs and States
 const dialogProgressioniPrecedente = ref(false);
@@ -4171,9 +4174,23 @@ const getGhostLiftStandard = (sett) => {
       
       // Se c'è stato lo scarico alla W4, proponiamo di aumentare il peso rispetto a W3
       if (isWeek4Scarico.value) {
-        const incremento = pesoW3 * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
-        // Arrotonda allo 0.5 kg più vicino per aderenza ai carichi reali in palestra
-        const pesoProposto = Math.round((pesoW3 + incremento) * 2) / 2;
+        // Verifica se l'esercizio è coi manubri basandosi su nome, note o dettagli
+        const exName = String(workout.value.des_esercizio || '').toLowerCase();
+        const exNote = String(workout.value.des_note_attrezzo || '').toLowerCase();
+        const exAttr = String(workout.value.des_note_gen_attr || '').toLowerCase();
+        const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
+        
+        let pesoProposto;
+        if (isManubri) {
+          // Incremento fisso per manubri: 2kg se forte (peso >= soglia), altrimenti 1kg
+          const incremento = pesoW3 >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
+          pesoProposto = pesoW3 + incremento;
+        } else {
+          // Incremento percentuale standard per bilancieri/macchine
+          const incremento = pesoW3 * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+          pesoProposto = Math.round((pesoW3 + incremento) * 2) / 2; // Arrotondato a 0.5kg
+        }
+        
         return {
           text: w3Ins,
           peso: pesoW3,

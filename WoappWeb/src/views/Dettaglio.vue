@@ -2052,16 +2052,16 @@
           <div v-if="!caricandoAiutoCarico && caricoIdealeConsigliato" class="mb-4 pa-3 rounded-lg text-left" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25) !important;">
             
             <!-- 1. VIA DI MEZZO (RACCOMANDATO) -->
-            <div class="mb-3 border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
-              <div class="d-flex align-center justify-space-between mb-1">
+            <div class="mb-3 border-bottom pb-2.5" style="border-color: rgba(255,255,255,0.06) !important;">
+              <div class="d-flex align-center justify-space-between mb-1.5">
                 <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
-                  💡 CARICO CONSIGLIATO (VIA DI MEZZO)
+                  💡 CARICO CONSIGLIATO (BILANCIATO)
                 </span>
                 <v-chip color="green" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
-                  SCELTA CONSIGLIATA
+                  SCELTA RACCOMANDATA
                 </v-chip>
               </div>
-              <div class="d-flex align-center justify-space-between mt-1">
+              <div class="d-flex align-center justify-space-between mt-1 mb-1.5">
                 <div class="text-h6 font-weight-black text-green-accent-3" style="line-height: 1.1;">
                   {{ caricoConsigliatoViaDiMezzo }} <span class="text-caption text-muted">KG</span>
                 </div>
@@ -2073,41 +2073,20 @@
                   style="font-size: 0.72rem; height: 28px;"
                   @click="applicaPropostaCaricoStorico(caricoConsigliatoViaDiMezzo)"
                 >
-                  Applica Via di Mezzo
+                  Applica Consigliato
                 </v-btn>
               </div>
-              <div class="text-super-caption text-slate mt-1" style="font-size: 0.58rem;">
-                Compromesso ottimale tra la progressione base e il potenziale teorico.
+              <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.4;">
+                {{ spiegazioneDinamicaConsigliata }}
               </div>
             </div>
 
-            <!-- 2. GIGLIA DUE COLONNE PER POTENZIALE E PRUDENZIALE -->
+            <!-- 2. GIGLIA DUE COLONNE PER SCHEDA E PERFORMANCE -->
             <v-row dense class="mx-0 mt-2 align-center">
-              <!-- POTENZIALE -->
+              <!-- PROGRESSIONE SCHEDA -->
               <v-col cols="6" class="pr-1">
                 <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
-                  <span class="text-super-caption text-orange font-weight-black uppercase d-block" style="font-size: 0.52rem;">🔥 POTENZIALE MASSIMO</span>
-                  <div class="text-subtitle-1 font-weight-black text-orange-lighten-2 mt-0.5" style="line-height: 1;">
-                    {{ caricoIdealeConsigliato.pesoProposto }} <span class="text-super-caption text-muted">KG</span>
-                  </div>
-                  <v-btn
-                    color="orange-darken-3"
-                    size="x-small"
-                    block
-                    class="font-weight-black text-white mt-2 text-none"
-                    rounded="md"
-                    style="font-size: 0.62rem; height: 22px;"
-                    @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
-                  >
-                    Applica Potenziale
-                  </v-btn>
-                </div>
-              </v-col>
-
-              <!-- PRUDENZIALE -->
-              <v-col cols="6" class="pl-1">
-                <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
-                  <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block" style="font-size: 0.52rem;">🛡️ PROGRESSIONE BASE</span>
+                  <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block" style="font-size: 0.52rem;">🛡️ PROGRESSIONE SCHEDA</span>
                   <div class="text-subtitle-1 font-weight-black text-slate-light mt-0.5" style="line-height: 1;">
                     {{ pesoPropostoDettaglio || '-' }} <span class="text-super-caption text-muted">KG</span>
                   </div>
@@ -2121,7 +2100,28 @@
                     :disabled="!pesoPropostoDettaglio"
                     @click="applicaPropostaCaricoStorico(pesoPropostoDettaglio)"
                   >
-                    Applica Base
+                    Applica Scheda
+                  </v-btn>
+                </div>
+              </v-col>
+
+              <!-- STIMA FORZA RECENTE -->
+              <v-col cols="6" class="pl-1">
+                <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                  <span class="text-super-caption text-orange font-weight-black uppercase d-block" style="font-size: 0.52rem;">📈 STIMA FORZA RECENTE</span>
+                  <div class="text-subtitle-1 font-weight-black text-orange-lighten-2 mt-0.5" style="line-height: 1;">
+                    {{ caricoIdealeConsigliato.pesoProposto }} <span class="text-super-caption text-muted">KG</span>
+                  </div>
+                  <v-btn
+                    color="orange-darken-3"
+                    size="x-small"
+                    block
+                    class="font-weight-black text-white mt-2 text-none"
+                    rounded="md"
+                    style="font-size: 0.62rem; height: 22px;"
+                    @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
+                  >
+                    Applica Stima
                   </v-btn>
                 </div>
               </v-col>
@@ -2129,9 +2129,9 @@
             
             <!-- INFO TEXT -->
             <div class="text-super-caption text-slate-light mt-3" style="font-size: 0.6rem; line-height: 1.4; opacity: 0.95;">
-              <strong>Stima Massimale (1RM):</strong> {{ caricoIdealeConsigliato.massimaleStimato }} kg basato su Scheda {{ caricoIdealeConsigliato.numScheda }} (W{{ caricoIdealeConsigliato.week }} - {{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps)
+              <strong>Dati Calcolo Forza:</strong> Scheda {{ caricoIdealeConsigliato.numScheda }} (W{{ caricoIdealeConsigliato.week }} - {{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps) • Massimale stimato: {{ caricoIdealeConsigliato.massimaleStimato }} kg
               <br/>
-              <strong>Fattori fisiologici:</strong> {{ spiegazioneFisiologicaConsigliata }}
+              <strong>Regolazioni fisiologiche:</strong> {{ spiegazioneFisiologicaConsigliata }}
             </div>
           </div>
 
@@ -2526,6 +2526,22 @@ const caricoConsigliatoViaDiMezzo = computed(() => {
     return Math.round(avg * 2) / 2; // Arrotonda al 0.5 kg
   }
   return potenziale || prudenziale || 0;
+});
+
+const spiegazioneDinamicaConsigliata = computed(() => {
+  const potenziale = caricoIdealeConsigliato.value ? caricoIdealeConsigliato.value.pesoProposto : null;
+  const programmato = pesoPropostoDettaglio.value;
+  const consigliato = caricoConsigliatoViaDiMezzo.value;
+  
+  if (potenziale === null || programmato === null) return '';
+  
+  if (potenziale > programmato) {
+    return `📈 La tua forza stimata recente (${potenziale} kg) è in crescita rispetto al carico programmato base. Ti consigliamo una via di mezzo di ${consigliato} kg per progredire in sicurezza senza stalli.`;
+  } else if (potenziale < programmato) {
+    return `⚠️ La stima sulle prestazioni recenti (${potenziale} kg) suggerisce prudenza rispetto al carico programmato base della scheda (${programmato} kg). Ti consigliamo una via di mezzo di ${consigliato} kg.`;
+  } else {
+    return `🎯 La progressione programmata coincide perfettamente con la stima della tua forza attuale: ${consigliato} kg.`;
+  }
 });
 
 const apriAiutoCaricoDettagliato = async (sett) => {

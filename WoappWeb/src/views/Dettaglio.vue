@@ -2749,7 +2749,7 @@ const parseTimeToSeconds = (tStr) => {
   if (!tStr) return 90;
 
   const parseSinglePartToSeconds = (p) => {
-    p = p.trim();
+    p = p.trim().toLowerCase();
     if (!p) return 0;
 
     // Se il formato è mm:ss (es. 1:30)
@@ -2758,13 +2758,12 @@ const parseTimeToSeconds = (tStr) => {
       return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
     }
 
-    // Minuti e secondi combinati (es. 1'30" o 1'30'')
-    if (p.includes("'") && (p.includes('"') || p.includes("''"))) {
-      const cleanPart = p.replace("''", '"');
-      const parts = cleanPart.split("'");
-      const mins = parseFloat(parts[0]) || 0;
-      const secs = parseFloat(parts[1].replace('"', '')) || 0;
-      return Math.round(mins * 60 + secs);
+    // Minuti e secondi combinati tramite separatore (es. 1'30", 1'45', 1m45, 1'30)
+    const matchMinSec = p.match(/^(\d+)\s*(?:'|m|min)\s*(\d+)/);
+    if (matchMinSec) {
+      const mins = parseInt(matchMinSec[1], 10) || 0;
+      const secs = parseInt(matchMinSec[2], 10) || 0;
+      return mins * 60 + secs;
     }
 
     // Solo secondi (es. 45" o 45'' o 45s)
@@ -2791,10 +2790,14 @@ const parseTimeToSeconds = (tStr) => {
 
   const clean = tStr.toLowerCase().replace('rec', '').replace('⏱️', '').trim();
 
-  // Verifica la presenza di intervalli/range tramite '-' o '/'
+  // Verifica la presenza di intervalli/range tramite '-', '–', '—' o '/'
   let parts = [];
   if (clean.includes('-')) {
     parts = clean.split('-');
+  } else if (clean.includes('–')) {
+    parts = clean.split('–');
+  } else if (clean.includes('—')) {
+    parts = clean.split('—');
   } else if (clean.includes('/')) {
     parts = clean.split('/');
   }

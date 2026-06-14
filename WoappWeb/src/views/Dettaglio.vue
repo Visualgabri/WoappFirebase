@@ -2389,6 +2389,13 @@ const proposteStoricoCalcolate = computed(() => {
                     
                   let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
                   
+                  // Limita il peso se a corpo libero e le reps salgono rispetto all'originale
+                  if (isCorpoLiberoEsercizio(workout.value) && targetReps > repsNum) {
+                    if (proposedWeight > weight) {
+                      proposedWeight = weight;
+                    }
+                  }
+                  
                   // 3. Gestione dello sforzo: Aggiustamento in base alla fatica registrata in Week 6 di quel mesociclo
                   const faticaStr = String(prevEx.num_faticaw6 || '').toLowerCase().trim();
                   let coeffFatica = 1.0;
@@ -3005,6 +3012,22 @@ const getAtletaInfo = (wObj) => {
   return { key, id: wObj[key] || '' };
 };
 
+const isCorpoLiberoEsercizio = (ex) => {
+  if (!ex) return false;
+  const name = String(ex.des_esercizio || '').toLowerCase();
+  const note = String(ex.des_note_attrezzo || '').toLowerCase();
+  const attr = String(ex.des_note_gen_attr || '').toLowerCase();
+  
+  const keywords = [
+    'corpo libero', 'corpolibero', 'trazioni', 'dip', 'piegamenti', 
+    'push up', 'push-up', 'crunch', 'plank', 'sit up', 'sit-up', 
+    'addominali', 'addome', 'leg raise', 'hyperextension', 'corpo_libero',
+    'dragon'
+  ];
+  
+  return keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k));
+};
+
 const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return null;
   const part = String(prescrizioneStr).split('|')[0].trim();
@@ -3104,6 +3127,13 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   // Calcola peso target rispettando il RIR target
   let proposedWeight = estimated1RM / (1 + (repsTarget + rirTarget) / 30);
   
+  // Limita il peso se a corpo libero e le reps salgono
+  if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
+    if (proposedWeight > pesoBase) {
+      proposedWeight = pesoBase;
+    }
+  }
+  
   // Arrotondamento standard a 1.25kg
   proposedWeight = Math.round(proposedWeight / 1.25) * 1.25;
   
@@ -3172,8 +3202,16 @@ const propostaWeek1 = computed(() => {
   const dataUltimaEx = previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp;
   const giorniTrascorsi = calcolaGiorniTrascorsi(dataUltimaEx);
   
-  const proposta = calcolaPropostaCarico(prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi);
+  let proposta = calcolaPropostaCarico(prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi);
   if (proposta === null) return null;
+
+  // Limita il peso se a corpo libero e le reps salgono rispetto a W6 precedente
+  if (isCorpoLiberoEsercizio(workout.value) && currW1Reps && prevW6Reps && currW1Reps > prevW6Reps) {
+    const prevWeightNum = parseFloat(String(prevW6Weight).replace(',', '.'));
+    if (!isNaN(prevWeightNum) && proposta > prevWeightNum) {
+      proposta = prevWeightNum;
+    }
+  }
 
   return {
     peso: proposta,
@@ -5073,6 +5111,13 @@ const getGhostLiftStandard = (sett) => {
         } else {
           const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
           pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
+        }
+        
+        // Se a corpo libero e le reps salgono tra la base e W5
+        const repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
+        const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + 5]) || 10;
+        if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
+          pesoProposto = pesoBase;
         }
         
         return {

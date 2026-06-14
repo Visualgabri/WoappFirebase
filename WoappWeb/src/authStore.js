@@ -526,105 +526,53 @@ if (selectedAthlete.value && selectedSheet.value) {
   syncStoryboardListener();
 }
 
-// Parametri di proposta carichi globali (sincronizzati per atleta)
-export const propostaBaseWeek2Global = ref(localStorage.getItem('propostaBaseWeek2_' + (localStorage.getItem('selectedAthlete') || '')) || 'W1');
-export const propostaBaseWeek5Global = ref(localStorage.getItem('propostaBaseWeek5_' + (localStorage.getItem('selectedAthlete') || '')) || 'W3');
-export const propostaBaseWeek6Global = ref(localStorage.getItem('propostaBaseWeek6_' + (localStorage.getItem('selectedAthlete') || '')) || 'W5');
-export const incrementoPesoPostScaricoPctGlobal = ref(parseFloat(localStorage.getItem('incrementoPesoPostScaricoPct_' + (localStorage.getItem('selectedAthlete') || '')) || '2.5'));
-export const sogliaForzaManubriGlobal = ref(parseFloat(localStorage.getItem('sogliaForzaManubri_' + (localStorage.getItem('selectedAthlete') || '')) || '20'));
-export const incrementoManubriLeggeroGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriLeggero_' + (localStorage.getItem('selectedAthlete') || '')) || '1'));
-export const incrementoManubriForteGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriForte_' + (localStorage.getItem('selectedAthlete') || '')) || '2'));
-export const faticaPesanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteW1Pct_' + (localStorage.getItem('selectedAthlete') || '')) || '2'));
-export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteW1Pct_' + (localStorage.getItem('selectedAthlete') || '')) || '5'));
-export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct_' + (localStorage.getItem('selectedAthlete') || '')) || '3'));
-export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct_' + (localStorage.getItem('selectedAthlete') || '')) || '6'));
+// Parametri di proposta carichi globali (generici per tutti gli atleti)
+const athleteIdForInit = localStorage.getItem('selectedAthlete') || '';
 
-// Watcher per ricaricare quando cambia l'atleta
-watch(selectedAthlete, (newAthlete) => {
-  if (newAthlete) {
-    propostaBaseWeek2Global.value = localStorage.getItem('propostaBaseWeek2_' + newAthlete) || 'W1';
-    propostaBaseWeek5Global.value = localStorage.getItem('propostaBaseWeek5_' + newAthlete) || 'W3';
-    propostaBaseWeek6Global.value = localStorage.getItem('propostaBaseWeek6_' + newAthlete) || 'W5';
-    
-    const pct = localStorage.getItem('incrementoPesoPostScaricoPct_' + newAthlete);
-    incrementoPesoPostScaricoPctGlobal.value = pct !== null ? parseFloat(pct) : 2.5;
-    
-    const soglia = localStorage.getItem('sogliaForzaManubri_' + newAthlete);
-    sogliaForzaManubriGlobal.value = soglia !== null ? parseFloat(soglia) : 20;
-    
-    const legg = localStorage.getItem('incrementoManubriLeggero_' + newAthlete);
-    incrementoManubriLeggeroGlobal.value = legg !== null ? parseFloat(legg) : 1;
-    
-    const forte = localStorage.getItem('incrementoManubriForte_' + newAthlete);
-    incrementoManubriForteGlobal.value = forte !== null ? parseFloat(forte) : 2;
-
-    const fpW1 = localStorage.getItem('faticaPesanteW1Pct_' + newAthlete);
-    faticaPesanteW1PctGlobal.value = fpW1 !== null ? parseFloat(fpW1) : 2;
-
-    const fdW1 = localStorage.getItem('faticaDevastanteW1Pct_' + newAthlete);
-    faticaDevastanteW1PctGlobal.value = fdW1 !== null ? parseFloat(fdW1) : 5;
-
-    const fpSt = localStorage.getItem('faticaPesanteStoricoPct_' + newAthlete);
-    faticaPesanteStoricoPctGlobal.value = fpSt !== null ? parseFloat(fpSt) : 3;
-
-    const fdSt = localStorage.getItem('faticaDevastanteStoricoPct_' + newAthlete);
-    faticaDevastanteStoricoPctGlobal.value = fdSt !== null ? parseFloat(fdSt) : 6;
-  }
-});
+export const propostaBaseWeek2Global = ref(localStorage.getItem('propostaBaseWeek2') || localStorage.getItem('propostaBaseWeek2_' + athleteIdForInit) || 'W1');
+export const propostaBaseWeek5Global = ref(localStorage.getItem('propostaBaseWeek5') || localStorage.getItem('propostaBaseWeek5_' + athleteIdForInit) || 'W3');
+export const propostaBaseWeek6Global = ref(localStorage.getItem('propostaBaseWeek6') || localStorage.getItem('propostaBaseWeek6_' + athleteIdForInit) || 'W5');
+export const incrementoPesoPostScaricoPctGlobal = ref(parseFloat(localStorage.getItem('incrementoPesoPostScaricoPct') || localStorage.getItem('incrementoPesoPostScaricoPct_' + athleteIdForInit) || '2.5'));
+export const sogliaForzaManubriGlobal = ref(parseFloat(localStorage.getItem('sogliaForzaManubri') || localStorage.getItem('sogliaForzaManubri_' + athleteIdForInit) || '20'));
+export const incrementoManubriLeggeroGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriLeggero') || localStorage.getItem('incrementoManubriLeggero_' + athleteIdForInit) || '1'));
+export const incrementoManubriForteGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriForte') || localStorage.getItem('incrementoManubriForte_' + athleteIdForInit) || '2'));
+export const faticaPesanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteW1Pct') || localStorage.getItem('faticaPesanteW1Pct_' + athleteIdForInit) || '2'));
+export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteW1Pct') || localStorage.getItem('faticaDevastanteW1Pct_' + athleteIdForInit) || '5'));
+export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
+export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
 
 // Watcher per salvare in localStorage quando cambiano le variabili globali
 watch(propostaBaseWeek2Global, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('propostaBaseWeek2_' + selectedAthlete.value, newVal);
-  }
+  localStorage.setItem('propostaBaseWeek2', newVal);
 });
 watch(propostaBaseWeek5Global, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('propostaBaseWeek5_' + selectedAthlete.value, newVal);
-  }
+  localStorage.setItem('propostaBaseWeek5', newVal);
 });
 watch(propostaBaseWeek6Global, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('propostaBaseWeek6_' + selectedAthlete.value, newVal);
-  }
+  localStorage.setItem('propostaBaseWeek6', newVal);
 });
 watch(incrementoPesoPostScaricoPctGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('incrementoPesoPostScaricoPct_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('incrementoPesoPostScaricoPct', String(newVal));
 });
 watch(sogliaForzaManubriGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('sogliaForzaManubri_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('sogliaForzaManubri', String(newVal));
 });
 watch(incrementoManubriLeggeroGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('incrementoManubriLeggero_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('incrementoManubriLeggero', String(newVal));
 });
 watch(incrementoManubriForteGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('incrementoManubriForte_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('incrementoManubriForte', String(newVal));
 });
 watch(faticaPesanteW1PctGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('faticaPesanteW1Pct_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('faticaPesanteW1Pct', String(newVal));
 });
 watch(faticaDevastanteW1PctGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('faticaDevastanteW1Pct_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('faticaDevastanteW1Pct', String(newVal));
 });
 watch(faticaPesanteStoricoPctGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('faticaPesanteStoricoPct_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('faticaPesanteStoricoPct', String(newVal));
 });
 watch(faticaDevastanteStoricoPctGlobal, (newVal) => {
-  if (selectedAthlete.value) {
-    localStorage.setItem('faticaDevastanteStoricoPct_' + selectedAthlete.value, String(newVal));
-  }
+  localStorage.setItem('faticaDevastanteStoricoPct', String(newVal));
 });
+

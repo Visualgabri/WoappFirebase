@@ -73,6 +73,242 @@
       </v-row>
     </v-card>
 
+    <!-- SEZIONE PARAMETRI ALGORITMO COACH (Mostrata sempre) -->
+    <v-card class="premium-card rounded-2xl text-left border pa-5 mb-5" elevation="2">
+      <div class="d-flex align-center mb-4">
+        <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-cog-outline</v-icon>
+        <div>
+          <h3 class="text-h6 font-weight-black text-slate-dark">Configurazione Algoritmo Progressioni ⚙️</h3>
+          <span class="text-caption text-muted">Personalizza le regole di proposta carico e le riduzioni per sforzo/fatica (comuni a tutti gli atleti).</span>
+        </div>
+      </div>
+
+      <v-row>
+        <!-- Colonna sinistra: Parametri Proposta Carico -->
+        <v-col cols="12" md="6" class="border-right-md">
+          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
+            🎯 Regole & Settimane di Riferimento
+          </div>
+          
+          <v-row dense>
+            <!-- W2 -->
+            <v-col cols="12" sm="4">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Rif. Proposta W2</span>
+              <v-select
+                v-model="propostaBaseWeek2"
+                :items="['W1', 'W2']"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-select>
+            </v-col>
+            
+            <!-- W5 -->
+            <v-col cols="12" sm="4">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Rif. Proposta W5</span>
+              <v-select
+                v-model="propostaBaseWeek5"
+                :items="['W3', 'W4', 'W5']"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-select>
+            </v-col>
+
+            <!-- W6 -->
+            <v-col cols="12" sm="4">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Rif. Proposta W6</span>
+              <v-select
+                v-model="propostaBaseWeek6"
+                :items="['W5', 'W6']"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-select>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-4 border-soft"></v-divider>
+
+          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
+            ⚖️ Incrementi Post-Scarico & Manubri
+          </div>
+          
+          <v-row dense>
+            <!-- Inc. Post Scarico -->
+            <v-col cols="12" sm="6">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Post Scarico %</span>
+              <v-text-field
+                v-model.number="INCREMENTO_PESO_POST_SCARICO_PCT"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Soglia Manubri Forte -->
+            <v-col cols="12" sm="6">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia Manubri Forte</span>
+              <v-text-field
+                v-model.number="SOGLIA_FORZA_MANUBRI"
+                type="number"
+                step="1"
+                min="0"
+                suffix="KG"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Inc. Manubri Leggero -->
+            <v-col cols="12" sm="6" class="mt-2">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Inc. Manubri Leggero</span>
+              <v-text-field
+                v-model.number="INCREMENTO_MANUBRI_LEGGERO"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="KG"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Inc. Manubri Forte -->
+            <v-col cols="12" sm="6" class="mt-2">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Inc. Manubri Forte</span>
+              <v-text-field
+                v-model.number="INCREMENTO_MANUBRI_FORTE"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="KG"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-col>
+
+        <!-- Colonna destra: Regolazione Sforzo/Fatica -->
+        <v-col cols="12" md="6">
+          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
+            📉 Riduzioni Fatica Muscolare Week 1 (W1)
+          </div>
+          
+          <v-row dense>
+            <!-- Pesante W1 -->
+            <v-col cols="12" sm="6">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Pesante W1 %</span>
+              <v-text-field
+                v-model.number="FATICA_PESANTE_W1_PCT"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Devastante W1 -->
+            <v-col cols="12" sm="6">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Devastante W1 %</span>
+              <v-text-field
+                v-model.number="FATICA_DEVASTANTE_W1_PCT"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-4 border-soft"></v-divider>
+
+          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
+            📚 Riduzioni Fatica da Storico (Deallenamento)
+          </div>
+
+          <v-row dense>
+            <!-- Pesante Storico -->
+            <v-col cols="12" sm="6">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Pesante Storico %</span>
+              <v-text-field
+                v-model.number="FATICA_PESANTE_STORICO_PCT"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Devastante Storico -->
+            <v-col cols="12" sm="6">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Devastante Storico %</span>
+              <v-text-field
+                v-model.number="FATICA_DEVASTANTE_STORICO_PCT"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-card>
+
     <!-- TABELLA EDITABILE SPREADSHEET -->
     <v-card
       v-if="schedaSelezionata && atletaSelezionato"
@@ -658,7 +894,37 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { ruolo, MAPPA_CLIENTI, ORDINE_ORIGINALE_ATLETI } from '../authStore.js';
+import {
+  ruolo,
+  MAPPA_CLIENTI,
+  ORDINE_ORIGINALE_ATLETI,
+  selectedAthlete,
+  setSelectedAthlete,
+  propostaBaseWeek2Global,
+  propostaBaseWeek5Global,
+  propostaBaseWeek6Global,
+  incrementoPesoPostScaricoPctGlobal,
+  sogliaForzaManubriGlobal,
+  incrementoManubriLeggeroGlobal,
+  incrementoManubriForteGlobal,
+  faticaPesanteW1PctGlobal,
+  faticaDevastanteW1PctGlobal,
+  faticaPesanteStoricoPctGlobal,
+  faticaDevastanteStoricoPctGlobal
+} from '../authStore.js';
+
+// Local mappings for global settings
+const propostaBaseWeek2 = propostaBaseWeek2Global;
+const propostaBaseWeek5 = propostaBaseWeek5Global;
+const propostaBaseWeek6 = propostaBaseWeek6Global;
+const INCREMENTO_PESO_POST_SCARICO_PCT = incrementoPesoPostScaricoPctGlobal;
+const SOGLIA_FORZA_MANUBRI = sogliaForzaManubriGlobal;
+const INCREMENTO_MANUBRI_LEGGERO = incrementoManubriLeggeroGlobal;
+const INCREMENTO_MANUBRI_FORTE = incrementoManubriForteGlobal;
+const FATICA_PESANTE_W1_PCT = faticaPesanteW1PctGlobal;
+const FATICA_DEVASTANTE_W1_PCT = faticaDevastanteW1PctGlobal;
+const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
+const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
 
 // Stato di base
 const listaAtleti = ref([]);
@@ -758,6 +1024,19 @@ onMounted(async () => {
   } catch (err) {
     console.error("Errore lettura METADATA clienti:", err);
   }
+
+  // Pre-popola l'atleta attivo se impostato
+  if (selectedAthlete.value) {
+    atletaSelezionato.value = selectedAthlete.value;
+    await caricaSchedeAtleta();
+  }
+});
+
+// Watcher per allineare l'atleta selezionato localmente con lo stato globale
+watch(atletaSelezionato, (newVal) => {
+  if (newVal && newVal !== selectedAthlete.value) {
+    setSelectedAthlete(newVal);
+  }
 });
 
 // Carica tutte le schede disponibili per l'atleta selezionato
@@ -783,7 +1062,6 @@ const caricaSchedeAtleta = async () => {
     // Auto-seleziona l'ultima scheda dell'atleta se disponibile
     if (listaSchede.value.length > 0) {
       schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
-      await caricaEsercizi();
     }
   } catch (err) {
     console.error("Errore caricamento schede:", err);
@@ -1349,5 +1627,17 @@ const esportaCSVLocale = () => {
   .table-container {
     max-height: calc(100vh - 360px);
   }
+}
+
+.border-right-md {
+  border-right: none;
+}
+@media (min-width: 960px) {
+  .border-right-md {
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+}
+.border-soft {
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 </style>

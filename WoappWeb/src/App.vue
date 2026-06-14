@@ -5,7 +5,7 @@
       v-if="utente"
       flat
       color="#0f172a"
-      class="border-bottom px-4"
+      class="border-bottom px-2 px-sm-4"
       density="compact"
       style="background-color: #0f172a !important; opacity: 1 !important; z-index: 1000 !important;"
     >
@@ -37,7 +37,7 @@
         icon
         color="orange-darken-3"
         variant="text"
-        class="rounded-lg mr-2"
+        class="rounded-lg mr-1.5 btn-header-compact"
         to="/admin"
         title="Pannello di Controllo Coach"
         id="btn-admin-panel"
@@ -50,7 +50,7 @@
         icon
         color="orange-lighten-2"
         variant="text"
-        class="rounded-lg mr-2"
+        class="rounded-lg mr-1.5 btn-header-compact"
         @click="mostraDialogGuida = true"
         title="Guida all'Uso e Regole di Progressione"
         id="btn-guida-uso"
@@ -62,7 +62,7 @@
         icon
         color="red-darken-2"
         variant="flat"
-        class="rounded-lg text-white btn-logout-compact"
+        class="rounded-lg text-white btn-header-compact"
         @click="eseguiLogout"
         id="btn-logout"
       >
@@ -766,10 +766,10 @@ const elencoDischiGrafica = computed(() => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-.btn-logout-compact {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
+.btn-header-compact {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
   padding: 0 !important;
 }
 
@@ -1003,5 +1003,24 @@ const elencoDischiGrafica = computed(() => {
 }
 .fade-instant-leave-leave-to {
   opacity: 0;
+}
+
+/* Fix Troncamento Header su Schermi Mobile */
+.v-app-bar {
+  padding: 0 4px !important;
+}
+.btn-header-compact {
+  margin-right: 6px !important; /* mr-1.5 */
+}
+</style>
+
+<style>
+.v-app-bar .v-app-bar-title {
+  min-width: 170px !important;
+  flex: 0 1 auto !important;
+}
+.v-app-bar .v-toolbar-title__placeholder {
+  overflow: visible !important;
+  text-overflow: clip !important;
 }
 </style>

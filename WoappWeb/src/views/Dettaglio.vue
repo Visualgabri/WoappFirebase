@@ -3110,8 +3110,8 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   const pesoBase = parseFloat(pesoStr);
   if (isNaN(pesoBase) || pesoBase <= 0) return null;
   
-  const repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10;
-  const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10;
+  const repsBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
+  const repsTarget = workout.value['reps_week' + targetWeek] ? parseInt(workout.value['reps_week' + targetWeek], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10);
   
   // Estrai RIR della settimana base
   const rirBaseStr = estraiRIRDaPrescrizione(workout.value['des_week' + baseWeekNum]);
@@ -5113,11 +5113,17 @@ const getGhostLiftStandard = (sett) => {
           pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
         }
         
-        // Se a corpo libero e le reps salgono tra la base e W5
-        const repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
-        const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + 5]) || 10;
+        // Se a corpo libero e le reps salgono tra la base e W5, non proponiamo aumento peso post-scarico (isPostScarico: false)
+        const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
+        const repsTarget = workout.value['reps_week' + 5] ? parseInt(workout.value['reps_week' + 5], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 5]) || 10);
+        
         if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
-          pesoProposto = pesoBase;
+          return {
+            text: baseIns,
+            peso: pesoBase,
+            label: baseW,
+            isPostScarico: false
+          };
         }
         
         return {

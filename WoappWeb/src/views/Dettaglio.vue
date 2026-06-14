@@ -726,7 +726,7 @@
                     {{ getGhostLift(sett).suggerito }}kg
                   </span>
                   <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
-                    (prec. W6: {{ getGhostLift(sett).text }}kg <span v-if="getGhostLift(sett).reps">x{{ getGhostLift(sett).reps }}</span>)
+                    (prec. W6: {{ getGhostLift(sett).text }}kg <span v-if="getGhostLift(sett).reps">x{{ getGhostLift(sett).reps }}</span><span v-if="getGhostLift(sett).fatica && getGhostLift(sett).fatica !== 'Non specificata'"> - sforzo: {{ getGhostLift(sett).fatica }}</span>)
                   </span>
                 </span>
                 <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
@@ -3047,29 +3047,27 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, gio
   
   // Regolazione in base alla percezione della fatica
   const faticaLower = (fatica || '').toLowerCase().trim();
-  let adjustment = 0.97; // Default: proposta prudenziale del -3% per iniziare leggeri
+  let adjustment = 1.0; // Default neutrale
   if (faticaLower === 'leggera' || faticaLower === 'bassa') {
-    adjustment = 0.99; // Molto leggero prima, quasi uguale (-1%)
+    adjustment = 1.0;
   } else if (faticaLower === 'media') {
-    adjustment = 0.97; // -3%
+    adjustment = 1.0; // Sforzo medio: nessun depotenziamento, inizio solido
   } else if (faticaLower === 'pesante') {
-    adjustment = 0.95; // -5%
+    adjustment = 0.98; // -2% per sforzo pesante
   } else if (faticaLower === 'devastante') {
-    adjustment = 0.92; // -8%
+    adjustment = 0.95; // -5% per sforzo devastante
   }
   
   proposedWeight = proposedWeight * adjustment;
 
-  // Riduzione prudenziale in base al tempo passato
+  // Riduzione prudenziale in base al tempo passato (più soft per evitare proposte troppo basse in fase di test)
   let dateFactor = 1.0;
   if (giorniTrascorsi > 180) {
-    dateFactor = 0.90;
+    dateFactor = 0.97; // max -3%
   } else if (giorniTrascorsi > 90) {
-    dateFactor = 0.93;
-  } else if (giorniTrascorsi > 60) {
-    dateFactor = 0.96;
+    dateFactor = 0.98; // -2%
   } else if (giorniTrascorsi > 30) {
-    dateFactor = 0.98;
+    dateFactor = 0.99; // -1%
   }
   proposedWeight = proposedWeight * dateFactor;
   
@@ -4829,6 +4827,7 @@ const getGhostLiftStandard = (sett) => {
     const p = propostaWeek1.value;
     const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
     const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
+    const faticaPrecedente = p ? p.fatica : (previousWorkout.value.num_faticaw6 || '');
 
     return { 
       text: String(prevW6Weight), 
@@ -4838,6 +4837,7 @@ const getGhostLiftStandard = (sett) => {
       reps: repsPrecedenti,
       suggerito: p ? p.peso : null,
       giorni: giorniTrascorsi,
+      fatica: faticaPrecedente,
       proposta: p,
       schedaPrec: previousWorkout.value.num_scheda
     };

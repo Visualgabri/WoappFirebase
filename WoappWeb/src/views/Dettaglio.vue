@@ -2217,78 +2217,233 @@
             </div>
           </div>
 
-          <!-- Pannello Regolazione Sforzo/Fatica (Solo Coach) -->
+          <!-- Pannello Controllo Coach (Solo Coach) -->
           <div v-if="ruolo === 'coach'" class="mt-4 pt-3 border-top" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
             <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-3">
-              ⚙️ REGOLAZIONE FATICA (SOLO COACH)
+              ⚙️ PANNELLO CONTROLLO COACH
             </span>
             
-            <div class="d-flex flex-column gap-3">
-              <!-- Fatica Pesante W1 -->
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Pesante (W1)</span>
-                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità su proposta W1 se sforzo precedente è pesante</span>
+            <!-- Gruppo 1: Parametri Proposta Carichi (W2 / W5 / W6) -->
+            <div class="mb-4">
+              <span class="text-super-caption text-orange-lighten-4 font-weight-black uppercase d-block mb-2" style="font-size: 0.62rem; opacity: 0.85;">
+                🏋️ Parametri Proposta Carichi
+              </span>
+              <div class="d-flex flex-column gap-3.5">
+                <!-- Riferimento Proposta W2 -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Riferimento Proposta W2</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Settimana base per suggerimento W2</span>
+                  </div>
+                  <div style="width: 120px;">
+                    <v-btn-toggle
+                      v-model="propostaBaseWeek2"
+                      mandatory
+                      selected-class="bg-orange-darken-3 text-white"
+                      density="compact"
+                      rounded="lg"
+                      class="w-100 card-glass border"
+                      style="height: 26px;"
+                    >
+                      <v-btn value="W1" style="min-width: 50%; font-size: 0.6rem; height: 24px;">W1</v-btn>
+                      <v-btn value="W6 Prec." style="min-width: 50%; font-size: 0.6rem; height: 24px;">W6 Prec.</v-btn>
+                    </v-btn-toggle>
+                  </div>
                 </div>
-                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_W1_PCT = Math.max(0, FATICA_PESANTE_W1_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-minus</v-icon>
-                  </v-btn>
-                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_PESANTE_W1_PCT }}%</span>
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_W1_PCT = FATICA_PESANTE_W1_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-plus</v-icon>
-                  </v-btn>
+
+                <!-- Riferimento Proposta W5 -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Riferimento Proposta W5</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Settimana base per suggerimento W5</span>
+                  </div>
+                  <div style="width: 120px;">
+                    <v-btn-toggle
+                      v-model="propostaBaseWeek5"
+                      mandatory
+                      selected-class="bg-orange-darken-3 text-white"
+                      density="compact"
+                      rounded="lg"
+                      class="w-100 card-glass border"
+                      style="height: 26px;"
+                    >
+                      <v-btn value="W1" style="min-width: 25%; font-size: 0.52rem; height: 24px; padding: 0;">W1</v-btn>
+                      <v-btn value="W2" style="min-width: 25%; font-size: 0.52rem; height: 24px; padding: 0;">W2</v-btn>
+                      <v-btn value="W3" style="min-width: 25%; font-size: 0.52rem; height: 24px; padding: 0;">W3</v-btn>
+                      <v-btn value="W4" style="min-width: 25%; font-size: 0.52rem; height: 24px; padding: 0;">W4</v-btn>
+                    </v-btn-toggle>
+                  </div>
+                </div>
+
+                <!-- Riferimento Proposta W6 -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Riferimento Proposta W6</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Settimana base per suggerimento W6</span>
+                  </div>
+                  <div style="width: 125px;">
+                    <v-btn-toggle
+                      v-model="propostaBaseWeek6"
+                      mandatory
+                      selected-class="bg-orange-darken-3 text-white"
+                      density="compact"
+                      rounded="lg"
+                      class="w-100 card-glass border"
+                      style="height: 26px;"
+                    >
+                      <v-btn value="W1" style="min-width: 20%; font-size: 0.48rem; height: 24px; padding: 0;">W1</v-btn>
+                      <v-btn value="W2" style="min-width: 20%; font-size: 0.48rem; height: 24px; padding: 0;">W2</v-btn>
+                      <v-btn value="W3" style="min-width: 20%; font-size: 0.48rem; height: 24px; padding: 0;">W3</v-btn>
+                      <v-btn value="W4" style="min-width: 20%; font-size: 0.48rem; height: 24px; padding: 0;">W4</v-btn>
+                      <v-btn value="W5" style="min-width: 20%; font-size: 0.48rem; height: 24px; padding: 0;">W5</v-btn>
+                    </v-btn-toggle>
+                  </div>
+                </div>
+
+                <!-- Incremento Post Scarico % -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Inc. Post Scarico (%)</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Incremento proposto post-scarico</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="INCREMENTO_PESO_POST_SCARICO_PCT = Math.max(0, INCREMENTO_PESO_POST_SCARICO_PCT - 0.5)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">{{ INCREMENTO_PESO_POST_SCARICO_PCT }}%</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="INCREMENTO_PESO_POST_SCARICO_PCT = INCREMENTO_PESO_POST_SCARICO_PCT + 0.5" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
+                </div>
+
+                <!-- Soglia Forza Manubri -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Soglia Manubri Forte</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Peso (kg) per considerare atleta forte</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="SOGLIA_FORZA_MANUBRI = Math.max(0, SOGLIA_FORZA_MANUBRI - 2)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">{{ SOGLIA_FORZA_MANUBRI }}kg</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="SOGLIA_FORZA_MANUBRI = SOGLIA_FORZA_MANUBRI + 2" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
+                </div>
+
+                <!-- Incremento Manubri Leggero -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Inc. Manubri Leggero</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Incremento se peso &lt;= soglia</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_LEGGERO = Math.max(0, INCREMENTO_MANUBRI_LEGGERO - 0.5)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">+{{ INCREMENTO_MANUBRI_LEGGERO }}kg</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_LEGGERO = INCREMENTO_MANUBRI_LEGGERO + 0.5" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
+                </div>
+
+                <!-- Incremento Manubri Forte -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Inc. Manubri Forte</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Incremento se peso &gt; soglia</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_FORTE = Math.max(0, INCREMENTO_MANUBRI_FORTE - 0.5)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">+{{ INCREMENTO_MANUBRI_FORTE }}kg</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_FORTE = INCREMENTO_MANUBRI_FORTE + 0.5" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
                 </div>
               </div>
+            </div>
+            
+            <v-divider class="my-3.5" style="border-color: rgba(255, 255, 255, 0.06) !important;"></v-divider>
 
-              <!-- Fatica Devastante W1 -->
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Devastante (W1)</span>
-                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità su proposta W1 se sforzo precedente è devastante</span>
+            <!-- Gruppo 2: Regolazione Sforzo / Fatica (%) -->
+            <div>
+              <span class="text-super-caption text-orange-lighten-4 font-weight-black uppercase d-block mb-2" style="font-size: 0.62rem; opacity: 0.85;">
+                ⚡ Regolazione Sforzo / Fatica (%)
+              </span>
+              <div class="d-flex flex-column gap-3">
+                <!-- Fatica Pesante W1 -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Pesante (W1)</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità su proposta W1 se sforzo precedente è pesante</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_W1_PCT = Math.max(0, FATICA_PESANTE_W1_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_PESANTE_W1_PCT }}%</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_W1_PCT = FATICA_PESANTE_W1_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
                 </div>
-                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_W1_PCT = Math.max(0, FATICA_DEVASTANTE_W1_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-minus</v-icon>
-                  </v-btn>
-                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_DEVASTANTE_W1_PCT }}%</span>
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_W1_PCT = FATICA_DEVASTANTE_W1_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-plus</v-icon>
-                  </v-btn>
-                </div>
-              </div>
 
-              <!-- Fatica Pesante Storico -->
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Pesante (Storico)</span>
-                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità nel calcolo storico per sforzo pesante</span>
+                <!-- Fatica Devastante W1 -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Devastante (W1)</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità su proposta W1 se sforzo precedente è devastante</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_W1_PCT = Math.max(0, FATICA_DEVASTANTE_W1_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_DEVASTANTE_W1_PCT }}%</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_W1_PCT = FATICA_DEVASTANTE_W1_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
                 </div>
-                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_STORICO_PCT = Math.max(0, FATICA_PESANTE_STORICO_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-minus</v-icon>
-                  </v-btn>
-                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_PESANTE_STORICO_PCT }}%</span>
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_STORICO_PCT = FATICA_PESANTE_STORICO_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-plus</v-icon>
-                  </v-btn>
-                </div>
-              </div>
 
-              <!-- Fatica Devastante Storico -->
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Devastante (Storico)</span>
-                  <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità nel calcolo storico per sforzo devastante</span>
+                <!-- Fatica Pesante Storico -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Pesante (Storico)</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità nel calcolo storico per sforzo pesante</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_STORICO_PCT = Math.max(0, FATICA_PESANTE_STORICO_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_PESANTE_STORICO_PCT }}%</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_PESANTE_STORICO_PCT = FATICA_PESANTE_STORICO_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
                 </div>
-                <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_STORICO_PCT = Math.max(0, FATICA_DEVASTANTE_STORICO_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-minus</v-icon>
-                  </v-btn>
-                  <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_DEVASTANTE_STORICO_PCT }}%</span>
-                  <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_STORICO_PCT = FATICA_DEVASTANTE_STORICO_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
-                    <v-icon size="10">mdi-plus</v-icon>
-                  </v-btn>
+
+                <!-- Fatica Devastante Storico -->
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <span class="text-body-2 font-weight-bold text-white d-block" style="font-size: 0.75rem !important;">Taglio Fatica Devastante (Storico)</span>
+                    <span class="text-super-caption text-muted" style="font-size: 0.55rem;">Penalità nel calcolo storico per sforzo devastante</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 110px; height: 30px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_STORICO_PCT = Math.max(0, FATICA_DEVASTANTE_STORICO_PCT - 1)" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-minus</v-icon>
+                    </v-btn>
+                    <span class="font-weight-bold text-white text-caption" style="font-size: 0.7rem !important;">-{{ FATICA_DEVASTANTE_STORICO_PCT }}%</span>
+                    <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="FATICA_DEVASTANTE_STORICO_PCT = FATICA_DEVASTANTE_STORICO_PCT + 1" style="width: 20px; height: 20px; min-width: 20px;">
+                      <v-icon size="10">mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
                 </div>
               </div>
             </div>

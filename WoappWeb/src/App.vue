@@ -144,7 +144,7 @@
                 color: timerThemeGlobal === 'solid-contrast' ? '#0f172a' : '#f8fafc'
               }"
             >
-              {{ activeTimer.remainingSeconds }}
+              {{ formattaTempo(activeTimer.remainingSeconds, true) }}
             </span>
           </v-progress-circular>
 
@@ -157,7 +157,7 @@
               }"
             >
               Recupero Attivo
-              <span v-if="timerThemeGlobal === 'accent-dark' && layoutEserciziGlobal !== 'super_compatto'"> • Totale: {{ activeTimer.totalSeconds }}s</span>
+              <span v-if="timerThemeGlobal === 'accent-dark' && layoutEserciziGlobal !== 'super_compatto'"> • Totale: {{ formattaTempo(activeTimer.totalSeconds) }}</span>
             </div>
             <div 
               class="text-truncate font-weight-bold" 
@@ -179,7 +179,7 @@
                 marginTop: '1px'
               }"
             >
-              Tempo: <span class="font-weight-black">{{ activeTimer.remainingSeconds }}s</span> di {{ activeTimer.totalSeconds }}s
+              Tempo: <span class="font-weight-black">{{ formattaTempo(activeTimer.remainingSeconds) }}</span> di {{ formattaTempo(activeTimer.totalSeconds) }}
             </div>
           </div>
         </div>
@@ -538,6 +538,22 @@ const timerSizeConfig = computed(() => {
     };
   }
 });
+
+// Funzione per formattare il tempo (es. se >= 60s mostra "1m 30s", altrimenti "45s")
+const formattaTempo = (secondi, compatto = false) => {
+  if (secondi === undefined || secondi === null) return '';
+  if (secondi < 60) {
+    return compatto ? `${secondi}` : `${secondi}s`;
+  }
+  const m = Math.floor(secondi / 60);
+  const s = secondi % 60;
+  if (compatto) {
+    const sStr = s < 10 ? `0${s}` : `${s}`;
+    return `${m}:${sStr}`;
+  } else {
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  }
+};
 
 // Gestione intelligente delle transizioni globali in base alla direzione
 router.beforeEach((to, from) => {

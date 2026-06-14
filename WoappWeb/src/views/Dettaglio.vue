@@ -710,6 +710,13 @@
                     {{ getGhostLift(sett).text }}
                   </span>
                 </span>
+                <span v-else-if="getGhostLift(sett).isPostScarico" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-trending-up</v-icon>
+                  <span>Aumenta peso, metti più di W3 (Proposto: {{ getGhostLift(sett).pesoProposto }}kg) - Record W3:</span>
+                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
+                    {{ getGhostLift(sett).text }}
+                  </span>
+                </span>
                 <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" :color="getGhostLift(sett).isScarico ? 'amber-lighten-2' : 'grey'">
                     {{ getGhostLift(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
@@ -726,7 +733,7 @@
                 <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-down</v-icon>
               </div>
               
-              <div v-if="getGhostLift(sett)" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
+              <div v-if="getGhostLift(sett) && getGhostLift(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
                 💡 Se leggero, fai più reps del previsto e segnalalo nel box qui sotto.
               </div>
             </div>
@@ -1884,6 +1891,9 @@ import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtl
 
 const route = useRoute();
 const router = useRouter();
+
+// Parametri di progressione allenamento
+const INCREMENTO_PESO_POST_SCARICO_PCT = ref(2.5); // Incremento percentuale consigliato dopo lo scarico (a parametro)
 
 // Dialogs and States
 const dialogProgressioniPrecedente = ref(false);
@@ -4157,7 +4167,23 @@ const getGhostLiftStandard = (sett) => {
       if (!w3Ins) return null;
       const pesoStrW3 = estraiPesoDaInput(w3Ins);
       if (!pesoStrW3) return null;
-      return { text: w3Ins, peso: parseFloat(pesoStrW3), label: 'W3' };
+      const pesoW3 = parseFloat(pesoStrW3);
+      
+      // Se c'è stato lo scarico alla W4, proponiamo di aumentare il peso rispetto a W3
+      if (isWeek4Scarico.value) {
+        const incremento = pesoW3 * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+        // Arrotonda allo 0.5 kg più vicino per aderenza ai carichi reali in palestra
+        const pesoProposto = Math.round((pesoW3 + incremento) * 2) / 2;
+        return {
+          text: w3Ins,
+          peso: pesoW3,
+          label: 'W3',
+          isPostScarico: true,
+          pesoProposto: pesoProposto
+        };
+      }
+      
+      return { text: w3Ins, peso: pesoW3, label: 'W3' };
     }
 
     // Per le altre week (2, 3, 4 non scarico, 6): propone la settimana precedente (sett - 1)

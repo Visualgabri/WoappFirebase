@@ -454,6 +454,20 @@
               In questo caso, il carico ombra proposto verrà ricalcolato scientificamente per farti terminare la serie con esattamente quel numero di ripetizioni di margine prima del cedimento, scavalcando la regola base della settimana.
             </p>
           </div>
+
+          <v-divider class="my-3 border-soft"></v-divider>
+
+          <div>
+            <h3 class="text-orange-lighten-2 font-weight-black mb-1.5" style="font-size: 0.95rem;">❓ Funzioni Speciali e Icone</h3>
+            <p class="mb-2">
+              All'interno della scheda di dettaglio dell'esercizio trovi strumenti avanzati per la gestione del log:
+            </p>
+            <ul class="pl-4 mb-0 d-flex flex-column gap-1">
+              <li><strong>Significato di "R?" (Recupero):</strong> È un pulsante segnalibro dentro la casella del peso. Cliccandolo, contrassegna la settimana in rosso come <em>"Da completare"</em> (aggiungendo la dicitura <code>[RECUPERA]</code>). È utile se salti una serie o devi rimandarla per recuperarla in seguito.</li>
+              <li><strong>Pulsante col punto interrogativo <code>?</code> (sul Ghost):</strong> Si trova accanto al suggerimento del carico ombra (ghost lift). Cliccandolo si apre un pop-up che ti mostra il calcolo matematico della progressione basato sulla cronologia del tuo percorso e ti permette di auto-compilare il peso proposto con un solo tocco.</li>
+              <li><strong>Storico Esercizio (Icona orologio):</strong> Mostra una cronologia (timeline o tabella) di come hai eseguito questo esercizio in tutti i mesocicli passati, con pesi, reps, note e fatica registrati in precedenza per confrontare i tuoi progressi nel tempo.</li>
+            </ul>
+          </div>
         </v-card-text>
 
         <v-card-actions class="px-2 pt-3 pb-0 border-top-soft">

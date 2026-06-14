@@ -2048,37 +2048,90 @@
             </div>
           </div>
 
-          <!-- Carico Ideale Consigliato (Fisiologia del Recupero) -->
-          <div v-if="!caricandoAiutoCarico && caricoIdealeConsigliato" class="mb-4 px-3 py-3 rounded-lg text-left" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25) !important;">
-            <div class="d-flex align-center justify-space-between mb-1.5">
-              <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
-                💡 CARICO IDEALE CONSIGLIATO (FISIOLOGIA)
-              </span>
-              <v-chip color="green" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
-                RACCOMANDATO
-              </v-chip>
-            </div>
+          <!-- Sezione Carichi Consigliati (Consigliato, Potenziale, Prudenziale) -->
+          <div v-if="!caricandoAiutoCarico && caricoIdealeConsigliato" class="mb-4 pa-3 rounded-lg text-left" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25) !important;">
             
-            <div class="d-flex align-center justify-space-between mt-1 mb-2.5">
-              <div class="text-h6 font-weight-black text-green-accent-3" style="line-height: 1.1;">
-                {{ caricoIdealeConsigliato.pesoProposto }} <span class="text-caption text-muted">KG</span>
+            <!-- 1. VIA DI MEZZO (RACCOMANDATO) -->
+            <div class="mb-3 border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                  💡 CARICO CONSIGLIATO (VIA DI MEZZO)
+                </span>
+                <v-chip color="green" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
+                  SCELTA CONSIGLIATA
+                </v-chip>
               </div>
-              <v-btn
-                color="green-darken-2"
-                size="small"
-                class="font-weight-black text-white px-3 text-none"
-                rounded="lg"
-                style="font-size: 0.72rem; height: 28px;"
-                @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
-              >
-                Applica Consigliato
-              </v-btn>
+              <div class="d-flex align-center justify-space-between mt-1">
+                <div class="text-h6 font-weight-black text-green-accent-3" style="line-height: 1.1;">
+                  {{ caricoConsigliatoViaDiMezzo }} <span class="text-caption text-muted">KG</span>
+                </div>
+                <v-btn
+                  color="green-darken-2"
+                  size="small"
+                  class="font-weight-black text-white px-3 text-none"
+                  rounded="lg"
+                  style="font-size: 0.72rem; height: 28px;"
+                  @click="applicaPropostaCaricoStorico(caricoConsigliatoViaDiMezzo)"
+                >
+                  Applica Via di Mezzo
+                </v-btn>
+              </div>
+              <div class="text-super-caption text-slate mt-1" style="font-size: 0.58rem;">
+                Compromesso ottimale tra la progressione base e il potenziale teorico.
+              </div>
             </div>
+
+            <!-- 2. GIGLIA DUE COLONNE PER POTENZIALE E PRUDENZIALE -->
+            <v-row dense class="mx-0 mt-2 align-center">
+              <!-- POTENZIALE -->
+              <v-col cols="6" class="pr-1">
+                <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                  <span class="text-super-caption text-orange font-weight-black uppercase d-block" style="font-size: 0.52rem;">🔥 POTENZIALE MASSIMO</span>
+                  <div class="text-subtitle-1 font-weight-black text-orange-lighten-2 mt-0.5" style="line-height: 1;">
+                    {{ caricoIdealeConsigliato.pesoProposto }} <span class="text-super-caption text-muted">KG</span>
+                  </div>
+                  <v-btn
+                    color="orange-darken-3"
+                    size="x-small"
+                    block
+                    class="font-weight-black text-white mt-2 text-none"
+                    rounded="md"
+                    style="font-size: 0.62rem; height: 22px;"
+                    @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
+                  >
+                    Applica Potenziale
+                  </v-btn>
+                </div>
+              </v-col>
+
+              <!-- PRUDENZIALE -->
+              <v-col cols="6" class="pl-1">
+                <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                  <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block" style="font-size: 0.52rem;">🛡️ PROGRESSIONE BASE</span>
+                  <div class="text-subtitle-1 font-weight-black text-slate-light mt-0.5" style="line-height: 1;">
+                    {{ pesoPropostoDettaglio || '-' }} <span class="text-super-caption text-muted">KG</span>
+                  </div>
+                  <v-btn
+                    color="grey-darken-3"
+                    size="x-small"
+                    block
+                    class="font-weight-black text-white mt-2 text-none"
+                    rounded="md"
+                    style="font-size: 0.62rem; height: 22px;"
+                    :disabled="!pesoPropostoDettaglio"
+                    @click="applicaPropostaCaricoStorico(pesoPropostoDettaglio)"
+                  >
+                    Applica Base
+                  </v-btn>
+                </div>
+              </v-col>
+            </v-row>
             
-            <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.45; opacity: 0.9;">
-              <strong>Base:</strong> Scheda {{ caricoIdealeConsigliato.numScheda }}, W{{ caricoIdealeConsigliato.week }} ({{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps)
+            <!-- INFO TEXT -->
+            <div class="text-super-caption text-slate-light mt-3" style="font-size: 0.6rem; line-height: 1.4; opacity: 0.95;">
+              <strong>Stima Massimale (1RM):</strong> {{ caricoIdealeConsigliato.massimaleStimato }} kg basato su Scheda {{ caricoIdealeConsigliato.numScheda }} (W{{ caricoIdealeConsigliato.week }} - {{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps)
               <br/>
-              <strong>Fisiologia del recupero:</strong> {{ spiegazioneFisiologicaConsigliata }}
+              <strong>Fattori fisiologici:</strong> {{ spiegazioneFisiologicaConsigliata }}
             </div>
           </div>
 
@@ -2216,14 +2269,6 @@ const proposteStoricoCalcolate = computed(() => {
       if (!isNaN(sNum) && sNum >= currentNumScheda) return; // Evita di duplicare la scheda corrente
       
       for (let w = 1; w <= 6; w++) {
-        // Salta la week 4 se è una settimana di scarico per evitare stime falsate di 1RM
-        if (w === 4) {
-          const repsW4Val = prevEx.reps_week4 || estraiRepsDaPrescrizione(prevEx.des_week4);
-          const repsW3Val = prevEx.reps_week3 || estraiRepsDaPrescrizione(prevEx.des_week3);
-          const isPastW4Scarico = repsW4Val && repsW3Val && parseInt(repsW4Val, 10) > parseInt(repsW3Val, 10);
-          if (isPastW4Scarico) continue;
-        }
-        
         const insVal = prevEx['ins_week' + w];
         if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
           const weightStr = estraiPesoDaInput(insVal);
@@ -2336,9 +2381,6 @@ const proposteStoricoCalcolate = computed(() => {
   
   // 2. Aggiungi la progressione del mesociclo attuale (settimane precedenti a targetW)
   for (let w = 1; w < targetW; w++) {
-    // Salta la week 4 se è una settimana di scarico per evitare stime falsate di 1RM
-    if (w === 4 && isWeek4Scarico.value) continue;
-    
     const insVal = workout.value['ins_week' + w];
     if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
       const weightStr = estraiPesoDaInput(insVal);
@@ -2463,6 +2505,27 @@ const spiegazioneFisiologicaConsigliata = computed(() => {
   }
   
   return parts.join(', ');
+});
+
+const pesoPropostoDettaglio = computed(() => {
+  if (!workout.value) return null;
+  const ghost = getGhostLift(aiutoWeek.value);
+  if (!ghost) return null;
+  if (ghost.isPostScarico && ghost.pesoProposto !== undefined) {
+    return ghost.pesoProposto;
+  }
+  return ghost.peso;
+});
+
+const caricoConsigliatoViaDiMezzo = computed(() => {
+  const potenziale = caricoIdealeConsigliato.value ? caricoIdealeConsigliato.value.pesoProposto : null;
+  const prudenziale = pesoPropostoDettaglio.value;
+  
+  if (potenziale !== null && prudenziale !== null && !isNaN(potenziale) && !isNaN(prudenziale)) {
+    const avg = (potenziale + prudenziale) / 2;
+    return Math.round(avg * 2) / 2; // Arrotonda al 0.5 kg
+  }
+  return potenziale || prudenziale || 0;
 });
 
 const apriAiutoCaricoDettagliato = async (sett) => {

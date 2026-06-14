@@ -717,6 +717,18 @@
                     {{ getGhostLift(sett).text }}
                   </span>
                 </span>
+                <span v-else-if="getGhostLift(sett).isWeek1" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
+                    mdi-ghost-outline
+                  </v-icon>
+                  <span>Proposto W1:</span>
+                  <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
+                    {{ getGhostLift(sett).suggerito }}kg
+                  </span>
+                  <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
+                    (prec. W6: {{ getGhostLift(sett).text }}kg <span v-if="getGhostLift(sett).reps">x{{ getGhostLift(sett).reps }}</span>)
+                  </span>
+                </span>
                 <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" :color="getGhostLift(sett).isScarico ? 'amber-lighten-2' : 'grey'">
                     {{ getGhostLift(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
@@ -726,7 +738,6 @@
                   </span>
                   <span class="font-weight-black ml-1" :class="getGhostLift(sett).isScarico ? 'text-white' : 'text-slate-light'" :style="getGhostLift(sett).isScarico ? (layoutCorrente === 'super_compatto' ? 'font-size: 0.7rem; letter-spacing: 0;' : 'font-size: 0.8rem; letter-spacing: 0;') : (layoutCorrente === 'super_compatto' ? 'font-size: 0.72rem;' : '')">
                     {{ getGhostLift(sett).text }}
-                    <span v-if="getGhostLift(sett).isWeek1 && getGhostLift(sett).reps" class="text-muted ml-0.5" style="text-transform: lowercase; font-size: 0.6rem;">(x{{ getGhostLift(sett).reps }})</span>
                   </span>
                 </span>
                 <div class="d-flex align-center gap-1">
@@ -4807,7 +4818,32 @@ const getGhostLiftStandard = (sett) => {
     return null;
   }
 
-  // Rileva se ci sono parentesi quadre in una qualsiasi delle settimane
+  // Per la Week 1, proponiamo in base al miglior carico del mesociclo precedente (num_ins6)
+  if (sett === 1) {
+    if (!previousWorkout.value) return null;
+    const prevW6Weight = previousWorkout.value.num_ins6;
+    if (!prevW6Weight) return null;
+    const pesoNum = parseFloat(String(prevW6Weight).replace(',', '.'));
+    if (isNaN(pesoNum) || pesoNum <= 0) return null;
+    
+    const p = propostaWeek1.value;
+    const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
+    const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
+
+    return { 
+      text: String(prevW6Weight), 
+      peso: pesoNum, 
+      label: 'W6 Prec.',
+      isWeek1: true,
+      reps: repsPrecedenti,
+      suggerito: p ? p.peso : null,
+      giorni: giorniTrascorsi,
+      proposta: p,
+      schedaPrec: previousWorkout.value.num_scheda
+    };
+  }
+
+  // Rileva si ci sono parentesi quadre in una qualsiasi delle settimane
   let haParentesiQuadre = false;
   for (let w = 1; w <= 6; w++) {
     const presc = String(workout.value['des_week' + w] || '');
@@ -4875,32 +4911,6 @@ const getGhostLiftStandard = (sett) => {
       }
     }
 
-    // Per la Week 1, peschiamo l'ultimo log della W6 del mesociclo precedente
-    if (sett === 1) {
-      if (!previousWorkout.value) return null;
-      const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
-      if (!prevW6Text) return null;
-      const pesoStr = estraiPesoDaInput(String(prevW6Text));
-      const pesoNum = pesoStr ? parseFloat(pesoStr) : parseFloat(String(prevW6Text).replace(',', '.'));
-      if (isNaN(pesoNum)) return null;
-      
-      const p = propostaWeek1.value;
-      const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
-      const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
-
-      return { 
-        text: prevW6Text, 
-        peso: pesoNum, 
-        label: 'W6 Prec.',
-        isWeek1: true,
-        reps: repsPrecedenti,
-        suggerito: p ? p.peso : null,
-        giorni: giorniTrascorsi,
-        proposta: p,
-        schedaPrec: previousWorkout.value.num_scheda
-      };
-    }
-
     // Fallback: Proponiamo l'ultima settimana loggata trovata
     if (prevIns) {
       return { text: prevIns, peso: prevPeso, label: `W${lastLoggedWeek}` };
@@ -4909,31 +4919,6 @@ const getGhostLiftStandard = (sett) => {
     return null;
   } else {
     // CASO 3: Caso normale (senza parentesi quadre)
-    // Per la Week 1, peschiamo l'ultimo log della W6 del mesociclo precedente
-    if (sett === 1) {
-      if (!previousWorkout.value) return null;
-      const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
-      if (!prevW6Text) return null;
-      const pesoStr = estraiPesoDaInput(String(prevW6Text));
-      const pesoNum = pesoStr ? parseFloat(pesoStr) : parseFloat(String(prevW6Text).replace(',', '.'));
-      if (isNaN(pesoNum)) return null;
-      
-      const p = propostaWeek1.value;
-      const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
-      const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
-
-      return { 
-        text: prevW6Text, 
-        peso: pesoNum, 
-        label: 'W6 Prec.',
-        isWeek1: true,
-        reps: repsPrecedenti,
-        suggerito: p ? p.peso : null,
-        giorni: giorniTrascorsi,
-        proposta: p,
-        schedaPrec: previousWorkout.value.num_scheda
-      };
-    }
 
     // Proposta specifica per Week 2 (configurabile)
     if (sett === 2) {
@@ -4941,11 +4926,11 @@ const getGhostLiftStandard = (sett) => {
       
       if (baseW === 'W6 Prec.') {
         if (previousWorkout.value) {
-          const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
+          const prevW6Text = previousWorkout.value.num_ins6 || inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6;
           if (prevW6Text) {
             const proposedVal = proponiProgressioneCaricoRIR(2, 6, String(prevW6Text));
             if (proposedVal !== null) {
-              return { text: prevW6Text, peso: proposedVal, label: 'W6 Prec.' };
+              return { text: String(prevW6Text), peso: proposedVal, label: 'W6 Prec.' };
             }
           }
         }

@@ -411,9 +411,10 @@
             <ul class="pl-4 mb-2 d-flex flex-column gap-1">
               <li><strong>Tab WORKOUTS:</strong> La tua schermata principale. Mostra l'elenco delle schede e i giorni di allenamento. Clicca su un giorno per iniziare.</li>
               <li><strong>Inserimento Log:</strong> Nella scheda dell'esercizio, digita il carico sollevato e le ripetizioni fatte (es. <code>10kg 10</code> o <code>20 20 18</code> per più serie) e tocca altrove per salvare.</li>
-              <li><strong>Carichi Ombra (Ghost Lift):</strong> L'app ti mostra un suggerimento sfocato (es. <code>15 kg</code>) basato sulla progressione. Toccalo per inserirlo all'istante!</li>
-              <li><strong>Timer Recupero:</strong> Appena salvi una serie, si avvia il timer di recupero in background.</li>
+              <li><strong>Carichi Ombra (Ghost Lift):</strong> L'app ti mostra un suggerimento sfocato (es. <code>15 kg</code>) basato sulla progressione delle settimane precedenti per indicarti il peso target della settimana.</li>
               <li><strong>Calcolatore Dischi:</strong> Tocca il peso suggerito o inserito per aprire il calcolatore e vedere esattamente quali dischi montare sul bilanciere.</li>
+              <li><strong>Scelta Allenamento:</strong> Per far sì che l'app proponga l'allenamento corretto da svolgere, clicca sul dettaglio del giorno WO e verifica quali settimane (week) sono già state completate.</li>
+              <li><strong>Durata Allenamento:</strong> Ricordati di inserire la data di inizio e la data di fine per calcolare quanto dura effettivamente l'allenamento. L'app utilizzerà questi dati in modo intelligente per mostrarti in seguito la media del tempo impiegato per quel giorno WO.</li>
               <li><strong>Chiudi Settimana:</strong> A fine settimana, premi il tasto "Chiudi Settimana" per archiviare la settimana e far calcolare le progressioni.</li>
             </ul>
           </div>

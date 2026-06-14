@@ -5084,7 +5084,18 @@ const getGhostLiftStandard = (sett) => {
       if (!w2Ins) return null;
       const pesoStrW2 = estraiPesoDaInput(w2Ins);
       if (!pesoStrW2) return null;
-      return { text: w2Ins, peso: parseFloat(pesoStrW2), label: 'W2', isScarico: true };
+      const pesoBase = parseFloat(pesoStrW2);
+      
+      const repsBase = workout.value['reps_week2'] ? parseInt(workout.value['reps_week2'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week2']) || 10);
+      const repsTarget = workout.value['reps_week4'] ? parseInt(workout.value['reps_week4'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week4']) || 10);
+      const isCorpoLiberoRepsSalgono = isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase;
+      
+      return { 
+        text: w2Ins, 
+        peso: pesoBase, 
+        label: 'W2', 
+        isScarico: !isCorpoLiberoRepsSalgono 
+      };
     }
 
     // Proposta specifica per Week 5 (configurabile)

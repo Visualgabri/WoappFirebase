@@ -164,7 +164,7 @@
               :style="{ 
                 fontSize: timerSizeConfig.fontSizeLabel, 
                 color: timerThemeGlobal === 'solid-contrast' ? '#0f172a' : '#f1f5f9',
-                maxWidth: layoutEserciziGlobal === 'super_compatto' ? '120px' : '180px'
+                maxWidth: layoutEserciziGlobal === 'super_compatto' ? '180px' : '260px'
               }"
             >
               {{ activeTimer.label }}
@@ -499,42 +499,42 @@ const timerSizeConfig = computed(() => {
   
   if (density === 'super_compatto') {
     return {
-      paddingClass: 'pa-2',
-      maxWidth: '340px',
-      circleSize: theme === 'accent-dark' ? 42 : theme === 'orange-glow' ? 38 : 36,
-      circleWidth: 3.2,
-      fontSizeProgress: '0.70rem',
-      fontSizeLabel: '0.76rem',
-      fontSizeSub: '0.60rem',
-      btnSize: '28px',
-      iconSize: 14,
-      bottomOffset: '148px'
+      paddingClass: 'pa-3',
+      maxWidth: '380px',
+      circleSize: theme === 'accent-dark' ? 50 : theme === 'orange-glow' ? 46 : 44,
+      circleWidth: 4.0,
+      fontSizeProgress: '0.82rem',
+      fontSizeLabel: '0.88rem',
+      fontSizeSub: '0.70rem',
+      btnSize: '32px',
+      iconSize: 18,
+      bottomOffset: '160px'
     };
   } else if (density === 'compatto') {
     return {
-      paddingClass: 'pa-2.5',
-      maxWidth: '375px',
-      circleSize: theme === 'accent-dark' ? 46 : theme === 'orange-glow' ? 42 : 40,
-      circleWidth: 3.8,
-      fontSizeProgress: '0.78rem',
-      fontSizeLabel: '0.84rem',
-      fontSizeSub: '0.64rem',
-      btnSize: '30px',
-      iconSize: 16,
-      bottomOffset: '160px'
+      paddingClass: 'pa-4',
+      maxWidth: '420px',
+      circleSize: theme === 'accent-dark' ? 56 : theme === 'orange-glow' ? 52 : 50,
+      circleWidth: 4.5,
+      fontSizeProgress: '0.90rem',
+      fontSizeLabel: '0.98rem',
+      fontSizeSub: '0.74rem',
+      btnSize: '36px',
+      iconSize: 20,
+      bottomOffset: '176px'
     };
   } else { // standard
     return {
-      paddingClass: theme === 'orange-glow' ? 'pa-3.5' : 'pa-3',
-      maxWidth: '410px',
-      circleSize: theme === 'accent-dark' ? 52 : theme === 'orange-glow' ? 48 : 46,
-      circleWidth: theme === 'accent-dark' ? 4.5 : 4.0,
-      fontSizeProgress: theme === 'accent-dark' ? '0.85rem' : '0.78rem',
-      fontSizeLabel: theme === 'orange-glow' ? '0.95rem' : '0.88rem',
-      fontSizeSub: '0.68rem',
-      btnSize: '32px',
-      iconSize: 18,
-      bottomOffset: '176px'
+      paddingClass: theme === 'orange-glow' ? 'pa-5' : 'pa-4',
+      maxWidth: '460px',
+      circleSize: theme === 'accent-dark' ? 64 : theme === 'orange-glow' ? 60 : 58,
+      circleWidth: theme === 'accent-dark' ? 5.2 : 4.8,
+      fontSizeProgress: theme === 'accent-dark' ? '1.05rem' : '0.98rem',
+      fontSizeLabel: theme === 'orange-glow' ? '1.12rem' : '1.04rem',
+      fontSizeSub: '0.78rem',
+      btnSize: '40px',
+      iconSize: 22,
+      bottomOffset: '196px'
     };
   }
 });
@@ -794,7 +794,7 @@ const elencoDischiGrafica = computed(() => {
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
-  max-width: 410px;
+  max-width: 480px;
   z-index: 999;
   display: flex;
   align-items: center;

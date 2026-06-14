@@ -4412,6 +4412,17 @@ const isWeekLogged = (w) => {
   return inputSettimane.value[w].ins || inputSettimane.value[w].reps;
 };
 
+const getTimestampUte = () => {
+  const now = new Date();
+  const gg = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${gg}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+};
+
 const aggiornaDatoECommit = async (updates) => {
   if (!workout.value) return;
   
@@ -4420,12 +4431,14 @@ const aggiornaDatoECommit = async (updates) => {
     const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
     
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const timestampUte = getTimestampUte();
     
     // Aggiorna oggetto reattivo locale
     for (const [campo, valore] of Object.entries(updates)) {
       workout.value[campo] = valore;
     }
     workout.value.timestamp = timestamp;
+    workout.value.timestamp_ute = timestampUte;
 
     // Aggiorna localStorage per supporto offline
     const key1 = `offline_storyboard_${routeIdLocal.value}`;
@@ -4434,7 +4447,7 @@ const aggiornaDatoECommit = async (updates) => {
     if (localData1) {
       try { currentUpdates = JSON.parse(localData1); } catch (e) {}
     }
-    currentUpdates = { ...currentUpdates, ...updates, timestamp };
+    currentUpdates = { ...currentUpdates, ...updates, timestamp, timestamp_ute: timestampUte };
     localStorage.setItem(key1, JSON.stringify(currentUpdates));
     
     if (workout.value.num_riga) {
@@ -4443,7 +4456,7 @@ const aggiornaDatoECommit = async (updates) => {
     }
 
     // Carica su Firestore inviando solo i campi modificati (evita conflitti offline/online)
-    await updateDoc(docRef, { ...updates, timestamp });
+    await updateDoc(docRef, { ...updates, timestamp, timestamp_ute: timestampUte });
     snackbarSalvataggio.value = true;
   } catch (error) {
     console.error("Errore salvataggio e commit:", error);
@@ -4552,14 +4565,15 @@ const aggiornaDatoPrecedenteECommit = async (updates) => {
   try {
     const docRef = doc(db, 'STORYBOARD', previousWorkout.value.id);
     const timestamp = Date.now();
+    const timestampUte = getTimestampUte();
     
     // Aggiorna l'oggetto locale
-    previousWorkout.value = { ...previousWorkout.value, ...updates, timestamp };
+    previousWorkout.value = { ...previousWorkout.value, ...updates, timestamp, timestamp_ute: timestampUte };
     
     // Aggiorna l'offline storage
     const key1 = `offline_storyboard_${previousWorkout.value.id}`;
     const currentUpdates = JSON.parse(localStorage.getItem(key1) || '{}');
-    Object.assign(currentUpdates, updates, { timestamp });
+    Object.assign(currentUpdates, updates, { timestamp, timestamp_ute: timestampUte });
     localStorage.setItem(key1, JSON.stringify(currentUpdates));
     
     if (previousWorkout.value.num_riga) {
@@ -4568,7 +4582,7 @@ const aggiornaDatoPrecedenteECommit = async (updates) => {
     }
 
     // Salva su Firestore
-    await updateDoc(docRef, { ...updates, timestamp });
+    await updateDoc(docRef, { ...updates, timestamp, timestamp_ute: timestampUte });
     
     // Mostra feedback
     snackbarMessaggio.value = "Modifica esercizio precedente salvata!";

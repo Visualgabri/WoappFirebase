@@ -48,6 +48,12 @@ args.forEach(arg => {
 async function run() {
   console.log(`[Firebase Export] Avvio esportazione...`);
   
+  // Impedisce l'esportazione totale se non ci sono filtri, per evitare consumi di quota eccessivi
+  if (!filterCliente && !filterScheda) {
+    console.error("[Firebase Export] Errore: L'esportazione totale senza filtri non è consentita per prevenire l'esaurimento delle quote Firebase.");
+    process.exit(1);
+  }
+  
   let query = db.collection(NOME_COLLEZIONE);
   
   // Applica i filtri direttamente alla query Firestore per ridurre l'uso di banda e velocizzare l'export

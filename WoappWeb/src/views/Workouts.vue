@@ -2919,6 +2919,17 @@ const applicaModificheLocali = (item) => {
   return { ...item, ...updates };
 };
 
+const getTimestampUte = () => {
+  const now = new Date();
+  const gg = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${gg}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+};
+
 // Ricalcola la settimana attiva globale in base alle settimane chiuse delle righe zero
 const calcolaSettimanaAttivaGlobale = (exercises) => {
   const activeDays = [...new Set(exercises
@@ -3197,6 +3208,7 @@ const impostaChiusuraGiorno = async (w, val) => {
   // Aggiorna localmente
   headerGiorno.value[campoCmp] = valString;
   headerGiorno.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  headerGiorno.value.timestamp_ute = getTimestampUte();
   
   // Salva offline nel localStorage per consentire il funzionamento offline istantaneo
   const key1 = `offline_storyboard_${headerGiorno.value.id}`;
@@ -3207,12 +3219,13 @@ const impostaChiusuraGiorno = async (w, val) => {
   }
   updates[campoCmp] = valString;
   updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  updates['timestamp_ute'] = getTimestampUte();
   localStorage.setItem(key1, JSON.stringify(updates));
 
   // Salva su Firebase in background
   try {
     const docRef = doc(db, 'STORYBOARD', headerGiorno.value.id);
-    await setDoc(docRef, { [campoCmp]: valString, timestamp: updates['timestamp'] }, { merge: true });
+    await setDoc(docRef, { [campoCmp]: valString, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
     console.log("Completamento giorno sincronizzato con Firebase!");
   } catch (err) {
     console.warn("Errore salvataggio completamento giorno Firebase:", err);
@@ -3274,6 +3287,7 @@ const segnaComeFattoRapido = async (ex) => {
   // Aggiorna lo stato locale immediatamente
   ex[campo] = nuovoValore;
   ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
   
   // Salva offline nel localStorage
   const key1 = `offline_storyboard_${ex.id}`;
@@ -3284,12 +3298,13 @@ const segnaComeFattoRapido = async (ex) => {
   }
   updates[campo] = nuovoValore;
   updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  updates['timestamp_ute'] = getTimestampUte();
   localStorage.setItem(key1, JSON.stringify(updates));
 
   // Salva su Firebase in background
   try {
     const docRef = doc(db, 'STORYBOARD', ex.id);
-    await setDoc(docRef, { [campo]: nuovoValore, timestamp: updates['timestamp'] }, { merge: true });
+    await setDoc(docRef, { [campo]: nuovoValore, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
     console.log("Stato esercizio rapido salvato in Firebase!");
   } catch (err) {
     console.warn("Errore salvataggio esercizio rapido Firebase:", err);
@@ -3870,7 +3885,9 @@ const ripristinaMesociclo = async () => {
       }
       
       updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      updates['timestamp_ute'] = getTimestampUte();
       ex['timestamp'] = updates['timestamp'];
+      ex['timestamp_ute'] = updates['timestamp_ute'];
       
       const key = `offline_storyboard_${ex.id}`;
       localStorage.setItem(key, JSON.stringify(updates));
@@ -3969,6 +3986,8 @@ const impostaRecuperoValore = (valoreAttuale, attivo) => {
 const salvaValoreEsercizio = async (ex, w, valore) => {
   const campo = 'ins_week' + w;
   ex[campo] = valore;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
   
   const key1 = `offline_storyboard_${ex.id}`;
   let updates = {};
@@ -3978,11 +3997,12 @@ const salvaValoreEsercizio = async (ex, w, valore) => {
   }
   updates[campo] = valore;
   updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  updates['timestamp_ute'] = getTimestampUte();
   localStorage.setItem(key1, JSON.stringify(updates));
 
   try {
     const docRef = doc(db, 'STORYBOARD', ex.id);
-    await setDoc(docRef, { [campo]: valore, timestamp: updates['timestamp'] }, { merge: true });
+    await setDoc(docRef, { [campo]: valore, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
     console.log("Valore esercizio salvato con successo!");
   } catch (err) {
     console.warn("Errore salvataggio esercizio:", err);

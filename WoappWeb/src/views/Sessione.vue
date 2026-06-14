@@ -512,6 +512,17 @@ const applicaModificheLocali = (item) => {
   return { ...item, ...updates };
 };
 
+const getTimestampUte = () => {
+  const now = new Date();
+  const gg = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${gg}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+};
+
 // Helper per salvare una modifica offline nel localStorage
 const salvaModificaLocale = (campo, valore) => {
   const key1 = `offline_storyboard_${routeId.value}`;
@@ -522,6 +533,7 @@ const salvaModificaLocale = (campo, valore) => {
   }
   updates[campo] = valore;
   updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  updates['timestamp_ute'] = getTimestampUte();
   localStorage.setItem(key1, JSON.stringify(updates));
 };
 
@@ -1114,9 +1126,11 @@ const setWeekCompleted = async (w, val) => {
   
   const valString = val ? 'true' : 'false';
   const campo = 'cmp' + w;
+  const timestampUte = getTimestampUte();
   
   // 1. Aggiorna lo stato locale e il localStorage immediatamente (Optimistic Update)
   workout.value[campo] = valString;
+  workout.value.timestamp_ute = timestampUte;
   salvaModificaLocale(campo, valString);
   snackbar.value = true;
 
@@ -1124,6 +1138,7 @@ const setWeekCompleted = async (w, val) => {
   try {
     const docRef = doc(db, 'STORYBOARD', routeId.value);
     workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    workout.value.timestamp_ute = timestampUte;
     
     await setDoc(docRef, workout.value, { merge: true });
     console.log("Firestore completamento week sincronizzato con successo!");
@@ -1140,14 +1155,17 @@ const salvaDato = async (campo, valore) => {
     try {
       vibraTattile(20);
       
+      const timestampUte = getTimestampUte();
       // 1. Aggiorna lo stato locale e il localStorage immediatamente
       workout.value[campo] = valore;
+      workout.value.timestamp_ute = timestampUte;
       salvaModificaLocale(campo, valore);
       snackbar.value = true;
 
       // 2. Prova ad aggiornare Firestore in background (con setDoc self-healing)
       const docRef = doc(db, 'STORYBOARD', routeId.value);
       workout.value.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      workout.value.timestamp_ute = timestampUte;
 
       await setDoc(docRef, workout.value, { merge: true });
       console.log("Firestore dato sincronizzato con successo!");

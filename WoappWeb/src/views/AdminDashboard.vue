@@ -143,6 +143,7 @@
               <th class="col-url">Url Video/GIF</th>
               <th class="col-elimina">No Elimina</th>
               <th class="col-id">Riga ID</th>
+              <th class="col-timestamp-ute">Aggiornato Utente</th>
             </tr>
           </thead>
           <tbody>
@@ -419,6 +420,18 @@
                   :disabled="row.isDeleted"
                 />
               </td>
+              <!-- Timestamp Ute -->
+              <td class="col-timestamp-ute">
+                <input
+                  v-model="row.timestamp_ute"
+                  type="text"
+                  class="excel-input text-center text-muted"
+                  @input="segnaModificato(row)"
+                  @keydown="handleKeydown($event, rowIndex, 'timestamp_ute')"
+                  :ref="el => registerInputRef(el, rowIndex, 'timestamp_ute')"
+                  :disabled="row.isDeleted"
+                />
+              </td>
             </tr>
           </tbody>
         </table>
@@ -675,7 +688,7 @@ const editColumns = [
   'des_settore_princ', 'alf_superserie', 'des_qta_report', 'des_rec_report', 
   'des_note', 'ins_week1', 'ins_week2', 'ins_week3', 'ins_week4', 
   'ins_week5', 'ins_week6', 'num_ins6', 'num_faticaw6', 'num_peso_bilanciere',
-  'des_commenti', 'des_note_attrezzo', 'des_note_gen_attr', 'UrlNormal', 'no_elimina', 'num_riga'
+  'des_commenti', 'des_note_attrezzo', 'des_note_gen_attr', 'UrlNormal', 'no_elimina', 'num_riga', 'timestamp_ute'
 ];
 
 // Configurazione Atleti per dropdown
@@ -1291,6 +1304,7 @@ const esportaCSVLocale = () => {
 .col-url { min-width: 180px; }
 .col-elimina { width: 70px; min-width: 70px; }
 .col-id { width: 80px; min-width: 80px; }
+.col-timestamp-ute { width: 140px; min-width: 140px; }
 
 /* Barra azioni fluttuante in basso */
 .action-bar-floating {

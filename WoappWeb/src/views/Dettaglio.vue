@@ -2027,9 +2027,11 @@
     <v-dialog v-model="dialogAiutoCarico" max-width="500" scrollable>
       <v-card class="card-glass-dark rounded-2xl border border-soft overflow-hidden animate-fade-in" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.96) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
         <v-card-title class="px-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900" style="min-height: 40px; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;">
-          <div class="d-flex align-center gap-2">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
             <v-icon color="orange" size="18">mdi-calculator</v-icon>
-            <span class="font-weight-black text-white" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">Aiuto Proposta Carico - W{{ aiutoWeek }}</span>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">
+              Proposta Carico: {{ workout?.des_esercizio }} - W{{ aiutoWeek }}
+            </span>
           </div>
           <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogAiutoCarico = false">
             <v-icon size="18">mdi-close</v-icon>
@@ -2043,6 +2045,40 @@
             <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mt-0.5">
               {{ targetRepsAttive }} Reps
               <span class="text-caption text-slate ml-1" style="font-weight-normal; font-size: 0.72rem;">(Prescrizione: {{ targetPrescrizioneAttiva }})</span>
+            </div>
+          </div>
+
+          <!-- Carico Ideale Consigliato (Fisiologia del Recupero) -->
+          <div v-if="!caricandoAiutoCarico && caricoIdealeConsigliato" class="mb-4 px-3 py-3 rounded-lg text-left" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25) !important;">
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                💡 CARICO IDEALE CONSIGLIATO (FISIOLOGIA)
+              </span>
+              <v-chip color="green" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
+                RACCOMANDATO
+              </v-chip>
+            </div>
+            
+            <div class="d-flex align-center justify-space-between mt-1 mb-2.5">
+              <div class="text-h6 font-weight-black text-green-accent-3" style="line-height: 1.1;">
+                {{ caricoIdealeConsigliato.pesoProposto }} <span class="text-caption text-muted">KG</span>
+              </div>
+              <v-btn
+                color="green-darken-2"
+                size="small"
+                class="font-weight-black text-white px-3 text-none"
+                rounded="lg"
+                style="font-size: 0.72rem; height: 28px;"
+                @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
+              >
+                Applica Consigliato
+              </v-btn>
+            </div>
+            
+            <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.45; opacity: 0.9;">
+              <strong>Base:</strong> Scheda {{ caricoIdealeConsigliato.numScheda }}, W{{ caricoIdealeConsigliato.week }} ({{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps)
+              <br/>
+              <strong>Fisiologia del recupero:</strong> {{ spiegazioneFisiologicaConsigliata }}
             </div>
           </div>
 
@@ -2060,16 +2096,21 @@
 
           <!-- Lista Proposte Calcolate dallo Storico -->
           <div v-else class="d-flex flex-column gap-2.5 text-left">
-            <p class="text-super-caption text-muted mb-1 px-1" style="font-size: 0.62rem; line-height: 1.35;">
-              Il sistema stima il tuo massimale (1RM) dalle passate esecuzioni (formula di Epley) e calcola il carico ideale per il target attuale di <strong>{{ targetRepsAttive }} reps</strong>.
+            <p class="text-super-caption text-muted mb-2 px-1" style="font-size: 0.62rem; line-height: 1.35;">
+              Esecuzioni passate e del mesociclo attuale (ordinate per carico crescente), corrette per <strong>deallenamento</strong> e <strong>sforzo</strong>:
             </p>
 
             <div v-for="prop in proposteStoricoCalcolate" :key="prop.id + '_' + prop.week" class="border border-soft rounded-lg bg-slate-950 pa-2.5 d-flex align-center justify-space-between" style="border-color: rgba(255, 255, 255, 0.08) !important;">
               <div class="flex-grow-1 mr-2" style="min-width: 0;">
                 <div class="d-flex align-center gap-1.5 flex-wrap">
-                  <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">Scheda {{ prop.numScheda }}</span>
-                  <span class="text-super-caption text-muted" style="font-size: 0.58rem;">• W{{ prop.week }} ({{ prop.data }})</span>
-                  <v-chip v-if="prop.isSameWeek" color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">STESSA SETT.</v-chip>
+                  <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                    {{ prop.isCurrentMesocycle ? 'MESOCICLO ATTUALE' : 'Scheda ' + prop.numScheda }}
+                  </span>
+                  <span class="text-super-caption text-muted" style="font-size: 0.58rem;">
+                    • W{{ prop.week }} ({{ prop.data }}<template v-if="!prop.isCurrentMesocycle"> - <span class="text-orange-lighten-2 font-weight-bold">{{ prop.tempoPassato }}</span></template>)
+                  </span>
+                  <v-chip v-if="prop.isCurrentMesocycle" color="teal-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">PROGRESSIONE DIRETTA</v-chip>
+                  <v-chip v-else-if="prop.isSameWeek" color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">STESSA SETT.</v-chip>
                   <v-chip v-else-if="prop.isSameReps" color="cyan-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">STESSE REPS</v-chip>
                   <v-chip v-else-if="prop.isPeakWeek" color="purple-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 14px; padding: 0 4px;">PICCO W6</v-chip>
                 </div>
@@ -2077,9 +2118,18 @@
                 <div class="text-caption font-weight-bold text-white mt-0.5" style="font-size: 0.75rem;">
                   Eseguito: <span class="text-slate-light font-weight-black">{{ prop.pesoOriginale }} kg</span> x <span class="text-slate-light font-weight-black">{{ prop.repsOriginali }} reps</span>
                 </div>
-                <!-- Dettaglio stima 1RM -->
-                <div class="text-super-caption text-muted mt-0.5" style="font-size: 0.58rem;">
-                  1RM Stimato: <strong class="text-slate-dark">{{ prop.massimaleStimato }} kg</strong>
+                <!-- Dettaglio stima 1RM e Aggiustamenti fisiologici -->
+                <div class="text-super-caption text-muted mt-0.5" style="font-size: 0.58rem; line-height: 1.35;">
+                  1RM: <strong class="text-slate-dark mr-2">{{ prop.massimaleStimato }} kg</strong>
+                  <span class="text-slate-dark">
+                    <template v-if="prop.isCurrentMesocycle">
+                      Progressione diretta (Mesociclo in corso)
+                    </template>
+                    <template v-else>
+                      Recupero: {{ Math.round((1 - prop.coeffTempo) * 100) > 0 ? '-' + Math.round((1 - prop.coeffTempo) * 100) + '%' : '0%' }} tempo •
+                      Fatica: {{ Math.round((1 - prop.coeffFatica) * 100) > 0 ? '-' + Math.round((1 - prop.coeffFatica) * 100) + '%' : (Math.round((1 - prop.coeffFatica) * 100) < 0 ? '+' + Math.abs(Math.round((1 - prop.coeffFatica) * 100)) + '%' : '0%') }}
+                    </template>
+                  </span>
                 </div>
               </div>
 
@@ -2151,63 +2201,257 @@ const targetPrescrizioneAttiva = computed(() => {
 });
 
 const proposteStoricoCalcolate = computed(() => {
-  if (!storicoEsercizioPerAiuto.value.length || !workout.value) return [];
+  if (!workout.value) return [];
   
   const targetReps = targetRepsAttive.value;
   const targetW = aiutoWeek.value;
   const list = [];
   
-  storicoEsercizioPerAiuto.value.forEach(prevEx => {
-    for (let w = 1; w <= 6; w++) {
-      const insVal = prevEx['ins_week' + w];
-      if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-        const weightStr = estraiPesoDaInput(insVal);
-        if (weightStr) {
-          const weight = parseFloat(weightStr);
-          if (!isNaN(weight) && weight > 0) {
-            const repsVal = prevEx['reps_week' + w];
-            const repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
-            if (repsNum && repsNum > 0) {
-              const isSameWeek = w === targetW;
-              const isPeakWeek = w === 6;
-              const isSameReps = repsNum === targetReps;
-              
-              if (isSameWeek || isPeakWeek || isSameReps) {
-                const estimated1RM = weight * (1 + repsNum / 30);
-                const proposedWeight = estimated1RM / (1 + targetReps / 30);
-                const roundedProposed = Math.round(proposedWeight * 2) / 2;
+  const currentNumScheda = parseInt(workout.value.num_scheda);
+  
+  // 1. Processa lo storico (solo schede precedenti)
+  if (storicoEsercizioPerAiuto.value.length) {
+    storicoEsercizioPerAiuto.value.forEach(prevEx => {
+      const sNum = parseInt(prevEx.num_scheda);
+      if (!isNaN(sNum) && sNum >= currentNumScheda) return; // Evita di duplicare la scheda corrente
+      
+      for (let w = 1; w <= 6; w++) {
+        const insVal = prevEx['ins_week' + w];
+        if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+          const weightStr = estraiPesoDaInput(insVal);
+          if (weightStr) {
+            const weight = parseFloat(weightStr);
+            if (!isNaN(weight) && weight > 0) {
+              const repsVal = prevEx['reps_week' + w];
+              const repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+              if (repsNum && repsNum > 0) {
+                const isSameWeek = w === targetW;
+                const isPeakWeek = w === 6;
+                const isSameReps = repsNum === targetReps;
                 
-                list.push({
-                  id: prevEx.id,
-                  week: w,
-                  numScheda: prevEx.num_scheda,
-                  data: formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp),
-                  pesoOriginale: weight,
-                  repsOriginali: repsNum,
-                  massimaleStimato: Math.round(estimated1RM * 10) / 10,
-                  pesoProposto: roundedProposed,
-                  isSameWeek,
-                  isPeakWeek,
-                  isSameReps
-                });
+                if (isSameWeek || isPeakWeek || isSameReps) {
+                  // 1. Stima 1RM tramite formula di Epley considerando RIR originale
+                  const rirOriginale = estraiRIRDaPrescrizione(prevEx['des_week' + w]) !== null 
+                    ? estraiRIRDaPrescrizione(prevEx['des_week' + w]) 
+                    : getRIRDefault(w);
+                  
+                  const estimated1RM = weight * (1 + (repsNum + rirOriginale) / 30);
+                  
+                  // 2. Calcolo teorico per il target reps e RIR target
+                  const rirTarget = estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) !== null 
+                    ? estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) 
+                    : getRIRDefault(targetW);
+                    
+                  let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
+                  
+                  // 3. Gestione dello sforzo: Aggiustamento in base alla fatica registrata in Week 6 di quel mesociclo
+                  const faticaStr = String(prevEx.num_faticaw6 || '').toLowerCase().trim();
+                  let coeffFatica = 1.0;
+                  let spiegazioneFatica = 'Fatica: n.d.';
+                  if (faticaStr) {
+                    if (faticaStr.includes('legger') || faticaStr.includes('bass') || faticaStr === '1' || faticaStr === '2') {
+                      coeffFatica = 1.01;
+                      spiegazioneFatica = 'Fatica leggera (+1%)';
+                    } else if (faticaStr.includes('medi') || faticaStr === '3') {
+                      coeffFatica = 1.00;
+                      spiegazioneFatica = 'Fatica media (0%)';
+                    } else if (faticaStr.includes('pesant') || faticaStr === '4') {
+                      coeffFatica = 0.97;
+                      spiegazioneFatica = 'Fatica pesante (-3%)';
+                    } else if (faticaStr.includes('devastant') || faticaStr === '5') {
+                      coeffFatica = 0.94;
+                      spiegazioneFatica = 'Fatica devastante (-6%)';
+                    }
+                  }
+                  proposedWeight *= coeffFatica;
+                  
+                  // 4. Fisiologia del recupero e deallenamento (Tempo trascorso)
+                  const dataUltimaEx = prevEx.dat_scheda_ult_ex || prevEx.timestamp;
+                  const giorniTrascorsi = calcolaGiorniTrascorsi(dataUltimaEx);
+                  const tempoPassato = tempoTrascorso(dataUltimaEx) || 'Data n.d.';
+                  
+                  let coeffTempo = 1.0;
+                  let spiegazioneTempo = 'Nessun deallenamento';
+                  if (giorniTrascorsi > 180) {
+                    coeffTempo = 0.78; // -22% deallenamento profondo
+                    spiegazioneTempo = 'Deallenamento profondo (>6 mesi: -22%)';
+                  } else if (giorniTrascorsi > 90) {
+                    coeffTempo = 0.85; // -15% deallenamento marcato
+                    spiegazioneTempo = 'Deallenamento marcato (>3 mesi: -15%)';
+                  } else if (giorniTrascorsi > 60) {
+                    coeffTempo = 0.91; // -9% deallenamento moderato
+                    spiegazioneTempo = 'Deallenamento moderato (>2 mesi: -9%)';
+                  } else if (giorniTrascorsi > 30) {
+                    coeffTempo = 0.95; // -5% deallenamento lieve
+                    spiegazioneTempo = 'Deallenamento lieve (>30 gg: -5%)';
+                  } else if (giorniTrascorsi > 14) {
+                    coeffTempo = 0.98; // -2% perdita forza iniziale
+                    spiegazioneTempo = 'Perdita forza iniziale (>14 gg: -2%)';
+                  } else {
+                    coeffTempo = 1.0;
+                    spiegazioneTempo = 'Recupero ottimale (<14 gg: 0%)';
+                  }
+                  proposedWeight *= coeffTempo;
+                  
+                  const roundedProposed = Math.round(proposedWeight * 2) / 2;
+                  
+                  list.push({
+                    id: prevEx.id,
+                    week: w,
+                    numScheda: prevEx.num_scheda,
+                    data: formattaDataStorico(dataUltimaEx),
+                    giorniTrascorsi,
+                    tempoPassato,
+                    pesoOriginale: weight,
+                    repsOriginali: repsNum,
+                    massimaleStimato: Math.round(estimated1RM * 10) / 10,
+                    pesoProposto: roundedProposed,
+                    isSameWeek,
+                    isPeakWeek,
+                    isSameReps,
+                    coeffFatica,
+                    coeffTempo,
+                    spiegazioneFatica,
+                    spiegazioneTempo,
+                    rirOriginale,
+                    rirTarget,
+                    isCurrentMesocycle: false
+                  });
+                }
               }
             }
           }
         }
       }
+    });
+  }
+  
+  // 2. Aggiungi la progressione del mesociclo attuale (settimane precedenti a targetW)
+  for (let w = 1; w < targetW; w++) {
+    const insVal = workout.value['ins_week' + w];
+    if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+      const weightStr = estraiPesoDaInput(insVal);
+      if (weightStr) {
+        const weight = parseFloat(weightStr);
+        if (!isNaN(weight) && weight > 0) {
+          const repsVal = workout.value['reps_week' + w];
+          const repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(workout.value['des_week' + w]);
+          if (repsNum && repsNum > 0) {
+            // Calcolo progressione diretta mesociclo attuale
+            const rirOriginale = estraiRIRDaPrescrizione(workout.value['des_week' + w]) !== null 
+              ? estraiRIRDaPrescrizione(workout.value['des_week' + w]) 
+              : getRIRDefault(w);
+            
+            const estimated1RM = weight * (1 + (repsNum + rirOriginale) / 30);
+            
+            const rirTarget = estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) !== null 
+              ? estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) 
+              : getRIRDefault(targetW);
+              
+            let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
+            
+            const roundedProposed = Math.round(proposedWeight * 2) / 2;
+            
+            list.push({
+              id: workout.value.id || 'current',
+              week: w,
+              numScheda: currentNumScheda,
+              data: 'Mesociclo in corso',
+              giorniTrascorsi: 0,
+              tempoPassato: 'Attuale',
+              pesoOriginale: weight,
+              repsOriginali: repsNum,
+              massimaleStimato: Math.round(estimated1RM * 10) / 10,
+              pesoProposto: roundedProposed,
+              isSameWeek: false,
+              isPeakWeek: false,
+              isSameReps: repsNum === targetReps,
+              coeffFatica: 1.0,
+              coeffTempo: 1.0,
+              spiegazioneFatica: 'Sforzo: Mesociclo attuale',
+              spiegazioneTempo: 'Tempo: Mesociclo attuale',
+              rirOriginale,
+              rirTarget,
+              isCurrentMesocycle: true
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  // Ordina in base al peso proposto dal più piccolo al più grande (crescente)
+  list.sort((a, b) => {
+    if (a.pesoProposto !== b.pesoProposto) {
+      return a.pesoProposto - b.pesoProposto;
+    }
+    // A parità di peso proposto, preferisci mesociclo attuale e poi schede più recenti
+    if (a.isCurrentMesocycle !== b.isCurrentMesocycle) {
+      return b.isCurrentMesocycle ? 1 : -1;
+    }
+    return parseInt(b.numScheda) - parseInt(a.numScheda);
+  });
+  
+  return list;
+});
+
+const caricoIdealeConsigliato = computed(() => {
+  if (!proposteStoricoCalcolate.value || proposteStoricoCalcolate.value.length === 0) return null;
+  
+  // Trova la proposta con il punteggio di rilevanza più alto per la raccomandazione principale
+  let bestProp = null;
+  let bestScore = -99999;
+  
+  proposteStoricoCalcolate.value.forEach(prop => {
+    let score = 0;
+    if (prop.isCurrentMesocycle) {
+      score += 1000; // Priorità assoluta alla progressione del mesociclo attuale
+      score += prop.week * 10; // Preferisci settimane più recenti dello stesso mesociclo (es. W2 over W1)
+    } else {
+      if (prop.isSameWeek) score += 100;
+      if (prop.isSameReps) score += 50;
+      if (prop.isPeakWeek) score += 20;
+      
+      // Bonus per schede più recenti
+      score += parseInt(prop.numScheda) * 3;
+      
+      // Penalizzazione per tempo trascorso (deallenamento)
+      score -= (prop.giorniTrascorsi * 0.15);
+    }
+    
+    if (score > bestScore) {
+      bestScore = score;
+      bestProp = prop;
     }
   });
   
-  list.sort((a, b) => {
-    const diffScheda = parseInt(b.numScheda) - parseInt(a.numScheda);
-    if (diffScheda !== 0) return diffScheda;
-    
-    const scoreA = (a.isSameWeek ? 3 : 0) + (a.isSameReps ? 2 : 0) + (a.isPeakWeek ? 1 : 0);
-    const scoreB = (b.isSameWeek ? 3 : 0) + (b.isSameReps ? 2 : 0) + (b.isPeakWeek ? 1 : 0);
-    return scoreB - scoreA;
-  });
+  return bestProp;
+});
+
+const spiegazioneFisiologicaConsigliata = computed(() => {
+  const c = caricoIdealeConsigliato.value;
+  if (!c) return '';
   
-  return list.slice(0, 5);
+  if (c.isCurrentMesocycle) {
+    return `Progressione diretta all'interno del mesociclo attuale da W${c.week} (${c.pesoOriginale} kg x ${c.repsOriginali} reps). Trattandosi dello stesso mesociclo, non si applica deallenamento.`;
+  }
+  
+  let parts = [];
+  if (c.giorniTrascorsi > 14) {
+    const pct = Math.round((1 - c.coeffTempo) * 100);
+    parts.push(`-${pct}% deallenamento fisiologico per ${c.tempoPassato}`);
+  } else {
+    parts.push(`recupero ottimale (eseguito ${c.tempoPassato})`);
+  }
+  
+  if (c.coeffFatica < 1.0) {
+    const pct = Math.round((1 - c.coeffFatica) * 100);
+    parts.push(`-${pct}% gestione fatica mesociclo precedente`);
+  } else if (c.coeffFatica > 1.0) {
+    parts.push(`+1% incremento per sforzo leggero`);
+  }
+  
+  return parts.join(', ');
 });
 
 const apriAiutoCaricoDettagliato = async (sett) => {

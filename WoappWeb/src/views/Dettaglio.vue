@@ -496,60 +496,62 @@
 
 
 
-      <!-- 3. Coaching Note Card (Compact callout) -->
+      <!-- 3. Note Coach, Setup Attrezzo e Tecnica (Unificati e Compatti) -->
       <v-card
-        v-if="workout && workout.des_note && String(workout.des_note).trim()"
-        class="elevation-0 text-left d-flex align-center"
-        :class="[
-          layoutCorrente === 'super_compatto' ? 'rounded-sm py-1.5 px-2 mb-3' : (layoutCorrente === 'compatto' ? 'rounded-md py-2 px-2.5 mb-4' : 'rounded-lg py-2 px-3 mb-5')
-        ]"
-        style="background: rgba(249, 115, 22, 0.08) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important; border-left: 4px solid #f97316 !important;"
-      >
-        <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0" size="15">mdi-information-outline</v-icon>
-        <span class="text-orange-lighten-4 font-weight-medium" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineHeight: 1.35, color: '#ffedd5 !important' }">
-          {{ String(workout.des_note).trim() }}
-        </span>
-      </v-card>
-
-      <!-- Esecuzione Metodo/ROM (Unificata e fuori dalle week) -->
-      <v-card
-        v-if="workout && workout.des_estesa_start && String(workout.des_estesa_start).trim()"
-        class="text-left border d-flex align-start card-glass mb-3"
+        v-if="workout && ((workout.des_note && String(workout.des_note).trim()) || (workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()) || (workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()) || (workout.des_estesa_start && String(workout.des_estesa_start).trim()))"
+        class="text-left border d-flex flex-column card-glass mb-3"
+        :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"
         :style="{
-          background: 'rgba(249, 115, 22, 0.08) !important',
-          border: '1.5px solid rgba(249, 115, 22, 0.25) !important',
-          boxShadow: '0 4px 20px rgba(249, 115, 22, 0.05)',
-          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important'),
-          padding: '10px 12px !important'
+          background: 'rgba(249, 115, 22, 0.05) !important',
+          border: '1px solid rgba(249, 115, 22, 0.2) !important',
+          borderLeft: '3px solid #f97316 !important',
+          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '10px !important')
         }"
       >
-        <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-cog-play-outline</v-icon>
-        <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.4;">
-          <strong class="text-orange-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.05em;">ROM ed Esecuzione:</strong><br>
-          <span class="text-white font-weight-medium">
-            {{ getDescrizioneBreve(workout.des_estesa_start) }}
+        <!-- Note Coach -->
+        <div v-if="workout.des_note && String(workout.des_note).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_note_attrezzo || workout.des_note_gen_attr || workout.des_estesa_start}">
+          <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-information-outline</v-icon>
+          <span class="text-orange-lighten-4 font-weight-medium" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.72rem', lineHeight: 1.35, color: '#ffedd5 !important' }">
+            {{ String(workout.des_note).trim() }}
           </span>
+        </div>
+
+        <!-- Note Attrezzo -->
+        <div v-if="workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_note_gen_attr || workout.des_estesa_start, 'mt-1.5 pt-1.5 border-top-soft': workout.des_note}">
+           <v-icon color="grey-lighten-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-wrench-outline</v-icon>
+           <div class="text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
+             <strong class="text-orange-lighten-3 uppercase" style="font-size: 0.60rem;">Setup:</strong> {{ String(workout.des_note_attrezzo).trim() }}
+           </div>
+        </div>
+
+        <!-- Note Generali Macchinario -->
+        <div v-if="workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_estesa_start, 'mt-1.5 pt-1.5 border-top-soft': workout.des_note || workout.des_note_attrezzo}">
+           <v-icon color="grey-lighten-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cogs</v-icon>
+           <div class="text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
+             <strong class="text-orange-lighten-3 uppercase" style="font-size: 0.60rem;">Macchina:</strong> {{ String(workout.des_note_gen_attr).trim() }}
+           </div>
+        </div>
+
+        <!-- Esecuzione / ROM -->
+        <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="d-flex align-start" :class="{'mt-1.5 pt-1.5 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr}">
+          <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cog-play-outline</v-icon>
+          <div class="text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
+            <strong class="text-orange-lighten-3 uppercase" style="font-size: 0.60rem;">Tecnica/ROM:</strong> {{ getDescrizioneBreve(workout.des_estesa_start) }}
+          </div>
         </div>
       </v-card>
 
       <div class="weeks-stacked-list mb-4">
-        <!-- Nota Esponenti (Ripetizioni di Riserva RIR) -->
-         <v-card
+        <!-- Nota Esponenti (Ripetizioni di Riserva RIR) Super Compatta -->
+         <div
           v-if="haEsponenti"
-          class="text-left border d-flex align-start"
-          :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-2.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3 mb-3' : 'py-2.5 px-3.5 mb-4')"
-          :style="{
-            background: 'rgba(15, 23, 42, 0.45) !important',
-            border: '1.5px solid rgba(249, 115, 22, 0.25) !important',
-            boxShadow: '0 4px 20px rgba(249, 115, 22, 0.05)',
-            borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important')
-          }"
+          class="d-flex align-center text-left mb-2 px-2"
         >
-          <v-icon color="orange-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-information-outline</v-icon>
-          <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem', lineHeight: 1.4 }">
-            <strong class="text-orange-lighten-2">Nota sulle Ripetizioni di Riserva (RIR):</strong> I numeri ad esponente (es. 8² o 10³) indicano il margine dal cedimento muscolare. Ad esempio, 8² significa eseguire 8 ripetizioni con una riserva di altre 2 ripetizioni possibili prima del cedimento completo.
+          <v-icon color="orange-lighten-2" class="mr-1.5 flex-shrink-0" size="14">mdi-information-outline</v-icon>
+          <div class="text-slate-light font-weight-medium" style="font-size: 0.65rem; line-height: 1.2;">
+            <strong class="text-orange-lighten-2">RIR:</strong> Il numero ad esponente (es. 8²) indica le ripetizioni di margine da tenere prima del cedimento.
           </div>
-        </v-card>
+        </div>
 
         <v-card
           v-for="sett in settimaneVisualizzate"
@@ -1108,92 +1110,54 @@
         </v-expansion-panel>
       </v-expansion-panels>
 
-      <!-- 5. Dettagli Tecnici Esercizio (Stile Grid ultra-compatto per evitare dispersioni) -->
-      <div class="d-flex align-center justify-space-between text-left" :class="layoutCorrente === 'super_compatto' ? 'mb-2' : 'mb-4'">
-        <h3 
-          class="font-weight-black text-slate-dark d-flex align-center"
-          :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : (layoutCorrente === 'compatto' ? '0.72rem' : '0.80rem') }"
-        >
-          <v-icon color="orange-darken-3" class="mr-2" :size="layoutCorrente === 'super_compatto' ? 12 : (layoutCorrente === 'compatto' ? 14 : 16)">mdi-cogs</v-icon>
-          Dettagli Tecnici Esercizio
-        </h3>
-      </div>
+      <!-- 5. Dettagli Tecnici Esercizio -->
+      <v-card 
+        :class="[
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6'),
+          'premium-card'
+        ]" 
+        elevation="2"
+      >
+        <div class="text-left">
+          <div class="d-flex align-center justify-space-between mb-1.5">
+            <span class="text-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Dettagli Tecnici Esercizio:</span>
+            <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-darken-3">mdi-cogs</v-icon>
+          </div>
+          
+<div class="text-caption font-weight-medium text-slate-light mt-2" style="line-height: 1.6;">
+  <div>
+    <span class="font-weight-black text-orange-lighten-2">Wo n.{{ workout.num_scheda }}</span>
+    <span v-if="dataMesociclo"> del {{ dataMesociclo }}</span>
+    <br>
 
-      <!-- Griglia compattata dei Dettagli statici (2x2) -->
-      <v-row dense :class="layoutCorrente === 'super_compatto' ? 'mb-2.5' : 'mb-4'">
-        <!-- Scheda -->
-        <v-col cols="6">
-          <div 
-            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
-            :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
-            ]"
-            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
-          >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Scheda</span>
-            <span 
-              class="font-weight-black text-orange-lighten-2 text-truncate d-block"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
-            >
-              Numero {{ workout.num_scheda }}
-            </span>
-          </div>
-        </v-col>
-        <!-- Giorno -->
-        <v-col cols="6">
-          <div 
-            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
-            :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
-            ]"
-            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
-          >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Giorno</span>
-            <span 
-              class="font-weight-black text-orange-lighten-1 text-truncate d-block"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
-            >
-              Giorno {{ workout.des_giorno }}
-            </span>
-          </div>
-        </v-col>
-        <!-- Muscolo Target -->
-        <v-col cols="6">
-          <div 
-            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
-            :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
-            ]"
-            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
-          >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Muscolo Target</span>
-            <span 
-              class="font-weight-black text-slate-dark text-truncate d-block"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
-            >
-              {{ workout.des_settore || 'Generico' }}
-            </span>
-          </div>
-        </v-col>
-        <!-- Posizione / Superserie -->
-        <v-col cols="6">
-          <div 
-            class="border border-orange-darken-3-op card-glass text-center fill-height d-flex flex-column justify-center position-relative overflow-hidden" 
-            :class="[
-              layoutCorrente === 'super_compatto' ? 'pa-1.5 rounded-sm' : (layoutCorrente === 'compatto' ? 'pa-2 rounded-lg' : 'pa-2.5 rounded-xl')
-            ]"
-            style="background: rgba(15, 23, 42, 0.4); border-color: rgba(249, 115, 22, 0.15) !important;"
-          >
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : (layoutCorrente === 'compatto' ? '0.50rem' : '0.55rem'), letterSpacing: '0.02em' }">Posizione</span>
-            <span 
-              class="font-weight-black text-slate-dark text-truncate d-block"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.78rem') }"
-            >
-              N. {{ workout.num_riga_giorno }}{{ workout.alf_superserie ? ' (' + workout.alf_superserie + ')' : '' }}
-            </span>
-          </div>
-        </v-col>
-      </v-row>
+    Giorno 
+    <span class="font-weight-black text-orange-lighten-2">
+      {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
+    </span>
+
+    <template v-if="workout.alf_superserie">
+      <span class="mx-1"></span>
+      <span class="font-weight-black text-amber-lighten-2">
+        Superserie {{ workout.alf_superserie }}
+      </span>
+
+      <br>
+
+      <span v-if="eserciziSupersetCollegati.length > 0" class="text-muted text-super-caption">
+        (in superserie con {{ eserciziSupersetCollegati.map(e => e.des_esercizio).join(', ') }})
+      </span>
+    </template>
+
+    <br>
+
+    Muscolo target: 
+    <span class="font-weight-black text-white">
+      {{ workout.des_settore || 'Generico' }}
+    </span>
+  </div>
+</div>
+        </div>
+      </v-card>
 
       <!-- Card Note e Commenti (Campi Modificabili) -->
       <v-card 
@@ -1204,28 +1168,6 @@
         elevation="2"
       >
         <div class="text-left d-flex flex-column" :class="layoutCorrente === 'super_compatto' ? 'gap-2.5' : 'gap-4'">
-          <!-- Note Attrezzo -->
-          <div>
-            <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Note attrezzo:</span>
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-darken-3">mdi-wrench-outline</v-icon>
-            </div>
-            <v-textarea
-              v-model="noteAttrezzo"
-              variant="outlined"
-              density="compact"
-              hide-details
-              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-              rows="1"
-              auto-grow
-              color="orange-darken-3"
-              class="custom-textarea-input"
-              :class="layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : ''"
-              @blur="salvaDatoGenerale('des_note_attrezzo', noteAttrezzo)"
-              id="input-detail-note-attrezzo"
-            ></v-textarea>
-          </div>
-
           <!-- Note Esercizio -->
           <div>
             <div class="d-flex align-center justify-space-between mb-1">
@@ -2763,6 +2705,7 @@ const isSchedaPassata = computed(() => {
 // Stato
 const workout = ref(null);
 const riga0 = ref(null);
+const dataMesociclo = ref('');
 const caricamento = ref(true);
 const mostraSpiegazioneTut = ref(false);
 
@@ -3488,6 +3431,93 @@ const applicaModificheLocali = (item) => {
 // I campi ins sono puramente testuali ed i reps sono gestiti internamente al database, per cui non usiamo incrementatori o pulsanti.
 
 // Carica riga 0 della sessione del giorno per ottenere il completamento delle settimane (cmp1-cmp6)
+const caricaDataMesociclo = async (atletaId, numScheda) => {
+  let dataInizio = '';
+
+  try {
+    const q1 = query(
+      collection(db, 'WORKOUT_T'),
+      where('ID_cliente', '==', String(atletaId)),
+      where('num_scheda', '==', String(numScheda))
+    );
+    let snap = await getDocs(q1);
+
+    if (snap.empty) {
+      const q2 = query(
+        collection(db, 'WORKOUT_T'),
+        where('ID_cliente', '==', Number(atletaId)),
+        where('num_scheda', '==', Number(numScheda))
+      );
+      snap = await getDocs(q2);
+    }
+
+    if (!snap.empty) {
+      dataInizio = snap.docs[0].data().dat_data;
+    }
+  } catch (err) {
+    console.warn("Errore caricamento data WORKOUT_T:", err);
+  }
+
+  // Formattazione esatta come in Home Wo (DD mmm YY)
+  const formattaData = (dateStr) => {
+    let dateObj = null;
+    const cleanStr = String(dateStr).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(cleanStr)) {
+      const parts = cleanStr.substring(0, 10).split('-');
+      dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(cleanStr)) {
+      const parts = cleanStr.split(' ')[0].split('/');
+      dateObj = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+    } else {
+      const t = Date.parse(cleanStr);
+      if (!isNaN(t)) dateObj = new Date(t);
+    }
+
+    if (dateObj && !isNaN(dateObj.getTime())) {
+      const months = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = months[dateObj.getMonth()];
+      const year = String(dateObj.getFullYear()).slice(-2); // Anno a 2 cifre
+      return `${day} ${month} ${year}`;
+    }
+    return dateStr;
+  };
+
+  if (dataInizio) {
+    dataMesociclo.value = formattaData(dataInizio);
+  } else {
+    // Fallback identico a Home Wo (cerca la prima data di start_wo o usa il default)
+    let minDate = null;
+    if (allExercises.value && allExercises.value.length > 0) {
+      for (const rec of allExercises.value) {
+        if (parseInt(rec.num_riga_giorno) === 0) {
+          const dates = [rec.start_wo, rec.start2_wo, rec.start3_wo, rec.start4_wo, rec.start5_wo, rec.start6_wo].filter(Boolean);
+          for (const dStr of dates) {
+            let parsed = null;
+            if (/^\d{4}-\d{2}-\d{2}/.test(dStr)) {
+              const parts = dStr.substring(0, 10).split('-');
+              parsed = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            }
+            if (parsed && (!minDate || parsed < minDate)) {
+              minDate = parsed;
+            }
+          }
+        }
+      }
+    }
+    
+    if (minDate) {
+      const months = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+      const day = String(minDate.getDate()).padStart(2, '0');
+      const month = months[minDate.getMonth()];
+      const year = String(minDate.getFullYear()).slice(-2);
+      dataMesociclo.value = `${day} ${month} ${year}`;
+    } else {
+      dataMesociclo.value = '18 mag 26'; // Valore di default usato in Home Wo
+    }
+  }
+};
+
 const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
   try {
     // Cerchiamo il documento della sessione (Riga 0) provando sia stringa che numero
@@ -3692,6 +3722,11 @@ const caricaDatiEsercizio = async () => {
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
     inizializzaParametriProposta(atletaId);
 
+    const schemaRef = workout.value?.num_scheda;
+    if (atletaId && schemaRef && !dataMesociclo.value) {
+      caricaDataMesociclo(atletaId, schemaRef);
+    }
+
     for (let w = 1; w <= 6; w++) {
       inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
       inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
@@ -3767,6 +3802,11 @@ const caricaDatiEsercizio = async () => {
 
       // Carica l'esercizio del mesociclo precedente per consigliare il carico in Week 1
       await caricaEsercizioPrecedente();
+
+      // Carica la data del mesociclo da WORKOUT_T
+      if (atletaId && dati.num_scheda) {
+        await caricaDataMesociclo(atletaId, dati.num_scheda);
+      }
 
       // Carica il completamento del giorno (Riga 0) ed elenco per swipe
       if (atletaId && dati.num_scheda && dati.des_giorno) {
@@ -5975,9 +6015,6 @@ const salvaModifichePendenti = async () => {
     }
   }
   
-  if (noteAttrezzo.value !== (workout.value.des_note_attrezzo || '')) {
-    updates.des_note_attrezzo = noteAttrezzo.value;
-  }
   if (noteEsercizio.value !== (workout.value.ins_esercizio || '')) {
     updates.ins_esercizio = noteEsercizio.value;
   }

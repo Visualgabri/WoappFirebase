@@ -1939,6 +1939,130 @@
               </div>
             </div>
           </div>
+
+          <v-divider class="my-4" style="border-color: rgba(255,255,255,0.06) !important;"></v-divider>
+
+          <!-- Sezione 3: Parametri Proposta Carichi -->
+          <div class="mb-4 d-flex flex-column gap-3.5">
+            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-1">🏋️ Parametri Proposta Carichi (W5 / W6)</span>
+            
+            <!-- Settimanale W5 -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Riferimento Proposta W5</span>
+                <span class="text-super-caption text-muted">Settimana base per suggerimento W5</span>
+              </div>
+              <div style="width: 130px;">
+                <v-btn-toggle
+                  v-model="propostaBaseWeek5"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  density="compact"
+                  rounded="lg"
+                  class="w-100 card-glass border"
+                  style="height: 30px;"
+                >
+                  <v-btn value="W1" style="min-width: 25%; font-size: 0.65rem;">W1</v-btn>
+                  <v-btn value="W2" style="min-width: 25%; font-size: 0.65rem;">W2</v-btn>
+                  <v-btn value="W3" style="min-width: 25%; font-size: 0.65rem;">W3</v-btn>
+                  <v-btn value="W4" style="min-width: 25%; font-size: 0.65rem;">W4</v-btn>
+                </v-btn-toggle>
+              </div>
+            </div>
+
+            <!-- Settimanale W6 -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Riferimento Proposta W6</span>
+                <span class="text-super-caption text-muted">Settimana base per suggerimento W6</span>
+              </div>
+              <div style="width: 155px;">
+                <v-btn-toggle
+                  v-model="propostaBaseWeek6"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  density="compact"
+                  rounded="lg"
+                  class="w-100 card-glass border"
+                  style="height: 30px;"
+                >
+                  <v-btn value="W1" style="min-width: 20%; font-size: 0.65rem;">W1</v-btn>
+                  <v-btn value="W2" style="min-width: 20%; font-size: 0.65rem;">W2</v-btn>
+                  <v-btn value="W3" style="min-width: 20%; font-size: 0.65rem;">W3</v-btn>
+                  <v-btn value="W4" style="min-width: 20%; font-size: 0.65rem;">W4</v-btn>
+                  <v-btn value="W5" style="min-width: 20%; font-size: 0.65rem;">W5</v-btn>
+                </v-btn-toggle>
+              </div>
+            </div>
+
+            <!-- Incremento Post Scarico % -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Inc. Post Scarico (%)</span>
+                <span class="text-super-caption text-muted">Incremento peso proposto post-scarico</span>
+              </div>
+              <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoPostScaricoPct = Math.max(0, incrementoPostScaricoPct - 0.5)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </v-btn>
+                <span class="font-weight-bold text-white text-caption">{{ incrementoPostScaricoPct }}%</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoPostScaricoPct = incrementoPostScaricoPct + 0.5">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Soglia Forza Manubri -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Soglia Manubri Forte</span>
+                <span class="text-super-caption text-muted">Peso (kg) per considerare atleta forte</span>
+              </div>
+              <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="sogliaForzaManubri = Math.max(0, sogliaForzaManubri - 2)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </v-btn>
+                <span class="font-weight-bold text-white text-caption">{{ sogliaForzaManubri }}kg</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="sogliaForzaManubri = sogliaForzaManubri + 2">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Incremento Manubri Leggero -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Inc. Manubri Leggero</span>
+                <span class="text-super-caption text-muted">Incremento se peso &lt;= soglia</span>
+              </div>
+              <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoManubriLeggero = Math.max(0, incrementoManubriLeggero - 0.5)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </v-btn>
+                <span class="font-weight-bold text-white text-caption">+{{ incrementoManubriLeggero }}kg</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoManubriLeggero = incrementoManubriLeggero + 0.5">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Incremento Manubri Forte -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Inc. Manubri Forte</span>
+                <span class="text-super-caption text-muted">Incremento se peso &gt; soglia</span>
+              </div>
+              <div class="d-flex align-center justify-space-between card-glass border rounded-lg px-1" style="width: 130px; height: 34px; background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoManubriForte = Math.max(0, incrementoManubriForte - 0.5)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </v-btn>
+                <span class="font-weight-bold text-white text-caption">+{{ incrementoManubriForte }}kg</span>
+                <v-btn icon size="x-small" variant="text" color="orange-lighten-2" @click="incrementoManubriForte = incrementoManubriForte + 0.5">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </v-btn>
+              </div>
+            </div>
+          </div>
         </v-card-text>
         
         <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
@@ -1959,7 +2083,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2476,6 +2600,14 @@ const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !==
 const comportamentoPlay = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
 const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
 const timerTheme = timerThemeGlobal;
+
+// Parametri Proposta Carichi globali
+const propostaBaseWeek5 = propostaBaseWeek5Global;
+const propostaBaseWeek6 = propostaBaseWeek6Global;
+const incrementoPostScaricoPct = incrementoPesoPostScaricoPctGlobal;
+const sogliaForzaManubri = sogliaForzaManubriGlobal;
+const incrementoManubriLeggero = incrementoManubriLeggeroGlobal;
+const incrementoManubriForte = incrementoManubriForteGlobal;
 
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {

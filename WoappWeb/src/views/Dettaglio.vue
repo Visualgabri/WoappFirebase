@@ -712,7 +712,7 @@
                 </span>
                 <span v-else-if="getGhostLift(sett).isPostScarico" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-trending-up</v-icon>
-                  <span>Aumenta peso, metti più di W3 (Proposto: <span class="text-green-accent-3 font-weight-black">{{ getGhostLift(sett).pesoProposto }}kg</span>) - Record W3:</span>
+                  <span>Aumenta peso, metti più di {{ getGhostLift(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ getGhostLift(sett).pesoProposto }}kg</span>) - Pesi di {{ getGhostLift(sett).label }}:</span>
                   <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLift(sett).text }}
                   </span>
@@ -722,15 +722,28 @@
                     {{ getGhostLift(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
                   </v-icon>
                   <span :class="{'text-amber-lighten-2': getGhostLift(sett).isScarico}">
-                    {{ getGhostLift(sett).isScarico ? 'Target Scarico (W2)' : 'Record ' + getGhostLift(sett).label }}:
+                    {{ getGhostLift(sett).isScarico ? 'Target Scarico (W2)' : 'Pesi di ' + getGhostLift(sett).label }}:
                   </span>
                   <span class="font-weight-black ml-1" :class="getGhostLift(sett).isScarico ? 'text-white' : 'text-slate-light'" :style="getGhostLift(sett).isScarico ? (layoutCorrente === 'super_compatto' ? 'font-size: 0.7rem; letter-spacing: 0;' : 'font-size: 0.8rem; letter-spacing: 0;') : (layoutCorrente === 'super_compatto' ? 'font-size: 0.72rem;' : '')">
                     {{ getGhostLift(sett).text }}
                     <span v-if="getGhostLift(sett).isWeek1 && getGhostLift(sett).reps" class="text-muted ml-0.5" style="text-transform: lowercase; font-size: 0.6rem;">(x{{ getGhostLift(sett).reps }})</span>
                   </span>
                 </span>
-                <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" :size="layoutCorrente === 'super_compatto' ? 12 : 14" class="animate-pulse">mdi-fire</v-icon>
-                <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-down</v-icon>
+                <div class="d-flex align-center gap-1">
+                  <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" :size="layoutCorrente === 'super_compatto' ? 12 : 14" class="animate-pulse">mdi-fire</v-icon>
+                  <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-down</v-icon>
+                  <v-btn
+                    icon
+                    variant="text"
+                    color="orange-lighten-2"
+                    :size="layoutCorrente === 'super_compatto' ? '18px' : '22px'"
+                    class="ml-1"
+                    @click.stop="apriAiutoCaricoDettagliato(sett)"
+                    title="Aiuto carico da storico"
+                  >
+                    <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 15">mdi-help-circle-outline</v-icon>
+                  </v-btn>
+                </div>
               </div>
               
               <div v-if="getGhostLift(sett) && getGhostLift(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
@@ -949,6 +962,119 @@
                 * <strong>Dinamica</strong>: Mette in evidenza la settimana attiva ordinando le altre in sequenza.<br>
                 * <strong>Fissa</strong>: Mostra la progressione lineare classica dalla settimana 1 alla 6.
               </p>
+
+              <!-- Parametri di proposta carichi -->
+              <v-divider class="my-2 border-soft"></v-divider>
+
+              <span class="text-super-caption text-muted font-weight-bold uppercase mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : (layoutCorrente === 'compatto' ? '0.55rem' : '0.6rem') }">
+                Parametri Proposta Carichi:
+              </span>
+              
+              <!-- Proposta Base Week 5 -->
+              <div class="mb-2">
+                <span class="text-caption text-slate-dark d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.74rem' }">Settimana di riferimento per Proposta W5:</span>
+                <v-btn-toggle
+                  v-model="propostaBaseWeek5"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
+                  :rounded="layoutCorrente === 'super_compatto' ? 'sm' : 'lg'"
+                  class="w-100 card-glass border"
+                  :style="{ height: layoutCorrente === 'super_compatto' ? '28px' : '34px' }"
+                >
+                  <v-btn value="W1" class="font-weight-bold flex-grow-1" style="min-width: 25%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W1</v-btn>
+                  <v-btn value="W2" class="font-weight-bold flex-grow-1" style="min-width: 25%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W2</v-btn>
+                  <v-btn value="W3" class="font-weight-bold flex-grow-1" style="min-width: 25%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W3</v-btn>
+                  <v-btn value="W4" class="font-weight-bold flex-grow-1" style="min-width: 25%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W4</v-btn>
+                </v-btn-toggle>
+              </div>
+
+              <!-- Proposta Base Week 6 -->
+              <div class="mb-2">
+                <span class="text-caption text-slate-dark d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.74rem' }">Settimana di riferimento per Proposta W6:</span>
+                <v-btn-toggle
+                  v-model="propostaBaseWeek6"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
+                  :rounded="layoutCorrente === 'super_compatto' ? 'sm' : 'lg'"
+                  class="w-100 card-glass border"
+                  :style="{ height: layoutCorrente === 'super_compatto' ? '28px' : '34px' }"
+                >
+                  <v-btn value="W1" class="font-weight-bold flex-grow-1" style="min-width: 20%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W1</v-btn>
+                  <v-btn value="W2" class="font-weight-bold flex-grow-1" style="min-width: 20%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W2</v-btn>
+                  <v-btn value="W3" class="font-weight-bold flex-grow-1" style="min-width: 20%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W3</v-btn>
+                  <v-btn value="W4" class="font-weight-bold flex-grow-1" style="min-width: 20%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W4</v-btn>
+                  <v-btn value="W5" class="font-weight-bold flex-grow-1" style="min-width: 20%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W5</v-btn>
+                </v-btn-toggle>
+              </div>
+
+              <!-- Altri parametri in Grid -->
+              <v-row dense class="mt-1">
+                <!-- Incremento Peso Post Scarico % -->
+                <v-col cols="6">
+                  <div class="d-flex flex-column gap-1">
+                    <span class="text-super-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem' }">Inc. Post Scarico (%):</span>
+                    <div class="d-flex align-center justify-space-between card-glass border" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm px-0.5' : 'rounded-lg px-1'" :style="{ height: layoutCorrente === 'super_compatto' ? '28px' : '34px', background: 'rgba(30, 41, 59, 0.4) !important', borderColor: 'rgba(255, 255, 255, 0.08) !important' }">
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="INCREMENTO_PESO_POST_SCARICO_PCT = Math.max(0, INCREMENTO_PESO_POST_SCARICO_PCT - 0.5)">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-minus</v-icon>
+                      </v-btn>
+                      <span class="font-weight-bold text-white" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.75rem' }">{{ INCREMENTO_PESO_POST_SCARICO_PCT }}%</span>
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="INCREMENTO_PESO_POST_SCARICO_PCT = INCREMENTO_PESO_POST_SCARICO_PCT + 0.5">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
+                </v-col>
+                
+                <!-- Soglia Forza Manubri -->
+                <v-col cols="6">
+                  <div class="d-flex flex-column gap-1">
+                    <span class="text-super-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem' }">Soglia Manubri Forte:</span>
+                    <div class="d-flex align-center justify-space-between card-glass border" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm px-0.5' : 'rounded-lg px-1'" :style="{ height: layoutCorrente === 'super_compatto' ? '28px' : '34px', background: 'rgba(30, 41, 59, 0.4) !important', borderColor: 'rgba(255, 255, 255, 0.08) !important' }">
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="SOGLIA_FORZA_MANUBRI = Math.max(0, SOGLIA_FORZA_MANUBRI - 2)">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-minus</v-icon>
+                      </v-btn>
+                      <span class="font-weight-bold text-white" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.75rem' }">{{ SOGLIA_FORZA_MANUBRI }}kg</span>
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="SOGLIA_FORZA_MANUBRI = SOGLIA_FORZA_MANUBRI + 2">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
+                </v-col>
+
+                <!-- Incremento Manubri Leggero -->
+                <v-col cols="6" class="mt-2">
+                  <div class="d-flex flex-column gap-1">
+                    <span class="text-super-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem' }">Inc. Manubri Leggero:</span>
+                    <div class="d-flex align-center justify-space-between card-glass border" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm px-0.5' : 'rounded-lg px-1'" :style="{ height: layoutCorrente === 'super_compatto' ? '28px' : '34px', background: 'rgba(30, 41, 59, 0.4) !important', borderColor: 'rgba(255, 255, 255, 0.08) !important' }">
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_LEGGERO = Math.max(0, INCREMENTO_MANUBRI_LEGGERO - 0.5)">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-minus</v-icon>
+                      </v-btn>
+                      <span class="font-weight-bold text-white" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.75rem' }">+{{ INCREMENTO_MANUBRI_LEGGERO }}kg</span>
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_LEGGERO = INCREMENTO_MANUBRI_LEGGERO + 0.5">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
+                </v-col>
+
+                <!-- Incremento Manubri Forte -->
+                <v-col cols="6" class="mt-2">
+                  <div class="d-flex flex-column gap-1">
+                    <span class="text-super-caption text-muted font-weight-bold uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem' }">Inc. Manubri Forte:</span>
+                    <div class="d-flex align-center justify-space-between card-glass border" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm px-0.5' : 'rounded-lg px-1'" :style="{ height: layoutCorrente === 'super_compatto' ? '28px' : '34px', background: 'rgba(30, 41, 59, 0.4) !important', borderColor: 'rgba(255, 255, 255, 0.08) !important' }">
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_FORTE = Math.max(0, INCREMENTO_MANUBRI_FORTE - 0.5)">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-minus</v-icon>
+                      </v-btn>
+                      <span class="font-weight-bold text-white" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.75rem' }">+{{ INCREMENTO_MANUBRI_FORTE }}kg</span>
+                      <v-btn icon :size="layoutCorrente === 'super_compatto' ? '18px' : 'x-small'" variant="text" color="orange-lighten-2" @click="INCREMENTO_MANUBRI_FORTE = INCREMENTO_MANUBRI_FORTE + 0.5">
+                        <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 14">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
+                </v-col>
+              </v-row>
             </div>
           </v-expansion-panel-text>
         </v-expansion-panel>
@@ -1506,7 +1632,7 @@
             <div v-if="suggerimentoRecord.record > 0" class="d-flex align-center mr-3" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
               <v-icon color="amber-lighten-1" size="12" class="mr-1 pb-0.5">mdi-trophy</v-icon>
               <span class="text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Record W{{settimanaAttiva}}: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
+                Pesi di W{{settimanaAttiva}}: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
               </span>
             </div>
 
@@ -1879,6 +2005,86 @@
         ></v-img>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog Aiuto Proposta Carico da Storico (reps) -->
+    <v-dialog v-model="dialogAiutoCarico" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border border-soft overflow-hidden animate-fade-in" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.96) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+        <v-card-title class="px-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900" style="min-height: 40px; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange" size="18">mdi-calculator</v-icon>
+            <span class="font-weight-black text-white" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">Aiuto Proposta Carico - W{{ aiutoWeek }}</span>
+          </div>
+          <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogAiutoCarico = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="px-3 py-3 scrollbar-custom" style="max-height: 70vh;">
+          <!-- Target Attuale -->
+          <div class="mb-3 px-3 py-2 bg-slate-900 border rounded-lg text-left" style="border-color: rgba(249, 115, 22, 0.25) !important;">
+            <div class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.55rem; letter-spacing: 0.05em;">Target Attuale W{{ aiutoWeek }}</div>
+            <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mt-0.5">
+              {{ targetRepsAttive }} Reps
+              <span class="text-caption text-slate ml-1" style="font-weight-normal; font-size: 0.72rem;">(Prescrizione: {{ targetPrescrizioneAttiva }})</span>
+            </div>
+          </div>
+
+          <!-- Caricamento -->
+          <div v-if="caricandoAiutoCarico" class="text-center py-6">
+            <v-progress-circular indeterminate color="orange" size="32" class="mb-2"></v-progress-circular>
+            <p class="text-caption text-muted">Caricamento dello storico dell'esercizio...</p>
+          </div>
+
+          <!-- Nessun dato nello storico -->
+          <div v-else-if="proposteStoricoCalcolate.length === 0" class="text-center py-6">
+            <v-icon size="32" color="orange" class="mb-2">mdi-database-off-outline</v-icon>
+            <p class="text-caption text-muted">Nessun dato nello storico per calcolare una proposta basata sulle reps.</p>
+          </div>
+
+          <!-- Lista Proposte Calcolate dallo Storico -->
+          <div v-else class="d-flex flex-column gap-2.5 text-left">
+            <p class="text-super-caption text-muted mb-1 px-1" style="font-size: 0.62rem; line-height: 1.35;">
+              Il sistema stima il tuo massimale (1RM) dalle passate esecuzioni (formula di Epley) e calcola il carico ideale per il target attuale di <strong>{{ targetRepsAttive }} reps</strong>.
+            </p>
+
+            <div v-for="prop in proposteStoricoCalcolate" :key="prop.id + '_' + prop.week" class="border border-soft rounded-lg bg-slate-950 pa-2.5 d-flex align-center justify-space-between" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+              <div class="flex-grow-1 mr-2" style="min-width: 0;">
+                <div class="d-flex align-center gap-1.5 flex-wrap">
+                  <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">Scheda {{ prop.numScheda }}</span>
+                  <span class="text-super-caption text-muted" style="font-size: 0.58rem;">• W{{ prop.week }} ({{ prop.data }})</span>
+                </div>
+                <!-- Performance originale -->
+                <div class="text-caption font-weight-bold text-white mt-0.5" style="font-size: 0.75rem;">
+                  Eseguito: <span class="text-slate-light font-weight-black">{{ prop.pesoOriginale }} kg</span> x <span class="text-slate-light font-weight-black">{{ prop.repsOriginali }} reps</span>
+                </div>
+                <!-- Dettaglio stima 1RM -->
+                <div class="text-super-caption text-muted mt-0.5" style="font-size: 0.58rem;">
+                  1RM Stimato: <strong class="text-slate-dark">{{ prop.massimaleStimato }} kg</strong>
+                </div>
+              </div>
+
+              <!-- Proposta Calcolata e Bottone Applica -->
+              <div class="text-right flex-shrink-0 d-flex flex-column align-end">
+                <span class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.52rem; letter-spacing: 0.05em;">Proposto</span>
+                <div class="text-body-1 font-weight-black text-green-accent-3 mb-1">
+                  {{ prop.pesoProposto }} <span class="text-super-caption text-muted">KG</span>
+                </div>
+                <v-btn
+                  color="green-darken-3"
+                  size="x-small"
+                  class="font-weight-black text-white px-2 py-1 text-none"
+                  rounded="sm"
+                  style="font-size: 0.65rem; height: 22px;"
+                  @click="applicaPropostaCaricoStorico(prop.pesoProposto)"
+                >
+                  Applica
+                </v-btn>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -1887,16 +2093,152 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
 
-// Parametri di progressione allenamento
-const INCREMENTO_PESO_POST_SCARICO_PCT = ref(2.5); // Incremento percentuale consigliato dopo lo scarico (a parametro)
-const SOGLIA_FORZA_MANUBRI = ref(20); // Peso in kg sopra il quale l'atleta è considerato "forte" per l'esercizio con manubri
-const INCREMENTO_MANUBRI_LEGGERO = ref(1); // Incremento in kg per carichi manubri <= soglia (es. +1kg)
-const INCREMENTO_MANUBRI_FORTE = ref(2); // Incremento in kg per carichi manubri > soglia (es. +2kg)
+// Parametri di progressione allenamento legati ai parametri globali
+const propostaBaseWeek5 = propostaBaseWeek5Global;
+const propostaBaseWeek6 = propostaBaseWeek6Global;
+const INCREMENTO_PESO_POST_SCARICO_PCT = incrementoPesoPostScaricoPctGlobal;
+const SOGLIA_FORZA_MANUBRI = sogliaForzaManubriGlobal;
+const INCREMENTO_MANUBRI_LEGGERO = incrementoManubriLeggeroGlobal;
+const INCREMENTO_MANUBRI_FORTE = incrementoManubriForteGlobal;
+
+const inizializzaParametriProposta = (atletaId) => {
+  // Gestito a livello globale in authStore.js
+};
+
+// Help Dialog & Calcolo Carico Storico States
+const dialogAiutoCarico = ref(false);
+const caricandoAiutoCarico = ref(false);
+const aiutoWeek = ref(1);
+const storicoEsercizioPerAiuto = ref([]);
+
+const targetRepsAttive = computed(() => {
+  if (!workout.value) return 10;
+  const reps = workout.value['reps_week' + aiutoWeek.value];
+  if (reps) return parseInt(reps, 10);
+  const presc = workout.value['des_week' + aiutoWeek.value];
+  return estraiRepsDaPrescrizione(presc) || 10;
+});
+
+const targetPrescrizioneAttiva = computed(() => {
+  if (!workout.value) return '';
+  return workout.value['des_week' + aiutoWeek.value] || '';
+});
+
+const proposteStoricoCalcolate = computed(() => {
+  if (!storicoEsercizioPerAiuto.value.length || !workout.value) return [];
+  
+  const targetReps = targetRepsAttive.value;
+  const list = [];
+  
+  storicoEsercizioPerAiuto.value.forEach(prevEx => {
+    for (let w = 1; w <= 6; w++) {
+      const insVal = prevEx['ins_week' + w];
+      if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+        const weightStr = estraiPesoDaInput(insVal);
+        if (weightStr) {
+          const weight = parseFloat(weightStr);
+          if (!isNaN(weight) && weight > 0) {
+            const repsVal = prevEx['reps_week' + w];
+            const repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+            if (repsNum && repsNum > 0) {
+              const estimated1RM = weight * (1 + repsNum / 30);
+              const proposedWeight = estimated1RM / (1 + targetReps / 30);
+              const roundedProposed = Math.round(proposedWeight * 2) / 2;
+              
+              list.push({
+                id: prevEx.id,
+                week: w,
+                numScheda: prevEx.num_scheda,
+                data: formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp),
+                pesoOriginale: weight,
+                repsOriginali: repsNum,
+                massimaleStimato: Math.round(estimated1RM * 10) / 10,
+                pesoProposto: roundedProposed
+              });
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  return list.sort((a, b) => {
+    const diffScheda = parseInt(b.numScheda) - parseInt(a.numScheda);
+    if (diffScheda !== 0) return diffScheda;
+    return b.week - a.week;
+  });
+});
+
+const apriAiutoCaricoDettagliato = async (sett) => {
+  vibraTattile(10);
+  aiutoWeek.value = sett;
+  dialogAiutoCarico.value = true;
+  caricandoAiutoCarico.value = true;
+  storicoEsercizioPerAiuto.value = [];
+  
+  try {
+    const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
+    const desEsercizio = workout.value.des_esercizio;
+    const currentNumScheda = parseInt(workout.value.num_scheda);
+    
+    if (atletaId && desEsercizio && !isNaN(currentNumScheda)) {
+      const q = query(
+        collection(db, 'STORYBOARD'),
+        where(keyIdCliente, '==', atletaId),
+        where('des_esercizio', '==', desEsercizio)
+      );
+      const snap = await getDocs(q);
+      const list = [];
+      snap.forEach((doc) => {
+        const d = doc.data();
+        const sNum = parseInt(d.num_scheda);
+        if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
+          list.push({ id: doc.id, ...d });
+        }
+      });
+      list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
+      
+      if (list.length === 0) {
+        const res = await fetch('/storyboard_backup.json');
+        const allData = await res.json();
+        const matched = allData.filter(b => {
+          const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+          return String(bAtletaId) === String(atletaId) &&
+                 String(b.des_esercizio).trim() === String(desEsercizio).trim() &&
+                 parseInt(b.num_scheda) <= currentNumScheda &&
+                 parseInt(b.num_riga_giorno) > 0;
+        });
+        matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
+        storicoEsercizioPerAiuto.value = matched;
+      } else {
+        storicoEsercizioPerAiuto.value = list;
+      }
+    }
+  } catch (err) {
+    console.error("Errore caricamento storico per aiuto carico:", err);
+  } finally {
+    caricandoAiutoCarico.value = false;
+  }
+};
+
+const applicaPropostaCaricoStorico = (peso) => {
+  vibraTattile(12);
+  const targetInput = inputSettimane.value[aiutoWeek.value];
+  if (targetInput) {
+    targetInput.ins = peso + 'kg';
+    salvaDatoSettimanale(aiutoWeek.value, 'ins');
+    dialogAiutoCarico.value = false;
+    
+    // Mostra snackbar di successo
+    snackbarMessaggio.value = `Applicato carico ${peso}kg per W${aiutoWeek.value}!`;
+    snackbarSalvataggio.value = true;
+  }
+};
 
 // Dialogs and States
 const dialogProgressioniPrecedente = ref(false);
@@ -2855,6 +3197,7 @@ const caricaDatiEsercizio = async () => {
     }
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+    inizializzaParametriProposta(atletaId);
 
     for (let w = 1; w <= 6; w++) {
       inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
@@ -2894,6 +3237,7 @@ const caricaDatiEsercizio = async () => {
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+      inizializzaParametriProposta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
       if (!workout.value.UrlNormal || !workout.value.UrlNormal.startsWith('http')) {
@@ -2967,6 +3311,7 @@ const caricaEsercizioDaBackup = async () => {
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+      inizializzaParametriProposta(atletaId);
 
       for (let w = 1; w <= 6; w++) {
         inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
@@ -4164,17 +4509,18 @@ const getGhostLiftStandard = (sett) => {
       return { text: w2Ins, peso: parseFloat(pesoStrW2), label: 'W2', isScarico: true };
     }
 
-    // Proposta specifica per Week 5 - propone W3 (carico superiore a quello della week 3)
+    // Proposta specifica per Week 5 (configurabile)
     if (sett === 5) {
-      const w3Ins = inputSettimane.value[3]?.ins;
-      if (!w3Ins) return null;
-      const pesoStrW3 = estraiPesoDaInput(w3Ins);
-      if (!pesoStrW3) return null;
-      const pesoW3 = parseFloat(pesoStrW3);
+      const baseW = propostaBaseWeek5.value; // e.g. "W3"
+      const baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
+      const baseIns = inputSettimane.value[baseWNum]?.ins;
+      if (!baseIns) return null;
+      const pesoStrBase = estraiPesoDaInput(baseIns);
+      if (!pesoStrBase) return null;
+      const pesoBase = parseFloat(pesoStrBase);
       
-      // Se c'è stato lo scarico alla W4, proponiamo di aumentare il peso rispetto a W3
+      // Se c'è stato lo scarico alla W4, proponiamo di aumentare il peso rispetto alla base selezionata
       if (isWeek4Scarico.value) {
-        // Verifica se l'esercizio è coi manubri basandosi su nome, note o dettagli
         const exName = String(workout.value.des_esercizio || '').toLowerCase();
         const exNote = String(workout.value.des_note_attrezzo || '').toLowerCase();
         const exAttr = String(workout.value.des_note_gen_attr || '').toLowerCase();
@@ -4182,28 +4528,38 @@ const getGhostLiftStandard = (sett) => {
         
         let pesoProposto;
         if (isManubri) {
-          // Incremento fisso per manubri: 2kg se forte (peso >= soglia), altrimenti 1kg
-          const incremento = pesoW3 >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
-          pesoProposto = pesoW3 + incremento;
+          const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
+          pesoProposto = pesoBase + incremento;
         } else {
-          // Incremento percentuale standard per bilancieri/macchine
-          const incremento = pesoW3 * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
-          pesoProposto = Math.round((pesoW3 + incremento) * 2) / 2; // Arrotondato a 0.5kg
+          const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+          pesoProposto = Math.round((pesoBase + incremento) * 2) / 2; // Arrotondato a 0.5kg
         }
         
         return {
-          text: w3Ins,
-          peso: pesoW3,
-          label: 'W3',
+          text: baseIns,
+          peso: pesoBase,
+          label: baseW,
           isPostScarico: true,
           pesoProposto: pesoProposto
         };
       }
       
-      return { text: w3Ins, peso: pesoW3, label: 'W3' };
+      return { text: baseIns, peso: pesoBase, label: baseW };
     }
 
-    // Per le altre week (2, 3, 4 non scarico, 6): propone la settimana precedente (sett - 1)
+    // Proposta specifica per Week 6 (configurabile)
+    if (sett === 6) {
+      const baseW = propostaBaseWeek6.value; // e.g. "W5"
+      const baseWNum = parseInt(baseW.replace('W', ''), 10) || 5;
+      const baseIns = inputSettimane.value[baseWNum]?.ins;
+      if (!baseIns) return null;
+      const pesoStrBase = estraiPesoDaInput(baseIns);
+      if (!pesoStrBase) return null;
+      const pesoBase = parseFloat(pesoStrBase);
+      return { text: baseIns, peso: pesoBase, label: baseW };
+    }
+
+    // Per le altre week (2, 3, 4 non scarico): propone la settimana precedente (sett - 1)
     const prevIns = inputSettimane.value[sett - 1]?.ins;
     if (!prevIns) return null;
     const pesoStr = estraiPesoDaInput(prevIns);
@@ -4241,67 +4597,94 @@ const estraiPesoDaInput = (str) => {
   if (!str) return null;
   
   let clean = str.replace(/,/g, '.').trim();
-  const lowerClean = clean.toLowerCase();
   
-  // 1. Rimuoviamo il prefisso delle reps
+  // 1. Rimuoviamo il prefisso delle reps (es. "3x10", "4 x 12")
   const repsPrefixRegex = /^\s*\d+\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g;
   clean = clean.replace(repsPrefixRegex, '').trim();
   
-  // 2. Regex estesa per catturare anche il simbolo dei gradi ° e parole prima del numero
-  const numberRegex = /(?:([a-z\u00C0-\u017F]+|[\+\-]|rp|rpe|rpe:|rpe\s*:)\s+)?(\d+(?:\.\d+)?)\s*([a-z\u00C0-\u017F%°\/]+)?/gi;
+  // Trova tutti i numeri decimali o interi presenti nella stringa
+  const numberRegex = /\d+(?:\.\d+)?/g;
   
   let match;
   const validWeights = [];
   
-  // Lista nera di parole che, se precedono o seguono un numero, indicano una "impostazione" e non un peso
-  const settingKeywords = ['panca', 'inclinazione', 'inclinata', 'buco', 'foro', 'tacca', 'tacchetta', 'posizione', 'pos', 'altezza', 'inc', 'gradi', 'grado', '°', 'seduto', 'seduta'];
-
+  // Lista di parole chiave relative ad impostazioni/macchine/metadati da escludere
+  const settingKeywords = [
+    'panca', 'inclinazione', 'inclinata', 'inclinato', 'buco', 'buca', 'buchi', 
+    'foro', 'fori', 'tacca', 'tacche', 'tacchetta', 'tacchette', 'posizione', 'pos', 'altezza', 
+    'inc', 'gradi', 'grado', '°', 'seduto', 'seduta', 'step', 'pin', 'livello', 'liv', 
+    'regolazione', 'tacc', 'tassello', 'tavoletta', 'board', 'catena', 'catene', 'elastico', 
+    'elastici', 'blocco', 'blocchi', 'box', 'serie', 'set', 'sets', 'reps', 'rep', 
+    'ripetizioni', 'rip', 'colpi', 'colpo', 'giro', 'giri', 'circuiti', 'circuito', 
+    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo'
+  ];
+  
+  // Stopwords da ignorare prima del numero per trovare il prefisso reale
+  const stopWords = [
+    'a', 'di', 'su', 'in', 'da', 'alla', 'al', 'del', 'della', 'n', 'n.', 'num', 
+    'num.', 'n°', 'pos', 'pos.', '#', ':', '::', '@', 'at', 'con', 'e', 'o', 'per'
+  ];
+  
   while ((match = numberRegex.exec(clean)) !== null) {
-    const prefix = (match[1] || '').toLowerCase().trim();
-    const valStr = match[2];
-    const suffix = (match[3] || '').toLowerCase().trim();
-    const numVal = parseFloat(valStr);
+    const numStr = match[0];
+    const numVal = parseFloat(numStr);
+    const startIdx = match.index;
+    const endIdx = startIdx + numStr.length;
     
     if (isNaN(numVal)) continue;
-
-    // ECCEZIONE FONDAMENTALE: Se l'utente ha scritto esplicitamente "kg" dopo il numero, lo prendiamo sempre come peso
-    if (suffix.startsWith('k')) {
+    
+    // 1. Analisi del Suffisso (quello che segue il numero)
+    const suffixStr = clean.substring(endIdx);
+    const suffixClean = suffixStr.trim();
+    
+    // Se c'è esplicitamente "kg" dopo il numero (es. "10kg", "10 kg", "10 k"), lo accettiamo sempre come peso
+    if (suffixClean.toLowerCase().startsWith('k')) {
       validWeights.push(numVal);
       continue;
     }
-
-    // CONTROLLO IMPOSTAZIONI (Eccezioni Panca 45°, Buco 3, ecc.)
-    // Se il prefisso o il suffisso sono nella lista nera, ignoriamo il numero
-    const isSetting = settingKeywords.some(word => prefix.includes(word) || suffix.includes(word));
-    if (isSetting) continue;
-
-    // Angoli comuni della panca che spesso vengono scritti senza simboli (es. "panca 30")
-    if (prefix === 'panca' && [15, 30, 45, 60, 90].includes(numVal)) continue;
-
-    // Filtri di esclusione standard
-    if (prefix.includes('+') || prefix.includes('-') || prefix.includes('rp')) continue;
     
-    if (suffix) {
-      if (suffix.startsWith('/') || suffix === '%' || suffix.startsWith('r') || (suffix.startsWith('g') && !suffix.startsWith('k')) || suffix.startsWith('v') || suffix.startsWith('m') || suffix.startsWith('s')) {
+    // Se il suffisso inizia con il simbolo dei gradi ° o parole di configurazione/volume
+    const suffixTokens = suffixClean.split(/[\s\-+:=@]+/);
+    const suffixToken = (suffixTokens[0] || '').toLowerCase().trim();
+    
+    if (suffixClean.startsWith('°') || settingKeywords.some(word => suffixToken.includes(word) || suffixClean.toLowerCase().startsWith(word))) {
+      continue; // Ignorato (è un parametro di setting o gradi o ripetizioni)
+    }
+    
+    // Esclusioni standard per il suffisso (es. "/", "%", "rpe", "sec", ecc.)
+    if (suffixToken) {
+      if (suffixToken.startsWith('/') || suffixToken === '%' || suffixToken.startsWith('rpe') || suffixToken.startsWith('sec') || suffixToken.startsWith('min') || suffixToken.startsWith('s') || suffixToken.startsWith('m')) {
         continue;
       }
     }
     
-    // Se passa tutti i controlli, è un carico allenante valido
+    // 2. Analisi del Prefisso (quello che precede il numero)
+    const prefixStr = clean.substring(0, startIdx);
+    const prefixTokens = prefixStr.trim().split(/[\s\-+:=@°]+/);
+    
+    let prefixWord = '';
+    for (let i = prefixTokens.length - 1; i >= 0; i--) {
+      const token = prefixTokens[i].toLowerCase().trim();
+      if (!token) continue;
+      if (stopWords.includes(token)) {
+        continue; // Salta le preposizioni o caratteri di stop
+      }
+      prefixWord = token;
+      break;
+    }
+    
+    // Se la parola significativa prima del numero è un'impostazione o rpe/rp, escludiamo il numero
+    if (prefixWord) {
+      if (settingKeywords.some(word => prefixWord === word || prefixWord.includes(word)) || prefixWord === 'rpe' || prefixWord === 'rp') {
+        continue; // Ignorato
+      }
+    }
+    
     validWeights.push(numVal);
   }
   
   if (validWeights.length > 0) {
-    // Se l'utente scrive "8 8 8", validWeights sarà [8, 8, 8]. 
-    // Math.max restituisce 8. Perfetto.
     return String(Math.max(...validWeights));
-  }
-  
-  // Fallback se nessun carico viene trovato dall'algoritmo
-  const fallbackRegex = /\b\d+(?:\.\d+)?\b/g;
-  const fallbackMatches = clean.match(fallbackRegex);
-  if (fallbackMatches && fallbackMatches.length > 0) {
-    return fallbackMatches[fallbackMatches.length - 1];
   }
   
   return null;

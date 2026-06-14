@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase.js';
 
@@ -525,3 +525,63 @@ export const syncStoryboardListener = () => {
 if (selectedAthlete.value && selectedSheet.value) {
   syncStoryboardListener();
 }
+
+// Parametri di proposta carichi globali (sincronizzati per atleta)
+export const propostaBaseWeek5Global = ref(localStorage.getItem('propostaBaseWeek5_' + (localStorage.getItem('selectedAthlete') || '')) || 'W3');
+export const propostaBaseWeek6Global = ref(localStorage.getItem('propostaBaseWeek6_' + (localStorage.getItem('selectedAthlete') || '')) || 'W5');
+export const incrementoPesoPostScaricoPctGlobal = ref(parseFloat(localStorage.getItem('incrementoPesoPostScaricoPct_' + (localStorage.getItem('selectedAthlete') || '')) || '2.5'));
+export const sogliaForzaManubriGlobal = ref(parseFloat(localStorage.getItem('sogliaForzaManubri_' + (localStorage.getItem('selectedAthlete') || '')) || '20'));
+export const incrementoManubriLeggeroGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriLeggero_' + (localStorage.getItem('selectedAthlete') || '')) || '1'));
+export const incrementoManubriForteGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriForte_' + (localStorage.getItem('selectedAthlete') || '')) || '2'));
+
+// Watcher per ricaricare quando cambia l'atleta
+watch(selectedAthlete, (newAthlete) => {
+  if (newAthlete) {
+    propostaBaseWeek5Global.value = localStorage.getItem('propostaBaseWeek5_' + newAthlete) || 'W3';
+    propostaBaseWeek6Global.value = localStorage.getItem('propostaBaseWeek6_' + newAthlete) || 'W5';
+    
+    const pct = localStorage.getItem('incrementoPesoPostScaricoPct_' + newAthlete);
+    incrementoPesoPostScaricoPctGlobal.value = pct !== null ? parseFloat(pct) : 2.5;
+    
+    const soglia = localStorage.getItem('sogliaForzaManubri_' + newAthlete);
+    sogliaForzaManubriGlobal.value = soglia !== null ? parseFloat(soglia) : 20;
+    
+    const legg = localStorage.getItem('incrementoManubriLeggero_' + newAthlete);
+    incrementoManubriLeggeroGlobal.value = legg !== null ? parseFloat(legg) : 1;
+    
+    const forte = localStorage.getItem('incrementoManubriForte_' + newAthlete);
+    incrementoManubriForteGlobal.value = forte !== null ? parseFloat(forte) : 2;
+  }
+});
+
+// Watcher per salvare in localStorage quando cambiano le variabili globali
+watch(propostaBaseWeek5Global, (newVal) => {
+  if (selectedAthlete.value) {
+    localStorage.setItem('propostaBaseWeek5_' + selectedAthlete.value, newVal);
+  }
+});
+watch(propostaBaseWeek6Global, (newVal) => {
+  if (selectedAthlete.value) {
+    localStorage.setItem('propostaBaseWeek6_' + selectedAthlete.value, newVal);
+  }
+});
+watch(incrementoPesoPostScaricoPctGlobal, (newVal) => {
+  if (selectedAthlete.value) {
+    localStorage.setItem('incrementoPesoPostScaricoPct_' + selectedAthlete.value, String(newVal));
+  }
+});
+watch(sogliaForzaManubriGlobal, (newVal) => {
+  if (selectedAthlete.value) {
+    localStorage.setItem('sogliaForzaManubri_' + selectedAthlete.value, String(newVal));
+  }
+});
+watch(incrementoManubriLeggeroGlobal, (newVal) => {
+  if (selectedAthlete.value) {
+    localStorage.setItem('incrementoManubriLeggero_' + selectedAthlete.value, String(newVal));
+  }
+});
+watch(incrementoManubriForteGlobal, (newVal) => {
+  if (selectedAthlete.value) {
+    localStorage.setItem('incrementoManubriForte_' + selectedAthlete.value, String(newVal));
+  }
+});

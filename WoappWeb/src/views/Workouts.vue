@@ -1944,8 +1944,30 @@
 
           <!-- Sezione 3: Parametri Proposta Carichi -->
           <div class="mb-4 d-flex flex-column gap-3.5">
-            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-1">🏋️ Parametri Proposta Carichi (W5 / W6)</span>
+            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-1">🏋️ Parametri Proposta Carichi (W2 / W5 / W6)</span>
             
+            <!-- Settimanale W2 -->
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <span class="text-body-2 font-weight-bold text-white d-block">Riferimento Proposta W2</span>
+                <span class="text-super-caption text-muted">Settimana base per suggerimento W2</span>
+              </div>
+              <div style="width: 140px;">
+                <v-btn-toggle
+                  v-model="propostaBaseWeek2"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  density="compact"
+                  rounded="lg"
+                  class="w-100 card-glass border"
+                  style="height: 30px;"
+                >
+                  <v-btn value="W1" style="min-width: 50%; font-size: 0.65rem;">W1</v-btn>
+                  <v-btn value="W6 Prec." style="min-width: 50%; font-size: 0.65rem;">W6 Prec.</v-btn>
+                </v-btn-toggle>
+              </div>
+            </div>
+
             <!-- Settimanale W5 -->
             <div class="d-flex align-center justify-space-between">
               <div>
@@ -2083,7 +2105,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2602,6 +2624,7 @@ const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_r
 const timerTheme = timerThemeGlobal;
 
 // Parametri Proposta Carichi globali
+const propostaBaseWeek2 = propostaBaseWeek2Global;
 const propostaBaseWeek5 = propostaBaseWeek5Global;
 const propostaBaseWeek6 = propostaBaseWeek6Global;
 const incrementoPostScaricoPct = incrementoPesoPostScaricoPctGlobal;

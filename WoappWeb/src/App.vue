@@ -45,6 +45,19 @@
         <v-icon size="20">mdi-cog</v-icon>
       </v-btn>
 
+      <!-- Pulsante Guida / Aiuto Progressione -->
+      <v-btn
+        icon
+        color="orange-lighten-2"
+        variant="text"
+        class="rounded-lg mr-2"
+        @click="mostraDialogGuida = true"
+        title="Guida all'Uso e Regole di Progressione"
+        id="btn-guida-uso"
+      >
+        <v-icon size="20">mdi-help-circle-outline</v-icon>
+      </v-btn>
+
       <v-btn
         icon
         color="red-darken-2"
@@ -376,6 +389,80 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog Guida all'Uso e Regole di Progressione -->
+    <v-dialog v-model="mostraDialogGuida" max-width="550" scrollable rounded="xl">
+      <v-card class="pa-4 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.98) !important; border-color: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) !important; max-height: 85vh;">
+        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-2 mb-2 pb-2 border-bottom-soft">
+          <div class="d-flex align-center">
+            <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-help-circle-outline</v-icon>
+            Guida FlexCoach 🎓
+          </div>
+          <v-btn icon size="small" variant="text" color="slate-dark" @click="mostraDialogGuida = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="px-2 py-2 text-body-2 text-slate-light" style="line-height: 1.5; color: #cbd5e1 !important; overflow-y: auto;">
+          <div class="mb-4">
+            <h3 class="text-orange-lighten-2 font-weight-black mb-1.5" style="font-size: 0.95rem;">🚀 Come Usare l'Applicazione</h3>
+            <p class="mb-2">
+              Benvenuto su <strong>FlexCoach</strong>! Ecco come destreggiarti velocemente nell'app:
+            </p>
+            <ul class="pl-4 mb-2 d-flex flex-column gap-1">
+              <li><strong>Tab WORKOUTS:</strong> La tua schermata principale. Mostra l'elenco delle schede e i giorni di allenamento. Clicca su un giorno per iniziare.</li>
+              <li><strong>Inserimento Log:</strong> Nella scheda dell'esercizio, digita il carico sollevato e le ripetizioni fatte (es. <code>10kg 10</code> o <code>20 20 18</code> per più serie) e tocca altrove per salvare.</li>
+              <li><strong>Carichi Ombra (Ghost Lift):</strong> L'app ti mostra un suggerimento sfocato (es. <code>15 kg</code>) basato sulla progressione. Toccalo per inserirlo all'istante!</li>
+              <li><strong>Timer Recupero:</strong> Appena salvi una serie, si avvia il timer di recupero in background.</li>
+              <li><strong>Calcolatore Dischi:</strong> Tocca il peso suggerito o inserito per aprire il calcolatore e vedere esattamente quali dischi montare sul bilanciere.</li>
+              <li><strong>Chiudi Settimana:</strong> A fine settimana, premi il tasto "Chiudi Settimana" per archiviare la settimana e far calcolare le progressioni.</li>
+            </ul>
+          </div>
+
+          <v-divider class="my-3 border-soft"></v-divider>
+
+          <div class="mb-4">
+            <h3 class="text-orange-lighten-2 font-weight-black mb-1.5" style="font-size: 0.95rem;">📈 Regole di Progressione Carichi</h3>
+            <p class="mb-2">
+              La pianificazione segue una struttura a onde progettata per massimizzare la crescita riducendo gli infortuni:
+            </p>
+            <div class="d-flex flex-column gap-2 mb-2">
+              <div class="pa-2 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                <strong class="text-white">Week 1 (LONTANO dal Cedimento - RIR ~2):</strong> La settimana più leggera. Serve per familiarizzare coi movimenti senza affaticarsi. La proposta si basa sulla Week 6 del mesociclo precedente, scalando opportunamente il carico se la fatica era alta (media/pesante/devastante).
+              </div>
+              <div class="pa-2 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                <strong class="text-white">Week 2 (Carico Medio-Leggero - RIR ~1.5):</strong> Un po' più pesante della Week 1. Iniziamo ad aumentare leggermente i pesi per preparare il corpo.
+              </div>
+              <div class="pa-2 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                <strong class="text-white">Week 3 (Carico Pesante - RIR ~0.5):</strong> Intensità elevata. Il cedimento muscolare viene ricercato almeno nell'ultima serie dell'esercizio.
+              </div>
+              <div class="pa-2 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                <strong class="text-white">Week 4 (Scarico Attivo - Deload - RIR ~3.5):</strong> Settimana rigenerante. Il carico si alleggerisce notevolmente (proposto da W2 scarico) ma le ripetizioni potrebbero aumentare per mantenere attivo il pompaggio muscolare.
+              </div>
+              <div class="pa-2 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                <strong class="text-white">Week 5 & 6 (Picco di Cedimento - RIR 0):</strong> Le settimane più dure. Si ricerca il cedimento muscolare totale in ogni serie. Nella Week 6 si spinge a volte oltre il cedimento con tecniche d'intensità (rest-pause, drop-set, forzate).
+              </div>
+            </div>
+          </div>
+
+          <v-divider class="my-3 border-soft"></v-divider>
+
+          <div>
+            <h3 class="text-orange-lighten-2 font-weight-black mb-1.5" style="font-size: 0.95rem;">⏱️ Gestione dei RIR (Ripetizioni in Riserva)</h3>
+            <p class="mb-0">
+              Se il Coach scrive un vincolo di <strong>RIR</strong> nelle note o nella prescrizione della settimana (es. <code>RIR 2</code> o <code>RIR 0</code>), l'app lo riconosce automaticamente! 
+              In questo caso, il carico ombra proposto verrà ricalcolato scientificamente per farti terminare la serie con esattamente quel numero di ripetizioni di margine prima del cedimento, scavalcando la regola base della settimana.
+            </p>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="px-2 pt-3 pb-0 border-top-soft">
+          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraDialogGuida = false" class="text-white font-weight-bold">
+            Ho capito, iniziamo!
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-app>
 </template>
 
@@ -386,6 +473,23 @@ import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resume
 
 const router = useRouter();
 const globalTransition = ref('fade');
+const mostraDialogGuida = ref(false);
+
+const controllaPrimoAccesso = () => {
+  const guidaVista = localStorage.getItem('woapp_guida_vista');
+  if (guidaVista !== 'true') {
+    mostraDialogGuida.value = true;
+    localStorage.setItem('woapp_guida_vista', 'true');
+  }
+};
+
+watch(utente, (nuovoUtente) => {
+  if (nuovoUtente) {
+    setTimeout(() => {
+      controllaPrimoAccesso();
+    }, 1000);
+  }
+});
 
 // Configurazione delle dimensioni del timer in base alla densità e al tema
 const timerSizeConfig = computed(() => {
@@ -471,6 +575,12 @@ onMounted(() => {
   // Richiesta permessi di notifica per timer in background
   if (window.Notification && Notification.permission === 'default') {
     Notification.requestPermission();
+  }
+
+  if (utente.value) {
+    setTimeout(() => {
+      controllaPrimoAccesso();
+    }, 1000);
   }
 });
 

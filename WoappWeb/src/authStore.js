@@ -527,6 +527,7 @@ if (selectedAthlete.value && selectedSheet.value) {
 }
 
 // Parametri di proposta carichi globali (sincronizzati per atleta)
+export const propostaBaseWeek2Global = ref(localStorage.getItem('propostaBaseWeek2_' + (localStorage.getItem('selectedAthlete') || '')) || 'W1');
 export const propostaBaseWeek5Global = ref(localStorage.getItem('propostaBaseWeek5_' + (localStorage.getItem('selectedAthlete') || '')) || 'W3');
 export const propostaBaseWeek6Global = ref(localStorage.getItem('propostaBaseWeek6_' + (localStorage.getItem('selectedAthlete') || '')) || 'W5');
 export const incrementoPesoPostScaricoPctGlobal = ref(parseFloat(localStorage.getItem('incrementoPesoPostScaricoPct_' + (localStorage.getItem('selectedAthlete') || '')) || '2.5'));
@@ -537,6 +538,7 @@ export const incrementoManubriForteGlobal = ref(parseFloat(localStorage.getItem(
 // Watcher per ricaricare quando cambia l'atleta
 watch(selectedAthlete, (newAthlete) => {
   if (newAthlete) {
+    propostaBaseWeek2Global.value = localStorage.getItem('propostaBaseWeek2_' + newAthlete) || 'W1';
     propostaBaseWeek5Global.value = localStorage.getItem('propostaBaseWeek5_' + newAthlete) || 'W3';
     propostaBaseWeek6Global.value = localStorage.getItem('propostaBaseWeek6_' + newAthlete) || 'W5';
     
@@ -555,6 +557,11 @@ watch(selectedAthlete, (newAthlete) => {
 });
 
 // Watcher per salvare in localStorage quando cambiano le variabili globali
+watch(propostaBaseWeek2Global, (newVal) => {
+  if (selectedAthlete.value) {
+    localStorage.setItem('propostaBaseWeek2_' + selectedAthlete.value, newVal);
+  }
+});
 watch(propostaBaseWeek5Global, (newVal) => {
   if (selectedAthlete.value) {
     localStorage.setItem('propostaBaseWeek5_' + selectedAthlete.value, newVal);

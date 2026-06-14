@@ -970,6 +970,23 @@
                 Parametri Proposta Carichi:
               </span>
               
+              <!-- Proposta Base Week 2 -->
+              <div class="mb-2">
+                <span class="text-caption text-slate-dark d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.74rem' }">Settimana di riferimento per Proposta W2:</span>
+                <v-btn-toggle
+                  v-model="propostaBaseWeek2"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  :density="layoutCorrente === 'super_compatto' ? 'compact' : 'comfortable'"
+                  :rounded="layoutCorrente === 'super_compatto' ? 'sm' : 'lg'"
+                  class="w-100 card-glass border"
+                  :style="{ height: layoutCorrente === 'super_compatto' ? '28px' : '34px' }"
+                >
+                  <v-btn value="W1" class="font-weight-bold flex-grow-1" style="min-width: 50%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W1</v-btn>
+                  <v-btn value="W6 Prec." class="font-weight-bold flex-grow-1" style="min-width: 50%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem' }">W6 Prec.</v-btn>
+                </v-btn-toggle>
+              </div>
+
               <!-- Proposta Base Week 5 -->
               <div class="mb-2">
                 <span class="text-caption text-slate-dark d-block mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.74rem' }">Settimana di riferimento per Proposta W5:</span>
@@ -2093,12 +2110,13 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
 
 // Parametri di progressione allenamento legati ai parametri globali
+const propostaBaseWeek2 = propostaBaseWeek2Global;
 const propostaBaseWeek5 = propostaBaseWeek5Global;
 const propostaBaseWeek6 = propostaBaseWeek6Global;
 const INCREMENTO_PESO_POST_SCARICO_PCT = incrementoPesoPostScaricoPctGlobal;
@@ -2587,6 +2605,65 @@ const getLivelloForzaIconInfo = (stelle) => {
   return { icon: 'mdi-trophy', color: '#a855f7' };                         // Elite
 };
 
+const estraiRIRDaPrescrizione = (text) => {
+  if (!text) return null;
+  const clean = String(text).toLowerCase();
+  
+  // Cerca pattern tipo "rir 2", "rir2", "rir: 2", "rir=2" o "rir @ 2"
+  const matchRIR = clean.match(/rir\s*[:=\s@]?\s*([0-4](?:\.\d+)?)/i);
+  if (matchRIR) {
+    const val = parseFloat(matchRIR[1]);
+    if (!isNaN(val)) return val;
+  }
+  
+  // Se c'è scritto "cedimento", "buffer 0" o "rir 0"
+  if (clean.includes('cedimento') || clean.includes('ced.') || clean.includes('buffer 0')) {
+    return 0;
+  }
+  
+  return null;
+};
+
+const getRIRDefault = (week) => {
+  if (week === 1) return 2;     // Week 1 molto leggera, lontana da cedimento
+  if (week === 2) return 1.5;   // Week 2 leggermente più pesante
+  if (week === 3) return 0.5;   // Week 3 pesante a cedimento almeno all'ultima serie
+  if (week === 4) return 3.5;   // Week 4 scarico attivo (molto leggera)
+  if (week === 5) return 0;     // Week 5 cedimento ricercato
+  if (week === 6) return 0;     // Week 6 cedimento totale o intensificazione
+  return 0;
+};
+
+const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
+  if (!baseInsText || !workout.value) return null;
+  const pesoStr = estraiPesoDaInput(baseInsText);
+  if (!pesoStr) return null;
+  const pesoBase = parseFloat(pesoStr);
+  if (isNaN(pesoBase) || pesoBase <= 0) return null;
+  
+  const repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10;
+  const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10;
+  
+  // Estrai RIR della settimana base
+  const rirBaseStr = estraiRIRDaPrescrizione(workout.value['des_week' + baseWeekNum]);
+  const rirBase = rirBaseStr !== null ? rirBaseStr : getRIRDefault(baseWeekNum);
+  
+  // Estrai RIR della settimana target
+  const rirTargetStr = estraiRIRDaPrescrizione(workout.value['des_week' + targetWeek]);
+  const rirTarget = rirTargetStr !== null ? rirTargetStr : getRIRDefault(targetWeek);
+  
+  // Stima 1RM dalla settimana base (Epley)
+  const estimated1RM = pesoBase * (1 + (repsBase + rirBase) / 30);
+  
+  // Calcola peso target rispettando il RIR target
+  let proposedWeight = estimated1RM / (1 + (repsTarget + rirTarget) / 30);
+  
+  // Arrotondamento standard a 0.5kg
+  proposedWeight = Math.round(proposedWeight * 2) / 2;
+  
+  return proposedWeight;
+};
+
 const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi) => {
   if (!prevW6Weight) return null;
   const w6 = parseFloat(String(prevW6Weight).replace(',', '.'));
@@ -2595,21 +2672,27 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, gio
   const r6 = prevW6Reps ? parseInt(prevW6Reps, 10) : (currW1Reps ? parseInt(currW1Reps, 10) : 10);
   const r1 = currW1Reps ? parseInt(currW1Reps, 10) : (prevW6Reps ? parseInt(prevW6Reps, 10) : 10);
   
-  // 1RM estimation via Epley formula
-  const estimated1RM = w6 * (1 + r6 / 30);
+  // RIR di default per W6 (cedimento = 0) e W1 (default = 2 RIR per iniziare leggeri)
+  const rirW6 = 0;
+  const rirW1 = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
   
-  // Theoretical weight for week 1
-  let proposedWeight = estimated1RM / (1 + r1 / 30);
+  // Stima 1RM tramite Epley comprensivo di RIR
+  const estimated1RM = w6 * (1 + (r6 + rirW6) / 30);
   
-  // Adjust based on fatigue
+  // Calcolo carico teorico per W1 rispettando RIR di W1
+  let proposedWeight = estimated1RM / (1 + (r1 + rirW1) / 30);
+  
+  // Regolazione in base alla percezione della fatica
   const faticaLower = (fatica || '').toLowerCase().trim();
-  let adjustment = 1.0;
-  if (faticaLower === 'media' || faticaLower === 'bassa') {
-    adjustment = 1.03; // Increase by 3%
+  let adjustment = 0.97; // Default: proposta prudenziale del -3% per iniziare leggeri
+  if (faticaLower === 'leggera' || faticaLower === 'bassa') {
+    adjustment = 0.99; // Molto leggero prima, quasi uguale (-1%)
+  } else if (faticaLower === 'media') {
+    adjustment = 0.97; // -3%
+  } else if (faticaLower === 'pesante') {
+    adjustment = 0.95; // -5%
   } else if (faticaLower === 'devastante') {
-    adjustment = 0.95; // Decrease by 5%
-  } else {
-    adjustment = 1.0;
+    adjustment = 0.92; // -8%
   }
   
   proposedWeight = proposedWeight * adjustment;
@@ -2617,17 +2700,17 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, gio
   // Riduzione prudenziale in base al tempo passato
   let dateFactor = 1.0;
   if (giorniTrascorsi > 180) {
-    dateFactor = 0.90; // -10% per oltre 6 mesi
+    dateFactor = 0.90;
   } else if (giorniTrascorsi > 90) {
-    dateFactor = 0.93; // -7% per 3-6 mesi
+    dateFactor = 0.93;
   } else if (giorniTrascorsi > 60) {
-    dateFactor = 0.96; // -4% per 2-3 mesi
+    dateFactor = 0.96;
   } else if (giorniTrascorsi > 30) {
-    dateFactor = 0.98; // -2% per 1-2 mesi
+    dateFactor = 0.98;
   }
   proposedWeight = proposedWeight * dateFactor;
   
-  // Round to nearest 0.5 kg
+  // Arrotonda ai 0.5kg
   return Math.round(proposedWeight * 2) / 2;
 };
 
@@ -4500,6 +4583,43 @@ const getGhostLiftStandard = (sett) => {
       };
     }
 
+    // Proposta specifica per Week 2 (configurabile)
+    if (sett === 2) {
+      const baseW = propostaBaseWeek2.value; // "W1" o "W6 Prec."
+      
+      if (baseW === 'W6 Prec.') {
+        if (previousWorkout.value) {
+          const prevW6Text = inputSettimanePrecedente.value[6]?.ins || previousWorkout.value.ins_week6 || previousWorkout.value.num_ins6;
+          if (prevW6Text) {
+            const proposedVal = proponiProgressioneCaricoRIR(2, 6, String(prevW6Text));
+            if (proposedVal !== null) {
+              return { text: prevW6Text, peso: proposedVal, label: 'W6 Prec.' };
+            }
+          }
+        }
+      }
+      
+      // Default: propone W1
+      const w1Ins = inputSettimane.value[1]?.ins;
+      if (w1Ins) {
+        const proposedVal = proponiProgressioneCaricoRIR(2, 1, w1Ins);
+        if (proposedVal !== null) {
+          return { text: w1Ins, peso: proposedVal, label: 'W1' };
+        }
+      }
+    }
+
+    // Proposta specifica per Week 3
+    if (sett === 3) {
+      const w2Ins = inputSettimane.value[2]?.ins;
+      if (w2Ins) {
+        const proposedVal = proponiProgressioneCaricoRIR(3, 2, w2Ins);
+        if (proposedVal !== null) {
+          return { text: w2Ins, peso: proposedVal, label: 'W2' };
+        }
+      }
+    }
+
     // Proposta specifica per Week 4 (Scarico) - se isWeek4Scarico, propone W2
     if (sett === 4 && isWeek4Scarico.value) {
       const w2Ins = inputSettimane.value[2]?.ins;
@@ -4544,7 +4664,8 @@ const getGhostLiftStandard = (sett) => {
         };
       }
       
-      return { text: baseIns, peso: pesoBase, label: baseW };
+      const proposedVal = proponiProgressioneCaricoRIR(5, baseWNum, baseIns);
+      return { text: baseIns, peso: proposedVal !== null ? proposedVal : pesoBase, label: baseW };
     }
 
     // Proposta specifica per Week 6 (configurabile)
@@ -4553,13 +4674,19 @@ const getGhostLiftStandard = (sett) => {
       const baseWNum = parseInt(baseW.replace('W', ''), 10) || 5;
       const baseIns = inputSettimane.value[baseWNum]?.ins;
       if (!baseIns) return null;
+      
+      const proposedVal = proponiProgressioneCaricoRIR(6, baseWNum, baseIns);
+      if (proposedVal !== null) {
+        return { text: baseIns, peso: proposedVal, label: baseW };
+      }
+      
       const pesoStrBase = estraiPesoDaInput(baseIns);
       if (!pesoStrBase) return null;
       const pesoBase = parseFloat(pesoStrBase);
       return { text: baseIns, peso: pesoBase, label: baseW };
     }
 
-    // Per le altre week (2, 3, 4 non scarico): propone la settimana precedente (sett - 1)
+    // Per le altre week (4 non scarico): propone la settimana precedente (sett - 1)
     const prevIns = inputSettimane.value[sett - 1]?.ins;
     if (!prevIns) return null;
     const pesoStr = estraiPesoDaInput(prevIns);

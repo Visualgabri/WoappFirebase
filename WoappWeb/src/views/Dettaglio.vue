@@ -726,7 +726,7 @@
                     {{ getGhostLift(sett).suggerito }}kg
                   </span>
                   <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
-                    (prec. W6: {{ getGhostLift(sett).text }}kg <span v-if="getGhostLift(sett).reps">x{{ getGhostLift(sett).reps }}</span><span v-if="getGhostLift(sett).fatica && getGhostLift(sett).fatica !== 'Non specificata'"> - sforzo: {{ getGhostLift(sett).fatica }}</span>)
+                    (prec. W6: {{ getGhostLift(sett).text }}kg <span v-if="getGhostLift(sett).reps">x{{ getGhostLift(sett).reps }}</span><span v-if="getGhostLift(sett).fatica && getGhostLift(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLift(sett).fatica)" class="font-weight-black">{{ getGhostLift(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
                   </span>
                 </span>
                 <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
@@ -2357,7 +2357,7 @@ const proposteStoricoCalcolate = computed(() => {
                   }
                   proposedWeight *= coeffTempo;
                   
-                  const roundedProposed = Math.round(proposedWeight * 2) / 2;
+                  const roundedProposed = Math.round(proposedWeight / 1.25) * 1.25;
                   
                   list.push({
                     id: prevEx.id,
@@ -2414,7 +2414,7 @@ const proposteStoricoCalcolate = computed(() => {
               
             let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
             
-            const roundedProposed = Math.round(proposedWeight * 2) / 2;
+            const roundedProposed = Math.round(proposedWeight / 1.25) * 1.25;
             
             list.push({
               id: workout.value.id || 'current',
@@ -2534,7 +2534,7 @@ const caricoConsigliatoViaDiMezzo = computed(() => {
   
   if (potenziale !== null && prudenziale !== null && !isNaN(potenziale) && !isNaN(prudenziale)) {
     const avg = (potenziale + prudenziale) / 2;
-    return Math.round(avg * 2) / 2; // Arrotonda al 0.5 kg
+    return Math.round(avg / 1.25) * 1.25; // Arrotonda a 1.25 kg
   }
   return potenziale || prudenziale || 0;
 });
@@ -3021,8 +3021,8 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   // Calcola peso target rispettando il RIR target
   let proposedWeight = estimated1RM / (1 + (repsTarget + rirTarget) / 30);
   
-  // Arrotondamento standard a 0.5kg
-  proposedWeight = Math.round(proposedWeight * 2) / 2;
+  // Arrotondamento standard a 1.25kg
+  proposedWeight = Math.round(proposedWeight / 1.25) * 1.25;
   
   return proposedWeight;
 };
@@ -3071,8 +3071,8 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, gio
   }
   proposedWeight = proposedWeight * dateFactor;
   
-  // Arrotonda ai 0.5kg
-  return Math.round(proposedWeight * 2) / 2;
+  // Arrotonda ai 1.25kg
+  return Math.round(proposedWeight / 1.25) * 1.25;
 };
 
 const propostaWeek1 = computed(() => {
@@ -4989,7 +4989,7 @@ const getGhostLiftStandard = (sett) => {
           pesoProposto = pesoBase + incremento;
         } else {
           const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
-          pesoProposto = Math.round((pesoBase + incremento) * 2) / 2; // Arrotondato a 0.5kg
+          pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
         }
         
         return {

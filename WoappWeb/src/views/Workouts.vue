@@ -4355,6 +4355,19 @@ const recuperiRaggruppati = computed(() => {
   letter-spacing: -0.02em;
 }
 
+.capsule-active .capsule-num {
+  color: #ffedd5 !important;
+}
+
+.capsule-completed .capsule-num {
+  color: #38bdf8 !important; /* Celeste per distinguere la W dal peso */
+}
+
+.capsule-pending .capsule-num {
+  color: #64748b !important; /* Grigio scuro per distinguere la W dal trattino */
+}
+
+
 /* Nuovi Stili Premium per le Superserie (Supersets) */
 .superset-group-card {
   background: rgba(249, 115, 22, 0.02) !important;

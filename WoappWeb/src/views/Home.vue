@@ -86,107 +86,258 @@
         <!-- WINDOW 1: DATI SCHEDA (DASHBOARD) -->
         <v-window-item value="dati">
           
-          <!-- Avviso Esercizi Mancanti (Buco nell'ordine numerico) -->
+          <!-- Warning: Program not definitive ("da finire" flag is active) -->
           <v-card
-            v-if="eserciziMancantiGiornoAttivo.length > 0"
-            class="py-3 px-4 mb-4 text-left border animate-pulse"
-            style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04)) !important; border: 1.5px solid rgba(239, 68, 68, 0.4) !important; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15) !important; border-radius: 12px !important;"
+            v-if="workoutTData && isTrue(workoutTData.flg_da_finire)"
+            class="py-3 px-4 mb-4 text-left border card-glass animate-pulse"
+            style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)) !important; border: 1.5px solid rgba(239, 68, 68, 0.4) !important; border-radius: 16px !important;"
           >
             <div class="d-flex align-center">
-              <v-icon color="red-lighten-1" class="mr-3 flex-shrink-0" size="24">mdi-alert-circle</v-icon>
-              <div class="flex-grow-1">
-                <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.82rem !important;">
-                  Attenzione: Esercizi Mancanti!
+              <v-icon color="red-lighten-2" class="mr-3 flex-shrink-0" size="28">mdi-alert-decagram</v-icon>
+              <div>
+                <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.85rem !important;">
+                  Programma in elaborazione
                 </h4>
-                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: #e2e8f0 !important;">
-                  C'è un buco nell'ordine degli esercizi per il <strong>Giorno {{ giornoAttivo }}</strong>.
-                  Manca{{ eserciziMancantiGiornoAttivo.length === 1 ? ' l\'esercizio alla posizione' : 'no gli esercizi alle posizioni' }}:
-                  <span class="text-red-lighten-2 font-weight-black">{{ eserciziMancantiGiornoAttivo.join(', ') }}</span>.
-                  Verifica l'importazione.
+                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: #cbd5e1 !important;">
+                  Questo programma di allenamento <strong>non è ancora definitivo</strong>. Il coach sta lavorando per ultimare la scheda.
                 </p>
               </div>
             </div>
           </v-card>
 
-          <!-- Card Allenamento Attivo (Gamified Hero Card con bagliore neon) - Mostrata solo se non completato -->
+          <!-- Card Riepilogo Mesociclo WORKOUT_T -->
           <v-card 
-            v-if="settimaneChiuse < 6" 
-            class="premium-hero-card rounded-2xl text-left border position-relative overflow-hidden" 
-            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4 mb-4.5' : 'pa-5 mb-6')"
+            class="premium-hero-card rounded-2xl text-left border position-relative overflow-hidden pa-4 mb-5" 
             elevation="3"
           >
-            <!-- Neon background accent -->
             <div class="glowing-accent"></div>
             
-            <div class="d-flex align-center justify-space-between mb-4 gap-2 flex-wrap">
-              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase tracking-widest mr-1 text-truncate" style="font-size: 0.6rem; min-width: 120px;">
-                Allenamento del Giorno
+            <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
+              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase tracking-widest" style="font-size: 0.6rem;">
+                Riepilogo Scheda Attiva
               </span>
-              <div class="d-flex align-center gap-1.5 flex-shrink-0">
+              <v-chip
+                v-if="workoutTData"
+                color="orange-darken-3"
+                size="x-small"
+                variant="flat"
+                class="font-weight-black px-2 py-0.5 text-white"
+                style="height: 18px; font-size: 0.55rem;"
+              >
+                {{ workoutTData.cod_tipo_avanz_scheda || 'STANDARD' }}
+              </v-chip>
+            </div>
+
+            <!-- Calendario & Allineamento Tempi -->
+            <div class="date-summary-box pa-3.5 rounded-xl border-soft mb-4" style="background: rgba(15, 23, 42, 0.5);">
+              <v-row dense class="align-center">
+                <v-col cols="6" class="border-right-soft pr-3">
+                  <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">Data Inizio</div>
+                  <div class="text-subtitle-2 font-weight-black text-slate-dark mt-1">
+                    📅 {{ workoutTData?.dat_data || dataInizio }}
+                  </div>
+                </v-col>
+                <v-col cols="6" class="pl-3">
+                  <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">Scadenza</div>
+                  <div class="text-subtitle-2 font-weight-black text-orange-lighten-1 mt-1">
+                    🏁 {{ workoutTData?.dat_scadenza || dataFine }}
+                  </div>
+                </v-col>
+              </v-row>
+              
+              <!-- Allineamento Programma -->
+              <div v-if="allineamentoProgramma" class="mt-3 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
+                <span class="text-super-caption text-slate font-weight-bold" style="font-size: 0.65rem;">Stato Programma:</span>
                 <v-chip
-                  v-if="giornoAttivo === giornoConsigliato"
-                  color="green-accent-4"
+                  :color="allineamentoProgramma.status === 'in-linea' ? 'green-darken-3' : (allineamentoProgramma.status === 'ritardo' ? 'red-darken-3' : 'blue-darken-3')"
                   size="x-small"
+                  class="font-weight-black text-white px-2 py-0.5 pulse-badge"
                   variant="flat"
-                  class="font-weight-black text-white px-1.5 pulse-badge flex-shrink-0"
-                  style="font-size: 0.52rem; height: 18px; white-space: nowrap;"
+                  style="font-size: 0.62rem; height: 20px;"
                 >
-                  ⚡ SUGGERITO
-                </v-chip>
-                <v-chip 
-                  :color="getDayCompletion(giornoAttivo) ? 'green' : 'orange-darken-3'" 
-                  size="x-small" 
-                  class="font-weight-black px-1.5 flex-shrink-0" 
-                  variant="tonal"
-                  style="font-size: 0.52rem; height: 18px; white-space: nowrap;"
-                >
-                  {{ getDayCompletion(giornoAttivo) ? '✓ COMPLETATO' : 'PRONTO PER INIZIARE' }}
+                  <v-icon size="11" class="mr-1">
+                    {{ allineamentoProgramma.status === 'in-linea' ? 'mdi-check-circle' : (allineamentoProgramma.status === 'ritardo' ? 'mdi-alert-circle' : 'mdi-trending-up') }}
+                  </v-icon>
+                  {{ allineamentoProgramma.status === 'in-linea' ? 'IN LINEA' : (allineamentoProgramma.status === 'ritardo' ? 'RITARDO W' + allineamentoProgramma.deltaAbs : 'ANTICIPO W' + allineamentoProgramma.deltaAbs) }}
                 </v-chip>
               </div>
             </div>
-            
-            <v-row dense class="align-center mb-4">
-              <!-- Sinistra: Testo e pillole metriche -->
-              <v-col cols="8" class="text-left pr-1">
-                <div class="d-flex align-center mb-3 min-width-0">
-                  <div class="giorno-huge-badge mr-2 mr-sm-3 flex-shrink-0" style="font-size: 1.5rem; width: 38px; height: 38px; line-height: 38px;">{{ giornoAttivo }}</div>
-                  <div class="min-width-0">
-                    <h3 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight leading-tight text-truncate" style="font-size: 1.05rem !important;">
-                      Workout Giorno {{ giornoAttivo }}
-                    </h3>
-                    <!-- Focus muscolare -->
-                    <div class="text-caption font-weight-black text-orange-lighten-2 text-truncate mt-0.5" style="font-size: 0.72rem;">
-                      🎯 {{ getFocusSectors(giornoAttivo) }}
+
+            <!-- Descrizione del Mesociclo (Focus) -->
+            <div v-if="descrizioneMesociclo" class="mb-2">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest d-block mb-1.5" style="font-size: 0.55rem;">
+                Focus del Mesociclo
+              </span>
+              <div class="description-callout pa-3 rounded-xl border-orange-darken-3-op text-body-2 text-slate-dark leading-relaxed font-italic" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(249, 115, 22, 0.02)); border-left: 4px solid #f97316; font-size: 0.85rem !important;">
+                "{{ descrizioneMesociclo }}"
+              </div>
+            </div>
+          </v-card>
+
+          <!-- Coach Notes Section (Prominent Card) -->
+          <v-card 
+            v-if="finalCoachNote" 
+            class="coaching-notes-card rounded-2xl text-left border pa-4 mb-5" 
+            style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.85) 100%) !important; border-color: rgba(245, 158, 11, 0.25) !important;"
+            elevation="2"
+          >
+            <div class="d-flex align-center mb-3">
+              <v-avatar color="amber-lighten-5" size="28" class="mr-2.5 border-amber">
+                <v-icon color="amber-darken-3" size="14">mdi-comment-text-multiple-outline</v-icon>
+              </v-avatar>
+              <span class="text-subtitle-2 font-weight-black text-amber-lighten-1" style="font-size: 0.85rem !important;">
+                Note dell'Allenatore 📋
+              </span>
+            </div>
+            <div class="text-body-2 text-slate leading-relaxed font-weight-medium" style="color: #cbd5e1 !important; font-size: 0.82rem !important; white-space: pre-wrap;">
+              {{ finalCoachNote }}
+            </div>
+          </v-card>
+
+          <!-- Interactive Metrics Stats Panel -->
+          <div class="text-left mb-2.5">
+            <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.62rem;">
+              Indicatori Chiave del Mesociclo (Clicca per la lista)
+            </span>
+          </div>
+
+          <v-row dense class="mb-5">
+            <!-- 1. ESERCIZI CON TEST (WEEK 6) -->
+            <v-col cols="4" class="pa-1">
+              <v-card 
+                class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-test text-center align-center clickable-stat-card" 
+                style="height: 110px !important;"
+                @click="vibraTattile(12); mostraTestWeek6 = true"
+              >
+                <v-avatar color="blue-lighten-5" size="28" class="action-avatar border-blue mb-1">
+                  <v-icon color="blue-darken-3" size="14">mdi-dumbbell</v-icon>
+                </v-avatar>
+                <div class="text-center w-100">
+                  <div class="text-h6 font-weight-black text-blue-lighten-2 mt-0.5 leading-none">{{ countTestWeek6 }}</div>
+                  <div class="text-super-caption text-muted font-weight-bold mt-1 text-truncate" style="font-size: 0.56rem !important;">
+                    Test Week 6
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+
+            <!-- 2. NUOVI ESERCIZI (STELLINE) -->
+            <v-col cols="4" class="pa-1">
+              <v-card 
+                class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-coaching text-center align-center clickable-stat-card" 
+                style="height: 110px !important;"
+                @click="!isFirstProgram ? (mostraEserciziNuovi = true) : null"
+                :style="isFirstProgram ? 'cursor: default !important;' : ''"
+              >
+                <v-avatar color="amber-lighten-5" size="28" class="action-avatar border-amber mb-1">
+                  <v-icon color="amber-darken-3" size="14">mdi-star-outline</v-icon>
+                </v-avatar>
+                <div class="text-center w-100">
+                  <div v-if="isFirstProgram" class="text-super-caption font-weight-black text-amber-lighten-1 mt-1 leading-tight" style="font-size: 0.6rem !important; line-height: 1.25;">
+                    Primo<br>Programma
+                  </div>
+                  <div v-else>
+                    <div class="text-h6 font-weight-black text-amber-lighten-1 mt-0.5 leading-none">{{ countEserciziNuovi }}</div>
+                    <div class="text-super-caption text-muted font-weight-bold mt-1 text-truncate" style="font-size: 0.56rem !important;">
+                      Nuovi Ex
                     </div>
                   </div>
                 </div>
+              </v-card>
+            </v-col>
 
-                <!-- Metrics Row compattata per stare a sinistra -->
-                <div class="d-flex gap-1 flex-wrap">
-                  <div class="metric-pill py-1 px-1.5 rounded-lg flex-grow-1 text-center" style="min-width: 50px; background: rgba(15, 23, 42, 0.4);">
-                    <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.52rem; line-height: 1;">Durata</span>
-                    <span class="text-caption font-weight-bold text-slate-dark mt-0.5 d-block" style="font-size: 0.68rem; line-height: 1;">
-                      ⏱️ {{ activeDayHeaderParsed?.tempoMedia || '60m' }}
-                    </span>
-                  </div>
-                  <div class="metric-pill py-1 px-1.5 rounded-lg flex-grow-1 text-center" style="min-width: 50px; background: rgba(15, 23, 42, 0.4);">
-                    <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.52rem; line-height: 1;">Serie</span>
-                    <span class="text-caption font-weight-bold text-slate-dark mt-0.5 d-block" style="font-size: 0.68rem; line-height: 1;">
-                      🏋️ {{ activeDayVolumesParsed?.totale || '20' }}
-                    </span>
-                  </div>
-                  <div class="metric-pill py-1 px-1.5 rounded-lg flex-grow-1 text-center" style="min-width: 50px; background: rgba(15, 23, 42, 0.4);">
-                    <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.52rem; line-height: 1;">Densità</span>
-                    <span class="text-caption font-weight-bold text-slate-dark mt-0.5 d-block" style="font-size: 0.68rem; line-height: 1;">
-                      ⚡ {{ activeDayHeaderParsed?.densitaMedia || '60' }}%
-                    </span>
+            <!-- 3. ESERCIZI CON VIDEO -->
+            <v-col cols="4" class="pa-1">
+              <v-card 
+                class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-video text-center align-center clickable-stat-card" 
+                style="height: 110px !important;"
+                @click="vibraTattile(12); mostraEserciziVideo = true"
+              >
+                <v-avatar color="red-lighten-5" size="28" class="action-avatar border-red mb-1">
+                  <v-icon color="red-darken-3" size="14" :class="{ 'pulse-video-icon': countVideoExercises > 0 }">
+                    mdi-video-outline
+                  </v-icon>
+                </v-avatar>
+                <div class="text-center w-100">
+                  <div class="text-h6 font-weight-black text-red-lighten-2 mt-0.5 leading-none">{{ countVideoExercises }}</div>
+                  <div class="text-super-caption text-muted font-weight-bold mt-1 text-truncate" style="font-size: 0.56rem !important;">
+                    Esecuzioni Video
                   </div>
                 </div>
-              </v-col>
+              </v-card>
+            </v-col>
+          </v-row>
 
-              <!-- Destra: Silhouette Anatomica -->
-              <v-col cols="4" class="d-flex flex-column align-center justify-center">
-                <div class="heatmap-container rounded-lg pa-1 border position-relative" style="background: rgba(15, 23, 42, 0.55) !important; border-color: rgba(255, 255, 255, 0.08) !important; width: 92px; height: 74px; overflow: hidden;" @click.stop>
+          <!-- Silhouette Anatomica / Heatmap Muscolare (Collapsible/Visual Panel) -->
+          <v-card 
+            class="mesocycle-progress-card rounded-2xl border text-left pa-3 mb-5"
+            elevation="2"
+            style="background: rgba(15, 23, 42, 0.45) !important;"
+          >
+            <div class="d-flex align-center justify-space-between mb-3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.6rem;">
+                Anatomia dei Volumi di Lavoro
+              </span>
+              <div class="d-flex align-center gap-1" @click.stop>
+                <v-btn
+                  size="x-small"
+                  variant="tonal"
+                  :color="heatmapScope === 'giorno' ? 'orange' : 'grey-lighten-1'"
+                  class="px-1"
+                  style="height: 18px; font-size: 0.52rem; min-width: 0; border-radius: 4px;"
+                  @click="heatmapScope = heatmapScope === 'giorno' ? 'settimana' : 'giorno'"
+                >
+                  {{ heatmapScope === 'giorno' ? 'Giorno' : 'Sett.' }}
+                </v-btn>
+                <v-btn
+                  size="x-small"
+                  variant="tonal"
+                  :color="heatmapMode === 'completati' ? 'orange' : 'grey-lighten-1'"
+                  class="px-1"
+                  style="height: 18px; font-size: 0.52rem; min-width: 0; border-radius: 4px;"
+                  @click="heatmapMode = heatmapMode === 'completati' ? 'programmati' : 'completati'"
+                >
+                  {{ heatmapMode === 'completati' ? 'Fatti' : 'Prog.' }}
+                </v-btn>
+              </div>
+            </div>
+
+            <v-row dense class="align-center">
+              <v-col cols="7" class="text-left">
+                <!-- Focus muscolare del giorno consigliato -->
+                <div class="text-body-2 font-weight-black text-slate-dark">
+                  Giorno consigliato: <span class="text-orange-lighten-2 font-weight-black">{{ giornoConsigliato }}</span>
+                </div>
+                <div class="text-caption font-weight-bold text-slate mt-1">
+                  🎯 Focus: {{ getFocusSectors(giornoConsigliato) }}
+                </div>
+                <!-- Mini Equalizzatore volumi -->
+                <div v-if="activeDayVolumesParsed" class="mt-3">
+                  <div class="d-flex align-center justify-space-between text-super-caption text-muted uppercase mb-1" style="font-size: 0.52rem;">
+                    <span>A/B/C Volumi</span>
+                    <span>{{ activeDayVolumesParsed.totale }} serie</span>
+                  </div>
+                  <v-row dense class="text-center font-weight-bold text-caption mt-0.5">
+                    <v-col cols="4" class="pa-0.5">
+                      <div class="py-0.5 px-1 bg-slate-900 rounded border-soft" style="font-size: 0.6rem;">
+                        <span class="text-blue-lighten-2">{{ activeDayVolumesParsed.alta }}A</span>
+                      </div>
+                    </v-col>
+                    <v-col cols="4" class="pa-0.5">
+                      <div class="py-0.5 px-1 bg-slate-900 rounded border-soft" style="font-size: 0.6rem;">
+                        <span class="text-orange-lighten-2">{{ activeDayVolumesParsed.bassa }}B</span>
+                      </div>
+                    </v-col>
+                    <v-col cols="4" class="pa-0.5">
+                      <div class="py-0.5 px-1 bg-slate-900 rounded border-soft" style="font-size: 0.6rem;">
+                        <span class="text-green-lighten-2">{{ activeDayVolumesParsed.centrale }}C</span>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </div>
+              </v-col>
+              <v-col cols="5" class="d-flex align-center justify-center">
+                <div class="heatmap-container rounded-lg pa-1.5 border" style="background: rgba(15, 23, 42, 0.55) !important; border-color: rgba(255, 255, 255, 0.08) !important; width: 100px; height: 85px; overflow: hidden;">
                   <svg viewBox="0 0 100 120" width="100%" height="100%" style="display: block;">
                     <!-- FRONTE (X: 10-45) -->
                     <circle cx="27" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
@@ -213,175 +364,21 @@
                     <rect x="73" y="54" width="6.5" height="30" rx="1.5" :fill="getMuscleColor('Gambe')" :stroke="getMuscleStroke('Gambe')" stroke-width="0.8" />
                   </svg>
                 </div>
-                <!-- Heatmap scope and mode toggle buttons -->
-                <div class="d-flex align-center justify-center gap-1 mt-1 flex-wrap" @click.stop>
-                  <v-btn
-                    size="x-small"
-                    variant="tonal"
-                    :color="heatmapScope === 'giorno' ? 'orange' : 'grey-lighten-1'"
-                    class="px-1"
-                    style="height: 18px; font-size: 0.52rem; min-width: 0; line-height: 1; border-radius: 4px;"
-                    @click="heatmapScope = heatmapScope === 'giorno' ? 'settimana' : 'giorno'"
-                  >
-                    {{ heatmapScope === 'giorno' ? 'Giorno' : 'Sett.' }}
-                  </v-btn>
-                  <v-btn
-                    size="x-small"
-                    variant="tonal"
-                    :color="heatmapMode === 'completati' ? 'orange' : 'grey-lighten-1'"
-                    class="px-1"
-                    style="height: 18px; font-size: 0.52rem; min-width: 0; line-height: 1; border-radius: 4px;"
-                    @click="heatmapMode = heatmapMode === 'completati' ? 'programmati' : 'completati'"
-                  >
-                    {{ heatmapMode === 'completati' ? 'Fatti' : 'Prog.' }}
-                  </v-btn>
-                </div>
-              </v-col>
-            </v-row>
-            
-            <!-- Equalizzatore Volumi / Progress Bar di precisione -->
-            <div v-if="activeDayVolumesParsed" class="volumes-mini-track pa-3 rounded-xl bg-slate-900-op mb-4 text-left border-soft">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">
-                  Distribuzione dei Volumi di Lavoro
-                </span>
-                <span class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.6rem;">
-                  {{ activeDayVolumesParsed.totale }} serie
-                </span>
-              </div>
-              <v-row dense class="text-center font-weight-bold text-caption">
-                <v-col :cols="activeDayVolumesParsed.centrale > 0 ? 4 : 6">
-                  <div class="volume-micro-item py-1 px-2 rounded-lg">
-                    <span class="text-muted d-block" style="font-size: 0.55rem;">Parte Alta (A)</span>
-                    <span class="text-blue-lighten-2 font-weight-black" style="font-size: 0.78rem;">{{ activeDayVolumesParsed.alta }} <span style="font-size: 0.55rem;">serie</span></span>
-                    <v-progress-linear
-                      :model-value="activeDayVolumesParsed.totale > 0 ? (activeDayVolumesParsed.alta / activeDayVolumesParsed.totale) * 100 : 0"
-                      color="blue-lighten-2"
-                      height="3"
-                      rounded
-                      class="mt-1"
-                    ></v-progress-linear>
-                  </div>
-                </v-col>
-                <v-col :cols="activeDayVolumesParsed.centrale > 0 ? 4 : 6">
-                  <div class="volume-micro-item py-1 px-2 rounded-lg">
-                    <span class="text-muted d-block" style="font-size: 0.55rem;">Parte Bassa (B)</span>
-                    <span class="text-orange-lighten-2 font-weight-black" style="font-size: 0.78rem;">{{ activeDayVolumesParsed.bassa }} <span style="font-size: 0.55rem;">serie</span></span>
-                    <v-progress-linear
-                      :model-value="activeDayVolumesParsed.totale > 0 ? (activeDayVolumesParsed.bassa / activeDayVolumesParsed.totale) * 100 : 0"
-                      color="orange-lighten-2"
-                      height="3"
-                      rounded
-                      class="mt-1"
-                    ></v-progress-linear>
-                  </div>
-                </v-col>
-                <v-col v-if="activeDayVolumesParsed.centrale > 0" cols="4">
-                  <div class="volume-micro-item py-1 px-2 rounded-lg">
-                    <span class="text-muted d-block" style="font-size: 0.55rem;">Centrale (C)</span>
-                    <span class="text-green-lighten-2 font-weight-black" style="font-size: 0.78rem;">{{ activeDayVolumesParsed.centrale }} <span style="font-size: 0.55rem;">serie</span></span>
-                    <v-progress-linear
-                      :model-value="activeDayVolumesParsed.totale > 0 ? (activeDayVolumesParsed.centrale / activeDayVolumesParsed.totale) * 100 : 0"
-                      color="green-lighten-2"
-                      height="3"
-                      rounded
-                      class="mt-1"
-                    ></v-progress-linear>
-                  </div>
-                </v-col>
-              </v-row>
-            </div>
-            
-            <!-- Inizia Button con pulsazione neon -->
-            <v-btn
-              color="orange-darken-3"
-              block
-              size="large"
-              rounded="xl"
-              class="font-weight-black text-none py-3 text-white glowing-btn animate-pulse-slow mt-2"
-              @click="avviaAllenamento"
-              id="hero-play-btn"
-            >
-              APRI WORKOUT GIORNO {{ giornoAttivo }}
-              <v-icon right class="ml-2" size="20">mdi-play-circle-outline</v-icon>
-            </v-btn>
-          </v-card>
-
-          <!-- Card Programma Completato (mostrato quando settimaneChiuse === 6) -->
-          <v-card 
-            v-else 
-            class="premium-hero-card rounded-2xl text-left border position-relative overflow-hidden" 
-            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4 mb-4.5' : 'pa-5 mb-6')"
-            style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.05)) !important; border: 1.5px solid rgba(16, 185, 129, 0.4) !important;" 
-            elevation="3"
-          >
-            <div class="glowing-accent" style="background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%) !important;"></div>
-            <div class="d-flex align-center justify-space-between mb-4">
-              <span class="text-super-caption text-green-lighten-2 font-weight-black uppercase tracking-widest" style="font-size: 0.6rem;">
-                Programma Completato
-              </span>
-              <v-chip color="green" size="x-small" class="font-weight-black text-white px-2" variant="flat">
-                🎉 COMPLETATO
-              </v-chip>
-            </div>
-            
-            <div class="d-flex align-start mb-4">
-              <v-icon color="green-accent-4" class="mr-3 mt-1 flex-shrink-0 animate-bounce" size="36">mdi-trophy-outline</v-icon>
-              <div class="text-left">
-                <h3 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight leading-tight">
-                  Grandioso! Programma Terminato!
-                </h3>
-                <p class="text-caption text-slate mt-2 mb-0" style="line-height: 1.45; font-size: 0.72rem !important;">
-                  Hai completato con successo tutte le 6 settimane di questo mesociclo. Sei pronto per una nuova scheda di allenamento o per visualizzare l'andamento dei tuoi carichi.
-                </p>
-              </div>
-            </div>
-
-            <!-- Bottoni d'azione -->
-            <v-row dense class="mt-4">
-              <v-col cols="6">
-                <v-btn
-                  to="/ricerca"
-                  color="green-darken-3"
-                  block
-                  size="small"
-                  rounded="lg"
-                  class="font-weight-black text-none py-2 text-white"
-                  style="height: 38px;"
-                >
-                  📋 Prossima Scheda
-                </v-btn>
-              </v-col>
-              <v-col cols="6">
-                <v-btn
-                  color="green-lighten-3"
-                  variant="outlined"
-                  block
-                  size="small"
-                  rounded="lg"
-                  class="font-weight-black text-none py-2 card-glass text-white"
-                  style="height: 38px;"
-                  @click="dialogProgressioni = true"
-                >
-                  📈 Progressioni
-                </v-btn>
               </v-col>
             </v-row>
           </v-card>
 
-          <!-- Avanzamento Mesociclo Premium (Timeline Orizzontale a Sfere di Cristallo) -->
+          <!-- Avanzamento Settimanale Orizzontale (Timeline a Sfere di Cristallo) -->
           <v-card 
-            class="mesocycle-progress-card rounded-2xl border text-left" 
-            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-2.5' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-3.5' : 'pa-4 mb-5')"
+            class="mesocycle-progress-card rounded-2xl border text-left pa-4 mb-5" 
             elevation="2"
           >
             <div class="d-flex align-center justify-space-between mb-4">
               <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.62rem;">
-                Avanzamento del Mesociclo
+                Progressione Settimanale
               </span>
               <v-chip color="orange-darken-3" size="x-small" class="font-weight-black px-2" variant="tonal">
                 SETTIMANA {{ settimanaAttiva }} DI 6
-                <span v-if="settimanaAttiva === 6" class="ml-1 text-white font-weight-black"> (Ultima!)</span>
               </v-chip>
             </div>
             
@@ -408,191 +405,35 @@
                 </span>
               </div>
             </div>
-
-            <div class="d-flex align-center justify-space-between pt-3 border-top-soft text-super-caption font-weight-bold text-slate" style="font-size: 0.65rem !important;">
-              <span class="d-flex align-center">
-                <v-icon size="13" color="green-accent-4" class="mr-1">mdi-checkbox-marked-circle-outline</v-icon>
-                Sett. fatte: <span class="text-green-lighten-2 ml-1 font-weight-black">{{ settimaneChiuse }} / 6</span>
-              </span>
-              <span class="d-flex align-center">
-                <v-icon size="13" color="grey" class="mr-1">mdi-clock-outline</v-icon>
-                Rimanenti: <span class="text-orange-lighten-2 ml-1 font-weight-black">{{ 6 - settimaneChiuse }} sett.</span>
-              </span>
-            </div>
           </v-card>
 
-          <!-- Card Dettagli Programma WORKOUT_T (Spostata qui per avere l'allenamento del giorno come prima card) -->
-          <v-card 
-            v-if="workoutTData" 
-            class="premium-card rounded-2xl text-left border animate-fade-in" 
-            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-2.5' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-3' : 'pa-4 mb-4')"
-            elevation="2" 
-            style="background: rgba(30, 41, 59, 0.45) !important;"
+          <!-- Primary launch action -->
+          <v-btn
+            color="orange-darken-3"
+            block
+            size="large"
+            rounded="xl"
+            class="font-weight-black text-none py-3 text-white glowing-btn animate-pulse-slow mb-4"
+            @click="avviaAllenamento"
+            id="hero-play-btn"
           >
-            <div class="d-flex align-center justify-space-between mb-3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.65rem;">
-                Dettagli Programma (Workout T)
-              </span>
-              <v-chip color="orange-darken-3" size="x-small" class="font-weight-black" variant="tonal">
-                {{ workoutTData.cod_tipo_avanz_scheda || 'Standard' }}
-              </v-chip>
-            </div>
+            APRI ALLENAMENTO GIORNO {{ giornoAttivo }}
+            <v-icon right class="ml-2" size="20">mdi-play-circle-outline</v-icon>
+          </v-btn>
 
-            <!-- Griglia di Informazioni -->
-            <v-row dense class="mb-2">
-              <!-- Inizio e Fine Programma -->
-              <v-col cols="6">
-                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Inizio Programma</span>
-                  <span class="text-body-2 font-weight-black text-slate-dark d-flex align-center">
-                    📅 {{ workoutTData.dat_data || '-' }}
-                  </span>
-                </div>
-              </v-col>
-              <v-col cols="6">
-                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Fine Mesociclo</span>
-                  <span class="text-body-2 font-weight-black text-orange-lighten-1 d-flex align-center">
-                    🏁 {{ workoutTData.dat_scadenza || '-' }}
-                  </span>
-                </div>
-              </v-col>
-            </v-row>
-
-            <v-row dense class="mb-3">
-              <!-- Passi Giornalieri -->
-              <v-col cols="6">
-                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Passi Giornalieri Target</span>
-                  <span class="text-body-2 font-weight-black text-slate-dark d-flex align-center">
-                    👟 {{ formattaPassi(workoutTData.num_passi_gg) }}
-                  </span>
-                </div>
-              </v-col>
-              <!-- Ramp Test e Stato Da Finire -->
-              <v-col cols="6">
-                <div class="metric-pill pa-2.5 rounded-xl text-left fill-height d-flex flex-column justify-center" style="background: rgba(15, 23, 42, 0.4);">
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Ramp Test / Stato</span>
-                  <div class="d-flex align-center gap-1.5 flex-wrap mt-0.5">
-                    <v-chip
-                      :color="isTrue(workoutTData.flg_ramp_test) ? 'orange-darken-3' : 'grey-darken-2'"
-                      size="x-small"
-                      variant="flat"
-                      class="font-weight-black px-1.5 text-white"
-                      style="height: 18px;"
-                    >
-                      RAMP: {{ isTrue(workoutTData.flg_ramp_test) ? 'SÌ' : 'NO' }}
-                    </v-chip>
-                    <v-chip
-                      :color="isTrue(workoutTData.flg_da_finire) ? 'amber-darken-3' : 'green-darken-3'"
-                      size="x-small"
-                      variant="flat"
-                      class="font-weight-black px-1.5 text-white"
-                      style="height: 18px;"
-                    >
-                      {{ isTrue(workoutTData.flg_da_finire) ? 'DA FINIRE' : 'ATTIVO' }}
-                    </v-chip>
-                  </div>
-                </div>
-              </v-col>
-            </v-row>
-
-            <!-- Progresso di Completamento Mesociclo se presente -->
-            <div v-if="workoutTData.num_perc_compl" class="mt-3 pt-3 border-top-soft">
-              <div class="d-flex align-center justify-space-between mb-1.5">
-                <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Completamento Reale foglio</span>
-                <span class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.65rem;">
-                  {{ workoutTData.num_perc_compl }}%
-                </span>
-              </div>
-              <v-progress-linear
-                :model-value="parsePercentuale(workoutTData.num_perc_compl)"
-                color="orange-darken-3"
-                height="6"
-                rounded
-                striped
-                active
-              ></v-progress-linear>
-            </div>
-          </v-card>
-
-          <!-- Dashboard Actions Grid 2x2 (High-Tech Floating Panels) -->
-          <v-row dense class="mb-6 card-actions-grid">
-            <!-- COACH NOTES CARD -->
-            <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-coaching" @click="apriLeggimi" style="height: 110px !important;">
-                <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="amber-lighten-5" size="30" class="action-avatar border-amber">
-                    <v-icon color="amber-darken-3" size="16">mdi-comment-text-multiple-outline</v-icon>
-                  </v-avatar>
-                  <v-chip color="amber-darken-4" size="x-small" class="font-weight-black px-1.5" variant="tonal" style="font-size: 0.52rem; height: 16px;">COACH</v-chip>
-                </div>
-                <div class="text-left mt-1.5">
-                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Note Coach</h4>
-                  <p class="text-super-caption text-muted text-truncate mt-0.5 mb-0" style="font-size: 0.58rem !important; opacity: 0.85;">
-                    {{ coachMessage || 'Nessun messaggio specifico' }}
-                  </p>
-                </div>
-              </v-card>
-            </v-col>
-            
-            <!-- FILMATI CARD -->
-            <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-video" @click="apriFilmati" style="height: 110px !important;">
-                <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="red-lighten-5" size="30" class="action-avatar border-red">
-                    <v-icon color="red-darken-3" size="16" :class="{ 'pulse-video-icon': countFilmati > 0 }">
-                      {{ countFilmati > 0 ? 'mdi-video-outline' : 'mdi-video-off-outline' }}
-                    </v-icon>
-                  </v-avatar>
-                  <v-chip color="red" size="x-small" class="font-weight-black px-1.5" variant="tonal" v-if="countFilmati > 0" style="font-size: 0.52rem; height: 16px;">RECORD</v-chip>
-                </div>
-                <div class="text-left mt-1.5">
-                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Video ({{ countFilmati }})</h4>
-                  <p class="text-super-caption text-muted text-truncate mt-0.5 mb-0" style="font-size: 0.58rem !important; opacity: 0.85;">
-                    {{ countFilmati > 0 ? 'Esercizi da registrare' : 'Nessuna ripresa richiesta' }}
-                  </p>
-                </div>
-              </v-card>
-            </v-col>
-            
-            <!-- TEST CARD -->
-            <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-test" @click="apriTest" style="height: 110px !important;">
-                <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="blue-lighten-5" size="30" class="action-avatar border-blue">
-                    <v-icon color="blue-darken-3" size="16">mdi-dumbbell</v-icon>
-                  </v-avatar>
-                  <v-chip color="blue" size="x-small" class="font-weight-black px-1.5" variant="tonal" v-if="countTest > 0" style="font-size: 0.52rem; height: 16px;">TEST</v-chip>
-                </div>
-                <div class="text-left mt-1.5">
-                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Test / AMRAP ({{ countTest }})</h4>
-                  <p class="text-super-caption text-muted text-truncate mt-0.5 mb-0" style="font-size: 0.58rem !important; opacity: 0.85;">
-                    {{ countTest > 0 ? 'Verifica massimali attiva' : 'Nessun test in questa scheda' }}
-                  </p>
-                </div>
-              </v-card>
-            </v-col>
-            
-            <!-- PERIODIZZAZIONE STATS CARD -->
-            <v-col cols="6" class="pa-1">
-              <v-card class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-calendar" style="height: 110px !important;">
-                <div class="d-flex align-center justify-space-between w-100">
-                  <v-avatar color="deep-purple-lighten-5" size="30" class="action-avatar border-purple">
-                    <v-icon color="deep-purple-darken-3" size="16">mdi-calendar-range</v-icon>
-                  </v-avatar>
-                  <v-chip color="deep-purple" size="x-small" class="font-weight-black px-1.5" variant="tonal" style="font-size: 0.52rem; height: 16px;">INFO</v-chip>
-                </div>
-                <div class="text-left mt-1.5">
-                  <h4 class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.72rem !important; line-height: 1.15;">Durata</h4>
-                  <p class="text-super-caption text-muted mt-0.5 mb-0" style="font-size: 0.58rem !important; line-height: 1.25; opacity: 0.85;">
-                    Inizio: {{ dataInizio }}<br>
-                    Scadenza: {{ dataFine }}
-                  </p>
-                </div>
-              </v-card>
-            </v-col>
-          </v-row>
+          <!-- Report Progressioni Carichi Button -->
+          <v-btn
+            color="orange-darken-3"
+            block
+            variant="outlined"
+            size="medium"
+            rounded="xl"
+            class="font-weight-black text-none py-2 card-glass text-white mb-2"
+            style="height: 44px; border-color: rgba(249, 115, 22, 0.45) !important;"
+            @click="dialogProgressioni = true"
+          >
+            📈 ANALISI PROGRESSIONI & REPORT
+          </v-btn>
         </v-window-item>
 
         <!-- WINDOW 2: CONFIGURAZIONE SCHEDA -->
@@ -743,6 +584,117 @@
         <v-card-actions class="px-0 pb-0 gap-3">
           <v-btn color="grey-darken-1" variant="outlined" class="flex-grow-1 text-slate font-weight-bold" rounded="lg" @click="confermaReset = false">Annulla</v-btn>
           <v-btn color="red-darken-2" variant="flat" class="flex-grow-1 text-white font-weight-bold" rounded="lg" @click="eseguiResetDati" :loading="resettando">Reset</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- dialog TEST WEEK 6 (Interactive List) -->
+    <v-dialog v-model="mostraTestWeek6" max-width="500" rounded="xl">
+      <v-card class="pa-5 rounded-2xl card-glass border">
+        <v-card-title class="font-weight-black text-slate-dark d-flex align-center px-0">
+          <v-icon color="blue-darken-3" class="mr-2">mdi-dumbbell</v-icon>
+          Test alla Week 6 🏋️
+        </v-card-title>
+        <v-card-text class="px-0 py-4">
+          <div v-if="testWeek6List.length === 0" class="text-center py-4 text-muted text-body-2">
+            Nessun test previsto per la Week 6 in questa scheda.
+          </div>
+          <v-list v-else density="comfortable" class="bg-transparent py-0">
+            <v-list-item
+              v-for="ex in testWeek6List"
+              :key="ex.id"
+              class="px-0 py-2 border-bottom-soft cursor-pointer"
+              @click="vibraTattile(12); mostraTestWeek6 = false; router.push({ name: 'DettaglioWorkout', params: { id: ex.id } })"
+            >
+              <div class="d-flex align-center w-100 justify-space-between text-left">
+                <div>
+                  <div class="font-weight-bold text-slate-dark text-body-2">{{ ex.des_esercizio }}</div>
+                  <div class="text-caption text-blue-lighten-2 mt-0.5">
+                    Giorno {{ ex.des_giorno }} • Riga {{ ex.num_riga_giorno }} • {{ ex.des_settore }}
+                  </div>
+                  <div class="text-super-caption text-orange-lighten-2 mt-0.5 font-weight-black">
+                    Test W6: {{ ex.des_week6 }}
+                  </div>
+                </div>
+                <v-icon color="orange" size="18">mdi-chevron-right</v-icon>
+              </div>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0">
+          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraTestWeek6 = false" class="text-white font-weight-bold">Chiudi</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- dialog ESERCIZI NUOVI (Interactive List) -->
+    <v-dialog v-model="mostraEserciziNuovi" max-width="500" rounded="xl">
+      <v-card class="pa-5 rounded-2xl card-glass border">
+        <v-card-title class="font-weight-black text-slate-dark d-flex align-center px-0">
+          <v-icon color="orange-darken-3" class="mr-2">mdi-star-outline</v-icon>
+          Nuovi Esercizi ✨
+        </v-card-title>
+        <v-card-text class="px-0 py-4">
+          <div v-if="eserciziNuoviList.length === 0" class="text-center py-4 text-muted text-body-2">
+            Nessun nuovo esercizio introdotto in questo mesociclo.
+          </div>
+          <v-list v-else density="comfortable" class="bg-transparent py-0">
+            <v-list-item
+              v-for="ex in eserciziNuoviList"
+              :key="ex.id"
+              class="px-0 py-2 border-bottom-soft cursor-pointer"
+              @click="vibraTattile(12); mostraEserciziNuovi = false; router.push({ name: 'DettaglioWorkout', params: { id: ex.id } })"
+            >
+              <div class="d-flex align-center w-100 justify-space-between text-left">
+                <div>
+                  <div class="font-weight-bold text-slate-dark text-body-2">{{ ex.des_esercizio }}</div>
+                  <div class="text-caption text-orange-lighten-2 mt-0.5">
+                    Giorno {{ ex.des_giorno }} • Riga {{ ex.num_riga_giorno }} • {{ ex.des_settore }}
+                  </div>
+                </div>
+                <v-icon color="orange" size="18">mdi-chevron-right</v-icon>
+              </div>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0">
+          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraEserciziNuovi = false" class="text-white font-weight-bold">Chiudi</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- dialog ESERCIZI VIDEO (Interactive List) -->
+    <v-dialog v-model="mostraEserciziVideo" max-width="500" rounded="xl">
+      <v-card class="pa-5 rounded-2xl card-glass border">
+        <v-card-title class="font-weight-black text-slate-dark d-flex align-center px-0">
+          <v-icon color="red-darken-3" class="mr-2">mdi-video-outline</v-icon>
+          Esercizi con Video richiesto 📹
+        </v-card-title>
+        <v-card-text class="px-0 py-4">
+          <div v-if="videoExercisesList.length === 0" class="text-center py-4 text-muted text-body-2">
+            Nessun video richiesto per questa scheda dal coach.
+          </div>
+          <v-list v-else density="comfortable" class="bg-transparent py-0">
+            <v-list-item
+              v-for="ex in videoExercisesList"
+              :key="ex.id"
+              class="px-0 py-2 border-bottom-soft cursor-pointer"
+              @click="vibraTattile(12); mostraEserciziVideo = false; router.push({ name: 'DettaglioWorkout', params: { id: ex.id } })"
+            >
+              <div class="d-flex align-center w-100 justify-space-between text-left">
+                <div>
+                  <div class="font-weight-bold text-slate-dark text-body-2">{{ ex.des_esercizio }}</div>
+                  <div class="text-caption text-red-lighten-2 mt-0.5">
+                    Giorno {{ ex.des_giorno }} • Riga {{ ex.num_riga_giorno }} • {{ ex.des_settore }}
+                  </div>
+                </div>
+                <v-icon color="orange" size="18">mdi-chevron-right</v-icon>
+              </div>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0">
+          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraEserciziVideo = false" class="text-white font-weight-bold">Chiudi</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1022,6 +974,73 @@ const dataInizio = ref('18 mag 26');
 const dataFine = ref('28 giu 26');
 const descrizioneMesociclo = ref('');
 const workoutTData = ref(null);
+
+const mostraTestWeek6 = ref(false);
+const mostraEserciziNuovi = ref(false);
+const mostraEserciziVideo = ref(false);
+
+const allineamentoProgramma = computed(() => {
+  const dateStr = workoutTData.value?.dat_data || dataInizio.value;
+  if (!dateStr) return null;
+  const startDate = parseDateString(dateStr);
+  if (!startDate) return null;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  startDate.setHours(0,0,0,0);
+  
+  const diffTime = today.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  let weekTeorica = Math.floor(diffDays / 7) + 1;
+  if (weekTeorica < 1) weekTeorica = 1;
+  
+  const activeW = settimanaAttiva.value;
+  const delta = activeW - weekTeorica;
+  
+  return {
+    weekTeorica,
+    weekAttiva: activeW,
+    delta,
+    status: delta === 0 ? 'in-linea' : (delta < 0 ? 'ritardo' : 'anticipo'),
+    deltaAbs: Math.abs(delta)
+  };
+});
+
+const testWeek6List = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return [];
+  return allExercises.value.filter(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return false;
+    const w6 = String(ex.des_week6 || '').toUpperCase();
+    return w6.includes('AMRAP') || w6.includes('RAMP+TEST') || w6.includes('TEST') || w6.includes('RAMP TEST');
+  });
+});
+const countTestWeek6 = computed(() => testWeek6List.value.length);
+
+const isFirstProgram = computed(() => String(schedaSelezionata.value) === '1');
+
+const eserciziNuoviList = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return [];
+  if (isFirstProgram.value) return [];
+  return allExercises.value.filter(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return false;
+    return ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false;
+  });
+});
+const countEserciziNuovi = computed(() => eserciziNuoviList.value.length);
+
+const videoExercisesList = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return [];
+  return allExercises.value.filter(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return false;
+    return ex.flg_video === 'true' || ex.flg_video === true;
+  });
+});
+const countVideoExercises = computed(() => videoExercisesList.value.length);
+
+const finalCoachNote = computed(() => {
+  return workoutTData.value?.des_note || coachMessage.value || '';
+});
 
 const formattaPassi = (val) => {
   if (val === undefined || val === null || val === '') return 'N/D';
@@ -2137,6 +2156,14 @@ const apriTest = () => {
 
 .border-top-soft {
   border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.border-soft {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.border-right-soft {
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
 /* 1. Header Styles */

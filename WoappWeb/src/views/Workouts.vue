@@ -1061,6 +1061,7 @@
                         <span class="text-caption font-weight-bold text-slate-dark text-truncate" style="font-size: 0.75rem !important; line-height: 1.25;">
                           {{ ex.des_esercizio }}
                         </span>
+                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                       </div>
                       <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" style="font-size: 0.58rem; line-height: 1;">
                         <span class="text-muted uppercase font-weight-black mr-2">{{ ex.des_settore }}</span>
@@ -1186,6 +1187,7 @@
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
+                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" :size="layoutEsercizi === 'compatto' ? 14 : 16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
                       <!-- Settore, Emoji Sforzo e Prescrizione (in riga unica se compatto e c'entra) -->
@@ -1312,6 +1314,7 @@
                       <span class="text-caption font-weight-bold text-slate-dark text-truncate" style="font-size: 0.75rem !important; line-height: 1.25;">
                         {{ block.exercise.des_esercizio }}
                       </span>
+                      <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                     </div>
                     <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" style="font-size: 0.58rem; line-height: 1;">
                       <span class="text-muted uppercase font-weight-black mr-2">{{ block.exercise.des_settore }}</span>
@@ -1438,6 +1441,7 @@
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
+                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange" :size="layoutEsercizi === 'compatto' ? 14 : 16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
                   </h4>
 
                   <!-- Settore, Emoji Sforzo e Prescrizione (in riga unica se compatto e c'entra) -->

@@ -26,6 +26,7 @@
           </v-chip>
 <h3 class="font-weight-black text-slate-dark text-truncate mb-0" :class="layoutCorrente === 'super_compatto' ? 'text-body-2' : (layoutCorrente === 'compatto' ? 'text-body-1' : 'text-subtitle-1')" style="white-space: normal; word-break: break-word; line-height: 1.05 !important;">
   <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}
+  <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto">mdi-video</v-icon>
 </h3>
         </div>
         <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
@@ -191,6 +192,7 @@
             {{ getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).icon }}
           </v-icon>
           <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout.des_esercizio }}
+          <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 16 : (layoutCorrente === 'compatto' ? 18 : 20)" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
         </h2>
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
@@ -482,7 +484,10 @@
               <v-img :src="getGifUrl(connEx.UrlNormal)" :width="layoutCorrente === 'super_compatto' ? 24 : 32" :height="layoutCorrente === 'super_compatto' ? 24 : 32" cover></v-img>
             </div>
             <div class="flex-grow-1 text-truncate">
-              <div class="text-caption font-weight-black text-white text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem !important' : '0.75rem !important' }">{{ connEx.des_esercizio }}</div>
+              <div class="text-caption font-weight-black text-white text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem !important' : '0.75rem !important' }">
+                {{ connEx.des_esercizio }}
+                <v-icon v-if="connEx.flg_video === 'true' || connEx.flg_video === true" color="orange" size="12" class="ml-1" title="Video richiesto">mdi-video</v-icon>
+              </div>
               <div class="text-super-caption text-orange-lighten-2 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem' }">{{ formatPrescrizioneSuperset(connEx) }}</div>
             </div>
             <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16" color="green-accent-3" class="ml-1">mdi-arrow-right-circle</v-icon>
@@ -1793,6 +1798,7 @@
               <div class="flex-grow-1 min-width-0 text-left">
                 <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
                   {{ ex.des_esercizio }}
+                  <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
                 </div>
                 <div class="text-super-caption text-muted font-weight-bold mt-0.5" style="font-size: 0.65rem;">
                   Giorno <span class="text-orange-lighten-2 font-weight-black">{{ ex.des_giorno }}{{ ex.num_riga_giorno }}</span>

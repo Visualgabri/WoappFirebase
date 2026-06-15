@@ -25,9 +25,33 @@
     <!-- SELETTORE CLIENTE & SCHEDA -->
     <v-card class="premium-card rounded-2xl text-left border pa-5 mb-5" elevation="2">
       <v-row>
-        <v-col cols="12" sm="6" md="5">
+        <!-- Tipo di Dati da Caricare -->
+        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 3 : 4">
+          <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Tipo Dati</span>
+          <v-btn-toggle
+            v-model="tipoDatiCaricare"
+            mandatory
+            color="orange-darken-3"
+            variant="outlined"
+            class="d-flex w-100 mt-1"
+            style="height: 56px; border-radius: 8px;"
+            @update:model-value="gestisciCambioTipoDati"
+          >
+            <v-btn value="storyboard" class="flex-grow-1 font-weight-bold text-caption text-slate" style="height: 100%;">
+              <v-icon start size="18">mdi-format-list-bulleted</v-icon>
+              Storyboard
+            </v-btn>
+            <v-btn value="workout_t" class="flex-grow-1 font-weight-bold text-caption text-slate" style="height: 100%;">
+              <v-icon start size="18">mdi-calendar-month</v-icon>
+              Workout T
+            </v-btn>
+          </v-btn-toggle>
+        </v-col>
+
+        <!-- Atleta -->
+        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 4 : 5">
           <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Atleta</span>
-          <v-select
+          <v-autocomplete
             v-model="atletaSelezionato"
             :items="itemsAtleti"
             item-title="title"
@@ -38,10 +62,13 @@
             color="orange-darken-3"
             prepend-inner-icon="mdi-account"
             hide-details
+            class="mt-1"
             @update:model-value="gestisciCambioAtleta"
-          ></v-select>
+          ></v-autocomplete>
         </v-col>
-        <v-col cols="12" sm="6" md="4">
+
+        <!-- Scheda (Mesociclo) - Solo per Storyboard -->
+        <v-col v-if="tipoDatiCaricare === 'storyboard'" cols="12" sm="6" md="3">
           <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Scheda (Mesociclo)</span>
           <v-select
             v-model="schedaSelezionata"
@@ -52,18 +79,21 @@
             color="orange-darken-3"
             prepend-inner-icon="mdi-clipboard-text-outline"
             hide-details
+            class="mt-1"
             :disabled="!atletaSelezionato || loadingSchede"
             @update:model-value="caricaEsercizi"
           ></v-select>
         </v-col>
-        <v-col cols="12" md="3" class="d-flex align-end">
+
+        <!-- Pulsante Caricamento Dati -->
+        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 2 : 3" class="d-flex align-end">
           <v-btn
             color="orange-darken-3"
             block
             rounded="lg"
             class="text-white font-weight-bold"
             style="height: 56px;"
-            :disabled="!atletaSelezionato || !schedaSelezionata"
+            :disabled="!atletaSelezionato || (tipoDatiCaricare === 'storyboard' && !schedaSelezionata)"
             @click="caricaEsercizi"
           >
             <v-icon class="mr-1">mdi-cloud-download</v-icon>
@@ -386,8 +416,8 @@
                 <tr>
                   <th class="sticky-col col-actions">Azioni</th>
                   <th class="sticky-col col-giorno">Giorno</th>
-                  <th class="col-riga">Riga</th>
-                  <th class="col-esercizio">Esercizio</th>
+                  <th class="sticky-col col-riga">Riga</th>
+                  <th class="sticky-col col-esercizio">Esercizio</th>
                   <th class="col-settore">Settore</th>
                   <th class="col-settore-princ">Settore Princ</th>
                   <th class="col-superserie">SS</th>
@@ -407,6 +437,7 @@
                   <th class="col-note-attr">Note Attrezzo</th>
                   <th class="col-note-gen-attr">Note Gen. Attrezzo</th>
                   <th class="col-url">Url Video/GIF</th>
+                  <th class="col-video">Video Req.</th>
                   <th class="col-elimina">No Elimina</th>
                   <th class="col-id">Riga ID</th>
                   <th class="col-timestamp-ute">Aggiornato Utente</th>
@@ -473,7 +504,7 @@
                     />
                   </td>
                   <!-- Riga -->
-                  <td class="col-riga">
+                  <td class="sticky-col col-riga">
                     <input
                       v-model="row.num_riga_giorno"
                       type="number"
@@ -485,7 +516,7 @@
                     />
                   </td>
                   <!-- Esercizio -->
-                  <td class="col-esercizio">
+                  <td class="sticky-col col-esercizio">
                     <input
                       v-model="row.des_esercizio"
                       type="text"
@@ -663,6 +694,16 @@
                       :ref="el => registerInputRef(el, rowIndex, 'UrlNormal')"
                       :disabled="row.isDeleted"
                     />
+                  </td>
+                  <!-- Video Req. -->
+                  <td class="col-video text-center">
+                    <v-checkbox-btn
+                      v-model="row.flg_video"
+                      color="orange-darken-3"
+                      @update:model-value="segnaModificato(row)"
+                      :disabled="row.isDeleted"
+                      class="d-inline-flex"
+                    ></v-checkbox-btn>
                   </td>
                   <!-- No Elimina -->
                   <td class="col-elimina text-center">
@@ -1245,8 +1286,17 @@ const records = ref([]); // Elenco locale di record caricati/modificati
 
 // Stato di base WORKOUT_T
 const activeTab = ref('storyboard');
+const tipoDatiCaricare = ref('storyboard');
 const workoutTRecords = ref([]);
 const loadingWorkoutT = ref(false);
+
+// Watcher per allineare tipoDatiCaricare e activeTab bidirezionalmente
+watch(activeTab, (newVal) => {
+  tipoDatiCaricare.value = newVal;
+});
+const gestisciCambioTipoDati = (val) => {
+  activeTab.value = val;
+};
 
 // Loading States
 const loadingSchede = ref(false);
@@ -1268,7 +1318,7 @@ const editColumns = [
   'des_settore_princ', 'alf_superserie', 'des_qta_report', 'des_rec_report', 
   'des_note', 'ins_week1', 'ins_week2', 'ins_week3', 'ins_week4', 
   'ins_week5', 'ins_week6', 'num_ins6', 'num_faticaw6', 'num_peso_bilanciere',
-  'des_commenti', 'des_note_attrezzo', 'des_note_gen_attr', 'UrlNormal', 'no_elimina', 'num_riga', 'timestamp_ute'
+  'des_commenti', 'des_note_attrezzo', 'des_note_gen_attr', 'UrlNormal', 'flg_video', 'no_elimina', 'num_riga', 'timestamp_ute'
 ];
 
 // Configurazione Atleti per dropdown
@@ -1401,8 +1451,11 @@ const gestisciCambioAtleta = async () => {
   schedaSelezionata.value = '';
   records.value = [];
   workoutTRecords.value = [];
-  await caricaSchedeAtleta();
-  await caricaWorkoutT();
+  if (tipoDatiCaricare.value === 'storyboard') {
+    await caricaSchedeAtleta();
+  } else {
+    await caricaWorkoutT();
+  }
 };
 
 // Carica tutti i record di WORKOUT_T relativi a cliente
@@ -1438,43 +1491,83 @@ const caricaWorkoutT = async () => {
   }
 };
 
-// Carica tutti i record di STORYBOARD relativi a cliente e scheda
-const caricaEsercizi = async () => {
+// Carica tutti i record (sia WORKOUT_T che STORYBOARD) dopo salvataggio/annullamento
+const ricaricaTutto = async () => {
   if (!atletaSelezionato.value) return;
   
   await caricaWorkoutT();
   
-  if (!schedaSelezionata.value) return;
-  loadingData.value = true;
-  records.value = [];
-  inputRefs.value = {};
-  
-  try {
-    const q = query(
-      collection(db, 'STORYBOARD'),
-      where('ID_cliente', '==', atletaSelezionato.value),
-      where('num_scheda', '==', String(schedaSelezionata.value))
-    );
-    const snap = await getDocs(q);
-    const temp = [];
-    let localIdCounter = 1;
-    
-    snap.forEach(doc => {
-      temp.push({
-        dbId: doc.id,
-        localId: localIdCounter++,
-        isDirty: false,
-        isNew: false,
-        isDeleted: false,
-        ...doc.data()
+  if (schedaSelezionata.value) {
+    loadingData.value = true;
+    records.value = [];
+    inputRefs.value = {};
+    try {
+      const q = query(
+        collection(db, 'STORYBOARD'),
+        where('ID_cliente', '==', atletaSelezionato.value),
+        where('num_scheda', '==', String(schedaSelezionata.value))
+      );
+      const snap = await getDocs(q);
+      const temp = [];
+      let localIdCounter = 1;
+      snap.forEach(doc => {
+        temp.push({
+          dbId: doc.id,
+          localId: localIdCounter++,
+          isDirty: false,
+          isNew: false,
+          isDeleted: false,
+          ...doc.data()
+        });
       });
-    });
+      records.value = temp;
+    } catch (err) {
+      console.error("Errore ricaricamento esercizi:", err);
+    } finally {
+      loadingData.value = false;
+    }
+  }
+};
+
+// Carica i record in base alla selezione del filtro
+const caricaEsercizi = async () => {
+  if (!atletaSelezionato.value) return;
+  
+  if (tipoDatiCaricare.value === 'workout_t') {
+    await caricaWorkoutT();
+  } else {
+    if (!schedaSelezionata.value) return;
+    loadingData.value = true;
+    records.value = [];
+    inputRefs.value = {};
     
-    records.value = temp;
-  } catch (err) {
-    console.error("Errore caricamento esercizi da Firestore:", err);
-  } finally {
-    loadingData.value = false;
+    try {
+      const q = query(
+        collection(db, 'STORYBOARD'),
+        where('ID_cliente', '==', atletaSelezionato.value),
+        where('num_scheda', '==', String(schedaSelezionata.value))
+      );
+      const snap = await getDocs(q);
+      const temp = [];
+      let localIdCounter = 1;
+      
+      snap.forEach(doc => {
+        temp.push({
+          dbId: doc.id,
+          localId: localIdCounter++,
+          isDirty: false,
+          isNew: false,
+          isDeleted: false,
+          ...doc.data()
+        });
+      });
+      
+      records.value = temp;
+    } catch (err) {
+      console.error("Errore caricamento esercizi da Firestore:", err);
+    } finally {
+      loadingData.value = false;
+    }
   }
 };
 
@@ -1603,6 +1696,7 @@ const aggiungiRiga = () => {
     reps_week1: '0', reps_week2: '0', reps_week3: '0', reps_week4: '0', reps_week5: '0', reps_week6: '0',
     perc_irt_w1: '0', perc_irt_w2: '0', perc_irt_w3: '0', perc_irt_w4: '0', perc_irt_w5: '0', perc_irt_w6: '0',
     no_elimina: true,
+    flg_video: false,
     UrlNormal: '',
     num_riga: String(maxRiga + 1),
     timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
@@ -1648,7 +1742,7 @@ const toggleEliminaRiga = (rowIndex) => {
 
 // Annulla tutte le modifiche locali ricaricando da Firebase
 const annullaModifiche = async () => {
-  await caricaEsercizi();
+  await ricaricaTutto();
 };
 
 // Salva in blocco (Batch) su Firestore tutte le modifiche (Insert, Update, Delete)
@@ -1725,7 +1819,7 @@ const salvaModifiche = async () => {
     
     await batch.commit();
     console.log("Firebase Batch commit completato con successo!");
-    await caricaEsercizi(); // Ricarica i dati freschi da Firestore
+    await ricaricaTutto(); // Ricarica i dati freschi da Firestore
   } catch (err) {
     console.error("Errore durante il salvataggio in batch di Firestore:", err);
     alert("Errore durante il salvataggio su Firestore: " + err.message);
@@ -1823,8 +1917,9 @@ const handlePaste = (event) => {
       des_note_attrezzo: cells[19] ? cells[19].trim() : '',
       des_note_gen_attr: cells[20] ? cells[20].trim() : '',
       UrlNormal: cells[21] ? cells[21].trim() : '',
-      no_elimina: cells[22] ? cells[22].trim().toLowerCase() === 'true' : true,
-      num_riga: cells[23] ? cells[23].trim() : String(rigaCounter++),
+      no_elimina: cells.length > 24 ? (cells[23] ? cells[23].trim().toLowerCase() === 'true' : true) : (cells[22] ? cells[22].trim().toLowerCase() === 'true' : true),
+      flg_video: cells.length > 24 ? (cells[22] ? (cells[22].trim().toLowerCase() === 'true' || cells[22].trim() === '1') : false) : false,
+      num_riga: cells.length > 24 ? (cells[24] ? cells[24].trim() : String(rigaCounter++)) : (cells[23] ? cells[23].trim() : String(rigaCounter++)),
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
     };
     records.value.push(newRow);
@@ -1927,7 +2022,7 @@ const esportaCSVLocale = () => {
 
 <style scoped>
 .max-width-admin {
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -1958,6 +2053,8 @@ const esportaCSVLocale = () => {
 /* Griglia Excel Style */
 .table-container {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 280px); /* Altezza massima per mantenere la scrollbar orizzontale sempre visibile */
   max-width: 100%;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -2042,6 +2139,11 @@ const esportaCSVLocale = () => {
   z-index: 5;
 }
 
+.excel-table th.sticky-col {
+  z-index: 15; /* Più alto per impedire sovrapposizioni tra scroll verticale e orizzontale */
+  background-color: #0f172a;
+}
+
 .col-actions {
   left: 0;
   width: 80px;
@@ -2057,8 +2159,16 @@ const esportaCSVLocale = () => {
 }
 
 /* Colori e larghezze delle colonne */
-.col-riga { width: 50px; min-width: 50px; }
-.col-esercizio { min-width: 250px; width: 300px; }
+.col-riga {
+  width: 50px;
+  min-width: 50px;
+  left: 130px;
+}
+.col-esercizio {
+  width: 300px;
+  min-width: 300px;
+  left: 180px;
+}
 .col-settore { min-width: 120px; }
 .col-settore-princ { min-width: 120px; }
 .col-superserie { width: 40px; min-width: 40px; }
@@ -2073,6 +2183,7 @@ const esportaCSVLocale = () => {
 .col-note-attr { min-width: 200px; width: 250px; }
 .col-note-gen-attr { min-width: 200px; width: 250px; }
 .col-url { min-width: 180px; }
+.col-video { width: 70px; min-width: 70px; }
 .col-elimina { width: 70px; min-width: 70px; }
 .col-id { width: 80px; min-width: 80px; }
 .col-timestamp-ute { width: 140px; min-width: 140px; }

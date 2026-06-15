@@ -52,16 +52,122 @@
       </div>
     </div>
 
+    <!-- Selettore Atleta e Workout (Cerca Wo) -->
+    <v-card
+      class="premium-card rounded-2xl text-left border pa-4 mb-5 animate-slide-down"
+      style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%) !important; border-color: rgba(249, 115, 22, 0.15) !important;"
+    >
+      <div class="d-flex align-center justify-space-between" :class="mostraRicercaPannello ? 'mb-3' : ''">
+        <h3 class="text-subtitle-2 font-weight-black text-orange-lighten-2 d-flex align-center uppercase tracking-widest" style="font-size: 0.72rem;">
+          <v-icon size="16" class="mr-1.5">mdi-magnify</v-icon>
+          Ricerca & Selezione Workout
+        </h3>
+        <v-btn
+          variant="tonal"
+          color="orange"
+          size="x-small"
+          class="font-weight-black text-none px-2.5 py-0.5 rounded-lg"
+          style="height: 22px;"
+          @click="mostraRicercaPannello = !mostraRicercaPannello"
+        >
+          <v-icon size="12" class="mr-1">{{ mostraRicercaPannello ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+          {{ mostraRicercaPannello ? 'Nascondi' : 'Espandi' }}
+        </v-btn>
+      </div>
+
+      <!-- Selettore Coach Atleta -->
+      <div v-if="ruolo === 'coach' && mostraRicercaPannello" class="mt-2 mb-3">
+        <v-select
+          v-slot:item="{ props, item }"
+          v-model="atletaSelezionato"
+          :items="itemsAtleti"
+          item-title="title"
+          item-value="value"
+          label="Seleziona Atleta (Coach)"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          color="orange-darken-3"
+          prepend-inner-icon="mdi-account"
+          hide-details
+          @update:model-value="gestisciCambioAtleta"
+          id="coach-atleta-dropdown"
+        >
+          <v-list-item v-bind="props" class="text-left"></v-list-item>
+        </v-select>
+      </div>
+
+      <v-expand-transition>
+        <div v-show="mostraRicercaPannello">
+          <!-- Campo di ricerca del workout -->
+          <v-text-field
+            v-model="searchQuery"
+            prepend-inner-icon="mdi-magnify"
+            label="Cerca scheda, focus, note o data..."
+            variant="outlined"
+            density="compact"
+            rounded="lg"
+            color="orange-darken-3"
+            clearable
+            hide-details
+            class="mb-3"
+          ></v-text-field>
+
+          <!-- Lista schede/workout trovati -->
+          <div v-if="caricamentoWorkouts" class="text-center py-4">
+            <v-progress-circular indeterminate color="orange" size="24"></v-progress-circular>
+            <span class="text-caption text-muted ml-2">Caricamento schede...</span>
+          </div>
+          <div v-else-if="filteredWorkouts.length === 0" class="text-center py-3 border-dashed rounded-xl">
+            <span class="text-caption text-muted">Nessun workout trovato</span>
+          </div>
+          <div v-else class="workout-list-container scrollable-y max-height-300">
+            <v-card
+              v-for="w in filteredWorkouts"
+              :key="w.num_scheda"
+              class="workout-item-card pa-3 mb-2 rounded-xl border text-left cursor-pointer transition-all position-relative"
+              :class="String(schedaSelezionata) === String(w.num_scheda) ? 'active-workout-border' : 'inactive-workout-border'"
+              @click="gestisciSelezioneScheda(w.num_scheda)"
+            >
+              <div class="d-flex align-center justify-space-between mb-1">
+                <div class="d-flex align-center gap-2">
+                  <span class="font-weight-black text-slate-dark text-subtitle-2" style="font-size: 0.85rem !important;">
+                    Scheda {{ w.num_scheda }}
+                  </span>
+                  <v-chip
+                    v-if="String(schedaSelezionata) === String(w.num_scheda)"
+                    color="orange-darken-3"
+                    size="x-small"
+                    variant="flat"
+                    class="font-weight-black text-white"
+                    style="height: 16px; font-size: 0.55rem;"
+                  >
+                    ATTIVA
+                  </v-chip>
+                </div>
+                <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.6rem;">
+                  📅 {{ w.dat_data }} - {{ w.dat_scadenza }}
+                </span>
+              </div>
+              <div class="text-caption text-truncate text-slate font-weight-medium" style="font-size: 0.75rem !important;">
+                {{ w.des_descrizione || 'Nessuna descrizione' }}
+              </div>
+              <div v-if="w.des_note" class="text-super-caption text-muted text-truncate mt-0.5" style="font-size: 0.65rem !important; opacity: 0.85;">
+                📝 {{ w.des_note }}
+              </div>
+            </v-card>
+          </div>
+        </div>
+      </v-expand-transition>
+    </v-card>
+
     <!-- Stato vuoto se atleta o scheda non sono selezionati -->
-    <div v-if="!atletaSelezionato || !schedaSelezionata" class="empty-state text-center my-12 py-12 card-glass rounded-2xl border-dashed animate-fade-in">
-      <v-icon size="80" color="orange-lighten-3" class="mb-4 animate-bounce">mdi-clipboard-text-search-outline</v-icon>
-      <h3 class="text-h5 font-weight-bold text-slate-dark">Seleziona Atleta e Scheda</h3>
-      <p class="text-body-1 text-muted mt-2 px-6">
-        Scegli l'atleta e la scheda attiva nella sezione **Ricerca Wo** per caricare la tua dashboard.
+    <div v-if="!atletaSelezionato || !schedaSelezionata" class="empty-state text-center my-6 py-8 card-glass rounded-2xl border-dashed animate-fade-in">
+      <v-icon size="64" color="orange-lighten-3" class="mb-4 animate-bounce">mdi-clipboard-text-search-outline</v-icon>
+      <h3 class="text-h6 font-weight-bold text-slate-dark">Nessun Allenamento Selezionato</h3>
+      <p class="text-body-2 text-muted mt-2 px-6">
+        Seleziona un atleta (se sei coach) e una scheda dal pannello di ricerca in alto per caricare il mesociclo.
       </p>
-      <v-btn to="/ricerca" color="orange-darken-3" class="font-weight-bold text-none mt-6" rounded="xl" size="large">
-        Vai a Ricerca Wo
-      </v-btn>
     </div>
 
     <!-- Contenuto Principale se selezionati -->
@@ -861,7 +967,29 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, inizializzaSessione, utente, getNomeAtleta, activeTimer, stopGlobalTimer, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, globalStoryboard, loadingStoryboard, layoutEserciziGlobal } from '../authStore.js';
+import { 
+  selectedAthlete, 
+  selectedSheet, 
+  setSelectedAthlete,
+  setSelectedSheet,
+  inizializzaSessione, 
+  utente, 
+  ruolo,
+  idCliente,
+  getNomeAtleta, 
+  getEmailAtleta,
+  isAtletaObsoleto,
+  getSchedaSelezionataAtleta,
+  getVistaDettagliAtleta,
+  activeTimer, 
+  stopGlobalTimer, 
+  setGlobalHaEserciziDaFare, 
+  setGlobalSettimanaDaChiudere, 
+  globalStoryboard, 
+  loadingStoryboard, 
+  layoutEserciziGlobal,
+  ORDINE_ORIGINALE_ATLETI
+} from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -872,6 +1000,44 @@ const vibraTattile = (ms = 12) => {
     navigator.vibrate(ms);
   }
 };
+
+// Stato della ricerca/selezione
+const listaAtleti = ref([]);
+const workoutsList = ref([]);
+const searchQuery = ref('');
+const mostraRicercaPannello = ref(false);
+const caricamentoWorkouts = ref(false);
+const caricamento = ref(false);
+
+const itemsAtleti = computed(() => {
+  const ordinati = [...listaAtleti.value].sort((a, b) => {
+    const idxA = ORDINE_ORIGINALE_ATLETI.indexOf(String(a).trim());
+    const idxB = ORDINE_ORIGINALE_ATLETI.indexOf(String(b).trim());
+    const posA = idxA === -1 ? 999 : idxA;
+    const posB = idxB === -1 ? 999 : idxB;
+    return posA - posB;
+  });
+
+  return ordinati.map(id => {
+    const nome = getNomeAtleta(id);
+    return {
+      title: nome ? `${nome} (ID: ${id})` : `Atleta ID: ${id}`,
+      value: id
+    };
+  });
+});
+
+const filteredWorkouts = computed(() => {
+  if (!searchQuery.value) return workoutsList.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  return workoutsList.value.filter(w => {
+    const scheda = String(w.num_scheda).toLowerCase();
+    const desc = String(w.des_descrizione || '').toLowerCase();
+    const note = String(w.des_note || '').toLowerCase();
+    const data = String(w.dat_data || '').toLowerCase();
+    return scheda.includes(q) || desc.includes(q) || note.includes(q) || data.includes(q);
+  });
+});
 
 // Stato principale
 const subTab = ref('dati');
@@ -1564,6 +1730,118 @@ const scaricaReportPDF = () => {
   doc.save(`FlexCoach_Report_${nomeAtleta.value.replace(/\s+/g, '_')}_Scheda_${schedaSelezionata.value}.pdf`);
 };
 
+const caricaDatiAtleti = async () => {
+  try {
+    const docRef = doc(db, 'METADATA', 'clienti');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      listaAtleti.value = docSnap.data().lista || [];
+    }
+  } catch (error) {
+    console.error("Errore caricamento lista atleti in Home:", error);
+  }
+};
+
+const caricaWorkouts = async () => {
+  if (!atletaSelezionato.value) {
+    workoutsList.value = [];
+    return;
+  }
+  
+  caricamentoWorkouts.value = true;
+  try {
+    const athleteIdStr = String(atletaSelezionato.value).trim();
+    const athleteIdNum = Number(athleteIdStr);
+
+    let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr)));
+    let tempDocs = snap.docs.map(d => d.data());
+
+    let snapNum = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
+    snapNum.forEach(d => {
+      const data = d.data();
+      if (!tempDocs.some(x => String(x.num_scheda) === String(data.num_scheda))) {
+        tempDocs.push(data);
+      }
+    });
+
+    // Fallback da backup locale se vuoto
+    if (tempDocs.length === 0) {
+      try {
+        const res = await fetch('/storyboard_backup.json');
+        const allData = await res.json();
+        const raw = allData.filter(item => String(item.ID_cliente) === athleteIdStr);
+        const uniqueSchede = [...new Set(raw.map(item => String(item.num_scheda)))];
+        
+        uniqueSchede.forEach(sheetNum => {
+          tempDocs.push({
+            ID_cliente: athleteIdStr,
+            num_scheda: sheetNum,
+            dat_data: '01/01/2026',
+            dat_scadenza: '12/02/2026',
+            des_descrizione: `Mesociclo ${sheetNum}`,
+            des_note: 'Importato da backup',
+            flg_da_finire: 'false',
+            cod_tipo_avanz_scheda: 'STANDARD'
+          });
+        });
+      } catch (errBackup) {
+        console.warn("Fallback backup fallito in Home:", errBackup);
+      }
+    }
+
+    // Ordina dal più recente al più vecchio
+    tempDocs.sort((a, b) => {
+      const dateA = parseDateString(a.dat_data);
+      const dateB = parseDateString(b.dat_data);
+      if (dateA && dateB) {
+        if (dateB.getTime() !== dateA.getTime()) {
+          return dateB.getTime() - dateA.getTime();
+        }
+      }
+      return parseInt(b.num_scheda) - parseInt(a.num_scheda);
+    });
+
+    workoutsList.value = tempDocs;
+    
+    // Se non c'è una scheda selezionata, o se quella selezionata non appartiene alla lista, imposta l'ultima
+    if (tempDocs.length > 0) {
+      if (!schedaSelezionata.value || !tempDocs.some(x => String(x.num_scheda) === String(schedaSelezionata.value))) {
+        const ultima = tempDocs[0].num_scheda;
+        schedaSelezionata.value = ultima;
+        setSelectedSheet(ultima);
+      }
+    }
+  } catch (error) {
+    console.error("Errore nel caricamento dei workout per la ricerca:", error);
+  } finally {
+    caricamentoWorkouts.value = false;
+  }
+};
+
+const gestisciCambioAtleta = async (nuovoAtleta) => {
+  vibraTattile(12);
+  if (!nuovoAtleta) {
+    setSelectedAthlete('');
+    setSelectedSheet('');
+    atletaSelezionato.value = '';
+    schedaSelezionata.value = '';
+    workoutsList.value = [];
+    return;
+  }
+
+  setSelectedAthlete(nuovoAtleta);
+  atletaSelezionato.value = nuevoAtleta;
+  setSelectedSheet(''); // Azzera la scheda salvata dal precedente atleta
+  schedaSelezionata.value = '';
+  await caricaWorkouts();
+};
+
+const gestisciSelezioneScheda = (scheda) => {
+  vibraTattile(12);
+  schedaSelezionata.value = scheda;
+  setSelectedSheet(scheda);
+};
+
 const caricaDatiWorkoutT = async () => {
   dataInizio.value = '18 mag 26';
   dataFine.value = '28 giu 26';
@@ -1573,24 +1851,32 @@ const caricaDatiWorkoutT = async () => {
   if (!selectedAthlete.value || !selectedSheet.value) return;
 
   try {
-    const athleteIdStr = String(selectedAthlete.value);
-    const athleteIdNum = Number(selectedAthlete.value);
-    const sheetNumStr = String(selectedSheet.value);
-    const sheetNumNum = Number(selectedSheet.value);
+    const athleteIdStr = String(selectedAthlete.value).trim();
+    const athleteIdNum = Number(athleteIdStr);
+    const sheetNumStr = String(selectedSheet.value).trim();
+    const sheetNumNum = Number(sheetNumStr);
 
-    let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr), where('num_scheda', '==', sheetNumStr)));
-    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum), where('num_scheda', '==', sheetNumNum)));
-    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr), where('num_scheda', '==', sheetNumNum)));
-    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum), where('num_scheda', '==', sheetNumStr)));
+    let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr)));
+    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
 
+    let targetDocData = null;
     if (!snap.empty) {
-      const docData = snap.docs[0].data();
-      workoutTData.value = docData;
-      dataInizio.value = docData.dat_data || '18 mag 26';
-      dataFine.value = docData.dat_scadenza || '28 giu 26';
-      descrizioneMesociclo.value = docData.des_descrizione || '';
-      if (docData.des_note) {
-        coachMessage.value = docData.des_note;
+      for (const d of snap.docs) {
+        const data = d.data();
+        if (String(data.num_scheda).trim() === sheetNumStr || Number(data.num_scheda) === sheetNumNum) {
+          targetDocData = data;
+          break;
+        }
+      }
+    }
+
+    if (targetDocData) {
+      workoutTData.value = targetDocData;
+      dataInizio.value = targetDocData.dat_data || '18 mag 26';
+      dataFine.value = targetDocData.dat_scadenza || '28 giu 26';
+      descrizioneMesociclo.value = targetDocData.des_descrizione || '';
+      if (targetDocData.des_note) {
+        coachMessage.value = targetDocData.des_note;
       }
     } else {
       workoutTData.value = null;
@@ -1754,21 +2040,48 @@ const aggiornaDatiSchedaDaStore = async () => {
   }
 
   // Auto-seleziona il primo giorno non completato per la settimana attiva
-  const giorni = ['A', 'B', 'C', 'D'];
-  let giornoDaFare = '';
-  for (const g of giorni) {
-    const header = tempExercises.find(
-      item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
+  let currentDayExists = false;
+  let currentDayCompleted = false;
+  if (giornoAttivo.value) {
+    const currentHeader = tempExercises.find(
+      item => (item.des_giorno || '').trim() === giornoAttivo.value && (parseInt(item.num_riga_giorno) === 0)
     );
-    const completato = header ? isTrue(header['cmp' + settimanaAttiva.value]) : false;
-    if (!completato) {
-      giornoDaFare = g;
-      break;
+    if (currentHeader) {
+      currentDayExists = true;
+      currentDayCompleted = isTrue(currentHeader['cmp' + settimanaAttiva.value]);
     }
   }
-  if (giornoDaFare) {
-    giornoAttivo.value = giornoDaFare;
-    localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
+
+  if (!giornoAttivo.value || !currentDayExists || currentDayCompleted) {
+    const giorni = ['A', 'B', 'C', 'D'];
+    let giornoDaFare = '';
+    
+    for (const g of giorni) {
+      const header = tempExercises.find(
+        item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
+      );
+      if (header) {
+        const completato = isTrue(header['cmp' + settimanaAttiva.value]);
+        if (!completato) {
+          giornoDaFare = g;
+          break;
+        }
+      }
+    }
+    
+    if (!giornoDaFare) {
+      for (const g of giorni) {
+        if (tempExercises.some(item => (item.des_giorno || '').trim() === g)) {
+          giornoDaFare = g;
+          break;
+        }
+      }
+    }
+
+    if (giornoDaFare) {
+      giornoAttivo.value = giornoDaFare;
+      localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
+    }
   }
 
   // Fallback se i dati di WORKOUT_T sono mancanti o nulli
@@ -1998,13 +2311,22 @@ watch(settimanaDaChiudereGiornoAttivo, (newVal) => {
   setGlobalSettimanaDaChiudere(newVal);
 }, { immediate: true });
 
-onMounted(() => {
-  caricaDatiScheda();
+onMounted(async () => {
+  await caricaDatiAtleti();
+  await caricaWorkouts();
+  await caricaDatiScheda();
 });
 
 // Ascolta i cambiamenti di selezione globale
-watch([selectedAthlete, selectedSheet], () => {
-  caricaDatiScheda();
+watch([selectedAthlete, selectedSheet], async ([newAthlete, newSheet], [oldAthlete, oldSheet]) => {
+  if (newAthlete !== oldAthlete) {
+    atletaSelezionato.value = newAthlete;
+    await caricaWorkouts();
+  }
+  if (newSheet !== oldSheet) {
+    schedaSelezionata.value = newSheet;
+  }
+  await caricaDatiScheda();
   settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2;
   giornoAttivo.value = localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'C';
 });
@@ -2028,11 +2350,27 @@ const salvaSettimanaConfig = (w) => {
   const giorni = ['A', 'B', 'C', 'D'];
   let giornoDaFare = '';
   for (const g of giorni) {
-    if (!getDayCompletion(g)) {
-      giornoDaFare = g;
-      break;
+    const header = allExercises.value.find(
+      item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
+    );
+    if (header) {
+      if (!isTrue(header['cmp' + settimanaAttiva.value])) {
+        giornoDaFare = g;
+        break;
+      }
     }
   }
+  
+  if (!giornoDaFare) {
+    // Se tutti i giorni esistenti sono completati, seleziona il primo giorno esistente
+    for (const g of giorni) {
+      if (allExercises.value.some(item => (item.des_giorno || '').trim() === g)) {
+        giornoDaFare = g;
+        break;
+      }
+    }
+  }
+
   if (giornoDaFare) {
     giornoAttivo.value = giornoDaFare;
     localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
@@ -2647,5 +2985,30 @@ const apriTest = () => {
 .heatmap-container {
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
   transition: border-color 0.3s ease;
+}
+
+.scrollable-y {
+  overflow-y: auto;
+}
+.max-height-300 {
+  max-height: 200px;
+}
+.workout-list-container {
+  padding-right: 4px;
+}
+.workout-item-card {
+  transition: all 0.2s ease-in-out;
+  background: rgba(15, 23, 42, 0.45) !important;
+}
+.workout-item-card:hover {
+  transform: translateY(-1px);
+  background: rgba(30, 41, 59, 0.5) !important;
+}
+.active-workout-border {
+  border: 1.5px solid #f97316 !important;
+  background: rgba(249, 115, 22, 0.08) !important;
+}
+.inactive-workout-border {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 </style>

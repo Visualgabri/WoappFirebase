@@ -1981,7 +1981,8 @@ const parseTimeToSeconds = (tStr) => {
   if (!tStr) return 90;
 
   const parseSinglePartToSeconds = (p) => {
-    p = p.trim();
+    // Normalizza apici doppi, apici singoli consecutivi e spazi
+    p = p.trim().toLowerCase().replace(/''|""/g, '"');
     if (!p) return 0;
 
     // Se il formato è mm:ss (es. 1:30)
@@ -1990,24 +1991,24 @@ const parseTimeToSeconds = (tStr) => {
       return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
     }
 
-    // Minuti e secondi combinati (es. 1'30" o 1'30'')
-    if (p.includes("'") && (p.includes('"') || p.includes("''"))) {
-      const cleanPart = p.replace("''", '"');
-      const parts = cleanPart.split("'");
-      const mins = parseFloat(parts[0]) || 0;
-      const secs = parseFloat(parts[1].replace('"', '')) || 0;
-      return Math.round(mins * 60 + secs);
+    // Minuti e secondi combinati tramite separatore (es. 1'30", 1'45', 1m45, 1'30)
+    const matchMinSec = p.match(/^(\d+)\s*(?:'|m|min)\s*(\d+)/);
+    if (matchMinSec) {
+      const mins = parseInt(matchMinSec[1], 10) || 0;
+      const secs = parseInt(matchMinSec[2], 10) || 0;
+      return mins * 60 + secs;
     }
 
-    // Solo secondi (es. 45" o 45'' o 45s)
-    if (p.endsWith('"') || p.endsWith("''") || p.endsWith("s")) {
-      const secs = parseFloat(p.replace(/''|"|s/g, '')) || 0;
+    // Solo secondi (es. 45" o 45s)
+    if (p.endsWith('"') || p.endsWith("s")) {
+      const secs = parseFloat(p.replace(/"|s/g, '')) || 0;
       return Math.round(secs);
     }
 
     // Solo minuti (es. 1' o 1m o 1min)
     if (p.endsWith("'") || p.endsWith("m") || p.endsWith("min")) {
       const mins = parseFloat(p.replace(/min|m|'/g, '')) || 0;
+      if (mins > 5) return Math.round(mins); // Se > 5, sono molto probabilmente secondi (es. 30' o 45')
       return Math.round(mins * 60);
     }
 
@@ -2023,10 +2024,14 @@ const parseTimeToSeconds = (tStr) => {
 
   const clean = tStr.toLowerCase().replace('rec', '').replace('⏱️', '').trim();
 
-  // Verifica la presenza di intervalli/range tramite '-' o '/'
+  // Verifica la presenza di intervalli/range tramite '-', '–', '—' o '/'
   let parts = [];
   if (clean.includes('-')) {
     parts = clean.split('-');
+  } else if (clean.includes('–')) {
+    parts = clean.split('–');
+  } else if (clean.includes('—')) {
+    parts = clean.split('—');
   } else if (clean.includes('/')) {
     parts = clean.split('/');
   }

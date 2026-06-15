@@ -2492,7 +2492,8 @@ const parseTimeToSeconds = (tStr) => {
   if (!tStr) return 90;
 
   const parseSinglePartToSeconds = (p) => {
-    p = p.trim().toLowerCase();
+    // Normalizza apici doppi, apici singoli consecutivi e spazi
+    p = p.trim().toLowerCase().replace(/''|""/g, '"');
     if (!p) return 0;
 
     // Se il formato è mm:ss (es. 1:30)
@@ -2509,15 +2510,16 @@ const parseTimeToSeconds = (tStr) => {
       return mins * 60 + secs;
     }
 
-    // Solo secondi (es. 45" o 45'' o 45s)
-    if (p.endsWith('"') || p.endsWith("''") || p.endsWith("s")) {
-      const secs = parseFloat(p.replace(/''|"|s/g, '')) || 0;
+    // Solo secondi (es. 45" o 45s)
+    if (p.endsWith('"') || p.endsWith("s")) {
+      const secs = parseFloat(p.replace(/"|s/g, '')) || 0;
       return Math.round(secs);
     }
 
     // Solo minuti (es. 1' o 1m o 1min)
     if (p.endsWith("'") || p.endsWith("m") || p.endsWith("min")) {
       const mins = parseFloat(p.replace(/min|m|'/g, '')) || 0;
+      if (mins > 5) return Math.round(mins); // Se > 5, sono molto probabilmente secondi (es. 30' o 45')
       return Math.round(mins * 60);
     }
 
@@ -2557,8 +2559,9 @@ const parseTimeToSeconds = (tStr) => {
     if (lowerVal > 0) return lowerVal;
   }
 
+  const defaultTimer = parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10);
   const val = parseSinglePartToSeconds(clean);
-  return val > 0 ? val : 90;
+  return val > 0 ? val : defaultTimer;
 };
 
 const avviaTimerRecupero = (recStr, label) => {

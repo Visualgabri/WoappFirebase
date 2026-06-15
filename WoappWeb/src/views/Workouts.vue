@@ -4356,15 +4356,15 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .capsule-active .capsule-num {
-  color: #ffedd5 !important;
+  color: #fde047 !important; /* Giallo brillante su sfondo arancione */
 }
 
 .capsule-completed .capsule-num {
-  color: #38bdf8 !important; /* Celeste per distinguere la W dal peso */
+  color: #ffb000 !important; /* Giallo/Oro per distinguere la W dal peso verde */
 }
 
 .capsule-pending .capsule-num {
-  color: #64748b !important; /* Grigio scuro per distinguere la W dal trattino */
+  color: #8b8d99 !important; /* Grigio chiaro per distinguere la W dal trattino */
 }
 
 

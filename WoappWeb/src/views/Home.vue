@@ -1650,17 +1650,20 @@ const caricaDatiScheda = async () => {
       countFilmati.value = tempFilmati.length;
       testList.value = tempTest;
       countTest.value = tempTest.length;
-      if (!coachMessage.value) coachMessage.value = noteScheda;
-
-      const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
-      settimanaAttiva.value = activeW;
-      localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+      if (tempExercises.length > 0) {
+        const savedW = localStorage.getItem('settimanaAttiva_' + selectedAthlete.value);
+        if (!savedW) {
+          const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
+          settimanaAttiva.value = activeW;
+          localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+        }
+      }
 
       const giorni = ['A', 'B', 'C', 'D'];
       let giornoDaFare = '';
       for (const g of giorni) {
         const header = tempExercises.find(item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0));
-        const completato = header ? isTrue(header['cmp' + activeW]) : false;
+        const completato = header ? isTrue(header['cmp' + settimanaAttiva.value]) : false;
         if (!completato) {
           giornoDaFare = g;
           break;
@@ -1742,14 +1745,15 @@ const aggiornaDatiSchedaDaStore = async () => {
   testList.value = tempTest;
   countTest.value = tempTest.length;
 
-  if (!coachMessage.value) {
-    coachMessage.value = noteScheda;
+  // Ricalcola la settimana attiva globale solo se non è già salvata nel localStorage per questo atleta
+  if (tempExercises.length > 0) {
+    const savedW = localStorage.getItem('settimanaAttiva_' + selectedAthlete.value);
+    if (!savedW) {
+      const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
+      settimanaAttiva.value = activeW;
+      localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
+    }
   }
-
-  // Calcola e aggiorna la settimana attiva globale
-  const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
-  settimanaAttiva.value = activeW;
-  localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
 
   // Auto-seleziona il primo giorno non completato per la settimana attiva
   const giorni = ['A', 'B', 'C', 'D'];
@@ -1758,7 +1762,7 @@ const aggiornaDatiSchedaDaStore = async () => {
     const header = tempExercises.find(
       item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
     );
-    const completato = header ? isTrue(header['cmp' + activeW]) : false;
+    const completato = header ? isTrue(header['cmp' + settimanaAttiva.value]) : false;
     if (!completato) {
       giornoDaFare = g;
       break;

@@ -1250,6 +1250,8 @@ import {
   ORDINE_ORIGINALE_ATLETI,
   selectedAthlete,
   setSelectedAthlete,
+  selectedSheet,
+  setSelectedSheet,
   propostaBaseWeek2Global,
   propostaBaseWeek5Global,
   propostaBaseWeek6Global,
@@ -1406,10 +1408,16 @@ onMounted(async () => {
   }
 });
 
-// Watcher per allineare l'atleta selezionato localmente con lo stato globale
+// Watcher per allineare l'atleta e la scheda selezionati localmente con lo stato globale
 watch(atletaSelezionato, (newVal) => {
   if (newVal && newVal !== selectedAthlete.value) {
     setSelectedAthlete(newVal);
+  }
+});
+
+watch(schedaSelezionata, (newVal) => {
+  if (newVal && newVal !== selectedSheet.value) {
+    setSelectedSheet(newVal);
   }
 });
 
@@ -1433,9 +1441,13 @@ const caricaSchedeAtleta = async () => {
     });
     listaSchede.value = Array.from(setSchede).sort((a, b) => Number(a) - Number(b));
     
-    // Auto-seleziona l'ultima scheda dell'atleta se disponibile
+    // Auto-seleziona la scheda precedentemente salvata globalmente o l'ultima disponibile
     if (listaSchede.value.length > 0) {
-      schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
+      if (selectedSheet.value && listaSchede.value.includes(String(selectedSheet.value).trim())) {
+        schedaSelezionata.value = String(selectedSheet.value).trim();
+      } else {
+        schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
+      }
     } else {
       // Carica comunque WORKOUT_T se lo storyboard è vuoto per questo atleta
       await caricaWorkoutT();

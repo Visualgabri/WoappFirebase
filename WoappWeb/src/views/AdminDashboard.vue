@@ -311,17 +311,17 @@
 
     <!-- TABELLA EDITABILE SPREADSHEET -->
     <v-card
-      v-if="schedaSelezionata && atletaSelezionato"
+      v-if="atletaSelezionato"
       class="premium-card rounded-2xl border pa-4 mb-16 text-left"
       elevation="2"
       style="overflow: visible;"
     >
       <!-- Titolo Sezione & Informazioni Utili -->
-      <div class="d-flex flex-wrap align-center justify-space-between mb-4 border-bottom-soft pb-3">
+      <div class="d-flex flex-wrap align-center justify-space-between mb-2 border-bottom-soft pb-3">
         <div>
-          <h3 class="text-h6 font-weight-black text-slate-dark">Griglia di Modifica Storyboard</h3>
+          <h3 class="text-h6 font-weight-black text-slate-dark">Gestione Database Atleta</h3>
           <span class="text-caption text-muted d-block mt-0.5">
-            Client ID: <strong>{{ atletaSelezionato }}</strong> • Scheda: <strong>{{ schedaSelezionata }}</strong> • Record caricati: <strong>{{ records.length }}</strong>
+            Client ID: <strong>{{ atletaSelezionato }}</strong>
           </span>
         </div>
         <div class="d-flex align-center gap-2 mt-2 mt-sm-0">
@@ -329,359 +329,668 @@
             <v-icon size="16" class="mr-1">mdi-help-circle-outline</v-icon>
             Scorciatoie Excel
           </v-btn>
-          <v-btn color="blue-darken-3" size="small" variant="flat" rounded="lg" @click="esportaCSVLocale" class="text-white">
+          <v-btn v-if="activeTab === 'storyboard' && schedaSelezionata" color="blue-darken-3" size="small" variant="flat" rounded="lg" @click="esportaCSVLocale" class="text-white">
             <v-icon size="16" class="mr-1">mdi-download</v-icon>
             Download CSV
           </v-btn>
         </div>
       </div>
 
-      <!-- Spinner Caricamento -->
-      <div v-if="loadingData" class="text-center my-12 py-12">
-        <v-progress-circular indeterminate color="orange" size="48"></v-progress-circular>
-        <p class="mt-4 text-slate text-body-2">Lettura e sincronizzazione con Firestore...</p>
+      <!-- TABS PER SWITCHARE TRA STORYBOARD E WORKOUT_T -->
+      <v-tabs v-model="activeTab" color="orange-darken-3" class="mb-4">
+        <v-tab value="storyboard" class="font-weight-black">
+          <v-icon start>mdi-format-list-bulleted</v-icon>
+          Storyboard (Esercizi)
+          <v-chip size="x-small" class="ml-2 font-weight-bold" color="orange" variant="flat" v-if="records.length > 0">
+            {{ records.length }}
+          </v-chip>
+        </v-tab>
+        <v-tab value="workout_t" class="font-weight-black">
+          <v-icon start>mdi-calendar-month</v-icon>
+          Workout T (Mesocicli)
+          <v-chip size="x-small" class="ml-2 font-weight-bold" color="blue" variant="flat" v-if="workoutTRecords.length > 0">
+            {{ workoutTRecords.length }}
+          </v-chip>
+        </v-tab>
+      </v-tabs>
+
+      <!-- TAB STORYBOARD -->
+      <div v-show="activeTab === 'storyboard'">
+        <!-- Nessuna scheda selezionata -->
+        <div v-if="!schedaSelezionata" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="orange-darken-3" size="48" class="mb-2">mdi-clipboard-text-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Nessuna scheda selezionata</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">
+            Seleziona una scheda (Mesociclo) dal menu in alto per visualizzare e modificare gli esercizi dello Storyboard.
+          </p>
+        </div>
+
+        <div v-else>
+          <!-- Spinner Caricamento -->
+          <div v-if="loadingData" class="text-center my-12 py-12">
+            <v-progress-circular indeterminate color="orange" size="48"></v-progress-circular>
+            <p class="mt-4 text-slate text-body-2">Lettura e sincronizzazione con Firestore...</p>
+          </div>
+
+          <!-- Nessun dato trovato -->
+          <div v-else-if="records.length === 0" class="text-center py-12 border-dashed rounded-xl my-4">
+            <v-icon color="grey" size="48" class="mb-2">mdi-database-alert-outline</v-icon>
+            <h4 class="text-slate font-weight-bold text-body-1">Nessun record in Firestore</h4>
+            <p class="text-caption text-muted px-4 leading-tight mt-1">Non ci sono esercizi salvati per questa scheda. Clicca su "+ Aggiungi Riga" per crearne di nuovi.</p>
+          </div>
+
+          <!-- Tabella Excel (Desktop + Mobile) -->
+          <div v-else class="table-container" @paste="handlePaste">
+            <table class="excel-table">
+              <thead>
+                <tr>
+                  <th class="sticky-col col-actions">Azioni</th>
+                  <th class="sticky-col col-giorno">Giorno</th>
+                  <th class="col-riga">Riga</th>
+                  <th class="col-esercizio">Esercizio</th>
+                  <th class="col-settore">Settore</th>
+                  <th class="col-settore-princ">Settore Princ</th>
+                  <th class="col-superserie">SS</th>
+                  <th class="col-qta">Q.tà</th>
+                  <th class="col-rec">Rec.</th>
+                  <th class="col-note">Note Esercizio</th>
+                  <th class="col-week">W1</th>
+                  <th class="col-week">W2</th>
+                  <th class="col-week">W3</th>
+                  <th class="col-week">W4</th>
+                  <th class="col-week">W5</th>
+                  <th class="col-week">W6</th>
+                  <th class="col-ins6">Ins 6</th>
+                  <th class="col-fatica">Fatica W6</th>
+                  <th class="col-peso-bil">Peso Bil.</th>
+                  <th class="col-commenti">Commenti</th>
+                  <th class="col-note-attr">Note Attrezzo</th>
+                  <th class="col-note-gen-attr">Note Gen. Attrezzo</th>
+                  <th class="col-url">Url Video/GIF</th>
+                  <th class="col-elimina">No Elimina</th>
+                  <th class="col-id">Riga ID</th>
+                  <th class="col-timestamp-ute">Aggiornato Utente</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(row, rowIndex) in sortedRecords"
+                  :key="row.localId"
+                  :class="{
+                    'row-dirty': row.isDirty,
+                    'row-new': row.isNew,
+                    'row-deleted': row.isDeleted
+                  }"
+                >
+                  <!-- Azioni -->
+                  <td class="sticky-col col-actions align-center justify-center">
+                    <div class="d-flex align-center justify-center gap-1">
+                      <!-- Modifica Dettagli 85 campi -->
+                      <v-btn
+                        icon
+                        size="x-small"
+                        variant="text"
+                        color="orange-lighten-2"
+                        title="Modifica tutti gli 85 campi"
+                        @click="apriDettaglio(row)"
+                      >
+                        <v-icon size="14">mdi-pencil</v-icon>
+                      </v-btn>
+                      <!-- Duplica -->
+                      <v-btn
+                        icon
+                        size="x-small"
+                        variant="text"
+                        color="blue-lighten-2"
+                        title="Duplica record"
+                        @click="duplicaRiga(rowIndex)"
+                      >
+                        <v-icon size="14">mdi-content-copy</v-icon>
+                      </v-btn>
+                      <!-- Elimina/Ripristina -->
+                      <v-btn
+                        icon
+                        size="x-small"
+                        variant="text"
+                        :color="row.isDeleted ? 'green-lighten-2' : 'red-lighten-2'"
+                        :title="row.isDeleted ? 'Annulla eliminazione' : 'Segna per eliminazione'"
+                        @click="toggleEliminaRiga(rowIndex)"
+                      >
+                        <v-icon size="14">{{ row.isDeleted ? 'mdi-restore' : 'mdi-delete' }}</v-icon>
+                      </v-btn>
+                    </div>
+                  </td>
+                  <!-- Giorno -->
+                  <td class="sticky-col col-giorno">
+                    <input
+                      v-model="row.des_giorno"
+                      type="text"
+                      class="excel-input text-center text-uppercase"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_giorno')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_giorno')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Riga -->
+                  <td class="col-riga">
+                    <input
+                      v-model="row.num_riga_giorno"
+                      type="number"
+                      class="excel-input text-center"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'num_riga_giorno')"
+                      :ref="el => registerInputRef(el, rowIndex, 'num_riga_giorno')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Esercizio -->
+                  <td class="col-esercizio">
+                    <input
+                      v-model="row.des_esercizio"
+                      type="text"
+                      class="excel-input select-text"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_esercizio')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_esercizio')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Settore -->
+                  <td class="col-settore">
+                    <input
+                      v-model="row.des_settore"
+                      type="text"
+                      class="excel-input"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_settore')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_settore')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Settore Princ -->
+                  <td class="col-settore-princ">
+                    <input
+                      v-model="row.des_settore_princ"
+                      type="text"
+                      class="excel-input"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_settore_princ')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_settore_princ')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Superserie -->
+                  <td class="col-superserie">
+                    <input
+                      v-model="row.alf_superserie"
+                      type="text"
+                      class="excel-input text-center text-uppercase"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'alf_superserie')"
+                      :ref="el => registerInputRef(el, rowIndex, 'alf_superserie')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Qta -->
+                  <td class="col-qta">
+                    <input
+                      v-model="row.des_qta_report"
+                      type="text"
+                      class="excel-input text-center"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_qta_report')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_qta_report')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Rec -->
+                  <td class="col-rec">
+                    <input
+                      v-model="row.des_rec_report"
+                      type="text"
+                      class="excel-input text-center"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_rec_report')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_rec_report')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Note Esercizio -->
+                  <td class="col-note">
+                    <input
+                      v-model="row.des_note"
+                      type="text"
+                      class="excel-input"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_note')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_note')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Weeks (1 to 6) -->
+                  <td v-for="w in 6" :key="'w' + w" class="col-week">
+                    <input
+                      v-model="row['ins_week' + w]"
+                      type="text"
+                      class="excel-input text-center"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'ins_week' + w)"
+                      :ref="el => registerInputRef(el, rowIndex, 'ins_week' + w)"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Ins 6 -->
+                  <td class="col-ins6">
+                    <input
+                      v-model="row.num_ins6"
+                      type="text"
+                      class="excel-input text-center"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'num_ins6')"
+                      :ref="el => registerInputRef(el, rowIndex, 'num_ins6')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Fatica W6 -->
+                  <td class="col-fatica">
+                    <input
+                      v-model="row.num_faticaw6"
+                      type="text"
+                      class="excel-input text-center"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'num_faticaw6')"
+                      :ref="el => registerInputRef(el, rowIndex, 'num_faticaw6')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Peso Bilanciere -->
+                  <td class="col-peso-bil">
+                    <input
+                      v-model="row.num_peso_bilanciere"
+                      type="text"
+                      class="excel-input text-center"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'num_peso_bilanciere')"
+                      :ref="el => registerInputRef(el, rowIndex, 'num_peso_bilanciere')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Commenti -->
+                  <td class="col-commenti">
+                    <input
+                      v-model="row.des_commenti"
+                      type="text"
+                      class="excel-input"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_commenti')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_commenti')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Note Attrezzo -->
+                  <td class="col-note-attr">
+                    <input
+                      v-model="row.des_note_attrezzo"
+                      type="text"
+                      class="excel-input"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_note_attrezzo')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_note_attrezzo')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Note Gen Attrezzo -->
+                  <td class="col-note-gen-attr">
+                    <input
+                      v-model="row.des_note_gen_attr"
+                      type="text"
+                      class="excel-input"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'des_note_gen_attr')"
+                      :ref="el => registerInputRef(el, rowIndex, 'des_note_gen_attr')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Url Video -->
+                  <td class="col-url">
+                    <input
+                      v-model="row.UrlNormal"
+                      type="text"
+                      class="excel-input text-caption font-italic text-slate"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'UrlNormal')"
+                      :ref="el => registerInputRef(el, rowIndex, 'UrlNormal')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- No Elimina -->
+                  <td class="col-elimina text-center">
+                    <v-checkbox-btn
+                      v-model="row.no_elimina"
+                      color="orange-darken-3"
+                      @update:model-value="segnaModificato(row)"
+                      :disabled="row.isDeleted"
+                      class="d-inline-flex"
+                    ></v-checkbox-btn>
+                  </td>
+                  <!-- Riga ID -->
+                  <td class="col-id">
+                    <input
+                      v-model="row.num_riga"
+                      type="text"
+                      class="excel-input text-center font-weight-bold text-orange-lighten-2"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'num_riga')"
+                      :ref="el => registerInputRef(el, rowIndex, 'num_riga')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                  <!-- Timestamp Ute -->
+                  <td class="col-timestamp-ute">
+                    <input
+                      v-model="row.timestamp_ute"
+                      type="text"
+                      class="excel-input text-center text-muted"
+                      @input="segnaModificato(row)"
+                      @keydown="handleKeydown($event, rowIndex, 'timestamp_ute')"
+                      :ref="el => registerInputRef(el, rowIndex, 'timestamp_ute')"
+                      :disabled="row.isDeleted"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pulsanti di azione rapidi sotto-tabella Storyboard -->
+          <div class="d-flex flex-wrap justify-space-between align-center mt-4 pt-3 border-top-soft">
+            <v-btn color="orange-darken-3" variant="text" rounded="lg" @click="aggiungiRiga" :disabled="loadingData">
+              <v-icon class="mr-1">mdi-plus</v-icon>
+              AGGIUNGI RIGA
+            </v-btn>
+            <span class="text-caption text-muted font-italic">
+              * Fai doppio clic su una riga o clicca sulla matita per modificare i campi secondari dell'esercizio.
+            </span>
+          </div>
+        </div>
       </div>
 
-      <!-- Nessun dato trovato -->
-      <div v-else-if="records.length === 0" class="text-center py-12 border-dashed rounded-xl my-4">
-        <v-icon color="grey" size="48" class="mb-2">mdi-database-alert-outline</v-icon>
-        <h4 class="text-slate font-weight-bold text-body-1">Nessun record in Firestore</h4>
-        <p class="text-caption text-muted px-4 leading-tight mt-1">Non ci sono esercizi salvati per questa scheda. Clicca su "+ Aggiungi Riga" per crearne di nuovi.</p>
-      </div>
+      <!-- TAB WORKOUT_T -->
+      <div v-show="activeTab === 'workout_t'">
+        <!-- Spinner Caricamento -->
+        <div v-if="loadingWorkoutT" class="text-center my-12 py-12">
+          <v-progress-circular indeterminate color="blue" size="48"></v-progress-circular>
+          <p class="mt-4 text-slate text-body-2">Caricamento record WORKOUT_T...</p>
+        </div>
 
-      <!-- Tabella Excel (Desktop + Mobile) -->
-      <div v-else class="table-container" @paste="handlePaste">
-        <table class="excel-table">
-          <thead>
-            <tr>
-              <th class="sticky-col col-actions">Azioni</th>
-              <th class="sticky-col col-giorno">Giorno</th>
-              <th class="col-riga">Riga</th>
-              <th class="col-esercizio">Esercizio</th>
-              <th class="col-settore">Settore</th>
-              <th class="col-settore-princ">Settore Princ</th>
-              <th class="col-superserie">SS</th>
-              <th class="col-qta">Q.tà</th>
-              <th class="col-rec">Rec.</th>
-              <th class="col-note">Note Esercizio</th>
-              <th class="col-week">W1</th>
-              <th class="col-week">W2</th>
-              <th class="col-week">W3</th>
-              <th class="col-week">W4</th>
-              <th class="col-week">W5</th>
-              <th class="col-week">W6</th>
-              <th class="col-ins6">Ins 6</th>
-              <th class="col-fatica">Fatica W6</th>
-              <th class="col-peso-bil">Peso Bil.</th>
-              <th class="col-commenti">Commenti</th>
-              <th class="col-note-attr">Note Attrezzo</th>
-              <th class="col-note-gen-attr">Note Gen. Attrezzo</th>
-              <th class="col-url">Url Video/GIF</th>
-              <th class="col-elimina">No Elimina</th>
-              <th class="col-id">Riga ID</th>
-              <th class="col-timestamp-ute">Aggiornato Utente</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(row, rowIndex) in sortedRecords"
-              :key="row.localId"
-              :class="{
-                'row-dirty': row.isDirty,
-                'row-new': row.isNew,
-                'row-deleted': row.isDeleted
-              }"
-            >
-              <!-- Azioni -->
-              <td class="sticky-col col-actions align-center justify-center">
-                <div class="d-flex align-center justify-center gap-1">
-                  <!-- Modifica Dettagli 85 campi -->
-                  <v-btn
-                    icon
-                    size="x-small"
-                    variant="text"
-                    color="orange-lighten-2"
-                    title="Modifica tutti gli 85 campi"
-                    @click="apriDettaglio(row)"
-                  >
-                    <v-icon size="14">mdi-pencil</v-icon>
-                  </v-btn>
-                  <!-- Duplica -->
-                  <v-btn
-                    icon
-                    size="x-small"
-                    variant="text"
-                    color="blue-lighten-2"
-                    title="Duplica record"
-                    @click="duplicaRiga(rowIndex)"
-                  >
-                    <v-icon size="14">mdi-content-copy</v-icon>
-                  </v-btn>
-                  <!-- Elimina/Ripristina -->
-                  <v-btn
-                    icon
-                    size="x-small"
-                    variant="text"
-                    :color="row.isDeleted ? 'green-lighten-2' : 'red-lighten-2'"
-                    :title="row.isDeleted ? 'Annulla eliminazione' : 'Segna per eliminazione'"
-                    @click="toggleEliminaRiga(rowIndex)"
-                  >
-                    <v-icon size="14">{{ row.isDeleted ? 'mdi-restore' : 'mdi-delete' }}</v-icon>
-                  </v-btn>
-                </div>
-              </td>
-              <!-- Giorno -->
-              <td class="sticky-col col-giorno">
-                <input
-                  v-model="row.des_giorno"
-                  type="text"
-                  class="excel-input text-center text-uppercase"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_giorno')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_giorno')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Riga -->
-              <td class="col-riga">
-                <input
-                  v-model="row.num_riga_giorno"
-                  type="number"
-                  class="excel-input text-center"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'num_riga_giorno')"
-                  :ref="el => registerInputRef(el, rowIndex, 'num_riga_giorno')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Esercizio -->
-              <td class="col-esercizio">
-                <input
-                  v-model="row.des_esercizio"
-                  type="text"
-                  class="excel-input select-text"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_esercizio')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_esercizio')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Settore -->
-              <td class="col-settore">
-                <input
-                  v-model="row.des_settore"
-                  type="text"
-                  class="excel-input"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_settore')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_settore')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Settore Princ -->
-              <td class="col-settore-princ">
-                <input
-                  v-model="row.des_settore_princ"
-                  type="text"
-                  class="excel-input"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_settore_princ')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_settore_princ')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Superserie -->
-              <td class="col-superserie">
-                <input
-                  v-model="row.alf_superserie"
-                  type="text"
-                  class="excel-input text-center text-uppercase"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'alf_superserie')"
-                  :ref="el => registerInputRef(el, rowIndex, 'alf_superserie')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Qta -->
-              <td class="col-qta">
-                <input
-                  v-model="row.des_qta_report"
-                  type="text"
-                  class="excel-input text-center"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_qta_report')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_qta_report')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Rec -->
-              <td class="col-rec">
-                <input
-                  v-model="row.des_rec_report"
-                  type="text"
-                  class="excel-input text-center"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_rec_report')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_rec_report')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Note Esercizio -->
-              <td class="col-note">
-                <input
-                  v-model="row.des_note"
-                  type="text"
-                  class="excel-input"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_note')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_note')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Weeks (1 to 6) -->
-              <td v-for="w in 6" :key="'w' + w" class="col-week">
-                <input
-                  v-model="row['ins_week' + w]"
-                  type="text"
-                  class="excel-input text-center"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'ins_week' + w)"
-                  :ref="el => registerInputRef(el, rowIndex, 'ins_week' + w)"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Ins 6 -->
-              <td class="col-ins6">
-                <input
-                  v-model="row.num_ins6"
-                  type="text"
-                  class="excel-input text-center"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'num_ins6')"
-                  :ref="el => registerInputRef(el, rowIndex, 'num_ins6')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Fatica W6 -->
-              <td class="col-fatica">
-                <input
-                  v-model="row.num_faticaw6"
-                  type="text"
-                  class="excel-input text-center"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'num_faticaw6')"
-                  :ref="el => registerInputRef(el, rowIndex, 'num_faticaw6')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Peso Bilanciere -->
-              <td class="col-peso-bil">
-                <input
-                  v-model="row.num_peso_bilanciere"
-                  type="text"
-                  class="excel-input text-center"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'num_peso_bilanciere')"
-                  :ref="el => registerInputRef(el, rowIndex, 'num_peso_bilanciere')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Commenti -->
-              <td class="col-commenti">
-                <input
-                  v-model="row.des_commenti"
-                  type="text"
-                  class="excel-input"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_commenti')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_commenti')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Note Attrezzo -->
-              <td class="col-note-attr">
-                <input
-                  v-model="row.des_note_attrezzo"
-                  type="text"
-                  class="excel-input"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_note_attrezzo')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_note_attrezzo')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Note Gen Attrezzo -->
-              <td class="col-note-gen-attr">
-                <input
-                  v-model="row.des_note_gen_attr"
-                  type="text"
-                  class="excel-input"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'des_note_gen_attr')"
-                  :ref="el => registerInputRef(el, rowIndex, 'des_note_gen_attr')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Url Video -->
-              <td class="col-url">
-                <input
-                  v-model="row.UrlNormal"
-                  type="text"
-                  class="excel-input text-caption font-italic text-slate"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'UrlNormal')"
-                  :ref="el => registerInputRef(el, rowIndex, 'UrlNormal')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- No Elimina -->
-              <td class="col-elimina text-center">
-                <v-checkbox-btn
-                  v-model="row.no_elimina"
-                  color="orange-darken-3"
-                  @update:model-value="segnaModificato(row)"
-                  :disabled="row.isDeleted"
-                  class="d-inline-flex"
-                ></v-checkbox-btn>
-              </td>
-              <!-- Riga ID -->
-              <td class="col-id">
-                <input
-                  v-model="row.num_riga"
-                  type="text"
-                  class="excel-input text-center font-weight-bold text-orange-lighten-2"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'num_riga')"
-                  :ref="el => registerInputRef(el, rowIndex, 'num_riga')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-              <!-- Timestamp Ute -->
-              <td class="col-timestamp-ute">
-                <input
-                  v-model="row.timestamp_ute"
-                  type="text"
-                  class="excel-input text-center text-muted"
-                  @input="segnaModificato(row)"
-                  @keydown="handleKeydown($event, rowIndex, 'timestamp_ute')"
-                  :ref="el => registerInputRef(el, rowIndex, 'timestamp_ute')"
-                  :disabled="row.isDeleted"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <!-- Nessun dato trovato -->
+        <div v-else-if="workoutTRecords.length === 0" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="grey" size="48" class="mb-2">mdi-database-alert-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Nessun record WORKOUT_T trovato</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">Non ci sono mesocicli configurati per questo atleta. Clicca su "+ Aggiungi Mesociclo" per crearne uno nuovo.</p>
+        </div>
 
-      <!-- Pulsanti di azione rapidi sotto-tabella -->
-      <div class="d-flex flex-wrap justify-space-between align-center mt-4 pt-3 border-top-soft">
-        <v-btn color="orange-darken-3" variant="text" rounded="lg" @click="aggiungiRiga" :disabled="loadingData">
-          <v-icon class="mr-1">mdi-plus</v-icon>
-          AGGIUNGI RIGA
-        </v-btn>
-        <span class="text-caption text-muted font-italic">
-          * Fai doppio clic su una riga o clicca sulla matita per modificare i campi secondari dell'esercizio.
-        </span>
+        <!-- Tabella Excel WORKOUT_T -->
+        <div v-else class="table-container">
+          <table class="excel-table">
+            <thead>
+              <tr>
+                <th class="sticky-col col-actions">Azioni</th>
+                <th class="col-wt-scheda">Scheda #</th>
+                <th class="col-wt-date">Data Inizio</th>
+                <th class="col-wt-date">Scadenza</th>
+                <th class="col-wt-desc">Descrizione</th>
+                <th class="col-wt-note">Note Mesociclo</th>
+                <th class="col-wt-flag">Ramp Test</th>
+                <th class="col-wt-flag">Da Finire</th>
+                <th class="col-wt-number">Passi GG</th>
+                <th class="col-wt-code">Tipo Avanz.</th>
+                <th class="col-wt-number">% Compl.</th>
+                <th class="col-wt-id">ID Scheda</th>
+                <th class="col-wt-flag">Proposta Man.</th>
+                <th class="col-wt-giorno">Giorno Att.</th>
+                <th class="col-wt-number">Week Att.</th>
+                <th class="col-wt-url">URL Mail</th>
+                <th class="col-wt-nome">Nome Cognome</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(row, rowIndex) in sortedWorkoutTRecords"
+                :key="row.localId"
+                :class="{
+                  'row-dirty': row.isDirty,
+                  'row-new': row.isNew,
+                  'row-deleted': row.isDeleted
+                }"
+              >
+                <!-- Azioni -->
+                <td class="sticky-col col-actions align-center justify-center">
+                  <div class="d-flex align-center justify-center gap-1">
+                    <!-- Duplica -->
+                    <v-btn
+                      icon
+                      size="x-small"
+                      variant="text"
+                      color="blue-lighten-2"
+                      title="Duplica record"
+                      @click="duplicaWorkoutT(rowIndex)"
+                    >
+                      <v-icon size="14">mdi-content-copy</v-icon>
+                    </v-btn>
+                    <!-- Elimina/Ripristina -->
+                    <v-btn
+                      icon
+                      size="x-small"
+                      variant="text"
+                      :color="row.isDeleted ? 'green-lighten-2' : 'red-lighten-2'"
+                      :title="row.isDeleted ? 'Annulla eliminazione' : 'Segna per eliminazione'"
+                      @click="toggleEliminaWorkoutT(rowIndex)"
+                    >
+                      <v-icon size="14">{{ row.isDeleted ? 'mdi-restore' : 'mdi-delete' }}</v-icon>
+                    </v-btn>
+                  </div>
+                </td>
+                
+                <!-- Scheda # -->
+                <td class="col-wt-scheda">
+                  <input
+                    v-model="row.num_scheda"
+                    type="text"
+                    class="excel-input text-center font-weight-bold"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Data Inizio -->
+                <td class="col-wt-date">
+                  <input
+                    v-model="row.dat_data"
+                    type="text"
+                    class="excel-input text-center"
+                    placeholder="DD/MM/YYYY"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Scadenza -->
+                <td class="col-wt-date">
+                  <input
+                    v-model="row.dat_scadenza"
+                    type="text"
+                    class="excel-input text-center"
+                    placeholder="DD/MM/YYYY"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Descrizione -->
+                <td class="col-wt-desc">
+                  <input
+                    v-model="row.des_descrizione"
+                    type="text"
+                    class="excel-input"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Note Mesociclo -->
+                <td class="col-wt-note">
+                  <input
+                    v-model="row.des_note"
+                    type="text"
+                    class="excel-input"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Ramp Test -->
+                <td class="col-wt-flag text-center">
+                  <v-checkbox-btn
+                    v-model="row.flg_ramp_test"
+                    true-value="true"
+                    false-value="false"
+                    color="orange-darken-3"
+                    @update:model-value="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                    class="d-inline-flex"
+                  ></v-checkbox-btn>
+                </td>
+
+                <!-- Da Finire -->
+                <td class="col-wt-flag text-center">
+                  <v-checkbox-btn
+                    v-model="row.flg_da_finire"
+                    true-value="true"
+                    false-value="false"
+                    color="orange-darken-3"
+                    @update:model-value="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                    class="d-inline-flex"
+                  ></v-checkbox-btn>
+                </td>
+
+                <!-- Passi GG -->
+                <td class="col-wt-number">
+                  <input
+                    v-model.number="row.num_passi_gg"
+                    type="number"
+                    class="excel-input text-center"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Tipo Avanzamento -->
+                <td class="col-wt-code">
+                  <input
+                    v-model="row.cod_tipo_avanz_scheda"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- % Compl -->
+                <td class="col-wt-number">
+                  <input
+                    v-model.number="row.num_perc_compl"
+                    type="number"
+                    class="excel-input text-center"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- ID Scheda -->
+                <td class="col-wt-id">
+                  <input
+                    v-model="row.ID_scheda"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Proposta Manuale -->
+                <td class="col-wt-flag text-center">
+                  <v-checkbox-btn
+                    v-model="row.PropostaWoManuale"
+                    true-value="TRUE"
+                    false-value="FALSE"
+                    color="orange-darken-3"
+                    @update:model-value="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                    class="d-inline-flex"
+                  ></v-checkbox-btn>
+                </td>
+
+                <!-- Giorno Attivo -->
+                <td class="col-wt-giorno">
+                  <input
+                    v-model="row.SceltaGiorno"
+                    type="text"
+                    class="excel-input text-center text-uppercase"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Week Attiva -->
+                <td class="col-wt-number">
+                  <input
+                    v-model.number="row.SceltaWeek"
+                    type="number"
+                    class="excel-input text-center"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- URL Mail -->
+                <td class="col-wt-url">
+                  <input
+                    v-model="row.URLTestiMail"
+                    type="text"
+                    class="excel-input"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Nome Cognome -->
+                <td class="col-wt-nome">
+                  <input
+                    v-model="row.NomeCognomeTM"
+                    type="text"
+                    class="excel-input"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pulsanti di azione rapidi sotto-tabella WORKOUT_T -->
+        <div class="d-flex flex-wrap justify-space-between align-center mt-4 pt-3 border-top-soft">
+          <v-btn color="orange-darken-3" variant="text" rounded="lg" @click="aggiungiWorkoutT" :disabled="loadingWorkoutT">
+            <v-icon class="mr-1">mdi-plus</v-icon>
+            AGGIUNGI MESOCICLO
+          </v-btn>
+          <span class="text-caption text-muted font-italic">
+            * I record di WORKOUT_T definiscono le impostazioni generali, la data di inizio e la scadenza di ciascun mesociclo.
+          </span>
+        </div>
       </div>
     </v-card>
 
@@ -934,6 +1243,11 @@ const listaSchede = ref([]);
 
 const records = ref([]); // Elenco locale di record caricati/modificati
 
+// Stato di base WORKOUT_T
+const activeTab = ref('storyboard');
+const workoutTRecords = ref([]);
+const loadingWorkoutT = ref(false);
+
 // Loading States
 const loadingSchede = ref(false);
 const loadingData = ref(false);
@@ -999,9 +1313,19 @@ const sortedRecords = computed(() => {
   });
 });
 
+// Ordinamento dei record WORKOUT_T
+const sortedWorkoutTRecords = computed(() => {
+  return [...workoutTRecords.value].sort((a, b) => {
+    const sA = Number(a.num_scheda) || 0;
+    const sB = Number(b.num_scheda) || 0;
+    return sA - sB;
+  });
+});
+
 // Verifica se ci sono modifiche pendenti non salvate
 const haModifiche = computed(() => {
-  return records.value.some(r => r.isDirty || r.isNew || r.isDeleted);
+  return records.value.some(r => r.isDirty || r.isNew || r.isDeleted) ||
+         workoutTRecords.value.some(r => r.isDirty || r.isNew || r.isDeleted);
 });
 
 // Registrazione dinamica dei riferimenti agli input in griglia per navigazione con tastiera
@@ -1062,6 +1386,9 @@ const caricaSchedeAtleta = async () => {
     // Auto-seleziona l'ultima scheda dell'atleta se disponibile
     if (listaSchede.value.length > 0) {
       schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
+    } else {
+      // Carica comunque WORKOUT_T se lo storyboard è vuoto per questo atleta
+      await caricaWorkoutT();
     }
   } catch (err) {
     console.error("Errore caricamento schede:", err);
@@ -1073,12 +1400,51 @@ const caricaSchedeAtleta = async () => {
 const gestisciCambioAtleta = async () => {
   schedaSelezionata.value = '';
   records.value = [];
+  workoutTRecords.value = [];
   await caricaSchedeAtleta();
+  await caricaWorkoutT();
+};
+
+// Carica tutti i record di WORKOUT_T relativi a cliente
+const caricaWorkoutT = async () => {
+  if (!atletaSelezionato.value) return;
+  loadingWorkoutT.value = true;
+  workoutTRecords.value = [];
+  try {
+    const q = query(
+      collection(db, 'WORKOUT_T'),
+      where('ID_cliente', '==', atletaSelezionato.value)
+    );
+    const snap = await getDocs(q);
+    const temp = [];
+    let localIdCounter = 1;
+    
+    snap.forEach(doc => {
+      temp.push({
+        dbId: doc.id,
+        localId: localIdCounter++,
+        isDirty: false,
+        isNew: false,
+        isDeleted: false,
+        ...doc.data()
+      });
+    });
+    
+    workoutTRecords.value = temp;
+  } catch (err) {
+    console.error("Errore caricamento WORKOUT_T da Firestore:", err);
+  } finally {
+    loadingWorkoutT.value = false;
+  }
 };
 
 // Carica tutti i record di STORYBOARD relativi a cliente e scheda
 const caricaEsercizi = async () => {
-  if (!atletaSelezionato.value || !schedaSelezionata.value) return;
+  if (!atletaSelezionato.value) return;
+  
+  await caricaWorkoutT();
+  
+  if (!schedaSelezionata.value) return;
   loadingData.value = true;
   records.value = [];
   inputRefs.value = {};
@@ -1116,6 +1482,95 @@ const caricaEsercizi = async () => {
 const segnaModificato = (row) => {
   if (!row.isNew) {
     row.isDirty = true;
+  }
+};
+
+const segnaModificatoWT = (row) => {
+  if (!row.isNew) {
+    row.isDirty = true;
+  }
+};
+
+// Aggiunge un mesociclo in WORKOUT_T
+const aggiungiWorkoutT = () => {
+  const maxScheda = workoutTRecords.value.reduce((max, r) => {
+    const s = parseInt(r.num_scheda) || 0;
+    return s > max ? s : max;
+  }, 0);
+
+  const localId = workoutTRecords.value.length + 1;
+  
+  // Calcolo delle date di default: oggi e oggi + 42 giorni
+  const oggi = new Date();
+  const formattaData = (d) => {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+  
+  const datInizio = formattaData(oggi);
+  const datFine = formattaData(new Date(oggi.getTime() + 42 * 24 * 60 * 60 * 1000));
+
+  const newRow = {
+    localId,
+    dbId: '',
+    isDirty: false,
+    isNew: true,
+    isDeleted: false,
+    ID_cliente: String(atletaSelezionato.value),
+    num_scheda: String(maxScheda + 1),
+    dat_data: datInizio,
+    dat_scadenza: datFine,
+    des_descrizione: 'Mesociclo Definitivo',
+    des_note: '',
+    flg_da_finire: 'true',
+    flg_ramp_test: 'true',
+    num_passi_gg: 0,
+    cod_tipo_avanz_scheda: '0DEF',
+    num_perc_compl: 0,
+    ID_scheda: '0',
+    PropostaWoManuale: 'FALSE',
+    SceltaGiorno: 'A',
+    SceltaWeek: 1,
+    URLTestiMail: '',
+    NomeCognomeTM: ''
+  };
+  workoutTRecords.value.push(newRow);
+};
+
+// Duplica un mesociclo in WORKOUT_T
+const duplicaWorkoutT = (rowIndex) => {
+  const original = sortedWorkoutTRecords.value[rowIndex];
+  if (!original) return;
+
+  const maxScheda = workoutTRecords.value.reduce((max, r) => {
+    const s = parseInt(r.num_scheda) || 0;
+    return s > max ? s : max;
+  }, 0);
+
+  const localId = workoutTRecords.value.length + 1;
+  const clone = {
+    ...original,
+    localId,
+    dbId: '',
+    isNew: true,
+    isDirty: false,
+    isDeleted: false,
+    num_scheda: String(maxScheda + 1)
+  };
+  workoutTRecords.value.push(clone);
+};
+
+// Segna/rimuove flag di cancellazione riga in WORKOUT_T
+const toggleEliminaWorkoutT = (rowIndex) => {
+  const row = sortedWorkoutTRecords.value[rowIndex];
+  if (row) {
+    if (row.isNew) {
+      workoutTRecords.value = workoutTRecords.value.filter(r => r.localId !== row.localId);
+    } else {
+      row.isDeleted = !row.isDeleted;
+    }
   }
 };
 
@@ -1198,14 +1653,47 @@ const annullaModifiche = async () => {
 
 // Salva in blocco (Batch) su Firestore tutte le modifiche (Insert, Update, Delete)
 const salvaModifiche = async () => {
-  if (!atletaSelezionato.value || !schedaSelezionata.value) return;
+  if (!atletaSelezionato.value) return;
   savingData.value = true;
   
   try {
+    // Validation for WORKOUT_T duplicate cards
+    const activeSchede = workoutTRecords.value
+      .filter(r => !r.isDeleted)
+      .map(r => String(r.num_scheda).trim());
+    const duplicates = activeSchede.filter((item, index) => activeSchede.indexOf(item) !== index);
+    if (duplicates.length > 0) {
+      alert(`Errore: Numero scheda duplicato rilevato in WORKOUT_T: ${duplicates.join(', ')}. Ogni scheda deve avere un numero unico.`);
+      savingData.value = false;
+      return;
+    }
+
     const batch = writeBatch(db);
     
-    for (const row of records.value) {
-      // Pulisci i campi ausiliari interni di Vue prima del salvataggio
+    // Process STORYBOARD records (only if schedaSelezionata is set)
+    if (schedaSelezionata.value) {
+      for (const row of records.value) {
+        const cleanData = { ...row };
+        const dbId = cleanData.dbId;
+        
+        delete cleanData.dbId;
+        delete cleanData.localId;
+        delete cleanData.isDirty;
+        delete cleanData.isNew;
+        delete cleanData.isDeleted;
+        
+        if (row.isDeleted && dbId) {
+          batch.delete(doc(db, 'STORYBOARD', dbId));
+        } else if (row.isNew) {
+          batch.set(doc(collection(db, 'STORYBOARD')), cleanData);
+        } else if (row.isDirty && dbId) {
+          batch.set(doc(db, 'STORYBOARD', dbId), cleanData, { merge: true });
+        }
+      }
+    }
+    
+    // Process WORKOUT_T records
+    for (const row of workoutTRecords.value) {
       const cleanData = { ...row };
       const dbId = cleanData.dbId;
       
@@ -1215,18 +1703,23 @@ const salvaModifiche = async () => {
       delete cleanData.isNew;
       delete cleanData.isDeleted;
       
-      if (row.isDeleted && dbId) {
-        // 1. ELIMINAZIONE
-        const ref = doc(db, 'STORYBOARD', dbId);
-        batch.delete(ref);
+      const expectedDbId = `${atletaSelezionato.value}_${row.num_scheda}`;
+      
+      if (row.isDeleted) {
+        if (dbId) {
+          batch.delete(doc(db, 'WORKOUT_T', dbId));
+        }
       } else if (row.isNew) {
-        // 2. NUOVO INSERIMENTO
-        const ref = doc(collection(db, 'STORYBOARD'));
-        batch.set(ref, cleanData);
-      } else if (row.isDirty && dbId) {
-        // 3. AGGIORNAMENTO
-        const ref = doc(db, 'STORYBOARD', dbId);
-        batch.set(ref, cleanData, { merge: true });
+        batch.set(doc(db, 'WORKOUT_T', expectedDbId), cleanData);
+      } else if (row.isDirty) {
+        if (dbId) {
+          if (dbId !== expectedDbId) {
+            batch.delete(doc(db, 'WORKOUT_T', dbId));
+            batch.set(doc(db, 'WORKOUT_T', expectedDbId), cleanData);
+          } else {
+            batch.set(doc(db, 'WORKOUT_T', dbId), cleanData, { merge: true });
+          }
+        }
       }
     }
     
@@ -1640,4 +2133,17 @@ const esportaCSVLocale = () => {
 .border-soft {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* WORKOUT_T Columns widths */
+.col-wt-scheda { width: 80px; min-width: 80px; }
+.col-wt-date { width: 110px; min-width: 110px; }
+.col-wt-desc { min-width: 180px; width: 220px; }
+.col-wt-note { min-width: 200px; width: 250px; }
+.col-wt-flag { width: 90px; min-width: 90px; }
+.col-wt-number { width: 80px; min-width: 80px; }
+.col-wt-code { width: 90px; min-width: 90px; }
+.col-wt-id { width: 100px; min-width: 100px; }
+.col-wt-giorno { width: 80px; min-width: 80px; }
+.col-wt-url { min-width: 180px; width: 220px; }
+.col-wt-nome { min-width: 150px; width: 180px; }
 </style>

@@ -130,6 +130,9 @@
 
             <!-- Calendario & Allineamento Tempi -->
             <div class="date-summary-box pa-3.5 rounded-xl border-soft mb-4" style="background: rgba(15, 23, 42, 0.5);">
+              <div class="text-center font-weight-black text-orange-lighten-2 text-body-2 mb-3 pb-2 border-bottom-soft" style="font-size: 0.8rem !important; letter-spacing: 0.05em;">
+                🏋️ SCHEDA SELEZIONATA: N. {{ schedaSelezionata }}
+              </div>
               <v-row dense class="align-center">
                 <v-col cols="6" class="border-right-soft pr-3">
                   <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">Data Inizio</div>

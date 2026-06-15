@@ -414,18 +414,30 @@
               PRECEDENTE
             </v-btn>
 
+            <!-- Tasto MODIFICA (solo Coach) -->
+            <v-btn
+              v-if="ruolo === 'coach'"
+              icon
+              variant="text"
+              color="orange-lighten-2"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              @click="apriDialogModifica"
+              title="Modifica Esercizio"
+            >
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-pencil</v-icon>
+            </v-btn>
+
             <!-- Tasto ELIMINA (solo Coach) -->
             <v-btn
               v-if="ruolo === 'coach'"
-              prepend-icon="mdi-close-thick"
+              icon
               variant="text"
               color="red-lighten-2"
-              class="font-weight-black text-none px-2"
               :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="dialogElimina = true"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem', letterSpacing: '0.05em' }"
+              title="Elimina Esercizio"
             >
-              ELIMINA
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-delete</v-icon>
             </v-btn>
           </div>
 
@@ -1395,6 +1407,179 @@
         <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
           <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogProgressioniPrecedente = false">
             Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Modifica Esercizio (MODIFICA - solo Coach) -->
+    <v-dialog v-model="dialogModifica" max-width="650" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange-lighten-2" size="22">mdi-pencil</v-icon>
+            <span class="text-subtitle-1 font-weight-black text-white">Modifica Esercizio</span>
+          </div>
+          <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogModifica = false">
+            <v-icon size="16">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-4 text-slate font-weight-medium" style="font-size: 0.85rem; max-height: 70vh;">
+          <v-form ref="formModifica" class="d-flex flex-column gap-3">
+            <!-- Info Esercizio -->
+            <div class="text-subtitle-2 font-weight-bold text-orange-lighten-2 mb-1">Informazioni Base</div>
+            
+            <v-text-field
+              v-model="modificaForm.des_esercizio"
+              label="Nome Esercizio"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              hide-details
+            ></v-text-field>
+
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <v-combobox
+                  v-model="modificaForm.des_settore"
+                  :items="['PETTORALI', 'DORSALI', 'SPALLE', 'BICIPITI', 'TRICIPITI', 'GAMBE', 'FEMORALI', 'POLPACCI', 'CORE', 'ADDOME', 'CARDIO', 'FULL BODY']"
+                  label="Settore"
+                  density="comfortable"
+                  variant="outlined"
+                  color="orange-darken-3"
+                  hide-details
+                ></v-combobox>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="modificaForm.des_rec_report"
+                  label="Recupero (es. 2' o 1'30'')"
+                  density="comfortable"
+                  variant="outlined"
+                  color="orange-darken-3"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="modificaForm.des_esercizio_2"
+                  label="1RMT / Volume (des_esercizio_2)"
+                  density="comfortable"
+                  variant="outlined"
+                  color="orange-darken-3"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="modificaForm.alf_superserie"
+                  label="Superset (es. A1, A2)"
+                  density="comfortable"
+                  variant="outlined"
+                  color="orange-darken-3"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-text-field
+              v-model="modificaForm.UrlNormal"
+              label="URL GIF / Esercizio (UrlNormal)"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              hide-details
+            ></v-text-field>
+
+            <v-divider class="my-2 border-soft"></v-divider>
+
+            <!-- Note & Setup -->
+            <div class="text-subtitle-2 font-weight-bold text-orange-lighten-2 mb-1">Note & Setup</div>
+            
+            <v-textarea
+              v-model="modificaForm.des_note"
+              label="Note Coach (des_note)"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              rows="2"
+              auto-grow
+              hide-details
+            ></v-textarea>
+
+            <v-textarea
+              v-model="modificaForm.des_note_attrezzo"
+              label="Setup Attrezzo (des_note_attrezzo)"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              rows="2"
+              auto-grow
+              hide-details
+            ></v-textarea>
+
+            <v-textarea
+              v-model="modificaForm.des_note_gen_attr"
+              label="Generiche Macchinario (des_note_gen_attr)"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              rows="2"
+              auto-grow
+              hide-details
+            ></v-textarea>
+
+            <v-textarea
+              v-model="modificaForm.des_estesa_start"
+              label="ROM / Esecuzione Tecnica (des_estesa_start)"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              rows="2"
+              auto-grow
+              hide-details
+            ></v-textarea>
+
+            <v-textarea
+              v-model="modificaForm.des_estesa_end"
+              label="Note Fine / Istruzioni Test (des_estesa_end)"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              rows="2"
+              auto-grow
+              hide-details
+            ></v-textarea>
+
+            <v-divider class="my-2 border-soft"></v-divider>
+
+            <!-- Prescrizioni Settimanali -->
+            <div class="text-subtitle-2 font-weight-bold text-orange-lighten-2 mb-1">Prescrizioni Settimane</div>
+            <v-row dense>
+              <v-col cols="12" sm="6" v-for="w in 6" :key="w">
+                <v-text-field
+                  v-model="modificaForm['des_week' + w]"
+                  :label="'Week ' + w + ' (es. 4x8 @70% RIR2)'"
+                  density="comfortable"
+                  variant="outlined"
+                  color="orange-darken-3"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+        
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn variant="text" color="grey" rounded="lg" size="small" class="font-weight-bold text-none flex-grow-1" @click="dialogModifica = false">
+            Annulla
+          </v-btn>
+          <v-btn color="orange-darken-3" variant="flat" rounded="lg" size="small" class="font-weight-bold text-none flex-grow-1 text-white" :loading="modificandoEsercizio" @click="salvaModificheEsercizio">
+            Salva Modifiche
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -2457,6 +2642,27 @@ const applicaPropostaCaricoStorico = (peso) => {
 // Dialogs and States
 const dialogProgressioniPrecedente = ref(false);
 const dialogElimina = ref(false);
+const dialogModifica = ref(false);
+const modificandoEsercizio = ref(false);
+const modificaForm = ref({
+  des_esercizio: '',
+  des_settore: '',
+  des_rec_report: '',
+  des_esercizio_2: '',
+  alf_superserie: '',
+  UrlNormal: '',
+  des_note: '',
+  des_note_attrezzo: '',
+  des_note_gen_attr: '',
+  des_estesa_start: '',
+  des_estesa_end: '',
+  des_week1: '',
+  des_week2: '',
+  des_week3: '',
+  des_week4: '',
+  des_week5: '',
+  des_week6: ''
+});
 const dialogStorico = ref(false);
 const dialogGifFullScreen = ref(false);
 const eliminandoEsercizio = ref(false);
@@ -5579,6 +5785,69 @@ const eliminaEsercizio = async () => {
     alert("Errore durante l'eliminazione dell'esercizio. Riprova.");
   } finally {
     eliminandoEsercizio.value = false;
+  }
+};
+
+// Funzioni Modifica Esercizio (Coach only)
+const apriDialogModifica = () => {
+  vibraTattile(12);
+  if (!workout.value) return;
+  modificaForm.value = {
+    des_esercizio: workout.value.des_esercizio || '',
+    des_settore: workout.value.des_settore || '',
+    des_rec_report: workout.value.des_rec_report || '',
+    des_esercizio_2: workout.value.des_esercizio_2 || '',
+    alf_superserie: workout.value.alf_superserie || '',
+    UrlNormal: workout.value.UrlNormal || '',
+    des_note: workout.value.des_note || '',
+    des_note_attrezzo: workout.value.des_note_attrezzo || '',
+    des_note_gen_attr: workout.value.des_note_gen_attr || '',
+    des_estesa_start: workout.value.des_estesa_start || '',
+    des_estesa_end: workout.value.des_estesa_end || '',
+    des_week1: workout.value.des_week1 || '',
+    des_week2: workout.value.des_week2 || '',
+    des_week3: workout.value.des_week3 || '',
+    des_week4: workout.value.des_week4 || '',
+    des_week5: workout.value.des_week5 || '',
+    des_week6: workout.value.des_week6 || ''
+  };
+  dialogModifica.value = true;
+};
+
+const salvaModificheEsercizio = async () => {
+  if (!workout.value) return;
+  vibraTattile(20);
+  modificandoEsercizio.value = true;
+  try {
+    // Aggiorna tramite la funzione esistente aggiornaDatoECommit
+    await aggiornaDatoECommit({
+      des_esercizio: modificaForm.value.des_esercizio,
+      des_settore: modificaForm.value.des_settore,
+      des_rec_report: modificaForm.value.des_rec_report,
+      des_esercizio_2: modificaForm.value.des_esercizio_2,
+      alf_superserie: modificaForm.value.alf_superserie,
+      UrlNormal: modificaForm.value.UrlNormal,
+      des_note: modificaForm.value.des_note,
+      des_note_attrezzo: modificaForm.value.des_note_attrezzo,
+      des_note_gen_attr: modificaForm.value.des_note_gen_attr,
+      des_estesa_start: modificaForm.value.des_estesa_start,
+      des_estesa_end: modificaForm.value.des_estesa_end,
+      des_week1: modificaForm.value.des_week1,
+      des_week2: modificaForm.value.des_week2,
+      des_week3: modificaForm.value.des_week3,
+      des_week4: modificaForm.value.des_week4,
+      des_week5: modificaForm.value.des_week5,
+      des_week6: modificaForm.value.des_week6
+    });
+
+    snackbarMessaggio.value = "Esercizio modificato con successo!";
+    snackbarSalvataggio.value = true;
+    dialogModifica.value = false;
+  } catch (error) {
+    console.error("Errore nel salvataggio dell'esercizio:", error);
+    alert("Errore durante il salvataggio dell'esercizio. Riprova.");
+  } finally {
+    modificandoEsercizio.value = false;
   }
 };
 

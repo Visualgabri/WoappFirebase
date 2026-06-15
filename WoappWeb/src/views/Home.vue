@@ -130,8 +130,11 @@
 
             <!-- Calendario & Allineamento Tempi -->
             <div class="date-summary-box pa-3.5 rounded-xl border-soft mb-4" style="background: rgba(15, 23, 42, 0.5);">
-              <div class="text-center font-weight-black text-orange-lighten-2 text-body-2 mb-3 pb-2 border-bottom-soft" style="font-size: 0.8rem !important; letter-spacing: 0.05em;">
-                🏋️ SCHEDA SELEZIONATA: N. {{ schedaSelezionata }}
+              <div class="text-center mb-3 pb-2 border-bottom-soft">
+                <v-chip color="orange-darken-3" variant="flat" size="small" class="font-weight-black px-3 py-1">
+                  <v-icon start size="14" class="mr-1">mdi-clipboard-text</v-icon>
+                  SCHEDA {{ schedaSelezionata }}
+                </v-chip>
               </div>
               <v-row dense class="align-center">
                 <v-col cols="6" class="border-right-soft pr-3">
@@ -1570,24 +1573,15 @@ const caricaDatiWorkoutT = async () => {
   if (!selectedAthlete.value || !selectedSheet.value) return;
 
   try {
-    const athleteId = selectedAthlete.value;
-    const sheetNum = selectedSheet.value;
+    const athleteIdStr = String(selectedAthlete.value);
+    const athleteIdNum = Number(selectedAthlete.value);
+    const sheetNumStr = String(selectedSheet.value);
+    const sheetNumNum = Number(selectedSheet.value);
 
-    const q1 = query(
-      collection(db, 'WORKOUT_T'),
-      where('ID_cliente', '==', athleteId),
-      where('num_scheda', '==', sheetNum)
-    );
-    let snap = await getDocs(q1);
-
-    if (snap.empty) {
-      const q2 = query(
-        collection(db, 'WORKOUT_T'),
-        where('ID_cliente', '==', Number(athleteId)),
-        where('num_scheda', '==', Number(sheetNum))
-      );
-      snap = await getDocs(q2);
-    }
+    let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr), where('num_scheda', '==', sheetNumStr)));
+    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum), where('num_scheda', '==', sheetNumNum)));
+    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr), where('num_scheda', '==', sheetNumNum)));
+    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum), where('num_scheda', '==', sheetNumStr)));
 
     if (!snap.empty) {
       const docData = snap.docs[0].data();
@@ -1606,6 +1600,7 @@ const caricaDatiWorkoutT = async () => {
     console.warn("Errore caricamento da WORKOUT_T, uso i default:", err);
   }
 };
+
 
 // Caricamento
 const caricaDatiScheda = async () => {

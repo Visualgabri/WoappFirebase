@@ -5209,16 +5209,47 @@ const getGhostLiftStandard = (sett) => {
       const baseWNum = parseInt(baseW.replace('W', ''), 10) || 5;
       const baseIns = inputSettimane.value[baseWNum]?.ins;
       if (!baseIns) return null;
-      
-      const proposedVal = proponiProgressioneCaricoRIR(6, baseWNum, baseIns);
-      if (proposedVal !== null) {
-        return { text: baseIns, peso: proposedVal, label: baseW };
-      }
-      
       const pesoStrBase = estraiPesoDaInput(baseIns);
       if (!pesoStrBase) return null;
       const pesoBase = parseFloat(pesoStrBase);
-      return { text: baseIns, peso: pesoBase, label: baseW };
+      
+      const exName = String(workout.value.des_esercizio || '').toLowerCase();
+      const exNote = String(workout.value.des_note_attrezzo || '').toLowerCase();
+      const exAttr = String(workout.value.des_note_gen_attr || '').toLowerCase();
+      const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
+      
+      let pesoProposto;
+      if (isManubri) {
+        const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
+        pesoProposto = pesoBase + incremento;
+      } else {
+        const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+        pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
+        if (pesoProposto <= pesoBase) {
+          pesoProposto = pesoBase + 1.25;
+        }
+      }
+      
+      // Se a corpo libero e le reps salgono tra la base e W6, non proponiamo aumento peso (isPostScarico: false)
+      const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
+      const repsTarget = workout.value['reps_week' + 6] ? parseInt(workout.value['reps_week' + 6], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 6]) || 10);
+      
+      if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
+        return {
+          text: baseIns,
+          peso: pesoBase,
+          label: baseW,
+          isPostScarico: false
+        };
+      }
+      
+      return {
+        text: baseIns,
+        peso: pesoBase,
+        label: baseW,
+        isPostScarico: true,
+        pesoProposto: pesoProposto
+      };
     }
 
     // Per le altre week (4 non scarico): propone la settimana precedente (sett - 1)

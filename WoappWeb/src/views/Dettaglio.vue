@@ -755,14 +755,25 @@
                     (prec. W6: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
                   </span>
                 </span>
-                <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" :color="getGhostLiftSmart(sett).isScarico ? 'amber-lighten-2' : 'grey'">
-                    {{ getGhostLiftSmart(sett).isScarico ? 'mdi-battery-charging-40' : 'mdi-ghost-outline' }}
+                <span v-else-if="getGhostLiftSmart(sett).isScarico" class="text-super-caption text-amber-lighten-2 font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="amber-lighten-2">
+                    mdi-battery-charging-40
                   </v-icon>
-                  <span :class="{'text-amber-lighten-2': getGhostLiftSmart(sett).isScarico}">
-                    {{ getGhostLiftSmart(sett).isScarico ? 'Target Scarico (W2)' : 'Pesi di ' + getGhostLiftSmart(sett).label }}:
+                  <span>
+                    Scarico: usa {{ getGhostLiftSmart(sett).peso }} kg (W2)
+                    <template v-if="scaricoWeek4Weights.pesoW3">
+                      • max {{ scaricoWeek4Weights.pesoW3 }} kg (W3)
+                    </template>
                   </span>
-                  <span class="font-weight-black ml-1" :class="getGhostLiftSmart(sett).isScarico ? 'text-white' : 'text-slate-light'" :style="getGhostLiftSmart(sett).isScarico ? (layoutCorrente === 'super_compatto' ? 'font-size: 0.7rem; letter-spacing: 0;' : 'font-size: 0.8rem; letter-spacing: 0;') : (layoutCorrente === 'super_compatto' ? 'font-size: 0.72rem;' : '')">
+                </span>
+                <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="grey">
+                    mdi-ghost-outline
+                  </v-icon>
+                  <span>
+                    Pesi di {{ getGhostLiftSmart(sett).label }}:
+                  </span>
+                  <span class="font-weight-black ml-1 text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }">
                     {{ getGhostLiftSmart(sett).text }}
                   </span>
                 </span>
@@ -784,7 +795,7 @@
               </div>
               
               <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-                💡 Se leggero, fai più reps del previsto e segnalalo nel box qui sotto.
+                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. '80kg - 12 reps'.
               </div>
             </div>
             
@@ -1762,154 +1773,217 @@
               </div>
             </div>
 
-            <!-- Carico Consigliato Primario (Molto in evidenza) -->
-            <div v-if="!caricandoAiutoCarico && caricoIdealeConsigliato" class="mb-4 pa-3 rounded-lg text-left" 
-                 :style="volumeProgressionInfo.active 
-                   ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important;'
-                   : 'background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%) !important; border: 1px solid rgba(16, 185, 129, 0.25) !important;'">
-              <div class="d-flex align-center justify-space-between mb-1.5">
-                <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
-                  {{ volumeProgressionInfo.active ? '📈 PROGRESSIONE DI VOLUME' : '💡 CARICO CONSIGLIATO (BILANCIATO)' }}
+            <!-- CASO SCARICO WEEK 4 -->
+            <div v-if="aiutoWeek === 4 && isWeek4Scarico" class="mb-4 pa-3 rounded-lg text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-super-caption text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                  🔋 SCARICO ATTIVO (WEEK 4)
                 </span>
-                <v-chip :color="volumeProgressionInfo.active ? 'green-darken-1' : 'green'" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
-                  {{ volumeProgressionInfo.active ? 'PROGRESSIONE VOLUME' : 'SCELTA RACCOMANDATA' }}
+                <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
+                  RECUPERO ATTIVO
                 </v-chip>
               </div>
-              <div class="d-flex align-center justify-space-between mt-1 mb-1.5">
-                <div class="text-h5 font-weight-black text-green-accent-3" style="line-height: 1.1;">
-                  {{ caricoConsigliatoViaDiMezzo }} <span class="text-caption text-muted">KG</span>
+              
+              <p class="text-caption text-slate-light mb-3" style="font-size: 0.72rem; line-height: 1.45;">
+                Lo scarico serve a far recuperare il sistema nervoso e articolare. <strong>Non cercare record di peso!</strong> Usa una delle opzioni seguenti:
+              </p>
+              
+              <!-- Opzione 1: W2 -->
+              <div class="d-flex align-center justify-space-between bg-slate-900 border rounded pa-2 mb-2" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div style="min-width: 0;">
+                  <span class="text-super-caption text-muted font-weight-bold uppercase d-block" style="font-size: 0.52rem;">OPZIONE 1 (CONSIGLIATA)</span>
+                  <span class="text-caption text-white font-weight-black">Usa peso di W2: {{ scaricoWeek4Weights.pesoW2 ? scaricoWeek4Weights.pesoW2 + ' kg' : 'Non specificato' }}</span>
                 </div>
                 <v-btn
-                  color="green-darken-2"
-                  size="small"
-                  class="font-weight-black text-white px-3 text-none"
-                  rounded="lg"
-                  style="font-size: 0.72rem; height: 30px;"
-                  @click="applicaPropostaCaricoStorico(caricoConsigliatoViaDiMezzo)"
+                  color="amber-darken-2"
+                  size="x-small"
+                  class="font-weight-black text-white px-2 text-none"
+                  rounded="md"
+                  style="font-size: 0.65rem; height: 26px;"
+                  :disabled="!scaricoWeek4Weights.pesoW2"
+                  @click="applicaPropostaCaricoStorico(scaricoWeek4Weights.pesoW2)"
                 >
-                  Applica Consigliato
+                  Applica W2
                 </v-btn>
               </div>
-              <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.4;">
-                {{ spiegazioneDinamicaConsigliata }}
+              
+              <!-- Opzione 2: W3 -->
+              <div class="d-flex align-center justify-space-between bg-slate-900 border rounded pa-2 mb-3" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div style="min-width: 0;">
+                  <span class="text-super-caption text-muted font-weight-bold uppercase d-block" style="font-size: 0.52rem;">OPZIONE 2 (SE MOLTO LEGGERO)</span>
+                  <span class="text-caption text-white font-weight-black">Usa peso di W3: {{ scaricoWeek4Weights.pesoW3 ? scaricoWeek4Weights.pesoW3 + ' kg' : 'Non specificato' }}</span>
+                </div>
+                <v-btn
+                  color="amber-darken-4"
+                  size="x-small"
+                  class="font-weight-black text-white px-2 text-none"
+                  rounded="md"
+                  style="font-size: 0.65rem; height: 26px;"
+                  :disabled="!scaricoWeek4Weights.pesoW3"
+                  @click="applicaPropostaCaricoStorico(scaricoWeek4Weights.pesoW3)"
+                >
+                  Applica W3
+                </v-btn>
+              </div>
+
+              <!-- Istruzioni Volume -->
+              <div class="pa-2 rounded bg-black border text-amber-lighten-2 text-super-caption" style="font-size: 0.62rem; line-height: 1.45; border-color: rgba(251, 191, 36, 0.2) !important;">
+                💡 <strong>Progressione di volume:</strong> Se il peso ti sembra leggero, ti consigliamo di non aumentarlo oltre il carico di W3, ma piuttosto di **aumentare le ripetizioni** mantenendo il peso di W2 ed inserire nel box della settimana sia il peso che le reps eseguite (es. <code>80kg x 12 reps</code>).
               </div>
             </div>
 
-            <!-- Loader Caricamento Proposta -->
-            <div v-if="caricandoAiutoCarico" class="text-center py-6">
-              <v-progress-circular indeterminate color="orange" size="32" class="mb-2"></v-progress-circular>
-              <p class="text-caption text-muted">Calcolo proposta in corso...</p>
-            </div>
-
-            <!-- Nessun dato nello storico -->
-            <div v-else-if="proposteStoricoCalcolate.length === 0" class="text-center py-6">
-              <v-icon size="32" color="orange" class="mb-2">mdi-database-off-outline</v-icon>
-              <p class="text-caption text-muted">Nessun dato nello storico per calcolare una proposta basata sulle reps.</p>
-            </div>
-
-            <!-- Accordion per Dettagli Tecnici e Carichi Alternativi -->
-            <v-expansion-panels v-else class="text-left mt-2 border-soft overflow-hidden rounded-lg bg-slate-950" style="border-width: 1px !important;">
-              <v-expansion-panel bg-color="rgba(15, 23, 42, 0.4)" elevation="0">
-                <v-expansion-panel-title class="font-weight-black py-2" style="font-size: 0.72rem; min-height: 38px;">
-                  ⚙️ Opzioni Avanzate & Dettagli Tecnici
-                </v-expansion-panel-title>
-                <v-expansion-panel-text class="px-0 pt-2 pb-0">
-                  
-                  <!-- Giglia due colonne per Scheda e Stima Forza -->
-                  <v-row dense class="mx-0 mb-3 align-center">
-                    <!-- PROGRESSIONE SCHEDA -->
-                    <v-col cols="6" class="pr-1">
-                      <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
-                        <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block" style="font-size: 0.52rem;">🛡️ PROGRESSIONE SCHEDA</span>
-                        <div class="text-subtitle-2 font-weight-black text-slate-light mt-0.5" style="line-height: 1;">
-                          {{ pesoPropostoDettaglio || '-' }} <span class="text-super-caption text-muted">KG</span>
-                        </div>
-                        <v-btn
-                          color="grey-darken-3"
-                          size="x-small"
-                          block
-                          class="font-weight-black text-white mt-2 text-none"
-                          rounded="md"
-                          style="font-size: 0.62rem; height: 22px;"
-                          :disabled="!pesoPropostoDettaglio"
-                          @click="applicaPropostaCaricoStorico(pesoPropostoDettaglio)"
-                        >
-                          Applica Scheda
-                        </v-btn>
-                      </div>
-                    </v-col>
-
-                    <!-- STIMA FORZA RECENTE -->
-                    <v-col cols="6" class="pl-1">
-                      <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
-                        <span class="text-super-caption text-orange font-weight-black uppercase d-block" style="font-size: 0.52rem;">📈 STIMA FORZA RECENTE</span>
-                        <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mt-0.5" style="line-height: 1;">
-                          {{ caricoIdealeConsigliato.pesoProposto }} <span class="text-super-caption text-muted">KG</span>
-                        </div>
-                        <v-btn
-                          color="orange-darken-3"
-                          size="x-small"
-                          block
-                          class="font-weight-black text-white mt-2 text-none"
-                          rounded="md"
-                          style="font-size: 0.62rem; height: 22px;"
-                          @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
-                        >
-                          Applica Stima
-                        </v-btn>
-                      </div>
-                    </v-col>
-                  </v-row>
-
-                  <!-- Dati Calcolo ed Aggiustamenti -->
-                  <div class="text-super-caption text-muted bg-slate-900 pa-2 rounded border mb-3" style="font-size: 0.6rem; line-height: 1.4; border-color: rgba(255,255,255,0.05) !important;">
-                    <strong>Dati Calcolo Forza:</strong> Scheda {{ caricoIdealeConsigliato.numScheda }} (W{{ caricoIdealeConsigliato.week }} - {{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps) • Massimale stimato: {{ caricoIdealeConsigliato.massimaleStimato }} kg
-                    <br/>
-                    <strong>Regolazioni fisiologiche:</strong> {{ spiegazioneFisiologicaConsigliata }}
+            <!-- CASO STANDARD (NON SCARICO W4) -->
+            <template v-else>
+              <!-- Carico Consigliato Primario (Molto in evidenza) -->
+              <div v-if="!caricandoAiutoCarico && caricoIdealeConsigliato" class="mb-4 pa-3 rounded-lg text-left" 
+                   :style="volumeProgressionInfo.active 
+                     ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important;'
+                     : 'background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%) !important; border: 1px solid rgba(16, 185, 129, 0.25) !important;'">
+                <div class="d-flex align-center justify-space-between mb-1.5">
+                  <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                    {{ volumeProgressionInfo.active ? '📈 PROGRESSIONE DI VOLUME' : '💡 CARICO CONSIGLIATO (BILANCIATO)' }}
+                  </span>
+                  <v-chip :color="volumeProgressionInfo.active ? 'green-darken-1' : 'green'" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
+                    {{ volumeProgressionInfo.active ? 'PROGRESSIONE VOLUME' : 'SCELTA RACCOMANDATA' }}
+                  </v-chip>
+                </div>
+                <div class="d-flex align-center justify-space-between mt-1 mb-1.5">
+                  <div class="text-h5 font-weight-black text-green-accent-3" style="line-height: 1.1;">
+                    {{ caricoConsigliatoViaDiMezzo }} <span class="text-caption text-muted">KG</span>
                   </div>
+                  <v-btn
+                    color="green-darken-2"
+                    size="small"
+                    class="font-weight-black text-white px-3 text-none"
+                    rounded="lg"
+                    style="font-size: 0.72rem; height: 30px;"
+                    @click="applicaPropostaCaricoStorico(caricoConsigliatoViaDiMezzo)"
+                  >
+                    Applica Consigliato
+                  </v-btn>
+                </div>
+                <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.4;">
+                  {{ spiegazioneDinamicaConsigliata }}
+                </div>
+              </div>
 
-                  <!-- Lista Proposte Calcolate dallo Storico -->
-                  <div class="d-flex flex-column gap-2 text-left">
-                    <p class="text-super-caption text-muted mb-1 px-1 font-weight-bold" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                      Dettaglio Carichi Storici Corretti per Deallenamento/Sforzo:
-                    </p>
+              <!-- Loader Caricamento Proposta -->
+              <div v-if="caricandoAiutoCarico" class="text-center py-6">
+                <v-progress-circular indeterminate color="orange" size="32" class="mb-2"></v-progress-circular>
+                <p class="text-caption text-muted">Calcolo proposta in corso...</p>
+              </div>
 
-                    <div v-for="prop in proposteStoricoCalcolate" :key="prop.id + '_' + prop.week" class="border border-soft rounded bg-slate-900 pa-2 d-flex align-center justify-space-between" style="border-color: rgba(255, 255, 255, 0.05) !important;">
-                      <div class="flex-grow-1 mr-2" style="min-width: 0;">
-                        <div class="d-flex align-center gap-1 flex-wrap">
-                          <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                            {{ prop.isCurrentMesocycle ? 'MESOCICLO ATTUALE' : 'Scheda ' + prop.numScheda }}
-                          </span>
-                          <span class="text-super-caption text-muted" style="font-size: 0.52rem;">
-                            • W{{ prop.week }} ({{ prop.tempoPassato }})
-                          </span>
-                        </div>
-                        <div class="text-caption font-weight-bold text-white mt-0.5" style="font-size: 0.68rem;">
-                          {{ prop.pesoOriginale }} kg x {{ prop.repsOriginali }} reps
-                        </div>
-                      </div>
+              <!-- Nessun dato nello storico -->
+              <div v-else-if="proposteStoricoCalcolate.length === 0" class="text-center py-6">
+                <v-icon size="32" color="orange" class="mb-2">mdi-database-off-outline</v-icon>
+                <p class="text-caption text-muted">Nessun dato nello storico per calcolare una proposta basata sulle reps.</p>
+              </div>
 
-                      <div class="text-right flex-shrink-0 d-flex flex-column align-end">
-                        <div class="text-subtitle-2 font-weight-black text-green-accent-3 mb-0.5">
-                          {{ prop.pesoProposto }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
+              <!-- Accordion per Dettagli Tecnici e Carichi Alternativi -->
+              <v-expansion-panels v-else class="text-left mt-2 border-soft overflow-hidden rounded-lg bg-slate-950" style="border-width: 1px !important;">
+                <v-expansion-panel bg-color="rgba(15, 23, 42, 0.4)" elevation="0">
+                  <v-expansion-panel-title class="font-weight-black py-2" style="font-size: 0.72rem; min-height: 38px;">
+                    ⚙️ Opzioni Avanzate & Dettagli Tecnici
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text class="px-0 pt-2 pb-0">
+                    
+                    <!-- Giglia due colonne per Scheda e Stima Forza -->
+                    <v-row dense class="mx-0 mb-3 align-center">
+                      <!-- PROGRESSIONE SCHEDA -->
+                      <v-col cols="6" class="pr-1">
+                        <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                          <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block" style="font-size: 0.52rem;">🛡️ PROGRESSIONE SCHEDA</span>
+                          <div class="text-subtitle-2 font-weight-black text-slate-light mt-0.5" style="line-height: 1;">
+                            {{ pesoPropostoDettaglio || '-' }} <span class="text-super-caption text-muted">KG</span>
+                          </div>
+                          <v-btn
+                            color="grey-darken-3"
+                            size="x-small"
+                            block
+                            class="font-weight-black text-white mt-2 text-none"
+                            rounded="md"
+                            style="font-size: 0.62rem; height: 22px;"
+                            :disabled="!pesoPropostoDettaglio"
+                            @click="applicaPropostaCaricoStorico(pesoPropostoDettaglio)"
+                          >
+                            Applica Scheda
+                          </v-btn>
                         </div>
-                        <v-btn
-                          color="green-darken-3"
-                          size="x-small"
-                          class="font-weight-black text-white px-2 py-0.5 text-none"
-                          rounded="sm"
-                          style="font-size: 0.6rem; height: 18px;"
-                          @click="applicaPropostaCaricoStorico(prop.pesoProposto)"
-                        >
-                          Applica
-                        </v-btn>
+                      </v-col>
+
+                      <!-- STIMA FORZA RECENTE -->
+                      <v-col cols="6" class="pl-1">
+                        <div class="pa-2 rounded bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                          <span class="text-super-caption text-orange font-weight-black uppercase d-block" style="font-size: 0.52rem;">📈 STIMA FORZA RECENTE</span>
+                          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mt-0.5" style="line-height: 1;">
+                            {{ caricoIdealeConsigliato ? caricoIdealeConsigliato.pesoProposto : '-' }} <span class="text-super-caption text-muted" v-if="caricoIdealeConsigliato">KG</span>
+                          </div>
+                          <v-btn
+                            color="orange-darken-3"
+                            size="x-small"
+                            block
+                            class="font-weight-black text-white mt-2 text-none"
+                            rounded="md"
+                            style="font-size: 0.62rem; height: 22px;"
+                            :disabled="!caricoIdealeConsigliato"
+                            @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
+                          >
+                            Applica Stima
+                          </v-btn>
+                        </div>
+                      </v-col>
+                    </v-row>
+
+                    <!-- Dati Calcolo ed Aggiustamenti -->
+                    <div v-if="caricoIdealeConsigliato" class="text-super-caption text-muted bg-slate-900 pa-2 rounded border mb-3" style="font-size: 0.6rem; line-height: 1.4; border-color: rgba(255,255,255,0.05) !important;">
+                      <strong>Dati Calcolo Forza:</strong> Scheda {{ caricoIdealeConsigliato.numScheda }} (W{{ caricoIdealeConsigliato.week }} - {{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps) • Massimale stimato: {{ caricoIdealeConsigliato.massimaleStimato }} kg
+                      <br/>
+                      <strong>Regolazioni fisiologiche:</strong> {{ spiegazioneFisiologicaConsigliata }}
+                    </div>
+
+                    <!-- Lista Proposte Calcolate dallo Storico -->
+                    <div class="d-flex flex-column gap-2 text-left">
+                      <p class="text-super-caption text-muted mb-1 px-1 font-weight-bold" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                        Dettaglio Carichi Storici Corretti per Deallenamento/Sforzo:
+                      </p>
+
+                      <div v-for="prop in proposteStoricoCalcolate" :key="prop.id + '_' + prop.week" class="border border-soft rounded bg-slate-900 pa-2 d-flex align-center justify-space-between" style="border-color: rgba(255, 255, 255, 0.05) !important;">
+                        <div class="flex-grow-1 mr-2" style="min-width: 0;">
+                          <div class="d-flex align-center gap-1 flex-wrap">
+                            <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                              {{ prop.isCurrentMesocycle ? 'MESOCICLO ATTUALE' : 'Scheda ' + prop.numScheda }}
+                            </span>
+                            <span class="text-super-caption text-muted" style="font-size: 0.52rem;">
+                              • W{{ prop.week }} ({{ prop.tempoPassato }})
+                            </span>
+                          </div>
+                          <div class="text-caption font-weight-bold text-white mt-0.5" style="font-size: 0.68rem;">
+                            {{ prop.pesoOriginale }} kg x {{ prop.repsOriginali }} reps
+                          </div>
+                        </div>
+
+                        <div class="text-right flex-shrink-0 d-flex flex-column align-end">
+                          <div class="text-subtitle-2 font-weight-black text-green-accent-3 mb-0.5">
+                            {{ prop.pesoProposto }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
+                          </div>
+                          <v-btn
+                            color="green-darken-3"
+                            size="x-small"
+                            class="font-weight-black text-white px-2 py-0.5 text-none"
+                            rounded="sm"
+                            style="font-size: 0.6rem; height: 18px;"
+                            @click="applicaPropostaCaricoStorico(prop.pesoProposto)"
+                          >
+                            Applica
+                          </v-btn>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
+            </template>
           </div>
 
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
@@ -2619,6 +2693,23 @@ const pesoPropostoDettaglio = computed(() => {
 
 const volumeProgressionInfo = computed(() => {
   return getVolumeProgressionInfoForWeek(aiutoWeek.value);
+});
+
+const scaricoWeek4Weights = computed(() => {
+  if (!workout.value) return { pesoW2: null, pesoW3: null };
+  
+  const w2Ins = inputSettimane.value[2]?.ins;
+  const w3Ins = inputSettimane.value[3]?.ins;
+  
+  const w2Str = w2Ins ? estraiPesoDaInput(w2Ins) : null;
+  const w3Str = w3Ins ? estraiPesoDaInput(w3Ins) : null;
+  
+  return {
+    pesoW2: w2Str ? parseFloat(w2Str) : null,
+    pesoW3: w3Str ? parseFloat(w3Str) : null,
+    insW2: w2Ins || '',
+    insW3: w3Ins || ''
+  };
 });
 
 const caricoConsigliatoViaDiMezzo = computed(() => {

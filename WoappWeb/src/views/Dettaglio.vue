@@ -1774,7 +1774,7 @@
             </div>
 
             <!-- Pulsante per aprire la progressione scheda precedente -->
-            <div v-if="previousWorkout" class="mb-3 text-left">
+            <div v-if="previousWorkout && aiutoWeek === 1" class="mb-3 text-left">
               <v-btn
                 prepend-icon="mdi-calendar-arrow-left"
                 variant="outlined"

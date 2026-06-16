@@ -760,9 +760,9 @@
                     mdi-battery-charging-40
                   </v-icon>
                   <span>
-                    Scarico: usa {{ getGhostLiftSmart(sett).peso }} kg (W2)
+                    Scarico: usa <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).peso }} kg</span> (W2)
                     <template v-if="scaricoWeek4Weights.pesoW3">
-                      • max {{ scaricoWeek4Weights.pesoW3 }} kg (W3)
+                      • max <span class="text-green-accent-3 font-weight-black">{{ scaricoWeek4Weights.pesoW3 }} kg</span> (W3)
                     </template>
                   </span>
                 </span>
@@ -795,7 +795,7 @@
               </div>
               
               <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. '80kg - 12 reps'.
+                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).peso }}kg x ({{ getRepsPerWeek(sett) + 2 }})r</span>.
               </div>
             </div>
             
@@ -1792,7 +1792,7 @@
               <div class="d-flex align-center justify-space-between bg-slate-900 border rounded pa-2 mb-2" style="border-color: rgba(255,255,255,0.05) !important;">
                 <div style="min-width: 0;">
                   <span class="text-super-caption text-muted font-weight-bold uppercase d-block" style="font-size: 0.52rem;">OPZIONE 1 (CONSIGLIATA)</span>
-                  <span class="text-caption text-white font-weight-black">Usa peso di W2: {{ scaricoWeek4Weights.pesoW2 ? scaricoWeek4Weights.pesoW2 + ' kg' : 'Non specificato' }}</span>
+                  <span class="text-caption text-white font-weight-black">Usa peso di W2: <span class="text-green-accent-3 font-weight-black">{{ scaricoWeek4Weights.pesoW2 ? scaricoWeek4Weights.pesoW2 + ' kg' : 'Non specificato' }}</span></span>
                 </div>
                 <v-btn
                   color="amber-darken-2"
@@ -1811,7 +1811,7 @@
               <div class="d-flex align-center justify-space-between bg-slate-900 border rounded pa-2 mb-3" style="border-color: rgba(255,255,255,0.05) !important;">
                 <div style="min-width: 0;">
                   <span class="text-super-caption text-muted font-weight-bold uppercase d-block" style="font-size: 0.52rem;">OPZIONE 2 (SE MOLTO LEGGERO)</span>
-                  <span class="text-caption text-white font-weight-black">Usa peso di W3: {{ scaricoWeek4Weights.pesoW3 ? scaricoWeek4Weights.pesoW3 + ' kg' : 'Non specificato' }}</span>
+                  <span class="text-caption text-white font-weight-black">Usa peso di W3: <span class="text-green-accent-3 font-weight-black">{{ scaricoWeek4Weights.pesoW3 ? scaricoWeek4Weights.pesoW3 + ' kg' : 'Non specificato' }}</span></span>
                 </div>
                 <v-btn
                   color="amber-darken-4"
@@ -1828,7 +1828,7 @@
 
               <!-- Istruzioni Volume -->
               <div class="pa-2 rounded bg-black border text-amber-lighten-2 text-super-caption" style="font-size: 0.62rem; line-height: 1.45; border-color: rgba(251, 191, 36, 0.2) !important;">
-                💡 <strong>Progressione di volume:</strong> Se il peso ti sembra leggero, ti consigliamo di non aumentarlo oltre il carico di W3, ma piuttosto di **aumentare le ripetizioni** mantenendo il peso di W2 ed inserire nel box della settimana sia il peso che le reps eseguite (es. <code>80kg x 12 reps</code>).
+                💡 <strong>Progressione di volume:</strong> Se il peso ti sembra leggero, ti consigliamo di non aumentarlo oltre il carico di W3, ma piuttosto di **aumentare le ripetizioni** mantenendo il peso di W2 ed inserire nel box della settimana sia il peso che le reps eseguite (es. <code class="text-green-accent-3 font-weight-black">{{ scaricoWeek4Weights.pesoW2 ? scaricoWeek4Weights.pesoW2 + 'kg' : '80kg' }} x ({{ targetRepsAttive + 2 }})r</code>).
               </div>
             </div>
 
@@ -2262,12 +2262,16 @@ watch(activeTabAnalisi, (newVal) => {
   }
 });
 
-const targetRepsAttive = computed(() => {
+const getRepsPerWeek = (sett) => {
   if (!workout.value) return 10;
-  const reps = workout.value['reps_week' + aiutoWeek.value];
+  const reps = workout.value['reps_week' + sett];
   if (reps) return parseInt(reps, 10);
-  const presc = workout.value['des_week' + aiutoWeek.value];
+  const presc = workout.value['des_week' + sett];
   return estraiRepsDaPrescrizione(presc) || 10;
+};
+
+const targetRepsAttive = computed(() => {
+  return getRepsPerWeek(aiutoWeek.value);
 });
 
 const targetPrescrizioneAttiva = computed(() => {
@@ -2641,7 +2645,9 @@ const getGhostLiftSmart = (sett) => {
   const smartWeight = getCaricoConsigliatoViaDiMezzoForWeek(sett);
   
   if (smartWeight !== null && smartWeight !== undefined && smartWeight > 0) {
-    smartGhost.peso = smartWeight;
+    if (!smartGhost.isScarico) {
+      smartGhost.peso = smartWeight;
+    }
     if (smartGhost.isPostScarico) {
       smartGhost.pesoProposto = smartWeight;
     }

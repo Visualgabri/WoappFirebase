@@ -795,7 +795,7 @@
               </div>
               
               <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).peso }}kg x ({{ getRepsPerWeek(sett) + 2 }})r</span>.
+                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).peso }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>
               </div>
             </div>
             

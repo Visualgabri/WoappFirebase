@@ -722,15 +722,23 @@
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isOverload" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-trending-up</v-icon>
-                  <span>{{ getGhostLiftSmart(sett).overloadText }}</span>
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">
+                    {{ getGhostLiftSmart(sett).peso > getGhostLiftSmart(sett).pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral' }}
+                  </v-icon>
+                  <span>
+                    {{ getGhostLiftSmart(sett).peso > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di ' : 'Mantieni peso di ' }}
+                  </span>
                   <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLiftSmart(sett).text }}
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isPostScarico" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-trending-up</v-icon>
-                  <span>Aumenta peso, metti più di {{ getGhostLiftSmart(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).pesoProposto }}kg</span>) - Pesi di {{ getGhostLiftSmart(sett).label }}:</span>
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">
+                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral' }}
+                  </v-icon>
+                  <span>
+                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di' : 'Mantieni peso di' }} {{ getGhostLiftSmart(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).pesoProposto }}kg</span>) - Pesi di {{ getGhostLiftSmart(sett).label }}:
+                  </span>
                   <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLiftSmart(sett).text }}
                   </span>
@@ -2554,6 +2562,8 @@ const getGhostLiftSmart = (sett) => {
 
   // Clona l'oggetto per non mutare la cache/originale
   const smartGhost = { ...ghost };
+  smartGhost.pesoBaseOriginale = ghost.peso;
+  
   const smartWeight = getCaricoConsigliatoViaDiMezzoForWeek(sett);
   
   if (smartWeight !== null && smartWeight !== undefined && smartWeight > 0) {

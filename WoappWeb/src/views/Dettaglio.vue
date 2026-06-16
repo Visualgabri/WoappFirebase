@@ -1773,6 +1773,21 @@
               </div>
             </div>
 
+            <!-- Pulsante per aprire la progressione scheda precedente -->
+            <div v-if="previousWorkout" class="mb-3 text-left">
+              <v-btn
+                prepend-icon="mdi-calendar-arrow-left"
+                variant="outlined"
+                color="orange-darken-3"
+                density="comfortable"
+                class="font-weight-black text-none w-100 rounded-lg"
+                style="font-size: 0.72rem; letter-spacing: 0.05em; background: rgba(249, 115, 22, 0.04); border-color: rgba(249, 115, 22, 0.25) !important; height: 32px;"
+                @click="dialogProgressioniPrecedente = true"
+              >
+                Vedi Progressione Scheda Precedente
+              </v-btn>
+            </div>
+
             <!-- CASO SCARICO WEEK 4 -->
             <div v-if="aiutoWeek === 4 && isWeek4Scarico" class="mb-4 pa-3 rounded-lg text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
               <div class="d-flex align-center justify-space-between mb-2">
@@ -1829,6 +1844,42 @@
               <!-- Istruzioni Volume -->
               <div class="pa-2 rounded bg-black border text-amber-lighten-2 text-super-caption" style="font-size: 0.62rem; line-height: 1.45; border-color: rgba(251, 191, 36, 0.2) !important;">
                 💡 <strong>Progressione di volume:</strong> Se il peso ti sembra leggero, ti consigliamo di non aumentarlo oltre il carico di W3, ma piuttosto di **aumentare le ripetizioni** mantenendo il peso di W2 ed inserire nel box della settimana sia il peso che le reps eseguite (es. <code class="text-green-accent-3 font-weight-black">{{ scaricoWeek4Weights.pesoW2 ? scaricoWeek4Weights.pesoW2 + 'kg' : '80kg' }} x ({{ targetRepsAttive + 2 }})r</code>).
+              </div>
+            </div>
+
+            <!-- CASO WEEK 1 PROPOSTA -->
+            <div v-else-if="aiutoWeek === 1 && propostaWeek1" class="mb-4 pa-3 rounded-lg text-left" 
+                 style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important;">
+              <div class="d-flex align-center justify-space-between mb-1.5">
+                <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                  💡 PROPOSTA CARICO SMART (WEEK 1)
+                </span>
+                <v-chip color="green-darken-1" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
+                  INIZIO MESOCICLO
+                </v-chip>
+              </div>
+              <div class="d-flex align-center justify-space-between mt-1 mb-1.5">
+                <div class="text-h5 font-weight-black text-green-accent-3" style="line-height: 1.1;">
+                  {{ propostaWeek1.peso }} <span class="text-caption text-muted">KG</span>
+                </div>
+                <v-btn
+                  color="green-darken-2"
+                  size="small"
+                  class="font-weight-black text-white px-3 text-none"
+                  rounded="lg"
+                  style="font-size: 0.72rem; height: 30px;"
+                  @click="applicaPropostaCaricoStorico(propostaWeek1.peso)"
+                >
+                  Applica Consigliato
+                </v-btn>
+              </div>
+              <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.4;">
+                Carico calcolato a partire da <strong>W6 prec. ({{ propostaWeek1.prevPeso }} kg x{{ propostaWeek1.prevReps }})</strong>.
+                Fatica registrata: <strong class="text-white">{{ propostaWeek1.fatica }}</strong>.
+                <template v-if="propostaWeek1.giorniTrascorsi > 30">
+                  <br>• Applicato deallenamento fisiologico (-{{ propostaWeek1.giorniTrascorsi > 180 ? '3%' : (propostaWeek1.giorniTrascorsi > 90 ? '2%' : '1%') }}) per {{ propostaWeek1.giorniTrascorsi }} giorni trascorsi.
+                </template>
+                <br>• Proposto con **modello Ibrido (Epley/NSCA)** impostando RIR 2 (buffer protettivo).
               </div>
             </div>
 
@@ -2619,6 +2670,10 @@ const getVolumeProgressionInfoForWeek = (sett) => {
 };
 
 const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
+  if (sett === 1) {
+    return propostaWeek1.value?.peso || null;
+  }
+
   const volInfo = getVolumeProgressionInfoForWeek(sett);
   if (volInfo.active) {
     return volInfo.pesoBase;
@@ -3221,6 +3276,19 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   return proposedWeight;
 };
 
+const getNSCAPercentage = (reps) => {
+  const r = Math.max(1, Math.min(30, Math.round(reps)));
+  const table = {
+    1: 1.00, 2: 0.95, 3: 0.93, 4: 0.90, 5: 0.87,
+    6: 0.85, 7: 0.83, 8: 0.80, 9: 0.77, 10: 0.75,
+    11: 0.73, 12: 0.70, 13: 0.683, 14: 0.667, 15: 0.65,
+    16: 0.633, 17: 0.617, 18: 0.60, 19: 0.58, 20: 0.56,
+    21: 0.54, 22: 0.52, 23: 0.50, 24: 0.48, 25: 0.46,
+    26: 0.44, 27: 0.42, 28: 0.40, 29: 0.38, 30: 0.36
+  };
+  return table[r] || 0.35;
+};
+
 const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi) => {
   if (!prevW6Weight) return null;
   const w6 = parseFloat(String(prevW6Weight).replace(',', '.'));
@@ -3233,28 +3301,39 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, gio
   const rirW6 = 0;
   const rirW1 = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
   
-  // Stima 1RM tramite Epley comprensivo di RIR
-  const estimated1RM = w6 * (1 + (r6 + rirW6) / 30);
+  // FASE 1: Stima 1RM
+  const repsW6Totali = r6 + rirW6;
+  let estimated1RM;
+  if (repsW6Totali <= 10) {
+    // Epley per <= 10 reps
+    estimated1RM = w6 * (1 + repsW6Totali / 30);
+  } else {
+    // NSCA per > 10 reps
+    estimated1RM = w6 / getNSCAPercentage(repsW6Totali);
+  }
   
-  // Calcolo carico teorico per W1 rispettando RIR di W1
-  let proposedWeight = estimated1RM / (1 + (r1 + rirW1) / 30);
+  // FASE 2: Calcolo carico teorico per W1
+  const repsW1Totali = r1 + rirW1;
+  let proposedWeight;
+  if (repsW1Totali <= 10) {
+    // Epley per <= 10 reps
+    proposedWeight = estimated1RM / (1 + repsW1Totali / 30);
+  } else {
+    // NSCA per > 10 reps
+    proposedWeight = estimated1RM * getNSCAPercentage(repsW1Totali);
+  }
   
   // Regolazione in base alla percezione della fatica
   const faticaLower = (fatica || '').toLowerCase().trim();
   let adjustment = 1.0; // Default neutrale
-  if (faticaLower === 'leggera' || faticaLower === 'bassa') {
-    adjustment = 1.0;
-  } else if (faticaLower === 'media') {
-    adjustment = 1.0; // Sforzo medio: nessun depotenziamento, inizio solido
-  } else if (faticaLower === 'pesante') {
+  if (faticaLower === 'pesante') {
     adjustment = 1 - (FATICA_PESANTE_W1_PCT.value / 100);
   } else if (faticaLower === 'devastante') {
     adjustment = 1 - (FATICA_DEVASTANTE_W1_PCT.value / 100);
   }
-  
   proposedWeight = proposedWeight * adjustment;
 
-  // Riduzione prudenziale in base al tempo passato (più soft per evitare proposte troppo basse in fase di test)
+  // Riduzione prudenziale in base al tempo passato
   let dateFactor = 1.0;
   if (giorniTrascorsi > 180) {
     dateFactor = 0.97; // max -3%

@@ -737,12 +737,26 @@
                     {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral' }}
                   </v-icon>
                   <span>
-                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di' : 'Mantieni peso di' }} {{ getGhostLiftSmart(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).pesoProposto }}kg</span>) - Pesi di {{ getGhostLiftSmart(sett).label }}:
+                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di' : 'Mantieni peso di' }} {{ getGhostLiftSmart(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).pesoProposto) }}kg</span>) - Pesi di {{ getGhostLiftSmart(sett).label }}:
                   </span>
                   <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLiftSmart(sett).text }}
                   </span>
                 </span>
+                <!-- isWeek1 corpo libero: mostra solo i reps del mesociclo precedente, senza proposta kg -->
+                <span v-else-if="getGhostLiftSmart(sett).isWeek1 && getGhostLiftSmart(sett).isRepExercise" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
+                    mdi-ghost-outline
+                  </v-icon>
+                  <span>Reps prec. W6:</span>
+                  <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
+                    {{ getGhostLiftSmart(sett).text }}
+                  </span>
+                  <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'" class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
+                    - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
+                  </span>
+                </span>
+                <!-- isWeek1 con peso kg: mostra proposta kg -->
                 <span v-else-if="getGhostLiftSmart(sett).isWeek1" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
                     mdi-ghost-outline
@@ -771,7 +785,7 @@
                     mdi-ghost-outline
                   </v-icon>
                   <span>
-                    Pesi di {{ getGhostLiftSmart(sett).label }}:
+                    {{ getGhostLiftSmart(sett).isRepExercise ? 'Reps di' : 'Pesi di' }} {{ getGhostLiftSmart(sett).label }}:
                   </span>
                   <span class="font-weight-black ml-1 text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }">
                     {{ getGhostLiftSmart(sett).text }}
@@ -795,7 +809,7 @@
               </div>
               
               <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).peso }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>
+                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>
               </div>
             </div>
             
@@ -5194,6 +5208,9 @@ const getGhostLiftStandard = (sett) => {
     return null;
   }
 
+  // Rileva se è un esercizio a corpo libero (reps, non kg)
+  const isRepEx = isCorpoLiberoEsercizio(workout.value);
+
   // Per la Week 1, proponiamo in base al miglior carico del mesociclo precedente (num_ins6)
   if (sett === 1) {
     if (!previousWorkout.value) return null;
@@ -5212,8 +5229,9 @@ const getGhostLiftStandard = (sett) => {
       peso: pesoNum, 
       label: 'W6 Prec.',
       isWeek1: true,
+      isRepExercise: isRepEx,
       reps: repsPrecedenti,
-      suggerito: p ? p.peso : null,
+      suggerito: isRepEx ? null : (p ? p.peso : null), // Nessuna proposta kg per corpo libero
       giorni: giorniTrascorsi,
       fatica: faticaPrecedente,
       proposta: p,
@@ -5291,7 +5309,7 @@ const getGhostLiftStandard = (sett) => {
 
     // Fallback: Proponiamo l'ultima settimana loggata trovata
     if (prevIns) {
-      return { text: prevIns, peso: prevPeso, label: `W${lastLoggedWeek}` };
+      return { text: prevIns, peso: prevPeso, label: `W${lastLoggedWeek}`, isRepExercise: isRepEx };
     }
 
     return null;
@@ -5317,9 +5335,11 @@ const getGhostLiftStandard = (sett) => {
       // Default: propone W1
       const w1Ins = inputSettimane.value[1]?.ins;
       if (w1Ins) {
+        // Per corpo libero, propone il testo di W1 senza calcolo kg
+        if (isRepEx) return { text: w1Ins, peso: 0, label: 'W1', isRepExercise: true };
         const proposedVal = proponiProgressioneCaricoRIR(2, 1, w1Ins);
         if (proposedVal !== null) {
-          return { text: w1Ins, peso: proposedVal, label: 'W1' };
+          return { text: w1Ins, peso: proposedVal, label: 'W1', isRepExercise: false };
         }
       }
     }
@@ -5328,15 +5348,24 @@ const getGhostLiftStandard = (sett) => {
     if (sett === 3) {
       const w2Ins = inputSettimane.value[2]?.ins;
       if (w2Ins) {
+        if (isRepEx) return { text: w2Ins, peso: 0, label: 'W2', isRepExercise: true };
         const proposedVal = proponiProgressioneCaricoRIR(3, 2, w2Ins);
         if (proposedVal !== null) {
-          return { text: w2Ins, peso: proposedVal, label: 'W2' };
+          return { text: w2Ins, peso: proposedVal, label: 'W2', isRepExercise: false };
         }
       }
     }
 
     // Proposta specifica per Week 4 (Scarico) - se isWeek4Scarico, propone W2
+    // Per corpo libero (reps in crescita), W4 NON è scarico → propone W3 come qualsiasi altra settimana
     if (sett === 4 && isWeek4Scarico.value) {
+      if (isRepEx) {
+        // Corpo libero: usa W3 (sett - 1), come progressione normale
+        const w3Ins = inputSettimane.value[3]?.ins;
+        if (!w3Ins) return null;
+        return { text: w3Ins, peso: 0, label: 'W3', isRepExercise: true };
+      }
+
       const w2Ins = inputSettimane.value[2]?.ins;
       if (!w2Ins) return null;
       const pesoStrW2 = estraiPesoDaInput(w2Ins);
@@ -5351,12 +5380,25 @@ const getGhostLiftStandard = (sett) => {
         text: w2Ins, 
         peso: pesoBase, 
         label: 'W2', 
-        isScarico: !isCorpoLiberoRepsSalgono 
+        isScarico: !isCorpoLiberoRepsSalgono,
+        isRepExercise: isRepEx
       };
     }
 
     // Proposta specifica per Week 5 (configurabile)
     if (sett === 5) {
+      // Per corpo libero (rep exercise), usa sempre W4 (settimana precedente), non la base configurata
+      if (isRepEx) {
+        const w4Ins = inputSettimane.value[4]?.ins;
+    // Helper to format numbers with comma as decimal separator
+    const formatWeight = (val) => {
+      if (val === null || val === undefined) return '';
+      return String(val).replace('.', ',');
+    };
+        if (!w4Ins) return null;
+        return { text: w4Ins, peso: 0, label: 'W4', isRepExercise: true };
+      }
+
       const baseW = propostaBaseWeek5.value; // e.g. "W3"
       const baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
       const baseIns = inputSettimane.value[baseWNum]?.ins;
@@ -5390,7 +5432,8 @@ const getGhostLiftStandard = (sett) => {
             text: baseIns,
             peso: pesoBase,
             label: baseW,
-            isPostScarico: false
+            isPostScarico: false,
+            isRepExercise: true
           };
         }
         
@@ -5399,12 +5442,14 @@ const getGhostLiftStandard = (sett) => {
           peso: pesoBase,
           label: baseW,
           isPostScarico: true,
-          pesoProposto: pesoProposto
+          pesoProposto: pesoProposto,
+          isRepExercise: isRepEx
         };
       }
       
+      if (isRepEx) return { text: baseIns, peso: 0, label: baseW, isRepExercise: true };
       const proposedVal = proponiProgressioneCaricoRIR(5, baseWNum, baseIns);
-      return { text: baseIns, peso: proposedVal !== null ? proposedVal : pesoBase, label: baseW };
+      return { text: baseIns, peso: proposedVal !== null ? proposedVal : pesoBase, label: baseW, isRepExercise: false };
     }
 
     // Proposta specifica per Week 6 (configurabile)
@@ -5443,7 +5488,8 @@ const getGhostLiftStandard = (sett) => {
           text: baseIns,
           peso: pesoBase,
           label: baseW,
-          isPostScarico: false
+          isPostScarico: false,
+          isRepExercise: true
         };
       }
       
@@ -5452,16 +5498,19 @@ const getGhostLiftStandard = (sett) => {
         peso: pesoBase,
         label: baseW,
         isPostScarico: true,
-        pesoProposto: pesoProposto
+        pesoProposto: pesoProposto,
+        isRepExercise: isRepEx
       };
     }
 
     // Per le altre week (4 non scarico): propone la settimana precedente (sett - 1)
     const prevIns = inputSettimane.value[sett - 1]?.ins;
     if (!prevIns) return null;
+    // Per corpo libero, propone il testo della settimana precedente senza parsing kg
+    if (isRepEx) return { text: prevIns, peso: 0, label: `W${sett - 1}`, isRepExercise: true };
     const pesoStr = estraiPesoDaInput(prevIns);
     if (!pesoStr) return null;
-    return { text: prevIns, peso: parseFloat(pesoStr), label: `W${sett - 1}` };
+    return { text: prevIns, peso: parseFloat(pesoStr), label: `W${sett - 1}`, isRepExercise: false };
   }
 };
 
@@ -5471,15 +5520,30 @@ const getGhostStatus = (sett) => {
 
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return 'filled'; // Inserito ma senza record o a % (sarà Arancione)
+    // Se è un overload (aumento peso consigliato) e non c'è input corrente, evidenzia verde
+    if (ghost.isOverload && !currentInput) return 'up';
 
   if (sett === 1) return 'up'; // Week 1 sempre verde come concordato
+
+  // Esercizi a corpo libero: confronta le reps estratte dal testo
+  if (ghost.isRepExercise) {
+    const currentReps = parseFloat(String(currentInput).replace(/,/g, '.').trim());
+    const ghostReps = parseFloat(String(ghost.text).replace(/,/g, '.').trim());
+    if (!isNaN(currentReps) && !isNaN(ghostReps)) {
+      return currentReps >= ghostReps ? 'up' : 'down';
+    }
+    return 'up'; // Se non riusciamo a confrontare, considera positivo
+  }
 
   const currentPesoStr = estraiPesoDaInput(currentInput);
   if (!currentPesoStr) return 'filled';
 
-  // LOGICA: se l'utente scrive "9 9 9" e il ghost è "8 8 8", 
-  // estraiPesoDaInput prende il 9, il ghost ha l'8. 9 > 8 -> Verde!
-  return parseFloat(currentPesoStr) >= ghost.peso ? 'up' : 'down';
+  // Confronta il peso attuale con il peso REALE della settimana di riferimento (ghost.text),
+  // NON con il peso proposto dall'algoritmo RIR (ghost.peso).
+  // Se l'utente ha aumentato rispetto alla settimana precedente, appare verde.
+  const refPesoStr = estraiPesoDaInput(ghost.text);
+  const refPeso = refPesoStr ? parseFloat(refPesoStr) : ghost.peso;
+  return parseFloat(currentPesoStr) >= refPeso ? 'up' : 'down';
 };
 
 const getGhostFieldClass = (sett) => {
@@ -5537,6 +5601,13 @@ const estraiPesoDaInput = (str) => {
     // Se c'è esplicitamente "kg" dopo il numero (es. "10kg", "10 kg", "10 k"), lo accettiamo sempre come peso
     if (suffixClean.toLowerCase().startsWith('k')) {
       validWeights.push(numVal);
+      continue;
+    }
+    
+    // Se il suffisso è ripetizioni (es. "r", "R", "reps", "rep", "rip"), lo escludiamo dal peso
+    if (suffixClean.toLowerCase().match(/^r(?![a-z])/i) || 
+        suffixClean.toLowerCase().startsWith('rep') || 
+        suffixClean.toLowerCase().startsWith('rip')) {
       continue;
     }
     

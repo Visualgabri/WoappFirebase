@@ -1653,12 +1653,12 @@
               </div>
               <div class="d-flex align-center justify-space-between">
                 <div class="d-flex align-center text-super-caption text-slate" style="font-size: 0.65rem;">
-                  <span>W1: <strong>{{ p.w1 }} kg</strong></span>
+                  <span>W1: <strong>{{ p.w1 }}{{ p.isRep ? 'r' : ' kg' }}</strong></span>
                   <v-icon size="12" class="mx-1" color="orange">mdi-arrow-right</v-icon>
-                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }} kg</strong></span>
+                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }}{{ p.isRep ? 'r' : ' kg' }}</strong></span>
                 </div>
                 <div class="text-super-caption text-green-accent-4 font-weight-black" style="font-size: 0.68rem;">
-                  +{{ p.delta }} kg
+                  +{{ p.delta }}{{ p.isRep ? 'r' : ' kg' }}
                 </div>
               </div>
             </v-card>
@@ -2568,6 +2568,77 @@ const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   const matchFirstNum = cleanPart.match(/(\d+)/);
   if (matchFirstNum) {
     return parseInt(matchFirstNum[1], 10);
+  }
+  
+  return null;
+};
+
+const isRepProgression = (ex) => {
+  if (!ex) return false;
+  const name = String(ex.des_esercizio || '').toLowerCase();
+  const note = String(ex.des_note_attrezzo || '').toLowerCase();
+  const attr = String(ex.des_note_gen_attr || '').toLowerCase();
+  
+  const keywords = [
+    'corpo libero', 'corpolibero', 'trazioni', 'dip', 'piegamenti', 
+    'push up', 'push-up', 'crunch', 'plank', 'sit up', 'sit-up', 
+    'addominali', 'addome', 'leg raise', 'hyperextension', 'corpo_libero',
+    'dragon'
+  ];
+  
+  const isCorpoLibero = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k));
+  if (!isCorpoLibero) return false;
+
+  let prevReps = null;
+  let matchesIncr = 0;
+  let totalWeeks = 0;
+  
+  for (let w = 1; w <= 6; w++) {
+    if (w === 4) continue;
+    const presc = ex['des_week' + w];
+    if (presc) {
+      const reps = estraiRepsDaPrescrizione(presc);
+      if (reps !== null) {
+        if (prevReps !== null && reps > prevReps) {
+          matchesIncr++;
+        }
+        prevReps = reps;
+        totalWeeks++;
+      }
+    }
+  }
+  
+  if (matchesIncr > 0 && matchesIncr >= totalWeeks - 2) {
+    return true;
+  }
+  
+  const hasZavorra = name.includes('con peso') || name.includes('+') || name.includes('zavorra') || name.includes('con manubri') || note.includes('zavorra') || note.includes('con peso') || attr.includes('zavorra');
+  if (!hasZavorra) {
+    return true;
+  }
+  
+  return false;
+};
+
+const estraiRepsDaInput = (str) => {
+  if (!str) return null;
+  let clean = String(str).replace(/,/g, '.').trim();
+  const repsPrefixRegex = /^\s*\d+\s*[xX]\s*/g;
+  clean = clean.replace(repsPrefixRegex, '').trim();
+  
+  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
+  if (matchR) {
+    return parseFloat(matchR[1]);
+  }
+  
+  const matchNum = clean.match(/^(\d+(?:\.\d+)?)/);
+  if (matchNum) {
+    return parseFloat(matchNum[1]);
+  }
+  
+  const matchAny = clean.match(/(\d+(?:\.\d+)?)/);
+  if (matchAny) {
+    return parseFloat(matchAny[1]);
   }
   
   return null;
@@ -3679,8 +3750,12 @@ const scaricaReportPDF = () => {
   
   const parsePeso = (val) => {
     if (!val) return 0;
-    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
-    const parts = clean.split(/\s+/);
+    const clean = String(val).replace(/,/g, '.').trim();
+    const isRep = /^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || 
+                  /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean);
+    if (isRep) return 0;
+    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+    const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);
     return isNaN(num) ? 0 : num;
   };
@@ -3719,37 +3794,51 @@ const scaricaReportPDF = () => {
       doc.rect(15, y, 180, 7, 'F');
     }
     
-    const w1Peso = parsePeso(w1);
-    let latestPeso = 0;
+    const isRep = isRepProgression(ex);
+    const w1Val = isRep ? (estraiRepsDaInput(w1) || 0) : parsePeso(w1);
+    let latestVal = 0;
     let latestW = 1;
     for (let w = 6; w >= 1; w--) {
-      const wVal = parsePeso(ex['ins_week' + w]);
+      const wVal = isRep ? (estraiRepsDaInput(ex['ins_week' + w]) || 0) : parsePeso(ex['ins_week' + w]);
       if (wVal > 0) {
-        latestPeso = wVal;
+        latestVal = wVal;
         latestW = w;
         break;
       }
     }
     
-    const delta = latestPeso - w1Peso;
+    const delta = latestVal - w1Val;
     let progText = 'Stabile';
-    if (delta > 0 && w1Peso > 0) {
-      const pct = Math.round((delta / w1Peso) * 100);
-      progText = `+${delta.toFixed(1)} kg (+${pct}%)`;
-    } else if (delta < 0 && w1Peso > 0) {
-      const pct = Math.round((Math.abs(delta) / w1Peso) * 100);
-      progText = `-${Math.abs(delta).toFixed(1)} kg (-${pct}%)`;
-    } else if (w1Peso === 0 && latestPeso > 0) {
-      progText = `Partito da W${latestW}: ${latestPeso} kg`;
+    const unit = isRep ? 'r' : ' kg';
+    
+    if (delta > 0 && w1Val > 0) {
+      const pct = Math.round((delta / w1Val) * 100);
+      progText = `+${isRep ? delta : delta.toFixed(1)}${unit} (+${pct}%)`;
+    } else if (delta < 0 && w1Val > 0) {
+      const pct = Math.round((Math.abs(delta) / w1Val) * 100);
+      progText = `-${isRep ? Math.abs(delta) : Math.abs(delta).toFixed(1)}${unit} (-${pct}%)`;
+    } else if (w1Val === 0 && latestVal > 0) {
+      progText = `Partito da W${latestW}: ${latestVal}${unit}`;
     }
     
     const nomeTrunc = (ex.des_esercizio || 'Esercizio').substring(0, 36);
     doc.text(nomeTrunc, 17, y + 5);
     doc.text(String(ex.des_giorno || '-'), 85, y + 5);
-    doc.text(w1 ? `${w1} kg` : '-', 105, y + 5);
+    
+    const formatValueStr = (valStr) => {
+      if (!valStr) return '-';
+      if (isRep) {
+        const clean = String(valStr).trim();
+        if (clean.toLowerCase().endsWith('r')) return clean;
+        return `${clean}r`;
+      }
+      return `${valStr} kg`;
+    };
+    
+    doc.text(w1 ? formatValueStr(w1) : '-', 105, y + 5);
     
     const lastWVal = ex['ins_week' + latestW] || '-';
-    doc.text(lastWVal ? `${lastWVal} kg` : '-', 125, y + 5);
+    doc.text(lastWVal ? formatValueStr(lastWVal) : '-', 125, y + 5);
     
     if (delta > 0) {
       doc.setTextColor(16, 185, 129);
@@ -3790,16 +3879,19 @@ const reportProgressioni = computed(() => {
 
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return result;
 
-  const parsePeso = (val) => {
+  let sommaFeeling = 0;
+  let countFeeling = 0;
+
+  const parsePesoLocal = (val) => {
     if (!val) return 0;
-    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
-    const parts = clean.split(/\s+/);
+    const clean = String(val).replace(/,/g, '.').trim();
+    const isRep = /^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean);
+    if (isRep) return 0;
+    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+    const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);
     return isNaN(num) ? 0 : num;
   };
-
-  let sommaFeeling = 0;
-  let countFeeling = 0;
 
   listaAllenamenti.value.forEach(ex => {
     if (parseInt(ex.num_riga_giorno) === 0) return;
@@ -3815,22 +3907,24 @@ const reportProgressioni = computed(() => {
       result.miglioriFatiche[fatica]++;
     }
 
-    const w1Peso = parsePeso(ex.ins_week1);
-    if (w1Peso > 0) {
+    const useRep = isRepProgression(ex);
+    const w1Val = useRep ? (estraiRepsDaInput(ex.ins_week1) || 0) : parsePesoLocal(ex.ins_week1);
+    if (w1Val > 0) {
       result.totaleEserciziConCarichi++;
       for (let w = 6; w >= 2; w--) {
-        const wPeso = parsePeso(ex['ins_week' + w]);
-        if (wPeso > w1Peso) {
-          const delta = parseFloat((wPeso - w1Peso).toFixed(1));
-          const pct = Math.round((delta / w1Peso) * 100);
+        const wVal = useRep ? (estraiRepsDaInput(ex['ins_week' + w]) || 0) : parsePesoLocal(ex['ins_week' + w]);
+        if (wVal > w1Val) {
+          const delta = useRep ? (wVal - w1Val) : parseFloat((wVal - w1Val).toFixed(1));
+          const pct = Math.round((delta / w1Val) * 100);
           result.progressioniCarichi.push({
             id: ex.id,
             nome: ex.des_esercizio || 'Esercizio',
-            w1: w1Peso,
-            latest: wPeso,
+            w1: w1Val,
+            latest: wVal,
             latestWeek: w,
             delta: delta,
-            pct: pct
+            pct: pct,
+            isRep: useRep
           });
           break;
         }

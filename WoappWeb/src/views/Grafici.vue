@@ -174,19 +174,29 @@ const BORDER_LOWER = {
 // Parser di sicurezza
 const parseWeight = (val) => {
   if (!val) return 0;
-  const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
-  const parts = clean.split(/\s+/);
+  const clean = String(val).replace(/,/g, '.').trim();
+  // If value ends with 'r', 'rep', 'rip' it's a rep count, not weight
+  if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+  const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+  const parts = cleanNum.split(/\s+/);
   const num = parseFloat(parts[0]);
   return isNaN(num) ? 0 : num;
 };
 
 const parseReps = (val) => {
   if (!val) return 0;
-  const clean = String(val).replace(/[^\d]/g, ' ').trim();
-  const parts = clean.split(/\s+/);
+  // Handle rep-style values like '28r' stored in load field
+  const clean = String(val).replace(/,/g, '.').trim();
+  if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) {
+    const num = parseInt(clean);
+    return isNaN(num) ? 0 : num;
+  }
+  const cleanNum = clean.replace(/[^\d]/g, ' ').trim();
+  const parts = cleanNum.split(/\s+/);
   const num = parseInt(parts[0]);
   return isNaN(num) ? 0 : num;
 };
+
 
 // Carica ed aggrega i dati
 const caricaDatiGrafici = async () => {
@@ -272,11 +282,14 @@ const caricaDatiGrafici = async () => {
       const muscolo = (workout.des_settore || '').trim().toLowerCase();
 
       // Calcola l'indice di volume per l'ultima settimana (W6)
-      const peso = parseWeight(workout.ins_week6);
-      const reps = parseReps(workout.reps_week6);
+      const rawW6 = workout.ins_week6;
+      const isRepStyle = rawW6 && (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(String(rawW6).trim()) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(String(rawW6).trim()));
+      const peso = isRepStyle ? 1 : parseWeight(rawW6); // bodyweight proxy = 1
+      const reps = isRepStyle ? parseReps(rawW6) : parseReps(workout.reps_week6);
       
       // Calcolo volume index in kg (diviso per 100 per renderlo leggibile e in scala 10-80 come lo screenshot)
       const volumeIndex = parseFloat(((peso * reps) / 100).toFixed(1));
+
 
       // 1. Smista in UPPER BODY
       if (settore.includes('petto') || muscolo.includes('petto')) {

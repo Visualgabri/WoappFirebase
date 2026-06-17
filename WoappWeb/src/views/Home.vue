@@ -904,12 +904,12 @@
               </div>
               <div class="d-flex align-center justify-space-between">
                 <div class="d-flex align-center text-super-caption text-slate" style="font-size: 0.65rem;">
-                  <span>W1: <strong>{{ p.w1 }} kg</strong></span>
+                  <span>W1: <strong>{{ p.w1 }}{{ p.isRep ? 'r' : ' kg' }}</strong></span>
                   <v-icon size="12" class="mx-1" color="orange">mdi-arrow-right</v-icon>
-                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }} kg</strong></span>
+                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }}{{ p.isRep ? 'r' : ' kg' }}</strong></span>
                 </div>
                 <div class="text-super-caption text-green-accent-4 font-weight-black" style="font-size: 0.68rem;">
-                  +{{ p.delta }} kg
+                  +{{ p.delta }}{{ p.isRep ? 'r' : ' kg' }}
                 </div>
               </div>
             </v-card>
@@ -1064,12 +1064,29 @@ const reportProgressioni = computed(() => {
 
   if (!allExercises.value || allExercises.value.length === 0) return result;
 
-  const parsePeso = (val) => {
+  const parsePesoSafe = (val) => {
     if (!val) return 0;
-    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
-    const parts = clean.split(/\s+/);
+    const clean = String(val).replace(/,/g, '.').trim();
+    if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+    const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);
     return isNaN(num) ? 0 : num;
+  };
+
+  const estraiRepsVal = (val) => {
+    if (!val) return 0;
+    const clean = String(val).replace(/,/g, '.').trim();
+    const num = parseInt(clean);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const isRepProgressionHome = (ex) => {
+    const vals = [ex.ins_week1, ex.ins_week2, ex.ins_week3, ex.ins_week4, ex.ins_week5, ex.ins_week6]
+      .filter(Boolean).map(v => String(v).trim());
+    if (vals.length === 0) return false;
+    const repVals = vals.filter(v => /^\d+(?:\.\d+)?\s*[rR]\b/i.test(v) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(v));
+    return repVals.length > vals.length / 2;
   };
 
   let sommaFeeling = 0;
@@ -1089,22 +1106,24 @@ const reportProgressioni = computed(() => {
       result.miglioriFatiche[fatica]++;
     }
 
-    const w1Peso = parsePeso(ex.ins_week1);
-    if (w1Peso > 0) {
+    const useRep = isRepProgressionHome(ex);
+    const w1Val = useRep ? (estraiRepsVal(ex.ins_week1) || 0) : parsePesoSafe(ex.ins_week1);
+    if (w1Val > 0) {
       result.totaleEserciziConCarichi++;
       for (let w = 6; w >= 2; w--) {
-        const wPeso = parsePeso(ex['ins_week' + w]);
-        if (wPeso > w1Peso) {
-          const delta = parseFloat((wPeso - w1Peso).toFixed(1));
-          const pct = Math.round((delta / w1Peso) * 100);
+        const wVal = useRep ? (estraiRepsVal(ex['ins_week' + w]) || 0) : parsePesoSafe(ex['ins_week' + w]);
+        if (wVal > w1Val) {
+          const delta = useRep ? (wVal - w1Val) : parseFloat((wVal - w1Val).toFixed(1));
+          const pct = Math.round((delta / w1Val) * 100);
           result.progressioniCarichi.push({
             id: ex.id,
             nome: ex.des_esercizio || 'Esercizio',
-            w1: w1Peso,
-            latest: wPeso,
+            w1: w1Val,
+            latest: wVal,
             latestWeek: w,
             delta: delta,
-            pct: pct
+            pct: pct,
+            isRep: useRep
           });
           break;
         }
@@ -1635,12 +1654,33 @@ const scaricaReportPDF = () => {
   const items = allExercises.value || [];
   let rowCount = 0;
   
-  const parsePeso = (val) => {
+  const parsePesoSafePDF = (val) => {
     if (!val) return 0;
-    const clean = String(val).replace(/,/g, '.').replace(/[^\d.]/g, ' ').trim();
-    const parts = clean.split(/\s+/);
+    const clean = String(val).replace(/,/g, '.').trim();
+    if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+    const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);
     return isNaN(num) ? 0 : num;
+  };
+
+  const estraiRepsValPDF = (val) => {
+    if (!val) return 0;
+    const num = parseInt(String(val).replace(/,/g, '.').trim());
+    return isNaN(num) ? 0 : num;
+  };
+
+  const isRepValPDF = (val) => {
+    if (!val) return false;
+    const clean = String(val).trim();
+    return /^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean);
+  };
+
+  const isRepExPDF = (ex) => {
+    const vals = [ex.ins_week1, ex.ins_week2, ex.ins_week3, ex.ins_week4, ex.ins_week5, ex.ins_week6].filter(Boolean);
+    if (vals.length === 0) return false;
+    const repVals = vals.filter(v => isRepValPDF(v));
+    return repVals.length > vals.length / 2;
   };
   
   items.forEach(ex => {
@@ -1676,38 +1716,41 @@ const scaricaReportPDF = () => {
       doc.setFillColor(248, 250, 252);
       doc.rect(15, y, 180, 7, 'F');
     }
-    
-    const w1Peso = parsePeso(w1);
-    let latestPeso = 0;
+
+    const isRepEx = isRepExPDF(ex);
+    const unit = isRepEx ? 'r' : ' kg';
+    const w1Val = isRepEx ? estraiRepsValPDF(w1) : parsePesoSafePDF(w1);
+    let latestVal = 0;
     let latestW = 1;
     for (let w = 6; w >= 1; w--) {
-      const wVal = parsePeso(ex['ins_week' + w]);
+      const wRaw = ex['ins_week' + w];
+      const wVal = isRepEx ? estraiRepsValPDF(wRaw) : parsePesoSafePDF(wRaw);
       if (wVal > 0) {
-        latestPeso = wVal;
+        latestVal = wVal;
         latestW = w;
         break;
       }
     }
     
-    const delta = latestPeso - w1Peso;
+    const delta = latestVal - w1Val;
     let progText = 'Stabile';
-    if (delta > 0 && w1Peso > 0) {
-      const pct = Math.round((delta / w1Peso) * 100);
-      progText = `+${delta.toFixed(1)} kg (+${pct}%)`;
-    } else if (delta < 0 && w1Peso > 0) {
-      const pct = Math.round((Math.abs(delta) / w1Peso) * 100);
-      progText = `-${Math.abs(delta).toFixed(1)} kg (-${pct}%)`;
-    } else if (w1Peso === 0 && latestPeso > 0) {
-      progText = `Partito da W${latestW}: ${latestPeso} kg`;
+    if (delta > 0 && w1Val > 0) {
+      const pct = Math.round((delta / w1Val) * 100);
+      progText = isRepEx ? `+${delta}r (+${pct}%)` : `+${delta.toFixed(1)} kg (+${pct}%)`;
+    } else if (delta < 0 && w1Val > 0) {
+      const pct = Math.round((Math.abs(delta) / w1Val) * 100);
+      progText = isRepEx ? `-${Math.abs(delta)}r (-${pct}%)` : `-${Math.abs(delta).toFixed(1)} kg (-${pct}%)`;
+    } else if (w1Val === 0 && latestVal > 0) {
+      progText = `Partito da W${latestW}: ${latestVal}${unit}`;
     }
     
     const nomeTrunc = (ex.des_esercizio || 'Esercizio').substring(0, 36);
     doc.text(nomeTrunc, 17, y + 5);
     doc.text(String(ex.des_giorno || '-'), 85, y + 5);
-    doc.text(w1 ? `${w1} kg` : '-', 105, y + 5);
+    doc.text(w1 ? `${w1Val}${unit}` : '-', 105, y + 5);
     
-    const lastWVal = ex['ins_week' + latestW] || '-';
-    doc.text(lastWVal ? `${lastWVal} kg` : '-', 125, y + 5);
+    const lastWVal = latestVal > 0 ? `${latestVal}${unit}` : '-';
+    doc.text(lastWVal, 125, y + 5);
     
     if (delta > 0) {
       doc.setTextColor(16, 185, 129);

@@ -774,9 +774,9 @@
                     mdi-battery-charging-40
                   </v-icon>
                   <span>
-                    Scarico: usa <span class="text-green-accent-3 font-weight-black">{{ getGhostLiftSmart(sett).peso }} kg</span> (W2)
+                    Scarico: usa <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }} kg</span> (W2)
                     <template v-if="scaricoWeek4Weights.pesoW3">
-                      • max <span class="text-green-accent-3 font-weight-black">{{ scaricoWeek4Weights.pesoW3 }} kg</span> (W3)
+                      • max <span class="text-green-accent-3 font-weight-black">{{ formatWeight(scaricoWeek4Weights.pesoW3) }} kg</span> (W3)
                     </template>
                   </span>
                 </span>
@@ -5172,6 +5172,12 @@ const METODI_ALLENAMENTO = {
   }
 };
 
+// Helper to format numbers with comma as decimal separator (Italian locale)
+const formatWeight = (val) => {
+  if (val === null || val === undefined) return '';
+  return String(val).replace('.', ',');
+};
+
 const getGhostLift = (sett) => {
   if (!workout.value) return null;
 
@@ -5390,11 +5396,6 @@ const getGhostLiftStandard = (sett) => {
       // Per corpo libero (rep exercise), usa sempre W4 (settimana precedente), non la base configurata
       if (isRepEx) {
         const w4Ins = inputSettimane.value[4]?.ins;
-    // Helper to format numbers with comma as decimal separator
-    const formatWeight = (val) => {
-      if (val === null || val === undefined) return '';
-      return String(val).replace('.', ',');
-    };
         if (!w4Ins) return null;
         return { text: w4Ins, peso: 0, label: 'W4', isRepExercise: true };
       }
@@ -5619,9 +5620,11 @@ const estraiPesoDaInput = (str) => {
       continue; // Ignorato (è un parametro di setting o gradi o ripetizioni)
     }
     
-    // Esclusioni standard per il suffisso (es. "/", "%", "rpe", "sec", ecc.)
+    // Esclusioni standard per il suffisso (es. "/", "%", "rpe", "sec", "min", ecc.)
+    // NOTA: NON usare startsWith('s') o startsWith('m') perché cattura parole come "molto", "su", "si", ecc.
     if (suffixToken) {
-      if (suffixToken.startsWith('/') || suffixToken === '%' || suffixToken.startsWith('rpe') || suffixToken.startsWith('sec') || suffixToken.startsWith('min') || suffixToken.startsWith('s') || suffixToken.startsWith('m')) {
+      const suffixExclusions = ['/', '%', 'rpe', 'sec', 'secondi', 'secondo', 'min', 'minuti', 'minuto', 'metri', 'metro'];
+      if (suffixToken.startsWith('/') || suffixExclusions.includes(suffixToken) || (suffixToken === 's' || suffixToken === 'm')) {
         continue;
       }
     }

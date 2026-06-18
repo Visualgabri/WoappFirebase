@@ -1569,95 +1569,172 @@ const calcolaSettimanaAttivaGlobale = (exercises) => {
 const scaricaReportPDF = () => {
   vibraTattile(12);
   const doc = new jsPDF();
+  const pageW = 210;
+  const marginL = 12;
+  const marginR = 12;
+  const contentW = pageW - marginL - marginR;
   
-  // Header Style
-  doc.setFillColor(249, 115, 22); // Orange Accent
-  doc.rect(0, 0, 210, 30, 'F');
+  // ── Helper: testo con wrap automatico ──
+  const textWrap = (text, x, yPos, maxW, lineH = 4) => {
+    const lines = doc.splitTextToSize(String(text || ''), maxW);
+    lines.forEach((line, i) => {
+      doc.text(line, x, yPos + i * lineH);
+    });
+    return lines.length;
+  };
   
+  // ── Helper: nuova pagina se necessario ──
+  const checkPageBreak = (yPos, needed = 20) => {
+    if (yPos + needed > 282) {
+      doc.addPage();
+      return 15;
+    }
+    return yPos;
+  };
+
+  // ── Helper: formato peso con virgola (locale IT) ──
+  const fmtVal = (v) => {
+    if (v === null || v === undefined || v === 0) return '-';
+    return String(v).replace('.', ',');
+  };
+  
+  // ═══════════════════════════════════════
+  // HEADER
+  // ═══════════════════════════════════════
+  doc.setFillColor(249, 115, 22);
+  doc.rect(0, 0, pageW, 28, 'F');
   doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('FLEXCOACH — REPORT PROGRESSIONI', marginL + 2, 12);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  const oggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+  doc.text(`${nomeAtleta.value || 'Atleta'}  •  Scheda ${schedaSelezionata.value}  •  ${oggi}`, marginL + 2, 22);
+  
+  // ═══════════════════════════════════════
+  // 1. STATISTICHE
+  // ═══════════════════════════════════════
+  let y = 38;
+  doc.setTextColor(51, 65, 85);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('1. STATISTICHE DI CONSISTENZA E PERFORMANCE', marginL, y);
+  doc.setDrawColor(249, 115, 22);
+  doc.setLineWidth(0.5);
+  doc.line(marginL, y + 2, marginL + contentW, y + 2);
+  
+  y += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  
+  // Box statistiche
+  const boxW = contentW / 3 - 2;
+  const boxH = 18;
+  const boxY = y;
+  
+  // Box 1: Consistenza
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(marginL, boxY, boxW, boxH, 2, 2, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
-  doc.text('FLEXCOACH - REPORT PROGRESSIONI', 15, 20);
+  doc.setTextColor(249, 115, 22);
+  doc.text(`${reportProgressioni.value.percentualeConsistenza}%`, marginL + boxW / 2, boxY + 10, { align: 'center' });
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('CONSISTENZA', marginL + boxW / 2, boxY + 15, { align: 'center' });
   
-  // Metadata section
-  doc.setTextColor(51, 65, 85);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  
-  const oggi = new Date().toLocaleDateString('it-IT');
-  doc.text(`Data Generazione: ${oggi}`, 140, 20);
-  
-  let y = 45;
+  // Box 2: Feeling
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(marginL + boxW + 3, boxY, boxW, boxH, 2, 2, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('1. INFORMAZIONI GENERALI', 15, y);
-  doc.line(15, y + 2, 195, y + 2);
+  doc.setFontSize(18);
+  doc.setTextColor(249, 115, 22);
+  doc.text(`${reportProgressioni.value.mediaFeeling || '-'}`, marginL + boxW + 3 + boxW / 2, boxY + 10, { align: 'center' });
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('FEELING MEDIO / 5', marginL + boxW + 3 + boxW / 2, boxY + 15, { align: 'center' });
   
-  y += 10;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`Atleta: ${nomeAtleta.value || 'N/D'}`, 15, y);
-  doc.text(`Scheda: N. ${schedaSelezionata.value}`, 80, y);
-  doc.text(`Mesociclo: ${descrizioneMesociclo.value || 'N/D'}`, 130, y);
-  
-  y += 6;
-  doc.text(`Inizio: ${dataInizio.value}`, 15, y);
-  doc.text(`Scadenza: ${dataFine.value}`, 80, y);
-  doc.text(`Stato Programma: ${settimaneChiuse.value === 6 ? 'COMPLETATO' : 'ATTIVO'}`, 130, y);
-  
-  y += 12;
+  // Box 3: Progressioni
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(marginL + (boxW + 3) * 2, boxY, boxW, boxH, 2, 2, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('2. STATISTICHE DI CONSISTENZA E PERFORMANCE', 15, y);
-  doc.line(15, y + 2, 195, y + 2);
+  doc.setFontSize(18);
+  doc.setTextColor(16, 185, 129);
+  doc.text(`${reportProgressioni.value.progressioniCarichi.length}`, marginL + (boxW + 3) * 2 + boxW / 2, boxY + 10, { align: 'center' });
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('PROGRESSIONI', marginL + (boxW + 3) * 2 + boxW / 2, boxY + 15, { align: 'center' });
   
-  y += 10;
+  y = boxY + boxH + 5;
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`Consistenza Allenamenti: ${reportProgressioni.value.percentualeConsistenza}%`, 15, y);
-  doc.text(`Feeling Medio Esercizi: ${reportProgressioni.value.mediaFeeling || '-'} / 5`, 80, y);
-  
-  y += 6;
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
   let consistenzaDettaglio = '';
   for (let w = 1; w <= 6; w++) {
-    consistenzaDettaglio += `W${w}: ${reportProgressioni.value.consistenzaGiorni[w]}gg  `;
+    consistenzaDettaglio += `W${w}: ${reportProgressioni.value.consistenzaGiorni[w]}gg   `;
   }
-  doc.text(`Consistenza per Settimana: ${consistenzaDettaglio}`, 15, y);
+  doc.text(`Dettaglio settimane: ${consistenzaDettaglio}`, marginL, y);
   
-  y += 6;
+  y += 4;
   const fatiche = reportProgressioni.value.miglioriFatiche;
-  doc.text(`Sforzo Week 6 -> Media: ${fatiche.Media} | Pesante: ${fatiche.Pesante} | Devastante: ${fatiche.Devastante}`, 15, y);
+  doc.text(`Sforzo W6 → Media: ${fatiche.Media} | Pesante: ${fatiche.Pesante} | Devastante: ${fatiche.Devastante}`, marginL, y);
   
-  y += 14;
+  // ═══════════════════════════════════════
+  // 2. TABELLA PROGRESSIONI (ordinata per forza progressione)
+  // ═══════════════════════════════════════
+  y += 12;
+  doc.setTextColor(51, 65, 85);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('3. DETTAGLIO PROGRESSIONE CARICHI', 15, y);
-  doc.line(15, y + 2, 195, y + 2);
-  
-  // Table Header
-  y += 10;
-  doc.setFillColor(30, 41, 59); // Dark header
-  doc.rect(15, y, 180, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text('Esercizio', 17, y + 5);
-  doc.text('Giorno', 85, y + 5);
-  doc.text('W1', 105, y + 5);
-  doc.text('W6', 125, y + 5);
-  doc.text('Progressione', 150, y + 5);
+  doc.setFontSize(11);
+  doc.text('2. DETTAGLIO PROGRESSIONE CARICHI (dalla migliore alla peggiore)', marginL, y);
+  doc.setDrawColor(249, 115, 22);
+  doc.line(marginL, y + 2, marginL + contentW, y + 2);
   
   y += 8;
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(51, 65, 85);
+
+  // Colonne: Esercizio (largo) | G | W1 | Ultimo | Δ | %
+  const colX = {
+    nome: marginL + 1,
+    giorno: marginL + 82,
+    w1: marginL + 94,
+    ultimo: marginL + 120,
+    delta: marginL + 146,
+    pct: marginL + 170
+  };
+  const colW = {
+    nome: 79,
+    giorno: 11,
+    w1: 24,
+    ultimo: 24,
+    delta: 23,
+    pct: 16
+  };
   
-  const items = allExercises.value || [];
-  let rowCount = 0;
+  // Disegna header tabella
+  const drawTableHeader = (yPos) => {
+    doc.setFillColor(30, 41, 59);
+    doc.rect(marginL, yPos, contentW, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.text('ESERCIZIO', colX.nome + 1, yPos + 5);
+    doc.text('G', colX.giorno + 1, yPos + 5);
+    doc.text('W1', colX.w1 + 1, yPos + 5);
+    doc.text('ULTIMO', colX.ultimo + 1, yPos + 5);
+    doc.text('PROGR.', colX.delta + 1, yPos + 5);
+    doc.text('%', colX.pct + 1, yPos + 5);
+    return yPos + 7;
+  };
   
-  const parsePesoSafePDF = (val) => {
+  y = drawTableHeader(y);
+
+  // Costruisci lista ordinata: prima le progressioni positive (dal più alto %), poi stabili, poi negativi
+  const parsePeso = (val) => {
     if (!val) return 0;
     const clean = String(val).replace(/,/g, '.').trim();
-    if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+    const isRepVal = /^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean);
+    if (isRepVal) return 0;
     const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
     const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);
@@ -1682,49 +1759,27 @@ const scaricaReportPDF = () => {
     const repVals = vals.filter(v => isRepValPDF(v));
     return repVals.length > vals.length / 2;
   };
+
+  const righe = [];
+  const items = allExercises.value || [];
   
   items.forEach(ex => {
     if (parseInt(ex.num_riga_giorno) === 0) return;
     
-    const w1 = ex.ins_week1 || '';
-    const w2 = ex.ins_week2 || '';
-    const w3 = ex.ins_week3 || '';
-    const w4 = ex.ins_week4 || '';
-    const w5 = ex.ins_week5 || '';
-    const w6 = ex.ins_week6 || '';
-    
-    if (!w1 && !w2 && !w3 && !w4 && !w5 && !w6) return;
-    
-    if (y > 270) {
-      doc.addPage();
-      y = 20;
-      doc.setFillColor(30, 41, 59);
-      doc.rect(15, y, 180, 8, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Esercizio', 17, y + 5);
-      doc.text('Giorno', 85, y + 5);
-      doc.text('W1', 105, y + 5);
-      doc.text('W6', 125, y + 5);
-      doc.text('Progressione', 150, y + 5);
-      y += 8;
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(51, 65, 85);
+    const weekVals = [];
+    let hasAny = false;
+    for (let w = 1; w <= 6; w++) {
+      weekVals.push(ex['ins_week' + w] || '');
+      if (ex['ins_week' + w]) hasAny = true;
     }
+    if (!hasAny) return;
     
-    if (rowCount % 2 === 1) {
-      doc.setFillColor(248, 250, 252);
-      doc.rect(15, y, 180, 7, 'F');
-    }
-
-    const isRepEx = isRepExPDF(ex);
-    const unit = isRepEx ? 'r' : ' kg';
-    const w1Val = isRepEx ? estraiRepsValPDF(w1) : parsePesoSafePDF(w1);
+    const isRep = isRepExPDF(ex);
+    const w1Val = isRep ? (estraiRepsValPDF(weekVals[0]) || 0) : parsePeso(weekVals[0]);
     let latestVal = 0;
     let latestW = 1;
     for (let w = 6; w >= 1; w--) {
-      const wRaw = ex['ins_week' + w];
-      const wVal = isRepEx ? estraiRepsValPDF(wRaw) : parsePesoSafePDF(wRaw);
+      const wVal = isRep ? (estraiRepsValPDF(ex['ins_week' + w]) || 0) : parsePeso(ex['ins_week' + w]);
       if (wVal > 0) {
         latestVal = wVal;
         latestW = w;
@@ -1733,44 +1788,239 @@ const scaricaReportPDF = () => {
     }
     
     const delta = latestVal - w1Val;
-    let progText = 'Stabile';
+    const pct = w1Val > 0 ? Math.round((delta / w1Val) * 100) : 0;
+    const unit = isRep ? 'r' : ' kg';
+    
+    let deltaText = '-';
+    let pctText = '-';
+    let colorType = 'neutral'; // 'positive', 'negative', 'neutral'
+    
     if (delta > 0 && w1Val > 0) {
-      const pct = Math.round((delta / w1Val) * 100);
-      progText = isRepEx ? `+${delta}r (+${pct}%)` : `+${delta.toFixed(1)} kg (+${pct}%)`;
+      deltaText = `+${isRep ? delta : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
+      pctText = `+${pct}%`;
+      colorType = 'positive';
     } else if (delta < 0 && w1Val > 0) {
-      const pct = Math.round((Math.abs(delta) / w1Val) * 100);
-      progText = isRepEx ? `-${Math.abs(delta)}r (-${pct}%)` : `-${Math.abs(delta).toFixed(1)} kg (-${pct}%)`;
+      deltaText = `${isRep ? '-' + Math.abs(delta) : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
+      pctText = `${pct}%`;
+      colorType = 'negative';
     } else if (w1Val === 0 && latestVal > 0) {
-      progText = `Partito da W${latestW}: ${latestVal}${unit}`;
+      deltaText = `W${latestW}: ${fmtVal(latestVal)}${unit}`;
+      pctText = 'N/A';
+      colorType = 'neutral';
     }
     
-    const nomeTrunc = (ex.des_esercizio || 'Esercizio').substring(0, 36);
-    doc.text(nomeTrunc, 17, y + 5);
-    doc.text(String(ex.des_giorno || '-'), 85, y + 5);
-    doc.text(w1 ? `${w1Val}${unit}` : '-', 105, y + 5);
+    righe.push({
+      nome: ex.des_esercizio || 'Esercizio',
+      giorno: ex.des_giorno || '-',
+      w1Val, latestVal, latestW, delta, pct, isRep, unit,
+      deltaText, pctText, colorType,
+      settore: ex.des_settore || ''
+    });
+  });
+  
+  // Ordina: positivi (% decrescente) → stabili → negativi (% crescente)
+  righe.sort((a, b) => {
+    if (a.colorType === 'positive' && b.colorType !== 'positive') return -1;
+    if (a.colorType !== 'positive' && b.colorType === 'positive') return 1;
+    if (a.colorType === 'negative' && b.colorType !== 'negative') return 1;
+    if (a.colorType !== 'negative' && b.colorType === 'negative') return -1;
+    return b.pct - a.pct;
+  });
+  
+  // Disegna righe
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  let rowIdx = 0;
+  
+  righe.forEach(r => {
+    // Calcola altezza riga in base al nome (wrap)
+    const nomeLines = doc.splitTextToSize(r.nome, colW.nome);
+    const rowH = Math.max(6, nomeLines.length * 3.5 + 2);
     
-    const lastWVal = latestVal > 0 ? `${latestVal}${unit}` : '-';
-    doc.text(lastWVal, 125, y + 5);
+    // Check page break
+    if (y + rowH > 275) {
+      doc.addPage();
+      y = 15;
+      y = drawTableHeader(y);
+      rowIdx = 0;
+    }
     
-    if (delta > 0) {
+    // Sfondo alternato
+    if (rowIdx % 2 === 1) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(marginL, y, contentW, rowH, 'F');
+    }
+    
+    // Barra laterale colorata
+    if (r.colorType === 'positive') {
+      doc.setFillColor(16, 185, 129);
+      doc.rect(marginL, y, 1.5, rowH, 'F');
+    } else if (r.colorType === 'negative') {
+      doc.setFillColor(239, 68, 68);
+      doc.rect(marginL, y, 1.5, rowH, 'F');
+    } else {
+      doc.setFillColor(148, 163, 184);
+      doc.rect(marginL, y, 1.5, rowH, 'F');
+    }
+    
+    const textY = y + rowH / 2 + 1;
+    
+    // Nome esercizio (con wrap)
+    doc.setTextColor(30, 41, 59);
+    doc.setFont('helvetica', 'normal');
+    nomeLines.forEach((line, i) => {
+      doc.text(line, colX.nome + 2, y + 3.5 + i * 3.5);
+    });
+    
+    // Giorno
+    doc.setTextColor(100, 116, 139);
+    doc.text(String(r.giorno), colX.giorno + 1, textY);
+    
+    // W1
+    doc.setTextColor(51, 65, 85);
+    const w1Str = r.w1Val > 0 ? `${fmtVal(r.w1Val)}${r.unit}` : '-';
+    doc.text(w1Str, colX.w1 + 1, textY);
+    
+    // Ultimo valore
+    const lastStr = r.latestVal > 0 ? `${fmtVal(r.latestVal)}${r.unit} (W${r.latestW})` : '-';
+    doc.text(lastStr, colX.ultimo + 1, textY);
+    
+    // Delta e %
+    if (r.colorType === 'positive') {
       doc.setTextColor(16, 185, 129);
       doc.setFont('helvetica', 'bold');
-    } else if (delta < 0) {
+    } else if (r.colorType === 'negative') {
       doc.setTextColor(239, 68, 68);
+      doc.setFont('helvetica', 'bold');
+    } else {
+      doc.setTextColor(100, 116, 139);
     }
-    doc.text(progText, 150, y + 5);
+    doc.text(r.deltaText, colX.delta + 1, textY);
+    doc.text(r.pctText, colX.pct + 1, textY);
+    
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(51, 65, 85);
     
-    y += 7;
-    rowCount++;
+    y += rowH;
+    rowIdx++;
   });
   
-  doc.setFontSize(8);
-  doc.setTextColor(148, 163, 184);
-  doc.text('Generato con FlexCoach WoApp - I tuoi dati, i tuoi risultati.', 15, 287);
+  // ═══════════════════════════════════════
+  // 3. CONSIGLI PER IL PROSSIMO MESOCICLO
+  // ═══════════════════════════════════════
+  y += 10;
+  y = checkPageBreak(y, 60);
   
-  doc.save(`FlexCoach_Report_${nomeAtleta.value.replace(/\s+/g, '_')}_Scheda_${schedaSelezionata.value}.pdf`);
+  doc.setTextColor(51, 65, 85);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('3. CONSIGLI PER IL PROSSIMO MESOCICLO', marginL, y);
+  doc.setDrawColor(249, 115, 22);
+  doc.line(marginL, y + 2, marginL + contentW, y + 2);
+  y += 8;
+  
+  // Analizza i dati per generare consigli
+  const positivi = righe.filter(r => r.colorType === 'positive');
+  const negativi = righe.filter(r => r.colorType === 'negative');
+  const stabili = righe.filter(r => r.colorType === 'neutral' && r.w1Val > 0);
+  const totEsercizi = righe.filter(r => r.w1Val > 0).length;
+  const percProgressioni = totEsercizi > 0 ? Math.round((positivi.length / totEsercizi) * 100) : 0;
+  const consistenza = reportProgressioni.value.percentualeConsistenza;
+  const feeling = reportProgressioni.value.mediaFeeling;
+  
+  const consigli = [];
+  
+  // ── A. Valutazione globale ──
+  if (percProgressioni >= 70) {
+    consigli.push({ icon: '🟢', title: 'Progressione eccellente', text: `Il ${percProgressioni}% degli esercizi ha registrato un aumento di carico. Il mesociclo è stato altamente produttivo. Nel prossimo mesociclo si può spingere ulteriormente con un leggero aumento di volume o intensità.` });
+  } else if (percProgressioni >= 40) {
+    consigli.push({ icon: '🟡', title: 'Progressione nella media', text: `Il ${percProgressioni}% degli esercizi ha progredito. È un risultato solido ma con margine di miglioramento. Valutare se gli esercizi rimasti stabili necessitano di varianti tecniche o progressione di volume (più serie o più reps).` });
+  } else if (percProgressioni > 0) {
+    consigli.push({ icon: '🟠', title: 'Progressione limitata', text: `Solo il ${percProgressioni}% degli esercizi ha progredito. Verificare se il volume di allenamento è adeguato, se ci sono problemi di recupero, o se gli esercizi scelti sono diventati inefficienti e vanno sostituiti.` });
+  } else {
+    consigli.push({ icon: '🔴', title: 'Nessuna progressione rilevata', text: `Nessun esercizio ha registrato progressioni significative. È necessario rivedere la programmazione: considerare un cambio di stimolo, una riduzione del volume totale per favorire il recupero, o un riallineamento della selezione degli esercizi.` });
+  }
+  
+  // ── B. Consistenza ──
+  if (consistenza < 60) {
+    consigli.push({ icon: '⚠️', title: 'Bassa consistenza di allenamento', text: `Con una consistenza del ${consistenza}%, la frequenza di allenamento è stata insufficiente. Nessuna programmazione è efficace senza aderenza. Nel prossimo mesociclo: ridurre il numero di giorni se necessario, o rivedere la gestione del tempo dell'atleta.` });
+  } else if (consistenza < 85) {
+    consigli.push({ icon: '💡', title: 'Consistenza migliorabile', text: `Consistenza al ${consistenza}%. Alcune settimane sono state incomplete. Verificare se ci sono stati impedimenti logistici o se il carico di lavoro è eccessivo rispetto agli impegni dell'atleta.` });
+  }
+  
+  // ── C. Feeling ──
+  if (feeling > 0 && feeling <= 2.5) {
+    consigli.push({ icon: '😓', title: 'Feeling basso', text: `Il feeling medio di ${feeling}/5 indica che l'atleta non si è trovato bene con gli esercizi. Valutare sostituzioni o adattamenti tecnici. Un feeling negativo prolungato limita la motivazione e la performance.` });
+  } else if (feeling > 4) {
+    consigli.push({ icon: '🔥', title: 'Feeling ottimo', text: `Il feeling medio di ${feeling}/5 indica grande confidenza e piacevolezza. Questi esercizi funzionano bene e vanno mantenuti nella prossima scheda dove possibile.` });
+  }
+  
+  // ── D. Esercizi top (da mantenere) ──
+  if (positivi.length > 0) {
+    const topN = positivi.slice(0, 3);
+    const topNames = topN.map(r => `${r.nome} (${r.deltaText})`).join(', ');
+    consigli.push({ icon: '⭐', title: 'Esercizi da mantenere', text: `I migliori progressi: ${topNames}. Questi esercizi stanno rispondendo bene e andrebbero confermati nel prossimo mesociclo, eventualmente con un incremento graduale.` });
+  }
+  
+  // ── E. Esercizi in stallo (da variare) ──
+  if (stabili.length > 0) {
+    const stallNames = stabili.slice(0, 3).map(r => r.nome).join(', ');
+    consigli.push({ icon: '🔄', title: 'Esercizi in stallo', text: `Esercizi senza variazioni: ${stallNames}. Valutare: cambio variante (angolo, impugnatura), incremento di volume (serie aggiuntiva), o sostituzione con un esercizio simile per fornire un nuovo stimolo.` });
+  }
+  
+  // ── F. Esercizi in calo (attenzione) ──
+  if (negativi.length > 0) {
+    const negNames = negativi.slice(0, 3).map(r => `${r.nome} (${r.deltaText})`).join(', ');
+    consigli.push({ icon: '📉', title: 'Esercizi in calo', text: `Attenzione ai seguenti esercizi in regressione: ${negNames}. Possibili cause: volume eccessivo, fatica accumulata, o tecnica inadeguata. Considerare un deload più lungo, ridurre il volume, o sostituire la variante.` });
+  }
+  
+  // ── G. Sforzo W6 ──
+  const totFatiche = fatiche.Media + fatiche.Pesante + fatiche.Devastante;
+  if (totFatiche > 0) {
+    const pctDevastante = Math.round((fatiche.Devastante / totFatiche) * 100);
+    if (pctDevastante > 50) {
+      consigli.push({ icon: '🏋️', title: 'Troppo sforzo in W6', text: `Il ${pctDevastante}% degli esercizi in W6 è stato valutato "Devastante". L'atleta potrebbe aver raggiunto livelli di fatica troppo elevati. Nel prossimo mesociclo: partire con volumi leggermente inferiori per consentire una progressione più graduale.` });
+    } else if (fatiche.Devastante === 0 && fatiche.Pesante <= fatiche.Media) {
+      consigli.push({ icon: '📊', title: 'Intensità gestibile', text: `L'atleta non ha riportato sforzi devastanti e la maggior parte sono stati "Media". Nel prossimo mesociclo si può incrementare il volume o l'intensità per spingere verso un adattamento superiore.` });
+    }
+  }
+  
+  // Disegna i consigli
+  doc.setFontSize(8.5);
+  consigli.forEach(c => {
+    y = checkPageBreak(y, 18);
+    
+    // Titolo consiglio
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text(`${c.icon}  ${c.title}`, marginL, y);
+    y += 4;
+    
+    // Testo consiglio (con wrap)
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    const lines = doc.splitTextToSize(c.text, contentW - 4);
+    lines.forEach(line => {
+      y = checkPageBreak(y, 5);
+      doc.text(line, marginL + 2, y);
+      y += 3.5;
+    });
+    y += 3;
+  });
+  
+  // ═══════════════════════════════════════
+  // FOOTER
+  // ═══════════════════════════════════════
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Generato con FlexCoach WoApp — I tuoi dati, i tuoi risultati.', marginL, 290);
+    doc.text(`Pagina ${i} di ${totalPages}`, pageW - marginR, 290, { align: 'right' });
+  }
+  
+  doc.save(`FlexCoach_Report_${(nomeAtleta.value || 'Atleta').replace(/\s+/g, '_')}_Scheda_${schedaSelezionata.value}.pdf`);
 };
 
 const caricaDatiAtleti = async () => {

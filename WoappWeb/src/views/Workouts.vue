@@ -589,12 +589,24 @@
                   {{ giornoSelezionato }}
                 </div>
                 <div class="text-left">
-                  <h3 
-                    class="font-weight-black text-orange-darken-4 mb-0"
-                    :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
-                  >
-                    Workout Giorno {{ giornoSelezionato }}
-                  </h3>
+                  <div class="d-flex align-center flex-wrap gap-2">
+                    <h3 
+                      class="font-weight-black text-orange-darken-4 mb-0"
+                      :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
+                    >
+                      Workout Giorno {{ giornoSelezionato }}
+                    </h3>
+                    <!-- Badge compatto tempo e calorie per layout super_compatto -->
+                    <div 
+                      v-if="layoutEsercizi === 'super_compatto'"
+                      class="px-2 py-0.5 rounded-md font-weight-black text-orange-lighten-2 border-soft d-inline-flex align-center gap-1.5"
+                      style="font-size: 0.65rem; background: rgba(249, 115, 22, 0.12) !important; border-color: rgba(249, 115, 22, 0.25) !important;"
+                    >
+                      <span>⏱️ {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
+                      <span class="text-muted" style="opacity: 0.5;">•</span>
+                      <span>🔥 {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
+                    </div>
+                  </div>
                   <!-- Promemoria Chiusura Settimana -->
                   <div v-if="mostraPromemoriaChiusura" class="mt-1">
                     <v-chip
@@ -646,9 +658,9 @@
                 </div>
               </div>
             </div>
-
+ 
             <!-- Griglia dei Tempi e Densità con Medie (Dinamica & Focus Zone Compatta) -->
-            <v-row dense class="mb-2 text-center align-stretch">
+            <v-row v-if="layoutEsercizi !== 'super_compatto'" dense class="mb-2 text-center align-stretch">
               <v-col cols="4">
                 <div 
                   class="prescription-chip-box px-2 py-1 rounded-lg"
@@ -4422,8 +4434,20 @@ const recuperiRaggruppati = computed(() => {
 .capsule-active {
   background: linear-gradient(135deg, #ea580c, #f97316) !important;
   color: white !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
-  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+  transform: scale(1.18);
+  margin: 0 3px;
+  z-index: 1;
+  animation: pulse-orange-glow 2s infinite alternate;
+}
+
+@keyframes pulse-orange-glow {
+  0% {
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.8);
+  }
 }
 
 .capsule-pending {
@@ -4441,6 +4465,7 @@ const recuperiRaggruppati = computed(() => {
 
 .capsule-active .capsule-num {
   color: #fde047 !important; /* Giallo brillante su sfondo arancione */
+  font-size: 0.62rem !important;
 }
 
 .capsule-completed .capsule-num {

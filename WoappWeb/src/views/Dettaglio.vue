@@ -2927,6 +2927,11 @@ const getPesoPropostoDettaglioForWeek = (sett) => {
 const getVolumeProgressionInfoForWeek = (sett) => {
   if (!workout.value) return { active: false };
   
+  // La progressione di volume è attiva solo nella modalità Ibrida
+  if (modalitaIncrementoGhost.value !== 'ibrida') {
+    return { active: false };
+  }
+  
   const info = getBaseWeekInfo(sett);
   if (!info || info.pesoBase === null) return { active: false };
   
@@ -2962,11 +2967,41 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   const potenziale = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
   const prudenziale = getPesoPropostoDettaglioForWeek(sett);
   
-  if (potenziale !== null && prudenziale !== null && !isNaN(potenziale) && !isNaN(prudenziale)) {
-    const avg = (potenziale + prudenziale) / 2;
-    return Math.round(avg / 1.25) * 1.25; // Arrotonda a 1.25 kg
+  let result;
+  if (modalitaIncrementoGhost.value === 'fissa') {
+    // Modello Fisso: proponiamo strettamente il carico programmato prudenziale (fisso)
+    result = prudenziale !== null ? Math.round(prudenziale / 1.25) * 1.25 : null;
+  } else if (modalitaIncrementoGhost.value === 'dinamica') {
+    // Modello Dinamico: preferiamo il potenziale stimato dallo storico se presente, altrimenti il dinamico prudenziale
+    const val = potenziale !== null ? potenziale : prudenziale;
+    result = val !== null ? Math.round(val / 1.25) * 1.25 : null;
+  } else {
+    // Modello Ibrido (Mix): via di mezzo (media) tra potenziale (storico) e programmato (prudenziale)
+    if (potenziale !== null && prudenziale !== null && !isNaN(potenziale) && !isNaN(prudenziale)) {
+      const avg = (potenziale + prudenziale) / 2;
+      result = Math.round(avg / 1.25) * 1.25;
+    } else {
+      result = potenziale || prudenziale || 0;
+    }
   }
-  return potenziale || prudenziale || 0;
+
+  // SOLUZIONE B: Salvaguardia. Il carico consigliato non deve mai essere inferiore al peso base della settimana di riferimento
+  const infoBase = getBaseWeekInfo(sett);
+  if (infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase)) {
+    if (result !== null && result < infoBase.pesoBase) {
+      result = infoBase.pesoBase;
+    }
+  }
+
+  // Regola di aderenza alla Progressione Scheda: il carico consigliato non deve essere inferiore al 90% della Progressione Scheda (prudenziale)
+  if (prudenziale !== null && !isNaN(prudenziale) && prudenziale > 0) {
+    const minSogliaScheda = Math.round((prudenziale * 0.90) / 1.25) * 1.25;
+    if (result !== null && result < minSogliaScheda) {
+      result = minSogliaScheda;
+    }
+  }
+
+  return result;
 };
 
 const getGhostLiftSmart = (sett) => {

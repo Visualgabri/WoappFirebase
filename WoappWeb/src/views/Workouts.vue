@@ -562,14 +562,18 @@
           v-if="headerGiorno"
           class="workout-session-container overflow-hidden border elevation-2 mb-6"
           :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
-          style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.35), rgba(15, 23, 42, 0.55)) !important; border: 1.5px solid rgba(255, 255, 255, 0.08) !important;"
+          :style="{
+            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.35), rgba(15, 23, 42, 0.55)) !important',
+            border: '1.5px solid rgba(255, 255, 255, 0.08) !important',
+            marginTop: layoutEsercizi === 'super_compatto' ? '-12px' : (layoutEsercizi === 'compatto' ? '-6px' : '0px')
+          }"
         >
           <!-- Intestazione Sessione (ex Day Header Card) -->
           <div
             class="day-header-section clickable-header position-relative"
             :class="{
-              'pa-2': layoutEsercizi === 'super_compatto',
-              'pa-3': layoutEsercizi === 'compatto',
+              'pt-1 pb-1.5 px-2': layoutEsercizi === 'super_compatto',
+              'pt-1.5 pb-2.5 px-3': layoutEsercizi === 'compatto',
               'pa-4': layoutEsercizi === 'standard'
             }"
             style="border-bottom: 1.5px solid rgba(255, 255, 255, 0.08); transition: background 0.2s;"
@@ -826,12 +830,22 @@
                   {{ giornoSelezionato }}
                 </div>
                 <div class="text-left min-width-0">
-                  <h3 
-                    class="font-weight-black text-orange-darken-4 text-truncate mb-0"
-                    :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
-                  >
-                    {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
-                  </h3>
+                  <div class="d-flex align-center flex-wrap gap-2">
+                    <h3 
+                      class="font-weight-black text-orange-darken-4 text-truncate mb-0"
+                      :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
+                    >
+                      {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
+                    </h3>
+                    <!-- Badge compatto tempo e calorie per layout super_compatto in fallback -->
+                    <div 
+                      v-if="layoutEsercizi === 'super_compatto' && headerGiorno.ins_esercizio"
+                      class="px-2 py-0.5 rounded-md font-weight-black text-orange-lighten-2 border-soft d-inline-flex align-center gap-1.5"
+                      style="font-size: 0.65rem; background: rgba(249, 115, 22, 0.12) !important; border-color: rgba(249, 115, 22, 0.25) !important;"
+                    >
+                      {{ headerGiorno.ins_esercizio }}
+                    </div>
+                  </div>
                   <!-- Promemoria Chiusura Settimana -->
                   <div v-if="mostraPromemoriaChiusura" class="mt-1">
                     <v-chip
@@ -4565,6 +4579,18 @@ const recuperiRaggruppati = computed(() => {
   margin: 4px 6px !important;
   height: calc(100% - 8px) !important;
   min-width: 0 !important;
+}
+
+.sticky-tabs-container.compatto-tabs .v-tab {
+  margin: 2px 4px !important;
+  height: calc(100% - 4px) !important;
+  border-radius: 8px !important;
+}
+
+.sticky-tabs-container.super-compatto-tabs .v-tab {
+  margin: 1px 3px !important;
+  height: calc(100% - 2px) !important;
+  border-radius: 6px !important;
 }
 
 .sticky-tabs-container .v-tab--selected {

@@ -2039,17 +2039,55 @@
                         mandatory
                         color="orange-darken-3"
                         density="compact"
-                        class="w-100 rounded-lg border border-soft overflow-hidden"
+                        class="w-100 rounded-lg border border-soft overflow-hidden mb-2"
                         style="height: 32px; background: rgba(15, 23, 42, 0.6);"
                         @update:model-value="salvaModalitaIncremento"
                       >
-                        <v-btn value="dinamica" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.68rem; letter-spacing: 0.02em;">
-                          📈 Dinamico (Storico)
+                        <v-btn value="ibrida" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.64rem; letter-spacing: 0.02em;">
+                          🧬 Ibrido (Mix)
                         </v-btn>
-                        <v-btn value="fissa" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.68rem; letter-spacing: 0.02em;">
-                          ⚖️ Fisso (Standard)
+                        <v-btn value="dinamica" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.64rem; letter-spacing: 0.02em;">
+                          📈 Dinamico
+                        </v-btn>
+                        <v-btn value="fissa" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.64rem; letter-spacing: 0.02em;">
+                          ⚖️ Fisso
                         </v-btn>
                       </v-btn-toggle>
+
+                      <!-- Switch per Attacco al Record & Autoregolazione Reps -->
+                      <div class="d-flex flex-column gap-1.5 mt-2 bg-slate-900 border rounded-lg pa-2" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <div class="d-flex align-center justify-space-between" style="min-height: 28px;">
+                          <div class="text-left" style="min-width: 0; flex-grow: 1;">
+                            <span class="text-super-caption text-amber-lighten-2 font-weight-bold uppercase d-block" style="font-size: 0.55rem; letter-spacing: 0.02em;">🏆 Attacco al Record (PR)</span>
+                            <span class="text-slate-light" style="font-size: 0.58rem; text-transform: none;">Arrotonda in eccesso se sei vicino al tuo PR di sempre</span>
+                          </div>
+                          <v-switch
+                            v-model="ghostPRAttackAttivo"
+                            color="amber-darken-2"
+                            hide-details
+                            density="compact"
+                            class="ml-2 flex-shrink-0"
+                            style="margin-top: 0; min-height: 24px;"
+                            @update:model-value="salvaPRAttackAttivo"
+                          ></v-switch>
+                        </div>
+                        
+                        <div class="d-flex align-center justify-space-between border-top pt-1.5" style="min-height: 28px; border-color: rgba(255,255,255,0.05) !important;">
+                          <div class="text-left" style="min-width: 0; flex-grow: 1;">
+                            <span class="text-super-caption text-green-accent-3 font-weight-bold uppercase d-block" style="font-size: 0.55rem; letter-spacing: 0.02em;">⚡ Autoregolazione Reps</span>
+                            <span class="text-slate-light" style="font-size: 0.58rem; text-transform: none;">Accelera se esegui reps in più, rallenta se in meno</span>
+                          </div>
+                          <v-switch
+                            v-model="ghostAutoregolazioneRepsAttiva"
+                            color="green-darken-2"
+                            hide-details
+                            density="compact"
+                            class="ml-2 flex-shrink-0"
+                            style="margin-top: 0; min-height: 24px;"
+                            @update:model-value="salvaAutoregolazioneRepsAttiva"
+                          ></v-switch>
+                        </div>
+                      </div>
                     </div>
 
                     <!-- Giglia due colonne per Scheda e Stima Forza -->
@@ -2436,12 +2474,26 @@ const getRepsPerWeek = (sett) => {
 };
 
 // --- LOGICA RECORD & INCREMENTI GHOST ---
-const modalitaIncrementoGhost = ref('dinamica');
+const modalitaIncrementoGhost = ref('ibrida');
+const ghostPRAttackAttivo = ref(true);
+const ghostAutoregolazioneRepsAttiva = ref(true);
 
 const salvaModalitaIncremento = (val) => {
   const keyIdCliente = Object.keys(workout.value || {}).find(k => k.includes('ID_cliente')) || 'ID_cliente';
   const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
   localStorage.setItem('modalitaIncrementoGhost_' + atletaId, val);
+};
+
+const salvaPRAttackAttivo = (val) => {
+  const keyIdCliente = Object.keys(workout.value || {}).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
+  localStorage.setItem('ghostPRAttackAttivo_' + atletaId, String(val));
+};
+
+const salvaAutoregolazioneRepsAttiva = (val) => {
+  const keyIdCliente = Object.keys(workout.value || {}).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
+  localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + atletaId, String(val));
 };
 
 const ottieniRecordStoricoPerReps = (targetReps) => {
@@ -3633,21 +3685,52 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   const rirTargetStr = estraiRIRDaPrescrizione(workout.value['des_week' + targetWeek]);
   const rirTarget = rirTargetStr !== null ? rirTargetStr : getRIRDefault(targetWeek);
   
+  // 1. Modello Fisso
+  const estimated1RM_fisso = pesoBase * (1 + (repsBase + rirBase) / 30);
+  const pesoFisso = estimated1RM_fisso / (1 + (repsTarget + rirTarget) / 30);
+  
+  // 2. Modello Dinamico
+  const pctIncremento = calcolaIncrementoDinamicoMedio(targetWeek);
+  const fattoreBase = 1 + (repsBase + rirBase) / 30;
+  const fattoreTarget = 1 + (repsTarget + rirTarget) / 30;
+  const pesoDinamico = pesoBase * (1 + pctIncremento) * (fattoreBase / fattoreTarget);
+  
   let proposedWeight;
-
-  if (modalitaIncrementoGhost.value === 'dinamica') {
-    // Calcoliamo la percentuale media di incremento
-    const pctIncremento = calcolaIncrementoDinamicoMedio(targetWeek);
-    
-    // Proponiamo un incremento basato su questa percentuale, compensando la differenza di ripetizioni con Epley
-    const fattoreBase = 1 + (repsBase + rirBase) / 30;
-    const fattoreTarget = 1 + (repsTarget + rirTarget) / 30;
-    proposedWeight = pesoBase * (1 + pctIncremento) * (fattoreBase / fattoreTarget);
+  
+  // Calcolo del Mix Ratio per Ibrido Autoregolato
+  let ratioDinamico = 0.5; // Default 50-50 per ibrido
+  const repsTargetPrescritteBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
+  
+  if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTargetPrescritteBase) {
+    if (repsBase > repsTargetPrescritteBase) {
+      ratioDinamico = 0.8; // Esubero reps: spinge sul dinamico
+    } else {
+      ratioDinamico = 0.2; // Sotto-target reps: frena sul fisso
+    }
+  }
+  
+  if (modalitaIncrementoGhost.value === 'ibrida') {
+    proposedWeight = (ratioDinamico * pesoDinamico) + ((1 - ratioDinamico) * pesoFisso);
+  } else if (modalitaIncrementoGhost.value === 'dinamica') {
+    proposedWeight = pesoDinamico;
   } else {
-    // Stima 1RM dalla settimana base (Epley)
-    const estimated1RM = pesoBase * (1 + (repsBase + rirBase) / 30);
-    // Calcola peso target rispettando il RIR target
-    proposedWeight = estimated1RM / (1 + (repsTarget + rirTarget) / 30);
+    proposedWeight = pesoFisso;
+  }
+  
+  // Modulazione sul Buffer Reale (Moltiplicatori addizionali in base all'esubero/sotto-target)
+  if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTargetPrescritteBase) {
+    if (repsBase > repsTargetPrescritteBase) {
+      const diffReps = repsBase - repsTargetPrescritteBase;
+      const boostFactor = 1 + (diffReps * 0.015); // +1.5% per rep in più del target prescritto
+      proposedWeight = pesoBase + (proposedWeight - pesoBase) * boostFactor;
+    } else {
+      const diffReps = repsTargetPrescritteBase - repsBase;
+      const penaltyFactor = Math.max(0, 1 - (diffReps * 0.2)); // -20% dell'incremento per rep in meno
+      proposedWeight = pesoBase + (proposedWeight - pesoBase) * penaltyFactor;
+      if (proposedWeight > pesoBase) {
+        proposedWeight = pesoBase; // Non aumentare se le reps reali sono inferiori al target
+      }
+    }
   }
   
   // Limita il peso se a corpo libero e le reps salgono
@@ -3659,6 +3742,16 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   
   // Arrotondamento standard a 1.25kg
   proposedWeight = Math.round(proposedWeight / 1.25) * 1.25;
+  
+  // Gestione Attacco al Record Storico
+  if (ghostPRAttackAttivo.value) {
+    const recordVal = ottieniRecordStoricoPerReps(repsTarget);
+    if (recordVal && recordVal > 0) {
+      if (proposedWeight < recordVal && (proposedWeight >= recordVal * 0.95 || proposedWeight >= recordVal - 2.5)) {
+        proposedWeight = Math.round((recordVal + 1.25) / 1.25) * 1.25;
+      }
+    }
+  }
   
   return proposedWeight;
 };
@@ -4396,7 +4489,9 @@ const caricaDatiEsercizio = async () => {
     }
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
-    modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'dinamica';
+    modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+    ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
+    ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
     inizializzaParametriProposta(atletaId);
 
     const schemaRef = workout.value?.num_scheda;
@@ -4447,7 +4542,9 @@ const caricaDatiEsercizio = async () => {
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
-      modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'dinamica';
+      modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+      ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
+      ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       inizializzaParametriProposta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
@@ -4532,7 +4629,9 @@ const caricaEsercizioDaBackup = async () => {
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
-      modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'dinamica';
+      modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+      ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
+      ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       inizializzaParametriProposta(atletaId);
 
       for (let w = 1; w <= 6; w++) {
@@ -5807,19 +5906,44 @@ const getGhostLiftStandard = (sett) => {
         const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
         
         let pesoProposto;
-        if (modalitaIncrementoGhost.value === 'dinamica') {
+        if (modalitaIncrementoGhost.value === 'ibrida') {
           const pct = calcolaIncrementoDinamicoMedio(5);
-          pesoProposto = Math.round((pesoBase * (1 + pct)) / 1.25) * 1.25;
-          if (pesoProposto <= pesoBase) {
-            pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
+          const pesoDinamico = pesoBase * (1 + pct);
+          let pesoFisso;
+          if (isManubri) {
+            const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
+            pesoFisso = pesoBase + incremento;
+          } else {
+            const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+            pesoFisso = pesoBase + incremento;
           }
+          pesoProposto = (0.5 * pesoDinamico) + (0.5 * pesoFisso);
+        } else if (modalitaIncrementoGhost.value === 'dinamica') {
+          const pct = calcolaIncrementoDinamicoMedio(5);
+          pesoProposto = pesoBase * (1 + pct);
         } else {
           if (isManubri) {
             const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
             pesoProposto = pesoBase + incremento;
           } else {
             const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
-            pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
+            pesoProposto = pesoBase + incremento;
+          }
+        }
+        
+        pesoProposto = Math.round(pesoProposto / 1.25) * 1.25;
+        if (pesoProposto <= pesoBase) {
+          pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
+        }
+        
+        // Attacco al Record Storico anche su W5 se configurato
+        if (ghostPRAttackAttivo.value) {
+          const repsTarget = workout.value['reps_week5'] ? parseInt(workout.value['reps_week5'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week5']) || 10);
+          const recordVal = ottieniRecordStoricoPerReps(repsTarget);
+          if (recordVal && recordVal > 0) {
+            if (pesoProposto < recordVal && (pesoProposto >= recordVal * 0.95 || pesoProposto >= recordVal - 2.5)) {
+              pesoProposto = Math.round((recordVal + 1.25) / 1.25) * 1.25;
+            }
           }
         }
         
@@ -5868,21 +5992,43 @@ const getGhostLiftStandard = (sett) => {
       const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
       
       let pesoProposto;
-      if (modalitaIncrementoGhost.value === 'dinamica') {
+      if (modalitaIncrementoGhost.value === 'ibrida') {
         const pct = calcolaIncrementoDinamicoMedio(6);
-        pesoProposto = Math.round((pesoBase * (1 + pct)) / 1.25) * 1.25;
-        if (pesoProposto <= pesoBase) {
-          pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
+        const pesoDinamico = pesoBase * (1 + pct);
+        let pesoFisso;
+        if (isManubri) {
+          const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
+          pesoFisso = pesoBase + incremento;
+        } else {
+          const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+          pesoFisso = pesoBase + incremento;
         }
+        pesoProposto = (0.5 * pesoDinamico) + (0.5 * pesoFisso);
+      } else if (modalitaIncrementoGhost.value === 'dinamica') {
+        const pct = calcolaIncrementoDinamicoMedio(6);
+        pesoProposto = pesoBase * (1 + pct);
       } else {
         if (isManubri) {
           const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
           pesoProposto = pesoBase + incremento;
         } else {
           const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
-          pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
-          if (pesoProposto <= pesoBase) {
-            pesoProposto = pesoBase + 1.25;
+          pesoProposto = pesoBase + incremento;
+        }
+      }
+      
+      pesoProposto = Math.round(pesoProposto / 1.25) * 1.25;
+      if (pesoProposto <= pesoBase) {
+        pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
+      }
+
+      // Attacco al Record Storico su W6
+      if (ghostPRAttackAttivo.value) {
+        const repsTarget = workout.value['reps_week6'] ? parseInt(workout.value['reps_week6'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week6']) || 10);
+        const recordVal = ottieniRecordStoricoPerReps(repsTarget);
+        if (recordVal && recordVal > 0) {
+          if (pesoProposto < recordVal && (pesoProposto >= recordVal * 0.95 || pesoProposto >= recordVal - 2.5)) {
+            pesoProposto = Math.round((recordVal + 1.25) / 1.25) * 1.25;
           }
         }
       }

@@ -792,6 +792,9 @@
                   </span>
                 </span>
                 <div class="d-flex align-center gap-1">
+                  <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="apriAiutoCaricoDettagliato(sett)">
+                    {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
+                  </span>
                   <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" :size="layoutCorrente === 'super_compatto' ? 12 : 14" class="animate-pulse">mdi-fire</v-icon>
                   <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-up</v-icon>
                   <v-btn
@@ -1787,6 +1790,45 @@
               </div>
             </div>
 
+            <!-- BANNER RECORD PERSONALE (Option A) -->
+            <v-card
+              v-if="analizzaRecordSettimana(aiutoWeek)"
+              class="mb-3 border text-left"
+              :style="{
+                background: analizzaRecordSettimana(aiutoWeek).stato === 'record'
+                  ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.16) 0%, rgba(251, 191, 36, 0.04) 100%) !important'
+                  : 'linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.03) 100%) !important',
+                borderColor: analizzaRecordSettimana(aiutoWeek).stato === 'record'
+                  ? 'rgba(251, 191, 36, 0.45) !important'
+                  : 'rgba(249, 115, 22, 0.3) !important',
+                borderRadius: '8px'
+              }"
+              elevation="0"
+            >
+              <div class="d-flex align-start pa-3 gap-2.5">
+                <span style="font-size: 1.3rem; line-height: 1;" class="mr-1 mt-0.5">
+                  {{ analizzaRecordSettimana(aiutoWeek).stato === 'record' ? '🏆' : '🔥' }}
+                </span>
+                <div style="flex-grow: 1; min-width: 0;">
+                  <div 
+                    :class="analizzaRecordSettimana(aiutoWeek).stato === 'record' ? 'text-amber-lighten-1 font-weight-black' : 'text-orange-lighten-2 font-weight-black'" 
+                    class="text-super-caption uppercase" 
+                    style="font-size: 0.6rem; letter-spacing: 0.05em;"
+                  >
+                    {{ analizzaRecordSettimana(aiutoWeek).stato === 'record' ? 'Record Personale Rilevato!' : 'Vicino al Record Personale!' }}
+                  </div>
+                  <div class="text-caption text-white mt-1" style="font-size: 0.72rem; line-height: 1.4;">
+                    <span v-if="analizzaRecordSettimana(aiutoWeek).stato === 'record'">
+                      Il carico {{ analizzaRecordSettimana(aiutoWeek).tipo === 'logged' ? 'inserito' : 'proposto' }} di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è il più alto di sempre per **{{ analizzaRecordSettimana(aiutoWeek).targetReps }} reps**! Record storico: {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg.
+                    </span>
+                    <span v-else>
+                      Il carico di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è vicino al record di sempre di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg</strong> per **{{ analizzaRecordSettimana(aiutoWeek).targetReps }} reps**! Con soli <strong>+{{ formatWeight(analizzaRecordSettimana(aiutoWeek).diff) }} kg</strong> supererai il tuo record storico!
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </v-card>
+
             <!-- Pulsante per aprire la progressione scheda precedente -->
             <div v-if="previousWorkout && aiutoWeek === 1" class="mb-3 text-left">
               <v-btn
@@ -1989,6 +2031,27 @@
                   </v-expansion-panel-title>
                   <v-expansion-panel-text class="px-0 pt-2 pb-0">
                     
+                    <!-- Selettore Modalità Incremento Ghost -->
+                    <div class="px-2 mb-3">
+                      <div class="text-super-caption text-slate-dark font-weight-black uppercase mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">⚙️ Algoritmo Incremento Ghost</div>
+                      <v-btn-toggle
+                        v-model="modalitaIncrementoGhost"
+                        mandatory
+                        color="orange-darken-3"
+                        density="compact"
+                        class="w-100 rounded-lg border border-soft overflow-hidden"
+                        style="height: 32px; background: rgba(15, 23, 42, 0.6);"
+                        @update:model-value="salvaModalitaIncremento"
+                      >
+                        <v-btn value="dinamica" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.68rem; letter-spacing: 0.02em;">
+                          📈 Dinamico (Storico)
+                        </v-btn>
+                        <v-btn value="fissa" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.68rem; letter-spacing: 0.02em;">
+                          ⚖️ Fisso (Standard)
+                        </v-btn>
+                      </v-btn-toggle>
+                    </div>
+
                     <!-- Giglia due colonne per Scheda e Stima Forza -->
                     <v-row dense class="mx-0 mb-3 align-center">
                       <!-- PROGRESSIONE SCHEDA -->
@@ -2371,6 +2434,180 @@ const getRepsPerWeek = (sett) => {
   const presc = workout.value['des_week' + sett];
   return estraiRepsDaPrescrizione(presc) || 10;
 };
+
+// --- LOGICA RECORD & INCREMENTI GHOST ---
+const modalitaIncrementoGhost = ref('dinamica');
+
+const salvaModalitaIncremento = (val) => {
+  const keyIdCliente = Object.keys(workout.value || {}).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
+  localStorage.setItem('modalitaIncrementoGhost_' + atletaId, val);
+};
+
+const ottieniRecordStoricoPerReps = (targetReps) => {
+  if (!workout.value || !storicoEsercizio.value.length) return null;
+  const currentNumScheda = parseInt(workout.value.num_scheda);
+  if (isNaN(currentNumScheda)) return null;
+
+  let maxWeight = 0;
+  storicoEsercizio.value.forEach(prevEx => {
+    const sNum = parseInt(prevEx.num_scheda);
+    if (!isNaN(sNum) && sNum >= currentNumScheda) return; // solo schede passate
+    
+    for (let w = 1; w <= 6; w++) {
+      const insVal = prevEx['ins_week' + w];
+      if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+        const weightStr = estraiPesoDaInput(insVal);
+        if (weightStr) {
+          const weight = parseFloat(weightStr);
+          if (!isNaN(weight) && weight > 0) {
+            const repsVal = prevEx['reps_week' + w];
+            let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+            const inputReps = estraiRepsDaInput(insVal);
+            if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
+              repsNum = inputReps;
+            }
+            if (repsNum === targetReps) {
+              if (weight > maxWeight) {
+                maxWeight = weight;
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  return maxWeight > 0 ? maxWeight : null;
+};
+
+const analizzaRecordSettimana = (sett) => {
+  if (!workout.value) return null;
+  const targetReps = getRepsPerWeek(sett);
+  const recordVal = ottieniRecordStoricoPerReps(targetReps);
+  if (!recordVal) return null;
+
+  // Vediamo se c'è un input inserito
+  const currentInput = inputSettimane.value[sett]?.ins;
+  const currentPesoStr = currentInput ? estraiPesoDaInput(currentInput) : null;
+  const currentPeso = currentPesoStr ? parseFloat(currentPesoStr) : null;
+
+  let pesoDaValutare = null;
+  let tipoValutato = ''; // 'logged' o 'ghost'
+
+  if (currentPeso !== null && !isNaN(currentPeso) && currentPeso > 0) {
+    pesoDaValutare = currentPeso;
+    tipoValutato = 'logged';
+  } else {
+    // Altrimenti valutiamo la proposta Ghost
+    const ghost = getGhostLiftSmart(sett);
+    if (ghost) {
+      const ghostPeso = ghost.isPostScarico && ghost.pesoProposto !== undefined ? ghost.pesoProposto : ghost.peso;
+      if (ghostPeso && !isNaN(ghostPeso) && ghostPeso > 0) {
+        pesoDaValutare = ghostPeso;
+        tipoValutato = 'ghost';
+      }
+    }
+  }
+
+  if (pesoDaValutare === null) return null;
+
+  if (pesoDaValutare >= recordVal) {
+    return {
+      stato: 'record',
+      tipo: tipoValutato,
+      peso: pesoDaValutare,
+      record: recordVal,
+      diff: pesoDaValutare - recordVal,
+      targetReps
+    };
+  } else if (pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5) {
+    return {
+      stato: 'quasi-record',
+      tipo: tipoValutato,
+      peso: pesoDaValutare,
+      record: recordVal,
+      diff: recordVal - pesoDaValutare,
+      targetReps
+    };
+  }
+
+  return null;
+};
+
+const calcolaIncrementoDinamicoMedio = (targetWeek) => {
+  const pesiSettimanali = [];
+  for (let w = 1; w < targetWeek; w++) {
+    // Escludiamo la week 4 se è di scarico per evitare distorsioni
+    if (w === 4 && isWeek4Scarico.value) continue;
+    
+    const insVal = inputSettimane.value[w]?.ins;
+    if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+      const pesoStr = estraiPesoDaInput(insVal);
+      if (pesoStr) {
+        const peso = parseFloat(pesoStr);
+        if (!isNaN(peso) && peso > 0) {
+          pesiSettimanali.push({ week: w, peso: peso });
+        }
+      }
+    }
+  }
+
+  let sommaPercentuali = 0;
+  let conteggio = 0;
+  
+  for (let i = 0; i < pesiSettimanali.length - 1; i++) {
+    const p1 = pesiSettimanali[i].peso;
+    const p2 = pesiSettimanali[i+1].peso;
+    if (p2 > p1) {
+      const pct = (p2 - p1) / p1;
+      sommaPercentuali += pct;
+      conteggio++;
+    }
+  }
+
+  if (conteggio > 0) {
+    return sommaPercentuali / conteggio;
+  }
+
+  // Fallback storico
+  let storicoSommaPct = 0;
+  let storicoConteggio = 0;
+  
+  if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+    storicoEsercizio.value.forEach(prevEx => {
+      const pesiEx = [];
+      for (let w = 1; w <= 6; w++) {
+        if (w === 4 && isWeek4Scarico.value) continue;
+        const insVal = prevEx['ins_week' + w];
+        if (insVal) {
+          const pesoStr = estraiPesoDaInput(insVal);
+          if (pesoStr) {
+            const peso = parseFloat(pesoStr);
+            if (!isNaN(peso) && peso > 0) {
+              pesiEx.push(peso);
+            }
+          }
+        }
+      }
+      for (let i = 0; i < pesiEx.length - 1; i++) {
+        const p1 = pesiEx[i];
+        const p2 = pesiEx[i+1];
+        if (p2 > p1) {
+          storicoSommaPct += (p2 - p1) / p1;
+          storicoConteggio++;
+        }
+      }
+    });
+  }
+
+  if (storicoConteggio > 0) {
+    return storicoSommaPct / storicoConteggio;
+  }
+
+  return 0.025; // 2.5% default
+};
+// ----------------------------------------
 
 const targetRepsAttive = computed(() => {
   return getRepsPerWeek(aiutoWeek.value);
@@ -2944,12 +3181,13 @@ const applicaPropostaCaricoStorico = (peso) => {
   vibraTattile(12);
   const targetInput = inputSettimane.value[aiutoWeek.value];
   if (targetInput) {
-    targetInput.ins = peso + 'kg';
+    const pesoFormattato = String(peso).replace('.', ',');
+    targetInput.ins = pesoFormattato;
     salvaDatoSettimanale(aiutoWeek.value, 'ins');
     dialogStorico.value = false;
     
     // Mostra snackbar di successo
-    snackbarMessaggio.value = `Applicato carico ${peso}kg per W${aiutoWeek.value}!`;
+    snackbarMessaggio.value = `Applicato carico ${pesoFormattato} per W${aiutoWeek.value}!`;
     snackbarSalvataggio.value = true;
   }
 };
@@ -3395,11 +3633,22 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   const rirTargetStr = estraiRIRDaPrescrizione(workout.value['des_week' + targetWeek]);
   const rirTarget = rirTargetStr !== null ? rirTargetStr : getRIRDefault(targetWeek);
   
-  // Stima 1RM dalla settimana base (Epley)
-  const estimated1RM = pesoBase * (1 + (repsBase + rirBase) / 30);
-  
-  // Calcola peso target rispettando il RIR target
-  let proposedWeight = estimated1RM / (1 + (repsTarget + rirTarget) / 30);
+  let proposedWeight;
+
+  if (modalitaIncrementoGhost.value === 'dinamica') {
+    // Calcoliamo la percentuale media di incremento
+    const pctIncremento = calcolaIncrementoDinamicoMedio(targetWeek);
+    
+    // Proponiamo un incremento basato su questa percentuale, compensando la differenza di ripetizioni con Epley
+    const fattoreBase = 1 + (repsBase + rirBase) / 30;
+    const fattoreTarget = 1 + (repsTarget + rirTarget) / 30;
+    proposedWeight = pesoBase * (1 + pctIncremento) * (fattoreBase / fattoreTarget);
+  } else {
+    // Stima 1RM dalla settimana base (Epley)
+    const estimated1RM = pesoBase * (1 + (repsBase + rirBase) / 30);
+    // Calcola peso target rispettando il RIR target
+    proposedWeight = estimated1RM / (1 + (repsTarget + rirTarget) / 30);
+  }
   
   // Limita il peso se a corpo libero e le reps salgono
   if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
@@ -4147,6 +4396,7 @@ const caricaDatiEsercizio = async () => {
     }
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+    modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'dinamica';
     inizializzaParametriProposta(atletaId);
 
     const schemaRef = workout.value?.num_scheda;
@@ -4167,6 +4417,11 @@ const caricaDatiEsercizio = async () => {
 
     await caricaEsercizioPrecedente();
     indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
+    try {
+      await caricaDatiAnalisi(settimanaAttiva.value);
+    } catch (errAnalisi) {
+      console.warn("Errore caricamento dati analisi eager:", errAnalisi);
+    }
     caricamento.value = false;
     return;
   }
@@ -4192,6 +4447,7 @@ const caricaDatiEsercizio = async () => {
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+      modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'dinamica';
       inizializzaParametriProposta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
@@ -4241,6 +4497,11 @@ const caricaDatiEsercizio = async () => {
         determinaSettimanaAttivaGiorno();
         await caricaListaEserciziGiorno(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
       }
+      try {
+        await caricaDatiAnalisi(settimanaAttiva.value);
+      } catch (errAnalisi) {
+        console.warn("Errore caricamento dati analisi eager:", errAnalisi);
+      }
     } else {
       console.warn("Documento esercizio non trovato su Firestore, provo da backup locale.");
       await caricaEsercizioDaBackup();
@@ -4271,6 +4532,7 @@ const caricaEsercizioDaBackup = async () => {
       // Recupera stileStorico e modalitaSettimane per l'atleta specifico
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
+      modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'dinamica';
       inizializzaParametriProposta(atletaId);
 
       for (let w = 1; w <= 6; w++) {
@@ -4320,6 +4582,11 @@ const caricaEsercizioDaBackup = async () => {
           const currentId = String(routeIdLocal.value || '');
           return itemId === currentId || itemNumRiga === currentId;
         });
+      }
+      try {
+        await caricaDatiAnalisi(settimanaAttiva.value);
+      } catch (errAnalisi) {
+        console.warn("Errore caricamento dati analisi eager:", errAnalisi);
       }
     }
   } catch (errBackup) {
@@ -5540,12 +5807,20 @@ const getGhostLiftStandard = (sett) => {
         const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
         
         let pesoProposto;
-        if (isManubri) {
-          const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
-          pesoProposto = pesoBase + incremento;
+        if (modalitaIncrementoGhost.value === 'dinamica') {
+          const pct = calcolaIncrementoDinamicoMedio(5);
+          pesoProposto = Math.round((pesoBase * (1 + pct)) / 1.25) * 1.25;
+          if (pesoProposto <= pesoBase) {
+            pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
+          }
         } else {
-          const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
-          pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
+          if (isManubri) {
+            const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
+            pesoProposto = pesoBase + incremento;
+          } else {
+            const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+            pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
+          }
         }
         
         // Se a corpo libero e le reps salgono tra la base e W5, non proponiamo aumento peso post-scarico (isPostScarico: false)
@@ -5593,14 +5868,22 @@ const getGhostLiftStandard = (sett) => {
       const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
       
       let pesoProposto;
-      if (isManubri) {
-        const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
-        pesoProposto = pesoBase + incremento;
-      } else {
-        const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
-        pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
+      if (modalitaIncrementoGhost.value === 'dinamica') {
+        const pct = calcolaIncrementoDinamicoMedio(6);
+        pesoProposto = Math.round((pesoBase * (1 + pct)) / 1.25) * 1.25;
         if (pesoProposto <= pesoBase) {
-          pesoProposto = pesoBase + 1.25;
+          pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
+        }
+      } else {
+        if (isManubri) {
+          const incremento = pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value;
+          pesoProposto = pesoBase + incremento;
+        } else {
+          const incremento = pesoBase * (INCREMENTO_PESO_POST_SCARICO_PCT.value / 100);
+          pesoProposto = Math.round((pesoBase + incremento) / 1.25) * 1.25; // Arrotondato a 1.25kg
+          if (pesoProposto <= pesoBase) {
+            pesoProposto = pesoBase + 1.25;
+          }
         }
       }
       

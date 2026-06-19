@@ -294,6 +294,66 @@
             ></v-select>
           </div>
         </div>
+
+        <v-divider class="my-4 border-soft" style="opacity: 0.15;"></v-divider>
+
+        <!-- Configurazione Algoritmo Ghost -->
+        <div class="text-left mt-2">
+          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2.5" style="font-size: 0.72rem;">🧬 Algoritmo Incremento Ghost</span>
+          <v-btn-toggle
+            v-model="modalitaIncrementoGhost"
+            mandatory
+            selected-class="bg-orange-darken-3 text-white"
+            density="comfortable"
+            rounded="xl"
+            class="w-100 card-glass border mb-3"
+            style="height: 38px;"
+          >
+            <v-btn value="ibrida" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
+              🧬 Ibrido (Mix)
+            </v-btn>
+            <v-btn value="dinamica" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
+              📈 Dinamico
+            </v-btn>
+            <v-btn value="fissa" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
+              ⚖️ Fisso
+            </v-btn>
+          </v-btn-toggle>
+          
+          <div class="d-flex flex-column gap-2 bg-slate-900 border rounded-xl pa-3" style="border-color: rgba(255,255,255,0.06) !important; background: rgba(15, 23, 42, 0.4) !important;">
+            <!-- Switch PR Attack -->
+            <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
+              <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
+                <span class="text-caption font-weight-bold text-amber-lighten-2 d-block" style="font-size: 0.72rem;">🏆 Attacco al Record (PR)</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Arrotonda in eccesso se sei vicino al tuo PR di sempre</span>
+              </div>
+              <v-switch
+                v-model="ghostPRAttackAttivo"
+                color="amber-darken-2"
+                hide-details
+                density="compact"
+                class="ml-2 flex-shrink-0"
+              ></v-switch>
+            </div>
+            
+            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+            
+            <!-- Switch Autoregolazione Reps -->
+            <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
+              <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
+                <span class="text-caption font-weight-bold text-green-accent-3 d-block" style="font-size: 0.72rem;">⚡ Autoregolazione Reps</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Accelera se esegui reps in più, rallenta se in meno</span>
+              </div>
+              <v-switch
+                v-model="ghostAutoregolazioneRepsAttiva"
+                color="green-darken-2"
+                hide-details
+                density="compact"
+                class="ml-2 flex-shrink-0"
+              ></v-switch>
+            </div>
+          </div>
+        </div>
       </div>
     </v-card>
 
@@ -411,6 +471,14 @@ const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !==
 const comportamentoPlay = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
 const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
 
+const getActiveAtletaId = () => {
+  return selectedAthlete.value || idCliente.value || '';
+};
+
+const modalitaIncrementoGhost = ref(localStorage.getItem('modalitaIncrementoGhost_' + getActiveAtletaId()) || 'ibrida');
+const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + getActiveAtletaId()) !== 'false');
+const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId()) !== 'false');
+
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {
   localStorage.setItem('woapp_layout_esercizi', newVal);
@@ -432,6 +500,24 @@ watch(defaultTimerRec, (newVal) => {
 });
 watch(timerTheme, (newVal) => {
   localStorage.setItem('woapp_timer_theme', newVal);
+});
+
+// Sincronizzazione Ghost Settings
+watch([selectedAthlete, idCliente], () => {
+  const atletaId = getActiveAtletaId();
+  modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+  ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
+  ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
+});
+
+watch(modalitaIncrementoGhost, (newVal) => {
+  localStorage.setItem('modalitaIncrementoGhost_' + getActiveAtletaId(), newVal);
+});
+watch(ghostPRAttackAttivo, (newVal) => {
+  localStorage.setItem('ghostPRAttackAttivo_' + getActiveAtletaId(), String(newVal));
+});
+watch(ghostAutoregolazioneRepsAttiva, (newVal) => {
+  localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId(), String(newVal));
 });
 
 const vibraTattile = (ms = 12) => {

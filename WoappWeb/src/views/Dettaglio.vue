@@ -2031,65 +2031,6 @@
                   </v-expansion-panel-title>
                   <v-expansion-panel-text class="px-0 pt-2 pb-0">
                     
-                    <!-- Selettore Modalità Incremento Ghost -->
-                    <div class="px-2 mb-3">
-                      <div class="text-super-caption text-slate-dark font-weight-black uppercase mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">⚙️ Algoritmo Incremento Ghost</div>
-                      <v-btn-toggle
-                        v-model="modalitaIncrementoGhost"
-                        mandatory
-                        color="orange-darken-3"
-                        density="compact"
-                        class="w-100 rounded-lg border border-soft overflow-hidden mb-2"
-                        style="height: 32px; background: rgba(15, 23, 42, 0.6);"
-                        @update:model-value="salvaModalitaIncremento"
-                      >
-                        <v-btn value="ibrida" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.64rem; letter-spacing: 0.02em;">
-                          🧬 Ibrido (Mix)
-                        </v-btn>
-                        <v-btn value="dinamica" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.64rem; letter-spacing: 0.02em;">
-                          📈 Dinamico
-                        </v-btn>
-                        <v-btn value="fissa" class="text-none font-weight-bold flex-grow-1" style="font-size: 0.64rem; letter-spacing: 0.02em;">
-                          ⚖️ Fisso
-                        </v-btn>
-                      </v-btn-toggle>
-
-                      <!-- Switch per Attacco al Record & Autoregolazione Reps -->
-                      <div class="d-flex flex-column gap-1.5 mt-2 bg-slate-900 border rounded-lg pa-2" style="border-color: rgba(255,255,255,0.05) !important;">
-                        <div class="d-flex align-center justify-space-between" style="min-height: 28px;">
-                          <div class="text-left" style="min-width: 0; flex-grow: 1;">
-                            <span class="text-super-caption text-amber-lighten-2 font-weight-bold uppercase d-block" style="font-size: 0.55rem; letter-spacing: 0.02em;">🏆 Attacco al Record (PR)</span>
-                            <span class="text-slate-light" style="font-size: 0.58rem; text-transform: none;">Arrotonda in eccesso se sei vicino al tuo PR di sempre</span>
-                          </div>
-                          <v-switch
-                            v-model="ghostPRAttackAttivo"
-                            color="amber-darken-2"
-                            hide-details
-                            density="compact"
-                            class="ml-2 flex-shrink-0"
-                            style="margin-top: 0; min-height: 24px;"
-                            @update:model-value="salvaPRAttackAttivo"
-                          ></v-switch>
-                        </div>
-                        
-                        <div class="d-flex align-center justify-space-between border-top pt-1.5" style="min-height: 28px; border-color: rgba(255,255,255,0.05) !important;">
-                          <div class="text-left" style="min-width: 0; flex-grow: 1;">
-                            <span class="text-super-caption text-green-accent-3 font-weight-bold uppercase d-block" style="font-size: 0.55rem; letter-spacing: 0.02em;">⚡ Autoregolazione Reps</span>
-                            <span class="text-slate-light" style="font-size: 0.58rem; text-transform: none;">Accelera se esegui reps in più, rallenta se in meno</span>
-                          </div>
-                          <v-switch
-                            v-model="ghostAutoregolazioneRepsAttiva"
-                            color="green-darken-2"
-                            hide-details
-                            density="compact"
-                            class="ml-2 flex-shrink-0"
-                            style="margin-top: 0; min-height: 24px;"
-                            @update:model-value="salvaAutoregolazioneRepsAttiva"
-                          ></v-switch>
-                        </div>
-                      </div>
-                    </div>
-
                     <!-- Giglia due colonne per Scheda e Stima Forza -->
                     <v-row dense class="mx-0 mb-3 align-center">
                       <!-- PROGRESSIONE SCHEDA -->
@@ -2477,24 +2418,6 @@ const getRepsPerWeek = (sett) => {
 const modalitaIncrementoGhost = ref('ibrida');
 const ghostPRAttackAttivo = ref(true);
 const ghostAutoregolazioneRepsAttiva = ref(true);
-
-const salvaModalitaIncremento = (val) => {
-  const keyIdCliente = Object.keys(workout.value || {}).find(k => k.includes('ID_cliente')) || 'ID_cliente';
-  const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
-  localStorage.setItem('modalitaIncrementoGhost_' + atletaId, val);
-};
-
-const salvaPRAttackAttivo = (val) => {
-  const keyIdCliente = Object.keys(workout.value || {}).find(k => k.includes('ID_cliente')) || 'ID_cliente';
-  const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
-  localStorage.setItem('ghostPRAttackAttivo_' + atletaId, String(val));
-};
-
-const salvaAutoregolazioneRepsAttiva = (val) => {
-  const keyIdCliente = Object.keys(workout.value || {}).find(k => k.includes('ID_cliente')) || 'ID_cliente';
-  const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
-  localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + atletaId, String(val));
-};
 
 const ottieniRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;

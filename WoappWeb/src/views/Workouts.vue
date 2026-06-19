@@ -3185,7 +3185,7 @@ const haEserciziDaFare = computed(() => {
 });
 
 const determinaGiornoAttivo = () => {
-  const w = settimanaAttiva.value;
+  const w = settimanaAttivaGiorno.value;
   for (const g of listaGiorniDisponibili.value) {
     const header = listaAllenamenti.value.find(
       item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(item.num_riga_giorno) === 0
@@ -3207,6 +3207,11 @@ watch(mostraPromemoriaChiusura, (newVal) => {
 }, { immediate: true });
 
 watch(playClickTrigger, () => {
+  // Se il giorno selezionato ha ancora esercizi da fare, rimaniamo su questo giorno
+  if (haEserciziDaFare.value) {
+    vaiAlPrimoEsercizioDaFare();
+    return;
+  }
   const giornoGiusto = determinaGiornoAttivo();
   if (giornoSelezionato.value !== giornoGiusto) {
     giornoSelezionato.value = giornoGiusto;
@@ -3281,8 +3286,22 @@ const vaiAlPrimoEsercizioDaFare = () => {
 };
 
 const gestisciScrollIniziale = () => {
+  if (loadingStoryboard.value || listaAllenamenti.value.length === 0) {
+    return;
+  }
   if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
     localStorage.removeItem('scrollPrimoEsercizioDaFare');
+    
+    // Se il giorno attualmente selezionato ha esercizi da fare, rimani su questo
+    if (haEserciziDaFare.value) {
+      nextTick(() => {
+        setTimeout(() => {
+          vaiAlPrimoEsercizioDaFare();
+        }, 400);
+      });
+      return;
+    }
+    
     const giornoGiusto = determinaGiornoAttivo();
     if (giornoSelezionato.value !== giornoGiusto) {
       giornoSelezionato.value = giornoGiusto;
@@ -3340,6 +3359,9 @@ watch(globalStoryboard, () => {
 
 watch(loadingStoryboard, (newVal) => {
   caricamento.value = newVal;
+  if (!newVal && localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
+    gestisciScrollIniziale();
+  }
 });
 
 // Naviga al dettaglio dell'esercizio

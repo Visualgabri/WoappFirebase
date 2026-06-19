@@ -88,19 +88,9 @@
       elevation="4"
       class="premium-nav"
     >
-      <v-btn to="/login" id="nav-atleta" @click="vibraTattile(8)">
-        <v-icon>mdi-account</v-icon>
-        <span>Atleta</span>
-      </v-btn>
-
-      <v-btn to="/ricerca" id="nav-ricerca" @click="vibraTattile(8)">
-        <v-icon>mdi-magnify</v-icon>
-        <span>Ricerca Wo</span>
-      </v-btn>
-
       <v-btn to="/home" id="nav-home" @click="vibraTattile(8)">
         <v-icon>mdi-home</v-icon>
-        <span>Home Wo</span>
+        <span>Home</span>
       </v-btn>
 
       <v-btn to="/" id="nav-workouts" @click="vibraTattile(8)">
@@ -111,6 +101,11 @@
       <v-btn to="/grafici" id="nav-grafici" @click="vibraTattile(8)">
         <v-icon>mdi-chart-bar</v-icon>
         <span>Grafici</span>
+      </v-btn>
+
+      <v-btn to="/impostazioni" id="nav-impostazioni" @click="vibraTattile(8)">
+        <v-icon>mdi-cog-outline</v-icon>
+        <span>Impostazioni</span>
       </v-btn>
 
     </v-bottom-navigation>

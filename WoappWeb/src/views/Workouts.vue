@@ -42,9 +42,6 @@
         </div>
       </div>
       <div class="header-actions d-flex align-center gap-1">
-        <v-btn icon color="slate-dark" variant="text" @click="dialogImpostazioni = true" id="btn-workouts-settings">
-          <v-icon>mdi-cog-outline</v-icon>
-        </v-btn>
         <v-btn icon color="slate-dark" variant="text" @click="caricaAllenamenti"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
     </div>
@@ -54,10 +51,10 @@
       <v-icon size="80" color="orange-lighten-3" class="mb-4 animate-bounce">mdi-clipboard-text-search-outline</v-icon>
       <h3 class="text-h5 font-weight-bold text-slate-dark">Seleziona Atleta e Scheda</h3>
       <p class="text-body-1 text-muted mt-2">
-        Scegli l'atleta e la scheda attiva nella scheda **Ricerca Wo** per sbloccare la lista allenamenti.
+        Scegli l'atleta e la scheda attiva nella sezione <strong>Home</strong> per sbloccare la lista allenamenti.
       </p>
-      <v-btn to="/ricerca" color="orange-darken-3" class="font-weight-bold text-none mt-6" rounded="lg">
-        Vai a Ricerca Wo
+      <v-btn to="/home" color="orange-darken-3" class="font-weight-bold text-none mt-6" rounded="lg">
+        Vai alla Home
       </v-btn>
     </div>
 
@@ -1723,237 +1720,8 @@
       </v-card>
     </v-dialog>
 
-    <!-- Dialog Impostazioni (Settings Panel) -->
-    <v-dialog v-model="dialogImpostazioni" max-width="480">
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
-        <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
-          <div class="d-flex align-center gap-2">
-            <v-icon color="orange-darken-3" size="22">mdi-cog-outline</v-icon>
-            <span class="text-subtitle-1 font-weight-black text-white">Opzioni e Impostazioni</span>
-          </div>
-          <v-btn icon variant="text" width="28" height="28" color="grey" @click="dialogImpostazioni = false">
-            <v-icon size="18">mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        
-        <v-card-text class="pa-4 text-slate font-weight-medium overflow-y-auto" style="font-size: 0.85rem; max-height: 70vh;">
-          <!-- Sezione 1: Densità Layout -->
-          <div class="mb-5">
-            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-2">📐 Densità del Layout Lista</span>
-            <v-btn-toggle
-              v-model="layoutEsercizi"
-              mandatory
-              selected-class="bg-orange-darken-3 text-white"
-              density="comfortable"
-              rounded="xl"
-              class="w-100 card-glass border mb-2"
-              style="height: 38px;"
-            >
-              <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-                Super Compatto
-              </v-btn>
-              <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-                Compatto
-              </v-btn>
-              <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-                Standard
-              </v-btn>
-            </v-btn-toggle>
-            <div class="text-super-caption text-muted font-italic leading-tight">
-              <template v-if="layoutEsercizi === 'super_compatto'">
-                * Super Compatto: Rimuove miniature (immagini/GIF) e capsule W1-W6 della cronologia per la massima densità (card da 50px).
-              </template>
-              <template v-else-if="layoutEsercizi === 'compatto'">
-                * Compatto: Miniature ridotte (48px), layout in linea e capsule W1-W6 compresse (card da 80px).
-              </template>
-              <template v-else>
-                * Standard: Layout esteso classico con miniature da 84px e capsule W1-W6 carichi complete.
-              </template>
-            </div>
-          </div>
-
-          <div class="mb-5">
-            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-2">📐 Densità del Layout Dettaglio</span>
-            <v-btn-toggle
-              v-model="layoutDettaglio"
-              mandatory
-              selected-class="bg-orange-darken-3 text-white"
-              density="comfortable"
-              rounded="xl"
-              class="w-100 card-glass border mb-2"
-              style="height: 38px;"
-            >
-              <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
-                Auto
-              </v-btn>
-              <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
-                Super Comp
-              </v-btn>
-              <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
-                Compatto
-              </v-btn>
-              <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
-                Standard
-              </v-btn>
-            </v-btn-toggle>
-            <div class="text-super-caption text-muted font-italic leading-tight">
-              <template v-if="layoutDettaglio === 'auto'">
-                * Auto: Segue la modalità scelta per la lista principale ({{ layoutEsercizi }}).
-              </template>
-              <template v-else-if="layoutDettaglio === 'super_compatto'">
-                * Super Compatto: Nasconde la GIF e riduce al minimo gli spazi/scritte nel dettaglio.
-              </template>
-              <template v-else-if="layoutDettaglio === 'compatto'">
-                * Standard: Layout esteso classico con GIF completa e spaziature originali.
-              </template>
-            </div>
-          </div>
-
-          <!-- Comportamento Tasto Play -->
-          <div class="mb-5">
-            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-2">▶️ Comportamento Tasto Play</span>
-            <v-btn-toggle
-              v-model="comportamentoPlay"
-              mandatory
-              selected-class="bg-orange-darken-3 text-white"
-              density="comfortable"
-              rounded="xl"
-              class="w-100 card-glass border mb-2"
-              style="height: 38px;"
-            >
-              <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-                Auto
-              </v-btn>
-              <v-btn value="dettaglio" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-                Dettaglio
-              </v-btn>
-              <v-btn value="evidenzia" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-                Evidenzia
-              </v-btn>
-            </v-btn-toggle>
-            <div class="text-super-caption text-muted font-italic leading-tight">
-              <template v-if="comportamentoPlay === 'auto'">
-                * Auto: Dettaglio in vista Compatta/Super e scorrimento in lista in vista Standard.
-              </template>
-              <template v-else-if="comportamentoPlay === 'dettaglio'">
-                * Dettaglio: Naviga sempre direttamente al dettaglio dell'esercizio.
-              </template>
-              <template v-else>
-                * Evidenzia: Scorre ed evidenzia sempre l'esercizio nella lista principale.
-              </template>
-            </div>
-          </div>
-
-          <v-divider class="mb-4" style="border-color: rgba(255,255,255,0.06) !important;"></v-divider>
-
-          <!-- Sezione 2: Parametri Fissi -->
-          <div class="mb-4 d-flex flex-column gap-3.5">
-            <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block mb-1">🏋️ Parametri Fissi di Allenamento</span>
-            
-            <!-- Peso Bilanciere Default -->
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <span class="text-body-2 font-weight-bold text-white d-block">Peso Bilanciere Default</span>
-                <span class="text-super-caption text-muted">Usato nel calcolatore dischi</span>
-              </div>
-              <div style="width: 130px;">
-                <v-select
-                  v-model="defaultBilanciere"
-                  :items="[
-                    { title: '20 kg (Olimpico)', value: 20 },
-                    { title: '15 kg (Femminile)', value: 15 },
-                    { title: '12 kg (Leggero)', value: 12 },
-                    { title: '10 kg (Junior)', value: 10 },
-                    { title: '0 kg (Manubri/Libero)', value: 0 }
-                  ]"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  rounded="lg"
-                  color="orange-darken-3"
-                  style="font-size: 0.8rem;"
-                ></v-select>
-              </div>
-            </div>
-
-            <!-- Feedback Tattile (Vibrazione) -->
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <span class="text-body-2 font-weight-bold text-white d-block">Vibrazione Tattile</span>
-                <span class="text-super-caption text-muted">Micro-feedback sui tasti ed inserimenti</span>
-              </div>
-              <div>
-                <v-switch
-                  v-model="vibrazioneAttiva"
-                  color="orange-darken-3"
-                  hide-details
-                  density="compact"
-                ></v-switch>
-              </div>
-            </div>
-
-            <!-- Tempo Default Recupero -->
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <span class="text-body-2 font-weight-bold text-white d-block">Durata Recupero Default</span>
-                <span class="text-super-caption text-muted">Se non specificato dall'esercizio</span>
-              </div>
-              <div style="width: 130px;">
-                <v-select
-                  v-model="defaultTimerRec"
-                  :items="[
-                    { title: '45 secondi', value: 45 },
-                    { title: '60 secondi (1m)', value: 60 },
-                    { title: '90 secondi (1m 30s)', value: 90 },
-                    { title: '120 secondi (2m)', value: 120 },
-                    { title: '150 secondi (2m 30s)', value: 150 },
-                    { title: '180 secondi (3m)', value: 180 }
-                  ]"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  rounded="lg"
-                  color="orange-darken-3"
-                  style="font-size: 0.8rem;"
-                ></v-select>
-              </div>
-            </div>
-
-            <!-- Tema Grafico Timer -->
-            <div class="d-flex align-center justify-space-between mt-3">
-              <div>
-                <span class="text-body-2 font-weight-bold text-white d-block">Tema Grafico Timer</span>
-                <span class="text-super-caption text-muted">Stile visivo del widget di recupero</span>
-              </div>
-              <div style="width: 175px;">
-                <v-select
-                  v-model="timerTheme"
-                  :items="[
-                    { title: 'Accent Dark & Glass', value: 'accent-dark' },
-                    { title: 'Orange Glow Premium', value: 'orange-glow' },
-                    { title: 'Solid Contrast Orange', value: 'solid-contrast' }
-                  ]"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  rounded="lg"
-                  color="orange-darken-3"
-                  style="font-size: 0.8rem;"
-                ></v-select>
-              </div>
-            </div>
-          </div>
 
 
-        </v-card-text>
-        
-        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
-          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogImpostazioni = false" style="height: 38px;">
-            Salva e Chiudi
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <!-- Pulsante Fluttuante Persistente Play rimosso da qui ed integrato a livello globale in App.vue -->
 
@@ -2479,38 +2247,10 @@ const schedaSelezionata = ref(selectedSheet.value);
 const giornoSelezionato = ref('A');
 
 // Stato Impostazioni e Personalizzazione (Salvate in LocalStorage)
-const dialogImpostazioni = ref(false);
 const layoutEsercizi = layoutEserciziGlobal;
 const layoutDettaglio = layoutDettaglioGlobal;
-const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
-const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
-const comportamentoPlay = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
-const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
 const timerTheme = timerThemeGlobal;
 
-
-// Salvataggio automatico al cambio
-watch(layoutEsercizi, (newVal) => {
-  localStorage.setItem('woapp_layout_esercizi', newVal);
-});
-watch(layoutDettaglio, (newVal) => {
-  localStorage.setItem('woapp_layout_dettaglio', newVal);
-});
-watch(defaultBilanciere, (newVal) => {
-  localStorage.setItem('woapp_default_bilanciere', String(newVal));
-});
-watch(vibrazioneAttiva, (newVal) => {
-  localStorage.setItem('woapp_vibrazione_attiva', String(newVal));
-});
-watch(comportamentoPlay, (newVal) => {
-  localStorage.setItem('woapp_comportamento_play', newVal);
-});
-watch(defaultTimerRec, (newVal) => {
-  localStorage.setItem('woapp_default_timer_rec', String(newVal));
-});
-watch(timerTheme, (newVal) => {
-  localStorage.setItem('woapp_timer_theme', newVal);
-});
 
 const caricamento = ref(true);
 const listaAllenamenti = ref([]);

@@ -172,26 +172,7 @@
 
     <!-- Contenuto Principale se selezionati -->
     <div v-else class="animate-fade-in">
-      <!-- Sub-Tabs Premium minimaliste (Stile Tab Pillole Compatte) -->
-      <v-tabs
-        v-model="subTab"
-        color="orange-darken-3"
-        align-tabs="center"
-        grow
-        height="38"
-        class="custom-dashboard-tabs rounded-xl border-soft"
-        :class="layoutEserciziGlobal === 'super_compatto' ? 'mb-2' : (layoutEserciziGlobal === 'compatto' ? 'mb-3' : 'mb-5')"
-        style="background: rgba(15, 23, 42, 0.4) !important;"
-      >
-        <v-tab value="dati" class="font-weight-black text-none" style="font-size: 0.72rem; letter-spacing: 0.05em; min-height: 38px;">DASHBOARD</v-tab>
-        <v-tab value="impostazioni" class="font-weight-black text-none" style="font-size: 0.72rem; letter-spacing: 0.05em; min-height: 38px;">CONFIGURAZIONE</v-tab>
-      </v-tabs>
-
-      <v-window v-model="subTab">
-        
-        <!-- WINDOW 1: DATI SCHEDA (DASHBOARD) -->
-        <v-window-item value="dati">
-          
+      
           <!-- Warning: Program not definitive ("da finire" flag is active) -->
           <v-card
             v-if="workoutTData && isTrue(workoutTData.flg_da_finire)"
@@ -546,68 +527,6 @@
           >
             📈 ANALISI PROGRESSIONI & REPORT
           </v-btn>
-        </v-window-item>
-
-        <!-- WINDOW 2: CONFIGURAZIONE SCHEDA -->
-        <v-window-item value="impostazioni">
-          <v-card 
-            class="premium-card rounded-2xl text-left border" 
-            :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-            elevation="2"
-          >
-            <h3 class="text-h6 font-weight-black text-slate-dark mb-4 d-flex align-center">
-              <v-icon color="orange-darken-3" class="mr-2">mdi-cog-outline</v-icon>
-              Configura Scheda Attiva
-            </h3>
-            
-            <!-- Pannello di Stato dell'Automazione -->
-            <div class="mb-6 pa-4 rounded-xl card-glass border text-left">
-              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase tracking-widest d-block mb-2" style="font-size: 0.6rem;">
-                STATO AUTOMATICO RILEVATO
-              </span>
-              <div class="d-flex align-center justify-space-between mb-2">
-                <span class="text-body-2 text-slate font-weight-bold">Settimana Attiva:</span>
-                <v-chip color="orange-darken-3" size="small" class="font-weight-black" variant="flat">
-                  SETTIMANA {{ settimanaAttiva }}
-                  <span v-if="settimanaAttiva === 6" class="ml-1 text-white font-weight-black"> (Ultima!)</span>
-                </v-chip>
-              </div>
-              <div class="d-flex align-center justify-space-between">
-                <span class="text-body-2 text-slate font-weight-bold">Allenamento Suggerito:</span>
-                <v-chip color="green-accent-4" size="small" class="font-weight-black text-white" variant="flat">
-                  GIORNO {{ giornoAttivo }}
-                </v-chip>
-              </div>
-              <div class="text-super-caption text-muted mt-3" style="font-size: 0.65rem; line-height: 1.3;">
-                ℹ️ La settimana attiva e il giorno di allenamento vengono calcolati automaticamente in base ai flag di completamento salvati nel database.
-              </div>
-            </div>
-
-            <!-- Caution Reset Panel -->
-            <div class="caution-panel pa-4 rounded-xl mt-6">
-              <div class="d-flex align-start">
-                <v-icon color="red-darken-2" class="mr-3 mt-1" size="24">mdi-alert-outline</v-icon>
-                <div class="text-left">
-                  <h4 class="text-caption font-weight-black text-red-lighten-2">Reset Dati di Carico</h4>
-                  <p class="text-super-caption text-muted mt-1" style="font-size: 0.65rem; line-height: 1.3; opacity: 0.9;">
-                    Questa operazione cancellerà in modo irreversibile tutti i carichi, i pesi e i commenti registrati per questa scheda (n.{{ schedaSelezionata }}).
-                  </p>
-                  <v-btn
-                    color="red-darken-3"
-                    variant="flat"
-                    size="small"
-                    class="font-weight-black text-none mt-3 rounded-lg text-white"
-                    @click="apriReset"
-                  >
-                    Resetta Master Workout
-                  </v-btn>
-                </div>
-              </div>
-            </div>
-          </v-card>
-        </v-window-item>
-
-      </v-window>
     </div>
 
     <!-- DIALOG POPUPS (Unificate stile Glassmorphism Premium) -->

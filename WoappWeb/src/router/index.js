@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Workouts from '../views/Workouts.vue'
 import Grafici from '../views/Grafici.vue'
-import Ricerca from '../views/Ricerca.vue'
 import { utente, ruolo } from '../authStore.js'
 
 const routes = [
   { path: '/', name: 'Workouts', component: Workouts },
-  { path: '/ricerca', name: 'Ricerca', component: Ricerca },
+  { path: '/ricerca', redirect: '/home' },
   { path: '/home', name: 'HomeWo', component: () => import('../views/Home.vue') },
   { path: '/grafici', name: 'Grafici', component: Grafici },
+  { path: '/impostazioni', name: 'Impostazioni', component: () => import('../views/Impostazioni.vue') },
   { path: '/workout/:id', name: 'DettaglioWorkout', component: () => import('../views/Dettaglio.vue'), props: true },
   { path: '/sessione/:id', name: 'DettaglioSessione', component: () => import('../views/Sessione.vue'), props: true },
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },

@@ -61,10 +61,12 @@
     <!-- Contenuto Principale -->
     <div v-else>
       
-      <!-- Sticky wrapper for the day selector tabs -->
       <div
         class="sticky-tabs-container"
-        :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3')"
+        :class="[
+          layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3'),
+          { 'super-compatto-tabs': layoutEsercizi === 'super_compatto' }
+        ]"
         :style="{ top: utente ? '48px' : '0px' }"
       >
         <div 
@@ -4527,6 +4529,10 @@ const recuperiRaggruppati = computed(() => {
   padding-top: 8px !important;
   padding-bottom: 8px !important;
   margin-top: -8px !important;
+}
+.sticky-tabs-container.super-compatto-tabs {
+  padding-top: 4px !important;
+  padding-bottom: 2px !important;
 }
 
 @keyframes pulse-active-icon {

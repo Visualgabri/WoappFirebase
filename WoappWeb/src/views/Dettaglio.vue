@@ -1932,6 +1932,43 @@
                 </div>
               </div>
 
+              <!-- STRATEGIE DI PROGRESSIONE ALTERNATIVE -->
+              <div v-if="!caricandoAiutoCarico && strategieProgressione.length > 0" class="mb-4 text-left">
+                <div class="text-super-caption text-muted font-weight-black uppercase mb-2 px-1" style="font-size: 0.58rem; letter-spacing: 0.05em;">
+                  🎯 Strategie di Progressione Consigliate
+                </div>
+                
+                <div class="d-flex flex-column gap-2">
+                  <div v-for="strat in strategieProgressione" :key="strat.tipo" 
+                       class="pa-2.5 rounded-lg border text-left bg-slate-900 d-flex flex-column gap-1"
+                       :style="{
+                         borderColor: strat.tipo === 'intensita' ? 'rgba(16, 185, 129, 0.3)' : (strat.tipo === 'micro' ? 'rgba(6, 182, 212, 0.3)' : 'rgba(249, 115, 22, 0.3)'),
+                         background: strat.tipo === 'intensita' ? 'rgba(16, 185, 129, 0.02)' : (strat.tipo === 'micro' ? 'rgba(6, 182, 212, 0.02)' : 'rgba(249, 115, 22, 0.02)')
+                       }">
+                    <div class="d-flex align-center justify-space-between" style="min-height: 24px;">
+                      <span class="font-weight-black text-caption text-slate-light" style="font-size: 0.72rem; letter-spacing: 0.02em;">
+                        {{ strat.titolo }}
+                      </span>
+                      <v-btn
+                        :color="strat.tipo === 'intensita' ? 'green-darken-2' : (strat.tipo === 'micro' ? 'cyan-darken-3' : 'orange-darken-3')"
+                        size="x-small"
+                        class="font-weight-black text-white px-2 text-none"
+                        rounded="md"
+                        style="font-size: 0.65rem; height: 22px;"
+                        @click="applicaPropostaCaricoStorico(strat.peso)"
+                      >
+                        Applica {{ formatWeight(strat.peso) }}kg
+                      </v-btn>
+                    </div>
+                    <div class="text-super-caption text-slate-light" style="font-size: 0.65rem; line-height: 1.45; text-transform: none;">
+                      Target: <span class="text-green-accent-3 font-weight-black">{{ formatWeight(strat.peso) }} kg x {{ strat.reps }} reps</span>
+                      <br/>
+                      <span v-html="renderMarkdownBold(strat.descrizione)"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Loader Caricamento Proposta -->
               <div v-if="caricandoAiutoCarico" class="text-center py-6">
                 <v-progress-circular indeterminate color="orange" size="32" class="mb-2"></v-progress-circular>
@@ -2389,9 +2426,18 @@ const getBaseWeekInfo = (sett) => {
       baseInsText = String(baseIns);
       const pStr = estraiPesoDaInput(baseIns);
       pesoBase = pStr ? parseFloat(pStr) : null;
+      
+      const repsEseguite = estraiRepsDaInput(baseIns);
+      if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0) {
+        repsBase = repsEseguite;
+      } else {
+        const repsVal = workout.value['reps_week' + baseWNum];
+        repsBase = repsVal ? parseInt(repsVal, 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
+      }
+    } else {
+      const repsVal = workout.value['reps_week' + baseWNum];
+      repsBase = repsVal ? parseInt(repsVal, 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
     }
-    const repsVal = workout.value['reps_week' + baseWNum];
-    repsBase = repsVal ? parseInt(repsVal, 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
   }
 
   const repsTargetVal = workout.value['reps_week' + sett];
@@ -2434,7 +2480,11 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
             const weight = parseFloat(weightStr);
             if (!isNaN(weight) && weight > 0) {
               const repsVal = prevEx['reps_week' + w];
-              const repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+              let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+              const inputReps = estraiRepsDaInput(insVal);
+              if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
+                repsNum = inputReps;
+              }
               if (repsNum && repsNum > 0) {
                 const isSameWeek = w === targetW;
                 const isPeakWeek = w === 6;
@@ -2555,7 +2605,11 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
         const weight = parseFloat(weightStr);
         if (!isNaN(weight) && weight > 0) {
           const repsVal = workout.value['reps_week' + w];
-          const repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(workout.value['des_week' + w]);
+          let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(workout.value['des_week' + w]);
+          const inputReps = estraiRepsDaInput(insVal);
+          if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
+            repsNum = inputReps;
+          }
           if (repsNum && repsNum > 0) {
             // Calcolo progressione diretta mesociclo attuale
             const rirOriginale = estraiRIRDaPrescrizione(workout.value['des_week' + w]) !== null 
@@ -2810,6 +2864,73 @@ const spiegazioneDinamicaConsigliata = computed(() => {
   } else {
     return `🎯 La progressione programmata coincide perfettamente con la stima della tua forza attuale: ${consigliato} kg.`;
   }
+});
+
+const renderMarkdownBold = (text) => {
+  if (!text) return '';
+  return String(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+};
+
+const strategieProgressione = computed(() => {
+  if (!workout.value) return [];
+  const sett = aiutoWeek.value;
+  const ghost = getGhostLiftSmart(sett);
+  if (!ghost || ghost.isRepExercise) return [];
+
+  const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
+  
+  // Estrai reps base dall'input o dalla prescrizione
+  let repsBaseVal = estraiRepsDaInput(ghost.text);
+  if (repsBaseVal === null || isNaN(repsBaseVal) || repsBaseVal <= 0) {
+    const baseW = propostaBaseWeek5.value; // e.g. "W3"
+    const baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
+    repsBaseVal = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
+  }
+  
+  const repsTarget = workout.value['reps_week' + sett] ? parseInt(workout.value['reps_week' + sett], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + sett]) || 10);
+  
+  // Calcola peso proposto standard
+  const pesoProposto = ghost.isPostScarico && ghost.pesoProposto !== undefined ? ghost.pesoProposto : ghost.peso;
+
+  // Mostriamo le strategie solo se c'è una proposta di incremento peso rispetto al base
+  if (pesoProposto <= pesoBase) {
+    return [];
+  }
+
+  // 1. Intensità (Standard)
+  const intensita = {
+    tipo: 'intensita',
+    titolo: '🚀 Intensità (Standard)',
+    peso: pesoProposto,
+    reps: repsTarget,
+    descrizione: `Aumenta il carico a **${formatWeight(pesoProposto)} kg** per **${repsTarget}** ripetizioni (stima basata sulla tua performance).`
+  };
+
+  // 2. Micro-carico (Graduale)
+  let pesoMicro = pesoBase + (pesoProposto - pesoBase) / 2;
+  pesoMicro = Math.round(pesoMicro / 0.25) * 0.25;
+  if (pesoMicro <= pesoBase) pesoMicro = pesoBase + 0.5;
+  if (pesoMicro >= pesoProposto) pesoMicro = Math.max(pesoBase, pesoProposto - 0.5);
+
+  const micro = {
+    tipo: 'micro',
+    titolo: '⚖️ Micro-carico (Graduale)',
+    peso: pesoMicro,
+    reps: repsTarget,
+    descrizione: `Aumenta leggermente a **${formatWeight(pesoMicro)} kg** per **${repsTarget}** ripetizioni (ideale se disponi di micro-carichi o frazionali).`
+  };
+
+  // 3. Volume (Aumento Ripetizioni)
+  const repsVolume = Math.max(repsTarget + 1, repsBaseVal + 1);
+  const volume = {
+    tipo: 'volume',
+    titolo: '📈 Volume (Più Ripetizioni)',
+    peso: pesoBase,
+    reps: repsVolume,
+    descrizione: `Mantieni lo stesso peso di **${formatWeight(pesoBase)} kg**, ma punta a eseguire **${repsVolume}** ripetizioni per generare sovraccarico di volume.`
+  };
+
+  return [intensita, micro, volume];
 });
 
 const apriAiutoCaricoDettagliato = async (sett) => {
@@ -3260,7 +3381,10 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   const pesoBase = parseFloat(pesoStr);
   if (isNaN(pesoBase) || pesoBase <= 0) return null;
   
-  const repsBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
+  let repsBase = estraiRepsDaInput(baseInsText);
+  if (repsBase === null || isNaN(repsBase) || repsBase <= 0) {
+    repsBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
+  }
   const repsTarget = workout.value['reps_week' + targetWeek] ? parseInt(workout.value['reps_week' + targetWeek], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10);
   
   // Estrai RIR della settimana base
@@ -5173,10 +5297,10 @@ const METODI_ALLENAMENTO = {
 };
 
 // Helper to format numbers with comma as decimal separator (Italian locale)
-const formatWeight = (val) => {
+function formatWeight(val) {
   if (val === null || val === undefined) return '';
   return String(val).replace('.', ',');
-};
+}
 
 const getGhostLift = (sett) => {
   if (!workout.value) return null;
@@ -5555,10 +5679,34 @@ const getGhostFieldClass = (sett) => {
   return ''; // Resta grigio spento solo se completamente vuoto
 };
 
-const estraiPesoDaInput = (str) => {
+function estraiRepsDaInput(str) {
+  if (!str) return null;
+  const clean = String(str).replace(/,/g, '.').trim();
+  
+  // Rileva formato tipo "12x14r" o "12x14" (dove dopo la x non c'è un altro numero significativo)
+  const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
+  if (matchX) {
+    return parseFloat(matchX[2]);
+  }
+  
+  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
+  if (matchR) {
+    return parseFloat(matchR[1]);
+  }
+  
+  return null;
+}
+
+function estraiPesoDaInput(str) {
   if (!str) return null;
   
   let clean = str.replace(/,/g, '.').trim();
+  
+  // Rileva formato tipo "12x14r" o "12x14" (dove dopo la x non c'è un altro numero significativo)
+  const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
+  if (matchX) {
+    return matchX[1];
+  }
   
   // 1. Rimuoviamo il prefisso delle reps (es. "3x10", "4 x 12")
   const repsPrefixRegex = /^\s*\d+\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g;

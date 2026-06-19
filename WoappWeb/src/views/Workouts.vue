@@ -64,15 +64,18 @@
       <div
         class="sticky-tabs-container"
         :class="[
-          layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3'),
-          { 'super-compatto-tabs': layoutEsercizi === 'super_compatto' }
+          layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-1' : 'mb-1.5'),
+          { 
+            'super-compatto-tabs': layoutEsercizi === 'super_compatto',
+            'compatto-tabs': layoutEsercizi === 'compatto'
+          }
         ]"
         :style="{ top: utente ? '48px' : '0px' }"
       >
         <div 
           v-if="!caricamento && listaGiorniDisponibili.length > 0"
           class="card-glass rounded-xl text-center font-weight-black tracking-widest"
-          :class="layoutEsercizi === 'super_compatto' ? 'mb-1' : (layoutEsercizi === 'compatto' ? 'mb-1' : 'mb-1.5')"
+          :class="layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-0.75' : 'mb-1')"
           :style="settimanaAttiva === 6 ? 'font-size: 0.65rem; border: 1.5px solid rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; padding: 6px 4px;' : 'font-size: 0.62rem; border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px 4px;'"
           style="color: rgba(255, 255, 255, 0.6);"
         >
@@ -4530,8 +4533,12 @@ const recuperiRaggruppati = computed(() => {
   padding-bottom: 8px !important;
   margin-top: -8px !important;
 }
+.sticky-tabs-container.compatto-tabs {
+  padding-top: 5px !important;
+  padding-bottom: 4px !important;
+}
 .sticky-tabs-container.super-compatto-tabs {
-  padding-top: 4px !important;
+  padding-top: 3px !important;
   padding-bottom: 2px !important;
 }
 

@@ -5681,9 +5681,14 @@ const getGhostFieldClass = (sett) => {
 
 function estraiRepsDaInput(str) {
   if (!str) return null;
-  const clean = String(str).replace(/,/g, '.').trim();
+  let clean = String(str).replace(/,/g, '.').trim();
   
-  // Rileva formato tipo "12x14r" o "12x14" (dove dopo la x non c'è un altro numero significativo)
+  // Rimuove espressioni di impostazioni/metadati per evitare interferenze
+  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo)\b\s*\d+(?:\.\d+)?/gi;
+  clean = clean.replace(cleanSettingsRegex, '').trim();
+  clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
+  
+  // Rileva formato tipo "12x14r" o "12x14"
   const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
   if (matchX) {
     return parseFloat(matchX[2]);
@@ -5702,7 +5707,14 @@ function estraiPesoDaInput(str) {
   
   let clean = str.replace(/,/g, '.').trim();
   
-  // Rileva formato tipo "12x14r" o "12x14" (dove dopo la x non c'è un altro numero significativo)
+  // Rimuove espressioni di impostazioni/metadati (es. "PIN 12", "buco 3") per evitare che interferiscano
+  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo)\b\s*\d+(?:\.\d+)?/gi;
+  clean = clean.replace(cleanSettingsRegex, '').trim();
+  
+  // Rimuove gradi (es. "30°")
+  clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
+
+  // Rileva formato tipo "12x14r" o "12x14" (ora che è pulito)
   const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
   if (matchX) {
     return matchX[1];

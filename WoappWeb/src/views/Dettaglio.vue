@@ -1716,7 +1716,7 @@
 
     <!-- Dialog 3: Riepilogo Storico Esercizi (Cronologia) -->
     <!-- Dialog 3: Riepilogo Storico e Proposta Carico Unificati (Analisi Esercizio) -->
-    <v-dialog v-model="dialogStorico" :max-width="activeTabAnalisi === 0 ? 550 : (stileStorico === 'tabella' ? 1200 : 650)" scrollable>
+    <v-dialog v-model="dialogStorico" :max-width="activeTabAnalisi === 0 ? 550 : (stileStorico === 'tabella' ? 1200 : (stileStorico === 'grafico' ? 700 : 650))" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
         <v-card-title class="pa-0 border-bottom bg-slate-900">
           <!-- Rigo 1: Titolo e Chiudi -->
@@ -1838,12 +1838,16 @@
               style="height: 28px;"
             >
               <!-- TABELLA PRIMO -->
-              <v-btn value="tabella" class="px-2" style="min-width: 45px; height: 28px;" title="Vista a Tabella">
+              <v-btn value="tabella" class="px-2" style="min-width: 40px; height: 28px;" title="Vista a Tabella">
                 <v-icon size="18">mdi-table</v-icon>
               </v-btn>
               <!-- TIMELINE SECONDO -->
-              <v-btn value="timeline" class="px-2" style="min-width: 45px; height: 28px;" title="Vista a Lista">
+              <v-btn value="timeline" class="px-2" style="min-width: 40px; height: 28px;" title="Vista a Lista">
                 <v-icon size="18">mdi-view-sequential</v-icon>
+              </v-btn>
+              <!-- GRAFICO TERZO -->
+              <v-btn value="grafico" class="px-2" style="min-width: 40px; height: 28px;" title="Vista Grafico">
+                <v-icon size="18">mdi-chart-line</v-icon>
               </v-btn>
             </v-btn-toggle>
           </div>
@@ -2273,7 +2277,7 @@
             </div>
 
             <!-- LAYOUT 2: TABELLA MATRICE -->
-            <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0" ref="storicoTableContainer" class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto scrollbar-hidden">
+            <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'tabella'" ref="storicoTableContainer" class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto scrollbar-hidden">
               <table class="premium-storico-table" style="width: 1740px; table-layout: fixed; border-collapse: collapse;">
                 <thead>
                   <tr>
@@ -2324,6 +2328,44 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <!-- LAYOUT 3: GRAFICO DELLE PROGRESSIONI -->
+            <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'grafico'" class="d-flex flex-column gap-3 py-1">
+              <!-- Selettore Modalità Grafico -->
+              <div class="px-1 text-left">
+                <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">Modalità Grafico (Tutte le Reps)</span>
+                <v-btn-toggle
+                  v-model="modeGraficoStorico"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  density="compact"
+                  rounded="lg"
+                  class="card-glass border w-100"
+                  style="height: 32px;"
+                >
+                  <v-btn value="A" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    A: Linee + 1RM
+                  </v-btn>
+                  <v-btn value="B" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    B: Punti + 1RM
+                  </v-btn>
+                  <v-btn value="C" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    C: Linea Unica
+                  </v-btn>
+                </v-btn-toggle>
+              </div>
+
+              <!-- Contenitore Grafico Line -->
+              <div class="bg-slate-950 border border-soft rounded-xl pa-3" style="background-color: rgba(15, 23, 42, 0.5) !important;">
+                <div v-if="storicoChartReady" style="position: relative; height: 280px; width: 100%;">
+                  <Line :data="storicoChartData" :options="storicoChartOptions" />
+                </div>
+                <div v-else class="text-center py-12 text-muted text-caption">
+                  <v-progress-circular indeterminate color="orange" size="24" class="mb-2"></v-progress-circular>
+                  <p class="mb-0">Elaborazione dati del grafico in corso...</p>
+                </div>
+              </div>
             </div>
           </div>
         </v-card-text>
@@ -2444,6 +2486,31 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal } from '../authStore.js';
+
+// Chart.js e vue-chartjs per lo storico esercizio
+import { Line } from 'vue-chartjs';
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  Filler
+} from 'chart.js';
+
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  Filler
+);
 
 const route = useRoute();
 const router = useRouter();
@@ -3528,6 +3595,36 @@ const modificaForm = ref({
   des_week6: ''
 });
 const dialogStorico = ref(false);
+
+// Grafico Storico Esercizio
+const modeGraficoStorico = ref('A'); // 'A', 'B', 'C'
+const storicoChartData = ref({ labels: [], datasets: [] });
+const storicoChartReady = ref(false);
+const rawPointsLocal = ref([]);
+
+const parseWeightLocal = (val) => {
+  if (!val) return 0;
+  const clean = String(val).replace(/,/g, '.').trim();
+  if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+  const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+  const parts = cleanNum.split(/\s+/);
+  const num = parseFloat(parts[0]);
+  return isNaN(num) ? 0 : num;
+};
+
+const parseRepsLocal = (val) => {
+  if (!val) return 0;
+  const clean = String(val).replace(/,/g, '.').trim();
+  if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) {
+    const num = parseInt(clean);
+    return isNaN(num) ? 0 : num;
+  }
+  const cleanNum = clean.replace(/[^\d]/g, ' ').trim();
+  const parts = cleanNum.split(/\s+/);
+  const num = parseInt(parts[0]);
+  return isNaN(num) ? 0 : num;
+};
+
 const dialogGifFullScreen = ref(false);
 const eliminandoEsercizio = ref(false);
 const caricandoStorico = ref(false);
@@ -7191,8 +7288,235 @@ const caricaDatiAnalisi = async (sett) => {
   } finally {
     caricandoStorico.value = false;
     caricandoAiutoCarico.value = false;
+    rigeneraGraficoStorico();
   }
 };
+
+// Logica di Generazione del Grafico Storico Esercizio
+const rigeneraGraficoStorico = () => {
+  storicoChartReady.value = false;
+  if (!storicoFiltrato.value || storicoFiltrato.value.length === 0) {
+    return;
+  }
+  
+  const dataPoints = [];
+  
+  storicoFiltrato.value.forEach(prevEx => {
+    const numScheda = String(prevEx.num_scheda || '').trim();
+    for (let wNum = 1; wNum <= 6; wNum++) {
+      const rawIns = prevEx[`ins_week${wNum}`];
+      const peso = parseWeightLocal(rawIns);
+      if (peso > 0) {
+        let reps = 0;
+        if (prevEx[`reps_week${wNum}`]) {
+          reps = parseRepsLocal(prevEx[`reps_week${wNum}`]);
+        } else if (prevEx[`des_week${wNum}`]) {
+          reps = estraiRepsDaPrescrizione(prevEx[`des_week${wNum}`]);
+        }
+        
+        if (reps > 0) {
+          const e1rm = parseFloat((peso * (1 + reps / 30)).toFixed(1));
+          dataPoints.push({
+            label: `S.${numScheda}-W${wNum}`,
+            peso: peso,
+            reps: reps,
+            e1rm: e1rm
+          });
+        }
+      }
+    }
+  });
+  
+  rawPointsLocal.value = dataPoints;
+  
+  const labels = dataPoints.map(p => p.label);
+  const datasets = [];
+  
+  if (modeGraficoStorico.value === 'A') {
+    const repsGroups = {};
+    dataPoints.forEach(p => {
+      repsGroups[p.reps] = true;
+    });
+    const repsCounts = Object.keys(repsGroups).map(Number).sort((a, b) => a - b);
+    const colors = ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
+    
+    repsCounts.forEach((r, idx) => {
+      const data = labels.map(lbl => {
+        const pt = dataPoints.find(p => p.label === lbl && p.reps === r);
+        return pt ? pt.peso : null;
+      });
+      const color = colors[idx % colors.length];
+      datasets.push({
+        label: `${r} reps`,
+        data: data,
+        borderColor: color,
+        backgroundColor: color + '15',
+        borderWidth: 2.5,
+        pointBackgroundColor: color,
+        pointBorderColor: '#ffffff',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false,
+        spanGaps: true,
+        showLine: true
+      });
+    });
+    
+    const data1RM = dataPoints.map(p => p.e1rm);
+    datasets.push({
+      label: 'Massimale stimato (1RM)',
+      data: data1RM,
+      borderColor: 'rgba(255, 255, 255, 0.4)',
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderDash: [5, 5],
+      pointBackgroundColor: 'rgba(255, 255, 255, 0.6)',
+      pointBorderColor: 'transparent',
+      pointRadius: 2,
+      pointHoverRadius: 4,
+      fill: false,
+      spanGaps: true
+    });
+  } else if (modeGraficoStorico.value === 'B') {
+    const repsGroups = {};
+    dataPoints.forEach(p => {
+      repsGroups[p.reps] = true;
+    });
+    const repsCounts = Object.keys(repsGroups).map(Number).sort((a, b) => a - b);
+    const colors = ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
+    
+    repsCounts.forEach((r, idx) => {
+      const data = labels.map(lbl => {
+        const pt = dataPoints.find(p => p.label === lbl && p.reps === r);
+        return pt ? pt.peso : null;
+      });
+      const color = colors[idx % colors.length];
+      datasets.push({
+        label: `${r} reps`,
+        data: data,
+        borderColor: color,
+        backgroundColor: color,
+        borderWidth: 0,
+        pointBackgroundColor: color,
+        pointBorderColor: '#ffffff',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: false,
+        showLine: false
+      });
+    });
+    
+    const data1RM = dataPoints.map(p => p.e1rm);
+    datasets.push({
+      label: 'Massimale stimato (1RM)',
+      data: data1RM,
+      borderColor: '#22c55e',
+      backgroundColor: 'rgba(34, 197, 94, 0.05)',
+      borderWidth: 2,
+      pointBackgroundColor: '#16a34a',
+      pointBorderColor: '#ffffff',
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      fill: true,
+      spanGaps: true,
+      showLine: true
+    });
+  } else if (modeGraficoStorico.value === 'C') {
+    const labelsWithReps = dataPoints.map(p => `${p.label} (${p.reps}r)`);
+    const dataCarico = dataPoints.map(p => p.peso);
+    
+    datasets.push({
+      label: 'Carico sollevato',
+      data: dataCarico,
+      borderColor: '#f97316',
+      backgroundColor: 'rgba(249, 115, 22, 0.1)',
+      borderWidth: 3,
+      pointBackgroundColor: '#ea580c',
+      pointBorderColor: '#ffffff',
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      fill: true,
+      tension: 0.15
+    });
+    
+    storicoChartData.value = {
+      labels: labelsWithReps,
+      datasets: datasets
+    };
+    storicoChartReady.value = true;
+    return;
+  }
+  
+  storicoChartData.value = {
+    labels: labels,
+    datasets: datasets
+  };
+  storicoChartReady.value = true;
+};
+
+const storicoChartOptions = ref({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top',
+      labels: {
+        color: '#cbd5e1',
+        boxWidth: 8,
+        font: { size: 9, weight: 'bold' }
+      }
+    },
+    tooltip: {
+      callbacks: {
+        label: function(context) {
+          const index = context.dataIndex;
+          const datasetIndex = context.datasetIndex;
+          const label = context.dataset.label;
+          const val = context.raw;
+          if (val === null) return null;
+          
+          if (modeGraficoStorico.value === 'C') {
+            const pt = rawPointsLocal.value[index];
+            if (pt) {
+              return ` Peso: ${pt.peso} kg (${pt.reps} reps) | 1RM: ${pt.e1rm} kg`;
+            }
+          } else {
+            if (label.includes('reps')) {
+              return ` Carico: ${val} kg`;
+            } else if (label.includes('1RM')) {
+              return ` 1RM Stimato: ${val} kg`;
+            }
+          }
+          return ` ${label}: ${val} kg`;
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: {
+        color: '#94a3b8',
+        font: { weight: 'bold', size: 8 }
+      }
+    },
+    y: {
+      grid: { color: 'rgba(255, 255, 255, 0.08)' },
+      ticks: {
+        color: '#94a3b8',
+        callback: function(value) {
+          return value + ' kg';
+        }
+      }
+    }
+  }
+});
+
+watch([stileStorico, modeGraficoStorico, storicoFiltrato], () => {
+  if (stileStorico.value === 'grafico') {
+    rigeneraGraficoStorico();
+  }
+});
 
 // Funzione scroll per lo storico
 function eseguiScrollStorico() {

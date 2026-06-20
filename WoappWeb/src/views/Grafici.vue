@@ -268,7 +268,8 @@ import {
   LinearScale,
   PointElement,
   LineElement,
-  ArcElement
+  ArcElement,
+  Filler
 } from 'chart.js';
 
 ChartJS.register(
@@ -280,7 +281,8 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
-  ArcElement
+  ArcElement,
+  Filler
 );
 
 // Stato principale

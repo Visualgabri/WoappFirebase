@@ -646,9 +646,12 @@ const mostraDialogAvvisoChiusura = ref(false);
 
 const cliccaPlayGlobale = () => {
   vibraTattile(12);
+  console.log('[Play - App.vue] CliccaPlayGlobale triggered.');
   if (globalSettimanaDaChiudere.value && !globalHaEserciziDaFare.value) {
+    console.log('[Play - App.vue] Settimana da chiudere dialog shown.');
     mostraDialogAvvisoChiusura.value = true;
   } else {
+    console.log('[Play - App.vue] Executing eseguiAzionePlay.');
     eseguiAzionePlay();
   }
 };
@@ -659,9 +662,12 @@ const confermaVaiAlWorkout = () => {
 };
 
 const eseguiAzionePlay = () => {
+  console.log('[Play - App.vue] Current route name:', router.currentRoute.value.name);
   if (router.currentRoute.value.name === 'Workouts') {
+    console.log('[Play - App.vue] triggerPlayClick incremented.');
     triggerPlayClick();
   } else {
+    console.log('[Play - App.vue] Redirecting to / with scroll flag.');
     localStorage.setItem('scrollPrimoEsercizioDaFare', 'true');
     router.push('/');
   }

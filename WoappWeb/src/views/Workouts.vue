@@ -3207,14 +3207,18 @@ watch(mostraPromemoriaChiusura, (newVal) => {
   setGlobalSettimanaDaChiudere(newVal);
 }, { immediate: true });
 
-watch(playClickTrigger, () => {
+watch(() => playClickTrigger.value, () => {
+  console.log('[Play - Workouts.vue] playClickTrigger watcher fired. Current value:', playClickTrigger.value);
   // Se il giorno selezionato ha ancora esercizi da fare, rimaniamo su questo giorno
   if (haEserciziDaFare.value) {
+    console.log('[Play - Workouts.vue] haEserciziDaFare is true, calling vaiAlPrimoEsercizioDaFare()');
     vaiAlPrimoEsercizioDaFare();
     return;
   }
   const giornoGiusto = determinaGiornoAttivo();
+  console.log('[Play - Workouts.vue] haEserciziDaFare is false. Active day determined:', giornoGiusto);
   if (giornoSelezionato.value !== giornoGiusto) {
+    console.log(`[Play - Workouts.vue] Switching day from ${giornoSelezionato.value} to ${giornoGiusto}`);
     giornoSelezionato.value = giornoGiusto;
     salvaGiornoSelezionato(giornoGiusto);
     nextTick(() => {
@@ -3223,6 +3227,7 @@ watch(playClickTrigger, () => {
       }, 400);
     });
   } else {
+    console.log('[Play - Workouts.vue] Day is already active, calling vaiAlPrimoEsercizioDaFare()');
     vaiAlPrimoEsercizioDaFare();
   }
 });
@@ -3254,6 +3259,7 @@ const vaiAlPrimoEsercizioDaFare = () => {
       const tryScroll = () => {
         const el = document.getElementById('esercizio-' + daFare.id);
         if (el) {
+          console.log(`[Play - Evidenzia] Elemento esercizio-${daFare.id} trovato al tentativo ${retries}. Scorrimento in corso...`);
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           el.classList.add('highlight-exercise');
           setTimeout(() => {
@@ -3262,6 +3268,8 @@ const vaiAlPrimoEsercizioDaFare = () => {
         } else if (retries < 15) {
           retries++;
           setTimeout(tryScroll, 80);
+        } else {
+          console.warn(`[Play - Evidenzia] Impossibile trovare elemento esercizio-${daFare.id} dopo 15 tentativi.`);
         }
       };
       tryScroll();
@@ -3272,6 +3280,7 @@ const vaiAlPrimoEsercizioDaFare = () => {
     const tryScrollComplete = () => {
       const el = document.getElementById('btn-completa-giorno');
       if (el) {
+        console.log(`[Play - Evidenzia] Bottone completa giorno trovato al tentativo ${retries}. Scorrimento in corso...`);
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         el.classList.add('highlight-exercise');
         setTimeout(() => {
@@ -3280,6 +3289,8 @@ const vaiAlPrimoEsercizioDaFare = () => {
       } else if (retries < 15) {
         retries++;
         setTimeout(tryScrollComplete, 80);
+      } else {
+        console.warn(`[Play - Evidenzia] Impossibile trovare bottone completa giorno dopo 15 tentativi.`);
       }
     };
     tryScrollComplete();
@@ -4647,22 +4658,59 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: none !important;
 }
 
-@keyframes highlight-glow {
+@keyframes pulse-glow-pseudo {
   0% {
-    background: rgba(249, 115, 22, 0.45) !important;
-    box-shadow: 0 0 20px rgba(249, 115, 22, 0.6) !important;
-    border-color: rgba(249, 115, 22, 0.6) !important;
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+    border-color: rgba(249, 115, 22, 0);
+    background-color: rgba(249, 115, 22, 0);
+  }
+  15% {
+    opacity: 1;
+    box-shadow: 0 0 25px rgba(249, 115, 22, 0.7);
+    border-color: rgba(249, 115, 22, 0.9);
+    background-color: rgba(249, 115, 22, 0.15);
+  }
+  45% {
+    opacity: 0.6;
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+    border-color: rgba(249, 115, 22, 0.6);
+    background-color: rgba(249, 115, 22, 0.08);
+  }
+  75% {
+    opacity: 1;
+    box-shadow: 0 0 25px rgba(249, 115, 22, 0.7);
+    border-color: rgba(249, 115, 22, 0.9);
+    background-color: rgba(249, 115, 22, 0.15);
   }
   100% {
-    background: var(--card-bg-glass) !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
-    border-color: var(--card-border) !important;
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+    border-color: rgba(249, 115, 22, 0);
+    background-color: rgba(249, 115, 22, 0);
   }
 }
+
 .highlight-exercise {
-  animation: highlight-glow 1.5s ease-out;
-  border-radius: 8px !important;
+  position: relative !important;
+  transform: scale(1.02) !important;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
+
+.highlight-exercise::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 2px solid transparent;
+  z-index: 10;
+  animation: pulse-glow-pseudo 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 
 /* Swipe transitions */
 .swipe-transition-wrapper {

@@ -3141,71 +3141,33 @@ const getGhostWeightsRangeForWeek = (sett) => {
       medio = baseP;
       max = isManubri ? Math.ceil((baseP * 1.05) / step) * step : Math.round((baseP * 1.05) / step) * step;
     } else {
-      // Caso standard
+      // Caso standard: allineamento con Intensità (pesoProposto) e Volume (pesoBase)
       const info = getBaseWeekInfo(sett);
       if (!info || info.pesoBase === null || isNaN(info.pesoBase)) return null;
       
       const pesoBase = info.pesoBase;
-      const repsBase = info.repsBase;
-      const baseWNum = info.baseWNum;
-
-      const rirBaseStr = estraiRIRDaPrescrizione(workout.value['des_week' + baseWNum]);
-      const rirBase = rirBaseStr !== null ? rirBaseStr : getRIRDefault(baseWNum);
-      const rirTargetStr = estraiRIRDaPrescrizione(workout.value['des_week' + sett]);
-      const rirTarget = rirTargetStr !== null ? rirTargetStr : getRIRDefault(sett);
-
-      // 1. Modello Fisso (Minimo)
-      const estimated1RM_fisso = pesoBase * (1 + (repsBase + rirBase) / 30);
-      let pesoFisso = estimated1RM_fisso / (1 + (repsTarget + rirTarget) / 30);
-      pesoFisso = isManubri ? Math.floor(pesoFisso / step) * step : Math.round(pesoFisso / step) * step;
-
-      // 2. Modello Dinamico (Massimo)
-      const pctIncremento = calcolaIncrementoDinamicoMedio(sett);
-      const fattoreBase = 1 + (repsBase + rirBase) / 30;
-      const fattoreTarget = 1 + (repsTarget + rirTarget) / 30;
-      let pesoDinamico = pesoBase * (1 + pctIncremento) * (fattoreBase / fattoreTarget);
-
-      if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTarget) {
-        if (repsBase > repsTarget) {
-          const diffReps = repsBase - repsTarget;
-          const boostFactor = 1 + (diffReps * 0.015);
-          pesoDinamico = pesoBase + (pesoDinamico - pesoBase) * boostFactor;
+      const pesoProposto = (ghost.isPostScarico && ghost.pesoProposto !== undefined) ? ghost.pesoProposto : (ghost.peso || pesoBase);
+      
+      if (pesoProposto > pesoBase) {
+        min = pesoBase;
+        max = pesoProposto;
+        
+        // Il consigliato è la via di mezzo calcolata dall'applicazione
+        const consigliatoVal = getCaricoConsigliatoViaDiMezzoForWeek(sett);
+        if (consigliatoVal !== null && consigliatoVal > min && consigliatoVal < max) {
+          medio = consigliatoVal;
         } else {
-          const diffReps = repsTarget - repsBase;
-          const penaltyFactor = Math.max(0, 1 - (diffReps * 0.2));
-          pesoDinamico = pesoBase + (pesoDinamico - pesoBase) * penaltyFactor;
-          if (pesoDinamico > pesoBase) {
-            pesoDinamico = pesoBase;
-          }
+          let avg = (min + max) / 2;
+          medio = Math.round(avg / step) * step;
+          if (medio < min) medio = min;
+          if (medio > max) medio = max;
         }
+      } else {
+        // Se non c'è proposta di incremento del peso, applichiamo la progressione reps sul peso base
+        min = pesoBase;
+        medio = pesoBase;
+        max = pesoBase;
       }
-      pesoDinamico = isManubri ? Math.ceil(pesoDinamico / step) * step : Math.round(pesoDinamico / step) * step;
-
-      if (pesoFisso < pesoBase) pesoFisso = pesoBase;
-      if (pesoDinamico < pesoBase) pesoDinamico = pesoBase;
-
-      const minSoglia = isManubri ? Math.floor((pesoBase * 0.90) / step) * step : Math.round((pesoBase * 0.90) / step) * step;
-      if (pesoFisso < minSoglia) pesoFisso = minSoglia;
-      if (pesoDinamico < minSoglia) pesoDinamico = minSoglia;
-
-      let ratioDinamico = 0.5;
-      if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTarget) {
-        if (repsBase > repsTarget) {
-          ratioDinamico = 0.8;
-        } else {
-          ratioDinamico = 0.2;
-        }
-      }
-
-      let pesoIbrido = (ratioDinamico * pesoDinamico) + ((1 - ratioDinamico) * pesoFisso);
-      pesoIbrido = Math.round(pesoIbrido / step) * step;
-
-      if (pesoIbrido < pesoFisso) pesoIbrido = pesoFisso;
-      if (pesoIbrido > pesoDinamico) pesoDinamico = pesoIbrido;
-
-      min = pesoFisso;
-      medio = pesoIbrido;
-      max = pesoDinamico;
     }
   }
 

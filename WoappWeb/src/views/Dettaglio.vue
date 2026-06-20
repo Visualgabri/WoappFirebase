@@ -2356,6 +2356,60 @@
                 </v-btn-toggle>
               </div>
 
+              <!-- Selettore Raggruppamento Reps -->
+              <div class="px-1 text-left">
+                <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">Raggruppamento Reps</span>
+                <v-btn-toggle
+                  v-model="raggruppamentoReps"
+                  mandatory
+                  selected-class="bg-orange-darken-3 text-white"
+                  density="compact"
+                  rounded="lg"
+                  class="card-glass border w-100"
+                  style="height: 32px;"
+                >
+                  <v-btn value="esatto" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    Esatto
+                  </v-btn>
+                  <v-btn value="zone" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    Zone
+                  </v-btn>
+                  <v-btn value="fasce" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    Fasce (3r)
+                  </v-btn>
+                </v-btn-toggle>
+              </div>
+
+              <!-- Filtro Reps (Multi-selezione) -->
+              <div v-if="availableBuckets.length > 0" class="px-1 text-left">
+                <div class="d-flex align-center justify-space-between mb-1.5">
+                  <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.55rem; letter-spacing: 0.05em;">Filtra Reps</span>
+                  <v-btn 
+                    variant="text" 
+                    color="orange-lighten-2" 
+                    class="px-1 py-0 text-none font-weight-black" 
+                    style="font-size: 0.58rem; height: 16px; min-width: auto;"
+                    @click="toggleAllBuckets"
+                  >
+                    {{ selectedBuckets.length === availableBuckets.length ? 'Deseleziona Tutti' : 'Seleziona Tutti' }}
+                  </v-btn>
+                </div>
+                <div class="d-flex align-center gap-1.5 overflow-x-auto pb-1 scrollbar-hidden" style="white-space: nowrap;">
+                  <v-chip
+                    v-for="b in availableBuckets"
+                    :key="b"
+                    :color="selectedBuckets.includes(b) ? 'orange-darken-3' : 'grey-lighten-1'"
+                    :variant="selectedBuckets.includes(b) ? 'flat' : 'tonal'"
+                    size="x-small"
+                    class="font-weight-black px-2 py-0.5"
+                    style="cursor: pointer; height: 22px; font-size: 0.62rem;"
+                    @click="toggleBucketFilter(b)"
+                  >
+                    {{ b }}
+                  </v-chip>
+                </div>
+              </div>
+
               <!-- Contenitore Grafico Line -->
               <div class="bg-slate-950 border border-soft rounded-xl pa-3" style="background-color: rgba(15, 23, 42, 0.5) !important;">
                 <div v-if="storicoChartReady" style="position: relative; height: 280px; width: 100%;">
@@ -3598,9 +3652,51 @@ const dialogStorico = ref(false);
 
 // Grafico Storico Esercizio
 const modeGraficoStorico = ref('A'); // 'A', 'B', 'C'
+const raggruppamentoReps = ref('esatto'); // 'esatto', 'zone', 'fasce'
+const availableBuckets = ref([]);
+const selectedBuckets = ref([]);
 const storicoChartData = ref({ labels: [], datasets: [] });
 const storicoChartReady = ref(false);
 const rawPointsLocal = ref([]);
+
+const getBucketLabel = (reps, mode) => {
+  if (mode === 'zone') {
+    if (reps >= 1 && reps <= 5) return 'Forza (1-5r)';
+    if (reps >= 6 && reps <= 9) return 'Ipertrofia Funz. (6-9r)';
+    if (reps >= 10 && reps <= 12) return 'Ipertrofia/Vol. (10-12r)';
+    if (reps >= 13) return 'Resistenza (13r+)';
+    return 'Altro';
+  } else if (mode === 'fasce') {
+    if (reps >= 1 && reps <= 3) return '1-3r';
+    if (reps >= 4 && reps <= 6) return '4-6r';
+    if (reps >= 7 && reps <= 9) return '7-9r';
+    if (reps >= 10 && reps <= 12) return '10-12r';
+    if (reps >= 13 && reps <= 15) return '13-15r';
+    if (reps >= 16) return '16r+';
+    return 'Altro';
+  } else {
+    return `${reps} reps`;
+  }
+};
+
+const toggleBucketFilter = (bucket) => {
+  const index = selectedBuckets.value.indexOf(bucket);
+  if (index > -1) {
+    if (selectedBuckets.value.length > 1) {
+      selectedBuckets.value.splice(index, 1);
+    }
+  } else {
+    selectedBuckets.value.push(bucket);
+  }
+};
+
+const toggleAllBuckets = () => {
+  if (selectedBuckets.value.length === availableBuckets.value.length) {
+    selectedBuckets.value = [availableBuckets.value[0]];
+  } else {
+    selectedBuckets.value = [...availableBuckets.value];
+  }
+};
 
 const parseWeightLocal = (val) => {
   if (!val) return 0;
@@ -7320,7 +7416,8 @@ const rigeneraGraficoStorico = () => {
             label: `S.${numScheda}-W${wNum}`,
             peso: peso,
             reps: reps,
-            e1rm: e1rm
+            e1rm: e1rm,
+            bucket: getBucketLabel(reps, raggruppamentoReps.value)
           });
         }
       }
@@ -7329,25 +7426,50 @@ const rigeneraGraficoStorico = () => {
   
   rawPointsLocal.value = dataPoints;
   
-  const labels = dataPoints.map(p => p.label);
+  // Extract unique buckets
+  const uniqueBuckets = [];
+  dataPoints.forEach(p => {
+    if (!uniqueBuckets.includes(p.bucket)) {
+      uniqueBuckets.push(p.bucket);
+    }
+  });
+  
+  // Sort unique buckets logically
+  uniqueBuckets.sort((a, b) => {
+    const getFirstNum = (str) => {
+      const match = str.match(/\d+/);
+      return match ? parseInt(match[0]) : 999;
+    };
+    return getFirstNum(a) - getFirstNum(b);
+  });
+  
+  availableBuckets.value = uniqueBuckets;
+  
+  // Initialize filter if not valid or empty
+  const hasValidSelection = selectedBuckets.value.some(b => uniqueBuckets.includes(b));
+  if (!hasValidSelection || selectedBuckets.value.length === 0) {
+    selectedBuckets.value = [...uniqueBuckets];
+  }
+  
+  const labels = [...new Set(dataPoints.map(p => p.label))];
   const datasets = [];
   
   if (modeGraficoStorico.value === 'A') {
-    const repsGroups = {};
-    dataPoints.forEach(p => {
-      repsGroups[p.reps] = true;
-    });
-    const repsCounts = Object.keys(repsGroups).map(Number).sort((a, b) => a - b);
     const colors = ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
     
-    repsCounts.forEach((r, idx) => {
+    uniqueBuckets.forEach((b, idx) => {
+      // Skip if bucket is not selected in filters
+      if (!selectedBuckets.value.includes(b)) return;
+      
       const data = labels.map(lbl => {
-        const pt = dataPoints.find(p => p.label === lbl && p.reps === r);
-        return pt ? pt.peso : null;
+        const pts = dataPoints.filter(p => p.label === lbl && p.bucket === b);
+        if (pts.length === 0) return null;
+        // Take the max weight to represent the best set in this range
+        return Math.max(...pts.map(p => p.peso));
       });
       const color = colors[idx % colors.length];
       datasets.push({
-        label: `${r} reps`,
+        label: b,
         data: data,
         borderColor: color,
         backgroundColor: color + '15',
@@ -7362,7 +7484,13 @@ const rigeneraGraficoStorico = () => {
       });
     });
     
-    const data1RM = dataPoints.map(p => p.e1rm);
+    // Estimated 1RM of the selected active sets for each session
+    const data1RM = labels.map(lbl => {
+      const pts = dataPoints.filter(p => p.label === lbl && selectedBuckets.value.includes(p.bucket));
+      if (pts.length === 0) return null;
+      return Math.max(...pts.map(p => p.e1rm));
+    });
+    
     datasets.push({
       label: 'Massimale stimato (1RM)',
       data: data1RM,
@@ -7378,21 +7506,20 @@ const rigeneraGraficoStorico = () => {
       spanGaps: true
     });
   } else if (modeGraficoStorico.value === 'B') {
-    const repsGroups = {};
-    dataPoints.forEach(p => {
-      repsGroups[p.reps] = true;
-    });
-    const repsCounts = Object.keys(repsGroups).map(Number).sort((a, b) => a - b);
     const colors = ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
     
-    repsCounts.forEach((r, idx) => {
+    uniqueBuckets.forEach((b, idx) => {
+      // Skip if bucket is not selected in filters
+      if (!selectedBuckets.value.includes(b)) return;
+      
       const data = labels.map(lbl => {
-        const pt = dataPoints.find(p => p.label === lbl && p.reps === r);
-        return pt ? pt.peso : null;
+        const pts = dataPoints.filter(p => p.label === lbl && p.bucket === b);
+        if (pts.length === 0) return null;
+        return Math.max(...pts.map(p => p.peso));
       });
       const color = colors[idx % colors.length];
       datasets.push({
-        label: `${r} reps`,
+        label: b,
         data: data,
         borderColor: color,
         backgroundColor: color,
@@ -7406,7 +7533,13 @@ const rigeneraGraficoStorico = () => {
       });
     });
     
-    const data1RM = dataPoints.map(p => p.e1rm);
+    // Estimated 1RM of the selected active sets for each session
+    const data1RM = labels.map(lbl => {
+      const pts = dataPoints.filter(p => p.label === lbl && selectedBuckets.value.includes(p.bucket));
+      if (pts.length === 0) return null;
+      return Math.max(...pts.map(p => p.e1rm));
+    });
+    
     datasets.push({
       label: 'Massimale stimato (1RM)',
       data: data1RM,
@@ -7422,8 +7555,9 @@ const rigeneraGraficoStorico = () => {
       showLine: true
     });
   } else if (modeGraficoStorico.value === 'C') {
-    const labelsWithReps = dataPoints.map(p => `${p.label} (${p.reps}r)`);
-    const dataCarico = dataPoints.map(p => p.peso);
+    const activePoints = dataPoints.filter(p => selectedBuckets.value.includes(p.bucket));
+    const labelsWithReps = activePoints.map(p => `${p.label} (${p.reps}r)`);
+    const dataCarico = activePoints.map(p => p.peso);
     
     datasets.push({
       label: 'Carico sollevato',
@@ -7512,11 +7646,15 @@ const storicoChartOptions = ref({
   }
 });
 
-watch([stileStorico, modeGraficoStorico, storicoFiltrato], () => {
+watch(raggruppamentoReps, () => {
+  selectedBuckets.value = [];
+});
+
+watch([stileStorico, modeGraficoStorico, raggruppamentoReps, selectedBuckets, storicoFiltrato], () => {
   if (stileStorico.value === 'grafico') {
     rigeneraGraficoStorico();
   }
-});
+}, { deep: true });
 
 // Funzione scroll per lo storico
 function eseguiScrollStorico() {

@@ -1891,10 +1891,10 @@
                   </div>
                   <div class="text-caption text-white mt-1" style="font-size: 0.72rem; line-height: 1.4;">
                     <span v-if="analizzaRecordSettimana(aiutoWeek).stato === 'record'">
-                      Il carico {{ analizzaRecordSettimana(aiutoWeek).tipo === 'logged' ? 'inserito' : 'proposto' }} di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è il più alto di sempre per **{{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}**! Record storico: {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg.
+                      Il carico {{ analizzaRecordSettimana(aiutoWeek).tipo === 'logged' ? 'inserito' : 'proposto' }} di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è il più alto di sempre per {{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}! Record storico: {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg.
                     </span>
                     <span v-else>
-                      Il carico di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è vicino al record di sempre di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg</strong> per **{{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}**! Con soli <strong>+{{ formatWeight(analizzaRecordSettimana(aiutoWeek).diff) }} kg</strong> supererai il tuo record storico!
+                      Il carico di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è vicino al record di sempre di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg</strong> per {{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}! Con soli <strong>+{{ formatWeight(analizzaRecordSettimana(aiutoWeek).diff) }} kg</strong> supererai il tuo record storico!
                     </span>
                   </div>
                 </div>
@@ -3348,10 +3348,10 @@ const getGhostWeightsRangeForWeek = (sett) => {
 const getGhostWeightsRangeText = (sett) => {
   const range = getGhostWeightsRangeForWeek(sett);
   if (!range) return '';
-  const first = range.prudenziale.display;
-  const last = range.sfidante.display;
+  const first = range.prudenziale.display.replace(/\s*kg/gi, '').trim();
+  const last = range.sfidante.display.replace(/\s*kg/gi, '').trim();
   if (first === last) return first;
-  return `${first} - ${last}`;
+  return `${first}-${last}`;
 };
 
 const applicaPropostaCaricoRapida = (sett, peso) => {

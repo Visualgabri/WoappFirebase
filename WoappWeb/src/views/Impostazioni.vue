@@ -299,9 +299,9 @@
 
         <!-- Configurazione Algoritmo Ghost -->
         <div class="text-left mt-2">
-          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2.5" style="font-size: 0.72rem;">🧬 Algoritmo Incremento Ghost</span>
+          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2.5" style="font-size: 0.72rem;">🧬 Visualizzazione Suggerimento Ghost</span>
           <v-btn-toggle
-            v-model="modalitaIncrementoGhost"
+            v-model="stileVisualizzazioneGhost"
             mandatory
             selected-class="bg-orange-darken-3 text-white"
             density="comfortable"
@@ -309,14 +309,11 @@
             class="w-100 card-glass border mb-3"
             style="height: 38px;"
           >
-            <v-btn value="ibrida" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
-              🧬 Ibrido (Mix)
+            <v-btn value="range" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 50%;">
+              📊 Solo Range
             </v-btn>
-            <v-btn value="dinamica" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
-              📈 Dinamico
-            </v-btn>
-            <v-btn value="fissa" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
-              ⚖️ Fisso
+            <v-btn value="forma" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 50%;">
+              🔋 Stato Forma
             </v-btn>
           </v-btn-toggle>
           
@@ -475,7 +472,8 @@ const getActiveAtletaId = () => {
   return selectedAthlete.value || idCliente.value || '';
 };
 
-const modalitaIncrementoGhost = ref(localStorage.getItem('modalitaIncrementoGhost_' + getActiveAtletaId()) || 'ibrida');
+const modalitaIncrementoGhost = ref('ibrida');
+const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualizzazioneGhost_' + getActiveAtletaId()) || 'range');
 const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + getActiveAtletaId()) !== 'false');
 const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId()) !== 'false');
 
@@ -505,13 +503,14 @@ watch(timerTheme, (newVal) => {
 // Sincronizzazione Ghost Settings
 watch([selectedAthlete, idCliente], () => {
   const atletaId = getActiveAtletaId();
-  modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+  modalitaIncrementoGhost.value = 'ibrida';
+  stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
   ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
   ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
 });
 
-watch(modalitaIncrementoGhost, (newVal) => {
-  localStorage.setItem('modalitaIncrementoGhost_' + getActiveAtletaId(), newVal);
+watch(stileVisualizzazioneGhost, (newVal) => {
+  localStorage.setItem('stileVisualizzazioneGhost_' + getActiveAtletaId(), newVal);
 });
 watch(ghostPRAttackAttivo, (newVal) => {
   localStorage.setItem('ghostPRAttackAttivo_' + getActiveAtletaId(), String(newVal));

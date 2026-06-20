@@ -599,10 +599,10 @@
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem !important' : '0.8rem !important' }">
                 WEEK {{ sett }}
                 <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
-                  ({{ parsedPrescription(workout['des_week' + sett]).reps }})
+                  ({{ formatRepsDisplay(parsedPrescription(workout['des_week' + sett]).reps) }})
                 </span>
                 <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
-                  ({{ pulisciParentesiQuadre(workout['des_week' + sett]) }})
+                  ({{ formatRepsDisplay(pulisciParentesiQuadre(workout['des_week' + sett])) }})
                 </span>
               </span>
               <v-chip
@@ -710,15 +710,21 @@
                 <span v-if="getGhostLiftSmart(sett).isMetodo" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-cog-play-outline</v-icon>
                   <span>{{ getGhostLiftSmart(sett).metodoLabel }}:</span>
-                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    {{ getGhostLiftSmart(sett).text }}
+                  <span class="text-white font-weight-black ml-1 d-inline-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
+                    <span>{{ getGhostLiftSmart(sett).text }}</span>
+                    <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.82rem' }">
+                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
+                    </span>
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isMandatory" class="text-super-caption text-red-lighten-1 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="red-lighten-1">mdi-alert-decagram-outline</v-icon>
                   <span>{{ getGhostLiftSmart(sett).mandatoryLabel }}:</span>
-                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    {{ getGhostLiftSmart(sett).text }}
+                  <span class="text-white font-weight-black ml-1 d-inline-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
+                    <span>{{ getGhostLiftSmart(sett).text }}</span>
+                    <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.82rem' }">
+                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
+                    </span>
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isOverload" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
@@ -728,8 +734,11 @@
                   <span>
                     {{ getGhostLiftSmart(sett).peso > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di ' : 'Mantieni peso di ' }}
                   </span>
-                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    {{ getGhostLiftSmart(sett).text }}
+                  <span class="text-white font-weight-black ml-1 d-inline-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
+                    <span>{{ getGhostLiftSmart(sett).text }}</span>
+                    <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.82rem' }">
+                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
+                    </span>
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isPostScarico" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
@@ -737,7 +746,7 @@
                     {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral' }}
                   </v-icon>
                   <span>
-                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di' : 'Mantieni peso di' }} {{ getGhostLiftSmart(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).pesoProposto) }}kg</span>) - Pesi di {{ getGhostLiftSmart(sett).label }}:
+                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di' : 'Mantieni peso di' }} {{ getGhostLiftSmart(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett) ? getGhostWeightsRangeText(sett) : formatWeight(getGhostLiftSmart(sett).pesoProposto) + ' kg' }}</span>) - Pesi di {{ getGhostLiftSmart(sett).label }}:
                   </span>
                   <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ getGhostLiftSmart(sett).text }}
@@ -750,7 +759,7 @@
                   </v-icon>
                   <span>Reps prec. W6:</span>
                   <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
-                    {{ getGhostLiftSmart(sett).text }}
+                    {{ getGhostLiftSmart(sett).text }}r
                   </span>
                   <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'" class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
                     - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
@@ -763,10 +772,10 @@
                   </v-icon>
                   <span>Proposto W1:</span>
                   <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
-                    {{ getGhostLiftSmart(sett).suggerito }}kg
+                    {{ formatWeight(getGhostLiftSmart(sett).suggerito) }} kg
                   </span>
                   <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
-                    (prec. W6: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
+                    (prec. W6: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}r</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isScarico" class="text-super-caption text-amber-lighten-2 font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
@@ -788,7 +797,10 @@
                     {{ getGhostLiftSmart(sett).isRepExercise ? 'Reps di' : 'Pesi di' }} {{ getGhostLiftSmart(sett).label }}:
                   </span>
                   <span class="font-weight-black ml-1 text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }">
-                    {{ getGhostLiftSmart(sett).text }}
+                    {{ getGhostLiftSmart(sett).text }}{{ getGhostLiftSmart(sett).isRepExercise ? 'r' : '' }}
+                  </span>
+                  <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }">
+                    (Proposto: {{ getGhostWeightsRangeText(sett) }})
                   </span>
                 </span>
                 <div class="d-flex align-center gap-1">
@@ -814,6 +826,66 @@
               <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
                 💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>
               </div>
+            </div>
+
+            <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
+            <div 
+              v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && stileVisualizzazioneGhost === 'forma'"
+              class="d-flex flex-wrap gap-1.5 mt-1.5 mb-2.5 w-100 align-center justify-space-between animate-fade-in"
+            >
+              <div class="w-100 text-super-caption text-left text-muted mb-1" style="font-size: 0.58rem !important; letter-spacing: 0.05em;">
+                {{ stileVisualizzazioneGhost === 'forma' ? '💡 COME TI SENTI OGGI?' : (stileVisualizzazioneGhost === 'marce' ? '⚙️ SELEZIONA LA MARCIA:' : '💡 TOCCA PER APPLICARE:') }}
+              </div>
+              
+              <!-- 1. PRUDENZIALE / STANCO / MARCIA 1 -->
+              <v-btn
+                variant="outlined"
+                color="blue-lighten-2"
+                size="x-small"
+                class="flex-grow-1 text-none px-2 rounded-lg"
+                style="height: 32px; font-size: 0.72rem; min-width: 30%; max-width: 32%; background: rgba(144, 205, 244, 0.04);"
+                @click="applicaPropostaCaricoRapida(sett, getGhostWeightsRangeForWeek(sett).prudenziale.value)"
+              >
+                <div class="d-flex flex-column align-center line-height-tight">
+                  <span class="font-weight-black text-blue-lighten-3">{{ getGhostWeightsRangeForWeek(sett).prudenziale.display }}</span>
+                  <span style="font-size: 0.52rem; opacity: 0.75;" class="text-truncate">
+                    {{ stileVisualizzazioneGhost === 'forma' ? 'Stanco' : (stileVisualizzazioneGhost === 'marce' ? 'M1 (Safe)' : getGhostWeightsRangeForWeek(sett).prudenziale.label) }}
+                  </span>
+                </div>
+              </v-btn>
+
+              <!-- 2. CONSIGLIATO / NORMALE / MARCIA 2 -->
+              <v-btn
+                color="green-darken-2"
+                size="x-small"
+                class="flex-grow-1 text-none px-2 rounded-lg text-white"
+                style="height: 32px; font-size: 0.72rem; min-width: 30%; max-width: 32%;"
+                @click="applicaPropostaCaricoRapida(sett, getGhostWeightsRangeForWeek(sett).consigliato.value)"
+              >
+                <div class="d-flex flex-column align-center line-height-tight">
+                  <span class="font-weight-black">{{ getGhostWeightsRangeForWeek(sett).consigliato.display }}</span>
+                  <span style="font-size: 0.52rem; opacity: 0.9;" class="text-truncate">
+                    {{ stileVisualizzazioneGhost === 'forma' ? 'Normale' : (stileVisualizzazioneGhost === 'marce' ? 'M2 (Prog)' : getGhostWeightsRangeForWeek(sett).consigliato.label) }}
+                  </span>
+                </div>
+              </v-btn>
+
+              <!-- 3. SFIDANTE / FORTE / MARCIA 3 -->
+              <v-btn
+                variant="outlined"
+                color="amber-darken-2"
+                size="x-small"
+                class="flex-grow-1 text-none px-2 rounded-lg"
+                style="height: 32px; font-size: 0.72rem; min-width: 30%; max-width: 32%; background: rgba(245, 158, 11, 0.04);"
+                @click="applicaPropostaCaricoRapida(sett, getGhostWeightsRangeForWeek(sett).sfidante.value)"
+              >
+                <div class="d-flex flex-column align-center line-height-tight">
+                  <span class="font-weight-black text-amber-lighten-2">{{ getGhostWeightsRangeForWeek(sett).sfidante.display }}</span>
+                  <span style="font-size: 0.52rem; opacity: 0.75;" class="text-truncate">
+                    {{ stileVisualizzazioneGhost === 'forma' ? 'Forte' : (stileVisualizzazioneGhost === 'marce' ? 'M3 (PR!)' : getGhostWeightsRangeForWeek(sett).sfidante.label) }}
+                  </span>
+                </div>
+              </v-btn>
             </div>
             
             <v-textarea
@@ -1323,7 +1395,7 @@
                   <div class="font-weight-black text-white uppercase d-flex align-center gap-1.5" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
                     <span>Week {{ w }}</span>
                     <span class="text-orange-lighten-2 font-weight-black" style="font-size: 1.05rem !important; text-transform: none;">
-                      ({{ pulisciParentesiQuadre(previousWorkout['des_week' + w]) || 'N.D.' }})
+                      ({{ previousWorkout['des_week' + w] ? formatRepsDisplay(pulisciParentesiQuadre(previousWorkout['des_week' + w])) : 'N.D.' }})
                     </span>
                   </div>
                 </div>
@@ -1688,7 +1760,7 @@
             >
               <span style="font-size: 0.45rem; color: #94a3b8;" class="font-weight-bold">W{{w}}</span>
               <span style="font-size: 0.6rem; color: #fb923c;" class="font-weight-black">
-                {{ parsedPrescription(workout?.['des_week' + w])?.reps || workout?.['des_week' + w] || '-' }}
+                {{ formatRepsDisplay(parsedPrescription(workout?.['des_week' + w])?.reps || workout?.['des_week' + w]) }}
               </span>
             </div>
           </div>
@@ -1729,7 +1801,7 @@
                     </template>
                     <template v-else>
                       (in W{{ suggerimentoRecord.recordAbsoluteWeek }}, 
-                      <template v-if="suggerimentoRecord.recordAbsoluteReps !== null">{{ suggerimentoRecord.recordAbsoluteReps }} reps, </template>
+                      <template v-if="suggerimentoRecord.recordAbsoluteReps !== null">{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}, </template>
                       Sch {{ suggerimentoRecord.recordAbsoluteSheet }}
                       <template v-if="suggerimentoRecord.recordAbsoluteDay"> {{ suggerimentoRecord.recordAbsoluteDay }}</template>, 
                       {{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) || formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }})
@@ -1753,7 +1825,7 @@
               <v-icon size="14" class="mr-1">
                 {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
               </v-icon>
-              Solo Stessi Reps ({{ targetRepsRange ? targetRepsRange : 'N.D.' }})
+              Solo Stessi Reps ({{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : 'N.D.' }})
             </v-btn>
             
             <v-btn-toggle
@@ -1785,7 +1857,7 @@
             <div class="mb-3 px-3 py-2 bg-slate-900 border rounded-lg text-left" style="border-color: rgba(249, 115, 22, 0.25) !important;">
               <div class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.55rem; letter-spacing: 0.05em;">Target Attuale W{{ aiutoWeek }}</div>
               <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mt-0.5">
-                {{ targetRepsAttive }} Reps
+                {{ formatRepsDisplay(targetRepsAttive) }}
                 <span class="text-caption text-slate ml-1" style="font-weight-normal; font-size: 0.72rem;">(Prescrizione: {{ targetPrescrizioneAttiva }})</span>
               </div>
             </div>
@@ -1819,10 +1891,10 @@
                   </div>
                   <div class="text-caption text-white mt-1" style="font-size: 0.72rem; line-height: 1.4;">
                     <span v-if="analizzaRecordSettimana(aiutoWeek).stato === 'record'">
-                      Il carico {{ analizzaRecordSettimana(aiutoWeek).tipo === 'logged' ? 'inserito' : 'proposto' }} di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è il più alto di sempre per **{{ analizzaRecordSettimana(aiutoWeek).targetReps }} reps**! Record storico: {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg.
+                      Il carico {{ analizzaRecordSettimana(aiutoWeek).tipo === 'logged' ? 'inserito' : 'proposto' }} di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è il più alto di sempre per **{{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}**! Record storico: {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg.
                     </span>
                     <span v-else>
-                      Il carico di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è vicino al record di sempre di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg</strong> per **{{ analizzaRecordSettimana(aiutoWeek).targetReps }} reps**! Con soli <strong>+{{ formatWeight(analizzaRecordSettimana(aiutoWeek).diff) }} kg</strong> supererai il tuo record storico!
+                      Il carico di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg</strong> è vicino al record di sempre di <strong>{{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg</strong> per **{{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}**! Con soli <strong>+{{ formatWeight(analizzaRecordSettimana(aiutoWeek).diff) }} kg</strong> supererai il tuo record storico!
                     </span>
                   </div>
                 </div>
@@ -1930,7 +2002,7 @@
                 </v-btn>
               </div>
               <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.4;">
-                Carico calcolato a partire da <strong>W6 prec. ({{ propostaWeek1.prevPeso }} kg x{{ propostaWeek1.prevReps }})</strong>.
+                Carico calcolato a partire da <strong>W6 prec. ({{ propostaWeek1.prevPeso }} kg x{{ formatRepsDisplay(propostaWeek1.prevReps) }})</strong>.
                 Fatica registrata: <strong class="text-white">{{ propostaWeek1.fatica }}</strong>.
                 <template v-if="propostaWeek1.giorniTrascorsi > 30">
                   <br>• Applicato deallenamento fisiologico (-{{ propostaWeek1.giorniTrascorsi > 180 ? '3%' : (propostaWeek1.giorniTrascorsi > 90 ? '2%' : '1%') }}) per {{ propostaWeek1.giorniTrascorsi }} giorni trascorsi.
@@ -2003,7 +2075,7 @@
                       </v-btn>
                     </div>
                     <div class="text-super-caption text-slate-light" style="font-size: 0.65rem; line-height: 1.45; text-transform: none;">
-                      Target: <span class="text-green-accent-3 font-weight-black">{{ formatWeight(strat.peso) }} kg x {{ strat.reps }} reps</span>
+                      Target: <span class="text-green-accent-3 font-weight-black">{{ formatWeight(strat.peso) }} kg x {{ formatRepsDisplay(strat.reps) }}</span>
                       <br/>
                       <span v-html="renderMarkdownBold(strat.descrizione)"></span>
                     </div>
@@ -2080,7 +2152,7 @@
 
                     <!-- Dati Calcolo ed Aggiustamenti -->
                     <div v-if="caricoIdealeConsigliato" class="text-super-caption text-muted bg-slate-900 pa-2 rounded border mb-3" style="font-size: 0.6rem; line-height: 1.4; border-color: rgba(255,255,255,0.05) !important;">
-                      <strong>Dati Calcolo Forza:</strong> Scheda {{ caricoIdealeConsigliato.numScheda }} (W{{ caricoIdealeConsigliato.week }} - {{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ caricoIdealeConsigliato.repsOriginali }} reps) • Massimale stimato: {{ caricoIdealeConsigliato.massimaleStimato }} kg
+                      <strong>Dati Calcolo Forza:</strong> Scheda {{ caricoIdealeConsigliato.numScheda }} (W{{ caricoIdealeConsigliato.week }} - {{ caricoIdealeConsigliato.pesoOriginale }} kg x {{ formatRepsDisplay(caricoIdealeConsigliato.repsOriginali) }}) • Massimale stimato: {{ caricoIdealeConsigliato.massimaleStimato }} kg
                       <br/>
                       <strong>Regolazioni fisiologiche:</strong> {{ spiegazioneFisiologicaConsigliata }}
                     </div>
@@ -2102,7 +2174,7 @@
                             </span>
                           </div>
                           <div class="text-caption font-weight-bold text-white mt-0.5" style="font-size: 0.68rem;">
-                            {{ prop.pesoOriginale }} kg x {{ prop.repsOriginali }} reps
+                            {{ prop.pesoOriginale }} kg x {{ formatRepsDisplay(prop.repsOriginali) }}
                           </div>
                         </div>
 
@@ -2186,7 +2258,7 @@
                     >
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="text-super-caption text-white font-weight-medium d-block text-truncate px-0.5 opacity-70" style="font-size: 0.6rem; line-height: 1;">
-                        {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
+                        {{ prevEx['des_week' + w] ? formatRepsDisplay(parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
                       </span>
                       <strong class="font-weight-black d-block mt-1" style="font-size: 0.95rem; line-height: 1;" :style="{ color: isMatchingReps(prevEx, w) ? '#f87171' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }">
                         {{ prevEx['ins_week' + w] || '-' }}
@@ -2231,7 +2303,7 @@
                     
                     <td v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="body-cell font-weight-bold text-center" :class="{'red-cell': isMatchingReps(prevEx, w)}" style="word-wrap: break-word;">
                       <div v-if="prevEx['des_week' + w]" class="text-super-caption text-white font-weight-medium" style="font-size: 0.65rem; line-height: 1; opacity: 0.8;">
-                        {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
+                        {{ formatRepsDisplay(parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) }}
                       </div>
                       <div class="font-weight-black mt-1" style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;" :style="{ color: isMatchingReps(prevEx, w) ? '#ef4444' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }">
                         {{ prevEx['ins_week' + w] || '-' }}
@@ -2416,6 +2488,7 @@ const getRepsPerWeek = (sett) => {
 
 // --- LOGICA RECORD & INCREMENTI GHOST ---
 const modalitaIncrementoGhost = ref('ibrida');
+const stileVisualizzazioneGhost = ref('range');
 const ghostPRAttackAttivo = ref(true);
 const ghostAutoregolazioneRepsAttiva = ref(true);
 
@@ -3029,6 +3102,272 @@ const getGhostLiftSmart = (sett) => {
   return smartGhost;
 };
 
+const getGhostWeightsRangeForWeek = (sett) => {
+  if (!workout.value) return null;
+  const ghost = getGhostLift(sett);
+  if (!ghost) return null;
+  
+  // Se è a corpo libero (rep exercise) o a percentuali, non ha senso proporre un range di pesi
+  if (ghost.isRepExercise) return null;
+  
+  // Recupera il target reps della settimana
+  const repsTarget = getRepsPerWeek(sett);
+
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = isManubri ? 1.0 : 1.25;
+
+  let min = 0;
+  let medio = 0;
+  let max = 0;
+
+  // Calcolo per Week 1
+  if (sett === 1) {
+    const defaultPeso = ghost.suggerito || ghost.peso || 0;
+    if (defaultPeso <= 0) return null;
+    min = isManubri ? Math.floor((defaultPeso * 0.95) / step) * step : Math.round((defaultPeso * 0.95) / step) * step;
+    medio = defaultPeso;
+    max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
+  } else if (ghost.isScarico) {
+    // Se è scarico (W4), usiamo il peso di scarico
+    const scaricoPeso = ghost.peso || 0;
+    min = scaricoPeso;
+    medio = scaricoPeso;
+    max = scaricoPeso;
+  } else {
+    const volInfo = getVolumeProgressionInfoForWeek(sett);
+    if (volInfo.active) {
+      const baseP = volInfo.pesoBase;
+      min = isManubri ? Math.floor((baseP * 0.95) / step) * step : Math.round((baseP * 0.95) / step) * step;
+      medio = baseP;
+      max = isManubri ? Math.ceil((baseP * 1.05) / step) * step : Math.round((baseP * 1.05) / step) * step;
+    } else {
+      // Caso standard
+      const info = getBaseWeekInfo(sett);
+      if (!info || info.pesoBase === null || isNaN(info.pesoBase)) return null;
+      
+      const pesoBase = info.pesoBase;
+      const repsBase = info.repsBase;
+      const baseWNum = info.baseWNum;
+
+      const rirBaseStr = estraiRIRDaPrescrizione(workout.value['des_week' + baseWNum]);
+      const rirBase = rirBaseStr !== null ? rirBaseStr : getRIRDefault(baseWNum);
+      const rirTargetStr = estraiRIRDaPrescrizione(workout.value['des_week' + sett]);
+      const rirTarget = rirTargetStr !== null ? rirTargetStr : getRIRDefault(sett);
+
+      // 1. Modello Fisso (Minimo)
+      const estimated1RM_fisso = pesoBase * (1 + (repsBase + rirBase) / 30);
+      let pesoFisso = estimated1RM_fisso / (1 + (repsTarget + rirTarget) / 30);
+      pesoFisso = isManubri ? Math.floor(pesoFisso / step) * step : Math.round(pesoFisso / step) * step;
+
+      // 2. Modello Dinamico (Massimo)
+      const pctIncremento = calcolaIncrementoDinamicoMedio(sett);
+      const fattoreBase = 1 + (repsBase + rirBase) / 30;
+      const fattoreTarget = 1 + (repsTarget + rirTarget) / 30;
+      let pesoDinamico = pesoBase * (1 + pctIncremento) * (fattoreBase / fattoreTarget);
+
+      if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTarget) {
+        if (repsBase > repsTarget) {
+          const diffReps = repsBase - repsTarget;
+          const boostFactor = 1 + (diffReps * 0.015);
+          pesoDinamico = pesoBase + (pesoDinamico - pesoBase) * boostFactor;
+        } else {
+          const diffReps = repsTarget - repsBase;
+          const penaltyFactor = Math.max(0, 1 - (diffReps * 0.2));
+          pesoDinamico = pesoBase + (pesoDinamico - pesoBase) * penaltyFactor;
+          if (pesoDinamico > pesoBase) {
+            pesoDinamico = pesoBase;
+          }
+        }
+      }
+      pesoDinamico = isManubri ? Math.ceil(pesoDinamico / step) * step : Math.round(pesoDinamico / step) * step;
+
+      if (pesoFisso < pesoBase) pesoFisso = pesoBase;
+      if (pesoDinamico < pesoBase) pesoDinamico = pesoBase;
+
+      const minSoglia = isManubri ? Math.floor((pesoBase * 0.90) / step) * step : Math.round((pesoBase * 0.90) / step) * step;
+      if (pesoFisso < minSoglia) pesoFisso = minSoglia;
+      if (pesoDinamico < minSoglia) pesoDinamico = minSoglia;
+
+      let ratioDinamico = 0.5;
+      if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTarget) {
+        if (repsBase > repsTarget) {
+          ratioDinamico = 0.8;
+        } else {
+          ratioDinamico = 0.2;
+        }
+      }
+
+      let pesoIbrido = (ratioDinamico * pesoDinamico) + ((1 - ratioDinamico) * pesoFisso);
+      pesoIbrido = Math.round(pesoIbrido / step) * step;
+
+      if (pesoIbrido < pesoFisso) pesoIbrido = pesoFisso;
+      if (pesoIbrido > pesoDinamico) pesoDinamico = pesoIbrido;
+
+      min = pesoFisso;
+      medio = pesoIbrido;
+      max = pesoDinamico;
+    }
+  }
+
+  // Estrai peso base effettivo del mesociclo per i salti percentuali
+  const infoBaseJump = getBaseWeekInfo(sett);
+  const pesoBase = infoBaseJump ? infoBaseJump.pesoBase : 0;
+
+  // Se è manubri, verifichiamo i salti percentuali per evitare incrementi troppo drastici (es. donne o esercizi di isolamento)
+  if (isManubri && pesoBase > 0) {
+    const pctJumpMedio = (medio - pesoBase) / pesoBase;
+    const pctJumpMax = (max - pesoBase) / pesoBase;
+
+    // Caso A: il consigliato stesso è un salto troppo grande (> 10%)
+    // Esempio: pesoBase = 7 kg, medio = 8 kg (+14%). Proponiamo reps su 7kg per il consigliato.
+    if (pctJumpMedio > 0.10) {
+      return {
+        prudenziale: {
+          value: String(pesoBase),
+          display: `${formatWeight(pesoBase)} kg`,
+          label: 'Prudenziale'
+        },
+        consigliato: {
+          value: `${pesoBase}x${repsTarget + 1}r`,
+          display: `${formatWeight(pesoBase)}x${repsTarget + 1}r`,
+          label: 'Consigliato (+1r)'
+        },
+        sfidante: {
+          value: String(medio),
+          display: `${formatWeight(medio)} kg`,
+          label: 'Sfidante'
+        }
+      };
+    }
+
+    // Caso B: il consigliato è fattibile, ma lo sfidante è troppo grande (> 10%)
+    // Esempio: pesoBase = 8 kg, medio = 8 kg, max = 9 kg (+12.5%). Proponiamo reps su 8kg per lo sfidante.
+    if (pctJumpMax > 0.10 && max > medio) {
+      return {
+        prudenziale: {
+          value: String(min),
+          display: `${formatWeight(min)} kg`,
+          label: 'Prudenziale'
+        },
+        consigliato: {
+          value: String(medio),
+          display: `${formatWeight(medio)} kg`,
+          label: 'Consigliato'
+        },
+        sfidante: {
+          value: `${medio}x${repsTarget + 1}r`,
+          display: `${formatWeight(medio)}x${repsTarget + 1}r`,
+          label: 'Sfidante (+1r)'
+        }
+      };
+    }
+  }
+
+  // Se i carichi calcolati sono identici (es. scarico o stallo), applichiamo la progressione reps
+  if (min === max && min > 0) {
+    return {
+      prudenziale: {
+        value: String(min),
+        display: `${formatWeight(min)} kg`,
+        label: 'Prudenziale'
+      },
+      consigliato: {
+        value: `${min}x${repsTarget + 1}r`,
+        display: `${formatWeight(min)}x${repsTarget + 1}r`,
+        label: 'Consigliato (+1r)'
+      },
+      sfidante: {
+        value: `${min}x${repsTarget + 2}r`,
+        display: `${formatWeight(min)}x${repsTarget + 2}r`,
+        label: 'Sfidante (+2r)'
+      }
+    };
+  }
+
+  // Se medio === max (ma min < medio), applichiamo la progressione reps sul pulsante sfidante
+  if (medio === max && min < medio) {
+    return {
+      prudenziale: {
+        value: String(min),
+        display: `${formatWeight(min)} kg`,
+        label: 'Prudenziale'
+      },
+      consigliato: {
+        value: String(medio),
+        display: `${formatWeight(medio)} kg`,
+        label: 'Consigliato'
+      },
+      sfidante: {
+        value: `${medio}x${repsTarget + 1}r`,
+        display: `${formatWeight(medio)}x${repsTarget + 1}r`,
+        label: 'Sfidante (+1r)'
+      }
+    };
+  }
+
+  // Se min === medio (ma max > min), applichiamo la progressione reps sul pulsante consigliato
+  if (min === medio && max > min) {
+    return {
+      prudenziale: {
+        value: String(min),
+        display: `${formatWeight(min)} kg`,
+        label: 'Prudenziale'
+      },
+      consigliato: {
+        value: `${min}x${repsTarget + 1}r`,
+        display: `${formatWeight(min)}x${repsTarget + 1}r`,
+        label: 'Consigliato (+1r)'
+      },
+      sfidante: {
+        value: String(max),
+        display: `${formatWeight(max)} kg`,
+        label: 'Sfidante'
+      }
+    };
+  }
+
+  return {
+    prudenziale: {
+      value: String(min),
+      display: `${formatWeight(min)} kg`,
+      label: 'Prudenziale'
+    },
+    consigliato: {
+      value: String(medio),
+      display: `${formatWeight(medio)} kg`,
+      label: 'Consigliato'
+    },
+    sfidante: {
+      value: String(max),
+      display: `${formatWeight(max)} kg`,
+      label: 'Sfidante'
+    }
+  };
+};
+
+const getGhostWeightsRangeText = (sett) => {
+  const range = getGhostWeightsRangeForWeek(sett);
+  if (!range) return '';
+  const first = range.prudenziale.display;
+  const last = range.sfidante.display;
+  if (first === last) return first;
+  return `${first} - ${last}`;
+};
+
+const applicaPropostaCaricoRapida = (sett, peso) => {
+  vibraTattile(12);
+  const targetInput = inputSettimane.value[sett];
+  if (targetInput) {
+    const pesoFormattato = String(peso).replace('.', ',');
+    targetInput.ins = pesoFormattato;
+    salvaDatoSettimanale(sett, 'ins');
+    
+    // Mostra snackbar di successo
+    snackbarMessaggio.value = `Applicato carico ${pesoFormattato} kg per W${sett}!`;
+    snackbarSalvataggio.value = true;
+  }
+};
+
 const proposteStoricoCalcolate = computed(() => {
   return calcolaProposteStoricoPerSettimana(aiutoWeek.value);
 });
@@ -3545,6 +3884,24 @@ const isCorpoLiberoEsercizio = (ex) => {
   ];
   
   return keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k));
+};
+
+const isManubriEsercizio = (ex) => {
+  if (!ex) return false;
+  const name = String(ex.des_esercizio || '').toLowerCase();
+  const noteAttr = String(ex.des_note_attrezzo || '').toLowerCase();
+  const noteGen = String(ex.des_note_gen_attr || '').toLowerCase();
+  const noteCoach = String(ex.des_note || '').toLowerCase();
+  const insEsercizio = String(ex.ins_esercizio || '').toLowerCase();
+
+  const keywords = ['manubr', 'dumbbel', 'db'];
+  return keywords.some(k => 
+    name.includes(k) || 
+    noteAttr.includes(k) || 
+    noteGen.includes(k) || 
+    noteCoach.includes(k) || 
+    insEsercizio.includes(k)
+  );
 };
 
 const estraiRepsDaPrescrizione = (prescrizioneStr) => {
@@ -4448,6 +4805,7 @@ const caricaDatiEsercizio = async () => {
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
     modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+    stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
     ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
     ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
     inizializzaParametriProposta(atletaId);
@@ -4501,6 +4859,7 @@ const caricaDatiEsercizio = async () => {
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
       modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+      stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       inizializzaParametriProposta(atletaId);
@@ -4588,6 +4947,7 @@ const caricaEsercizioDaBackup = async () => {
       stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
       modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+      stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       inizializzaParametriProposta(atletaId);
@@ -5624,6 +5984,15 @@ const METODI_ALLENAMENTO = {
 function formatWeight(val) {
   if (val === null || val === undefined) return '';
   return String(val).replace('.', ',');
+}
+
+// Helper to format repetitions with 'r' suffix
+function formatRepsDisplay(val) {
+  if (val === null || val === undefined) return '-';
+  const str = String(val).trim();
+  if (!str || str === '-') return '-';
+  if (str.toLowerCase().endsWith('r')) return str;
+  return str + 'r';
 }
 
 const getGhostLift = (sett) => {

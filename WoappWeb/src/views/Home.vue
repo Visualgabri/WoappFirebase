@@ -2147,24 +2147,45 @@ const caricaDatiScheda = async () => {
       testList.value = tempTest;
       countTest.value = tempTest.length;
       if (tempExercises.length > 0) {
-        const savedW = localStorage.getItem('settimanaAttiva_' + selectedAthlete.value);
-        if (!savedW) {
-          const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
-          settimanaAttiva.value = activeW;
-          localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
-        }
+        const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
+        settimanaAttiva.value = activeW;
+        localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
       }
 
       const giorni = ['A', 'B', 'C', 'D'];
-      let giornoDaFare = '';
-      for (const g of giorni) {
+      const settimanaNuova = giorni.every(g => {
         const header = tempExercises.find(item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0));
-        const completato = header ? isTrue(header['cmp' + settimanaAttiva.value]) : false;
-        if (!completato) {
-          giornoDaFare = g;
-          break;
+        return !header || !isTrue(header['cmp' + settimanaAttiva.value]);
+      });
+
+      let giornoDaFare = '';
+      if (settimanaNuova) {
+        for (const g of giorni) {
+          if (tempExercises.some(item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0))) {
+            giornoDaFare = g;
+            break;
+          }
+        }
+      } else {
+        for (const g of giorni) {
+          const header = tempExercises.find(item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0));
+          const completato = header ? isTrue(header['cmp' + settimanaAttiva.value]) : false;
+          if (!completato) {
+            giornoDaFare = g;
+            break;
+          }
         }
       }
+
+      if (!giornoDaFare) {
+        for (const g of giorni) {
+          if (tempExercises.some(item => (item.des_giorno || '').trim() === g)) {
+            giornoDaFare = g;
+            break;
+          }
+        }
+      }
+
       if (giornoDaFare) {
         giornoAttivo.value = giornoDaFare;
         localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
@@ -2241,14 +2262,11 @@ const aggiornaDatiSchedaDaStore = async () => {
   testList.value = tempTest;
   countTest.value = tempTest.length;
 
-  // Ricalcola la settimana attiva globale solo se non è già salvata nel localStorage per questo atleta
+  // Ricalcola la settimana attiva globale
   if (tempExercises.length > 0) {
-    const savedW = localStorage.getItem('settimanaAttiva_' + selectedAthlete.value);
-    if (!savedW) {
-      const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
-      settimanaAttiva.value = activeW;
-      localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
-    }
+    const activeW = calcolaSettimanaAttivaGlobale(tempExercises);
+    settimanaAttiva.value = activeW;
+    localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
   }
 
   // Auto-seleziona il primo giorno non completato per la settimana attiva
@@ -2264,7 +2282,16 @@ const aggiornaDatiSchedaDaStore = async () => {
     }
   }
 
-  if (!giornoAttivo.value || !currentDayExists || currentDayCompleted) {
+  // Verifica se la settimana è completamente nuova/non iniziata (tutti i giorni sono non completati)
+  const giorniElenco = ['A', 'B', 'C', 'D'];
+  const settimanaNuova = giorniElenco.every(g => {
+    const header = tempExercises.find(
+      item => (item.des_giorno || '').trim() === g && (parseInt(item.num_riga_giorno) === 0)
+    );
+    return !header || !isTrue(header['cmp' + settimanaAttiva.value]);
+  });
+
+  if (!giornoAttivo.value || !currentDayExists || currentDayCompleted || settimanaNuova) {
     const giorni = ['A', 'B', 'C', 'D'];
     let giornoDaFare = '';
     

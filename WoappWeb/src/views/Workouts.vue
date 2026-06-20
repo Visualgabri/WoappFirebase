@@ -2912,6 +2912,58 @@ const aggiornaDatiDaStore = () => {
   settimanaAttiva.value = activeW;
   localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
 
+  // Auto-seleziona il giorno corretto se la settimana è nuova o se il giorno selezionato è già completato
+  let currentDayExists = false;
+  let currentDayCompleted = false;
+  const currentDay = giornoSelezionato.value;
+  if (currentDay) {
+    const currentHeader = temporanei.find(
+      item => (item.des_giorno || '').trim().toUpperCase() === currentDay.toUpperCase() && (parseInt(item.num_riga_giorno) === 0)
+    );
+    if (currentHeader) {
+      currentDayExists = true;
+      currentDayCompleted = isCmpTrue(currentHeader['cmp' + activeW]);
+    }
+  }
+
+  const giorniList = ['A', 'B', 'C', 'D'];
+  const settimanaNuova = giorniList.every(g => {
+    const header = temporanei.find(
+      item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && (parseInt(item.num_riga_giorno) === 0)
+    );
+    return !header || !isCmpTrue(header['cmp' + activeW]);
+  });
+
+  if (!currentDay || !currentDayExists || currentDayCompleted || settimanaNuova) {
+    let giornoDaFare = '';
+    for (const g of giorniList) {
+      const header = temporanei.find(
+        item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && (parseInt(item.num_riga_giorno) === 0)
+      );
+      if (header) {
+        const completato = isCmpTrue(header['cmp' + activeW]);
+        if (!completato) {
+          giornoDaFare = g;
+          break;
+        }
+      }
+    }
+    
+    if (!giornoDaFare) {
+      for (const g of giorniList) {
+        if (temporanei.some(item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase())) {
+          giornoDaFare = g;
+          break;
+        }
+      }
+    }
+
+    if (giornoDaFare) {
+      giornoSelezionato.value = giornoDaFare;
+      localStorage.setItem('giornoAttivo_' + selectedAthlete.value, giornoDaFare);
+    }
+  }
+
   filtraEserciziPerGiorno();
   gestisciScrollIniziale();
 };
@@ -3199,6 +3251,14 @@ const determinaGiornoAttivo = () => {
   return listaGiorniDisponibili.value[0] || 'A';
 };
 
+const isGiornoSelezionatoIniziato = () => {
+  const w = settimanaAttivaGiorno.value;
+  return eserciziFiltrati.value.some(ex => {
+    const val = ex['ins_week' + w];
+    return val && val.trim() !== '';
+  });
+};
+
 watch(haEserciziDaFare, (newVal) => {
   setGlobalHaEserciziDaFare(newVal);
 }, { immediate: true });
@@ -3209,14 +3269,18 @@ watch(mostraPromemoriaChiusura, (newVal) => {
 
 watch(() => playClickTrigger.value, () => {
   console.log('[Play - Workouts.vue] playClickTrigger watcher fired. Current value:', playClickTrigger.value);
-  // Se il giorno selezionato ha ancora esercizi da fare, rimaniamo su questo giorno
-  if (haEserciziDaFare.value) {
-    console.log('[Play - Workouts.vue] haEserciziDaFare is true, calling vaiAlPrimoEsercizioDaFare()');
+  
+  const giornoGiusto = determinaGiornoAttivo();
+  const selezionatoIniziato = isGiornoSelezionatoIniziato();
+  
+  // Se il giorno selezionato ha ancora esercizi da fare E è stato iniziato (o coincide con il giorno giusto da fare), rimaniamo su questo giorno
+  if (haEserciziDaFare.value && (selezionatoIniziato || giornoSelezionato.value === giornoGiusto)) {
+    console.log('[Play - Workouts.vue] Staying on current day:', giornoSelezionato.value);
     vaiAlPrimoEsercizioDaFare();
     return;
   }
-  const giornoGiusto = determinaGiornoAttivo();
-  console.log('[Play - Workouts.vue] haEserciziDaFare is false. Active day determined:', giornoGiusto);
+  
+  console.log('[Play - Workouts.vue] Active day determined:', giornoGiusto);
   if (giornoSelezionato.value !== giornoGiusto) {
     console.log(`[Play - Workouts.vue] Switching day from ${giornoSelezionato.value} to ${giornoGiusto}`);
     giornoSelezionato.value = giornoGiusto;
@@ -3304,8 +3368,11 @@ const gestisciScrollIniziale = () => {
   if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
     localStorage.removeItem('scrollPrimoEsercizioDaFare');
     
-    // Se il giorno attualmente selezionato ha esercizi da fare, rimani su questo
-    if (haEserciziDaFare.value) {
+    const giornoGiusto = determinaGiornoAttivo();
+    const selezionatoIniziato = isGiornoSelezionatoIniziato();
+    
+    // Se il giorno attualmente selezionato ha esercizi da fare E è stato iniziato (o coincide con il giorno giusto), rimaniamo su questo
+    if (haEserciziDaFare.value && (selezionatoIniziato || giornoSelezionato.value === giornoGiusto)) {
       nextTick(() => {
         setTimeout(() => {
           vaiAlPrimoEsercizioDaFare();
@@ -3314,7 +3381,6 @@ const gestisciScrollIniziale = () => {
       return;
     }
     
-    const giornoGiusto = determinaGiornoAttivo();
     if (giornoSelezionato.value !== giornoGiusto) {
       giornoSelezionato.value = giornoGiusto;
       salvaGiornoSelezionato(giornoGiusto);

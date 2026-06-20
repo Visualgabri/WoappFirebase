@@ -1059,7 +1059,7 @@
 
     <!-- DIALOG DETTAGLI COMPLETI 85 CAMPI (Responsive Mobile & Detail Editing) -->
     <v-dialog v-model="dialogDettaglioOpen" max-width="650" rounded="xl" scrollable>
-      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.96) !important; border-color: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) !important;">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(25px) !important;">
         <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-1">
           <div class="d-flex align-center">
             <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-format-list-bulleted</v-icon>
@@ -1214,7 +1214,7 @@
 
     <!-- DIALOG ISTRUZIONI SCORCIATOIE TASTIERA EXCEL -->
     <v-dialog v-model="mostraIstruzioni" max-width="450" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) !important;">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(25px) !important;">
         <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0">
           <v-icon color="orange-darken-3" class="mr-2">mdi-keyboard-outline</v-icon>
           Scorciatoie Excel-like ⌨️
@@ -2079,7 +2079,7 @@ const esportaCSVLocale = () => {
   border-collapse: collapse;
   width: 100%;
   font-size: 0.8rem;
-  background-color: rgba(15, 23, 42, 0.4);
+  background-color: var(--card-bg-soft);
   table-layout: auto;
 }
 

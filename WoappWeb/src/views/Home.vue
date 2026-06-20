@@ -55,7 +55,7 @@
     <!-- Selettore Atleta e Workout (Cerca Wo) -->
     <v-card
       class="premium-card rounded-2xl text-left border pa-4 mb-5 animate-slide-down"
-      style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%) !important; border-color: rgba(249, 115, 22, 0.15) !important;"
+      style="background: linear-gradient(135deg, var(--card-bg-glass) 0%, var(--card-bg-dark) 100%) !important; border-color: rgba(249, 115, 22, 0.15) !important;"
     >
       <div class="d-flex align-center justify-space-between" :class="mostraRicercaPannello ? 'mb-3' : ''">
         <h3 class="text-subtitle-2 font-weight-black text-orange-lighten-2 d-flex align-center uppercase tracking-widest" style="font-size: 0.72rem;">
@@ -216,7 +216,7 @@
             </div>
 
             <!-- Calendario & Allineamento Tempi -->
-            <div class="date-summary-box pa-3.5 rounded-xl border-soft mb-4" style="background: rgba(15, 23, 42, 0.5);">
+            <div class="date-summary-box pa-3.5 rounded-xl border-soft mb-4" style="background: var(--card-bg-soft);">
               <div class="text-center mb-3 pb-2 border-bottom-soft">
                 <v-chip color="orange-darken-3" variant="flat" size="small" class="font-weight-black px-3 py-1">
                   <v-icon start size="14" class="mr-1">mdi-clipboard-text</v-icon>
@@ -271,7 +271,7 @@
           <v-card 
             v-if="finalCoachNote" 
             class="coaching-notes-card rounded-2xl text-left border pa-4 mb-5" 
-            style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.85) 100%) !important; border-color: rgba(245, 158, 11, 0.25) !important;"
+            style="background: linear-gradient(135deg, var(--card-bg-glass) 0%, var(--card-bg-dark) 100%) !important; border-color: rgba(245, 158, 11, 0.25) !important;"
             elevation="2"
           >
             <div class="d-flex align-center mb-3">
@@ -365,7 +365,7 @@
           <v-card 
             class="mesocycle-progress-card rounded-2xl border text-left pa-3 mb-5"
             elevation="2"
-            style="background: rgba(15, 23, 42, 0.45) !important;"
+            style="background: var(--card-bg-soft) !important;"
           >
             <div class="d-flex align-center justify-space-between mb-3">
               <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.6rem;">
@@ -430,7 +430,7 @@
                 </div>
               </v-col>
               <v-col cols="5" class="d-flex align-center justify-center">
-                <div class="heatmap-container rounded-lg pa-1.5 border" style="background: rgba(15, 23, 42, 0.55) !important; border-color: rgba(255, 255, 255, 0.08) !important; width: 100px; height: 85px; overflow: hidden;">
+                <div class="heatmap-container rounded-lg pa-1.5 border" style="background: var(--card-bg-soft) !important; border-color: var(--card-border) !important; width: 100px; height: 85px; overflow: hidden;">
                   <svg viewBox="0 0 100 120" width="100%" height="100%" style="display: block;">
                     <!-- FRONTE (X: 10-45) -->
                     <circle cx="27" cy="14" r="5.5" :fill="getMuscleColor('Altro')" :stroke="getMuscleStroke('Altro')" stroke-width="0.8" />
@@ -737,7 +737,7 @@
       scrollable
       transition="dialog-bottom-transition"
     >
-      <v-card class="card-glass rounded-2xl border" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+      <v-card class="card-glass rounded-2xl border" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
         <v-card-title class="d-flex align-center justify-space-between py-4 px-5 border-bottom">
           <div class="d-flex align-center">
             <v-icon color="orange-darken-3" class="mr-2" size="22">mdi-chart-line-variant</v-icon>
@@ -2755,18 +2755,18 @@ const apriTest = () => {
 
 /* 2. Custom Tabs */
 .custom-dashboard-tabs {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-bg-soft) !important;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
 }
 
 /* 3. Mesocycle Progress Card */
 .mesocycle-progress-card {
-  background: rgba(15, 23, 42, 0.55) !important;
+  background: var(--card-bg-soft) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--card-border) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
 }
 
@@ -2855,22 +2855,22 @@ const apriTest = () => {
 }
 
 .step-future .step-ring {
-  background: rgba(15, 23, 42, 0.95);
-  border-color: rgba(255, 255, 255, 0.06);
+  background: var(--card-bg-dark);
+  border-color: var(--card-border);
 }
 
 /* 4. Journey Day Cards */
 .journey-day-card {
   height: 92px;
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg-soft);
 }
 
 .journey-day-card:hover {
   transform: translateY(-3px);
-  background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--card-bg-glass);
+  border-color: var(--card-border);
 }
 
 .journey-day-card:active {
@@ -2917,7 +2917,7 @@ const apriTest = () => {
 
 /* 5. Premium Hero Card */
 .premium-hero-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(3, 7, 18, 0.95) 100%) !important;
+  background: linear-gradient(135deg, var(--card-bg-dark) 0%, rgba(3, 7, 18, 0.95) 100%) !important;
   border: 1px solid rgba(249, 115, 22, 0.2) !important;
   box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.5) !important;
 }
@@ -2955,8 +2955,8 @@ const apriTest = () => {
 }
 
 .bg-slate-900-op {
-  background: rgba(15, 23, 42, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 .volume-micro-item {
@@ -2984,10 +2984,10 @@ const apriTest = () => {
 }
 
 .dashboard-action-card {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-bg-soft) !important;
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--card-border) !important;
   height: 124px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
@@ -3041,10 +3041,10 @@ const apriTest = () => {
 
 /* 7. Settings tab select buttons */
 .premium-card {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-bg-soft) !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 .chip-select-btn {
@@ -3155,10 +3155,10 @@ const apriTest = () => {
 
 /* Glassmorphism popups */
 .card-glass {
-  background: rgba(15, 23, 42, 0.75) !important;
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 .border-bottom-soft {
@@ -3210,7 +3210,7 @@ const apriTest = () => {
 }
 .workout-item-card {
   transition: all 0.2s ease-in-out;
-  background: rgba(15, 23, 42, 0.45) !important;
+  background: var(--card-bg-soft) !important;
 }
 .workout-item-card:hover {
   transform: translateY(-1px);

@@ -317,7 +317,7 @@
             </v-btn>
           </v-btn-toggle>
           
-          <div class="d-flex flex-column gap-2 bg-slate-900 border rounded-xl pa-3" style="border-color: rgba(255,255,255,0.06) !important; background: rgba(15, 23, 42, 0.4) !important;">
+          <div class="d-flex flex-column gap-2 bg-slate-900 border rounded-xl pa-3" style="border-color: var(--card-border) !important; background: var(--card-bg-soft) !important;">
             <!-- Switch PR Attack -->
             <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
               <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
@@ -405,7 +405,7 @@
 
     <!-- Dialog Conferma Reset -->
     <v-dialog v-model="confermaReset" max-width="400" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border" style="background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(239, 68, 68, 0.3) !important;">
+      <v-card class="pa-5 rounded-2xl card-glass border" style="background: var(--card-bg-dark) !important; border-color: rgba(239, 68, 68, 0.3) !important;">
         <v-card-title class="font-weight-black text-red-lighten-2 d-flex align-center px-0">
           <v-icon color="red-lighten-2" class="mr-2">mdi-alert-circle-outline</v-icon>
           Conferma Reset ⚠️
@@ -444,7 +444,8 @@ import {
   selectedSheet,
   layoutEserciziGlobal,
   layoutDettaglioGlobal,
-  timerThemeGlobal
+  timerThemeGlobal,
+  comportamentoPlayGlobal
 } from '../authStore.js';
 
 const router = useRouter();
@@ -465,7 +466,7 @@ const timerTheme = timerThemeGlobal;
 // Refs salvati in localStorage
 const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
 const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
-const comportamentoPlay = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
+const comportamentoPlay = comportamentoPlayGlobal;
 const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
 
 const getActiveAtletaId = () => {
@@ -634,7 +635,7 @@ const eseguiReset = async () => {
 }
 
 .card-glass {
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(10px);
 }
 
@@ -643,8 +644,8 @@ const eseguiReset = async () => {
 }
 
 .premium-card {
-  background: rgba(15, 23, 42, 0.5) !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  background: var(--card-bg-glass) !important;
+  border-color: var(--card-border) !important;
 }
 
 .profile-avatar {

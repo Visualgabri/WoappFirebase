@@ -230,7 +230,7 @@
 
     <!-- Dialog Avviso Chiusura Settimana -->
     <v-dialog v-model="mostraDialogAvvisoChiusura" max-width="400" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
         <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0">
           <v-icon color="orange-darken-3" class="mr-2">mdi-alert-circle-outline</v-icon>
           Allenamento Completato! ⚡
@@ -249,7 +249,7 @@
 
     <!-- Dialog Calcolatore Dischi (Plate Calculator) -->
     <v-dialog v-model="mostraDialogCalcolatoreDischi" max-width="450" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) !important;">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(25px) !important;">
         <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-1">
           <div class="d-flex align-center">
             <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-weight-lifter</v-icon>
@@ -268,13 +268,13 @@
         <v-card-text class="px-0 py-2">
           <!-- Input/Visualizzazione Pesi -->
           <div class="d-flex align-center gap-3 mb-4">
-            <div class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: rgba(15, 23, 42, 0.4) !important;">
+            <div class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: var(--card-bg-soft) !important;">
               <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Peso Totale Target</span>
               <span class="text-h6 font-weight-black text-white">
                 {{ targetPesoTotale }} <span class="text-caption text-muted">KG</span>
               </span>
             </div>
-            <div v-if="!nascondiLato" class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: rgba(15, 23, 42, 0.4) !important;">
+            <div v-if="!nascondiLato" class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: var(--card-bg-soft) !important;">
               <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Peso Per Lato</span>
               <span class="text-h6 font-weight-black text-blue-lighten-2">
                 {{ targetPesoLato }} <span class="text-caption text-muted">KG</span>
@@ -294,7 +294,7 @@
               density="comfortable"
               rounded="lg"
               color="orange-darken-3"
-              bg-color="rgba(15, 23, 42, 0.4)"
+              bg-color="var(--card-bg-soft)"
               hide-details
             ></v-select>
           </div>
@@ -323,7 +323,7 @@
           </div>
 
           <!-- Risultato Dischi -->
-          <div class="pa-4 rounded-xl border border-orange-darken-3-op bg-slate-900-op text-center" style="background: rgba(15, 23, 42, 0.5) !important;">
+          <div class="pa-4 rounded-xl border border-orange-darken-3-op bg-slate-900-op text-center" style="background: var(--card-bg-soft) !important;">
             <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-block mb-3" style="font-size: 0.65rem; letter-spacing: 0.05em;">
               {{ caricoMonolaterale === 'singolo' ? 'Dischi da inserire (Carico Singolo / Cintura):' : 'Dischi da inserire su CIASCUN LATO:' }}
             </span>
@@ -355,7 +355,7 @@
                 v-for="item in elencoDischiPerLato"
                 :key="item.size"
                 class="d-flex align-center justify-space-between py-1.5 px-3 rounded-lg"
-                style="background: rgba(15, 23, 42, 0.4) !important;"
+                style="background: var(--card-bg-soft) !important;"
               >
                 <div class="d-flex align-center">
                   <div class="plate-color-indicator mr-2.5" :class="'plate-bg-' + String(item.size).replace('.', '_')"></div>
@@ -386,7 +386,7 @@
 
     <!-- Dialog Guida all'Uso e Regole di Progressione -->
     <v-dialog v-model="mostraDialogGuida" max-width="550" scrollable rounded="xl">
-      <v-card class="pa-4 rounded-2xl card-glass border text-left" style="background: rgba(15, 23, 42, 0.98) !important; border-color: rgba(255, 255, 255, 0.15) !important; backdrop-filter: blur(25px) !important; max-height: 85vh;">
+      <v-card class="pa-4 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(25px) !important; max-height: 85vh;">
         <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-2 mb-2 pb-2 border-bottom-soft">
           <div class="d-flex align-center">
             <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-help-circle-outline</v-icon>
@@ -830,8 +830,8 @@ const elencoDischiGrafica = computed(() => {
 }
 
 .timer-theme-orange-glow {
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 65%, rgba(249, 115, 22, 0.22) 100%) !important;
+  border: 1px solid var(--card-border) !important;
+  background: linear-gradient(135deg, var(--card-bg-dark) 65%, rgba(249, 115, 22, 0.22) 100%) !important;
   backdrop-filter: blur(16px) !important;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 30px rgba(249, 115, 22, 0.3) !important;
   animation: pulse-glow-orange 2.5s infinite alternate;
@@ -937,8 +937,8 @@ const elencoDischiGrafica = computed(() => {
 
 /* Stile Premium Selettori Caricamento Singolo/Doppio */
 .premium-toggle-group {
-  background: rgba(15, 23, 42, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border) !important;
 }
 .premium-toggle-group .v-btn {
   border: none !important;

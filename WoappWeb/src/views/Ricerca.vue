@@ -778,7 +778,7 @@ const parseVolumes = (str) => {
 }
 
 .bg-slate-900-op {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-bg-soft) !important;
 }
 
 .bg-orange-darken-3-op {
@@ -790,7 +790,7 @@ const parseVolumes = (str) => {
 }
 
 .card-glass {
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(10px);
 }
 
@@ -804,9 +804,9 @@ const parseVolumes = (str) => {
 }
 
 .premium-card {
-  background: rgba(15, 23, 42, 0.6) !important;
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--card-border) !important;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -840,7 +840,7 @@ const parseVolumes = (str) => {
   right: 0;
   bottom: 0;
   z-index: 10;
-  background: rgba(15, 23, 42, 0.15);
+  background: var(--card-bg-soft) !important;
   border-radius: inherit;
 }
 

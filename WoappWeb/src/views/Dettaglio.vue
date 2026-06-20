@@ -1066,7 +1066,7 @@
       <v-expansion-panels 
         class="card-glass border-soft overflow-hidden shadow-sm animate-all" 
         :class="layoutCorrente === 'super_compatto' ? 'mb-3 rounded-sm' : (layoutCorrente === 'compatto' ? 'mb-4.5 rounded-lg' : 'mb-6 rounded-2xl')"
-        style="background: rgba(15, 23, 42, 0.4);"
+        style="background: var(--card-bg-soft);"
       >
         <v-expansion-panel bg-color="transparent" class="elevation-0">
           <v-expansion-panel-title 
@@ -1360,7 +1360,7 @@
 
     <!-- Dialog 1: Progressione Scheda Precedente (PRECEDENTE) -->
     <v-dialog v-model="dialogProgressioniPrecedente" max-width="650" scrollable>
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
         <v-card-title class="px-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900" style="min-height: 40px;">
           <div class="d-flex align-center gap-2">
             <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
@@ -1521,7 +1521,7 @@
 
     <!-- Dialog Modifica Esercizio (MODIFICA - solo Coach) -->
     <v-dialog v-model="dialogModifica" max-width="650" scrollable>
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
         <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2">
             <v-icon color="orange-lighten-2" size="22">mdi-pencil</v-icon>
@@ -1694,7 +1694,7 @@
 
     <!-- Dialog 2: Conferma Eliminazione (ELIMINA) -->
     <v-dialog v-model="dialogElimina" max-width="400">
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
         <v-card-title class="pa-4 pb-2 border-bottom d-flex align-center gap-2 bg-slate-900">
           <v-icon color="red-lighten-2" size="22">mdi-alert-outline</v-icon>
           <span class="text-subtitle-1 font-weight-black text-white">Conferma Eliminazione</span>
@@ -1717,7 +1717,7 @@
     <!-- Dialog 3: Riepilogo Storico Esercizi (Cronologia) -->
     <!-- Dialog 3: Riepilogo Storico e Proposta Carico Unificati (Analisi Esercizio) -->
     <v-dialog v-model="dialogStorico" :max-width="activeTabAnalisi === 0 ? 550 : (stileStorico === 'tabella' ? 1200 : (stileStorico === 'grafico' ? 700 : 650))" scrollable>
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
         <v-card-title class="pa-0 border-bottom bg-slate-900">
           <!-- Rigo 1: Titolo e Chiudi -->
           <div class="px-3 py-2 d-flex align-center justify-space-between" style="min-height: 40px;">
@@ -2101,7 +2101,7 @@
 
               <!-- Accordion per Dettagli Tecnici e Carichi Alternativi -->
               <v-expansion-panels v-else class="text-left mt-2 border-soft overflow-hidden rounded-lg bg-slate-950" style="border-width: 1px !important;">
-                <v-expansion-panel bg-color="rgba(15, 23, 42, 0.4)" elevation="0">
+                <v-expansion-panel bg-color="var(--card-bg-soft)" elevation="0">
                   <v-expansion-panel-title class="font-weight-black py-2" style="font-size: 0.72rem; min-height: 38px;">
                     ⚙️ Opzioni Avanzate & Dettagli Tecnici
                   </v-expansion-panel-title>
@@ -2411,7 +2411,7 @@
               </div>
 
               <!-- Contenitore Grafico Line -->
-              <div class="bg-slate-950 border border-soft rounded-xl pa-3" style="background-color: rgba(15, 23, 42, 0.5) !important;">
+              <div class="bg-slate-950 border border-soft rounded-xl pa-3" style="background-color: var(--card-bg-soft) !important;">
                 <div v-if="storicoChartReady" style="position: relative; height: 280px; width: 100%;">
                   <Line :data="storicoChartData" :options="storicoChartOptions" />
                 </div>
@@ -2575,7 +2575,7 @@
 
     <!-- Dialog 4: Esercizi dello Stesso Gruppo Muscolare (Settore Principale) -->
     <v-dialog v-model="dialogSettore" max-width="650" scrollable>
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: rgba(15, 23, 42, 0.95) !important;">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
         <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
             <v-icon color="orange-darken-3" size="18">mdi-format-list-bulleted</v-icon>
@@ -8325,9 +8325,9 @@ const tornaIndietro = () => {
 }
 
 .premium-card {
-  background: rgba(15, 23, 42, 0.65) !important;
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
 }
 
 /* Grande frame della GIF dell'esercizio */
@@ -8345,8 +8345,8 @@ const tornaIndietro = () => {
 
 /* Stili Week log list */
 .week-log-card {
-  background: rgba(15, 23, 42, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border);
   transition: all 0.2s ease;
 }
 
@@ -8363,7 +8363,7 @@ const tornaIndietro = () => {
 }
 
 .card-glass {
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(10px);
 }
 
@@ -8378,7 +8378,7 @@ const tornaIndietro = () => {
 /* Stile speciale per le settimane secondarie in visualizzazione Dinamica */
 .week-secondary-card {
   opacity: 0.25;
-  background: rgba(15, 23, 42, 0.2) !important;
+  background: rgba(30, 41, 59, 0.15) !important;
   border: 1px dashed rgba(255, 255, 255, 0.08) !important;
   transform: scale(0.975);
   box-shadow: none !important;
@@ -8389,7 +8389,7 @@ const tornaIndietro = () => {
 .week-secondary-card:hover {
   opacity: 0.95;
   transform: scale(1);
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-bg-glass) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
@@ -8490,7 +8490,7 @@ const tornaIndietro = () => {
 }
 
 .card-glass-dark {
-  background: rgba(15, 23, 42, 0.85);
+  background: var(--card-bg-dark);
   backdrop-filter: blur(8px);
 }
 
@@ -8610,7 +8610,7 @@ const tornaIndietro = () => {
   overflow-x: auto;
   overflow-y: auto; /* Abilita lo scroll verticale qui dentro */
   -webkit-overflow-scrolling: touch;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--card-bg-soft);
   position: relative;
 }
 
@@ -8656,7 +8656,7 @@ const tornaIndietro = () => {
 .sticky-col {
   position: sticky;
   left: 0;
-  background: rgba(15, 23, 42, 0.98);
+  background: var(--card-bg-dark);
   z-index: 5;
   border-right: 1.5px solid rgba(255, 255, 255, 0.08);
 }
@@ -8703,7 +8703,7 @@ th.sticky-col {
 
 /* Stili per la Tabella Progressioni Precedenti Compatta */
 .compact-prev-table {
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--card-bg-soft);
 }
 
 .prev-row:hover {

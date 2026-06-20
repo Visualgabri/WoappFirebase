@@ -355,7 +355,7 @@
                               :key="idx"
                               class="pa-3 rounded-xl d-flex align-center cursor-pointer"
                               flat
-                              style="border: 1px solid rgba(255, 255, 255, 0.06) !important; background: rgba(15, 23, 42, 0.6) !important; transition: background 0.2s;"
+                              style="border: 1px solid var(--card-border) !important; background: var(--card-bg-glass) !important; transition: background 0.2s;"
                               @click="vaiAlRecupero(recItem)"
                             >
                               <!-- Numero ordine + Thumbnail -->
@@ -437,7 +437,7 @@
               <div v-if="eserciziDaRecuperare.length > 0 && ordineEsecuzioneCompleto.length > 0" class="mb-6">
                 <v-card
                   class="pa-3 rounded-xl mb-4 border elevation-1"
-                  style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7)) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important;"
+                  style="background: linear-gradient(135deg, var(--card-bg-soft), var(--card-bg-glass)) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important;"
                 >
                   <div
                     class="d-flex align-center justify-space-between cursor-pointer select-none"
@@ -563,8 +563,8 @@
           class="workout-session-container overflow-hidden border elevation-2 mb-6"
           :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
           :style="{
-            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.35), rgba(15, 23, 42, 0.55)) !important',
-            border: '1.5px solid rgba(255, 255, 255, 0.08) !important',
+            background: 'linear-gradient(135deg, var(--card-bg-soft), var(--card-bg-glass)) !important',
+            border: '1.5px solid var(--card-border) !important',
             marginTop: layoutEsercizi === 'super_compatto' ? '-12px' : (layoutEsercizi === 'compatto' ? '-6px' : '0px')
           }"
         >
@@ -1016,7 +1016,7 @@
               'pa-2': layoutEsercizi === 'compatto',
               'pa-3': layoutEsercizi === 'standard'
             }"
-            style="background: rgba(15, 23, 42, 0.25);"
+            style="background: rgba(30, 41, 59, 0.15);"
           >
             <!-- Stato Vuoto se nessun esercizio -->
             <div v-if="eserciziFiltrati.length === 0" class="text-center my-10 py-6">
@@ -1595,7 +1595,7 @@
       scrollable
       transition="dialog-bottom-transition"
     >
-      <v-card class="card-glass rounded-2xl border" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+      <v-card class="card-glass rounded-2xl border" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
         <v-card-title class="d-flex align-center justify-space-between py-4 px-5 border-bottom">
           <div class="d-flex align-center">
             <v-icon color="orange-darken-3" class="mr-2" size="22">mdi-chart-line-variant</v-icon>
@@ -1739,7 +1739,7 @@
 
     <!-- Dialog di Avviso Esercizi Incompleti al Completamento -->
     <v-dialog v-model="dialogRecuperiAvviso" max-width="450">
-      <v-card class="card-glass rounded-2xl border pa-5 text-center" style="background: rgba(15, 23, 42, 0.9) !important; border-color: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important;">
+      <v-card class="card-glass rounded-2xl border pa-5 text-center" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
         <v-icon color="orange-darken-3" size="56" class="mb-4 animate-pulse">mdi-sync</v-icon>
         <h3 class="text-h6 font-weight-black text-slate-dark mb-2">Allenamento Completato!</h3>
         <p class="text-body-2 text-slate mb-5" style="line-height: 1.5; color: #cbd5e1 !important;">
@@ -1764,7 +1764,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, comportamentoPlayGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2281,6 +2281,7 @@ const giornoSelezionato = ref('A');
 const layoutEsercizi = layoutEserciziGlobal;
 const layoutDettaglio = layoutDettaglioGlobal;
 const timerTheme = timerThemeGlobal;
+const comportamentoPlay = comportamentoPlayGlobal;
 
 
 const caricamento = ref(true);
@@ -4425,7 +4426,7 @@ const recuperiRaggruppati = computed(() => {
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 .bg-slate-900 {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-bg-soft) !important;
 }
 .bg-slate-800 {
   background: rgba(30, 41, 59, 0.4) !important;
@@ -4653,9 +4654,9 @@ const recuperiRaggruppati = computed(() => {
     border-color: rgba(249, 115, 22, 0.6) !important;
   }
   100% {
-    background: rgba(15, 23, 42, 0.65) !important;
+    background: var(--card-bg-glass) !important;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
-    border-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--card-border) !important;
   }
 }
 .highlight-exercise {

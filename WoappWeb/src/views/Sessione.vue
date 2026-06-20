@@ -1292,14 +1292,14 @@ watch(() => route.params.id, (nuovoId) => {
 
 /* Stili per le schede espandibili delle settimane */
 .week-expandable-card {
-  background: rgba(15, 23, 42, 0.4) !important;
+  background: var(--card-bg-soft) !important;
   border-color: rgba(255, 255, 255, 0.05) !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   overflow: hidden;
 }
 
 .week-expandable-card.card-expanded {
-  background: rgba(15, 23, 42, 0.85) !important;
+  background: var(--card-bg-dark) !important;
   border-color: rgba(249, 115, 22, 0.35) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
 }
@@ -1349,7 +1349,7 @@ watch(() => route.params.id, (nuovoId) => {
 }
 
 .premium-card {
-  background: rgba(15, 23, 42, 0.65) !important;
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -1359,7 +1359,7 @@ watch(() => route.params.id, (nuovoId) => {
 }
 
 .card-glass {
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(10px);
 }
 
@@ -1414,7 +1414,7 @@ watch(() => route.params.id, (nuovoId) => {
 }
 
 .bg-slate-900-op {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-bg-soft) !important;
 }
 
 .ring-glow-orange {

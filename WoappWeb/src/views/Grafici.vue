@@ -1089,18 +1089,18 @@ const progressioneSettimanaleChartOptions = ref({
 }
 
 .premium-chart-card {
-  background: rgba(15, 23, 42, 0.65) !important;
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--card-border) !important;
   box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.25) !important;
 }
 
 .card-glass {
-  background: rgba(15, 23, 42, 0.65) !important;
+  background: var(--card-bg-glass) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 .animate-bounce {

@@ -192,6 +192,35 @@
             </div>
           </v-card>
 
+          <!-- Box Avviso Coach per Nuovo Programma (Metà W5 o successive) -->
+          <v-card 
+            v-if="mostraAvvisoCoachNuovoProgramma" 
+            class="pa-4 mb-4 text-left border rounded-2xl elevation-3 card-glass"
+            style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; border: 1.5px solid rgba(249, 115, 22, 0.4) !important; border-radius: 16px !important;"
+          >
+            <div class="d-flex align-start">
+              <v-icon color="orange-lighten-1" class="mr-3 mt-0.5 flex-shrink-0 animate-pulse" size="24">mdi-message-alert</v-icon>
+              <div class="flex-grow-1">
+                <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important; line-height: 1.25;">
+                  ⚠️ Tempo di preparare il prossimo programma!
+                </h4>
+                <p class="text-slate font-weight-medium mb-3" style="font-size: 0.75rem; line-height: 1.45; color: #cbd5e1 !important;">
+                  Hai superato la metà della 5° settimana di allenamento. Contatta il Coach Gabriele per fargli sapere come sta andando e permettergli di preparare la tua prossima scheda in tempo!
+                </p>
+                <v-btn
+                  color="orange-darken-3"
+                  size="small"
+                  class="font-weight-black text-none text-white rounded-lg px-3"
+                  prepend-icon="mdi-whatsapp"
+                  @click="contattaCoachWhatsApp"
+                  style="height: 32px; font-size: 0.75rem;"
+                >
+                  Avvisa il Coach
+                </v-btn>
+              </div>
+            </div>
+          </v-card>
+
           <!-- Card Riepilogo Mesociclo WORKOUT_T -->
           <v-card 
             class="premium-hero-card rounded-2xl text-left border position-relative overflow-hidden pa-4 mb-5" 
@@ -237,6 +266,23 @@
                   </div>
                 </v-col>
               </v-row>
+
+              <!-- Giorni alla Scadenza -->
+              <div v-if="giorniAllaScadenza !== null" class="mt-3 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
+                <span class="text-super-caption text-slate font-weight-bold" style="font-size: 0.65rem;">Tempo alla scadenza:</span>
+                <v-chip
+                  :color="giorniAllaScadenza < 0 ? 'red-darken-3' : (giorniAllaScadenza <= 7 ? 'orange-darken-3' : 'green-darken-3')"
+                  size="x-small"
+                  class="font-weight-black text-white px-2 py-0.5"
+                  variant="flat"
+                  style="font-size: 0.62rem; height: 20px;"
+                >
+                  <v-icon size="11" class="mr-1">
+                    {{ giorniAllaScadenza < 0 ? 'mdi-clock-alert-outline' : 'mdi-clock-outline' }}
+                  </v-icon>
+                  {{ giorniAllaScadenzaText }}
+                </v-chip>
+              </div>
               
               <!-- Allineamento Programma -->
               <div v-if="allineamentoProgramma" class="mt-3 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
@@ -1151,6 +1197,72 @@ const countVideoExercises = computed(() => videoExercisesList.value.length);
 const finalCoachNote = computed(() => {
   return workoutTData.value?.des_note || coachMessage.value || '';
 });
+
+const giorniAllaScadenza = computed(() => {
+  const dataScad = workoutTData.value?.dat_scadenza || dataFine.value;
+  if (!dataScad) return null;
+  const parsedExp = parseDateString(dataScad);
+  if (!parsedExp) return null;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const exp = new Date(parsedExp);
+  exp.setHours(0, 0, 0, 0);
+  
+  const diffTime = exp.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+});
+
+const giorniAllaScadenzaText = computed(() => {
+  if (giorniAllaScadenza.value === null) return '';
+  if (giorniAllaScadenza.value < 0) {
+    const absDays = Math.abs(giorniAllaScadenza.value);
+    return `Scaduto da ${absDays} giorn${absDays === 1 ? 'o' : 'i'}`;
+  }
+  if (giorniAllaScadenza.value === 0) {
+    return 'Scade oggi!';
+  }
+  return `Mancano ${giorniAllaScadenza.value} giorn${giorniAllaScadenza.value === 1 ? 'o' : 'i'}`;
+});
+
+const mostraAvvisoCoachNuovoProgramma = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return false;
+  if (!settimanaAttiva.value) return false;
+  
+  if (settimanaAttiva.value > 5) return true;
+  
+  if (settimanaAttiva.value === 5) {
+    const giorniElenco = ['A', 'B', 'C', 'D'];
+    const giorniDellaScheda = giorniElenco.filter(g => 
+      allExercises.value.some(item => (item.des_giorno || '').trim().toUpperCase() === g)
+    );
+    
+    if (giorniDellaScheda.length === 0) return false;
+    
+    const giorniCompletatiW5 = giorniDellaScheda.filter(g => {
+      const header = allExercises.value.find(
+        item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
+      );
+      return header && isTrue(header.cmp5);
+    });
+    
+    const metaRaggiunta = giorniCompletatiW5.length >= Math.ceil(giorniDellaScheda.length / 2);
+    return metaRaggiunta;
+  }
+  
+  return false;
+});
+
+const contattaCoachWhatsApp = () => {
+  vibraTattile(12);
+  const numeroCoach = '393495525181'; // Coach Gabriele (+39)
+  const nScheda = schedaSelezionata.value || '';
+  const messaggio = `Ciao Coach Gabriele, ho superato la metà della settimana 5 dell'allenamento (Scheda ${nScheda}). Posso chiederti di preparare il prossimo programma? Grazie!`;
+  const url = `https://wa.me/${numeroCoach}?text=${encodeURIComponent(messaggio)}`;
+  window.open(url, '_blank');
+};
 
 const formattaPassi = (val) => {
   if (val === undefined || val === null || val === '') return 'N/D';

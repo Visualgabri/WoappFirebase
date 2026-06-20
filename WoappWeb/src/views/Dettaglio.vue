@@ -2420,6 +2420,147 @@
                   <p class="mb-0">Elaborazione dati del grafico in corso...</p>
                 </div>
               </div>
+
+              <!-- Card Dettaglio Punto Selezionato -->
+              <v-expand-transition>
+                <div v-if="selectedPointDetails" class="px-1">
+                  <v-card 
+                    class="card-glass border text-left" 
+                    style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important; border-color: rgba(249, 115, 22, 0.3) !important; border-radius: 12px !important;"
+                  >
+                    <div class="d-flex align-center justify-space-between px-3 py-2 bg-slate-900 border-bottom">
+                      <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem !important; letter-spacing: 0.02em;">
+                        🔍 Dettaglio Sessione: {{ selectedPointDetails.label }}
+                      </span>
+                      <v-btn icon="mdi-close" variant="text" width="20" height="20" size="x-small" color="grey" @click="selectedPointDetails = null"></v-btn>
+                    </div>
+                    
+                    <div class="pa-3 text-slate-light" style="font-size: 0.72rem; line-height: 1.45;">
+                      <v-row dense class="mb-2.5 align-center text-center">
+                        <v-col cols="4" class="border-right pr-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                          <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Carico</span>
+                          <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.85rem;">
+                            {{ selectedPointDetails.peso }} kg
+                          </span>
+                        </v-col>
+                        <v-col cols="4" class="border-right px-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                          <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Reps</span>
+                          <span class="font-weight-black text-white" style="font-size: 0.85rem;">
+                            {{ selectedPointDetails.reps }} r
+                          </span>
+                        </v-col>
+                        <v-col cols="4" class="pl-2">
+                          <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Stima 1RM</span>
+                          <span class="font-weight-black text-green-accent-3" style="font-size: 0.85rem;">
+                            {{ selectedPointDetails.e1rm }} kg
+                          </span>
+                        </v-col>
+                      </v-row>
+                      
+                      <div class="mt-2 text-super-caption d-flex align-center gap-1.5 flex-wrap font-weight-bold" style="font-size: 0.65rem;">
+                        <span v-if="selectedPointDetails.date">
+                          📅 Data: <span class="text-white">{{ formattaDataStorico(selectedPointDetails.date) }} ({{ tempoTrascorso(selectedPointDetails.date) }})</span>
+                        </span>
+                        <span v-if="selectedPointDetails.giorno">
+                          • Giorno: <span class="text-white">{{ selectedPointDetails.giorno }}</span>
+                        </span>
+                      </div>
+                      
+                      <!-- Note storiche -->
+                      <div 
+                        v-if="String(selectedPointDetails.note).trim() || String(selectedPointDetails.noteAttrezzo).trim() || String(selectedPointDetails.noteGen).trim()" 
+                        class="mt-2.5 pt-2 border-top-soft"
+                      >
+                        <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1" style="font-size: 0.58rem;">Note registrate:</span>
+                        <div v-if="String(selectedPointDetails.note).trim()" class="mb-1 text-white font-italic">
+                          "{{ selectedPointDetails.note }}"
+                        </div>
+                        <div v-if="String(selectedPointDetails.noteAttrezzo).trim()" style="font-size: 0.65rem;" class="text-slate-dark">
+                          🔧 Setup: {{ selectedPointDetails.noteAttrezzo }}
+                        </div>
+                        <div v-if="String(selectedPointDetails.noteGen).trim()" style="font-size: 0.65rem;" class="text-slate-dark mt-0.5">
+                          ⚙️ Macchina: {{ selectedPointDetails.noteGen }}
+                        </div>
+                      </div>
+                    </div>
+                  </v-card>
+                </div>
+              </v-expand-transition>
+
+              <!-- Analisi Andamento e Consigli Tecnici -->
+              <div v-if="analisiAndamentoEsercizio" class="px-1">
+                <v-card class="card-glass border text-left" style="border-color: rgba(255, 255, 255, 0.08) !important; border-radius: 12px !important;">
+                  <div 
+                    class="d-flex align-center justify-space-between px-3 py-2 bg-slate-900 clickable-item" 
+                    style="cursor: pointer; min-height: 36px;"
+                    @click="showAnalisiAndamento = !showAnalisiAndamento"
+                  >
+                    <div class="d-flex align-center gap-2">
+                      <v-icon color="orange-lighten-2" size="16">mdi-google-analytics</v-icon>
+                      <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem !important; letter-spacing: 0.02em;">
+                        Analisi Progressioni & Consigli
+                      </span>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                      <v-chip 
+                        :color="analisiAndamentoEsercizio.badgeColor" 
+                        size="x-small" 
+                        class="font-weight-black text-white uppercase px-1.5"
+                        style="height: 18px; font-size: 0.55rem; border-radius: 4px;"
+                        variant="flat"
+                      >
+                        {{ analisiAndamentoEsercizio.badgeText }}
+                      </v-chip>
+                      <v-icon size="16" color="grey">{{ showAnalisiAndamento ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                    </div>
+                  </div>
+                  
+                  <v-expand-transition>
+                    <div v-show="showAnalisiAndamento" class="pa-3 border-top-soft" style="font-size: 0.72rem; line-height: 1.45;">
+                      <!-- Giudizio -->
+                      <div class="mb-3 d-flex align-start gap-2">
+                        <span style="font-size: 1.15rem; line-height: 1;">📊</span>
+                        <div>
+                          <strong class="text-white">Giudizio sull'Andamento:</strong>
+                          <p class="mb-0 mt-0.5 text-slate-light" v-html="renderMarkdownBold(analisiAndamentoEsercizio.giudizio)"></p>
+                        </div>
+                      </div>
+                      
+                      <!-- Consigli -->
+                      <div class="mb-3 d-flex align-start gap-2">
+                        <span style="font-size: 1.15rem; line-height: 1;">💡</span>
+                        <div>
+                          <strong class="text-orange-lighten-3">Consigli Tecnici:</strong>
+                          <p class="mb-0 mt-0.5 text-slate-light">{{ analisiAndamentoEsercizio.consigli }}</p>
+                        </div>
+                      </div>
+                      
+                      <!-- Record per fascia -->
+                      <div v-if="analisiAndamentoEsercizio.records.length > 0" class="pt-2.5 border-top-soft">
+                        <strong class="text-white uppercase font-weight-black d-block mb-2" style="font-size: 0.58rem; letter-spacing: 0.05em;">
+                          Migliori Prestazioni Registrate per Fascia:
+                        </strong>
+                        <div class="d-flex flex-column gap-1.5">
+                          <div 
+                            v-for="rec in analisiAndamentoEsercizio.records" 
+                            :key="rec.bucket"
+                            class="d-flex align-center justify-space-between bg-slate-950 rounded px-2.5 py-1.5 border border-soft"
+                            style="border-color: rgba(255, 255, 255, 0.05) !important;"
+                          >
+                            <div>
+                              <span class="font-weight-black text-orange-lighten-2">{{ rec.bucket }}</span>
+                              <span class="text-super-caption text-muted ml-2">({{ rec.label }})</span>
+                            </div>
+                            <div class="font-weight-black text-white">
+                              {{ rec.maxPeso }} kg <span class="text-super-caption text-muted" v-if="rec.date">• {{ tempoTrascorso(rec.date) }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </v-expand-transition>
+                </v-card>
+              </div>
             </div>
           </div>
         </v-card-text>
@@ -3658,6 +3799,8 @@ const selectedBuckets = ref([]);
 const storicoChartData = ref({ labels: [], datasets: [] });
 const storicoChartReady = ref(false);
 const rawPointsLocal = ref([]);
+const selectedPointDetails = ref(null);
+const showAnalisiAndamento = ref(true);
 
 const getBucketLabel = (reps, mode) => {
   if (mode === 'zone') {
@@ -7391,6 +7534,7 @@ const caricaDatiAnalisi = async (sett) => {
 // Logica di Generazione del Grafico Storico Esercizio
 const rigeneraGraficoStorico = () => {
   storicoChartReady.value = false;
+  selectedPointDetails.value = null;
   if (!storicoFiltrato.value || storicoFiltrato.value.length === 0) {
     return;
   }
@@ -7417,7 +7561,8 @@ const rigeneraGraficoStorico = () => {
             peso: peso,
             reps: reps,
             e1rm: e1rm,
-            bucket: getBucketLabel(reps, raggruppamentoReps.value)
+            bucket: getBucketLabel(reps, raggruppamentoReps.value),
+            date: prevEx.dat_scheda_ult_ex || prevEx.timestamp || ''
           });
         }
       }
@@ -7591,6 +7736,14 @@ const rigeneraGraficoStorico = () => {
 const storicoChartOptions = ref({
   responsive: true,
   maintainAspectRatio: false,
+  onClick: (event, elements, chart) => {
+    if (elements && elements.length > 0) {
+      const firstEl = elements[0];
+      const datasetIndex = firstEl.datasetIndex;
+      const index = firstEl.index;
+      gestisciClickGrafico(datasetIndex, index);
+    }
+  },
   plugins: {
     legend: {
       position: 'top',
@@ -7609,16 +7762,31 @@ const storicoChartOptions = ref({
           const val = context.raw;
           if (val === null) return null;
           
+          let dateInfo = '';
+          
           if (modeGraficoStorico.value === 'C') {
-            const pt = rawPointsLocal.value[index];
+            const activePoints = rawPointsLocal.value.filter(p => selectedBuckets.value.includes(p.bucket));
+            const pt = activePoints[index];
             if (pt) {
-              return ` Peso: ${pt.peso} kg (${pt.reps} reps) | 1RM: ${pt.e1rm} kg`;
+              if (pt.date) {
+                dateInfo = ` | Data: ${formattaDataStorico(pt.date)} (${tempoTrascorso(pt.date)})`;
+              }
+              return ` Peso: ${pt.peso} kg (${pt.reps} reps) | 1RM: ${pt.e1rm} kg${dateInfo}`;
             }
           } else {
-            if (label.includes('reps')) {
-              return ` Carico: ${val} kg`;
-            } else if (label.includes('1RM')) {
-              return ` 1RM Stimato: ${val} kg`;
+            const lbl = context.chart.data.labels[index];
+            const pts = rawPointsLocal.value.filter(p => p.label === lbl);
+            if (pts.length > 0) {
+              const pt = pts[0];
+              if (pt.date) {
+                dateInfo = ` | Data: ${formattaDataStorico(pt.date)} (${tempoTrascorso(pt.date)})`;
+              }
+            }
+            
+            if (label.includes('1RM') || label.includes('Massimale')) {
+              return ` 1RM Stimato: ${val} kg${dateInfo}`;
+            } else {
+              return ` Carico (${label}): ${val} kg${dateInfo}`;
             }
           }
           return ` ${label}: ${val} kg`;
@@ -7644,6 +7812,129 @@ const storicoChartOptions = ref({
       }
     }
   }
+});
+
+const gestisciClickGrafico = (datasetIndex, index) => {
+  let pt = null;
+  if (modeGraficoStorico.value === 'C') {
+    const activePoints = rawPointsLocal.value.filter(p => selectedBuckets.value.includes(p.bucket));
+    pt = activePoints[index];
+  } else {
+    const label = storicoChartData.value.labels[index];
+    const dataset = storicoChartData.value.datasets[datasetIndex];
+    if (!dataset) return;
+    const bucketName = dataset.label;
+    
+    pt = rawPointsLocal.value.find(p => p.label === label && p.bucket === bucketName);
+    
+    if (!pt && (bucketName.includes('1RM') || bucketName.includes('Massimale'))) {
+      const pts = rawPointsLocal.value.filter(p => p.label === label && selectedBuckets.value.includes(p.bucket));
+      if (pts.length > 0) {
+        pts.sort((a, b) => b.e1rm - a.e1rm);
+        pt = pts[0];
+      }
+    }
+  }
+  
+  if (pt) {
+    const match = pt.label.match(/S\.(\d+)-W(\d+)/);
+    if (match) {
+      const sNum = match[1];
+      const wNum = match[2];
+      const origEx = storicoFiltrato.value.find(ex => String(ex.num_scheda) === String(sNum));
+      selectedPointDetails.value = {
+        label: pt.label,
+        scheda: sNum,
+        week: wNum,
+        peso: pt.peso,
+        reps: pt.reps,
+        e1rm: pt.e1rm,
+        date: pt.date,
+        giorno: origEx ? origEx.des_giorno : '',
+        note: origEx ? (origEx.des_note || '') : '',
+        noteAttrezzo: origEx ? (origEx.des_note_attrezzo || '') : '',
+        noteGen: origEx ? (origEx.des_note_gen_attr || '') : ''
+      };
+    }
+  }
+};
+
+const analisiAndamentoEsercizio = computed(() => {
+  if (!rawPointsLocal.value || rawPointsLocal.value.length === 0) {
+    return null;
+  }
+  
+  const pts = [...rawPointsLocal.value];
+  pts.sort((a, b) => {
+    const matchA = a.label.match(/S\.(\d+)-W(\d+)/);
+    const matchB = b.label.match(/S\.(\d+)-W(\d+)/);
+    if (matchA && matchB) {
+      const sA = parseInt(matchA[1]);
+      const wA = parseInt(matchA[2]);
+      const sB = parseInt(matchB[1]);
+      const wB = parseInt(matchB[2]);
+      if (sA !== sB) return sA - sB;
+      return wA - wB;
+    }
+    return 0;
+  });
+  
+  const firstPt = pts[0];
+  const lastPt = pts[pts.length - 1];
+  
+  let pctDiff = 0;
+  if (firstPt.e1rm > 0) {
+    pctDiff = parseFloat((((lastPt.e1rm - firstPt.e1rm) / firstPt.e1rm) * 100).toFixed(1));
+  }
+  
+  let badgeColor = 'grey';
+  let badgeText = 'Stabile';
+  let giudizio = '';
+  let consigli = '';
+  
+  if (pctDiff > 5) {
+    badgeColor = 'green-darken-2';
+    badgeText = 'Progressione Eccellente';
+    giudizio = `Incremento del Massimale Teorico del **+${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg). Stai progredendo molto bene con il sovraccarico progressivo.`;
+    consigli = "Continua così! Se completi le ripetizioni target con facilità, aumenta gradualmente il carico mantendo stabile il TUT (Tempo Sotto Tensione).";
+  } else if (pctDiff >= -3 && pctDiff <= 5) {
+    badgeColor = 'amber-darken-3';
+    badgeText = 'Fase di Stallo / Consolidamento';
+    giudizio = `Massimale Teorico stabile con variazione del **${pctDiff >= 0 ? '+' : ''}${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg). Ottimo per consolidare la forza.`;
+    consigli = "Se sei bloccato da diverse settimane, prova ad applicare una progressione di volume (più reps a parità di peso) prima di salire col carico, oppure effettua uno scarico mirato.";
+  } else {
+    badgeColor = 'red-darken-3';
+    badgeText = 'Flessione del Carico';
+    giudizio = `Flessione del Massimale Teorico del **${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg).`;
+    consigli = "Un calo della forza stimata può essere causato da stanchezza sistemica (necessità di scarico), da una tecnica di esecuzione più rigida e controllata, o da variazioni nel ROM. Cura il riposo.";
+  }
+  
+  const recordPerFascia = [];
+  selectedBuckets.value.forEach(bucket => {
+    const bucketPts = pts.filter(p => p.bucket === bucket);
+    if (bucketPts.length > 0) {
+      bucketPts.sort((a, b) => b.peso - a.peso);
+      const best = bucketPts[0];
+      recordPerFascia.push({
+        bucket: bucket,
+        maxPeso: best.peso,
+        reps: best.reps,
+        label: best.label,
+        date: best.date
+      });
+    }
+  });
+  
+  return {
+    pctDiff,
+    badgeColor,
+    badgeText,
+    giudizio,
+    consigli,
+    firstPt,
+    lastPt,
+    records: recordPerFascia
+  };
 });
 
 watch(raggruppamentoReps, () => {

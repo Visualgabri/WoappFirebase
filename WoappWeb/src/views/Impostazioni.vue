@@ -354,7 +354,61 @@
       </div>
     </v-card>
 
-    <!-- SEZIONE 4: ZONA PERICOLOSA (Reset) -->
+    <!-- SEZIONE 4: BACKUP & RIPRISTINO DATI -->
+    <v-card 
+      v-if="atletaSelezionato && schedaSelezionata"
+      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
+      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
+      elevation="2"
+    >
+      <div class="d-flex align-center mb-4">
+        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-database-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Backup & Ripristino Scheda</span>
+      </div>
+
+      <div class="pa-4 rounded-xl card-glass border-soft" style="background: rgba(30, 41, 59, 0.2) !important;">
+        <div class="text-left mb-3">
+          <span class="text-caption font-weight-bold text-white d-block">Esporta / Importa Dati Scheda</span>
+          <span class="text-super-caption text-muted d-block mt-1" style="font-size: 0.65rem; line-height: 1.3; text-transform: none;">
+            Esporta tutti i carichi, ripetizioni, note e completamenti registrati per la scheda attiva (n.{{ schedaSelezionata }}) in un file JSON locale, oppure importa un file salvato in precedenza.
+          </span>
+        </div>
+        <div class="d-flex gap-3 flex-wrap">
+          <v-btn
+            color="orange-darken-3"
+            variant="flat"
+            size="small"
+            class="font-weight-black text-none rounded-lg text-white flex-grow-1"
+            prepend-icon="mdi-download"
+            @click="esportaSchedaJSON"
+            :loading="esportandoJSON"
+          >
+            Esporta JSON
+          </v-btn>
+          
+          <v-btn
+            color="blue-darken-3"
+            variant="flat"
+            size="small"
+            class="font-weight-black text-none rounded-lg text-white flex-grow-1"
+            prepend-icon="mdi-upload"
+            @click="triggerInputFile"
+            :loading="importandoJSON"
+          >
+            Importa JSON
+          </v-btn>
+          <input
+            type="file"
+            ref="inputFileRef"
+            accept=".json"
+            style="display: none;"
+            @change="gestisciImportazioneJSON"
+          />
+        </div>
+      </div>
+    </v-card>
+
+    <!-- SEZIONE 5: ZONA PERICOLOSA (Reset) -->
     <v-card 
       v-if="atletaSelezionato && schedaSelezionata"
       class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
@@ -421,6 +475,38 @@
           </v-btn>
           <v-btn color="red-darken-3" variant="flat" class="font-weight-bold text-white flex-grow-1" rounded="lg" @click="eseguiReset" :loading="resetInCorso">
             Resetta Tutto
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Conferma Import -->
+    <v-dialog v-model="confermaImport" max-width="450" rounded="xl">
+      <v-card class="pa-5 rounded-2xl card-glass border" style="background: var(--card-bg-dark) !important; border-color: rgba(30, 144, 255, 0.3) !important;">
+        <v-card-title class="font-weight-black text-blue-lighten-2 d-flex align-center px-0">
+          <v-icon color="blue-lighten-2" class="mr-2">mdi-database-import</v-icon>
+          Conferma Ripristino Dati ⚠️
+        </v-card-title>
+        <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+          Stai per sovrascrivere i dati correnti con il backup caricato.
+          <br><br>
+          Dati nel file di backup:
+          <ul class="mt-2 mb-3 pl-4">
+            <li>Atleta: <strong>{{ importedMetadata.atletaNome || importedMetadata.atletaId }}</strong></li>
+            <li>Scheda: <strong>{{ importedMetadata.numScheda }}</strong></li>
+            <li>Data backup: <strong>{{ formattaDataEsportazione(importedMetadata.timestamp) }}</strong></li>
+          </ul>
+          <span v-if="discrepanzaDati" class="text-red-lighten-2 font-weight-black d-block mb-3">
+            ⚠️ ATTENZIONE: Il backup caricato non corrisponde all'atleta o alla scheda attualmente attivi (Atleta: {{ getNomeAtleta(atletaSelezionato) }}, Scheda: {{ schedaSelezionata }}).
+          </span>
+          Questa operazione sovrascriverà tutti i carichi, note e completamenti di questa scheda. Vuoi procedere?
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 d-flex gap-2">
+          <v-btn color="grey" variant="tonal" class="font-weight-bold flex-grow-1" rounded="lg" @click="confermaImport = false">
+            Annulla
+          </v-btn>
+          <v-btn color="blue-darken-3" variant="flat" class="font-weight-bold text-white flex-grow-1" rounded="lg" @click="eseguiImportazione" :loading="importInCorso">
+            Ripristina
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -579,6 +665,212 @@ const eseguiReset = async () => {
     console.error("Errore durante il reset:", err);
   } finally {
     resetInCorso.value = false;
+  }
+};
+
+// Backup & Ripristino JSON
+const esportandoJSON = ref(false);
+const importandoJSON = ref(false);
+const confermaImport = ref(false);
+const importInCorso = ref(false);
+const discrepanzaDati = ref(false);
+const inputFileRef = ref(null);
+
+const importedMetadata = ref({
+  atletaId: '',
+  atletaNome: '',
+  numScheda: '',
+  timestamp: ''
+});
+
+let datiStoryboardDaImportare = [];
+
+const esportaSchedaJSON = async () => {
+  if (!atletaSelezionato.value || !schedaSelezionata.value) return;
+  vibraTattile(12);
+  esportandoJSON.value = true;
+  try {
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where('ID_cliente', '==', atletaSelezionato.value),
+      where('num_scheda', '==', String(schedaSelezionata.value))
+    );
+    const snap = await getDocs(q);
+    const dataList = [];
+    
+    snap.forEach(docSnap => {
+      let item = { id: docSnap.id, ...docSnap.data() };
+      
+      // APPLICHIAMO LE MODIFICHE LOCALI (Il salvataggio offline del telefono!)
+      const key1 = `offline_storyboard_${item.id}`;
+      const key2 = `offline_storyboard_${item.num_riga}`;
+      const localData1 = localStorage.getItem(key1);
+      const localData2 = localStorage.getItem(key2);
+      
+      let updates = {};
+      let localTimestamp = null;
+      
+      if (localData1) {
+        try {
+          const parsed = JSON.parse(localData1);
+          if (parsed.timestamp) localTimestamp = parsed.timestamp;
+          updates = { ...updates, ...parsed };
+        } catch (e) {}
+      }
+      if (localData2) {
+        try {
+          const parsed = JSON.parse(localData2);
+          if (parsed.timestamp && (!localTimestamp || parsed.timestamp > localTimestamp)) {
+            localTimestamp = parsed.timestamp;
+          }
+          updates = { ...updates, ...parsed };
+        } catch (e) {}
+      }
+      
+      // Se il dato sul server fosse più nuovo, ignora la cache (ma in questo caso vince la cache)
+      if (localTimestamp && item.timestamp && localTimestamp < item.timestamp) {
+        updates = {}; 
+      }
+      
+      // Uniamo il documento del server con i pesi salvati sul telefono
+      dataList.push({ ...item, ...updates });
+    });
+    
+    const backupData = {
+      atletaId: atletaSelezionato.value,
+      atletaNome: getNomeAtleta(atletaSelezionato.value),
+      numScheda: schedaSelezionata.value,
+      timestamp: new Date().toISOString(),
+      datiStoryboard: dataList
+    };
+
+    const jsonString = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const nomeAtletaClean = (getNomeAtleta(atletaSelezionato.value) || 'Atleta').replace(/\s+/g, '_');
+    link.href = url;
+    link.download = `Backup_Scheda_${schedaSelezionata.value}_${nomeAtletaClean}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Errore durante l'esportazione:", err);
+    alert("Errore durante l'esportazione: " + err.message);
+  } finally {
+    esportandoJSON.value = false;
+  }
+};
+
+const triggerInputFile = () => {
+  vibraTattile(12);
+  if (inputFileRef.value) {
+    inputFileRef.value.click();
+  }
+};
+
+const gestisciImportazioneJSON = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.atletaId || !imported.numScheda || !Array.isArray(imported.datiStoryboard)) {
+        alert("File JSON non valido. Assicurati che sia un file di backup generato da FlexCoach.");
+        return;
+      }
+
+      importedMetadata.value = {
+        atletaId: imported.atletaId,
+        atletaNome: imported.atletaNome || '',
+        numScheda: imported.numScheda,
+        timestamp: imported.timestamp || ''
+      };
+
+      datiStoryboardDaImportare = imported.datiStoryboard;
+      
+      // Controlla discrepanza
+      discrepanzaDati.value = (imported.atletaId !== atletaSelezionato.value) || 
+                              (String(imported.numScheda) !== String(schedaSelezionata.value));
+
+      confermaImport.value = true;
+    } catch (err) {
+      alert("Errore nel parsing del file JSON: " + err.message);
+    } finally {
+      event.target.value = ''; // Reset input file
+    }
+  };
+  reader.readAsText(file);
+};
+
+const fieldsToRestore = [
+  'ins_week1', 'ins_week2', 'ins_week3', 'ins_week4', 'ins_week5', 'ins_week6',
+  'reps_week1', 'reps_week2', 'reps_week3', 'reps_week4', 'reps_week5', 'reps_week6',
+  'cmp1', 'cmp2', 'cmp3', 'cmp4', 'cmp5', 'cmp6',
+  'timestamp', 'timestamp_ute',
+  'start_wo', 'end_wo', 'start2_wo', 'end2_wo', 'start3_wo', 'end3_wo', 'start4_wo', 'end4_wo', 'start5_wo', 'end5_wo', 'start6_wo', 'end6_wo',
+  'num_faticaw6', 'des_commenti', 'ind_reps_start',
+  'perc_irt_w1', 'perc_irt_w2', 'perc_irt_w3', 'perc_irt_w4', 'perc_irt_w5', 'perc_irt_w6',
+  'num_ins6', 'num_peso_bilanciere'
+];
+
+const eseguiImportazione = async () => {
+  if (!atletaSelezionato.value || !schedaSelezionata.value || datiStoryboardDaImportare.length === 0) return;
+  importInCorso.value = true;
+  vibraTattile(20);
+  try {
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where('ID_cliente', '==', atletaSelezionato.value),
+      where('num_scheda', '==', String(schedaSelezionata.value))
+    );
+    const snap = await getDocs(q);
+    
+    const batch = writeBatch(db);
+    let count = 0;
+
+    snap.forEach((docSnap) => {
+      const currentData = docSnap.data();
+      
+      const matched = datiStoryboardDaImportare.find(b => 
+        b.id === docSnap.id || 
+        (String(b.des_giorno).trim().toUpperCase() === String(currentData.des_giorno).trim().toUpperCase() &&
+         parseInt(b.num_riga_giorno) === parseInt(currentData.num_riga_giorno))
+      );
+
+      if (matched) {
+        const updateObj = {};
+        fieldsToRestore.forEach(field => {
+          if (matched[field] !== undefined) {
+            updateObj[field] = matched[field];
+          }
+        });
+        batch.update(docSnap.ref, updateObj);
+        count++;
+      }
+    });
+
+    await batch.commit();
+    alert(`Importazione completata con successo! Ripristinati ${count} record.`);
+    confermaImport.value = false;
+  } catch (err) {
+    console.error("Errore durante il ripristino:", err);
+    alert("Errore durante il ripristino dei dati: " + err.message);
+  } finally {
+    importInCorso.value = false;
+  }
+};
+
+const formattaDataEsportazione = (isoString) => {
+  if (!isoString) return '-';
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleString('it-IT');
+  } catch (e) {
+    return isoString;
   }
 };
 </script>

@@ -599,10 +599,10 @@
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem !important' : '0.8rem !important' }">
                 WEEK {{ sett }}
                 <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
-                  ({{ formatRepsDisplay(parsedPrescription(workout['des_week' + sett]).reps) }})
+                  ({{ parsedPrescription(workout['des_week' + sett]).reps }})
                 </span>
                 <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
-                  ({{ formatRepsDisplay(pulisciParentesiQuadre(workout['des_week' + sett])) }})
+                  ({{ pulisciParentesiQuadre(workout['des_week' + sett]) }})
                 </span>
               </span>
               <v-chip
@@ -1395,7 +1395,7 @@
                   <div class="font-weight-black text-white uppercase d-flex align-center gap-1.5" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
                     <span>Week {{ w }}</span>
                     <span class="text-orange-lighten-2 font-weight-black" style="font-size: 1.05rem !important; text-transform: none;">
-                      ({{ previousWorkout['des_week' + w] ? formatRepsDisplay(pulisciParentesiQuadre(previousWorkout['des_week' + w])) : 'N.D.' }})
+                      ({{ previousWorkout['des_week' + w] ? pulisciParentesiQuadre(previousWorkout['des_week' + w]) : 'N.D.' }})
                     </span>
                   </div>
                 </div>
@@ -1760,7 +1760,7 @@
             >
               <span style="font-size: 0.45rem; color: #94a3b8;" class="font-weight-bold">W{{w}}</span>
               <span style="font-size: 0.6rem; color: #fb923c;" class="font-weight-black">
-                {{ formatRepsDisplay(parsedPrescription(workout?.['des_week' + w])?.reps || workout?.['des_week' + w]) }}
+                {{ parsedPrescription(workout?.['des_week' + w])?.reps || workout?.['des_week' + w] || '-' }}
               </span>
             </div>
           </div>
@@ -2262,7 +2262,7 @@
                     >
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="text-super-caption text-white font-weight-medium d-block text-truncate px-0.5 opacity-70" style="font-size: 0.6rem; line-height: 1;">
-                        {{ prevEx['des_week' + w] ? formatRepsDisplay(parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
+                        {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
                       </span>
                       <strong class="font-weight-black d-block mt-1" style="font-size: 0.95rem; line-height: 1;" :style="{ color: isMatchingReps(prevEx, w) ? '#f87171' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }">
                         {{ prevEx['ins_week' + w] || '-' }}
@@ -2307,7 +2307,7 @@
                     
                     <td v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="body-cell font-weight-bold text-center" :class="{'red-cell': isMatchingReps(prevEx, w)}" style="word-wrap: break-word;">
                       <div v-if="prevEx['des_week' + w]" class="text-super-caption text-white font-weight-medium" style="font-size: 0.65rem; line-height: 1; opacity: 0.8;">
-                        {{ formatRepsDisplay(parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) }}
+                        {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
                       </div>
                       <div class="font-weight-black mt-1" style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;" :style="{ color: isMatchingReps(prevEx, w) ? '#ef4444' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }">
                         {{ prevEx['ins_week' + w] || '-' }}

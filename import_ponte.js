@@ -157,7 +157,13 @@ async function run() {
     const cleanRow = {};
     for (const [key, value] of Object.entries(row)) {
       const cleanKey = key.trim().replace(/^\uFEFF/, '');
-      cleanRow[cleanKey] = value !== undefined && value !== null ? String(value).trim() : '';
+      const cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
+      cleanRow[cleanKey] = cleanVal;
+      
+      // Mappatura speciale des_week1Estratto -> des_week1
+      if (cleanKey === 'des_week1Estratto') {
+        cleanRow['des_week1'] = cleanVal;
+      }
     }
     return cleanRow;
   });
@@ -221,9 +227,9 @@ async function run() {
       'cmp1', 'cmp2', 'cmp3', 'cmp4', 'cmp5', 'cmp6',
       'timestamp', 'timestamp_ute',
       'start_wo', 'end_wo', 'start2_wo', 'end2_wo', 'start3_wo', 'end3_wo', 'start4_wo', 'end4_wo', 'start5_wo', 'end5_wo', 'start6_wo', 'end6_wo',
-      'num_faticaw6', 'des_commenti', 'ins_esercizio', 'des_esercizio_2', 'num_kg_mancanti_ob', 'num_lv',
+      'num_faticaw6', 'des_commenti',
       'perc_irt_w1', 'perc_irt_w2', 'perc_irt_w3', 'perc_irt_w4', 'perc_irt_w5', 'perc_irt_w6',
-      'num_ins6', 'num_peso_bilanciere', 'des_note_immagine', 'des_note_gen_attr', 'des_note_attrezzo'
+      'num_ins6', 'num_peso_bilanciere'
     ];
 
     newExcelRecords.forEach(excelRec => {

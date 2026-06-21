@@ -101,6 +101,9 @@ async function smartImport() {
       
       if (header && cellVal !== '') {
         record[header] = cellVal;
+        if (header === 'des_week1Estratto') {
+          record['des_week1'] = cellVal;
+        }
       }
     });
     
@@ -123,9 +126,9 @@ async function smartImport() {
             'cmp1', 'cmp2', 'cmp3', 'cmp4', 'cmp5', 'cmp6',
             'timestamp', 'timestamp_ute',
             'start_wo', 'end_wo', 'start2_wo', 'end2_wo', 'start3_wo', 'end3_wo', 'start4_wo', 'end4_wo', 'start5_wo', 'end5_wo', 'start6_wo', 'end6_wo',
-            'num_faticaw6', 'des_commenti', 'ins_esercizio', 'des_esercizio_2', 'num_kg_mancanti_ob', 'num_lv',
+            'num_faticaw6', 'des_commenti',
             'perc_irt_w1', 'perc_irt_w2', 'perc_irt_w3', 'perc_irt_w4', 'perc_irt_w5', 'perc_irt_w6',
-            'num_ins6', 'num_peso_bilanciere', 'des_note_immagine', 'des_note_gen_attr', 'des_note_attrezzo'
+            'num_ins6', 'num_peso_bilanciere'
           ];
           
           fieldsToPreserve.forEach(field => {

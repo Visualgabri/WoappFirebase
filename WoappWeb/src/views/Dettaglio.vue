@@ -771,8 +771,8 @@
                   <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'" class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
                     - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
                   </span>
-                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Carica il Miglior Carico W6 per una stima più precisa">
-                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} (carica W6)
+                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Metti il Miglior Carico W6 per una stima più precisa">
+                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} (metti miglior carico W6 su precedente!)
                   </span>
                 </span>
                 <!-- isWeek1 con peso kg: mostra proposta kg -->
@@ -787,8 +787,8 @@
                   <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
                     (prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}r</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
                   </span>
-                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Carica il Miglior Carico W6 per una stima più precisa">
-                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} (carica W6)
+                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Metti il Miglior Carico W6 per una stima più precisa">
+                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} ((metti miglior carico W6 su precedente!))
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isScarico" class="text-super-caption text-amber-lighten-2 font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">

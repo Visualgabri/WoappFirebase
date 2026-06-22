@@ -349,7 +349,7 @@
                 <v-expand-transition>
                   <div v-show="mostraManuale" class="mt-3 pt-3 border-top-soft">
                     <v-row dense>
-                      <v-col cols="6">
+                      <v-col cols="12" sm="6" class="mb-2 mb-sm-0">
                         <v-text-field
                           v-model="inputStart"
                           type="datetime-local"
@@ -360,10 +360,10 @@
                           color="orange-darken-3"
                           @change="salvaDato(getStartField(sett), inputStart)"
                           hide-details
-                          style="font-size: 0.8rem;"
+                          class="manual-datetime-field"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="6">
+                      <v-col cols="12" sm="6">
                         <v-text-field
                           v-model="inputEnd"
                           type="datetime-local"
@@ -374,7 +374,7 @@
                           color="orange-darken-3"
                           @change="salvaDato(getEndField(sett), inputEnd)"
                           hide-details
-                          style="font-size: 0.8rem;"
+                          class="manual-datetime-field"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -1477,4 +1477,18 @@ watch(() => route.params.id, (nuovoId) => {
 }
 .swipe-prev-enter-from { transform: translateX(-100%); opacity: 0; }
 .swipe-prev-leave-to { transform: translateX(100%); opacity: 0; }
+
+/* Stile per i campi datetime-local per evitare troncamenti su mobile */
+.manual-datetime-field :deep(.v-field__input) {
+  font-size: 0.82rem !important;
+  padding-inline-start: 10px !important;
+  padding-inline-end: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.manual-datetime-field :deep(input) {
+  font-size: 0.82rem !important;
+  text-align: center !important;
+}
 </style>

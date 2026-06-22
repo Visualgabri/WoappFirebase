@@ -188,6 +188,43 @@
           </template>
         </div>
       </div>
+
+      <v-divider class="my-4 border-soft" style="opacity: 0.15;"></v-divider>
+
+      <!-- Tema Card Giorno Workout -->
+      <div class="mb-2">
+        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">🎨 Tema Card Giorno Workout</span>
+        <v-btn-toggle
+          v-model="temaHeaderGiorno"
+          mandatory
+          selected-class="bg-orange-darken-3 text-white"
+          density="comfortable"
+          rounded="xl"
+          class="w-100 card-glass border mb-2"
+          style="height: 38px;"
+        >
+          <v-btn value="arancio" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+            Arancio 🔥
+          </v-btn>
+          <v-btn value="blu" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+            Blu Cobalto 💎
+          </v-btn>
+          <v-btn value="verde" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+            Verde Smeraldo 🌿
+          </v-btn>
+        </v-btn-toggle>
+        <div class="text-super-caption text-muted font-italic leading-tight">
+          <template v-if="temaHeaderGiorno === 'arancio'">
+            * Arancio: Gradiente ambrato arancione in linea con i colori storici del brand WoApp.
+          </template>
+          <template v-else-if="temaHeaderGiorno === 'blu'">
+            * Blu Cobalto: Stile tecnologico e pulito con sfumature blu neon e notte.
+          </template>
+          <template v-else>
+            * Verde Smeraldo: Look fresco basato sulle tonalità smeraldo e menta.
+          </template>
+        </div>
+      </div>
     </v-card>
 
     <!-- SEZIONE 3: PARAMETRI ALLENAMENTO -->
@@ -548,7 +585,8 @@ import {
   layoutEserciziGlobal,
   layoutDettaglioGlobal,
   timerThemeGlobal,
-  comportamentoPlayGlobal
+  comportamentoPlayGlobal,
+  temaHeaderGiornoGlobal
 } from '../authStore.js';
 
 const router = useRouter();
@@ -565,6 +603,7 @@ watch(selectedSheet, (v) => { schedaSelezionata.value = v; });
 const layoutEsercizi = layoutEserciziGlobal;
 const layoutDettaglio = layoutDettaglioGlobal;
 const timerTheme = timerThemeGlobal;
+const temaHeaderGiorno = temaHeaderGiornoGlobal;
 
 // Refs salvati in localStorage
 const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));

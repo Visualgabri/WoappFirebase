@@ -481,6 +481,7 @@ export const layoutEserciziGlobal = ref(localStorage.getItem('woapp_layout_eserc
 export const layoutDettaglioGlobal = ref(localStorage.getItem('woapp_layout_dettaglio') || 'auto');
 export const timerThemeGlobal = ref(localStorage.getItem('woapp_timer_theme') || 'accent-dark');
 export const comportamentoPlayGlobal = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
+export const temaHeaderGiornoGlobal = ref(localStorage.getItem('woapp_tema_header_giorno') || 'arancio');
 
 // Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
 export const globalStoryboard = ref([]);
@@ -575,5 +576,8 @@ watch(faticaPesanteStoricoPctGlobal, (newVal) => {
 });
 watch(faticaDevastanteStoricoPctGlobal, (newVal) => {
   localStorage.setItem('faticaDevastanteStoricoPct', String(newVal));
+});
+watch(temaHeaderGiornoGlobal, (newVal) => {
+  localStorage.setItem('woapp_tema_header_giorno', newVal);
 });
 

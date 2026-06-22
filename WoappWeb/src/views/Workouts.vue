@@ -571,11 +571,14 @@
           <!-- Intestazione Sessione (ex Day Header Card) -->
           <div
             class="day-header-section clickable-header position-relative"
-            :class="{
-              'pt-1 pb-1.5 px-2': layoutEsercizi === 'super_compatto',
-              'pt-1.5 pb-2.5 px-3': layoutEsercizi === 'compatto',
-              'pa-4': layoutEsercizi === 'standard'
-            }"
+            :class="[
+              {
+                'pt-1 pb-1.5 px-2': layoutEsercizi === 'super_compatto',
+                'pt-1.5 pb-2.5 px-3': layoutEsercizi === 'compatto',
+                'pa-4': layoutEsercizi === 'standard'
+              },
+              'tema-' + temaHeaderGiorno
+            ]"
             style="border-bottom: 1.5px solid rgba(255, 255, 255, 0.08); transition: background 0.2s;"
             @click="vaiAlDettaglioSessione(headerGiorno.id)"
           >
@@ -600,7 +603,7 @@
                 <div class="text-left">
                   <div class="d-flex align-center flex-wrap gap-2">
                     <h3 
-                      class="font-weight-black text-orange-darken-4 mb-0"
+                      class="font-weight-black header-title-text mb-0"
                       :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
                     >
                       Workout Giorno {{ giornoSelezionato }}
@@ -645,9 +648,8 @@
                         'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno,
                         'capsule-pending': !isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno
                       }"
-                      @click.stop="selezionaSettimanaManuale(w)"
                       :style="{ 
-                        cursor: 'pointer',
+                        cursor: 'default',
                         padding: layoutEsercizi === 'super_compatto' ? '1px 3px' : '2px 5px',
                         fontSize: layoutEsercizi === 'super_compatto' ? '0.55rem' : '0.62rem'
                       }"
@@ -832,7 +834,7 @@
                 <div class="text-left min-width-0">
                   <div class="d-flex align-center flex-wrap gap-2">
                     <h3 
-                      class="font-weight-black text-orange-darken-4 text-truncate mb-0"
+                      class="font-weight-black header-title-text text-truncate mb-0"
                       :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
                     >
                       {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
@@ -875,9 +877,8 @@
                         'capsule-completed': isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno,
                         'capsule-pending': !isCmpTrue(headerGiorno['cmp' + w]) && w !== settimanaAttivaGiorno
                       }"
-                      @click.stop="selezionaSettimanaManuale(w)"
                       :style="{ 
-                        cursor: 'pointer',
+                        cursor: 'default',
                         padding: layoutEsercizi === 'super_compatto' ? '1px 3px' : '2px 5px',
                         fontSize: layoutEsercizi === 'super_compatto' ? '0.55rem' : '0.62rem'
                       }"
@@ -983,7 +984,6 @@
           <div 
             class="border-top-soft text-left" 
             :class="layoutEsercizi === 'super_compatto' ? 'mt-1.5 pt-1.5' : (layoutEsercizi === 'compatto' ? 'mt-2 pt-2' : 'mt-3 pt-2.5')"
-            @click.stop
           >
             <div 
               v-if="layoutEsercizi !== 'super_compatto'"
@@ -1766,7 +1766,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, comportamentoPlayGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2284,6 +2284,7 @@ const layoutEsercizi = layoutEserciziGlobal;
 const layoutDettaglio = layoutDettaglioGlobal;
 const timerTheme = timerThemeGlobal;
 const comportamentoPlay = comportamentoPlayGlobal;
+const temaHeaderGiorno = temaHeaderGiornoGlobal;
 
 
 const caricamento = ref(true);
@@ -4868,15 +4869,96 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .day-header-section {
-  background: rgba(30, 41, 59, 0.35) !important;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.day-header-section:hover {
-  background: rgba(30, 41, 59, 0.55) !important;
+
+/* Tema Arancio (Default) */
+.day-header-section.tema-arancio {
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.12) 0%, rgba(249, 115, 22, 0.04) 100%) !important;
+  border-left: 4px solid #ea580c !important;
 }
-.day-header-section:active {
-  background: rgba(30, 41, 59, 0.7) !important;
+.day-header-section.tema-arancio:hover {
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.2) 0%, rgba(249, 115, 22, 0.08) 100%) !important;
+  border-left-color: #f97316 !important;
+  box-shadow: inset 0 0 12px rgba(249, 115, 22, 0.1);
+}
+.day-header-section.tema-arancio:active {
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.25) 0%, rgba(249, 115, 22, 0.12) 100%) !important;
+}
+
+/* Tema Blu (Cobalto) */
+.day-header-section.tema-blu {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.18) 0%, rgba(15, 23, 42, 0.4) 100%) !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+.day-header-section.tema-blu:hover {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.28) 0%, rgba(15, 23, 42, 0.5) 100%) !important;
+  border-left-color: #60a5fa !important;
+  box-shadow: inset 0 0 12px rgba(59, 130, 246, 0.15);
+}
+.day-header-section.tema-blu:active {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
+}
+
+/* Tema Verde (Smeraldo) */
+.day-header-section.tema-verde {
+  background: linear-gradient(135deg, rgba(6, 95, 70, 0.15) 0%, rgba(15, 23, 42, 0.4) 100%) !important;
+  border-left: 4px solid #10b981 !important;
+}
+.day-header-section.tema-verde:hover {
+  background: linear-gradient(135deg, rgba(6, 95, 70, 0.25) 0%, rgba(15, 23, 42, 0.5) 100%) !important;
+  border-left-color: #34d399 !important;
+  box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.15);
+}
+.day-header-section.tema-verde:active {
+  background: linear-gradient(135deg, rgba(6, 95, 70, 0.32) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
+}
+
+/* Header Title Text Theme Overrides */
+.tema-arancio .header-title-text {
+  color: #fb923c !important;
+}
+.tema-blu .header-title-text {
+  color: #60a5fa !important;
+}
+.tema-verde .header-title-text {
+  color: #34d399 !important;
+}
+
+/* Giorno Big Letter Theme Overrides */
+.tema-arancio .giorno-big-letter {
+  background: linear-gradient(135deg, #e65100, #ff8f00) !important;
+  box-shadow: 0 4px 10px rgba(230, 81, 0, 0.3) !important;
+}
+.tema-blu .giorno-big-letter {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.35) !important;
+}
+.tema-verde .giorno-big-letter {
+  background: linear-gradient(135deg, #065f46, #10b981) !important;
+  box-shadow: 0 4px 10px rgba(6, 95, 70, 0.35) !important;
+}
+
+/* Overrides per capsule-active dentro il header */
+.tema-blu .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6) !important;
+  animation: pulse-blue-glow 2s infinite alternate !important;
+}
+.tema-verde .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #065f46, #10b981) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
+  animation: pulse-green-glow 2s infinite alternate !important;
+}
+
+@keyframes pulse-blue-glow {
+  0% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
+  100% { box-shadow: 0 0 16px rgba(59, 130, 246, 0.8); }
+}
+@keyframes pulse-green-glow {
+  0% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+  100% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.8); }
 }
 
 .heatmap-container {

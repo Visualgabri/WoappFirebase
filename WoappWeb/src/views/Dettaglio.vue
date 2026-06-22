@@ -1985,7 +1985,7 @@
               <div v-if="propostaWeek1.erroreCarichi" class="pa-3 rounded-lg text-red-accent-4" style="background: rgba(239, 68, 68, 0.1) !important; border: 1.5px solid rgba(239, 68, 68, 0.45) !important;">
                 <div class="d-flex align-center gap-1.5 font-weight-black text-caption leading-snug" style="font-size: 0.72rem !important; color: #ff5252 !important;">
                   <v-icon color="red-accent-4" size="16" class="mr-1">mdi-alert-circle-outline</v-icon>
-                  <span>⚠️ Inserisci il Miglior Carico W6 o i pesi nella scheda precedente per avere la proposta.</span>
+                  <span>⚠️ Nessun dato nella scheda prec. Carica il Miglior Carico W6 per la stima.</span>
                 </div>
               </div>
               
@@ -2028,7 +2028,7 @@
 
                 <!-- Warning arancione di accuratezza -->
                 <div v-if="propostaWeek1.stimaMenoAccurata" class="pa-2.5 rounded-lg text-amber-lighten-2 border text-super-caption" style="background: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; font-size: 0.62rem; line-height: 1.4;">
-                  ⚠️ Stima meno precisa (calcolata su W{{ propostaWeek1.settimanaBase }}). Inserisci il Miglior Carico W6 per maggiore precisione.
+                  ⚠️ Stima su W{{ propostaWeek1.settimanaBase }}. Carica il Miglior Carico W6 per una stima più precisa.
                 </div>
               </template>
             </div>

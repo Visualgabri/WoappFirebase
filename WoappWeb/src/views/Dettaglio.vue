@@ -1296,7 +1296,7 @@
             Questo esercizio era presente nella <strong>scheda precedente</strong> (Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>).<br>
           </template>
           <template v-else>
-            Eseguito l'ultima volta <strong class="text-orange-lighten-2">{{ tempoTrascorso(previousWorkout.dat_scheda_ult_ex || previousWorkout.timestamp) }}</strong> (il <span class="text-white">{{ formattaDataStorico(previousWorkout.dat_scheda_ult_ex || previousWorkout.timestamp) }}</span>) su Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>.<br>
+            Eseguito l'ultima volta <strong class="text-orange-lighten-2">{{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</strong> (il <span class="text-white">{{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>) su Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>.<br>
           </template>
           
           Prosegue il ciclo con <strong :class="'text-' + analisiRipetizioniCiclo.color">{{ analisiRipetizioniCiclo.testo }}</strong>
@@ -1308,7 +1308,7 @@
           :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '' }"
         >
           <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="grey" class="mr-1">mdi-gesture-tap</v-icon>
-          <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(previousWorkout.dat_scheda_ult_ex || previousWorkout.timestamp) }} - Clicca per i dettagli</span>
+          <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }} - Clicca per i dettagli</span>
           <span v-else>Clicca per vedere pesi e note di questa esecuzione</span>
         </div>
       </v-card>
@@ -2237,7 +2237,7 @@
                   </span>
                   <div class="d-flex align-center gap-1.5">
                     <span v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">
-                      {{ formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }} <span class="text-orange-lighten-2 ml-1">({{ tempoTrascorso(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }})</span>
+                      {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }} <span class="text-orange-lighten-2 ml-1">({{ tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }})</span>
                     </span>
                   </div>
                 </div>
@@ -2298,10 +2298,10 @@
                     <td class="sticky-col body-cell text-left" :class="{'red-scheda-cell': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}">
                       <div class="font-weight-black text-white" style="font-size: 0.75rem; line-height: 1.15;">S. {{ prevEx.num_scheda }}</div>
                       <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted" style="font-size: 0.55rem; white-space: nowrap; line-height: 1.15; margin-top: 1px;">
-                        {{ formattaDataStorico(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }}
+                        {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
                       </div>
                       <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.52rem; white-space: nowrap; line-height: 1.1; margin-top: 1px;">
-                        {{ tempoTrascorso(prevEx.dat_scheda_ult_ex || prevEx.timestamp) }}
+                        {{ tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
                       </div>
                     </td>
                     
@@ -3083,7 +3083,7 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
                   proposedWeight *= coeffFatica;
                   
                   // 4. Fisiologia del recupero e deallenamento (Tempo trascorso)
-                  const dataUltimaEx = prevEx.dat_scheda_ult_ex || prevEx.timestamp;
+                  const dataUltimaEx = getExecutionDate(prevEx, storicoEsercizioPerAiuto.value, workout.value);
                   const giorniTrascorsi = calcolaGiorniTrascorsi(dataUltimaEx);
                   const tempoPassato = tempoTrascorso(dataUltimaEx) || 'Data n.d.';
                   
@@ -4452,7 +4452,7 @@ const propostaWeek1 = computed(() => {
   const fatica = previousWorkout.value.num_faticaw6;
   
   // Calcolo giorni trascorsi
-  const dataUltimaEx = previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp;
+  const dataUltimaEx = getExecutionDate(previousWorkout.value, storicoEsercizio.value, workout.value);
   const giorniTrascorsi = calcolaGiorniTrascorsi(dataUltimaEx);
   
   let proposta = calcolaPropostaCarico(prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi);
@@ -4604,6 +4604,23 @@ const isMatchingReps = (prevEx, w) => {
   }
   
   return reps && parseInt(reps, 10) === target;
+};
+
+const getExecutionDate = (prevEx, list, currWorkout) => {
+  if (!prevEx) return null;
+  const sNum = parseInt(prevEx.num_scheda);
+  if (isNaN(sNum)) return prevEx.dat_scheda_ult_ex || prevEx.timestamp;
+
+  const nextEx = (list || []).find(ex => parseInt(ex.num_scheda) > sNum);
+  if (nextEx) {
+    return nextEx.dat_scheda_ult_ex || nextEx.timestamp;
+  }
+
+  if (currWorkout && parseInt(currWorkout.num_scheda) > sNum) {
+    return currWorkout.dat_scheda_ult_ex || currWorkout.timestamp;
+  }
+
+  return prevEx.dat_scheda_ult_ex || prevEx.timestamp;
 };
 
 const formattaDataStorico = (dateStr) => {
@@ -6342,7 +6359,7 @@ const getGhostLiftStandard = (sett) => {
     
     const p = propostaWeek1.value;
     const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
-    const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(previousWorkout.value.dat_scheda_ult_ex || previousWorkout.value.timestamp);
+    const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(getExecutionDate(previousWorkout.value, storicoEsercizio.value, workout.value));
     const faticaPrecedente = p ? p.fatica : (previousWorkout.value.num_faticaw6 || '');
 
     return { 
@@ -7410,7 +7427,7 @@ const suggerimentoRecord = computed(() => {
             maxAbsoluteReps = reps ? parseInt(reps, 10) : null;
             maxAbsoluteSheet = prevEx.num_scheda;
             maxAbsoluteDay = prevEx.des_giorno;
-            maxAbsoluteDate = prevEx.dat_scheda_ult_ex || prevEx.timestamp;
+            maxAbsoluteDate = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
           }
         }
       }
@@ -7562,7 +7579,7 @@ const rigeneraGraficoStorico = () => {
             reps: reps,
             e1rm: e1rm,
             bucket: getBucketLabel(reps, raggruppamentoReps.value),
-            date: prevEx.dat_scheda_ult_ex || prevEx.timestamp || ''
+            date: getExecutionDate(prevEx, storicoEsercizio.value, workout.value) || ''
           });
         }
       }

@@ -4419,33 +4419,12 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
   
   const rBase = baseReps ? parseInt(baseReps, 10) : 10;
   const r1 = currW1Reps ? parseInt(currW1Reps, 10) : 10;
-  
   const rirBase = baseRIR !== null ? baseRIR : 0;
   
-  // 1. Determina il RIR target per W1 di base (default: 2)
-  let rirW1 = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
-  
-  // 2. Modulazione del RIR target in base alla fatica precedente (Opzione A + Opzione 3 RIR virtuale)
-  const faticaLower = (fatica || '').toLowerCase().trim();
-  const isMediaOLeggera = !faticaLower || faticaLower.includes('legger') || faticaLower.includes('medi') || faticaLower === 'nessuna' || faticaLower === 'non specificata' || faticaLower === '1' || faticaLower === '2' || faticaLower === '3';
-  
-  if (r1 <= rBase) {
-    if (isMediaOLeggera) {
-      rirW1 = 1.25; // RIR ridotto per non svalutare il carico a parità o riduzione di reps (Opzione A)
-    } else if (faticaLower.includes('pesante') || faticaLower === '4') {
-      rirW1 = 2.25; // RIR 1.25 + 1 buffer per fatica Pesante
-    } else if (faticaLower.includes('devastante') || faticaLower === '5') {
-      rirW1 = 3.25; // RIR 1.25 + 2 buffer per fatica Devastante
-    }
-  } else {
-    // Se le reps aumentano (r1 > rBase), lasciamo il RIR di partenza (es. 2) e applichiamo solo l'incremento di fatica
-    if (faticaLower.includes('pesante') || faticaLower === '4') {
-      rirW1 += 0.5;
-    } else if (faticaLower.includes('devastante') || faticaLower === '5') {
-      rirW1 += 1.0;
-    }
-  }
-  
+  // Determinazione del passo di arrotondamento (1.0 per manubri, 1.25 per bilancieri)
+  const isManubri = workout.value ? isManubriEsercizio(workout.value) : false;
+  const step = isManubri ? 1.0 : 1.25;
+
   // FASE 1: Stima 1RM
   const repsBaseTotali = rBase + rirBase;
   let estimated1RM;
@@ -4456,18 +4435,7 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     // NSCA per > 10 reps
     estimated1RM = wBase / getNSCAPercentage(repsBaseTotali);
   }
-  
-  // FASE 2: Calcolo carico teorico per W1
-  const repsW1Totali = r1 + rirW1;
-  let proposedWeight;
-  if (repsW1Totali <= 10) {
-    // Epley per <= 10 reps
-    proposedWeight = estimated1RM / (1 + repsW1Totali / 30);
-  } else {
-    // NSCA per > 10 reps
-    proposedWeight = estimated1RM * getNSCAPercentage(repsW1Totali);
-  }
-  
+
   // Riduzione prudenziale in base al tempo passato
   let dateFactor = 1.0;
   if (giorniTrascorsi > 180) {
@@ -4477,10 +4445,60 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
   } else if (giorniTrascorsi > 30) {
     dateFactor = 0.99; // -1%
   }
-  proposedWeight = proposedWeight * dateFactor;
+
+  // Helper per calcolare e arrotondare il peso per un certo RIR target
+  const calcolaPesoConRIR = (rirVal) => {
+    const repsW1Totali = r1 + rirVal;
+    let weightCalc;
+    if (repsW1Totali <= 10) {
+      // Epley per <= 10 reps
+      weightCalc = estimated1RM / (1 + repsW1Totali / 30);
+    } else {
+      // NSCA per > 10 reps
+      weightCalc = estimated1RM * getNSCAPercentage(repsW1Totali);
+    }
+    weightCalc = weightCalc * dateFactor;
+    return Math.round(weightCalc / step) * step;
+  };
+
+  // Determina i 3 RIR target teorici per i 3 livelli di fatica
+  let rirW1Base = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
   
-  // Arrotonda ai 1.25kg
-  return Math.round(proposedWeight / 1.25) * 1.25;
+  let rirMedia, rirPesante, rirDevastante;
+  if (r1 <= rBase) {
+    rirMedia = 1.25;
+    rirPesante = 2.25;
+    rirDevastante = 3.25;
+  } else {
+    rirMedia = rirW1Base;
+    rirPesante = rirW1Base + 0.5;
+    rirDevastante = rirW1Base + 1.0;
+  }
+
+  // Calcola i 3 pesi teorici arrotondati
+  let pesoMedia = calcolaPesoConRIR(rirMedia);
+  let pesoPesante = calcolaPesoConRIR(rirPesante);
+  let pesoDevastante = calcolaPesoConRIR(rirDevastante);
+
+  // Applica la regola di decremento minimo garantito (Opzione 1)
+  if (pesoPesante >= pesoMedia && pesoMedia > 0) {
+    pesoPesante = Math.max(0, pesoMedia - step);
+  }
+  if (pesoDevastante >= pesoPesante && pesoPesante > 0) {
+    pesoDevastante = Math.max(0, pesoPesante - step);
+  } else if (pesoDevastante >= pesoMedia && pesoMedia > 0) {
+    pesoDevastante = Math.max(0, pesoMedia - (2 * step));
+  }
+
+  // Restituisce il peso specifico richiesto in base alla fatica dell'esercizio
+  const faticaLower = (fatica || '').toLowerCase().trim();
+  if (faticaLower.includes('pesante') || faticaLower === '4') {
+    return pesoPesante;
+  } else if (faticaLower.includes('devastante') || faticaLower === '5') {
+    return pesoDevastante;
+  } else {
+    return pesoMedia;
+  }
 };
 
 const propostaWeek1 = computed(() => {

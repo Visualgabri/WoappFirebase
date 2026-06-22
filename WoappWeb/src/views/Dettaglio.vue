@@ -765,6 +765,13 @@
                     - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
                   </span>
                 </span>
+                <!-- isWeek1 con errore carichi -->
+                <span v-else-if="getGhostLiftSmart(sett).isWeek1 && getGhostLiftSmart(sett).erroreCarichi" class="text-super-caption text-red-accent-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="red-accent-2">
+                    mdi-alert-circle-outline
+                  </v-icon>
+                  <span class="text-red-lighten-3">Dati mancanti nella scheda precedente</span>
+                </span>
                 <!-- isWeek1 con peso kg: mostra proposta kg -->
                 <span v-else-if="getGhostLiftSmart(sett).isWeek1" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
@@ -6395,31 +6402,39 @@ const getGhostLiftStandard = (sett) => {
   // Rileva se è un esercizio a corpo libero (reps, non kg)
   const isRepEx = isCorpoLiberoEsercizio(workout.value);
 
-  // Per la Week 1, proponiamo in base al miglior carico del mesociclo precedente (num_ins6)
+  // Per la Week 1, proponiamo in base al miglior carico del mesociclo precedente (num_ins6) o fallback
   if (sett === 1) {
     if (!previousWorkout.value) return null;
-    const prevW6Weight = previousWorkout.value.num_ins6;
-    if (!prevW6Weight) return null;
-    const pesoNum = parseFloat(String(prevW6Weight).replace(',', '.'));
-    if (isNaN(pesoNum) || pesoNum <= 0) return null;
-    
     const p = propostaWeek1.value;
-    const repsPrecedenti = p ? p.prevReps : (previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || '');
-    const giorniTrascorsi = p ? p.giorniTrascorsi : calcolaGiorniTrascorsi(getExecutionDate(previousWorkout.value, storicoEsercizio.value, workout.value));
-    const faticaPrecedente = p ? p.fatica : (previousWorkout.value.num_faticaw6 || '');
+    if (!p) return null;
+
+    if (p.erroreCarichi) {
+      return {
+        isWeek1: true,
+        isRepExercise: isRepEx,
+        erroreCarichi: true,
+        text: '?',
+        peso: 0,
+        suggerito: null,
+        label: 'N/D',
+        proposta: p,
+        schedaPrec: previousWorkout.value.num_scheda
+      };
+    }
 
     return { 
-      text: String(prevW6Weight), 
-      peso: pesoNum, 
-      label: 'W6 Prec.',
+      text: String(p.prevPeso), 
+      peso: p.prevPeso, 
+      label: p.settimanaBase === 6 ? 'W6 Prec.' : `W${p.settimanaBase} Prec.`,
       isWeek1: true,
       isRepExercise: isRepEx,
-      reps: repsPrecedenti,
-      suggerito: isRepEx ? null : (p ? p.peso : null), // Nessuna proposta kg per corpo libero
-      giorni: giorniTrascorsi,
-      fatica: faticaPrecedente,
+      reps: p.prevReps,
+      suggerito: isRepEx ? null : p.peso,
+      giorni: p.giorniTrascorsi,
+      fatica: p.fatica,
       proposta: p,
-      schedaPrec: previousWorkout.value.num_scheda
+      schedaPrec: previousWorkout.value.num_scheda,
+      stimaMenoAccurata: p.stimaMenoAccurata
     };
   }
 

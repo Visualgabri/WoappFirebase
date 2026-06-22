@@ -770,7 +770,7 @@
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="red-accent-2">
                     mdi-alert-circle-outline
                   </v-icon>
-                  <span class="text-red-lighten-3">Dati mancanti nella scheda precedente</span>
+                  <span class="text-red-lighten-3">Carica il Miglior Carico W6 per la stima</span>
                 </span>
                 <!-- isWeek1 con peso kg: mostra proposta kg -->
                 <span v-else-if="getGhostLiftSmart(sett).isWeek1" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">

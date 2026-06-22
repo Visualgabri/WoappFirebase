@@ -4433,9 +4433,9 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     if (isMediaOLeggera) {
       rirW1 = 1.25; // RIR ridotto per non svalutare il carico a parità o riduzione di reps (Opzione A)
     } else if (faticaLower.includes('pesante') || faticaLower === '4') {
-      rirW1 = 1.75; // RIR 1.25 + 0.5 buffer per fatica Pesante
+      rirW1 = 2.25; // RIR 1.25 + 1 buffer per fatica Pesante
     } else if (faticaLower.includes('devastante') || faticaLower === '5') {
-      rirW1 = 2.25; // RIR 1.25 + 1.0 buffer per fatica Devastante
+      rirW1 = 3.25; // RIR 1.25 + 2 buffer per fatica Devastante
     }
   } else {
     // Se le reps aumentano (r1 > rBase), lasciamo il RIR di partenza (es. 2) e applichiamo solo l'incremento di fatica

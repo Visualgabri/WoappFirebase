@@ -582,7 +582,7 @@
             }
           ]"
           :style="[
-            sett === settimanaAttiva ? (layoutCorrente === 'super_compatto' ? 'padding: 10px 10px 10px 10px !important;' : (layoutCorrente === 'compatto' ? 'padding: 12px 12px 14px 12px !important;' : 'padding: 14px 14px 16px 14px !important;')) : (modalitaSettimane === 'dinamica' ? 'opacity: 0.25 !important;' : '')
+            sett === settimanaAttiva ? (layoutCorrente === 'super_compatto' ? 'padding: 10px 10px 10px 10px !important;' : (layoutCorrente === 'compatto' ? 'padding: 12px 12px 14px 12px !important;' : 'padding: 14px 14px 16px 14px !important;')) : (modalitaSettimane === 'dinamica' ? 'opacity: 0.45 !important;' : '')
           ]"
           elevation="1"
         >
@@ -2035,7 +2035,7 @@
                     <template v-if="propostaWeek1.giorniTrascorsi > 30">
                       <br>• Applicato deallenamento fisiologico (-{{ propostaWeek1.giorniTrascorsi > 180 ? '3%' : (propostaWeek1.giorniTrascorsi > 90 ? '2%' : '1%') }}) per {{ propostaWeek1.giorniTrascorsi }} giorni trascorsi.
                     </template>
-                    <br>• Proposto con **modello Ibrido (Epley/NSCA)** impostando RIR 2 (buffer protettivo).
+                    <br>• Proposto con modello Ibrido (Epley/NSCA) impostando RIR {{ propostaWeek1.rirTarget }} (buffer protettivo)
                   </div>
                 </div>
 
@@ -4421,7 +4421,30 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
   const r1 = currW1Reps ? parseInt(currW1Reps, 10) : 10;
   
   const rirBase = baseRIR !== null ? baseRIR : 0;
-  const rirW1 = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
+  
+  // 1. Determina il RIR target per W1 di base (default: 2)
+  let rirW1 = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
+  
+  // 2. Modulazione del RIR target in base alla fatica precedente (Opzione A + Opzione 3 RIR virtuale)
+  const faticaLower = (fatica || '').toLowerCase().trim();
+  const isMediaOLeggera = !faticaLower || faticaLower.includes('legger') || faticaLower.includes('medi') || faticaLower === 'nessuna' || faticaLower === 'non specificata' || faticaLower === '1' || faticaLower === '2' || faticaLower === '3';
+  
+  if (r1 <= rBase) {
+    if (isMediaOLeggera) {
+      rirW1 = 1.25; // RIR ridotto per non svalutare il carico a parità o riduzione di reps (Opzione A)
+    } else if (faticaLower.includes('pesante') || faticaLower === '4') {
+      rirW1 = 1.75; // RIR 1.25 + 0.5 buffer per fatica Pesante
+    } else if (faticaLower.includes('devastante') || faticaLower === '5') {
+      rirW1 = 2.25; // RIR 1.25 + 1.0 buffer per fatica Devastante
+    }
+  } else {
+    // Se le reps aumentano (r1 > rBase), lasciamo il RIR di partenza (es. 2) e applichiamo solo l'incremento di fatica
+    if (faticaLower.includes('pesante') || faticaLower === '4') {
+      rirW1 += 0.5;
+    } else if (faticaLower.includes('devastante') || faticaLower === '5') {
+      rirW1 += 1.0;
+    }
+  }
   
   // FASE 1: Stima 1RM
   const repsBaseTotali = rBase + rirBase;
@@ -4445,16 +4468,6 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     proposedWeight = estimated1RM * getNSCAPercentage(repsW1Totali);
   }
   
-  // Regolazione in base alla percezione della fatica
-  const faticaLower = (fatica || '').toLowerCase().trim();
-  let adjustment = 1.0; // Default neutrale
-  if (faticaLower === 'pesante') {
-    adjustment = 1 - (FATICA_PESANTE_W1_PCT.value / 100);
-  } else if (faticaLower === 'devastante') {
-    adjustment = 1 - (FATICA_DEVASTANTE_W1_PCT.value / 100);
-  }
-  proposedWeight = proposedWeight * adjustment;
-
   // Riduzione prudenziale in base al tempo passato
   let dateFactor = 1.0;
   if (giorniTrascorsi > 180) {
@@ -4523,6 +4536,26 @@ const propostaWeek1 = computed(() => {
     }
   }
 
+  // Calcola il RIR target effettivo usato per visualizzarlo nel dettaglio della proposta
+  let rirW1 = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
+  const faticaLower = (fatica || '').toLowerCase().trim();
+  const isMediaOLeggera = !faticaLower || faticaLower.includes('legger') || faticaLower.includes('medi') || faticaLower === 'nessuna' || faticaLower === 'non specificata' || faticaLower === '1' || faticaLower === '2' || faticaLower === '3';
+  if (currW1Reps <= baseReps) {
+    if (isMediaOLeggera) {
+      rirW1 = 1.25;
+    } else if (faticaLower.includes('pesante') || faticaLower === '4') {
+      rirW1 = 1.75;
+    } else if (faticaLower.includes('devastante') || faticaLower === '5') {
+      rirW1 = 2.25;
+    }
+  } else {
+    if (faticaLower.includes('pesante') || faticaLower === '4') {
+      rirW1 += 0.5;
+    } else if (faticaLower.includes('devastante') || faticaLower === '5') {
+      rirW1 += 1.0;
+    }
+  }
+
   return {
     peso: proposta,
     prevPeso: basePeso,
@@ -4531,7 +4564,8 @@ const propostaWeek1 = computed(() => {
     fatica: fatica || 'Nessuna',
     giorniTrascorsi,
     settimanaBase: baseWeekNum,
-    stimaMenoAccurata: baseWeekNum < 6
+    stimaMenoAccurata: baseWeekNum < 6,
+    rirTarget: rirW1
   };
 });
 
@@ -8461,7 +8495,7 @@ const tornaIndietro = () => {
 
 /* Stile speciale per le settimane secondarie in visualizzazione Dinamica */
 .week-secondary-card {
-  opacity: 0.25;
+  opacity: 0.45;
   background: rgba(30, 41, 59, 0.15) !important;
   border: 1px dashed rgba(255, 255, 255, 0.08) !important;
   transform: scale(0.975);

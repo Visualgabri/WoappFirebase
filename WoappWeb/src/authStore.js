@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase.js';
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
@@ -543,39 +543,122 @@ export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('
 export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
 export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
 
-// Watcher per salvare in localStorage quando cambiano le variabili globali
+// Flag per evitare loop di sincronizzazione bidirezionale Firestore -> local -> Firestore
+let isSyncingFromFirestore = false;
+let debounceTimeout = null;
+
+const salvaConfigurazioniGlobaliFirestore = () => {
+  if (isSyncingFromFirestore) return;
+  if (debounceTimeout) {
+    clearTimeout(debounceTimeout);
+  }
+  debounceTimeout = setTimeout(async () => {
+    try {
+      const docRefConfig = doc(db, 'METADATA', 'progressioni_globali');
+      await setDoc(docRefConfig, {
+        propostaBaseWeek2: propostaBaseWeek2Global.value,
+        propostaBaseWeek5: propostaBaseWeek5Global.value,
+        propostaBaseWeek6: propostaBaseWeek6Global.value,
+        incrementoPesoPostScaricoPct: incrementoPesoPostScaricoPctGlobal.value,
+        sogliaForzaManubri: sogliaForzaManubriGlobal.value,
+        incrementoManubriLeggero: incrementoManubriLeggeroGlobal.value,
+        incrementoManubriForte: incrementoManubriForteGlobal.value,
+        faticaPesanteW1Pct: faticaPesanteW1PctGlobal.value,
+        faticaDevastanteW1Pct: faticaDevastanteW1PctGlobal.value,
+        faticaPesanteStoricoPct: faticaPesanteStoricoPctGlobal.value,
+        faticaDevastanteStoricoPct: faticaDevastanteStoricoPctGlobal.value,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
+    } catch (err) {
+      console.error("[Firestore Sync] Errore salvataggio configurazioni:", err);
+    }
+  }, 1200); // 1.2 secondi di debounce per evitare spam durante la digitazione
+};
+
+// Listener in tempo reale per sincronizzare le configurazioni globali su tutti i dispositivi
+let configUnsubscribe = null;
+export const syncConfigurazioniListener = () => {
+  if (configUnsubscribe) {
+    configUnsubscribe();
+  }
+  const docRefConfig = doc(db, 'METADATA', 'progressioni_globali');
+  configUnsubscribe = onSnapshot(docRefConfig, (docSnap) => {
+    isSyncingFromFirestore = true;
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.propostaBaseWeek2 !== undefined) propostaBaseWeek2Global.value = data.propostaBaseWeek2;
+      if (data.propostaBaseWeek5 !== undefined) propostaBaseWeek5Global.value = data.propostaBaseWeek5;
+      if (data.propostaBaseWeek6 !== undefined) propostaBaseWeek6Global.value = data.propostaBaseWeek6;
+      if (data.incrementoPesoPostScaricoPct !== undefined) incrementoPesoPostScaricoPctGlobal.value = parseFloat(data.incrementoPesoPostScaricoPct);
+      if (data.sogliaForzaManubri !== undefined) sogliaForzaManubriGlobal.value = parseFloat(data.sogliaForzaManubri);
+      if (data.incrementoManubriLeggero !== undefined) incrementoManubriLeggeroGlobal.value = parseFloat(data.incrementoManubriLeggero);
+      if (data.incrementoManubriForte !== undefined) incrementoManubriForteGlobal.value = parseFloat(data.incrementoManubriForte);
+      if (data.faticaPesanteW1Pct !== undefined) faticaPesanteW1PctGlobal.value = parseFloat(data.faticaPesanteW1Pct);
+      if (data.faticaDevastanteW1Pct !== undefined) faticaDevastanteW1PctGlobal.value = parseFloat(data.faticaDevastanteW1Pct);
+      if (data.faticaPesanteStoricoPct !== undefined) faticaPesanteStoricoPctGlobal.value = parseFloat(data.faticaPesanteStoricoPct);
+      if (data.faticaDevastanteStoricoPct !== undefined) faticaDevastanteStoricoPctGlobal.value = parseFloat(data.faticaDevastanteStoricoPct);
+    } else {
+      // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
+      salvaConfigurazioniGlobaliFirestore();
+    }
+    // Rilascia il flag asincronamente per non intercettare i watchers immediati
+    setTimeout(() => {
+      isSyncingFromFirestore = false;
+    }, 100);
+  }, (err) => {
+    console.error("[Firestore Sync] Errore listener configurazioni globali:", err);
+    isSyncingFromFirestore = false;
+  });
+};
+
+// Avvia il listener al caricamento iniziale
+syncConfigurazioniListener();
+
+// Watchers per allineare localStorage e propagare modifiche a Firestore
 watch(propostaBaseWeek2Global, (newVal) => {
   localStorage.setItem('propostaBaseWeek2', newVal);
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(propostaBaseWeek5Global, (newVal) => {
   localStorage.setItem('propostaBaseWeek5', newVal);
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(propostaBaseWeek6Global, (newVal) => {
   localStorage.setItem('propostaBaseWeek6', newVal);
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(incrementoPesoPostScaricoPctGlobal, (newVal) => {
   localStorage.setItem('incrementoPesoPostScaricoPct', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(sogliaForzaManubriGlobal, (newVal) => {
   localStorage.setItem('sogliaForzaManubri', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(incrementoManubriLeggeroGlobal, (newVal) => {
   localStorage.setItem('incrementoManubriLeggero', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(incrementoManubriForteGlobal, (newVal) => {
   localStorage.setItem('incrementoManubriForte', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(faticaPesanteW1PctGlobal, (newVal) => {
   localStorage.setItem('faticaPesanteW1Pct', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(faticaDevastanteW1PctGlobal, (newVal) => {
   localStorage.setItem('faticaDevastanteW1Pct', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(faticaPesanteStoricoPctGlobal, (newVal) => {
   localStorage.setItem('faticaPesanteStoricoPct', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(faticaDevastanteStoricoPctGlobal, (newVal) => {
   localStorage.setItem('faticaDevastanteStoricoPct', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {
   localStorage.setItem('woapp_tema_header_giorno', newVal);

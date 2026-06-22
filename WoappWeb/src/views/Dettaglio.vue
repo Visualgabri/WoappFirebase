@@ -771,9 +771,7 @@
                   <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'" class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
                     - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
                   </span>
-                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Metti il Miglior Carico W6 per una stima più precisa">
-                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} (metti miglior carico W6 su precedente!)
-                  </span>
+
                 </span>
                 <!-- isWeek1 con peso kg: mostra proposta kg -->
                 <span v-else-if="getGhostLiftSmart(sett).isWeek1" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
@@ -947,7 +945,7 @@
           </div>
 
           <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
-          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%'))" :class="[layoutCorrente === 'super_compatto' ? 'mt-2 pt-2' : 'mt-4 pt-4', 'border-top-soft']">
+          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && !isCorpoLiberoEsercizio(workout)" :class="[layoutCorrente === 'super_compatto' ? 'mt-2 pt-2' : 'mt-4 pt-4', 'border-top-soft']">
             <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
               <div>
                 <span class="text-caption font-weight-black text-slate-dark d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.8rem' }">Miglior Carico (W6) *</span>
@@ -1429,7 +1427,7 @@
                 </div>
 
                 <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito) - Spostato sotto la Week 6 -->
-                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%'))" class="mt-3 pt-3 border-top-soft">
+                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && !isCorpoLiberoEsercizio(previousWorkout)" class="mt-3 pt-3 border-top-soft">
                   <div class="d-flex align-center justify-space-between mb-2">
                     <div>
                       <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
@@ -2142,7 +2140,7 @@
                 </div>
 
                 <!-- Warning arancione di accuratezza -->
-                <div v-if="propostaWeek1.stimaMenoAccurata" class="pa-2.5 mt-2 rounded-lg text-amber-lighten-2 border text-super-caption text-left" style="background: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; font-size: 0.62rem; line-height: 1.4;">
+                <div v-if="propostaWeek1.stimaMenoAccurata && !isCorpoLiberoEsercizio(workout)" class="pa-2.5 mt-2 rounded-lg text-amber-lighten-2 border text-super-caption text-left" style="background: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; font-size: 0.62rem; line-height: 1.4;">
                   ⚠️ Stima su W{{ propostaWeek1.settimanaBase }}. Carica il Miglior Carico W6 per una stima più precisa.
                 </div>
               </template>

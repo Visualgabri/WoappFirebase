@@ -349,6 +349,23 @@
                 class="ml-2 flex-shrink-0"
               ></v-switch>
             </div>
+
+            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+            
+            <!-- Switch Sfida Record Week 1 -->
+            <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
+              <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">🏆 Sfida Record in Week 1</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Mostra range e opzioni per superare i tuoi record già dalla prima settimana</span>
+              </div>
+              <v-switch
+                v-model="sfidaRecordWeek1"
+                color="orange-darken-3"
+                hide-details
+                density="compact"
+                class="ml-2 flex-shrink-0"
+              ></v-switch>
+            </div>
           </div>
         </div>
       </div>
@@ -563,6 +580,7 @@ const modalitaIncrementoGhost = ref('ibrida');
 const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualizzazioneGhost_' + getActiveAtletaId()) || 'range');
 const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + getActiveAtletaId()) !== 'false');
 const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId()) !== 'false');
+const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + getActiveAtletaId()) === 'true');
 
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {
@@ -594,6 +612,7 @@ watch([selectedAthlete, idCliente], () => {
   stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
   ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
   ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
+  sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
 });
 
 watch(stileVisualizzazioneGhost, (newVal) => {
@@ -604,6 +623,9 @@ watch(ghostPRAttackAttivo, (newVal) => {
 });
 watch(ghostAutoregolazioneRepsAttiva, (newVal) => {
   localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId(), String(newVal));
+});
+watch(sfidaRecordWeek1, (newVal) => {
+  localStorage.setItem('sfidaRecordWeek1_' + getActiveAtletaId(), String(newVal));
 });
 
 const vibraTattile = (ms = 12) => {

@@ -787,6 +787,9 @@
                   <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
                     (prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}r</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
                   </span>
+                  <span v-if="sfidaRecordWeek1 && getGhostLiftSmart(sett).recordVal" class="text-amber-lighten-1 ml-1 font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
+                    🏆 Record: {{ formatWeight(getGhostLiftSmart(sett).recordVal) }} kg
+                  </span>
                   <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Metti il Miglior Carico W6 per una stima più precisa">
                     ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} ((metti miglior carico W6 su precedente!))
                   </span>
@@ -843,11 +846,11 @@
 
             <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
             <div 
-              v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && stileVisualizzazioneGhost === 'forma'"
+              v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'forma' || (sett === 1 && sfidaRecordWeek1))"
               class="d-flex flex-wrap gap-1.5 mt-1.5 mb-2.5 w-100 align-center justify-space-between animate-fade-in"
             >
               <div class="w-100 text-super-caption text-left text-muted mb-1" style="font-size: 0.58rem !important; letter-spacing: 0.05em;">
-                {{ stileVisualizzazioneGhost === 'forma' ? '💡 COME TI SENTI OGGI?' : (stileVisualizzazioneGhost === 'marce' ? '⚙️ SELEZIONA LA MARCIA:' : '💡 TOCCA PER APPLICARE:') }}
+                {{ (sett === 1 && sfidaRecordWeek1) ? '🏆 SFIDA IL RECORD IN WEEK 1:' : (stileVisualizzazioneGhost === 'forma' ? '💡 COME TI SENTI OGGI?' : (stileVisualizzazioneGhost === 'marce' ? '⚙️ SELEZIONA LA MARCIA:' : '💡 TOCCA PER APPLICARE:')) }}
               </div>
               
               <!-- 1. PRUDENZIALE / STANCO / MARCIA 1 -->
@@ -862,7 +865,7 @@
                 <div class="d-flex flex-column align-center line-height-tight">
                   <span class="font-weight-black text-blue-lighten-3">{{ getGhostWeightsRangeForWeek(sett).prudenziale.display }}</span>
                   <span style="font-size: 0.52rem; opacity: 0.75;" class="text-truncate">
-                    {{ stileVisualizzazioneGhost === 'forma' ? 'Stanco' : (stileVisualizzazioneGhost === 'marce' ? 'M1 (Safe)' : getGhostWeightsRangeForWeek(sett).prudenziale.label) }}
+                    {{ (sett === 1 && sfidaRecordWeek1) ? getGhostWeightsRangeForWeek(sett).prudenziale.label : (stileVisualizzazioneGhost === 'forma' ? 'Stanco' : (stileVisualizzazioneGhost === 'marce' ? 'M1 (Safe)' : getGhostWeightsRangeForWeek(sett).prudenziale.label)) }}
                   </span>
                 </div>
               </v-btn>
@@ -878,7 +881,7 @@
                 <div class="d-flex flex-column align-center line-height-tight">
                   <span class="font-weight-black">{{ getGhostWeightsRangeForWeek(sett).consigliato.display }}</span>
                   <span style="font-size: 0.52rem; opacity: 0.9;" class="text-truncate">
-                    {{ stileVisualizzazioneGhost === 'forma' ? 'Normale' : (stileVisualizzazioneGhost === 'marce' ? 'M2 (Prog)' : getGhostWeightsRangeForWeek(sett).consigliato.label) }}
+                    {{ (sett === 1 && sfidaRecordWeek1) ? getGhostWeightsRangeForWeek(sett).consigliato.label : (stileVisualizzazioneGhost === 'forma' ? 'Normale' : (stileVisualizzazioneGhost === 'marce' ? 'M2 (Prog)' : getGhostWeightsRangeForWeek(sett).consigliato.label)) }}
                   </span>
                 </div>
               </v-btn>
@@ -895,7 +898,7 @@
                 <div class="d-flex flex-column align-center line-height-tight">
                   <span class="font-weight-black text-amber-lighten-2">{{ getGhostWeightsRangeForWeek(sett).sfidante.display }}</span>
                   <span style="font-size: 0.52rem; opacity: 0.75;" class="text-truncate">
-                    {{ stileVisualizzazioneGhost === 'forma' ? 'Forte' : (stileVisualizzazioneGhost === 'marce' ? 'M3 (PR!)' : getGhostWeightsRangeForWeek(sett).sfidante.label) }}
+                    {{ (sett === 1 && sfidaRecordWeek1) ? getGhostWeightsRangeForWeek(sett).sfidante.label : (stileVisualizzazioneGhost === 'forma' ? 'Forte' : (stileVisualizzazioneGhost === 'marce' ? 'M3 (PR!)' : getGhostWeightsRangeForWeek(sett).sfidante.label)) }}
                   </span>
                 </div>
               </v-btn>
@@ -2004,7 +2007,77 @@
               
               <!-- Se c'è la proposta compilata -->
               <template v-else>
-                <div class="pa-3 rounded-lg mb-2" 
+                <div v-if="sfidaRecordWeek1 && propostaWeek1.hasRecord" class="d-flex flex-column gap-3">
+                  <div class="pa-3 rounded-lg" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(249, 115, 22, 0.05) 100%) !important; border: 1.5px solid rgba(249, 115, 22, 0.4) !important;">
+                    <div class="d-flex align-center gap-1.5 mb-1 text-amber-lighten-2 font-weight-black text-caption uppercase" style="font-size: 0.65rem !important;">
+                      <v-icon color="amber-lighten-2" size="16">mdi-trophy-outline</v-icon>
+                      <span>Sfida Record Week 1 Attiva</span>
+                    </div>
+                    <div class="text-super-caption text-slate-light" style="font-size: 0.65rem; line-height: 1.4;">
+                      Hai un record registrato per questo esercizio su **{{ propostaWeek1.currReps }}** ripetizioni: <strong class="text-white">{{ formatWeight(propostaWeek1.recordVal) }} kg</strong>.
+                      Di seguito trovi i carichi consigliati per ripartire o per tentare il record da subito.
+                    </div>
+                  </div>
+
+                  <!-- Griglia 3 opzioni -->
+                  <div class="d-flex flex-column gap-2">
+                    <!-- 1. Prudenziale -->
+                    <div class="pa-2.5 rounded-lg border bg-slate-900 d-flex align-center justify-space-between" style="border-color: rgba(144, 205, 244, 0.25) !important;">
+                      <div class="text-left">
+                        <span class="text-super-caption text-blue-lighten-3 font-weight-black uppercase d-block" style="font-size: 0.55rem;">Prudenziale (Safe)</span>
+                        <span class="text-body-1 font-weight-black text-white">{{ formatWeight(propostaWeek1.pesoPrudenziale) }} <span class="text-caption text-muted">KG</span></span>
+                      </div>
+                      <v-btn
+                        color="blue-darken-3"
+                        size="x-small"
+                        class="font-weight-black text-white px-2.5 text-none"
+                        rounded="md"
+                        style="font-size: 0.68rem; height: 26px;"
+                        @click="applicaPropostaCaricoStorico(propostaWeek1.pesoPrudenziale)"
+                      >
+                        Applica
+                      </v-btn>
+                    </div>
+
+                    <!-- 2. Consigliato -->
+                    <div class="pa-2.5 rounded-lg border bg-slate-900 d-flex align-center justify-space-between" style="border-color: rgba(16, 185, 129, 0.25) !important;">
+                      <div class="text-left">
+                        <span class="text-super-caption text-green-accent-3 font-weight-black uppercase d-block" style="font-size: 0.55rem;">Consigliato (Bilanciato)</span>
+                        <span class="text-body-1 font-weight-black text-white">{{ formatWeight(propostaWeek1.pesoConsigliato) }} <span class="text-caption text-muted">KG</span></span>
+                      </div>
+                      <v-btn
+                        color="green-darken-2"
+                        size="x-small"
+                        class="font-weight-black text-white px-2.5 text-none"
+                        rounded="md"
+                        style="font-size: 0.68rem; height: 26px;"
+                        @click="applicaPropostaCaricoStorico(propostaWeek1.pesoConsigliato)"
+                      >
+                        Applica
+                      </v-btn>
+                    </div>
+
+                    <!-- 3. Sfidante -->
+                    <div class="pa-2.5 rounded-lg border bg-slate-900 d-flex align-center justify-space-between" style="border-color: rgba(245, 158, 11, 0.25) !important;">
+                      <div class="text-left">
+                        <span class="text-super-caption text-amber-lighten-2 font-weight-black uppercase d-block" style="font-size: 0.55rem;">Sfidante (Record Attack)</span>
+                        <span class="text-body-1 font-weight-black text-white">{{ formatWeight(propostaWeek1.pesoSfidante) }} <span class="text-caption text-muted">KG</span></span>
+                      </div>
+                      <v-btn
+                        color="amber-darken-2"
+                        size="x-small"
+                        class="font-weight-black text-white px-2.5 text-none"
+                        rounded="md"
+                        style="font-size: 0.68rem; height: 26px;"
+                        @click="applicaPropostaCaricoStorico(propostaWeek1.pesoSfidante)"
+                      >
+                        {{ propostaWeek1.sfidanteLabel.includes('Supera') ? 'Sfida Record' : 'Applica' }}
+                      </v-btn>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="pa-3 rounded-lg mb-2" 
                      style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important;">
                   <div class="d-flex align-center justify-space-between mb-1.5">
                     <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
@@ -2040,7 +2113,7 @@
                 </div>
 
                 <!-- Warning arancione di accuratezza -->
-                <div v-if="propostaWeek1.stimaMenoAccurata" class="pa-2.5 rounded-lg text-amber-lighten-2 border text-super-caption" style="background: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; font-size: 0.62rem; line-height: 1.4;">
+                <div v-if="!(sfidaRecordWeek1 && propostaWeek1.hasRecord) && propostaWeek1.stimaMenoAccurata" class="pa-2.5 rounded-lg text-amber-lighten-2 border text-super-caption" style="background: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; font-size: 0.62rem; line-height: 1.4;">
                   ⚠️ Stima su W{{ propostaWeek1.settimanaBase }}. Carica il Miglior Carico W6 per una stima più precisa.
                 </div>
               </template>
@@ -2784,6 +2857,7 @@ const modalitaIncrementoGhost = ref('ibrida');
 const stileVisualizzazioneGhost = ref('range');
 const ghostPRAttackAttivo = ref(true);
 const ghostAutoregolazioneRepsAttiva = ref(true);
+const sfidaRecordWeek1 = ref(false);
 
 const ottieniRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;
@@ -3419,7 +3493,50 @@ const getGhostWeightsRangeForWeek = (sett) => {
     if (defaultPeso <= 0) return null;
     min = isManubri ? Math.floor((defaultPeso * 0.95) / step) * step : Math.round((defaultPeso * 0.95) / step) * step;
     medio = defaultPeso;
-    max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
+    
+    const recordVal = sfidaRecordWeek1.value ? ghost.recordVal : null;
+    if (recordVal && recordVal > 0) {
+      if (recordVal >= defaultPeso) {
+        if (recordVal <= defaultPeso * 1.25) {
+          max = Math.round((recordVal + step) / step) * step;
+        } else {
+          max = isManubri ? Math.ceil((defaultPeso * 1.10) / step) * step : Math.round((defaultPeso * 1.10) / step) * step;
+        }
+      } else {
+        max = medio + step;
+      }
+      
+      const isBeatingRecord = max > recordVal;
+      const isEqualingRecord = max === recordVal;
+      let sfidanteLabel = 'Sfidante';
+      if (isBeatingRecord) {
+        sfidanteLabel = `🏆 Supera Record (${formatWeight(recordVal)}kg)`;
+      } else if (isEqualingRecord) {
+        sfidanteLabel = `🏆 Eguaglia Record (${formatWeight(recordVal)}kg)`;
+      } else {
+        sfidanteLabel = `Sfidante (Record: ${formatWeight(recordVal)}kg)`;
+      }
+      
+      return {
+        prudenziale: {
+          value: String(min),
+          display: `${formatWeight(min)} kg`,
+          label: 'Prudenziale'
+        },
+        consigliato: {
+          value: String(medio),
+          display: `${formatWeight(medio)} kg`,
+          label: 'Consigliato'
+        },
+        sfidante: {
+          value: String(max),
+          display: `${formatWeight(max)} kg`,
+          label: sfidanteLabel
+        }
+      };
+    } else {
+      max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
+    }
   } else if (ghost.isScarico) {
     // Se è scarico (W4), usiamo il peso di scarico
     const scaricoPeso = ghost.peso || 0;
@@ -4574,6 +4691,42 @@ const propostaWeek1 = computed(() => {
     }
   }
 
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = isManubri ? 1.0 : 1.25;
+  const defaultPeso = proposta || 0;
+  
+  const recordVal = sfidaRecordWeek1.value ? ottieniRecordStoricoPerReps(currW1Reps) : null;
+  
+  let min = isManubri ? Math.floor((defaultPeso * 0.95) / step) * step : Math.round((defaultPeso * 0.95) / step) * step;
+  let medio = defaultPeso;
+  let max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
+  
+  let hasRecord = false;
+  let sfidanteLabel = 'Sfidante';
+  
+  if (recordVal && recordVal > 0) {
+    hasRecord = true;
+    if (recordVal >= defaultPeso) {
+      if (recordVal <= defaultPeso * 1.25) {
+        max = Math.round((recordVal + step) / step) * step;
+      } else {
+        max = isManubri ? Math.ceil((defaultPeso * 1.10) / step) * step : Math.round((defaultPeso * 1.10) / step) * step;
+      }
+    } else {
+      max = medio + step;
+    }
+    
+    const isBeatingRecord = max > recordVal;
+    const isEqualingRecord = max === recordVal;
+    if (isBeatingRecord) {
+      sfidanteLabel = `🏆 Supera Record (${formatWeight(recordVal)}kg)`;
+    } else if (isEqualingRecord) {
+      sfidanteLabel = `🏆 Eguaglia Record (${formatWeight(recordVal)}kg)`;
+    } else {
+      sfidanteLabel = `Sfidante (Record: ${formatWeight(recordVal)}kg)`;
+    }
+  }
+
   return {
     peso: proposta,
     prevPeso: basePeso,
@@ -4583,7 +4736,14 @@ const propostaWeek1 = computed(() => {
     giorniTrascorsi,
     settimanaBase: baseWeekNum,
     stimaMenoAccurata: baseWeekNum < 6,
-    rirTarget: rirW1
+    rirTarget: rirW1,
+    recordVal: recordVal,
+    hasRecord: hasRecord,
+    pesoPrudenziale: min,
+    pesoConsigliato: medio,
+    pesoSfidante: max,
+    sfidanteLabel: sfidanteLabel,
+    sfidaRecordWeek1: sfidaRecordWeek1.value
   };
 });
 
@@ -5234,6 +5394,7 @@ const caricaDatiEsercizio = async () => {
     stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
     ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
     ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
+    sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
     inizializzaParametriProposta(atletaId);
 
     const schemaRef = workout.value?.num_scheda;
@@ -5288,6 +5449,7 @@ const caricaDatiEsercizio = async () => {
       stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
+      sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
       inizializzaParametriProposta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
@@ -5376,6 +5538,7 @@ const caricaEsercizioDaBackup = async () => {
       stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
+      sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
       inizializzaParametriProposta(atletaId);
 
       for (let w = 1; w <= 6; w++) {
@@ -6480,6 +6643,8 @@ const getGhostLiftStandard = (sett) => {
       };
     }
 
+    const recordVal = sfidaRecordWeek1.value ? ottieniRecordStoricoPerReps(p.currReps) : null;
+
     return { 
       text: String(p.prevPeso), 
       peso: p.prevPeso, 
@@ -6487,12 +6652,15 @@ const getGhostLiftStandard = (sett) => {
       isWeek1: true,
       isRepExercise: isRepEx,
       reps: p.prevReps,
+      currReps: p.currReps,
       suggerito: isRepEx ? null : p.peso,
       giorni: p.giorniTrascorsi,
       fatica: p.fatica,
       proposta: p,
       schedaPrec: previousWorkout.value.num_scheda,
-      stimaMenoAccurata: p.stimaMenoAccurata
+      stimaMenoAccurata: p.stimaMenoAccurata,
+      recordVal: recordVal,
+      sfidaRecordWeek1: sfidaRecordWeek1.value
     };
   }
 

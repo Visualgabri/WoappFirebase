@@ -1086,7 +1086,8 @@
                         <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                           {{ block.letter }}{{ index + 1 }}.
                         </span>
-                        <span class="text-caption font-weight-bold text-slate-dark text-truncate" style="font-size: 0.75rem !important; line-height: 1.25;">
+                        <span class="text-caption font-weight-bold text-truncate" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
+                          <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(ex) }}</span>
                           {{ ex.des_esercizio }}
                         </span>
                         <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
@@ -1339,7 +1340,8 @@
                       <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                         {{ block.exercise.num_riga_giorno }}.
                       </span>
-                      <span class="text-caption font-weight-bold text-slate-dark text-truncate" style="font-size: 0.75rem !important; line-height: 1.25;">
+                      <span class="text-caption font-weight-bold text-truncate" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
+                        <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(block.exercise) }}</span>
                         {{ block.exercise.des_esercizio }}
                       </span>
                       <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>

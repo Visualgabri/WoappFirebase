@@ -752,25 +752,28 @@
                     {{ getGhostLiftSmart(sett).text }}
                   </span>
                 </span>
-                <!-- isWeek1 corpo libero: mostra solo i reps del mesociclo precedente, senza proposta kg -->
-                <span v-else-if="getGhostLiftSmart(sett).isWeek1 && getGhostLiftSmart(sett).isRepExercise" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
-                    mdi-ghost-outline
-                  </v-icon>
-                  <span>Reps prec. W6:</span>
-                  <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
-                    {{ getGhostLiftSmart(sett).text }}r
-                  </span>
-                  <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'" class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
-                    - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
-                  </span>
-                </span>
                 <!-- isWeek1 con errore carichi -->
                 <span v-else-if="getGhostLiftSmart(sett).isWeek1 && getGhostLiftSmart(sett).erroreCarichi" class="text-super-caption text-red-accent-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="red-accent-2">
                     mdi-alert-circle-outline
                   </v-icon>
                   <span class="text-red-lighten-3">Carica il Miglior Carico W6 per la stima</span>
+                </span>
+                <!-- isWeek1 corpo libero: mostra solo i reps del mesociclo precedente, senza proposta kg -->
+                <span v-else-if="getGhostLiftSmart(sett).isWeek1 && getGhostLiftSmart(sett).isRepExercise" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
+                    mdi-ghost-outline
+                  </v-icon>
+                  <span>Reps prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}:</span>
+                  <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
+                    {{ getGhostLiftSmart(sett).text }}r
+                  </span>
+                  <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'" class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
+                    - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
+                  </span>
+                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Carica il Miglior Carico W6 per una stima più precisa">
+                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} (carica W6)
+                  </span>
                 </span>
                 <!-- isWeek1 con peso kg: mostra proposta kg -->
                 <span v-else-if="getGhostLiftSmart(sett).isWeek1" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
@@ -782,7 +785,10 @@
                     {{ formatWeight(getGhostLiftSmart(sett).suggerito) }} kg
                   </span>
                   <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
-                    (prec. W6: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}r</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
+                    (prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}r</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
+                  </span>
+                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Carica il Miglior Carico W6 per una stima più precisa">
+                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} (carica W6)
                   </span>
                 </span>
                 <span v-else-if="getGhostLiftSmart(sett).isScarico" class="text-super-caption text-amber-lighten-2 font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">

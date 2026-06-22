@@ -624,17 +624,17 @@
             <!-- Rigo Unico con Dettagli Carico e Intensità -->
             <v-row dense>
               <!-- Carico Totale -->
-              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
+              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 4 : 4">
                 <div 
                   class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
                   :class="[
-                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-1.5 py-1' : 'rounded-lg px-1.5 py-1')
                   ]"
                   style="cursor: pointer;"
                   @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'totale', workout?.des_esercizio)"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Carico</span>
-                  <span class="text-caption font-weight-black text-slate-dark text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
+                  <span class="text-caption font-weight-black text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important', whiteSpace: 'nowrap' }">
                     {{ parsedPrescription(workout['des_week' + sett]).total }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
                   </span>
                 </div>
@@ -644,27 +644,27 @@
                 <div 
                   class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
                   :class="[
-                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-1.5 py-1' : 'rounded-lg px-1.5 py-1')
                   ]"
                   style="cursor: pointer;"
-                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'lato', workout?.des_esercizio)"
+                  @click="apriCalcolatoreDischi(parsedPrescription(workout['des_week' + sett]).total, parsedPrescription(workout['des_week' + sett]).side, 'totale', workout?.des_esercizio)"
                 >
                   <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Lato</span>
-                  <span class="text-caption font-weight-black text-blue-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
+                  <span class="text-caption font-weight-black text-blue-lighten-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important', whiteSpace: 'nowrap' }">
                     {{ parsedPrescription(workout['des_week' + sett]).side }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
                   </span>
                 </div>
               </v-col>
               <!-- % Massimale -->
-              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 3 : 4">
+              <v-col :cols="parsedPrescription(workout['des_week' + sett]).side ? 2 : 4">
                 <div 
                   class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
                   :class="[
-                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-1.5 py-1' : 'rounded-lg px-1.5 py-1')
                   ]"
                 >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">% 1RM</span>
-                  <span class="text-caption font-weight-black text-orange-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">%1RM</span>
+                  <span class="text-caption font-weight-black text-orange-lighten-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important', whiteSpace: 'nowrap' }">
                     {{ parsedPrescription(workout['des_week' + sett]).max || '-' }}
                   </span>
                 </div>
@@ -674,11 +674,11 @@
                 <div 
                   class="prescription-chip-box text-left fill-height d-flex flex-column justify-center"
                   :class="[
-                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1.5 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-2 py-1' : 'rounded-lg px-2 py-1')
+                    layoutCorrente === 'super_compatto' ? 'rounded-sm px-1 py-0.5' : (layoutCorrente === 'compatto' ? 'rounded-md px-1.5 py-1' : 'rounded-lg px-1.5 py-1')
                   ]"
                 >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Sforzo</span>
-                  <span class="text-caption font-weight-black text-green-lighten-2 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important' }">
+                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.45rem' : '0.52rem', lineHeight: 1 }">Sforzo</span>
+                  <span class="text-caption font-weight-black text-green-lighten-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem !important' : '0.85rem !important', whiteSpace: 'nowrap' }">
                     {{ parsedPrescription(workout['des_week' + sett]).effort || '-' }}
                   </span>
                 </div>

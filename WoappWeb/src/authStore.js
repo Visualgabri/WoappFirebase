@@ -537,8 +537,8 @@ export const incrementoPesoPostScaricoPctGlobal = ref(parseFloat(localStorage.ge
 export const sogliaForzaManubriGlobal = ref(parseFloat(localStorage.getItem('sogliaForzaManubri') || localStorage.getItem('sogliaForzaManubri_' + athleteIdForInit) || '20'));
 export const incrementoManubriLeggeroGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriLeggero') || localStorage.getItem('incrementoManubriLeggero_' + athleteIdForInit) || '1'));
 export const incrementoManubriForteGlobal = ref(parseFloat(localStorage.getItem('incrementoManubriForte') || localStorage.getItem('incrementoManubriForte_' + athleteIdForInit) || '2'));
-export const faticaPesanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteW1Pct') || localStorage.getItem('faticaPesanteW1Pct_' + athleteIdForInit) || '2'));
-export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteW1Pct') || localStorage.getItem('faticaDevastanteW1Pct_' + athleteIdForInit) || '5'));
+export const faticaPesanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteW1Pct') || localStorage.getItem('faticaPesanteW1Pct_' + athleteIdForInit) || '5'));
+export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteW1Pct') || localStorage.getItem('faticaDevastanteW1Pct_' + athleteIdForInit) || '10'));
 export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
 export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
 

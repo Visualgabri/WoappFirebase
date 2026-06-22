@@ -1980,39 +1980,57 @@
             </div>
 
             <!-- CASO WEEK 1 PROPOSTA -->
-            <div v-else-if="aiutoWeek === 1 && propostaWeek1" class="mb-4 pa-3 rounded-lg text-left" 
-                 style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important;">
-              <div class="d-flex align-center justify-space-between mb-1.5">
-                <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
-                  💡 PROPOSTA CARICO SMART (WEEK 1)
-                </span>
-                <v-chip color="green-darken-1" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
-                  INIZIO MESOCICLO
-                </v-chip>
-              </div>
-              <div class="d-flex align-center justify-space-between mt-1 mb-1.5">
-                <div class="text-h5 font-weight-black text-green-accent-3" style="line-height: 1.1;">
-                  {{ propostaWeek1.peso }} <span class="text-caption text-muted">KG</span>
+            <div v-else-if="aiutoWeek === 1 && propostaWeek1" class="mb-4 text-left">
+              <!-- Se c'è errore nei carichi (nessun dato trovato) -->
+              <div v-if="propostaWeek1.erroreCarichi" class="pa-3 rounded-lg text-red-accent-4" style="background: rgba(239, 68, 68, 0.1) !important; border: 1.5px solid rgba(239, 68, 68, 0.45) !important;">
+                <div class="d-flex align-center gap-1.5 font-weight-black text-caption leading-snug" style="font-size: 0.72rem !important; color: #ff5252 !important;">
+                  <v-icon color="red-accent-4" size="16" class="mr-1">mdi-alert-circle-outline</v-icon>
+                  <span>⚠️ Inserisci il Miglior Carico W6 o i pesi nella scheda precedente per avere la proposta.</span>
                 </div>
-                <v-btn
-                  color="green-darken-2"
-                  size="small"
-                  class="font-weight-black text-white px-3 text-none"
-                  rounded="lg"
-                  style="font-size: 0.72rem; height: 30px;"
-                  @click="applicaPropostaCaricoStorico(propostaWeek1.peso)"
-                >
-                  Applica Consigliato
-                </v-btn>
               </div>
-              <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.4;">
-                Carico calcolato a partire da <strong>W6 prec. ({{ propostaWeek1.prevPeso }} kg x{{ formatRepsDisplay(propostaWeek1.prevReps) }})</strong>.
-                Fatica registrata: <strong class="text-white">{{ propostaWeek1.fatica }}</strong>.
-                <template v-if="propostaWeek1.giorniTrascorsi > 30">
-                  <br>• Applicato deallenamento fisiologico (-{{ propostaWeek1.giorniTrascorsi > 180 ? '3%' : (propostaWeek1.giorniTrascorsi > 90 ? '2%' : '1%') }}) per {{ propostaWeek1.giorniTrascorsi }} giorni trascorsi.
-                </template>
-                <br>• Proposto con **modello Ibrido (Epley/NSCA)** impostando RIR 2 (buffer protettivo).
-              </div>
+              
+              <!-- Se c'è la proposta compilata -->
+              <template v-else>
+                <div class="pa-3 rounded-lg mb-2" 
+                     style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important;">
+                  <div class="d-flex align-center justify-space-between mb-1.5">
+                    <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.6rem; letter-spacing: 0.05em;">
+                      💡 PROPOSTA CARICO SMART (WEEK 1)
+                    </span>
+                    <v-chip color="green-darken-1" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 16px;">
+                      INIZIO MESOCICLO
+                    </v-chip>
+                  </div>
+                  <div class="d-flex align-center justify-space-between mt-1 mb-1.5">
+                    <div class="text-h5 font-weight-black text-green-accent-3" style="line-height: 1.1;">
+                      {{ propostaWeek1.peso }} <span class="text-caption text-muted">KG</span>
+                    </div>
+                    <v-btn
+                      color="green-darken-2"
+                      size="small"
+                      class="font-weight-black text-white px-3 text-none"
+                      rounded="lg"
+                      style="font-size: 0.72rem; height: 30px;"
+                      @click="applicaPropostaCaricoStorico(propostaWeek1.peso)"
+                    >
+                      Applica Consigliato
+                    </v-btn>
+                  </div>
+                  <div class="text-super-caption text-slate-light" style="font-size: 0.62rem; line-height: 1.4;">
+                    Carico calcolato a partire da <strong>W{{ propostaWeek1.settimanaBase }} prec. ({{ propostaWeek1.prevPeso }} kg x{{ formatRepsDisplay(propostaWeek1.prevReps) }})</strong>.
+                    Fatica registrata: <strong class="text-white">{{ propostaWeek1.fatica }}</strong>.
+                    <template v-if="propostaWeek1.giorniTrascorsi > 30">
+                      <br>• Applicato deallenamento fisiologico (-{{ propostaWeek1.giorniTrascorsi > 180 ? '3%' : (propostaWeek1.giorniTrascorsi > 90 ? '2%' : '1%') }}) per {{ propostaWeek1.giorniTrascorsi }} giorni trascorsi.
+                    </template>
+                    <br>• Proposto con **modello Ibrido (Epley/NSCA)** impostando RIR 2 (buffer protettivo).
+                  </div>
+                </div>
+
+                <!-- Warning arancione di accuratezza -->
+                <div v-if="propostaWeek1.stimaMenoAccurata" class="pa-2.5 rounded-lg text-amber-lighten-2 border text-super-caption" style="background: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; font-size: 0.62rem; line-height: 1.4;">
+                  ⚠️ Stima meno precisa (calcolata su W{{ propostaWeek1.settimanaBase }}). Inserisci il Miglior Carico W6 per maggiore precisione.
+                </div>
+              </template>
             </div>
 
             <!-- CASO STANDARD (NON SCARICO W4) -->
@@ -4382,27 +4400,25 @@ const getNSCAPercentage = (reps) => {
   return table[r] || 0.35;
 };
 
-const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi) => {
-  if (!prevW6Weight) return null;
-  const w6 = parseFloat(String(prevW6Weight).replace(',', '.'));
-  if (isNaN(w6) || w6 <= 0) return null;
+const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps, fatica, giorniTrascorsi) => {
+  const wBase = parseFloat(String(baseWeight).replace(',', '.'));
+  if (isNaN(wBase) || wBase <= 0) return null;
   
-  const r6 = prevW6Reps ? parseInt(prevW6Reps, 10) : (currW1Reps ? parseInt(currW1Reps, 10) : 10);
-  const r1 = currW1Reps ? parseInt(currW1Reps, 10) : (prevW6Reps ? parseInt(prevW6Reps, 10) : 10);
+  const rBase = baseReps ? parseInt(baseReps, 10) : 10;
+  const r1 = currW1Reps ? parseInt(currW1Reps, 10) : 10;
   
-  // RIR di default per W6 (cedimento = 0) e W1 (default = 2 RIR per iniziare leggeri)
-  const rirW6 = 0;
+  const rirBase = baseRIR !== null ? baseRIR : 0;
   const rirW1 = estraiRIRDaPrescrizione(workout.value?.des_week1) !== null ? estraiRIRDaPrescrizione(workout.value?.des_week1) : 2;
   
   // FASE 1: Stima 1RM
-  const repsW6Totali = r6 + rirW6;
+  const repsBaseTotali = rBase + rirBase;
   let estimated1RM;
-  if (repsW6Totali <= 10) {
+  if (repsBaseTotali <= 10) {
     // Epley per <= 10 reps
-    estimated1RM = w6 * (1 + repsW6Totali / 30);
+    estimated1RM = wBase * (1 + repsBaseTotali / 30);
   } else {
     // NSCA per > 10 reps
-    estimated1RM = w6 / getNSCAPercentage(repsW6Totali);
+    estimated1RM = wBase / getNSCAPercentage(repsBaseTotali);
   }
   
   // FASE 2: Calcolo carico teorico per W1
@@ -4444,35 +4460,65 @@ const calcolaPropostaCarico = (prevW6Weight, prevW6Reps, currW1Reps, fatica, gio
 const propostaWeek1 = computed(() => {
   if (!previousWorkout.value || !workout.value) return null;
   
+  let basePeso = null;
+  let baseReps = null;
+  let baseRIR = null;
+  let fatica = '';
+  let baseWeekNum = null;
+  
+  // 1. Controlla prima la Week 6 (Miglior Carico num_ins6)
   const prevW6Weight = previousWorkout.value.num_ins6;
-  if (!prevW6Weight) return null;
+  if (prevW6Weight && !isNaN(parseFloat(String(prevW6Weight).replace(',', '.')))) {
+    basePeso = parseFloat(String(prevW6Weight).replace(',', '.'));
+    baseReps = parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10;
+    baseRIR = estraiRIRDaPrescrizione(previousWorkout.value.des_week6) !== null ? estraiRIRDaPrescrizione(previousWorkout.value.des_week6) : 0;
+    fatica = previousWorkout.value.num_faticaw6 || '';
+    baseWeekNum = 6;
+  } else {
+    // 2. Cerca a ritroso dalle W5 alle W1
+    for (let w = 5; w >= 1; w--) {
+      const val = previousWorkout.value['ins_week' + w];
+      if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
+        const pesoStr = estraiPesoDaInput(val);
+        if (pesoStr) {
+          basePeso = parseFloat(pesoStr);
+          baseReps = parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+          baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
+          baseWeekNum = w;
+          break;
+        }
+      }
+    }
+  }
   
-  const prevW6Reps = parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6);
-  const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1);
-  const fatica = previousWorkout.value.num_faticaw6;
+  // Se non troviamo carichi compilati in nessuna settimana
+  if (basePeso === null || isNaN(basePeso) || basePeso <= 0) {
+    return { erroreCarichi: true };
+  }
   
-  // Calcolo giorni trascorsi
+  const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 10;
   const dataUltimaEx = getExecutionDate(previousWorkout.value, storicoEsercizio.value, workout.value);
   const giorniTrascorsi = calcolaGiorniTrascorsi(dataUltimaEx);
   
-  let proposta = calcolaPropostaCarico(prevW6Weight, prevW6Reps, currW1Reps, fatica, giorniTrascorsi);
+  let proposta = calcolaPropostaCaricoDinamico(basePeso, baseReps, baseRIR, currW1Reps, fatica, giorniTrascorsi);
   if (proposta === null) return null;
 
-  // Limita il peso se a corpo libero e le reps salgono rispetto a W6 precedente
-  if (isCorpoLiberoEsercizio(workout.value) && currW1Reps && prevW6Reps && currW1Reps > prevW6Reps) {
-    const prevWeightNum = parseFloat(String(prevW6Weight).replace(',', '.'));
-    if (!isNaN(prevWeightNum) && proposta > prevWeightNum) {
-      proposta = prevWeightNum;
+  // Limita il peso se a corpo libero e le reps salgono rispetto a settimana precedente
+  if (isCorpoLiberoEsercizio(workout.value) && currW1Reps && baseReps && currW1Reps > baseReps) {
+    if (proposta > basePeso) {
+      proposta = basePeso;
     }
   }
 
   return {
     peso: proposta,
-    prevPeso: prevW6Weight,
-    prevReps: prevW6Reps || 'N/D',
-    currReps: currW1Reps || 'N/D',
-    fatica: fatica || 'Non specificata',
-    giorniTrascorsi
+    prevPeso: basePeso,
+    prevReps: baseReps,
+    currReps: currW1Reps,
+    fatica: fatica || 'Nessuna',
+    giorniTrascorsi,
+    settimanaBase: baseWeekNum,
+    stimaMenoAccurata: baseWeekNum < 6
   };
 });
 

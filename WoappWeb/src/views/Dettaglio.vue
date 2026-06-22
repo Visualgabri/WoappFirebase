@@ -3506,8 +3506,9 @@ const getGhostWeightsRangeForWeek = (sett) => {
   // Se è a corpo libero (rep exercise) o a percentuali, non ha senso proporre un range di pesi
   if (ghost.isRepExercise) return null;
   
-  // Recupera il target reps della settimana
-  const repsTarget = getRepsPerWeek(sett);
+  const info = getBaseWeekInfo(sett);
+  const repsTarget = info ? info.repsTarget : getRepsPerWeek(sett);
+  const repsBase = info ? info.repsBase : 10;
 
   const isManubri = isManubriEsercizio(workout.value);
   const step = isManubri ? 1.0 : 1.25;
@@ -3629,8 +3630,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
           label: 'Prudenziale'
         },
         consigliato: {
-          value: `${pesoBase}x${repsTarget + 1}r`,
-          display: `${formatWeight(pesoBase)}x${repsTarget + 1}r`,
+          value: `${pesoBase}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
+          display: `${formatWeight(pesoBase)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
           label: 'Consigliato (+1r)'
         },
         sfidante: {
@@ -3656,8 +3657,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
           label: 'Consigliato'
         },
         sfidante: {
-          value: `${medio}x${repsTarget + 1}r`,
-          display: `${formatWeight(medio)}x${repsTarget + 1}r`,
+          value: `${medio}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
+          display: `${formatWeight(medio)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
           label: 'Sfidante (+1r)'
         }
       };
@@ -3673,25 +3674,26 @@ const getGhostWeightsRangeForWeek = (sett) => {
         label: 'Prudenziale'
       },
       consigliato: {
-        value: `${min}x${repsTarget + 1}r`,
-        display: `${formatWeight(min)}x${repsTarget + 1}r`,
+        value: `${min}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
+        display: `${formatWeight(min)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
         label: 'Consigliato (+1r)'
       },
       sfidante: {
-        value: `${min}x${repsTarget + 2}r`,
-        display: `${formatWeight(min)}x${repsTarget + 2}r`,
+        value: `${min}x${Math.max(repsTarget + 2, repsBase + 2)}r`,
+        display: `${formatWeight(min)}x${Math.max(repsTarget + 2, repsBase + 2)}r`,
         label: 'Sfidante (+2r)'
       }
     };
   }
 
-  // Se medio === max (ma min < medio), applichiamo la progressione reps sul pulsante sfidante
+  // Se medio === max (ma min < medio), applichiamo la progressione reps sul pulsante prudenziale
   if (medio === max && min < medio) {
+    const repsProg = Math.max(repsTarget + 1, repsBase + 1);
     return {
       prudenziale: {
-        value: String(min),
-        display: `${formatWeight(min)} kg`,
-        label: 'Prudenziale'
+        value: `${min}x${repsProg}r`,
+        display: `${formatWeight(min)}x${repsProg}r`,
+        label: 'Volume'
       },
       consigliato: {
         value: String(medio),
@@ -3699,9 +3701,9 @@ const getGhostWeightsRangeForWeek = (sett) => {
         label: 'Consigliato'
       },
       sfidante: {
-        value: `${medio}x${repsTarget + 1}r`,
-        display: `${formatWeight(medio)}x${repsTarget + 1}r`,
-        label: 'Sfidante (+1r)'
+        value: String(max),
+        display: `${formatWeight(max)} kg`,
+        label: 'Sfidante'
       }
     };
   }
@@ -3715,8 +3717,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
         label: 'Prudenziale'
       },
       consigliato: {
-        value: `${min}x${repsTarget + 1}r`,
-        display: `${formatWeight(min)}x${repsTarget + 1}r`,
+        value: `${min}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
+        display: `${formatWeight(min)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
         label: 'Consigliato (+1r)'
       },
       sfidante: {
@@ -3752,7 +3754,7 @@ const getGhostWeightsRangeText = (sett) => {
   const first = range.prudenziale.display.replace(/\s*kg/gi, '').trim();
   const last = range.sfidante.display.replace(/\s*kg/gi, '').trim();
   if (first === last) return first;
-  return `${first}-${last}`;
+  return `${first} - ${last}`;
 };
 
 const applicaPropostaCaricoRapida = (sett, peso) => {
@@ -3866,15 +3868,9 @@ const strategieProgressione = computed(() => {
 
   const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
   
-  // Estrai reps base dall'input o dalla prescrizione
-  let repsBaseVal = estraiRepsDaInput(ghost.text);
-  if (repsBaseVal === null || isNaN(repsBaseVal) || repsBaseVal <= 0) {
-    const baseW = propostaBaseWeek5.value; // e.g. "W3"
-    const baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
-    repsBaseVal = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
-  }
-  
-  const repsTarget = workout.value['reps_week' + sett] ? parseInt(workout.value['reps_week' + sett], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + sett]) || 10);
+  const baseWeekInfo = getBaseWeekInfo(sett);
+  const repsBaseVal = baseWeekInfo ? baseWeekInfo.repsBase : 10;
+  const repsTarget = baseWeekInfo ? baseWeekInfo.repsTarget : 10;
   
   // Calcola peso proposto standard
   const pesoProposto = ghost.isPostScarico && ghost.pesoProposto !== undefined ? ghost.pesoProposto : ghost.peso;

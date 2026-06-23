@@ -1028,25 +1028,42 @@
             <div v-else class="exercise-list">
           <template v-for="(block, bIdx) in blocchiEsercizi" :key="bIdx">
             
-            <!-- CASO 1: GRUPPO SUPERSET (SUPERSERIE) -->
+<!-- CASO 1: GRUPPO SUPERSET (SUPERSERIE) -->
             <v-card
               v-if="block.type === 'superset'"
-              class="superset-group-card mb-4 border-superset elevation-2 text-left"
+              class="superset-group-card border-superset elevation-2 text-left"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-3' : 'rounded-3xl pa-4')
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-3' : 'rounded-3xl pa-4 mb-4')
               ]"
             >
-              <!-- Intestazione del Superset -->
-              <div class="superset-header d-flex align-center justify-space-between" :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : 'mb-3'">
-                <div class="d-flex align-center flex-wrap gap-2">
-                  <v-chip color="orange-darken-3" class="font-weight-black text-white px-2 py-0.5 mr-1" variant="flat" size="x-small" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : (layoutEsercizi === 'compatto' ? '0.58rem' : '0.64rem'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : '20px') }">
-                    ⚡ SUPERSET {{ block.letter }}
+              <!-- Nascondiamo l'header sia in compatto che in super compatto per risparmiare spazio verticale -->
+              <div v-if="layoutEsercizi !== 'compatto' && layoutEsercizi !== 'super_compatto'" class="superset-header d-flex align-center justify-space-between" :class="layoutEsercizi === 'super_compatto' ? 'mb-1 px-1' : 'mb-3'">
+                <div class="d-flex align-center flex-wrap gap-1">
+                  <v-chip 
+                    color="orange-darken-3" 
+                    class="font-weight-black text-white px-1.5 py-0" 
+                    variant="flat" 
+                    size="x-small" 
+                    :style="{ 
+                      fontSize: layoutEsercizi === 'super_compatto' ? '0.50rem' : '0.64rem', 
+                      height: layoutEsercizi === 'super_compatto' ? '14px' : '20px',
+                      borderRadius: '3px'
+                    }"
+                  >
+                    ⚡ SS {{ block.letter }}
                   </v-chip>
                   <span v-if="layoutEsercizi !== 'super_compatto'" class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.72rem;">
                     Esegui in sequenza senza pausa
                   </span>
                 </div>
-                <v-chip color="orange-darken-3" size="x-small" variant="tonal" class="font-weight-black px-2 py-0.5" :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : (layoutEsercizi === 'compatto' ? '0.58rem' : '0.64rem'), height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : '20px') }">
+                <v-chip 
+                  v-if="layoutEsercizi !== 'super_compatto'"
+                  color="orange-darken-3" 
+                  size="x-small" 
+                  variant="tonal" 
+                  class="font-weight-black px-2 py-0.5" 
+                  style="font-size: 0.64rem; height: 20px;"
+                >
                   {{ block.exercises.length }} ESERCIZI
                 </v-chip>
               </div>
@@ -1065,7 +1082,7 @@
                   }"
                   @click="vaiAlDettaglio(ex.id)"
                 >
-                  <!-- Linea di collegamento tratteggiata tra le miniature degli esercizi in superset -->
+                  <!-- Linea di collegamento tratteggiata (mostrata in standard e compatto) -->
                   <div v-if="index < block.exercises.length - 1 && layoutEsercizi !== 'super_compatto'" class="superset-connector-line"></div>
                   
                   <!-- VISUALIZZAZIONE SUPER COMPATTA (UNICA RIGA) -->
@@ -1110,9 +1127,10 @@
                         v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="x-small" 
                         color="green-darken-3" 
-                        class="font-weight-black text-white px-2 py-0.5" 
+                        class="font-weight-black text-white px-2 py-0.5 super-compact-weight-chip" 
                         variant="flat" 
                         style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
+                        :title="ex['ins_week' + settimanaAttivaGiorno]"
                       >
                         {{ ex['ins_week' + settimanaAttivaGiorno] }}
                       </v-chip>
@@ -1144,65 +1162,210 @@
                     </div>
                   </div>
 
-                  <!-- VISUALIZZAZIONE STANDARD E COMPATTA (CARD TRADIZIONALE CON DETTAGLI) -->
-                  <template v-else>
-                    <!-- Numero d'ordine a sinistra -->
-                    <div class="text-caption font-weight-black text-orange-lighten-1 mr-2 flex-shrink-0" style="font-size: 0.9rem !important;">
-                      {{ ex.num_riga_giorno }}.
+                  <!-- VISUALIZZAZIONE COMPATTA -->
+                  <template v-else-if="layoutEsercizi === 'compatto'">
+                    <!-- Badge Numero in alto a sinistra (Fuori dalla foto, sul bordo della card) -->
+                    <div class="position-absolute d-flex align-center justify-center font-weight-black text-white" style="top: 0; left: 0; min-width: 20px; height: 20px; font-size: 0.65rem; background: #ea580c; z-index: 10; border-bottom-right-radius: 6px; padding: 0 4px;">
+                      {{ ex.num_riga_giorno }}
                     </div>
 
                     <!-- Miniatura GIF/Immagine sulla Sinistra -->
-                    <div class="d-flex flex-column align-center mr-3" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '76px', minWidth: layoutEsercizi === 'compatto' ? '48px' : '76px' }">
-                      <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-0" :style="{ zIndex: 2, width: layoutEsercizi === 'compatto' ? '48px' : '76px', height: layoutEsercizi === 'compatto' ? '48px' : '76px' }">
+                    <div class="d-flex flex-column align-center mr-3 mt-2" style="width: 48px; min-width: 48px;">
+                      <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-0" style="z-index: 2; width: 48px; height: 48px;">
                         <v-img
                           :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                          :width="layoutEsercizi === 'compatto' ? '48px' : '76px'"
-                          :height="layoutEsercizi === 'compatto' ? '48px' : '76px'"
+                          width="48px"
+                          height="48px"
                           cover
                           alt="Esercizio"
                           class="bg-grey-lighten-4"
                         >
                           <template v-slot:placeholder>
                             <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                              <v-icon color="grey-lighten-1" :size="layoutEsercizi === 'compatto' ? 16 : 20">mdi-dumbbell</v-icon>
+                              <v-icon color="grey-lighten-1" size="16">mdi-dumbbell</v-icon>
                             </div>
                           </template>
                         </v-img>
                       </div>
                     </div>
 
-                    <!-- Dettagli Centrali -->
-                    <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
+                    <!-- Dettagli Centrali Estesi (Si prendono tutto lo spazio a destra) -->
+                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-1" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark', layoutEsercizi === 'compatto' ? '' : 'text-body-1']" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.82rem !important' : 'inherit', lineHeight: layoutEsercizi === 'compatto' ? '1.2 !important' : 'inherit', whiteSpace: 'normal', wordBreak: 'break-word' }">
+                      <h4 class="font-weight-black leading-tight mb-1 text-slate-dark pr-1" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
-                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" :size="layoutEsercizi === 'compatto' ? 14 : 16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
+                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
-                      <!-- Settore, Emoji Sforzo e Prescrizione (in riga unica se compatto e c'entra) -->
-                      <div 
-                        :class="layoutEsercizi === 'compatto' ? 'd-flex flex-wrap align-center' : ''"
-                        :style="layoutEsercizi === 'compatto' ? 'gap: 2px 8px; margin-bottom: 4px;' : ''"
-                      >
-                        <!-- Settore e Emoji Sforzo -->
-                        <div 
-                          class="d-flex align-center text-caption font-weight-bold text-orange-darken-3"
-                          :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
-                        >
-                          <span :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit' }">{{ ex.des_settore || 'Corpo Libero' }}</span>
+                      <!-- Settore, Emoji Sforzo e Prescrizione -->
+                      <div class="d-flex flex-wrap align-center" style="gap: 2px 8px; margin-bottom: 4px;">
+                        <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3">
+                          <span style="font-size: 0.64rem !important;">{{ ex.des_settore || 'Corpo Libero' }}</span>
                           <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                         </div>
-
-                        <!-- Prescrizione della settimana attiva -->
-                        <div 
-                          class="text-caption font-weight-bold text-slate text-truncate" 
-                          :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
-                          :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
-                        >
+                        <div class="text-caption font-weight-bold text-slate text-truncate pr-1" :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: '0.72rem !important' }]">
                           {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                         </div>
+                      </div>
+
+                      <!-- Cronologia Carichi e Azione Rapida allineati insieme in basso -->
+                      <div class="d-flex align-center justify-space-between mt-1 pt-1 border-top-soft w-100 pr-1">
+                        <!-- W1-W6 -->
+                        <div class="d-flex gap-1 align-center flex-wrap">
+                          <div
+                            v-for="w in [1, 2, 3, 4, 5, 6]"
+                            :key="w"
+                            class="mini-week-capsule d-inline-flex align-center"
+                            :class="{
+                              'capsule-active': w === settimanaAttivaGiorno,
+                              'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                              'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                            }"
+                            style="font-size: 0.48rem; padding: 0px 3px; height: 13px; min-width: 24px; cursor: pointer;"
+                            @click.stop="vaiAlDettaglio(ex.id)"
+                          >
+                            <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
+                            <span class="ml-0.5 font-weight-black" style="font-size: 0.48rem;">
+                              {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <!-- Bottone Azione Rapida spostato qui -->
+                        <div class="flex-shrink-0 ml-2">
+                          <v-chip 
+                            v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
+                            size="small" 
+                            color="green-darken-3" 
+                            class="font-weight-black text-white px-2 py-0" 
+                            variant="flat" 
+                            style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                            @click.stop="vaiAlDettaglio(ex.id)"
+                          >
+                            {{ formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
+                          </v-chip>
+                          <v-chip 
+                            v-else-if="ex['ins_week' + settimanaAttivaGiorno] === '-'" 
+                            size="small" 
+                            color="green-darken-3" 
+                            class="font-weight-black text-white px-2 py-0" 
+                            variant="flat" 
+                            style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                            @click.stop="vaiAlDettaglio(ex.id)"
+                          >
+                            ✔️ Fatto
+                          </v-chip>
+                          <v-chip 
+                            v-else 
+                            size="small" 
+                            variant="outlined" 
+                            color="orange-darken-3" 
+                            class="font-weight-black px-2 py-0 text-none"
+                            style="height: 22px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
+                            @click.stop="vaiAlDettaglio(ex.id)"
+                          >
+                            + Registra
+                          </v-chip>
+                        </div>
+                      </div>
+
+                      <!-- Timer Recupero Clickable -->
+                      <div class="mt-1.5" v-if="ex.des_rec_report || (ex.alf_superserie && ex.alf_superserie.trim())">
+                          <v-chip
+                            v-if="ex.des_rec_report"
+                            color="amber-darken-3"
+                            variant="tonal"
+                            size="x-small"
+                            class="font-weight-black clickable-timer-chip"
+                            prepend-icon="mdi-clock-outline"
+                            style="font-size: 0.68rem !important; height: 24px; padding-left: 8px; padding-right: 8px;"
+                            @click.stop="vaiAlDettaglio(ex.id)"
+                          >
+                            ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati)' : '' }}
+                          </v-chip>
+                          <v-chip
+                            v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
+                            color="green-darken-3"
+                            variant="flat"
+                            size="x-small"
+                            class="font-weight-black text-white"
+                            prepend-icon="mdi-arrow-right-bold-circle-outline"
+                            style="font-size: 0.58rem; height: 18px;"
+                          >
+                            ⚡ VAI AL PROSSIMO (NO PAUSA)
+                          </v-chip>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- VISUALIZZAZIONE STANDARD (ORIGINALE) -->
+                  <template v-else>
+                    <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
+                    <div class="d-flex flex-column align-center mr-3" style="width: 76px; min-width: 76px;">
+                      <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-1" style="z-index: 2; width: 76px; height: 76px;">
+                        <v-img
+                          :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
+                          width="76px"
+                          height="76px"
+                          cover
+                          alt="Esercizio"
+                          class="bg-grey-lighten-4"
+                        >
+                          <template v-slot:placeholder>
+                            <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                              <v-icon color="grey-lighten-1" size="20">mdi-dumbbell</v-icon>
+                            </div>
+                          </template>
+                        </v-img>
+                      </div>
+
+                      <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
+                      <v-chip
+                        v-if="ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim()"
+                        color="green-darken-3"
+                        size="x-small"
+                        class="font-weight-black uppercase text-white animate-pulse"
+                        variant="flat"
+                        style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
+                        @click.stop="segnaComeFattoRapido(ex)"
+                      >
+                        ✔️ {{ String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
+                      </v-chip>
+                      
+                      <v-chip
+                        v-else
+                        color="grey-darken-2"
+                        size="x-small"
+                        class="font-weight-bold uppercase text-slate"
+                        variant="outlined"
+                        style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
+                        @click.stop="segnaComeFattoRapido(ex)"
+                      >
+                        ❌ DA FARE
+                      </v-chip>
+                    </div>
+
+                    <!-- Dettagli Centrali -->
+                    <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
+                      <!-- Titolo Esercizio -->
+                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+                        <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
+                        {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
+                        {{ ex.des_esercizio || 'Esercizio' }}
+                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
+                      </h4>
+
+                      <!-- Settore e Emoji Sforzo -->
+                      <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
+                        <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
+                        <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
+                      </div>
+
+                      <!-- Prescrizione della settimana attiva -->
+                      <div class="text-caption font-weight-bold text-slate text-truncate mb-1" :style="getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report)">
+                        {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                       </div>
 
                       <!-- Cronologia Carichi Settimanali -->
@@ -1217,17 +1380,11 @@
                               'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                               'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                             }"
-                            :style="{
-                              fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
-                              padding: layoutEsercizi === 'compatto' ? '0px 3px' : '1px 4px',
-                              height: layoutEsercizi === 'compatto' ? '13px' : '16px',
-                              minWidth: layoutEsercizi === 'compatto' ? '24px' : '32px',
-                              cursor: 'pointer'
-                            }"
-                            @click.stop="layoutEsercizi === 'standard' ? selezionaSettimanaManuale(w) : vaiAlDettaglio(ex.id)"
+                            style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
+                            @click.stop="selezionaSettimanaManuale(w)"
                           >
                             <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
-                            <span class="ml-0.5 font-weight-black" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem' }">
+                            <span class="ml-0.5 font-weight-black" style="font-size: 0.55rem;">
                               {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
                             </span>
                           </div>
@@ -1243,8 +1400,8 @@
                             size="x-small"
                             class="font-weight-black clickable-timer-chip"
                             prepend-icon="mdi-clock-outline"
-                            :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.68rem !important' : '0.70rem !important', height: layoutEsercizi === 'compatto' ? '24px' : '24px', paddingLeft: '8px', paddingRight: '8px' }"
-                            @click.stop="layoutEsercizi === 'standard' ? avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio) : vaiAlDettaglio(ex.id)"
+                            style="font-size: 0.70rem !important; height: 24px; padding-left: 8px; padding-right: 8px;"
+                            @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
                           >
                             ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
                           </v-chip>
@@ -1255,48 +1412,18 @@
                             size="x-small"
                             class="font-weight-black text-white"
                             prepend-icon="mdi-arrow-right-bold-circle-outline"
-                            :style="{ fontSize: layoutEsercizi === 'standard' ? '0.64rem' : '0.58rem', height: layoutEsercizi === 'standard' ? '20px' : '18px' }"
+                            style="font-size: 0.64rem; height: 20px;"
                           >
                             ⚡ VAI AL PROSSIMO (NO PAUSA)
                           </v-chip>
                       </div>
                     </div>
 
-                    <!-- Colonna Destra (Azione Rapida) -->
+                    <!-- Colonna Destra (Ordine) -->
                     <div class="d-flex flex-column align-end justify-center pl-2 position-relative" style="z-index: 2;">
-                      <v-chip 
-                        v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
-                        size="small" 
-                        color="green-darken-3" 
-                        class="font-weight-black text-white px-2 py-1" 
-                        variant="flat" 
-                        style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
-                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
-                      >
-                        {{ formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
-                      </v-chip>
-                      <v-chip 
-                        v-else-if="ex['ins_week' + settimanaAttivaGiorno] === '-'" 
-                        size="small" 
-                        color="green-darken-3" 
-                        class="font-weight-black text-white px-2 py-1" 
-                        variant="flat" 
-                        style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
-                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
-                      >
-                        Fatto ✔️
-                      </v-chip>
-                      <v-chip 
-                        v-else 
-                        size="small" 
-                        variant="outlined" 
-                        color="orange-darken-3" 
-                        class="font-weight-black px-2 py-1 text-none"
-                        style="height: auto; min-height: 24px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
-                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
-                      >
-                        + Registra
-                      </v-chip>
+                      <div class="text-caption font-weight-black text-slate-dark">
+                        {{ ex.num_riga_giorno }}
+                      </div>
                     </div>
                   </template>
                 </div>
@@ -1356,9 +1483,10 @@
                       v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                       size="x-small" 
                       color="green-darken-3" 
-                      class="font-weight-black text-white px-2 py-0.5" 
+                      class="font-weight-black text-white px-2 py-0.5 super-compact-weight-chip" 
                       variant="flat" 
                       style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
+                      :title="block.exercise['ins_week' + settimanaAttivaGiorno]"
                     >
                       {{ block.exercise['ins_week' + settimanaAttivaGiorno] }}
                     </v-chip>
@@ -1391,65 +1519,215 @@
                 </div>
               </template>
 
-              <!-- VISUALIZZAZIONE STANDARD E COMPATTA (CARD TRADIZIONALE CON DETTAGLI) -->
-              <template v-else>
-                <!-- Numero d'ordine a sinistra -->
-                <div class="text-caption font-weight-black text-orange-lighten-1 mr-2 flex-shrink-0" style="font-size: 0.9rem !important;">
-                  {{ block.exercise.num_riga_giorno }}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- VISUALIZZAZIONE COMPATTA -->
+              <template v-else-if="layoutEsercizi === 'compatto'">
+                <!-- Badge Numero in alto a sinistra (Fuori dalla foto, sul bordo della card) -->
+                <div class="position-absolute d-flex align-center justify-center font-weight-black text-white" style="top: 0; left: 0; min-width: 20px; height: 20px; font-size: 0.65rem; background: #ea580c; z-index: 10; border-bottom-right-radius: 6px; padding: 0 4px;">
+                  {{ block.exercise.num_riga_giorno }}
                 </div>
 
                 <!-- Miniatura GIF/Immagine sulla Sinistra -->
-                <div class="d-flex flex-column align-center mr-3" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '84px', minWidth: layoutEsercizi === 'compatto' ? '48px' : '84px' }">
-                  <div class="thumbnail-wrapper rounded-lg overflow-hidden mb-0" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '84px', height: layoutEsercizi === 'compatto' ? '48px' : '84px' }">
+                <div class="d-flex flex-column align-center mr-3 mt-2" style="width: 48px; min-width: 48px;">
+                  <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-0" style="z-index: 2; width: 48px; height: 48px;">
                     <v-img
                       :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                      :width="layoutEsercizi === 'compatto' ? '48px' : '84px'"
-                      :height="layoutEsercizi === 'compatto' ? '48px' : '84px'"
+                      width="48px"
+                      height="48px"
                       cover
                       alt="Esercizio"
                       class="bg-grey-lighten-4"
                     >
                       <template v-slot:placeholder>
                         <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                          <v-icon color="grey-lighten-1" :size="layoutEsercizi === 'compatto' ? 16 : 24">mdi-dumbbell</v-icon>
+                          <v-icon color="grey-lighten-1" size="16">mdi-dumbbell</v-icon>
                         </div>
                       </template>
                     </v-img>
                   </div>
                 </div>
 
-                <!-- Dettagli Centrali -->
-                <div class="flex-grow-1 text-left min-width-0">
+                <!-- Dettagli Centrali Estesi (Si prendono tutto lo spazio a destra) -->
+                <div class="flex-grow-1 text-left min-width-0 position-relative mt-1" style="z-index: 2;">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1" :class="[esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark', layoutEsercizi === 'compatto' ? '' : 'text-body-1']" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.82rem !important' : 'inherit', lineHeight: layoutEsercizi === 'compatto' ? '1.2 !important' : 'inherit', whiteSpace: 'normal', wordBreak: 'break-word' }">
+                  <h4 class="font-weight-black leading-tight mb-1 text-slate-dark pr-1" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
-                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange" :size="layoutEsercizi === 'compatto' ? 14 : 16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
+                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange" size="14" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
                   </h4>
 
-                  <!-- Settore, Emoji Sforzo e Prescrizione (in riga unica se compatto e c'entra) -->
-                  <div 
-                    :class="layoutEsercizi === 'compatto' ? 'd-flex flex-wrap align-center' : ''"
-                    :style="layoutEsercizi === 'compatto' ? 'gap: 2px 8px; margin-bottom: 4px;' : ''"
-                  >
-                    <!-- Settore e Emoji Sforzo -->
-                    <div 
-                      class="d-flex align-center text-caption font-weight-bold text-orange-darken-3"
-                      :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
-                    >
-                      <span :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : 'inherit' }">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                  <!-- Settore, Emoji Sforzo e Prescrizione -->
+                  <div class="d-flex flex-wrap align-center" style="gap: 2px 8px; margin-bottom: 4px;">
+                    <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3">
+                      <span style="font-size: 0.64rem !important;">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
                       <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                     </div>
-
-                    <!-- Prescrizione della settimana attiva -->
-                    <div 
-                      class="text-caption font-weight-bold text-slate text-truncate" 
-                      :class="layoutEsercizi === 'compatto' ? '' : 'mb-1'"
-                      :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: layoutEsercizi === 'compatto' ? '0.72rem !important' : 'inherit' }]"
-                    >
+                    <div class="text-caption font-weight-bold text-slate text-truncate pr-1" :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: '0.72rem !important' }]">
                       {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                     </div>
+                  </div>
+
+                  <!-- Cronologia Carichi e Azione Rapida allineati insieme in basso -->
+                  <div class="d-flex align-center justify-space-between mt-1 pt-1 border-top-soft w-100 pr-1">
+                    <!-- W1-W6 -->
+                    <div class="d-flex gap-1 align-center flex-wrap">
+                      <div
+                        v-for="w in [1, 2, 3, 4, 5, 6]"
+                        :key="w"
+                        class="mini-week-capsule d-inline-flex align-center"
+                        :class="{
+                          'capsule-active': w === settimanaAttivaGiorno,
+                          'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                          'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                        }"
+                        style="font-size: 0.48rem; padding: 0px 3px; height: 13px; min-width: 24px; cursor: pointer;"
+                        @click.stop="vaiAlDettaglio(block.exercise.id)"
+                      >
+                        <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
+                        <span class="ml-0.5 font-weight-black" style="font-size: 0.48rem;">
+                          {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Bottone Azione Rapida spostato qui -->
+                    <div class="flex-shrink-0 ml-2">
+                      <v-chip 
+                        v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
+                        size="small" 
+                        color="green-darken-3" 
+                        class="font-weight-black text-white px-2 py-0" 
+                        variant="flat" 
+                        style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                        @click.stop="vaiAlDettaglio(block.exercise.id)"
+                      >
+                        {{ formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
+                      </v-chip>
+                      <v-chip 
+                        v-else-if="block.exercise['ins_week' + settimanaAttivaGiorno] === '-'" 
+                        size="small" 
+                        color="green-darken-3" 
+                        class="font-weight-black text-white px-2 py-0" 
+                        variant="flat" 
+                        style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                        @click.stop="vaiAlDettaglio(block.exercise.id)"
+                      >
+                        ✔️ Fatto
+                      </v-chip>
+                      <v-chip 
+                        v-else 
+                        size="small" 
+                        variant="outlined" 
+                        color="orange-darken-3" 
+                        class="font-weight-black px-2 py-0 text-none"
+                        style="height: 22px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
+                        @click.stop="vaiAlDettaglio(block.exercise.id)"
+                      >
+                        + Registra
+                      </v-chip>
+                    </div>
+                  </div>
+
+                  <!-- Timer Recupero Clickable -->
+                  <div class="mt-1.5" v-if="block.exercise.des_rec_report">
+                    <v-chip
+                      color="amber-darken-3"
+                      variant="tonal"
+                      size="x-small"
+                      class="font-weight-black clickable-timer-chip"
+                      prepend-icon="mdi-clock-outline"
+                      style="font-size: 0.64rem !important; height: 20px;"
+                      @click.stop="vaiAlDettaglio(block.exercise.id)"
+                    >
+                      ⏱️ {{ block.exercise.des_rec_report }}
+                    </v-chip>
+                  </div>
+                </div>
+              </template>
+
+              <!-- VISUALIZZAZIONE STANDARD (ORIGINALE) -->
+              <template v-else>
+                <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
+                <div class="d-flex flex-column align-center mr-3" style="width: 84px; min-width: 84px;">
+                  <div class="thumbnail-wrapper rounded-lg overflow-hidden mb-1" style="width: 84px; height: 84px;">
+                    <v-img
+                      :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
+                      width="84px"
+                      height="84px"
+                      cover
+                      alt="Esercizio"
+                      class="bg-grey-lighten-4"
+                    >
+                      <template v-slot:placeholder>
+                        <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                          <v-icon color="grey-lighten-1" size="24">mdi-dumbbell</v-icon>
+                        </div>
+                      </template>
+                    </v-img>
+                  </div>
+
+                  <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
+                  <v-chip
+                    v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim()"
+                    color="green-darken-3"
+                    size="x-small"
+                    class="font-weight-black uppercase text-white animate-pulse"
+                    variant="flat"
+                    style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
+                    @click.stop="segnaComeFattoRapido(block.exercise)"
+                  >
+                    ✔️ {{ String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
+                  </v-chip>
+                  
+                  <v-chip
+                    v-else
+                    color="grey-darken-2"
+                    size="x-small"
+                    class="font-weight-bold uppercase text-slate"
+                    variant="outlined"
+                    style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; border-style: dashed !important; opacity: 0.65; width: 100%; justify-content: center; cursor: pointer;"
+                    @click.stop="segnaComeFattoRapido(block.exercise)"
+                  >
+                    ❌ DA FARE
+                  </v-chip>
+                </div>
+
+                <!-- Dettagli Centrali -->
+                <div class="flex-grow-1 text-left min-width-0">
+                  <!-- Titolo Esercizio -->
+                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+                    <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
+                    {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
+                    {{ block.exercise.des_esercizio || 'Esercizio' }}
+                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange" size="16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
+                  </h4>
+
+                  <!-- Settore e Emoji Sforzo -->
+                  <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
+                    <span>{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                    <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
+                  </div>
+
+                  <!-- Prescrizione della settimana attiva -->
+                  <div class="text-caption font-weight-bold text-slate text-truncate mb-1" :style="getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report)">
+                    {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                   </div>
 
                   <!-- Cronologia Carichi Settimanali -->
@@ -1464,17 +1742,11 @@
                           'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                           'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                         }"
-                        :style="{
-                          fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem',
-                          padding: layoutEsercizi === 'compatto' ? '0px 3px' : '1px 4px',
-                          height: layoutEsercizi === 'compatto' ? '13px' : '16px',
-                          minWidth: layoutEsercizi === 'compatto' ? '24px' : '32px',
-                          cursor: 'pointer'
-                        }"
-                        @click.stop="layoutEsercizi === 'standard' ? selezionaSettimanaManuale(w) : vaiAlDettaglio(block.exercise.id)"
+                        style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
+                        @click.stop="selezionaSettimanaManuale(w)"
                       >
                         <span class="capsule-num" style="opacity: 0.85;">W{{ w }}</span>
-                        <span class="ml-0.5 font-weight-black" :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.48rem' : '0.55rem' }">
+                        <span class="ml-0.5 font-weight-black" style="font-size: 0.55rem;">
                           {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
                         </span>
                       </div>
@@ -1489,49 +1761,19 @@
                       size="x-small"
                       class="font-weight-black clickable-timer-chip"
                       prepend-icon="mdi-clock-outline"
-                      :style="{ fontSize: layoutEsercizi === 'compatto' ? '0.64rem !important' : '0.68rem !important', height: layoutEsercizi === 'compatto' ? '20px' : '22px' }"
-                      @click.stop="layoutEsercizi === 'standard' ? avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio) : vaiAlDettaglio(block.exercise.id)"
+                      style="font-size: 0.68rem !important; height: 22px;"
+                      @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                     >
                       ⏱️ {{ block.exercise.des_rec_report }}
                     </v-chip>
                   </div>
                 </div>
 
-                <!-- Colonna Destra (Azione Rapida) -->
+                <!-- Colonna Destra (Ordine) -->
                 <div class="d-flex flex-column align-end justify-center pl-2">
-                  <v-chip 
-                    v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
-                    size="small" 
-                    color="green-darken-3" 
-                    class="font-weight-black text-white px-2 py-1" 
-                    variant="flat" 
-                    style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
-                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
-                  >
-                    {{ formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
-                  </v-chip>
-                  <v-chip 
-                    v-else-if="block.exercise['ins_week' + settimanaAttivaGiorno] === '-'" 
-                    size="small" 
-                    color="green-darken-3" 
-                    class="font-weight-black text-white px-2 py-1" 
-                    variant="flat" 
-                    style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
-                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
-                  >
-                    Fatto ✔️
-                  </v-chip>
-                  <v-chip 
-                    v-else 
-                    size="small" 
-                    variant="outlined" 
-                    color="orange-darken-3" 
-                    class="font-weight-black px-2 py-1 text-none"
-                    style="height: auto; min-height: 24px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
-                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
-                  >
-                    + Registra
-                  </v-chip>
+                  <div class="text-caption font-weight-black text-slate-dark">
+                    {{ block.exercise.num_riga_giorno }}
+                  </div>
                 </div>
               </template>
             </v-card>
@@ -4585,19 +4827,85 @@ const recuperiRaggruppati = computed(() => {
 
 /* Nuovi Stili Premium per le Superserie (Supersets) */
 .superset-group-card {
+  position: relative;
   background: rgba(249, 115, 22, 0.02) !important;
-  border: 1.5px solid rgba(249, 115, 22, 0.25) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 8px 32px 0 rgba(249, 115, 22, 0.05) !important;
   transition: transform 0.2s ease, border-color 0.2s ease !important;
+  overflow: hidden;
 }
 
 .superset-group-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(249, 115, 22, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 .border-superset {
-  border-left: 6px solid #ea580c !important;
+  border-left: none !important;
+  position: relative;
+}
+
+/* Distanzia il contenuto standard per evitare sovrapposizioni con la banda sfumata */
+.superset-group-card.border-superset:not(.compatto-superset-card) {
+  padding-left: 24px !important;
+}
+
+.border-superset::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(to bottom, #ea580c 0%, #d946ef 50%, #7c3aed 100%) !important;
+  z-index: 1;
+}
+
+/* Stili compatti per Superserie Unificata con banda a sinistra */
+.compatto-superset-card {
+  border-left: 4px solid #ea580c !important; /* Ripristinata banda arancione solida */
+  border-right: none !important; /* Rimuove banda destra */
+  background: rgba(30, 41, 59, 0.12) !important; /* Sfondo scuro e discreto */
+  padding: 0 !important; /* Rimuove padding della card */
+  border-radius: 8px !important;
+}
+
+/* Rimuove l'effetto gradient ::before nella visualizzazione compatta e super compatta */
+.compatto-superset-card::before,
+.superset-group-card.rounded-md::before {
+  display: none !important;
+}
+
+/* Applica la banda arancione solida anche alle card arrotondate super_compatto */
+.superset-group-card.rounded-md {
+  border-left: 4px solid #ea580c !important;
+}
+
+/* Allineamento a sinistra perfetto in visualizzazione compatta (con traslazione negativa per compensare lo spessore del bordo) */
+.compatto-superset-card .superset-exercise-item {
+  padding-left: 2px !important;
+  margin-left: -2px !important;
+  padding-right: 10px !important;
+}
+
+/* Allineamento a sinistra perfetto in visualizzazione super compatta (allineamento millimetrico dei checkbox) */
+.superset-group-card.rounded-md .superset-exercise-item {
+  padding-left: 0px !important;
+  margin-left: -6px !important;
+  padding-right: 4px !important;
+}
+
+/* Limitazione della larghezza dei chip dei pesi e troncamento intelligente */
+.super-compact-weight-chip {
+  max-width: 60px !important;
+  display: inline-block !important;
+}
+
+.super-compact-weight-chip :deep(.v-chip__content) {
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .superset-exercise-item {
@@ -4617,9 +4925,25 @@ const recuperiRaggruppati = computed(() => {
   top: 72px; /* Inizia sotto la miniatura */
   bottom: -22px; /* Si estende fino alla miniatura successiva */
   width: 2px;
-  border-left: 2px dashed rgba(249, 115, 22, 0.35);
+  border-left: 2px dashed #f97316;
+  filter: drop-shadow(0 0 3px #f97316) drop-shadow(0 0 6px #7c3aed);
   pointer-events: none;
   z-index: 1;
+  opacity: 0.95;
+}
+
+/* Eleva l'intera colonna sinistra (immagine + badge) sopra la linea tratteggiata sibling.
+   In questo modo la linea passerà in secondo piano dietro a foto e chip */
+.superset-exercise-item > div.mr-3 {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Allineamento specifico per la linea tratteggiata in modalità compatta */
+.compatto-superset-card .superset-connector-line {
+  left: 34px !important; /* Centrato rispetto alla miniatura da 48px + padding sinistro di 10px */
+  top: 54px !important;  /* Inizia sotto la miniatura compattata */
+  bottom: -18px !important;
 }
 
 .superset-exercises-wrapper {

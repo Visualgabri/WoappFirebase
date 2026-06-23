@@ -1084,7 +1084,7 @@
                     <div class="d-flex flex-column text-left min-width-0 flex-grow-1 mr-2">
                       <div class="d-flex align-center min-width-0">
                         <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
-                          {{ block.letter }}{{ index + 1 }}.
+                          {{ ex.num_riga_giorno }}.
                         </span>
                         <span class="text-caption font-weight-bold text-truncate" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
                           <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(ex) }}</span>
@@ -1146,9 +1146,14 @@
 
                   <!-- VISUALIZZAZIONE STANDARD E COMPATTA (CARD TRADIZIONALE CON DETTAGLI) -->
                   <template v-else>
-                    <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
+                    <!-- Numero d'ordine a sinistra -->
+                    <div class="text-caption font-weight-black text-orange-lighten-1 mr-2 flex-shrink-0" style="font-size: 0.9rem !important;">
+                      {{ ex.num_riga_giorno }}.
+                    </div>
+
+                    <!-- Miniatura GIF/Immagine sulla Sinistra -->
                     <div class="d-flex flex-column align-center mr-3" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '76px', minWidth: layoutEsercizi === 'compatto' ? '48px' : '76px' }">
-                      <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-1" :style="{ zIndex: 2, width: layoutEsercizi === 'compatto' ? '48px' : '76px', height: layoutEsercizi === 'compatto' ? '48px' : '76px' }">
+                      <div class="thumbnail-wrapper rounded-lg overflow-hidden position-relative mb-0" :style="{ zIndex: 2, width: layoutEsercizi === 'compatto' ? '48px' : '76px', height: layoutEsercizi === 'compatto' ? '48px' : '76px' }">
                         <v-img
                           :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
                           :width="layoutEsercizi === 'compatto' ? '48px' : '76px'"
@@ -1164,49 +1169,6 @@
                           </template>
                         </v-img>
                       </div>
-
-                      <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
-                      <v-chip
-                        v-if="ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim()"
-                        color="green-darken-3"
-                        size="x-small"
-                        class="font-weight-black uppercase text-white animate-pulse"
-                        variant="flat"
-                        :style="{
-                          fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
-                          height: layoutEsercizi === 'standard' ? '20px' : '16px',
-                          borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
-                          padding: '0 4px',
-                          width: '100%',
-                          justifyContent: 'center',
-                          cursor: 'pointer'
-                        }"
-                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
-                      >
-                        ✔️ {{ String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
-                      </v-chip>
-                      
-                      <v-chip
-                        v-else
-                        color="grey-darken-2"
-                        size="x-small"
-                        class="font-weight-bold uppercase text-slate"
-                        variant="outlined"
-                        :style="{
-                          fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
-                          height: layoutEsercizi === 'standard' ? '20px' : '16px',
-                          borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
-                          padding: '0 4px',
-                          borderStyle: 'dashed !important',
-                          opacity: 0.65,
-                          width: '100%',
-                          justifyContent: 'center',
-                          cursor: 'pointer'
-                        }"
-                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
-                      >
-                        ❌ DA FARE
-                      </v-chip>
                     </div>
 
                     <!-- Dettagli Centrali -->
@@ -1300,11 +1262,41 @@
                       </div>
                     </div>
 
-                    <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
+                    <!-- Colonna Destra (Azione Rapida) -->
                     <div class="d-flex flex-column align-end justify-center pl-2 position-relative" style="z-index: 2;">
-                      <div class="text-caption font-weight-black text-slate-dark">
-                        {{ ex.num_riga_giorno }}
-                      </div>
+                      <v-chip 
+                        v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
+                        size="small" 
+                        color="green-darken-3" 
+                        class="font-weight-black text-white px-2 py-1" 
+                        variant="flat" 
+                        style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
+                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
+                      >
+                        {{ formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
+                      </v-chip>
+                      <v-chip 
+                        v-else-if="ex['ins_week' + settimanaAttivaGiorno] === '-'" 
+                        size="small" 
+                        color="green-darken-3" 
+                        class="font-weight-black text-white px-2 py-1" 
+                        variant="flat" 
+                        style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
+                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
+                      >
+                        Fatto ✔️
+                      </v-chip>
+                      <v-chip 
+                        v-else 
+                        size="small" 
+                        variant="outlined" 
+                        color="orange-darken-3" 
+                        class="font-weight-black px-2 py-1 text-none"
+                        style="height: auto; min-height: 24px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
+                        @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(ex) : vaiAlDettaglio(ex.id)"
+                      >
+                        + Registra
+                      </v-chip>
                     </div>
                   </template>
                 </div>
@@ -1401,9 +1393,14 @@
 
               <!-- VISUALIZZAZIONE STANDARD E COMPATTA (CARD TRADIZIONALE CON DETTAGLI) -->
               <template v-else>
-                <!-- Miniatura GIF/Immagine sulla Sinistra con badge sotto -->
+                <!-- Numero d'ordine a sinistra -->
+                <div class="text-caption font-weight-black text-orange-lighten-1 mr-2 flex-shrink-0" style="font-size: 0.9rem !important;">
+                  {{ block.exercise.num_riga_giorno }}.
+                </div>
+
+                <!-- Miniatura GIF/Immagine sulla Sinistra -->
                 <div class="d-flex flex-column align-center mr-3" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '84px', minWidth: layoutEsercizi === 'compatto' ? '48px' : '84px' }">
-                  <div class="thumbnail-wrapper rounded-lg overflow-hidden mb-1" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '84px', height: layoutEsercizi === 'compatto' ? '48px' : '84px' }">
+                  <div class="thumbnail-wrapper rounded-lg overflow-hidden mb-0" :style="{ width: layoutEsercizi === 'compatto' ? '48px' : '84px', height: layoutEsercizi === 'compatto' ? '48px' : '84px' }">
                     <v-img
                       :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
                       :width="layoutEsercizi === 'compatto' ? '48px' : '84px'"
@@ -1419,49 +1416,6 @@
                       </template>
                     </v-img>
                   </div>
-
-                  <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
-                  <v-chip
-                    v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim()"
-                    color="green-darken-3"
-                    size="x-small"
-                    class="font-weight-black uppercase text-white animate-pulse"
-                    variant="flat"
-                    :style="{
-                      fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
-                      height: layoutEsercizi === 'standard' ? '20px' : '16px',
-                      borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
-                      padding: '0 4px',
-                      width: '100%',
-                      justifyContent: 'center',
-                      cursor: 'pointer'
-                    }"
-                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
-                  >
-                    ✔️ {{ String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
-                  </v-chip>
-                  
-                  <v-chip
-                    v-else
-                    color="grey-darken-2"
-                    size="x-small"
-                    class="font-weight-bold uppercase text-slate"
-                    variant="outlined"
-                    :style="{
-                      fontSize: layoutEsercizi === 'standard' ? '0.62rem' : '0.52rem',
-                      height: layoutEsercizi === 'standard' ? '20px' : '16px',
-                      borderRadius: layoutEsercizi === 'standard' ? '6px' : '4px',
-                      padding: '0 4px',
-                      borderStyle: 'dashed !important',
-                      opacity: 0.65,
-                      width: '100%',
-                      justifyContent: 'center',
-                      cursor: 'pointer'
-                    }"
-                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
-                  >
-                    ❌ DA FARE
-                  </v-chip>
                 </div>
 
                 <!-- Dettagli Centrali -->
@@ -1543,11 +1497,41 @@
                   </div>
                 </div>
 
-                <!-- Colonna Destra (Ordine e Pulsante Navigazione) -->
+                <!-- Colonna Destra (Azione Rapida) -->
                 <div class="d-flex flex-column align-end justify-center pl-2">
-                  <div class="text-caption font-weight-black text-slate-dark">
-                    {{ block.exercise.num_riga_giorno }}
-                  </div>
+                  <v-chip 
+                    v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
+                    size="small" 
+                    color="green-darken-3" 
+                    class="font-weight-black text-white px-2 py-1" 
+                    variant="flat" 
+                    style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
+                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
+                  >
+                    {{ formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
+                  </v-chip>
+                  <v-chip 
+                    v-else-if="block.exercise['ins_week' + settimanaAttivaGiorno] === '-'" 
+                    size="small" 
+                    color="green-darken-3" 
+                    class="font-weight-black text-white px-2 py-1" 
+                    variant="flat" 
+                    style="height: auto; min-height: 24px; font-size: 0.65rem; border-radius: 6px;"
+                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
+                  >
+                    Fatto ✔️
+                  </v-chip>
+                  <v-chip 
+                    v-else 
+                    size="small" 
+                    variant="outlined" 
+                    color="orange-darken-3" 
+                    class="font-weight-black px-2 py-1 text-none"
+                    style="height: auto; min-height: 24px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
+                    @click.stop="layoutEsercizi === 'standard' ? segnaComeFattoRapido(block.exercise) : vaiAlDettaglio(block.exercise.id)"
+                  >
+                    + Registra
+                  </v-chip>
                 </div>
               </template>
             </v-card>

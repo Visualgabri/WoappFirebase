@@ -608,16 +608,6 @@
                     >
                       Workout Giorno {{ giornoSelezionato }}
                     </h3>
-                    <!-- Badge compatto tempo e calorie per layout super_compatto -->
-                    <div 
-                      v-if="layoutEsercizi === 'super_compatto'"
-                      class="px-2 py-0.5 rounded-md font-weight-black text-orange-lighten-2 border-soft d-inline-flex align-center gap-1.5"
-                      style="font-size: 0.65rem; background: rgba(249, 115, 22, 0.12) !important; border-color: rgba(249, 115, 22, 0.25) !important;"
-                    >
-                      <span>⏱️ {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
-                      <span class="text-muted" style="opacity: 0.5;">•</span>
-                      <span>🔥 {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
-                    </div>
                   </div>
                   <!-- Promemoria Chiusura Settimana -->
                   <div v-if="mostraPromemoriaChiusura" class="mt-1">
@@ -658,7 +648,17 @@
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
+                  <!-- Tempo e Calorie in formato testo semplice per Super Compatto -->
                   <div 
+                    v-if="layoutEsercizi === 'super_compatto'"
+                    class="text-caption text-muted font-weight-bold d-flex align-center mt-1"
+                    style="font-size: 0.65rem;"
+                  >
+                    <span>⏱️ Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
+                    <span class="mx-1" style="opacity: 0.5;">•</span>
+                    <span>🔥 Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
+                  </div>
+<div 
                     v-if="layoutEsercizi !== 'super_compatto'"
                     class="text-caption text-muted font-weight-bold d-flex align-center mt-1" 
                     style="font-size: 0.7rem;"
@@ -666,60 +666,22 @@
                     <v-icon size="13" color="orange" class="mr-1">mdi-fire</v-icon>
                     Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
                   </div>
+                  <div
+                    v-if="layoutEsercizi !== 'super_compatto'"
+                    class="text-caption font-weight-bold d-flex align-center mt-0.5 flex-wrap"
+                    style="font-size: 0.68rem; color: #cbd5e1;"
+                  >
+                    <v-icon size="13" color="grey" class="mr-1">mdi-clock-outline</v-icon>
+                    <span>Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
+                    <span class="mx-1.5" style="opacity: 0.5;"> </span>
+                    <span :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).textClass" class="d-inline-flex align-center">
+                      <span class="mr-0.5">{{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }}</span>
+                      {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
+                      <span class="ml-1" style="font-weight: 500;">({{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label.replace(/Focus\s*/gi, '') }})</span>
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
- 
-            <!-- Griglia dei Tempi e Densità con Medie (Dinamica & Focus Zone Compatta) -->
-            <v-row v-if="layoutEsercizi !== 'super_compatto'" dense class="mb-2 text-center align-stretch">
-              <v-col cols="4">
-                <div 
-                  class="prescription-chip-box px-2 py-1 rounded-lg"
-                  :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita1)"
-                >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.6rem; letter-spacing: 0.02em; line-height: 1;">Week 1</span>
-                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-1 text-truncate" style="font-size: 0.72rem !important; white-space: nowrap;">⏱️ {{ getDinamicoTempo(headerGiorno, 1) }}</span>
-                  <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).textClass" style="font-size: 0.62rem; line-height: 1;">
-                    {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita1).emoji }} {{ parseDayHeader(headerGiorno.des_esercizio).densita1 }}%
-                  </span>
-                </div>
-              </v-col>
-              <v-col cols="4">
-                <div 
-                  class="prescription-chip-box px-2 py-1 rounded-lg"
-                  :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densitaMedia)"
-                >
-                  <span class="text-super-caption text-orange-darken-3 uppercase font-weight-black d-block mb-1" style="font-size: 0.6rem; letter-spacing: 0.02em; line-height: 1;">Media</span>
-                  <span class="text-body-2 font-weight-black text-orange-darken-3 d-block mb-1 text-truncate" style="font-size: 0.72rem !important; white-space: nowrap;">⏱️ {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
-                  <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).textClass" style="font-size: 0.62rem; line-height: 1;">
-                    {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }} {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
-                  </span>
-                </div>
-              </v-col>
-              <v-col cols="4">
-                <div 
-                  class="prescription-chip-box px-2 py-1 rounded-lg"
-                  :style="getDensityBoxStyle(parseDayHeader(headerGiorno.des_esercizio).densita2)"
-                >
-                  <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.6rem; letter-spacing: 0.02em; line-height: 1;">Week 6</span>
-                  <span class="text-body-2 font-weight-bold text-slate-dark d-block mb-1 text-truncate" style="font-size: 0.72rem !important; white-space: nowrap;">⏱️ {{ getDinamicoTempo(headerGiorno, 6) }}</span>
-                  <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-0.5" :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).textClass" style="font-size: 0.62rem; line-height: 1;">
-                    {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densita2).emoji }} {{ parseDayHeader(headerGiorno.des_esercizio).densita2 }}%
-                  </span>
-                </div>
-              </v-col>
-            </v-row>
-
-            <!-- Focus Zone del Giorno (Unificato & Compatto) -->
-            <div 
-              v-if="layoutEsercizi === 'standard'"
-              class="text-center mt-2 pb-1 text-super-caption font-weight-bold d-flex align-center justify-center gap-1.5" 
-              style="font-size: 0.68rem;"
-            >
-              <span>🎯 Focus Giorno:</span>
-              <span :style="{ color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).color }" class="font-weight-black">
-                {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }} {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label }}
-              </span>
             </div>
 
             <!-- Sezione Volumi (VOL A, B, C) -->
@@ -839,14 +801,6 @@
                     >
                       {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
                     </h3>
-                    <!-- Badge compatto tempo e calorie per layout super_compatto in fallback -->
-                    <div 
-                      v-if="layoutEsercizi === 'super_compatto' && headerGiorno.ins_esercizio"
-                      class="px-2 py-0.5 rounded-md font-weight-black text-orange-lighten-2 border-soft d-inline-flex align-center gap-1.5"
-                      style="font-size: 0.65rem; background: rgba(249, 115, 22, 0.12) !important; border-color: rgba(249, 115, 22, 0.25) !important;"
-                    >
-                      {{ headerGiorno.ins_esercizio }}
-                    </div>
                   </div>
                   <!-- Promemoria Chiusura Settimana -->
                   <div v-if="mostraPromemoriaChiusura" class="mt-1">
@@ -886,6 +840,14 @@
                       <span class="capsule-num">W{{ w }}</span>
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
+                  </div>
+                  <!-- Testo alternativo per Super Compatto in Fallback -->
+                  <div 
+                    v-if="layoutEsercizi === 'super_compatto' && headerGiorno.ins_esercizio"
+                    class="text-caption text-muted font-weight-bold mt-1"
+                    style="font-size: 0.65rem;"
+                  >
+                    <span>📊 {{ headerGiorno.ins_esercizio }}</span>
                   </div>
                 </div>
               </div>

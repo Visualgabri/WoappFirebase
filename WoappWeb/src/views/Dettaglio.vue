@@ -3243,7 +3243,7 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
                   proposedWeight *= coeffTempo;
                   
                   const isManubri = isManubriEsercizio(workout.value);
-                  const step = isManubri ? 1.0 : 1.25;
+                  const step = getWeightStep(isManubri, weight);
                   const roundedProposed = Math.round(proposedWeight / step) * step;
                   
                   list.push({
@@ -3306,7 +3306,7 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
             let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
             
             const isManubri = isManubriEsercizio(workout.value);
-            const step = isManubri ? 1.0 : 1.25;
+            const step = getWeightStep(isManubri, weight);
             const roundedProposed = Math.round(proposedWeight / step) * step;
             
             list.push({
@@ -3439,7 +3439,9 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   const prudenziale = getPesoPropostoDettaglioForWeek(sett);
   
   const isManubri = isManubriEsercizio(workout.value);
-  const step = isManubri ? 1.0 : 1.25;
+  const infoBase = getBaseWeekInfo(sett);
+  const pesoBase = infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) ? infoBase.pesoBase : 0;
+  const step = getWeightStep(isManubri, pesoBase);
   
   let result;
   if (modalitaIncrementoGhost.value === 'fissa') {
@@ -3460,7 +3462,6 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   }
 
   // SOLUZIONE B: Salvaguardia. Il carico consigliato non deve mai essere inferiore al peso base della settimana di riferimento
-  const infoBase = getBaseWeekInfo(sett);
   if (infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase)) {
     if (result !== null && result < infoBase.pesoBase) {
       result = infoBase.pesoBase;
@@ -3516,7 +3517,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
   const repsBaseVal = info ? info.repsBase : 10;
 
   const isManubri = isManubriEsercizio(workout.value);
-  const step = isManubri ? 1.0 : 1.25;
+  const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
+  const step = getWeightStep(isManubri, sett === 1 ? (ghost.suggerito || ghost.peso || 0) : pesoBase);
 
   // Calcolo per Week 1
   if (sett === 1) {
@@ -3611,7 +3613,6 @@ const getGhostWeightsRangeForWeek = (sett) => {
   }
 
   // Standard weeks (2, 3, 5, 6)
-  const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
   const pesoProposto = (ghost.isPostScarico && ghost.pesoProposto !== undefined) ? ghost.pesoProposto : (ghost.peso || pesoBase);
 
   if (pesoProposto > pesoBase) {
@@ -4294,6 +4295,12 @@ const isManubriEsercizio = (ex) => {
   );
 };
 
+const getWeightStep = (isManubri, baseWeight) => {
+  if (!isManubri) return 1.25;
+  const p = parseFloat(baseWeight) || 0;
+  return p >= 10 ? 2.0 : 1.0;
+};
+
 const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return null;
   const part = String(prescrizioneStr).split('|')[0].trim();
@@ -4446,7 +4453,7 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   }
   
   const isManubri = isManubriEsercizio(workout.value);
-  const step = isManubri ? 1.0 : 1.25;
+  const step = getWeightStep(isManubri, pesoBase);
   
   // Arrotondamento standard a 1.25kg (o 1.0kg per manubri)
   proposedWeight = Math.round(proposedWeight / step) * step;
@@ -6777,7 +6784,7 @@ const getGhostLiftStandard = (sett) => {
       // Se c'è stato lo scarico alla W4, proponiamo di aumentare il peso rispetto alla base selezionata
       if (isWeek4Scarico.value) {
         const isManubri = isManubriEsercizio(workout.value);
-        const step = isManubri ? 1.0 : 1.25;
+        const step = getWeightStep(isManubri, pesoBase);
         
         let pesoProposto;
         if (modalitaIncrementoGhost.value === 'ibrida') {
@@ -6861,7 +6868,7 @@ const getGhostLiftStandard = (sett) => {
       const pesoBase = parseFloat(pesoStrBase);
       
       const isManubri = isManubriEsercizio(workout.value);
-      const step = isManubri ? 1.0 : 1.25;
+      const step = getWeightStep(isManubri, pesoBase);
       
       let pesoProposto;
       if (modalitaIncrementoGhost.value === 'ibrida') {
@@ -7377,8 +7384,8 @@ const parseKg = (val) => {
 const incrementaKgUnico = () => {
   vibraTattile(10);
   const isManubri = isManubriEsercizio(workout.value);
-  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6Val.value);
+  const step = getWeightStep(isManubri, current);
   current += step;
   numIns6Val.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnico();
@@ -7387,9 +7394,9 @@ const incrementaKgUnico = () => {
 const decrementaKgUnico = () => {
   vibraTattile(10);
   const isManubri = isManubriEsercizio(workout.value);
-  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6Val.value);
   if (current > 0) {
+    const step = getWeightStep(isManubri, current);
     current = Math.max(0, current - step);
     numIns6Val.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnico();
@@ -7494,8 +7501,8 @@ const salvaKgUnicoPrecedente = async () => {
 const incrementaKgUnicoPrecedente = () => {
   vibraTattile(10);
   const isManubri = isManubriEsercizio(previousWorkout.value);
-  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6ValPrecedente.value);
+  const step = getWeightStep(isManubri, current);
   current += step;
   numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnicoPrecedente();
@@ -7504,9 +7511,9 @@ const incrementaKgUnicoPrecedente = () => {
 const decrementaKgUnicoPrecedente = () => {
   vibraTattile(10);
   const isManubri = isManubriEsercizio(previousWorkout.value);
-  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6ValPrecedente.value);
   if (current > 0) {
+    const step = getWeightStep(isManubri, current);
     current = Math.max(0, current - step);
     numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnicoPrecedente();

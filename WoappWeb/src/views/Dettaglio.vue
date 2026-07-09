@@ -3242,7 +3242,9 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
                   }
                   proposedWeight *= coeffTempo;
                   
-                  const roundedProposed = Math.round(proposedWeight / 1.25) * 1.25;
+                  const isManubri = isManubriEsercizio(workout.value);
+                  const step = isManubri ? 1.0 : 1.25;
+                  const roundedProposed = Math.round(proposedWeight / step) * step;
                   
                   list.push({
                     id: prevEx.id,
@@ -3303,7 +3305,9 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
               
             let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
             
-            const roundedProposed = Math.round(proposedWeight / 1.25) * 1.25;
+            const isManubri = isManubriEsercizio(workout.value);
+            const step = isManubri ? 1.0 : 1.25;
+            const roundedProposed = Math.round(proposedWeight / step) * step;
             
             list.push({
               id: workout.value.id || 'current',
@@ -3434,19 +3438,22 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   const potenziale = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
   const prudenziale = getPesoPropostoDettaglioForWeek(sett);
   
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = isManubri ? 1.0 : 1.25;
+  
   let result;
   if (modalitaIncrementoGhost.value === 'fissa') {
     // Modello Fisso: proponiamo strettamente il carico programmato prudenziale (fisso)
-    result = prudenziale !== null ? Math.round(prudenziale / 1.25) * 1.25 : null;
+    result = prudenziale !== null ? Math.round(prudenziale / step) * step : null;
   } else if (modalitaIncrementoGhost.value === 'dinamica') {
     // Modello Dinamico: preferiamo il potenziale stimato dallo storico se presente, altrimenti il dinamico prudenziale
     const val = potenziale !== null ? potenziale : prudenziale;
-    result = val !== null ? Math.round(val / 1.25) * 1.25 : null;
+    result = val !== null ? Math.round(val / step) * step : null;
   } else {
     // Modello Ibrido (Mix): via di mezzo (media) tra potenziale (storico) e programmato (prudenziale)
     if (potenziale !== null && prudenziale !== null && !isNaN(potenziale) && !isNaN(prudenziale)) {
       const avg = (potenziale + prudenziale) / 2;
-      result = Math.round(avg / 1.25) * 1.25;
+      result = Math.round(avg / step) * step;
     } else {
       result = potenziale || prudenziale || 0;
     }
@@ -3462,7 +3469,7 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
 
   // Regola di aderenza alla Progressione Scheda: il carico consigliato non deve essere inferiore al 90% della Progressione Scheda (prudenziale)
   if (prudenziale !== null && !isNaN(prudenziale) && prudenziale > 0) {
-    const minSogliaScheda = Math.round((prudenziale * 0.90) / 1.25) * 1.25;
+    const minSogliaScheda = Math.round((prudenziale * 0.90) / step) * step;
     if (result !== null && result < minSogliaScheda) {
       result = minSogliaScheda;
     }
@@ -3498,7 +3505,7 @@ const getGhostLiftSmart = (sett) => {
 
 const getGhostWeightsRangeForWeek = (sett) => {
   if (!workout.value) return null;
-  const ghost = getGhostLift(sett);
+  const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
   
   // Se è a corpo libero (rep exercise) o a percentuali, non ha senso proporre un range di pesi
@@ -3506,21 +3513,18 @@ const getGhostWeightsRangeForWeek = (sett) => {
   
   const info = getBaseWeekInfo(sett);
   const repsTarget = info ? info.repsTarget : getRepsPerWeek(sett);
-  const repsBase = info ? info.repsBase : 10;
+  const repsBaseVal = info ? info.repsBase : 10;
 
   const isManubri = isManubriEsercizio(workout.value);
   const step = isManubri ? 1.0 : 1.25;
-
-  let min = 0;
-  let medio = 0;
-  let max = 0;
 
   // Calcolo per Week 1
   if (sett === 1) {
     const defaultPeso = ghost.suggerito || ghost.peso || 0;
     if (defaultPeso <= 0) return null;
-    min = isManubri ? Math.floor((defaultPeso * 0.95) / step) * step : Math.round((defaultPeso * 0.95) / step) * step;
-    medio = defaultPeso;
+    let min = isManubri ? Math.floor((defaultPeso * 0.95) / step) * step : Math.round((defaultPeso * 0.95) / step) * step;
+    let medio = defaultPeso;
+    let max = 0;
     
     const recordVal = sfidaRecordWeek1.value ? ghost.recordVal : null;
     if (recordVal && recordVal > 0) {
@@ -3564,85 +3568,6 @@ const getGhostWeightsRangeForWeek = (sett) => {
       };
     } else {
       max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
-    }
-  } else if (ghost.isScarico) {
-    // Se è scarico (W4), usiamo il peso di scarico
-    const scaricoPeso = ghost.peso || 0;
-    min = scaricoPeso;
-    medio = scaricoPeso;
-    max = scaricoPeso;
-  } else {
-    const volInfo = getVolumeProgressionInfoForWeek(sett);
-    if (volInfo.active) {
-      const baseP = volInfo.pesoBase;
-      min = isManubri ? Math.floor((baseP * 0.95) / step) * step : Math.round((baseP * 0.95) / step) * step;
-      medio = baseP;
-      max = isManubri ? Math.ceil((baseP * 1.05) / step) * step : Math.round((baseP * 1.05) / step) * step;
-    } else {
-      // Caso standard: allineamento con Intensità (pesoProposto) e Volume (pesoBase)
-      const info = getBaseWeekInfo(sett);
-      if (!info || info.pesoBase === null || isNaN(info.pesoBase)) return null;
-      
-      const pesoBase = info.pesoBase;
-      const pesoProposto = (ghost.isPostScarico && ghost.pesoProposto !== undefined) ? ghost.pesoProposto : (ghost.peso || pesoBase);
-      
-      if (pesoProposto > pesoBase) {
-        min = pesoBase;
-        max = pesoProposto;
-        
-        // Il consigliato è la via di mezzo calcolata dall'applicazione
-        const consigliatoVal = getCaricoConsigliatoViaDiMezzoForWeek(sett);
-        if (consigliatoVal !== null && consigliatoVal > min && consigliatoVal < max) {
-          medio = consigliatoVal;
-        } else {
-          let avg = (min + max) / 2;
-          medio = Math.round(avg / step) * step;
-          if (medio < min) medio = min;
-          if (medio > max) medio = max;
-        }
-      } else {
-        // Se non c'è proposta di incremento del peso, applichiamo la progressione reps sul peso base
-        min = pesoBase;
-        medio = pesoBase;
-        max = pesoBase;
-      }
-    }
-  }
-
-  // Estrai peso base effettivo del mesociclo per i salti percentuali
-  const infoBaseJump = getBaseWeekInfo(sett);
-  const pesoBase = infoBaseJump ? infoBaseJump.pesoBase : 0;
-
-  // Se è manubri, verifichiamo i salti percentuali per evitare incrementi troppo drastici (es. donne o esercizi di isolamento)
-  if (isManubri && pesoBase > 0) {
-    const pctJumpMedio = (medio - pesoBase) / pesoBase;
-    const pctJumpMax = (max - pesoBase) / pesoBase;
-
-    // Caso A: il consigliato stesso è un salto troppo grande (> 10%)
-    // Esempio: pesoBase = 7 kg, medio = 8 kg (+14%). Proponiamo reps su 7kg per il consigliato.
-    if (pctJumpMedio > 0.10) {
-      return {
-        prudenziale: {
-          value: String(pesoBase),
-          display: `${formatWeight(pesoBase)} kg`,
-          label: 'Prudenziale'
-        },
-        consigliato: {
-          value: `${pesoBase}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
-          display: `${formatWeight(pesoBase)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
-          label: 'Consigliato (+1r)'
-        },
-        sfidante: {
-          value: String(medio),
-          display: `${formatWeight(medio)} kg`,
-          label: 'Sfidante'
-        }
-      };
-    }
-
-    // Caso B: il consigliato è fattibile, ma lo sfidante è troppo grande (> 10%)
-    // Esempio: pesoBase = 8 kg, medio = 8 kg, max = 9 kg (+12.5%). Proponiamo reps su 8kg per lo sfidante.
-    if (pctJumpMax > 0.10 && max > medio) {
       return {
         prudenziale: {
           value: String(min),
@@ -3655,95 +3580,91 @@ const getGhostWeightsRangeForWeek = (sett) => {
           label: 'Consigliato'
         },
         sfidante: {
-          value: `${medio}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
-          display: `${formatWeight(medio)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
-          label: 'Sfidante (+1r)'
+          value: String(max),
+          display: `${formatWeight(max)} kg`,
+          label: 'Sfidante'
         }
       };
     }
   }
 
-  // Se i carichi calcolati sono identici (es. scarico o stallo), applichiamo la progressione reps
-  if (min === max && min > 0) {
+  if (ghost.isScarico) {
+    const scaricoPeso = ghost.peso || 0;
+    const repsVolume = Math.max(repsTarget + 1, repsBaseVal + 1);
     return {
       prudenziale: {
-        value: String(min),
-        display: `${formatWeight(min)} kg`,
-        label: 'Prudenziale'
+        value: String(scaricoPeso),
+        display: `${formatWeight(scaricoPeso)} kg`,
+        label: 'Scarico'
       },
       consigliato: {
-        value: `${min}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
-        display: `${formatWeight(min)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
+        value: `${scaricoPeso}x${repsVolume}r`,
+        display: `${formatWeight(scaricoPeso)}x${repsVolume}r`,
         label: 'Consigliato (+1r)'
       },
       sfidante: {
-        value: `${min}x${Math.max(repsTarget + 2, repsBase + 2)}r`,
-        display: `${formatWeight(min)}x${Math.max(repsTarget + 2, repsBase + 2)}r`,
+        value: `${scaricoPeso}x${repsVolume + 1}r`,
+        display: `${formatWeight(scaricoPeso)}x${repsVolume + 1}r`,
         label: 'Sfidante (+2r)'
       }
     };
   }
 
-  // Se medio === max (ma min < medio), applichiamo la progressione reps sul pulsante prudenziale
-  if (medio === max && min < medio) {
-    const repsProg = Math.max(repsTarget + 1, repsBase + 1);
+  // Standard weeks (2, 3, 5, 6)
+  const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
+  const pesoProposto = (ghost.isPostScarico && ghost.pesoProposto !== undefined) ? ghost.pesoProposto : (ghost.peso || pesoBase);
+
+  if (pesoProposto > pesoBase) {
+    // 1. Volume (Aumento Ripetizioni)
+    const repsVolume = Math.max(repsTarget + 1, repsBaseVal + 1);
+    
+    // 2. Micro-carico (Graduale)
+    const stepMicro = isManubri ? 1.0 : 0.25;
+    const diffMicro = isManubri ? 1.0 : 0.5;
+    let pesoMicro = pesoBase + (pesoProposto - pesoBase) / 2;
+    pesoMicro = Math.round(pesoMicro / stepMicro) * stepMicro;
+    if (pesoMicro <= pesoBase) pesoMicro = pesoBase + diffMicro;
+    if (pesoMicro >= pesoProposto) pesoMicro = Math.max(pesoBase, pesoProposto - diffMicro);
+
     return {
       prudenziale: {
-        value: `${min}x${repsProg}r`,
-        display: `${formatWeight(min)}x${repsProg}r`,
+        value: `${pesoBase}x${repsVolume}r`,
+        display: `${formatWeight(pesoBase)}x${repsVolume}r`,
         label: 'Volume'
       },
       consigliato: {
-        value: String(medio),
-        display: `${formatWeight(medio)} kg`,
+        value: String(pesoMicro),
+        display: `${formatWeight(pesoMicro)} kg`,
         label: 'Consigliato'
       },
       sfidante: {
-        value: String(max),
-        display: `${formatWeight(max)} kg`,
+        value: String(pesoProposto),
+        display: `${formatWeight(pesoProposto)} kg`,
         label: 'Sfidante'
       }
     };
-  }
-
-  // Se min === medio (ma max > min), applichiamo la progressione reps sul pulsante consigliato
-  if (min === medio && max > min) {
+  } else {
+    // Se non c'è proposta di incremento del peso (pesoProposto <= pesoBase)
+    const repsProg1 = Math.max(repsTarget + 1, repsBaseVal + 1);
+    const repsProg2 = repsProg1 + 1;
     return {
       prudenziale: {
-        value: String(min),
-        display: `${formatWeight(min)} kg`,
+        value: String(pesoBase),
+        display: `${formatWeight(pesoBase)} kg`,
         label: 'Prudenziale'
       },
       consigliato: {
-        value: `${min}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
-        display: `${formatWeight(min)}x${Math.max(repsTarget + 1, repsBase + 1)}r`,
+        value: `${pesoBase}x${repsProg1}r`,
+        display: `${formatWeight(pesoBase)}x${repsProg1}r`,
         label: 'Consigliato (+1r)'
       },
       sfidante: {
-        value: String(max),
-        display: `${formatWeight(max)} kg`,
-        label: 'Sfidante'
+        value: `${pesoBase}x${repsProg2}r`,
+        display: `${formatWeight(pesoBase)}x${repsProg2}r`,
+        label: 'Sfidante (+2r)'
       }
     };
   }
-
-  return {
-    prudenziale: {
-      value: String(min),
-      display: `${formatWeight(min)} kg`,
-      label: 'Prudenziale'
-    },
-    consigliato: {
-      value: String(medio),
-      display: `${formatWeight(medio)} kg`,
-      label: 'Consigliato'
-    },
-    sfidante: {
-      value: String(max),
-      display: `${formatWeight(max)} kg`,
-      label: 'Sfidante'
-    }
-  };
 };
 
 const getGhostWeightsRangeText = (sett) => {
@@ -4524,15 +4445,18 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
     }
   }
   
-  // Arrotondamento standard a 1.25kg
-  proposedWeight = Math.round(proposedWeight / 1.25) * 1.25;
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = isManubri ? 1.0 : 1.25;
+  
+  // Arrotondamento standard a 1.25kg (o 1.0kg per manubri)
+  proposedWeight = Math.round(proposedWeight / step) * step;
   
   // Gestione Attacco al Record Storico
   if (ghostPRAttackAttivo.value) {
     const recordVal = ottieniRecordStoricoPerReps(repsTarget);
     if (recordVal && recordVal > 0) {
       if (proposedWeight < recordVal && (proposedWeight >= recordVal * 0.95 || proposedWeight >= recordVal - 2.5)) {
-        proposedWeight = Math.round((recordVal + 1.25) / 1.25) * 1.25;
+        proposedWeight = Math.round((recordVal + step) / step) * step;
       }
     }
   }
@@ -6852,10 +6776,8 @@ const getGhostLiftStandard = (sett) => {
       
       // Se c'è stato lo scarico alla W4, proponiamo di aumentare il peso rispetto alla base selezionata
       if (isWeek4Scarico.value) {
-        const exName = String(workout.value.des_esercizio || '').toLowerCase();
-        const exNote = String(workout.value.des_note_attrezzo || '').toLowerCase();
-        const exAttr = String(workout.value.des_note_gen_attr || '').toLowerCase();
-        const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
+        const isManubri = isManubriEsercizio(workout.value);
+        const step = isManubri ? 1.0 : 1.25;
         
         let pesoProposto;
         if (modalitaIncrementoGhost.value === 'ibrida') {
@@ -6883,7 +6805,7 @@ const getGhostLiftStandard = (sett) => {
           }
         }
         
-        pesoProposto = Math.round(pesoProposto / 1.25) * 1.25;
+        pesoProposto = Math.round(pesoProposto / step) * step;
         if (pesoProposto <= pesoBase) {
           pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
         }
@@ -6894,7 +6816,7 @@ const getGhostLiftStandard = (sett) => {
           const recordVal = ottieniRecordStoricoPerReps(repsTarget);
           if (recordVal && recordVal > 0) {
             if (pesoProposto < recordVal && (pesoProposto >= recordVal * 0.95 || pesoProposto >= recordVal - 2.5)) {
-              pesoProposto = Math.round((recordVal + 1.25) / 1.25) * 1.25;
+              pesoProposto = Math.round((recordVal + step) / step) * step;
             }
           }
         }
@@ -6938,10 +6860,8 @@ const getGhostLiftStandard = (sett) => {
       if (!pesoStrBase) return null;
       const pesoBase = parseFloat(pesoStrBase);
       
-      const exName = String(workout.value.des_esercizio || '').toLowerCase();
-      const exNote = String(workout.value.des_note_attrezzo || '').toLowerCase();
-      const exAttr = String(workout.value.des_note_gen_attr || '').toLowerCase();
-      const isManubri = exName.includes('manubr') || exNote.includes('manubr') || exAttr.includes('manubr') || exName.includes('db') || exName.includes('dumbbell');
+      const isManubri = isManubriEsercizio(workout.value);
+      const step = isManubri ? 1.0 : 1.25;
       
       let pesoProposto;
       if (modalitaIncrementoGhost.value === 'ibrida') {
@@ -6969,7 +6889,7 @@ const getGhostLiftStandard = (sett) => {
         }
       }
       
-      pesoProposto = Math.round(pesoProposto / 1.25) * 1.25;
+      pesoProposto = Math.round(pesoProposto / step) * step;
       if (pesoProposto <= pesoBase) {
         pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
       }
@@ -6980,7 +6900,7 @@ const getGhostLiftStandard = (sett) => {
         const recordVal = ottieniRecordStoricoPerReps(repsTarget);
         if (recordVal && recordVal > 0) {
           if (pesoProposto < recordVal && (pesoProposto >= recordVal * 0.95 || pesoProposto >= recordVal - 2.5)) {
-            pesoProposto = Math.round((recordVal + 1.25) / 1.25) * 1.25;
+            pesoProposto = Math.round((recordVal + step) / step) * step;
           }
         }
       }
@@ -7456,17 +7376,21 @@ const parseKg = (val) => {
 
 const incrementaKgUnico = () => {
   vibraTattile(10);
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6Val.value);
-  current += 1.25;
+  current += step;
   numIns6Val.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnico();
 };
 
 const decrementaKgUnico = () => {
   vibraTattile(10);
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6Val.value);
   if (current > 0) {
-    current = Math.max(0, current - 1.25);
+    current = Math.max(0, current - step);
     numIns6Val.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnico();
   }
@@ -7569,17 +7493,21 @@ const salvaKgUnicoPrecedente = async () => {
 
 const incrementaKgUnicoPrecedente = () => {
   vibraTattile(10);
+  const isManubri = isManubriEsercizio(previousWorkout.value);
+  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6ValPrecedente.value);
-  current += 1.25;
+  current += step;
   numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnicoPrecedente();
 };
 
 const decrementaKgUnicoPrecedente = () => {
   vibraTattile(10);
+  const isManubri = isManubriEsercizio(previousWorkout.value);
+  const step = isManubri ? 1.0 : 1.25;
   let current = parseKg(numIns6ValPrecedente.value);
   if (current > 0) {
-    current = Math.max(0, current - 1.25);
+    current = Math.max(0, current - step);
     numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnicoPrecedente();
   }

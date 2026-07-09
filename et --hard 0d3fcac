@@ -1,0 +1,84 @@
+* [33m0d3fcac[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m UI:  visualizzazioni rivisitate 2
+* [33m799a065[m UI:  visualizzazioni rivisitate
+* [33m3e8eab5[m UI:  ordine esercizi a sinistra
+* [33m7e6a60c[m fix(proposal): hide Miglior Carico fields and warnings for bodyweight exercises
+* [33m7014872[m fix(proposal): align volume progression reps between Ghost and dialog and fix base week fallback
+* [33m9c0d1ca[m feat(settings): centralize progression algorithm parameters in Firestore with real-time sync and debounce
+* [33mabd9411[m feat: customize day header card style, fix click propagation, update week 1 load ranges, and enhance mobile responsiveness
+* [33m1b65af2[m UI:  pesi lato corretto
+* [33m37b5f73[m UI:  corretto scritte rosse su super compatta
+* [33mb5f8293[m fix: enforce minimum step decrement for W1 proposed weights to avoid fatigue level collisions
+* [33m765d5f3[m UI:  proposta w1 corretta ma riguardare la gestione fatica
+* [33mab25354[m fix: implement Option 3 RIR-based fatigue and Option A dynamic W1 RIR target
+* [33m04893e7[m UI:  proposta w1 cortretta
+* [33mee2dce3[m fix: show W1 warning when W6 load is absent for bodyweight and fallback cases
+* [33ma4c27a0[m fix: update Week 1 error message on main detail page to ask for Miglior Carico W6
+* [33m164e998[m fix: integrate propostaWeek1 computed fallback into getGhostLiftStandard to prevent hiding proposal button when W6 load is empty
+* [33m2c8fb4e[m fix: shortened W1 load proposal warning messages and requested W6 load input
+* [33m1c14a3a[m fix: W1 load proposal backward fallback, warning messages, and increased fatigue reductions
+* [33m460c65c[m fix: date resolution of last execution and deallenamento
+* [33m1c30a83[m UI:  import export json corretto!!
+* [33m9a2149e[m Fix: aggiornamento dettagli esercizi in Refresh, gestione des_week1Estratto e rimozione suffisso r
+* [33m3203393[m Implement program expiration countdown and coach alert on Home.vue
+* [33md7675d2[m Fix day-guidance and floating play button positioning for unstarted weeks
+* [33m135ad5c[m fix(workouts): resolve play button Evidenzia mode scroll and highlight logic
+* [33m4b1d5b3[m style: schiarite le card del tema tramite variabili CSS e fix sul comportamento del tasto play
+* [33meb502d5[m feat(history-chart): show elapsed time, click details card, and dynamic evaluation with coaching advice
+* [33m181d921[m feat(history-chart): implement reps grouping modes (exact/zones/fasce) and interactive multi-select chips in exercise details dialog
+* [33m3721d5a[m feat(charts): integrate 3 selectable chart visualization modes in exercise history dialog
+* [33me5ffbeb[m feat(charts): redesign charts section with tabs, exercise progression with 1RM, volume distribution and weekly progression
+* [33m201bff3[m Allineato calcolo range Ghost Lift a strategie dialog Proposta Carico
+* [33mced5086[m style: rimosso kg e spazi intorno al trattino nei range del Ghost
+* [33m4c8e9ec[m feat: semplificazione visualizzazione Ghost a due opzioni (Solo Range e Stato Forma) e ripristino W1
+* [33m04fa284[m fix: ghost progression algorithm parameters and safety floor logic
+* [33ma855f7a[m feat: sposta parametri Ghost globali, ottimizza carico proposto bilanciato e risolve bug tasto play
+* [33m7d323f2[m feat: modello progressioni ibrido autoregolato, attacco al PR e parametri dedicati
+* [33m1377fca[m feat: visualizzazione record personale (Opzioni A/B), inserimento con virgola e progressione Ghost dinamica/fissa
+* [33me22107d[m fix(dettaglio): clean machine settings from user inputs before parsing weights and reps
+* [33mebfe38a[m feat(dettaglio): add smart progression options and fix '12x14r' parsing
+* [33m6bd3402[m style: reduce gap between tabs and day card in compact layouts
+* [33md3010e1[m style(workouts): further reduce selector tabs padding and margins across all layout styles
+* [33m44e2601[m style(workouts): minimize margin and padding of day selector tabs across all layouts
+* [33mae7f773[m style(workouts): minimize gap between tabs and day workout header card in super_compatto layout
+* [33m27f86fa[m style(workouts): optimize vertical space in super_compatto and enlarge active week capsule
+* [33mcdd72a8[m refactor(settings): extract configuration and layout controls to dedicated Impostazioni page
+* [33m2ba35fb[m feat(Home): allinea PDF report progressioni al design premium di Workouts
+* [33m1a0809e[m fix: weight extraction for molto pesanti suffix, move formatWeight to component level, comma decimal in scarico display
+* [33m5470e54[m Fix weight increment green color, add decimal comma handling for weight and reps, improve ghost label logic
+* [33mf96ad48[m feat(ux): restrict previous workout button to Week 1 only inside the dialog
+* [33m487da9f[m feat(ux): implement hybrid Epley/NSCA model for W1 and integrate previous workout button in dialog
+* [33m0c609c6[m UI:  proposta carichi week4 corretta!
+* [33m57d4a25[m refactor(ux): align ghost lift scarico weight with dialog options and format example as weight x (reps)r
+* [33m8e178d7[m UI:  proposta scarico W4 migliorata
+* [33md071126[m UI:  scritte ghost dinamiche per mantenimento peso
+* [33mab75e36[m UI:  proposta carichi migliorata
+* [33m379cf5d[m UI:  proposta carico su W6
+* [33m11c3954[m style: move space character outside the des_esercizio_2 span tag
+* [33mae74153[m style: prevent displaying des_esercizio_2 next to name when it has Volume/RMT, add space prefix
+* [33mec5ad1b[m style: display des_esercizio_2 next to exercise name when it does not specify TUT
+* [33m4b6c506[m feat(coach): add edit exercise button and dialog modal in Dettaglio.vue
+* [33m88d471f[m fix: corretto parsing del timer per intervalli di secondi e simili
+* [33me628fd1[m style: aggiornato colore capsule-num con schema giallo/oro ad alto contrasto
+* [33mcfcf3ad[m style: colora le etichette W1-W6 nel log week dei workouts per distinguerle dai pesi
+* [33m9310980[m Redesign Home WO view: client selection for coach and workout search/selection sorted by date
+* [33m6d92ba6[m Fix: risolto bug caricamento dati workout e perdita progressione in Home.vue, aggiunto chip visivo per la scheda selezionata
+* [33ma9f5a6c[m Add sheet number title clearly above dates in Home WO summary card
+* [33me42fb47[m Fix week reset issue on navigation, sync selected sheet on coach dashboard, and show correct coach notes/focus from WORKOUT_T
+* [33m1288dcf[m Redesign Home WO dashboard view and add interactive metrics indicators
+* [33ma013b29[m UI:  icone video ex
+* [33m87761fb[m UI:  pannello coach workout_t
+* [33m560638f[m UI: aggiunte spiegazioni R?, storico e punto interrogativo sul ghost alla guida
+* [33me0fe617[m UI: rimosse impostazioni proposte carichi e incrementi da opzioni visualizzazione settimane
+* [33m5906bc2[m UI:  dettagli tecnici ok
+* [33m64677e7[m UI:  pannello caoch ok con parametri globali
+* [33m0e50f1e[m move coach proposal and fatigue parameters to coach-only panel in detail page
+* [33md04738e[m enlarge active timer widget dimensions and text sizes across all themes
+* [33ma156d26[m make active timer disappear instantly when stopped or finished
+* [33m2ae91a5[m format active timer in minutes and seconds if over 60s
+* [33m78cc562[m fix: corretto parsing del tempo di recupero in presenza di quote singole finali (es. 1'45') ed en/em dashes
+* [33m3e9787a[m fix: rimosso indicatore target scarico (isScarico) per esercizi a corpo libero con reps crescenti in W4
+* [33m81f2b95[m fix: corretto controllo reps_week e disabilitato isPostScarico per esercizi a corpo libero con reps crescenti
+* [33md8a4548[m feat: esclusione aumento peso per esercizi a corpo libero con ripetizioni crescenti nel ghost
+* [33m73618d1[m feat: aggiunta regolazione rapida percentuali fatica per il coach e fix markup in Workouts.vue
+* [33ma64c33c[m feat: show only initial letter of perceived effort (colored) in ghost lift and round all proposed loads to 1.25kg multiples
+* [33mdd1e31b[m fix: adjust time decay and fatigue factors for proposal, and include perceived

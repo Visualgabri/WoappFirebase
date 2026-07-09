@@ -3620,13 +3620,35 @@ const getGhostWeightsRangeForWeek = (sett) => {
     const repsVolume = Math.max(repsTarget + 1, repsBaseVal + 1);
     
     // 2. Micro-carico (Graduale)
-    const stepMicro = isManubri ? 1.0 : 0.25;
-    const diffMicro = isManubri ? 1.0 : 0.5;
     let pesoMicro = pesoBase + (pesoProposto - pesoBase) / 2;
-    pesoMicro = Math.round(pesoMicro / stepMicro) * stepMicro;
-    if (pesoMicro <= pesoBase) pesoMicro = pesoBase + diffMicro;
-    if (pesoMicro >= pesoProposto) pesoMicro = Math.max(pesoBase, pesoProposto - diffMicro);
+    pesoMicro = Math.round(pesoMicro / step) * step;
 
+    // Se il peso micro coincide con la base o con il proposto, non c'è una via di mezzo reale di carico!
+    // Applichiamo l'Opzione 3: differenziamo tramite ripetizioni sul peso base
+    if (pesoMicro <= pesoBase || pesoMicro >= pesoProposto) {
+      const repsVolumeLeggero = repsVolume;
+      const repsVolumeForte = repsVolume + 1;
+      
+      return {
+        prudenziale: {
+          value: `${pesoBase}x${repsVolumeLeggero}r`,
+          display: `${formatWeight(pesoBase)}x${repsVolumeLeggero}r`,
+          label: 'Volume'
+        },
+        consigliato: {
+          value: `${pesoBase}x${repsVolumeForte}r`,
+          display: `${formatWeight(pesoBase)}x${repsVolumeForte}r`,
+          label: 'Volume+'
+        },
+        sfidante: {
+          value: String(pesoProposto),
+          display: `${formatWeight(pesoProposto)} kg`,
+          label: 'Sfidante'
+        }
+      };
+    }
+
+    // Altrimenti, se esiste un peso intermedio reale
     return {
       prudenziale: {
         value: `${pesoBase}x${repsVolume}r`,
@@ -4319,7 +4341,7 @@ const isManubriEsercizio = (ex) => {
 };
 
 const getWeightStep = (isManubri, baseWeight) => {
-  if (!isManubri) return 1.25;
+  if (!isManubri) return 2.5;
   const p = parseFloat(baseWeight) || 0;
   return p >= 10 ? 2.0 : 1.0;
 };

@@ -945,7 +945,7 @@
           </div>
 
           <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
-          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && !isCorpoLiberoEsercizio(workout)" :class="[layoutCorrente === 'super_compatto' ? 'mt-2 pt-2' : 'mt-4 pt-4', 'border-top-soft']">
+          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(workout) || isOndaProgression(workout))" :class="[layoutCorrente === 'super_compatto' ? 'mt-2 pt-2' : 'mt-4 pt-4', 'border-top-soft']">
             <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
               <div>
                 <span class="text-caption font-weight-black text-slate-dark d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.8rem' }">Miglior Carico (W6) *</span>
@@ -1427,7 +1427,7 @@
                 </div>
 
                 <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito) - Spostato sotto la Week 6 -->
-                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && !isCorpoLiberoEsercizio(previousWorkout)" class="mt-3 pt-3 border-top-soft">
+                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(previousWorkout) || isOndaProgression(previousWorkout))" class="mt-3 pt-3 border-top-soft">
                   <div class="d-flex align-center justify-space-between mb-2">
                     <div>
                       <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
@@ -4275,6 +4275,29 @@ const isCorpoLiberoEsercizio = (ex) => {
   ];
   
   return keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k));
+};
+
+const isOndaProgression = (ex) => {
+  if (!ex) return false;
+  
+  const getReps = (w) => {
+    if (ex['reps_week' + w]) {
+      const val = parseInt(ex['reps_week' + w], 10);
+      if (!isNaN(val)) return val;
+    }
+    const presc = ex['des_week' + w];
+    if (presc) {
+      const val = estraiRepsDaPrescrizione(presc);
+      if (val !== null && !isNaN(val)) return val;
+    }
+    return 10; // default fallback
+  };
+
+  const repsW3 = getReps(3);
+  const repsW4 = getReps(4);
+  const repsW5 = getReps(5);
+
+  return repsW4 > repsW3 && repsW5 < repsW4;
 };
 
 const isManubriEsercizio = (ex) => {

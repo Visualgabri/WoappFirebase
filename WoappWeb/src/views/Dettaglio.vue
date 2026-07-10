@@ -4893,11 +4893,26 @@ const getExecutionDate = (prevEx, list, currWorkout) => {
   return prevEx.dat_scheda_ult_ex || prevEx.timestamp;
 };
 
+const parseSmartDate = (dateStr) => {
+  if (!dateStr) return null;
+  const cleanStr = String(dateStr).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(cleanStr)) {
+    const parts = cleanStr.substring(0, 10).split('-');
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(cleanStr)) {
+    const parts = cleanStr.split(' ')[0].split('/');
+    return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+  } else {
+    const t = Date.parse(cleanStr);
+    return !isNaN(t) ? new Date(t) : null;
+  }
+};
+
 const formattaDataStorico = (dateStr) => {
   if (!dateStr) return '';
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
+    const d = parseSmartDate(dateStr);
+    if (!d || isNaN(d.getTime())) return dateStr;
     const months = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
     const day = d.getDate();
     const month = months[d.getMonth()];
@@ -4911,8 +4926,8 @@ const formattaDataStorico = (dateStr) => {
 const tempoTrascorso = (dateStr) => {
   if (!dateStr) return '';
   try {
-    const past = new Date(dateStr);
-    if (isNaN(past.getTime())) return '';
+    const past = parseSmartDate(dateStr);
+    if (!past || isNaN(past.getTime())) return '';
     const now = new Date();
     
     // Resettiamo le ore per calcolare la differenza in giorni puri

@@ -256,7 +256,12 @@
               <div class="text-center">
                 <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Target Prossimo</span>
                 <span class="font-weight-black text-slate-dark" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
-                  ~{{ parsedRmt(workout.des_esercizio_2).prossimoLivello }} <span class="text-super-caption text-muted">KG</span>
+                  <template v-if="parsedRmt(workout.des_esercizio_2).prossimoLivello">
+                    ~{{ parsedRmt(workout.des_esercizio_2).prossimoLivello }} <span class="text-super-caption text-muted">KG</span>
+                  </template>
+                  <template v-else>
+                    MAX
+                  </template>
                 </span>
               </div>
             </v-col>
@@ -7292,7 +7297,7 @@ const parsedTut = computed(() => {
 
 const parsedRmt = (str) => {
   if (!str) return null;
-  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*)\s*1RMT?:\s*([\d,.]+)\s*KG\s*~([\d,.]+)(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
+  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*?)\s*(?:1)?RMT?:\s*([\d,.]+)\s*KG(?:\s*~\s*([\d,.]+))?(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
   const match = str.trim().match(regex);
   if (match) {
     const rawStelle = match[1];
@@ -7335,7 +7340,7 @@ const parsedRmt = (str) => {
       livelloEsteso: rawStelle,
       subLivello: subLevel,
       massimale: match[2],
-      prossimoLivello: match[3],
+      prossimoLivello: match[3] || '',
       data: match[4],
       variazione: match[5] || ''
     };
@@ -7344,7 +7349,8 @@ const parsedRmt = (str) => {
 };
 
 const getRmtProgress = (rmt) => {
-  if (!rmt || !rmt.massimale || !rmt.prossimoLivello) return 0;
+  if (!rmt || !rmt.massimale) return 0;
+  if (!rmt.prossimoLivello) return 100;
   const current = parseFloat(rmt.massimale.replace(',', '.')) || 0;
   const targetDiff = parseFloat(rmt.prossimoLivello.replace(',', '.')) || 0;
   if (current + targetDiff === 0) return 0;

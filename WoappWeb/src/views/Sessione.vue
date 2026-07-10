@@ -930,7 +930,7 @@ const parseVolumeString = (str) => {
 
 const parsedRmt = (str) => {
   if (!str) return null;
-  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*)\s*1RMT?:\s*([\d,.]+)\s*KG\s*~([\d,.]+)(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
+  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*?)\s*(?:1)?RMT?:\s*([\d,.]+)\s*KG(?:\s*~\s*([\d,.]+))?(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
   const match = str.trim().match(regex);
   if (match) {
     const rawStelle = match[1];
@@ -973,7 +973,7 @@ const parsedRmt = (str) => {
       livelloEsteso: rawStelle,
       subLivello: subLevel,
       massimale: match[2],
-      prossimoLivello: match[3],
+      prossimoLivello: match[3] || '',
       data: match[4],
       variazione: match[5] || ''
     };
@@ -982,7 +982,8 @@ const parsedRmt = (str) => {
 };
 
 const getRmtProgress = (rmt) => {
-  if (!rmt || !rmt.massimale || !rmt.prossimoLivello) return 0;
+  if (!rmt || !rmt.massimale) return 0;
+  if (!rmt.prossimoLivello) return 100;
   const current = parseFloat(rmt.massimale.replace(',', '.')) || 0;
   const targetDiff = parseFloat(rmt.prossimoLivello.replace(',', '.')) || 0;
   if (current + targetDiff === 0) return 0;

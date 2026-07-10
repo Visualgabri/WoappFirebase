@@ -3,7 +3,7 @@
     <!-- Header Sticky Wrapper -->
     <div class="sticky-detail-header">
       <!-- Barra Superiore con pulsante indietro stile AppSheet -->
-      <div class="d-flex align-center justify-space-between appsheet-top-bar" :class="layoutCorrente === 'super_compatto' ? 'mb-1.5' : (layoutCorrente === 'compatto' ? 'mb-2' : 'mb-3')">
+      <div class="d-flex align-center justify-space-between appsheet-top-bar mb-0">
         <v-btn
           icon
           color="orange-darken-3"
@@ -47,6 +47,7 @@
             >
               {{ workout.des_settore }} ›
             </v-chip>
+            <br v-if="workout?.num_riga_giorno || workout?.des_settore">
             <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap; vertical-align: middle;">{{ trendFreccia }}</span><span style="vertical-align: middle;">{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}</span> <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8; vertical-align: middle;">{{ workout.des_esercizio_2 }}</span>
             <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto" style="vertical-align: middle;">mdi-video</v-icon>
             <v-chip
@@ -68,7 +69,7 @@
       <!-- Avviso Scheda Passata (Modalità Storico) -->
       <v-card
         v-if="isSchedaPassata"
-        class="text-left border d-flex align-start card-glass"
+        class="text-left border d-flex align-start card-glass mt-2"
         :class="layoutCorrente === 'super_compatto' ? 'py-1 px-2 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-1.5 px-2.5 mb-2' : 'py-2 px-3 mb-3')"
         :style="{
           background: 'rgba(239, 68, 68, 0.08) !important',
@@ -87,7 +88,7 @@
       <!-- Avviso Giorno Completato -->
       <v-card
         v-if="workout && isWeekCompleted(settimanaAttiva) && !isSchedaPassata"
-        class="text-left border d-flex align-center card-glass"
+        class="text-left border d-flex align-center card-glass mt-2"
         :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5 mb-2' : 'py-2.5 px-4 mb-3')"
         :style="{
           background: 'rgba(16, 185, 129, 0.08) !important',
@@ -8641,13 +8642,13 @@ const tornaIndietro = () => {
   z-index: 100 !important;
   background: #030712 !important; /* solid background matching body */
   padding-top: 6px !important;
-  padding-bottom: 8px !important;
+  padding-bottom: 0px !important; /* Was 8px, removed to eliminate space below header */
   margin-top: -8px !important;
 }
 
 .appsheet-top-bar {
   border-bottom: 2px solid #ef6c00;
-  padding-bottom: 8px;
+  padding-bottom: 4px; /* Was 8px, reduced to tighten header height */
 }
 
 .text-slate-dark {

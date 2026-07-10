@@ -13,39 +13,53 @@
         >
           <v-icon :size="layoutCorrente === 'super_compatto' ? 22 : (layoutCorrente === 'compatto' ? 24 : 28)">mdi-arrow-left</v-icon>
         </v-btn>
-        <div class="d-flex align-center justify-center flex-grow-1 px-2 text-truncate" style="gap: 8px;">
-          <v-chip
-            v-if="workout?.num_riga_giorno"
-            color="orange-darken-3"
-            size="x-small"
-            class="font-weight-black text-white px-1 py-0 flex-shrink-0"
-            variant="flat"
-            style="min-width: 20px; height: 16px; font-size: 0.62rem;"
+        <div class="d-flex flex-column align-center justify-center flex-grow-1 px-2 min-width-0" style="gap: 4px;">
+          <div class="d-flex align-center justify-center" style="gap: 8px;">
+            <v-chip
+              v-if="workout?.num_riga_giorno"
+              color="orange-darken-3"
+              size="x-small"
+              class="font-weight-black text-white px-1.5 py-0 flex-shrink-0"
+              variant="flat"
+              style="min-width: 20px; height: 16px; font-size: 0.62rem;"
+            >
+              {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
+            </v-chip>
+            <span
+              v-if="workout?.des_settore"
+              class="text-super-caption text-orange-lighten-2 font-weight-black uppercase cursor-pointer"
+              style="font-size: 0.58rem; letter-spacing: 0.05em; opacity: 0.85;"
+              @click="apriListaSettore"
+            >
+              {{ workout.des_settore }} ›
+            </span>
+          </div>
+          <h3 
+            class="font-weight-black text-truncate mb-0" 
+            :class="[
+              (previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'
+            ]"
+            :style="{
+              fontSize: getTitoloFontSize(workout?.des_esercizio),
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
+              lineHeight: 1.15
+            }"
           >
-            {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
-          </v-chip>
-<h3 
-  class="font-weight-black text-truncate mb-0" 
-  :class="[
-    layoutCorrente === 'super_compatto' ? 'text-body-2' : (layoutCorrente === 'compatto' ? 'text-body-1' : 'text-subtitle-1'),
-    (previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'
-  ]"
-  style="white-space: normal; word-break: break-word; line-height: 1.05 !important;"
->
-  <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }} <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8;">{{ workout.des_esercizio_2 }}</span>
-  <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto">mdi-video</v-icon>
-  <v-chip
-    v-if="workout?.des_rec_report"
-    color="amber-darken-3"
-    variant="flat"
-    size="x-small"
-    class="font-weight-black text-white ml-1.5 align-center px-1.5"
-    style="font-size: 0.62rem; height: 16px; display: inline-flex; cursor: pointer; vertical-align: middle;"
-    @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
-  >
-    ⏱️ {{ workout.des_rec_report }}
-  </v-chip>
-</h3>
+            <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }} <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8;">{{ workout.des_esercizio_2 }}</span>
+            <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto">mdi-video</v-icon>
+            <v-chip
+              v-if="workout?.des_rec_report"
+              color="amber-darken-3"
+              variant="flat"
+              size="x-small"
+              class="font-weight-black text-white ml-1.5 align-center px-1.5"
+              style="font-size: 0.62rem; height: 16px; display: inline-flex; cursor: pointer; vertical-align: middle;"
+              @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
+            >
+              ⏱️ {{ workout.des_rec_report }}
+            </v-chip>
+          </h3>
         </div>
         <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
@@ -318,21 +332,11 @@
         </div>
 
         <!-- Rigo Dettaglio Rapido -->
-        <div :class="[layoutCorrente === 'super_compatto' ? 'mt-0.5 gap-1' : (layoutCorrente === 'compatto' ? 'mt-1 gap-1.25' : 'mt-1 gap-1.5'), 'text-caption font-weight-bold text-slate d-flex align-center flex-wrap']">
-          <!-- 1. Settore Muscolare (Clickable) -->
-          <v-chip
-            color="orange-darken-3"
-            size="x-small"
-            class="font-weight-black clickable-sector-chip px-2 py-0.5"
-            variant="flat"
-            style="cursor: pointer;"
-            append-icon="mdi-chevron-right"
-            @click="apriListaSettore"
-          >
-            {{ workout.des_settore }}
-          </v-chip>
-
-          <!-- 2. Chip TUT (se presente) - Prima del recupero -->
+        <div 
+          v-if="parsedTut || (workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2))"
+          :class="[layoutCorrente === 'super_compatto' ? 'mt-0.5 gap-1' : (layoutCorrente === 'compatto' ? 'mt-1 gap-1.25' : 'mt-1 gap-1.5'), 'text-caption font-weight-bold text-slate d-flex align-center flex-wrap']"
+        >
+          <!-- 1. Chip TUT (se presente) -->
           <v-chip
             v-if="parsedTut"
             color="orange-darken-3"
@@ -346,20 +350,7 @@
             ⏱️ TUT {{ parsedTut.digits }} • Nota
           </v-chip>
 
-          <!-- 3. Recupero (se presente) - GRANDE e EVIDENZIATO con animazione e gradiente -->
-          <v-chip
-            v-if="workout.des_rec_report"
-            color="amber-darken-3"
-            variant="flat"
-            size="small"
-            class="font-weight-black clickable-timer-chip recovery-standout-chip px-3 py-1.5"
-            prepend-icon="mdi-clock-outline"
-            @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
-          >
-            ⏱️ {{ workout.des_rec_report }}
-          </v-chip>
-
-          <!-- 4. Fallback Chip per altre descrizioni -->
+          <!-- 2. Fallback Chip per altre descrizioni -->
           <v-chip
             v-else-if="workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2)"
             color="orange-darken-3"
@@ -4968,6 +4959,20 @@ const tempoTrascorso = (dateStr) => {
   } catch (e) {
     return '';
   }
+};
+
+const getTitoloFontSize = (nomeEsercizio) => {
+  const nome = String(nomeEsercizio || '').trim();
+  const len = nome.length;
+  const layout = layoutCorrente.value;
+  
+  if (len > 45) {
+    return layout === 'super_compatto' ? '0.70rem' : (layout === 'compatto' ? '0.78rem' : '0.85rem');
+  }
+  if (len > 25) {
+    return layout === 'super_compatto' ? '0.78rem' : (layout === 'compatto' ? '0.88rem' : '0.95rem');
+  }
+  return layout === 'super_compatto' ? '0.88rem' : (layout === 'compatto' ? '1.0rem' : '1.1rem');
 };
 
 const soloCorrispondenti = ref(true);

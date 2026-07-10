@@ -184,23 +184,7 @@
 
         <!-- 2. Intestazione Principale con Massimale / RMT -->
         <div class="mb-2 text-left flex-grow-1" style="min-width: 0;">
-        <h2 
-          class="font-weight-black leading-tight mb-1" 
-          :class="(previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'"
-          :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.92rem' : (layoutCorrente === 'compatto' ? '1.0rem' : '1.1rem'), lineHeight: 1.2, whiteSpace: 'normal', wordBreak: 'break-word' }"
-        >
-          <v-icon 
-            v-if="parsedRmt(workout.des_esercizio_2)" 
-            :color="getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).color" 
-            class="mr-1 mb-0.5" 
-            :size="layoutCorrente === 'super_compatto' ? 14 : 18"
-            style="display: inline-block; vertical-align: middle;"
-          >
-            {{ getLivelloForzaIconInfo(parsedRmt(workout.des_esercizio_2).stelle).icon }}
-          </v-icon>
-          <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout.des_esercizio }} <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8;">{{ workout.des_esercizio_2 }}</span>
-          <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 16 : (layoutCorrente === 'compatto' ? 18 : 20)" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
-        </h2>
+
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
         <div 

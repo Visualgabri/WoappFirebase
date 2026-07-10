@@ -1954,7 +1954,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, getStoryboardBackup } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -3015,8 +3015,7 @@ const caricaAllenamenti = async () => {
   
   // 1. Carica preventivamente il backup JSON per le patch di sicurezza GIF
   try {
-    const res = await fetch('/storyboard_backup.json');
-    allExercisesBackup.value = await res.json();
+    allExercisesBackup.value = await getStoryboardBackup();
   } catch (errBackup) {
     console.warn("Impossibile caricare backup locale in anticipo:", errBackup);
   }

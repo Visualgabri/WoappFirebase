@@ -953,7 +953,8 @@ import {
   globalStoryboard, 
   loadingStoryboard, 
   layoutEserciziGlobal,
-  ORDINE_ORIGINALE_ATLETI
+  ORDINE_ORIGINALE_ATLETI,
+  getStoryboardBackup
 } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
@@ -2091,8 +2092,7 @@ const caricaWorkouts = async () => {
     // Fallback da backup locale se vuoto
     if (tempDocs.length === 0) {
       try {
-        const res = await fetch('/storyboard_backup.json');
-        const allData = await res.json();
+        const allData = await getStoryboardBackup();
         const raw = allData.filter(item => String(item.ID_cliente) === athleteIdStr);
         const uniqueSchede = [...new Set(raw.map(item => String(item.num_scheda)))];
         
@@ -2235,8 +2235,7 @@ const caricaDatiScheda = async () => {
   if (allExercises.value.length === 0 && !loadingStoryboard.value) {
     // Prova il fallback da backup locale
     try {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       const rawExercises = allData.filter(
         item => String(item.ID_cliente) === String(selectedAthlete.value) && String(item.num_scheda) === String(selectedSheet.value)
       );
@@ -2346,8 +2345,7 @@ const aggiornaDatiSchedaDaStore = async () => {
   let haMancantiHome = giorniHeader.some(g => !tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0));
   if (haMancantiHome) {
     try {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       giorniHeader.forEach(g => {
         const giaPresente = tempExercises.some(item => (item.des_giorno || '').trim() === g && parseInt(item.num_riga_giorno) === 0);
         if (!giaPresente) {

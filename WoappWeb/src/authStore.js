@@ -664,3 +664,28 @@ watch(temaHeaderGiornoGlobal, (newVal) => {
   localStorage.setItem('woapp_tema_header_giorno', newVal);
 });
 
+// Caching globale per il backup dello storyboard da 22MB per evitare freeze e download duplicati
+let backupDataPromise = null;
+let backupDataCache = null;
+
+export const getStoryboardBackup = async () => {
+  if (backupDataCache) return backupDataCache;
+  if (!backupDataPromise) {
+    backupDataPromise = (async () => {
+      try {
+        console.log("Fetching storyboard_backup.json (22MB)...");
+        const res = await fetch('/storyboard_backup.json');
+        backupDataCache = await res.json();
+        console.log("Parsed storyboard_backup.json successfully, items count:", backupDataCache.length);
+        return backupDataCache;
+      } catch (err) {
+        console.error("Errore caricamento backup JSON:", err);
+        backupDataPromise = null; // Consente di riprovare in caso di errore di rete temporaneo
+        return [];
+      }
+    })();
+  }
+  return backupDataPromise;
+};
+
+

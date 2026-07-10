@@ -434,7 +434,7 @@ import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'; // Aggiunto onBeforeRouteLeave
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, globalStoryboard } from '../authStore.js';
+import { selectedAthlete, globalStoryboard, getStoryboardBackup } from '../authStore.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -693,8 +693,7 @@ const caricaDati = async () => {
 
 const caricaDatiDaBackup = async () => {
   try {
-    const res = await fetch('/storyboard_backup.json');
-    const allData = await res.json();
+    const allData = await getStoryboardBackup();
     const found = allData.find(item => String(item.id) === String(routeId.value) || String(item.num_riga) === String(routeId.value));
     if (found) {
       workout.value = applicaModificheLocali(found);

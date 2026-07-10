@@ -2811,7 +2811,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -4780,8 +4780,7 @@ const caricaEsercizioPrecedente = async () => {
     if (bestPrev) {
       previousWorkout.value = applicaModificheLocali(bestPrev);
     } else {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       const matched = allData.filter(b => {
         const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
         return String(bAtletaId) === String(atletaId) &&
@@ -5243,10 +5242,8 @@ const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
       }
     });
 
-    // Fallback al backup se non trovato (es. problemi di sincronizzazione Firestore)
     if (!trovato) {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       const riga0Trovata = allData.find(
         item => (String(item[keyIdCliente]) === String(atletaId) || String(item['ID_cliente']) === String(atletaId)) &&
         String(item.num_scheda) === String(numScheda) &&
@@ -5501,8 +5498,7 @@ const caricaDatiEsercizio = async () => {
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
       if (!workout.value.UrlNormal || !workout.value.UrlNormal.startsWith('http')) {
         try {
-          const res = await fetch('/storyboard_backup.json');
-          const allData = await res.json();
+          const allData = await getStoryboardBackup();
           const matched = allData.find(b => 
             String(b.ID_cliente) === String(atletaId) &&
             String(b.num_scheda) === String(dati.num_scheda) &&
@@ -5564,8 +5560,7 @@ const caricaDatiEsercizio = async () => {
 
 const caricaEsercizioDaBackup = async () => {
   try {
-    const res = await fetch('/storyboard_backup.json');
-    const allData = await res.json();
+    const allData = await getStoryboardBackup();
     const found = allData.find(item => String(item.id) === String(routeIdLocal.value) || String(item.num_riga) === String(routeIdLocal.value));
     if (found) {
       workout.value = applicaModificheLocali(found);
@@ -7861,8 +7856,7 @@ const caricaDatiAnalisi = async (sett) => {
     list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
     
     if (list.length === 0) {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       const matched = allData.filter(b => {
         const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
         return String(bAtletaId) === String(atletaId) &&
@@ -8567,8 +8561,7 @@ const apriListaSettore = async () => {
     });
 
     if (list.length === 0) {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       const matched = allData.filter(b => {
         const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
         return String(bAtletaId) === String(atletaId) &&

@@ -311,7 +311,8 @@ import {
   getSchedaSelezionataAtleta,
   getVistaDettagliAtleta,
   ORDINE_ORIGINALE_ATLETI,
-  layoutEserciziGlobal
+  layoutEserciziGlobal,
+  getStoryboardBackup
 } from '../authStore.js';
 
 const router = useRouter();
@@ -445,8 +446,7 @@ const caricaSchedeAtleta = async () => {
   } catch (error) {
     console.warn("Errore caricamento schede atleta da Firestore (quota esaurita), provo da backup locale:", error);
     try {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       const filtrati = allData.filter(
         item => String(item.ID_cliente) === String(atletaSelezionato.value)
       );
@@ -496,8 +496,7 @@ const caricaPreviewScheda = async () => {
     });
     
     if (temp.length === 0) {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       temp = allData.filter(
         item => String(item.ID_cliente) === String(atletaSelezionato.value) &&
         String(item.num_scheda) === String(schedaSelezionata.value)
@@ -507,8 +506,7 @@ const caricaPreviewScheda = async () => {
   } catch (err) {
     console.warn("Errore caricamento preview, carico da backup:", err);
     try {
-      const res = await fetch('/storyboard_backup.json');
-      const allData = await res.json();
+      const allData = await getStoryboardBackup();
       eserciziDellaScheda.value = allData.filter(
         item => String(item.ID_cliente) === String(atletaSelezionato.value) &&
         String(item.num_scheda) === String(schedaSelezionata.value)

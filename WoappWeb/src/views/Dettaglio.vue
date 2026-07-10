@@ -13,29 +13,9 @@
         >
           <v-icon :size="layoutCorrente === 'super_compatto' ? 22 : (layoutCorrente === 'compatto' ? 24 : 28)">mdi-arrow-left</v-icon>
         </v-btn>
-        <div class="d-flex flex-column align-center justify-center flex-grow-1 px-2 min-width-0" style="gap: 4px;">
-          <div class="d-flex align-center justify-center" style="gap: 8px;">
-            <v-chip
-              v-if="workout?.num_riga_giorno"
-              color="orange-darken-3"
-              size="x-small"
-              class="font-weight-black text-white px-1.5 py-0 flex-shrink-0"
-              variant="flat"
-              style="min-width: 20px; height: 16px; font-size: 0.62rem;"
-            >
-              {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
-            </v-chip>
-            <span
-              v-if="workout?.des_settore"
-              class="text-super-caption text-orange-lighten-2 font-weight-black uppercase cursor-pointer"
-              style="font-size: 0.58rem; letter-spacing: 0.05em; opacity: 0.85;"
-              @click="apriListaSettore"
-            >
-              {{ workout.des_settore }} ›
-            </span>
-          </div>
+        <div class="d-flex align-center justify-center flex-grow-1 px-2 min-width-0" style="gap: 8px;">
           <h3 
-            class="font-weight-black text-truncate mb-0" 
+            class="font-weight-black mb-0 text-center" 
             :class="[
               (previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'
             ]"
@@ -46,15 +26,36 @@
               lineHeight: 1.15
             }"
           >
-            <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }} <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8;">{{ workout.des_esercizio_2 }}</span>
-            <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto">mdi-video</v-icon>
+            <v-chip
+              v-if="workout?.num_riga_giorno"
+              color="orange-darken-3"
+              size="x-small"
+              class="font-weight-black text-white mr-1.5 px-1.5 py-0"
+              variant="flat"
+              style="min-width: 20px; height: 16px; font-size: 0.62rem; display: inline-flex; vertical-align: middle; line-height: 1;"
+            >
+              {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
+            </v-chip>
+            <v-chip
+              v-if="workout?.des_settore"
+              color="orange-darken-3"
+              variant="tonal"
+              size="x-small"
+              class="font-weight-black mr-1.5 px-1.5 py-0"
+              style="height: 16px; font-size: 0.58rem; display: inline-flex; vertical-align: middle; cursor: pointer; line-height: 1;"
+              @click.stop="apriListaSettore"
+            >
+              {{ workout.des_settore }} ›
+            </v-chip>
+            <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap; vertical-align: middle;">{{ trendFreccia }}</span><span style="vertical-align: middle;">{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}</span> <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8; vertical-align: middle;">{{ workout.des_esercizio_2 }}</span>
+            <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto" style="vertical-align: middle;">mdi-video</v-icon>
             <v-chip
               v-if="workout?.des_rec_report"
               color="amber-darken-3"
               variant="flat"
               size="x-small"
-              class="font-weight-black text-white ml-1.5 align-center px-1.5"
-              style="font-size: 0.62rem; height: 16px; display: inline-flex; cursor: pointer; vertical-align: middle;"
+              class="font-weight-black text-white ml-1.5 px-1.5 py-0"
+              style="font-size: 0.62rem; height: 16px; display: inline-flex; cursor: pointer; vertical-align: middle; line-height: 1;"
               @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
             >
               ⏱️ {{ workout.des_rec_report }}

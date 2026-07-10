@@ -24,7 +24,14 @@
           >
             {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
           </v-chip>
-<h3 class="font-weight-black text-slate-dark text-truncate mb-0" :class="layoutCorrente === 'super_compatto' ? 'text-body-2' : (layoutCorrente === 'compatto' ? 'text-body-1' : 'text-subtitle-1')" style="white-space: normal; word-break: break-word; line-height: 1.05 !important;">
+<h3 
+  class="font-weight-black text-truncate mb-0" 
+  :class="[
+    layoutCorrente === 'super_compatto' ? 'text-body-2' : (layoutCorrente === 'compatto' ? 'text-body-1' : 'text-subtitle-1'),
+    (previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'
+  ]"
+  style="white-space: normal; word-break: break-word; line-height: 1.05 !important;"
+>
   <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }} <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8;">{{ workout.des_esercizio_2 }}</span>
   <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto">mdi-video</v-icon>
 </h3>
@@ -1322,7 +1329,7 @@
           :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '' }"
         >
           <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="grey" class="mr-1">mdi-gesture-tap</v-icon>
-          <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }} - Clicca per i dettagli</span>
+          <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }} <span class="text-white ml-1 font-weight-black">({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})</span> - Clicca per i dettagli</span>
           <span v-else>Clicca per vedere pesi e note di questa esecuzione</span>
         </div>
       </v-card>
@@ -4946,11 +4953,18 @@ const tempoTrascorso = (dateStr) => {
     const diffWeeks = Math.floor(diffDays / 7);
     if (diffWeeks < 4) return `${diffWeeks} sett fa`;
     
-    const diffMonths = Math.floor(diffDays / 30.43);
+    const diffMonths = Math.round(diffDays / 30.43);
     if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? 'mese' : 'mesi'} fa`;
     
-    const diffYears = Math.floor(diffDays / 365.25);
-    return `${diffYears} ${diffYears === 1 ? 'anno' : 'anni'} fa`;
+    const years = Math.floor(diffMonths / 12);
+    const remainingMonths = diffMonths % 12;
+    if (remainingMonths === 0) {
+      return `${years} ${years === 1 ? 'anno' : 'anni'} fa`;
+    } else {
+      const annoStr = years === 1 ? 'anno' : 'anni';
+      const meseStr = remainingMonths === 1 ? 'mese' : 'mesi';
+      return `${years} ${annoStr} e ${remainingMonths} ${meseStr} fa`;
+    }
   } catch (e) {
     return '';
   }

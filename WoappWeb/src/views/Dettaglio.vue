@@ -5376,6 +5376,17 @@ const handleTouchEnd = (e) => {
 
 // Carica l'esercizio ed estrai i dati
 const caricaDatiEsercizio = async () => {
+  // Reset completo dello storico dell'esercizio precedente per evitare "leak" visivi o logici
+  previousWorkout.value = null;
+  for (let w = 1; w <= 6; w++) {
+    inputSettimanePrecedente.value[w].ins = '';
+    inputSettimanePrecedente.value[w].reps = '';
+  }
+  numIns6ValPrecedente.value = '';
+  numFaticaw6ValPrecedente.value = '';
+  storicoEsercizio.value = [];
+  storicoEsercizioPerAiuto.value = [];
+
   // CACHE REATTIVA PER SWIPE
   const cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
   if (cachedEx) {

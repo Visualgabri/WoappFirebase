@@ -36,6 +36,17 @@
   <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto">mdi-video</v-icon>
 </h3>
         </div>
+        <v-btn
+          v-if="workout?.des_rec_report"
+          variant="flat"
+          color="amber-darken-3"
+          size="x-small"
+          class="font-weight-black rounded-lg mr-1 px-2 flex-shrink-0 align-self-center animate-pulse"
+          style="height: 26px; min-width: unset; font-size: 0.68rem;"
+          @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
+        >
+          ⏱️ {{ workout.des_rec_report }}
+        </v-btn>
         <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
 

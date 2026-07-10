@@ -34,19 +34,19 @@
 >
   <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ trendFreccia }}</span>{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }} <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8;">{{ workout.des_esercizio_2 }}</span>
   <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto">mdi-video</v-icon>
+  <v-chip
+    v-if="workout?.des_rec_report"
+    color="amber-darken-3"
+    variant="flat"
+    size="x-small"
+    class="font-weight-black text-white ml-1.5 align-center px-1.5"
+    style="font-size: 0.62rem; height: 16px; display: inline-flex; cursor: pointer; vertical-align: middle;"
+    @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
+  >
+    ⏱️ {{ workout.des_rec_report }}
+  </v-chip>
 </h3>
         </div>
-        <v-btn
-          v-if="workout?.des_rec_report"
-          variant="flat"
-          color="amber-darken-3"
-          size="x-small"
-          class="font-weight-black rounded-lg mr-1 px-2 flex-shrink-0 align-self-center animate-pulse"
-          style="height: 26px; min-width: unset; font-size: 0.68rem;"
-          @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
-        >
-          ⏱️ {{ workout.des_rec_report }}
-        </v-btn>
         <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
 

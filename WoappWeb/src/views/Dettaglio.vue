@@ -7942,7 +7942,10 @@ const rigeneraGraficoStorico = () => {
   // Initialize filter if not valid or empty
   const hasValidSelection = selectedBuckets.value.some(b => uniqueBuckets.includes(b));
   if (!hasValidSelection || selectedBuckets.value.length === 0) {
-    selectedBuckets.value = [...uniqueBuckets];
+    const areArraysEqual = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+    if (!areArraysEqual(selectedBuckets.value, uniqueBuckets)) {
+      selectedBuckets.value = [...uniqueBuckets];
+    }
   }
   
   const labels = [...new Set(dataPoints.map(p => p.label))];

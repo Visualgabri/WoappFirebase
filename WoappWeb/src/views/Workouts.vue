@@ -1053,9 +1053,9 @@
                     <div class="mr-2 flex-shrink-0 d-flex align-center justify-center" style="width: 30px; height: 30px;">
                       <v-icon
                         size="18"
-                        :color="ex['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
+                        :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : (ex['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3')"
                       >
-                        {{ ex['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
+                        {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'mdi-alert-circle' : (ex['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline') }}
                       </v-icon>
                     </div>
                     
@@ -1065,7 +1065,7 @@
                         <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                           {{ ex.num_riga_giorno }}.
                         </span>
-                        <span class="text-caption font-weight-bold text-truncate" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
+                        <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
                           <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(ex) }}</span>
                           {{ ex.des_esercizio }}
                         </span>
@@ -1088,13 +1088,13 @@
                       <v-chip 
                         v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="x-small" 
-                        color="green-darken-3" 
+                        :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                         class="font-weight-black text-white px-2 py-0.5 super-compact-weight-chip" 
                         variant="flat" 
                         style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                         :title="ex['ins_week' + settimanaAttivaGiorno]"
                       >
-                        {{ ex['ins_week' + settimanaAttivaGiorno] }}
+                        {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : ex['ins_week' + settimanaAttivaGiorno] }}
                       </v-chip>
                       <!-- If completed with simple check -->
                       <v-chip 
@@ -1154,7 +1154,7 @@
                     <!-- Dettagli Centrali Estesi (Si prendono tutto lo spazio a destra) -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative mt-1" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1 text-slate-dark pr-1" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
+                      <h4 class="font-weight-black leading-tight mb-1 pr-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : 'text-slate-dark'" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
@@ -1200,13 +1200,13 @@
                           <v-chip 
                             v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                             size="small" 
-                            color="green-darken-3" 
+                            :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                             class="font-weight-black text-white px-2 py-0" 
                             variant="flat" 
                             style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
                             @click.stop="vaiAlDettaglio(ex.id)"
                           >
-                            {{ formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
+                            {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
                           </v-chip>
                           <v-chip 
                             v-else-if="ex['ins_week' + settimanaAttivaGiorno] === '-'" 
@@ -1286,14 +1286,14 @@
                       <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
                       <v-chip
                         v-if="ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim()"
-                        color="green-darken-3"
+                        :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-3' : 'green-darken-3'"
                         size="x-small"
                         class="font-weight-black uppercase text-white animate-pulse"
                         variant="flat"
                         style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
                         @click.stop="segnaComeFattoRapido(ex)"
                       >
-                        ✔️ {{ String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
+                        {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : '✔️ ' + String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
                       </v-chip>
                       
                       <v-chip
@@ -1312,7 +1312,7 @@
                     <!-- Dettagli Centrali -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
@@ -1409,9 +1409,9 @@
                   <div class="mr-2 flex-shrink-0 d-flex align-center justify-center" style="width: 30px; height: 30px;">
                     <v-icon
                       size="18"
-                      :color="block.exercise['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3'"
+                      :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : (block.exercise['ins_week' + settimanaAttivaGiorno] ? 'green-darken-3' : 'grey-darken-3')"
                     >
-                      {{ block.exercise['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline' }}
+                      {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'mdi-alert-circle' : (block.exercise['ins_week' + settimanaAttivaGiorno] ? 'mdi-check-circle' : 'mdi-circle-outline') }}
                     </v-icon>
                   </div>
                   
@@ -1421,7 +1421,7 @@
                       <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                         {{ block.exercise.num_riga_giorno }}.
                       </span>
-                      <span class="text-caption font-weight-bold text-truncate" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
+                      <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
                         <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(block.exercise) }}</span>
                         {{ block.exercise.des_esercizio }}
                       </span>
@@ -1444,13 +1444,13 @@
                     <v-chip 
                       v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                       size="x-small" 
-                      color="green-darken-3" 
+                      :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                       class="font-weight-black text-white px-2 py-0.5 super-compact-weight-chip" 
                       variant="flat" 
                       style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                       :title="block.exercise['ins_week' + settimanaAttivaGiorno]"
                     >
-                      {{ block.exercise['ins_week' + settimanaAttivaGiorno] }}
+                      {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : block.exercise['ins_week' + settimanaAttivaGiorno] }}
                     </v-chip>
                     <!-- If completed with simple check -->
                     <v-chip 
@@ -1528,7 +1528,7 @@
                 <!-- Dettagli Centrali Estesi (Si prendono tutto lo spazio a destra) -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-1" style="z-index: 2;">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1 text-slate-dark pr-1" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
+                  <h4 class="font-weight-black leading-tight mb-1 pr-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : 'text-slate-dark'" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
@@ -1574,13 +1574,13 @@
                       <v-chip 
                         v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="small" 
-                        color="green-darken-3" 
+                        :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                         class="font-weight-black text-white px-2 py-0" 
                         variant="flat" 
                         style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
                         @click.stop="vaiAlDettaglio(block.exercise.id)"
                       >
-                        {{ formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
+                        {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
                       </v-chip>
                       <v-chip 
                         v-else-if="block.exercise['ins_week' + settimanaAttivaGiorno] === '-'" 
@@ -1648,14 +1648,14 @@
                   <!-- Badge Carico Inserito o Da fare sotto l'immagine -->
                   <v-chip
                     v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim()"
-                    color="green-darken-3"
+                    :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-3' : 'green-darken-3'"
                     size="x-small"
                     class="font-weight-black uppercase text-white animate-pulse"
                     variant="flat"
                     style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
                     @click.stop="segnaComeFattoRapido(block.exercise)"
                   >
-                    ✔️ {{ String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
+                    {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : '✔️ ' + String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
                   </v-chip>
                   
                   <v-chip
@@ -1674,7 +1674,7 @@
                 <!-- Dettagli Centrali -->
                 <div class="flex-grow-1 text-left min-width-0">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}

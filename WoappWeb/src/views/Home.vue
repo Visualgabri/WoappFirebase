@@ -36,7 +36,20 @@
           </div>
         </div>
       </div>
-      <div class="flex-shrink-0">
+      <div class="flex-shrink-0 d-flex align-center gap-2">
+        <v-btn
+          v-if="ruolo === 'coach'"
+          color="orange-darken-3"
+          variant="flat"
+          size="small"
+          class="font-weight-black text-none rounded-lg px-2.5"
+          style="height: 32px; font-size: 0.72rem !important; box-shadow: 0 0 10px rgba(249, 115, 22, 0.3) !important;"
+          @click="avviaAllenamentoGabriele"
+          id="btn-play-gabriele"
+        >
+          <v-icon size="14" class="mr-1">mdi-play-circle</v-icon>
+          GABRIELE
+        </v-btn>
         <v-btn
           icon
           color="orange-darken-3"
@@ -2774,6 +2787,32 @@ const eseguiResetDati = () => {
 // Naviga subito ai workouts
 const avviaAllenamento = () => {
   vibraTattile(15);
+  localStorage.setItem('scrollPrimoEsercizioDaFare', 'true');
+  router.push('/');
+};
+
+// Avvia l'allenamento per l'atleta Gabriele Belmonte (ID: '1') sull'ultima scheda programmata
+const avviaAllenamentoGabriele = async () => {
+  vibraTattile(15);
+  
+  // 1. Imposta l'atleta a Gabriele Belmonte (ID: '1')
+  setSelectedAthlete('1');
+  atletaSelezionato.value = '1';
+  
+  // 2. Carica la lista dei suoi workout per identificare l'ultimo inserito
+  await caricaWorkouts();
+  
+  if (workoutsList.value.length > 0) {
+    // Il primo elemento della lista è l'ultimo mesociclo programmato (ordinato decrescente)
+    const ultimaScheda = workoutsList.value[0].num_scheda;
+    schedaSelezionata.value = ultimaScheda;
+    setSelectedSheet(ultimaScheda);
+    
+    // 3. Carica i dati completi della scheda per impostare settimanaAttiva e giornoAttivo correttamente
+    await caricaDatiScheda();
+  }
+  
+  // 4. Avvia l'allenamento navigando alla pagina dei Workouts
   localStorage.setItem('scrollPrimoEsercizioDaFare', 'true');
   router.push('/');
 };

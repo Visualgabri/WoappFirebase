@@ -2811,7 +2811,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -5298,6 +5298,17 @@ watch(() => route.params.id, (nuovoId) => {
   }
 });
 
+watch(workout, (nuovoWorkout) => {
+  if (nuovoWorkout) {
+    const keyIdCliente = Object.keys(nuovoWorkout).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    const atletaId = nuovoWorkout[keyIdCliente] || '';
+    const giorno = nuovoWorkout.des_giorno || '';
+    if (atletaId && giorno) {
+      localStorage.setItem('giornoAttivo_' + atletaId, giorno);
+    }
+  }
+}, { deep: true });
+
 // Allineato alla settimana attiva globale per evitare disallineamenti di visualizzazione dei giorni completati
 
 const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
@@ -5420,8 +5431,12 @@ const caricaDatiEsercizio = async () => {
   storicoEsercizio.value = [];
   storicoEsercizioPerAiuto.value = [];
 
-  // CACHE REATTIVA PER SWIPE
-  const cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+  // CACHE REATTIVA PER SWIPE E CARICAMENTO IMMEDIATO
+  let cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+  if (!cachedEx && globalStoryboard.value && globalStoryboard.value.length > 0) {
+    cachedEx = globalStoryboard.value.find(ex => String(ex.id) === String(routeIdLocal.value) || String(ex.num_riga) === String(routeIdLocal.value));
+  }
+
   if (cachedEx) {
     workout.value = applicaModificheLocali({ ...cachedEx });
     const keyIdCliente = Object.keys(cachedEx).find(k => k.includes('ID_cliente')) || 'ID_cliente';
@@ -5456,14 +5471,27 @@ const caricaDatiEsercizio = async () => {
     numFaticaw6Val.value = workout.value.num_faticaw6 || '';
     indRepsStartVal.value = workout.value.ind_reps_start || '';
 
-    await caricaEsercizioPrecedente();
-    indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
-    try {
-      await caricaDatiAnalisi(settimanaAttiva.value);
-    } catch (errAnalisi) {
-      console.warn("Errore caricamento dati analisi eager:", errAnalisi);
-    }
+    // Nascondi immediatamente lo spinner per apertura istantanea
     caricamento.value = false;
+
+    // Carica il completamento del giorno (Riga 0) e l'elenco esercizi per lo swipe in background
+    const desGiorno = workout.value.des_giorno;
+    if (atletaId && schemaRef && desGiorno) {
+      caricaRiga0(keyIdCliente, atletaId, schemaRef, desGiorno).then(() => {
+        determinaSettimanaAttivaGiorno();
+      });
+      caricaListaEserciziGiorno(keyIdCliente, atletaId, schemaRef, desGiorno);
+    }
+
+    // Carica l'esercizio precedente e l'analisi in background
+    caricaEsercizioPrecedente().then(() => {
+      indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
+    });
+    
+    caricaDatiAnalisi(settimanaAttiva.value).catch(errAnalisi => {
+      console.warn("Errore caricamento dati analisi eager:", errAnalisi);
+    });
+
     return;
   }
 

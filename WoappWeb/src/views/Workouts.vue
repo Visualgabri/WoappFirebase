@@ -3124,7 +3124,10 @@ const aggiornaDatiDaStore = () => {
     return !header || !isCmpTrue(header['cmp' + activeW]);
   });
 
-  if (!currentDay || !currentDayExists || currentDayCompleted || settimanaNuova) {
+  // SE STIAMO TORNANDO DA UN DETTAGLIO, EVITIAMO DI FARE AUTO-SELEZIONE DEL GIORNO PER PRESERVARE LA POSIZIONE DELL'UTENTE
+  const haUltimoEsercizioDettaglio = !!localStorage.getItem('ultimoEsercizioDettaglio');
+
+  if (!haUltimoEsercizioDettaglio && (!currentDay || !currentDayExists || currentDayCompleted || settimanaNuova)) {
     let giornoDaFare = '';
     for (const g of giorniList) {
       const header = temporanei.find(

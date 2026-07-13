@@ -1019,8 +1019,8 @@
               </v-row>
             </div>
           </div>
-            <!-- Option B (dentro la week attiva): se posizionamentoSuperset === 'dentro_week' e sett === settimanaAttiva -->
-            <div v-if="infoSuperset.inSuperset && posizionamentoSuperset === 'dentro_week' && sett === settimanaAttiva" class="mt-4 border-top-soft pt-3 animate-fade-in">
+            <!-- Option B (dentro la week attiva): se renderSupersetPosizione === 'dentro_week' e sett === settimanaAttiva -->
+            <div v-if="infoSuperset.inSuperset && renderSupersetPosizione === 'dentro_week' && sett === settimanaAttiva" class="mt-4 border-top-soft pt-3 animate-fade-in">
               <div 
                 class="text-left position-relative"
                 :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"
@@ -1118,8 +1118,8 @@
             </div>
           </v-card>
 
-          <!-- Option A (sotto la week attiva): se posizionamentoSuperset === 'sotto_week' e sett === settimanaAttiva -->
-          <div v-if="infoSuperset.inSuperset && posizionamentoSuperset === 'sotto_week' && sett === settimanaAttiva" :class="layoutCorrente === 'super_compatto' ? 'mb-2.5 mt-0.5' : (layoutCorrente === 'compatto' ? 'mb-4 mt-1' : 'mb-6 mt-1')">
+          <!-- Option A (sotto la week attiva): se renderSupersetPosizione === 'sotto_week' e sett === settimanaAttiva -->
+          <div v-if="infoSuperset.inSuperset && renderSupersetPosizione === 'sotto_week' && sett === settimanaAttiva" :class="layoutCorrente === 'super_compatto' ? 'mb-2.5 mt-0.5' : (layoutCorrente === 'compatto' ? 'mb-4 mt-1' : 'mb-6 mt-1')">
             <div 
               class="text-left position-relative animate-fade-in"
               :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"
@@ -1284,11 +1284,14 @@
                   class="w-100 card-glass border"
                   :style="{ height: layoutCorrente === 'super_compatto' ? '30px' : (layoutCorrente === 'compatto' ? '34px' : '38px') }"
                 >
-                  <v-btn value="sotto_week" class="font-weight-bold flex-grow-1" id="btn-toggle-sotto-week" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : (layoutCorrente === 'compatto' ? '0.74rem' : '0.80rem') }">
-                    <v-icon :size="layoutCorrente === 'super_compatto' ? 11 : (layoutCorrente === 'compatto' ? 13 : 16)" class="mr-1">mdi-arrow-down-bold-box-outline</v-icon> Sotto Week
+                  <v-btn value="auto" class="font-weight-bold flex-grow-1" id="btn-toggle-auto" style="min-width: 33%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.76rem') }">
+                    <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : (layoutCorrente === 'compatto' ? 12 : 14)" class="mr-1">mdi-auto-fix</v-icon> Auto
                   </v-btn>
-                  <v-btn value="dentro_week" class="font-weight-bold flex-grow-1" id="btn-toggle-dentro-week" style="min-width: 50%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : (layoutCorrente === 'compatto' ? '0.74rem' : '0.80rem') }">
-                    <v-icon :size="layoutCorrente === 'super_compatto' ? 11 : (layoutCorrente === 'compatto' ? 13 : 16)" class="mr-1">mdi-arrow-collapse-all</v-icon> Dentro Week
+                  <v-btn value="sotto_week" class="font-weight-bold flex-grow-1" id="btn-toggle-sotto-week" style="min-width: 33%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.76rem') }">
+                    <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : (layoutCorrente === 'compatto' ? 12 : 14)" class="mr-1">mdi-arrow-down-bold-box-outline</v-icon> Sotto Week
+                  </v-btn>
+                  <v-btn value="dentro_week" class="font-weight-bold flex-grow-1" id="btn-toggle-dentro-week" style="min-width: 33%; height: 100%;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : (layoutCorrente === 'compatto' ? '0.70rem' : '0.76rem') }">
+                    <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : (layoutCorrente === 'compatto' ? 12 : 14)" class="mr-1">mdi-arrow-collapse-all</v-icon> Dentro Week
                   </v-btn>
                 </v-btn-toggle>
               </template>
@@ -1296,8 +1299,9 @@
                 * <strong>Dinamica</strong>: Mette in evidenza la settimana attiva ordinando le altre in sequenza.<br>
                 * <strong>Fissa</strong>: Mostra la progressione lineare classica dalla settimana 1 alla 6.<br>
                 <template v-if="infoSuperset.inSuperset">
-                  * <strong>Sotto Week</strong>: Il box superserie si posiziona subito all'esterno sotto la settimana attiva.<br>
-                  * <strong>Dentro Week</strong>: Il box superserie si inserisce direttamente dentro la scheda della settimana attiva.
+                  * <strong>Auto</strong>: Il box si posiziona dentro se non c'è recupero, o sotto se c'è recupero.<br>
+                  * <strong>Sotto Week</strong>: Il box si posiziona sempre subito all'esterno sotto la settimana attiva.<br>
+                  * <strong>Dentro Week</strong>: Il box si inserisce sempre direttamente dentro la settimana attiva.
                 </template>
               </p>
             </div>
@@ -5067,7 +5071,21 @@ const caricaEsercizioPrecedente = async () => {
 
 const stileStorico = ref('tabella');
 const modalitaSettimane = ref('dinamica');
-const posizionamentoSuperset = ref('sotto_week');
+const posizionamentoSuperset = ref('auto');
+
+// Computed per decidere il posizionamento reale del box superset
+const renderSupersetPosizione = computed(() => {
+  if (posizionamentoSuperset.value === 'sotto_week') return 'sotto_week';
+  if (posizionamentoSuperset.value === 'dentro_week') return 'dentro_week';
+  
+  // Se è 'auto' (default), decidiamo in base al recupero:
+  // Se c'è recupero -> staccato (sotto_week)
+  // Se non c'è recupero -> attaccato (dentro_week)
+  if (workout.value && workout.value.des_rec_report) {
+    return 'sotto_week';
+  }
+  return 'dentro_week';
+});
 
 const currentAtletaId = computed(() => {
   if (!workout.value) return '';
@@ -5720,7 +5738,7 @@ const caricaDatiEsercizio = async () => {
     ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
     ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
     sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
-    posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'sotto_week';
+    posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
     inizializzaParametriProposta(atletaId);
 
     const schemaRef = workout.value?.num_scheda;
@@ -5789,7 +5807,7 @@ const caricaDatiEsercizio = async () => {
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
-      posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'sotto_week';
+      posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
       inizializzaParametriProposta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
@@ -5877,7 +5895,7 @@ const caricaEsercizioDaBackup = async () => {
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
-      posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'sotto_week';
+      posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
       inizializzaParametriProposta(atletaId);
 
       for (let w = 1; w <= 6; w++) {

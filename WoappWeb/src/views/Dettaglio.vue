@@ -47,7 +47,17 @@
             >
               {{ workout.des_settore }} ›
             </v-chip>
-            <br v-if="workout?.num_riga_giorno || workout?.des_settore">
+            <v-chip
+              v-if="infoSuperset.inSuperset"
+              color="deep-purple-accent-4"
+              variant="flat"
+              size="x-small"
+              class="font-weight-black text-white mr-1.5 px-1.5 py-0"
+              style="height: 16px; font-size: 0.58rem; display: inline-flex; vertical-align: middle; line-height: 1; letter-spacing: 0.05em;"
+            >
+              🔗 SUPERSET {{ infoSuperset.letter }} ({{ infoSuperset.currentIndex }}/{{ infoSuperset.total }})
+            </v-chip>
+            <br v-if="workout?.num_riga_giorno || workout?.des_settore || infoSuperset.inSuperset">
             <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap; vertical-align: middle;">{{ trendFreccia }}</span><span style="vertical-align: middle;">{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}</span> <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8; vertical-align: middle;">{{ workout.des_esercizio_2 }}</span>
             <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto" style="vertical-align: middle;">mdi-video</v-icon>
             <v-chip
@@ -470,43 +480,100 @@
       </div>
     </div>
 
-      <!-- Barra Laterale Superset (Opzione B) -->
-      <div v-if="workout.alf_superserie" :class="layoutCorrente === 'super_compatto' ? 'mb-2 mt-0.5' : (layoutCorrente === 'compatto' ? 'mb-3 mt-1' : 'mb-4 mt-1')">
-        <div class="text-left border-left-orange pl-3 position-relative">
-          <div class="d-flex align-center mb-1">
-            <span class="text-super-caption font-weight-black text-orange-darken-3 mr-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem' }">⚡ SUPERSET {{ workout.alf_superserie }}</span>
+      <!-- Barra Laterale Superset Riprogettata Premium (Tutte e 4 le proposte integrate) -->
+      <div v-if="infoSuperset.inSuperset" :class="layoutCorrente === 'super_compatto' ? 'mb-2 mt-0.5' : (layoutCorrente === 'compatto' ? 'mb-3 mt-1' : 'mb-4 mt-1')">
+        <div 
+          class="text-left position-relative"
+          :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"
+          :style="{
+            background: 'rgba(124, 58, 237, 0.05) !important',
+            border: '1px solid rgba(124, 58, 237, 0.2) !important',
+            borderLeft: '4px solid #7c3aed !important',
+            borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '10px !important'),
+            boxShadow: '0 4px 15px rgba(124, 58, 237, 0.05)'
+          }"
+        >
+          <!-- Intestazione con badge e modalità -->
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="d-flex align-center">
+              <v-icon color="purple-lighten-2" size="14" class="mr-1">mdi-link-variant</v-icon>
+              <span class="text-super-caption font-weight-black text-purple-lighten-3 uppercase mr-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
+                SUPERSET {{ infoSuperset.letter }}
+              </span>
+              <v-chip
+                color="deep-purple-accent-4"
+                size="x-small"
+                class="text-super-caption font-weight-black px-1.5 py-0 text-white"
+                style="height: 14px; font-size: 0.5rem; min-width: auto; line-height: 1;"
+                variant="flat"
+              >
+                {{ infoSuperset.currentIndex }} di {{ infoSuperset.total }}
+              </v-chip>
+            </div>
+            
             <span 
               class="text-super-caption font-weight-black uppercase" 
-              :class="workout.des_rec_report ? 'text-amber-lighten-2' : 'text-green-accent-3'"
+              :class="infoSuperset.isLast ? 'text-amber-lighten-2' : 'text-green-accent-3'"
               :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem', letterSpacing: '0.05em' }"
             >
-              {{ workout.des_rec_report ? 'Recupera' : 'Vola al prossimo' }}
+              <template v-if="!infoSuperset.isLast">
+                Esercizio successivo ({{ infoSuperset.currentIndex + 1 }} di {{ infoSuperset.total }})
+              </template>
+              <template v-else>
+                🔄 Fine Giro • Ricomincia (1 di {{ infoSuperset.total }})
+              </template>
             </span>
           </div>
           
+          <!-- Card dell'Esercizio Collegato -->
           <div
-            v-for="connEx in eserciziSupersetCollegati.slice(0, 1)"
-            :key="connEx.id"
-            class="d-flex align-center py-1 px-2 bg-slate-900 border-soft clickable-item"
+            v-if="infoSuperset.nextExercise"
+            class="d-flex align-center py-2 px-3 bg-slate-900 border-soft clickable-item"
             :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : (layoutCorrente === 'compatto' ? 'rounded-md' : 'rounded-lg')"
-            @click="vaiAdEsercizioCollegato(connEx.id)"
-            style="cursor: pointer;"
+            @click="vaiAdEsercizioCollegato(infoSuperset.nextExercise.id)"
+            style="cursor: pointer; background-color: rgba(255, 255, 255, 0.03) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important;"
           >
-            <div class="overflow-hidden mr-2 bg-black border-soft" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded'" :style="{ width: layoutCorrente === 'super_compatto' ? '24px' : '32px', height: layoutCorrente === 'super_compatto' ? '24px' : '32px', flexShrink: 0 }">
-              <v-img :src="getGifUrl(connEx.UrlNormal)" :width="layoutCorrente === 'super_compatto' ? 24 : 32" :height="layoutCorrente === 'super_compatto' ? 24 : 32" cover></v-img>
+            <div class="overflow-hidden mr-2.5 bg-black border-soft" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded'" :style="{ width: layoutCorrente === 'super_compatto' ? '28px' : '36px', height: layoutCorrente === 'super_compatto' ? '28px' : '36px', flexShrink: 0 }">
+              <v-img :src="getGifUrl(infoSuperset.nextExercise.UrlNormal)" :width="layoutCorrente === 'super_compatto' ? 28 : 36" :height="layoutCorrente === 'super_compatto' ? 28 : 36" cover></v-img>
             </div>
+            
             <div class="flex-grow-1 text-truncate">
-              <div class="text-caption font-weight-black text-white text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem !important' : '0.75rem !important' }">
-                {{ connEx.des_esercizio }}
-                <v-icon v-if="connEx.flg_video === 'true' || connEx.flg_video === true" color="orange" size="12" class="ml-1" title="Video richiesto">mdi-video</v-icon>
+              <div class="text-caption font-weight-black text-white text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem !important' : '0.78rem !important' }">
+                {{ infoSuperset.nextExercise.des_esercizio }}
+                <v-icon v-if="infoSuperset.nextExercise.flg_video === 'true' || infoSuperset.nextExercise.flg_video === true" color="orange" size="12" class="ml-1" title="Video richiesto">mdi-video</v-icon>
               </div>
-              <div class="text-super-caption text-orange-lighten-2 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem' }">{{ formatPrescrizioneSuperset(connEx) }}</div>
+              <div class="text-super-caption text-purple-lighten-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
+                Prescrizione: {{ formatPrescrizioneSuperset(infoSuperset.nextExercise) }}
+              </div>
             </div>
-            <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16" color="green-accent-3" class="ml-1">mdi-arrow-right-circle</v-icon>
+            
+            <!-- Bottone VAI chiaro -->
+            <v-btn 
+              variant="flat" 
+              color="deep-purple-accent-4" 
+              size="x-small" 
+              class="font-weight-black text-none ml-2 px-2.5" 
+              style="height: 24px; font-size: 0.65rem; border-radius: 4px; letter-spacing: 0.05em;"
+            >
+              {{ infoSuperset.isLast ? 'Giro 2 ➔' : 'VAI ➔' }}
+            </v-btn>
           </div>
           
-          <div v-if="eserciziSupersetCollegati.length > 1" class="text-super-caption text-muted mt-1 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.52rem', letterSpacing: '0.05em' }">
-             + ALTRI {{ eserciziSupersetCollegati.length - 1 }} ESERCIZI NELLA SERIE
+          <!-- Messaggio di recupero se è l'ultimo esercizio del superset -->
+          <div v-if="infoSuperset.isLast && workout.des_rec_report" class="d-flex align-center justify-space-between mt-2 pt-2 border-top-soft">
+            <span class="text-super-caption text-muted font-weight-medium">
+              ⚠️ Completa questa serie e poi recupera.
+            </span>
+            <v-chip
+              color="amber-darken-3"
+              variant="flat"
+              size="x-small"
+              class="font-weight-black text-white px-2 py-0"
+              style="font-size: 0.58rem; height: 16px; cursor: pointer; line-height: 1;"
+              @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
+            >
+              ⏱️ RECUPERO: {{ workout.des_rec_report }}
+            </v-chip>
           </div>
         </div>
       </div>
@@ -4162,6 +4229,77 @@ const eserciziSupersetCollegati = computed(() => {
                       (itemId && itemId === currentNumRiga) || (itemNumRiga && itemNumRiga === currentNumRiga);
     return !isCurrent;
   });
+});
+
+// Info dettagliate sulla superserie per la UI
+const infoSuperset = computed(() => {
+  if (!workout.value || !workout.value.alf_superserie || tuttiEserciziGiorno.value.length === 0) {
+    return { inSuperset: false, letter: '', total: 0, currentIndex: 0, nextExercise: null, isLast: false };
+  }
+  
+  const blocks = [];
+  let currentSuperset = null;
+  
+  tuttiEserciziGiorno.value.forEach((ex) => {
+    const ss = (ex.alf_superserie || '').trim().toUpperCase();
+    if (ss) {
+      if (currentSuperset && currentSuperset.letter === ss) {
+        currentSuperset.exercises.push(ex);
+      } else {
+        currentSuperset = {
+          type: 'superset',
+          letter: ss,
+          exercises: [ex]
+        };
+        blocks.push(currentSuperset);
+      }
+    } else {
+      currentSuperset = null;
+      blocks.push({
+        type: 'single',
+        exercise: ex
+      });
+    }
+  });
+  
+  const currentId = String(routeIdLocal.value || '');
+  const currentNumRiga = workout.value?.num_riga ? String(workout.value.num_riga) : '';
+  
+  const targetBlock = blocks.find(
+    block => block.type === 'superset' && block.exercises.some(item => {
+      const itemId = String(item.id || '');
+      const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
+      return (itemId && itemId === currentId) || (itemNumRiga && itemNumRiga === currentId) ||
+             (itemId && itemId === currentNumRiga) || (itemNumRiga && itemNumRiga === currentNumRiga);
+    })
+  );
+  
+  if (!targetBlock) {
+    return { inSuperset: false, letter: '', total: 0, currentIndex: 0, nextExercise: null, isLast: false };
+  }
+  
+  const idx = targetBlock.exercises.findIndex(item => {
+    const itemId = String(item.id || '');
+    const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
+    return (itemId && itemId === currentId) || (itemNumRiga && itemNumRiga === currentId) ||
+           (itemId && itemId === currentNumRiga) || (itemNumRiga && itemNumRiga === currentNumRiga);
+  });
+  
+  const total = targetBlock.exercises.length;
+  const currentIndex = idx + 1;
+  const isLast = currentIndex === total;
+  
+  // Se è l'ultimo, il prossimo esercizio per ricominciare il giro è il primo del blocco
+  const nextExercise = isLast ? targetBlock.exercises[0] : targetBlock.exercises[idx + 1];
+  
+  return {
+    inSuperset: true,
+    letter: targetBlock.letter,
+    total,
+    currentIndex,
+    nextExercise,
+    isLast
+  };
 });
 
 // Formatta la prescrizione sintetica di un esercizio collegato in superserie (serie x reps)

@@ -75,6 +75,21 @@ async function commitBatchOperations(operations) {
   }
 }
 
+function formatExcelDate(serial) {
+  if (serial === undefined || serial === null || serial === '') return '';
+  const num = Number(serial);
+  if (isNaN(num)) return String(serial).trim();
+  
+  const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+  const dateMs = excelEpoch.getTime() + (num * 86400 * 1000);
+  const date = new Date(dateMs);
+  
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 function areRecordsEqual(rec1, rec2) {
   const keys1 = Object.keys(rec1);
   const keys2 = Object.keys(rec2);
@@ -134,7 +149,13 @@ async function run() {
       const wtRecord = {};
       for (const [key, value] of Object.entries(wtRows[0])) {
         const cleanKey = key.trim().replace(/^\uFEFF/, '');
-        wtRecord[cleanKey] = value !== undefined && value !== null ? String(value).trim() : '';
+        let cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
+        
+        if ((cleanKey === 'dat_data' || cleanKey === 'dat_scadenza') && cleanVal !== '') {
+          cleanVal = formatExcelDate(cleanVal);
+        }
+        
+        wtRecord[cleanKey] = cleanVal;
       }
       const docId = `${idCliente}_${numScheda}`;
       await db.collection('WORKOUT_T').doc(docId).set(wtRecord, { merge: true });

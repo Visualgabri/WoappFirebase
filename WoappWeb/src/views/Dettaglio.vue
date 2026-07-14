@@ -724,171 +724,98 @@
           </div>
 
           <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5' : (layoutCorrente === 'compatto' ? 'mt-2 mb-0.5' : 'mt-3.5 mb-1'), 'position-relative']">
-            <div v-if="getGhostLiftSmart(sett)" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5 px-1 animate-fade-in' : 'mb-1.5 px-1 animate-fade-in'">
-              <div class="d-flex align-center justify-space-between">
-                <span v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato" class="text-super-caption text-red-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="red-lighten-2">mdi-bandage</v-icon>
-                  <span>PROPOSTA COMFORT (-20%):</span>
-                  <span class="text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    {{ formatWeight(getGhostLiftSmart(sett).peso || getGhostLiftSmart(sett).suggerito || getGhostLiftSmart(sett).pesoProposto) }} kg
-                  </span>
-                </span>
-                <span v-else-if="getGhostLiftSmart(sett).isMetodo" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-cog-play-outline</v-icon>
-                  <span>{{ getGhostLiftSmart(sett).metodoLabel }}:</span>
-                  <span class="text-white font-weight-black ml-1 d-inline-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    <span>{{ getGhostLiftSmart(sett).text }}</span>
-                    <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.82rem' }">
-                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
+            <div v-if="getGhostRenderInfo(sett)" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5 px-1 animate-fade-in' : 'mb-1.5 px-1 animate-fade-in'">
+              <div class="d-flex flex-column text-left">
+                <!-- RIGA 1: Carico Consigliato + Badge / Icone -->
+                <div class="d-flex align-center justify-space-between w-100">
+                  <div class="d-flex align-center gap-1.5 min-width-0">
+                    <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" :color="getGhostRenderInfo(sett).color">
+                      {{ getGhostRenderInfo(sett).icon }}
+                    </v-icon>
+                    
+                    <span class="font-weight-black text-uppercase text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', color: getGhostRenderInfo(sett).color, letterSpacing: '0.04em' }">
+                      {{ getGhostRenderInfo(sett).label }}
                     </span>
-                  </span>
-                </span>
-                <span v-else-if="getGhostLiftSmart(sett).isMandatory" class="text-super-caption text-red-lighten-1 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="red-lighten-1">mdi-alert-decagram-outline</v-icon>
-                  <span>{{ getGhostLiftSmart(sett).mandatoryLabel }}:</span>
-                  <span class="text-white font-weight-black ml-1 d-inline-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    <span>{{ getGhostLiftSmart(sett).text }}</span>
-                    <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.82rem' }">
-                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
+                    
+                    <span class="text-green-accent-3 font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.85rem' }">
+                      {{ getGhostRenderInfo(sett).valueText }}
                     </span>
-                  </span>
-                </span>
-                <span v-else-if="getGhostLiftSmart(sett).isOverload" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">
-                    {{ getGhostLiftSmart(sett).peso > getGhostLiftSmart(sett).pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral' }}
-                  </v-icon>
-                  <span>
-                    {{ getGhostLiftSmart(sett).peso > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di ' : 'Mantieni peso di ' }}
-                  </span>
-                  <span class="text-white font-weight-black ml-1 d-inline-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    <span>{{ getGhostLiftSmart(sett).text }}</span>
-                    <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.82rem' }">
-                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
-                    </span>
-                  </span>
-                </span>
-                <span v-else-if="getGhostLiftSmart(sett).isPostScarico" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">
-                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral' }}
-                  </v-icon>
-                  <span>
-                    {{ getGhostLiftSmart(sett).pesoProposto > getGhostLiftSmart(sett).pesoBaseOriginale ? 'Aumenta peso, metti più di' : 'Mantieni peso di' }} {{ getGhostLiftSmart(sett).label }} (Proposto: <span class="text-green-accent-3 font-weight-black">{{ stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett) ? getGhostWeightsRangeText(sett) : formatWeight(getGhostLiftSmart(sett).pesoProposto) + ' kg' }}</span>) - Pesi di {{ getGhostLiftSmart(sett).label }}:
-                  </span>
-                  <span class="text-white font-weight-black ml-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
-                    {{ getGhostLiftSmart(sett).text }}
-                  </span>
-                </span>
-                <!-- isWeek1 con errore carichi -->
-                <span v-else-if="getGhostLiftSmart(sett).isWeek1 && getGhostLiftSmart(sett).erroreCarichi" class="text-super-caption text-red-accent-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="red-accent-2">
-                    mdi-alert-circle-outline
-                  </v-icon>
-                  <span class="text-red-lighten-3">Carica il Miglior Carico W6 per la stima</span>
-                </span>
-                <!-- isWeek1 corpo libero: mostra solo i reps del mesociclo precedente, senza proposta kg -->
-                <span v-else-if="getGhostLiftSmart(sett).isWeek1 && getGhostLiftSmart(sett).isRepExercise" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
-                    mdi-ghost-outline
-                  </v-icon>
-                  <span>Reps prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}:</span>
-                  <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
-                    {{ getGhostLiftSmart(sett).text }}r
-                  </span>
-                  <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'" class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
-                    - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
-                  </span>
+                  </div>
+                  
+                  <div class="d-flex align-center gap-1">
+                    <!-- Tasto sblocca progressione per infortunio -->
+                    <v-btn
+                      v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato && sett === settimanaAttiva"
+                      variant="flat"
+                      color="red-darken-3"
+                      size="x-small"
+                      class="font-weight-black text-none mr-1 px-1.5 py-0"
+                      style="height: 18px; font-size: 0.58rem; border-radius: 4px;"
+                      @click.stop="ghostSbloccato = true"
+                    >
+                      Sblocca
+                    </v-btn>
+                    <v-chip
+                      v-else-if="getGhostLiftSmart(sett).isGhostInfortunio && ghostSbloccato && sett === settimanaAttiva"
+                      color="green-accent-4"
+                      variant="flat"
+                      size="x-small"
+                      style="height: 16px; font-size: 0.55rem;"
+                      class="font-weight-black text-white px-1.5 mr-1"
+                    >
+                      Sbloccato
+                    </v-chip>
 
-                </span>
-                <!-- isWeek1 con peso kg: mostra proposta kg -->
-                <span v-else-if="getGhostLiftSmart(sett).isWeek1" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="orange-lighten-2">
-                    mdi-ghost-outline
-                  </v-icon>
-                  <span>Proposto W1:</span>
-                  <span class="text-green-accent-3 font-weight-black" :style="layoutCorrente === 'super_compatto' ? 'font-size: 0.75rem;' : 'font-size: 0.82rem;'">
-                    {{ formatWeight(getGhostLiftSmart(sett).suggerito) }} kg
-                  </span>
-                  <span class="text-muted font-weight-bold ml-1" style="text-transform: none;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.56rem' }">
-                    (prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}: {{ getGhostLiftSmart(sett).text }}kg <span v-if="getGhostLiftSmart(sett).reps">x{{ getGhostLiftSmart(sett).reps }}r</span><span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'"> - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span></span>)
-                  </span>
-                  <span v-if="sfidaRecordWeek1 && getGhostLiftSmart(sett).recordVal" class="text-amber-lighten-1 ml-1 font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
-                    🏆 Record: {{ formatWeight(getGhostLiftSmart(sett).recordVal) }} kg
-                  </span>
-                  <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" style="text-transform: none;" title="Metti il Miglior Carico W6 per una stima più precisa">
-                    ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }} ((metti miglior carico W6 su precedente!))
-                  </span>
-                </span>
-                <span v-else-if="getGhostLiftSmart(sett).isScarico" class="text-super-caption text-amber-lighten-2 font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="amber-lighten-2">
-                    mdi-battery-charging-40
-                  </v-icon>
-                  <span>
-                    Scarico: usa <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }} kg</span> (W2)
-                    <template v-if="scaricoWeek4Weights.pesoW3">
-                      • max <span class="text-green-accent-3 font-weight-black">{{ formatWeight(scaricoWeek4Weights.pesoW3) }} kg</span> (W3)
-                    </template>
-                  </span>
-                </span>
-                <span v-else class="text-super-caption text-muted font-weight-bold uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 10 : 12" color="grey">
-                    mdi-ghost-outline
-                  </v-icon>
-                  <span>
-                    {{ getGhostLiftSmart(sett).isRepExercise ? 'Reps di' : 'Pesi di' }} {{ getGhostLiftSmart(sett).label }}:
-                  </span>
-                  <span class="font-weight-black ml-1 text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }">
-                    {{ getGhostLiftSmart(sett).text }}{{ getGhostLiftSmart(sett).isRepExercise ? 'r' : '' }}
-                  </span>
-                  <span v-if="stileVisualizzazioneGhost === 'range' && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeText(sett)" class="ml-1 text-green-accent-3 font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '' }">
-                    (Proposto: {{ getGhostWeightsRangeText(sett) }})
-                  </span>
-                </span>
-                <div class="d-flex align-center gap-1">
-                  <!-- Tasto sblocca progressione per infortunio -->
-                  <v-btn
-                    v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato && sett === settimanaAttiva"
-                    variant="flat"
-                    color="red-darken-3"
-                    size="x-small"
-                    class="font-weight-black text-none mr-1 px-1.5 py-0"
-                    style="height: 18px; font-size: 0.58rem; border-radius: 4px;"
-                    @click.stop="ghostSbloccato = true"
-                  >
-                    Sblocca Progressione
-                  </v-btn>
-                  <v-chip
-                    v-else-if="getGhostLiftSmart(sett).isGhostInfortunio && ghostSbloccato && sett === settimanaAttiva"
-                    color="green-accent-4"
-                    variant="flat"
-                    size="x-small"
-                    style="height: 16px; font-size: 0.55rem;"
-                    class="font-weight-black text-white px-1.5 mr-1"
-                  >
-                    Sbloccato
-                  </v-chip>
+                    <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="apriAiutoCaricoDettagliato(sett)">
+                      {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
+                    </span>
 
-                  <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="apriAiutoCaricoDettagliato(sett)">
-                    {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
-                  </span>
-                  <v-icon v-if="getGhostStatus(sett) === 'up'" color="green-accent-3" :size="layoutCorrente === 'super_compatto' ? 12 : 14" class="animate-pulse">mdi-fire</v-icon>
-                  <v-icon v-else-if="getGhostStatus(sett) === 'down'" color="blue-lighten-2" :size="layoutCorrente === 'super_compatto' ? 12 : 14">mdi-trending-up</v-icon>
-                  <v-btn
-                    icon
-                    variant="text"
-                    color="orange-lighten-2"
-                    :size="layoutCorrente === 'super_compatto' ? '18px' : '22px'"
-                    class="ml-1"
-                    @click.stop="apriAiutoCaricoDettagliato(sett)"
-                    title="Proposta carico smart"
-                  >
-                    <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 15">mdi-lightbulb-on-outline</v-icon>
-                  </v-btn>
+                    <span class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
+                      💡
+                    </span>
+                  </div>
+                </div>
+
+                <!-- RIGA 2: Dettagli di Riferimento Storico (Muted, più piccolo) -->
+                <div v-if="getGhostRenderInfo(sett).hasReference" class="text-muted mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.60rem' }" style="padding-left: 16px; text-transform: none;">
+                  <!-- Caso Week 1 -->
+                  <template v-if="getGhostLiftSmart(sett).isWeek1">
+                    (prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}: 
+                    <strong class="text-slate-light">{{ getGhostLiftSmart(sett).text }}kg</strong>
+                    <span v-if="getGhostLiftSmart(sett).reps">
+                      x<strong :class="getColoreRepsPrecedentiClass(sett, getGhostLiftSmart(sett).reps)">{{ getGhostLiftSmart(sett).reps }}</strong>r
+                    </span>
+                    <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'">
+                      - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
+                    </span>)
+                    <span v-if="sfidaRecordWeek1 && getGhostLiftSmart(sett).recordVal" class="text-amber-lighten-1 ml-1.5 font-weight-bold">
+                      🏆 Record: {{ formatWeight(getGhostLiftSmart(sett).recordVal) }} kg
+                    </span>
+                    <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" title="Carica il Miglior Carico W6 per una stima più precisa">
+                      ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }}
+                    </span>
+                  </template>
+                  
+                  <!-- Caso Scarico -->
+                  <template v-else-if="getGhostLiftSmart(sett).isScarico">
+                    Usa <span class="text-green-accent-3 font-weight-bold">{{ formatWeight(getGhostLiftSmart(sett).peso) }} kg</span> (W2)
+                    <span v-if="scaricoWeek4Weights.pesoW3">
+                      • max <span class="text-green-accent-3 font-weight-bold">{{ formatWeight(scaricoWeek4Weights.pesoW3) }} kg</span> (W3)
+                    </span>
+                  </template>
+                  
+                  <!-- Caso Post Scarico o Altro con Range -->
+                  <template v-else>
+                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold">
+                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
+                    </span>
+                  </template>
                 </div>
               </div>
-              
-              <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-                💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>
-              </div>
+            </div>
+            
+            <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
+              💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>
             </div>
 
             <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
@@ -3945,6 +3872,11 @@ const getGhostWeightsRangeForWeek = (sett) => {
     let medio = defaultPeso;
     let max = 0;
     
+    // Evita il collasso delle opzioni (Prudenziale uguale a Consigliato)
+    if (min === medio && defaultPeso - step > 0) {
+      min = defaultPeso - step;
+    }
+    
     const recordVal = sfidaRecordWeek1.value ? ghost.recordVal : null;
     if (recordVal && recordVal > 0) {
       if (recordVal >= defaultPeso) {
@@ -3956,55 +3888,43 @@ const getGhostWeightsRangeForWeek = (sett) => {
       } else {
         max = medio + step;
       }
-      
-      const isBeatingRecord = max > recordVal;
-      const isEqualingRecord = max === recordVal;
-      let sfidanteLabel = 'Sfidante';
-      if (isBeatingRecord) {
+    } else {
+      max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
+    }
+    
+    // Evita il collasso delle opzioni (Sfidante uguale a Consigliato)
+    if (max === medio) {
+      max = defaultPeso + step;
+    }
+    
+    let sfidanteLabel = 'Sfidante';
+    if (recordVal && recordVal > 0) {
+      if (max > recordVal) {
         sfidanteLabel = `🏆 Supera Record (${formatWeight(recordVal)}kg)`;
-      } else if (isEqualingRecord) {
+      } else if (max === recordVal) {
         sfidanteLabel = `🏆 Eguaglia Record (${formatWeight(recordVal)}kg)`;
       } else {
         sfidanteLabel = `Sfidante (Record: ${formatWeight(recordVal)}kg)`;
       }
-      
-      return {
-        prudenziale: {
-          value: String(min),
-          display: `${formatWeight(min)} kg`,
-          label: 'Prudenziale'
-        },
-        consigliato: {
-          value: String(medio),
-          display: `${formatWeight(medio)} kg`,
-          label: 'Consigliato'
-        },
-        sfidante: {
-          value: String(max),
-          display: `${formatWeight(max)} kg`,
-          label: sfidanteLabel
-        }
-      };
-    } else {
-      max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
-      return {
-        prudenziale: {
-          value: String(min),
-          display: `${formatWeight(min)} kg`,
-          label: 'Prudenziale'
-        },
-        consigliato: {
-          value: String(medio),
-          display: `${formatWeight(medio)} kg`,
-          label: 'Consigliato'
-        },
-        sfidante: {
-          value: String(max),
-          display: `${formatWeight(max)} kg`,
-          label: 'Sfidante'
-        }
-      };
     }
+
+    return {
+      prudenziale: {
+        value: String(min),
+        display: `${formatWeight(min)} kg`,
+        label: 'Prudenziale'
+      },
+      consigliato: {
+        value: String(medio),
+        display: `${formatWeight(medio)} kg`,
+        label: 'Consigliato'
+      },
+      sfidante: {
+        value: String(max),
+        display: `${formatWeight(max)} kg`,
+        label: sfidanteLabel
+      }
+    };
   }
 
   if (ghost.isScarico) {
@@ -4114,6 +4034,99 @@ const getGhostWeightsRangeText = (sett) => {
   const last = range.sfidante.display.replace(/\s*kg/gi, '').trim();
   if (first === last) return first;
   return `${first} - ${last}`;
+};
+
+const getColoreRepsPrecedentiClass = (sett, prevReps) => {
+  if (prevReps === undefined || prevReps === null) return '';
+  const info = getBaseWeekInfo(sett);
+  const repsTarget = info ? info.repsTarget : getRepsPerWeek(sett);
+  const pReps = parseInt(prevReps, 10);
+  const tReps = parseInt(repsTarget, 10);
+  if (isNaN(pReps) || isNaN(tReps)) return '';
+  
+  if (pReps > tReps) {
+    return 'text-red-lighten-2 font-weight-black'; // più reps -> rosso
+  } else if (pReps === tReps) {
+    return 'text-orange-lighten-2 font-weight-black'; // uguali reps -> giallo (stesso colore del lavoro)
+  } else {
+    return 'text-blue-lighten-3 font-weight-black'; // meno reps -> azzurro
+  }
+};
+
+const getGhostRenderInfo = (sett) => {
+  const ghost = getGhostLiftSmart(sett);
+  if (!ghost) return null;
+
+  let icon = 'mdi-lightbulb-on-outline';
+  let color = '#ffb74d'; // orange-lighten-2
+  let label = 'Consigliato:';
+  let valueText = '';
+  let refText = '';
+  let hasReference = false;
+
+  const isManubri = isManubriEsercizio(workout.value);
+  const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
+
+  if (ghost.isGhostInfortunio && !ghostSbloccato.value) {
+    icon = 'mdi-bandage';
+    color = '#ef4444'; // red-lighten-2
+    label = 'Proposta Comfort (-20%):';
+    valueText = `${formatWeight(ghost.peso || ghost.suggerito || ghost.pesoProposto)} kg`;
+  } else if (ghost.isScarico) {
+    icon = 'mdi-battery-charging-40';
+    color = '#fbbf24'; // amber-lighten-2
+    label = 'Scarico:';
+    valueText = `${formatWeight(ghost.peso)} kg`;
+  } else if (ghost.isMetodo) {
+    icon = 'mdi-cog-play-outline';
+    color = '#ffb74d';
+    label = `${ghost.metodoLabel}:`;
+    valueText = ghost.text;
+  } else if (ghost.isMandatory) {
+    icon = 'mdi-alert-decagram-outline';
+    color = '#f87171'; // red-lighten-1
+    label = `${ghost.mandatoryLabel}:`;
+    valueText = ghost.text;
+  } else if (ghost.isOverload) {
+    icon = ghost.peso > ghost.pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral';
+    color = '#ffb74d';
+    label = ghost.peso > ghost.pesoBaseOriginale ? 'Consigliato (Aumento):' : 'Consigliato (Mantieni):';
+    valueText = ghost.text;
+  } else if (ghost.isPostScarico) {
+    icon = ghost.pesoProposto > ghost.pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral';
+    color = '#ffb74d';
+    label = ghost.pesoProposto > ghost.pesoBaseOriginale ? 'Consigliato (Aumento):' : 'Consigliato (Mantieni):';
+    valueText = ghost.text;
+  } else if (ghost.isWeek1) {
+    icon = 'mdi-lightbulb-on-outline';
+    color = '#ffb74d';
+    label = 'Proposto W1:';
+    if (ghost.erroreCarichi) {
+      icon = 'mdi-alert-circle-outline';
+      color = '#f87171';
+      label = 'Nota:';
+      valueText = 'Carica il Miglior Carico W6 per la stima';
+    } else {
+      valueText = ghost.isRepExercise ? `${ghost.text}r` : `${formatWeight(ghost.suggerito)} kg`;
+    }
+  } else {
+    valueText = ghost.text || '';
+  }
+
+  // Costruisce la descrizione storica (Riga 2)
+  if (ghost.isWeek1 && !ghost.erroreCarichi) {
+    hasReference = true;
+  } else if (ghost.isScarico) {
+    hasReference = true;
+  } else if (ghost.isPostScarico) {
+    hasReference = true;
+  } else if (ghost.isOverload || ghost.isMetodo || ghost.isMandatory) {
+    if (stileVisualizzazioneGhost.value === 'range' && !ghost.isRepExercise && getGhostWeightsRangeText(sett)) {
+      hasReference = true;
+    }
+  }
+
+  return { icon, color, label, valueText, hasReference };
 };
 
 const applicaPropostaCaricoRapida = (sett, peso) => {

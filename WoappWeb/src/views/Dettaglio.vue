@@ -127,17 +127,18 @@
       >
         <v-icon color="red-lighten-2" class="mr-3 mt-0.5 flex-shrink-0" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-bandage</v-icon>
         <div class="text-slate-dark w-100" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineSpace: 1.35 }">
-          <div class="d-flex align-center justify-space-between w-100 mb-1">
+          <div class="d-flex align-center justify-space-between w-100 mb-1.5">
             <strong class="text-red-lighten-2 text-uppercase font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Comfort Articolare a Rischio</strong>
             <v-btn
-              variant="text"
-              color="green-accent-3"
+              variant="flat"
+              color="green-darken-2"
               size="x-small"
-              class="font-weight-black text-none py-0 px-1"
-              style="height: 18px; font-size: 0.6rem;"
+              class="font-weight-black text-none px-2 py-0 text-white rounded-lg elevation-1 d-inline-flex align-center"
+              style="height: 22px; font-size: 0.62rem;"
+              prepend-icon="mdi-check-circle"
               @click="segnaComeGuarito(infortuniAttiviEsercizio[0].id)"
             >
-              Risolto/Guarito
+              Segna Risolto/Guarito
             </v-btn>
           </div>
           <div v-for="inf in infortuniAttiviEsercizio" :key="inf.id" class="mb-1 text-slate-light">
@@ -147,7 +148,7 @@
             </span>
           </div>
           <div class="mt-1 font-weight-bold text-orange-lighten-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.68rem' }">
-            🛡️ Il Ghost propone un carico ridotto (-20%) per sicurezza.
+            🛡️ Il sistema propone un carico consigliato ridotto del 20% per sicurezza.
           </div>
         </div>
       </v-card>
@@ -727,7 +728,7 @@
               <div class="d-flex align-center justify-space-between">
                 <span v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato" class="text-super-caption text-red-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="red-lighten-2">mdi-bandage</v-icon>
-                  <span>GHOST COMFORT (-20%):</span>
+                  <span>PROPOSTA COMFORT (-20%):</span>
                   <span class="text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
                     {{ formatWeight(getGhostLiftSmart(sett).peso || getGhostLiftSmart(sett).suggerito || getGhostLiftSmart(sett).pesoProposto) }} kg
                   </span>
@@ -3078,24 +3079,24 @@
     </v-dialog>
 
     <!-- Dialog per Segnalazione Infortunio / Fastidio (Premium Glassmorphism Style) -->
-    <v-dialog v-model="dialogInfortunio" max-width="500" rounded="xl">
-      <v-card class="card-glass border border-soft text-slate-dark rounded-xl elevation-24" style="background: rgba(15, 23, 42, 0.9) !important; backdrop-filter: blur(15px); border: 1.5px solid rgba(255,255,255,0.08) !important;">
-        <v-card-title class="font-weight-black d-flex align-center justify-space-between pt-4 pb-2 border-bottom-soft" style="border-color: rgba(255,255,255,0.08) !important;">
-          <div class="d-flex align-center gap-2">
-            <v-icon color="red-lighten-2">mdi-bandage</v-icon>
-            <span style="font-size: 1.1rem; letter-spacing: 0.02em;" class="text-white">Segnala Fastidio / Infortunio</span>
+    <v-dialog v-model="dialogInfortunio" max-width="450" rounded="xl">
+      <v-card class="card-glass border border-soft text-slate-dark rounded-xl elevation-24" style="background: rgba(15, 23, 42, 0.93) !important; backdrop-filter: blur(15px); border: 1.5px solid rgba(255,255,255,0.08) !important;">
+        <v-card-title class="font-weight-black d-flex align-center justify-space-between pt-3 pb-1.5 border-bottom-soft" style="border-color: rgba(255,255,255,0.08) !important;">
+          <div class="d-flex align-center gap-1.5">
+            <v-icon color="red-lighten-2" size="small">mdi-bandage</v-icon>
+            <span style="font-size: 0.92rem; letter-spacing: 0.02em;" class="text-white">Segnala Fastidio / Infortunio</span>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="dialogInfortunio = false" color="white"></v-btn>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="dialogInfortunio = false" color="white" style="width: 28px; height: 28px;"></v-btn>
         </v-card-title>
         
-        <v-card-text class="pt-4 pb-3">
-          <p class="text-caption text-slate-light mb-4" style="color: rgba(255,255,255,0.6) !important;">
-            Registra un problema articolare riscontrato in questo esercizio. Il sistema applicherà automaticamente una riduzione del 20% sul carico target per proteggerti.
+        <v-card-text class="pt-3 pb-2 px-4" style="font-size: 0.72rem;">
+          <p class="text-slate-light mb-3" style="color: rgba(255,255,255,0.65) !important; font-size: 0.70rem !important; line-height: 1.3;">
+            Registra un problema articolare riscontrato in questo esercizio. Il sistema applicherà automaticamente una riduzione del 20% sul carico consigliato per proteggerti.
           </p>
 
           <!-- Articolazione Coinvolta -->
-          <div class="mb-4 text-left">
-            <span class="text-caption font-weight-black d-block mb-1.5 text-white">Articolazione / Zona coinvolta *</span>
+          <div class="mb-3 text-left">
+            <span class="font-weight-black d-block mb-1 text-white" style="font-size: 0.70rem; opacity: 0.9;">Articolazione / Zona coinvolta *</span>
             <v-chip-group
               v-model="infortunioArticolazione"
               column
@@ -3107,10 +3108,10 @@
                 v-for="art in listaArticolazioni"
                 :key="art"
                 :value="art"
-                size="small"
+                size="x-small"
                 variant="outlined"
                 class="rounded-lg text-white"
-                style="border-color: rgba(255,255,255,0.2) !important;"
+                style="border-color: rgba(255,255,255,0.2) !important; font-size: 0.65rem;"
               >
                 {{ art }}
               </v-chip>
@@ -3118,16 +3119,17 @@
           </div>
 
           <!-- Intensità Dolore/Fastidio (Scala 1-10) -->
-          <div class="mb-4 text-left">
-            <div class="d-flex justify-space-between align-center mb-1">
-              <span class="text-caption font-weight-black text-white">Intensità Dolore / Fastidio (1-10) *</span>
+          <div class="mb-3 text-left">
+            <div class="d-flex justify-space-between align-center mb-0.5">
+              <span class="font-weight-black text-white" style="font-size: 0.70rem; opacity: 0.9;">Intensità Dolore / Fastidio (1-10) *</span>
               <v-chip
                 :color="infortunioGravita <= 3 ? 'green' : (infortunioGravita <= 7 ? 'amber-darken-2' : 'red-darken-2')"
                 size="x-small"
-                class="font-weight-black text-white"
+                class="font-weight-black text-white px-1.5"
                 variant="flat"
+                style="height: 16px; font-size: 0.58rem;"
               >
-                {{ infortunioGravita }}/10 - {{ infortunioGravita <= 3 ? 'Lieve' : (infortunioGravita <= 7 ? 'Moderato' : 'Acuto / Stop') }}
+                {{ infortunioGravita }}/10 - {{ infortunioGravita <= 3 ? 'Lieve' : (infortunioGravita <= 7 ? 'Mod.' : 'Acuto') }}
               </v-chip>
             </div>
             <v-chip-group
@@ -3141,10 +3143,10 @@
                 v-for="num in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
                 :key="num"
                 :value="num"
-                size="small"
+                size="x-small"
                 variant="outlined"
-                class="rounded-lg px-2 text-white"
-                style="min-width: 32px; justify-content: center; border-color: rgba(255,255,255,0.2) !important;"
+                class="rounded-lg text-white"
+                style="min-width: 26px; justify-content: center; border-color: rgba(255,255,255,0.2) !important; font-size: 0.65rem; height: 22px;"
               >
                 {{ num }}
               </v-chip>
@@ -3152,29 +3154,31 @@
           </div>
 
           <!-- Note/Dettagli dell'infortunio -->
-          <div class="text-left">
-            <span class="text-caption font-weight-black d-block mb-1 text-white">Dettagli / Note aggiuntive</span>
+          <div class="text-left mb-2">
+            <span class="font-weight-black d-block mb-1 text-white" style="font-size: 0.70rem; opacity: 0.9;">Dettagli / Note aggiuntive</span>
             <v-textarea
               v-model="infortunioNote"
-              placeholder="Descrivi cosa hai avvertito (es. fitta improvvisa alla spalla nella terza serie...)"
+              placeholder="Descrivi cosa hai avvertito..."
               variant="outlined"
-              density="comfortable"
-              rows="3"
+              density="compact"
+              rows="2"
               rounded="lg"
               hide-details
               color="red-lighten-2"
               theme="dark"
-              class="text-white"
-              style="background: rgba(0,0,0,0.2);"
+              class="text-white text-caption"
+              style="background: rgba(0,0,0,0.2); font-size: 0.72rem;"
             ></v-textarea>
           </div>
         </v-card-text>
 
-        <v-card-actions class="px-4 pb-4 pt-1 justify-end gap-2 border-top-soft" style="border-color: rgba(255,255,255,0.08) !important;">
+        <v-card-actions class="px-4 pb-3 pt-1 justify-end gap-2 border-top-soft" style="border-color: rgba(255,255,255,0.08) !important;">
           <v-btn
             variant="text"
             color="white"
             class="font-weight-bold text-none rounded-lg text-white"
+            size="small"
+            style="font-size: 0.72rem;"
             @click="dialogInfortunio = false"
             :disabled="salvataggioInfortunio"
           >
@@ -3183,7 +3187,9 @@
           <v-btn
             variant="flat"
             color="red-darken-3"
-            class="font-weight-black text-none rounded-lg px-4 text-white"
+            class="font-weight-black text-none rounded-lg px-3 text-white"
+            size="small"
+            style="font-size: 0.72rem;"
             @click="confermaSegnalazioneInfortunio"
             :loading="salvataggioInfortunio"
           >

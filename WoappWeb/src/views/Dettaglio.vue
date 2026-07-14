@@ -3181,7 +3181,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -3255,8 +3255,8 @@ const stileVisualizzazioneGhost = ref('range');
 const ghostPRAttackAttivo = ref(true);
 const ghostAutoregolazioneRepsAttiva = ref(true);
 const sfidaRecordWeek1 = ref(false);
-const ottimizzaDigitazione = ref(false);
-const regolaProgressioneW2 = ref('reps');
+const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
+const regolaProgressioneW2 = regolaProgressioneW2Global;
 
 const ottieniRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;
@@ -6158,8 +6158,6 @@ const caricaDatiEsercizio = async () => {
     ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
     sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
     posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
-    ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
-    regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
     inizializzaParametriProposta(atletaId);
 
     const schemaRef = workout.value?.num_scheda;
@@ -6229,8 +6227,6 @@ const caricaDatiEsercizio = async () => {
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
       posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
-      ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
-      regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
       inizializzaParametriProposta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
@@ -6319,8 +6315,6 @@ const caricaEsercizioDaBackup = async () => {
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
       posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
-      ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
-      regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
       inizializzaParametriProposta(atletaId);
 
       for (let w = 1; w <= 6; w++) {

@@ -627,7 +627,9 @@ import {
   layoutDettaglioGlobal,
   timerThemeGlobal,
   comportamentoPlayGlobal,
-  temaHeaderGiornoGlobal
+  temaHeaderGiornoGlobal,
+  ottimizzaDigitazioneGlobal,
+  regolaProgressioneW2Global
 } from '../authStore.js';
 
 const router = useRouter();
@@ -661,8 +663,8 @@ const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualizzazione
 const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + getActiveAtletaId()) !== 'false');
 const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId()) !== 'false');
 const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + getActiveAtletaId()) === 'true');
-const ottimizzaDigitazione = ref(localStorage.getItem('ottimizzaDigitazione_' + getActiveAtletaId()) === 'true');
-const regolaProgressioneW2 = ref(localStorage.getItem('regolaProgressioneW2_' + getActiveAtletaId()) || 'reps');
+const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
+const regolaProgressioneW2 = regolaProgressioneW2Global;
 
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {
@@ -695,8 +697,6 @@ watch([selectedAthlete, idCliente], () => {
   ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
   ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
   sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
-  ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
-  regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
 });
 
 watch(stileVisualizzazioneGhost, (newVal) => {
@@ -710,12 +710,6 @@ watch(ghostAutoregolazioneRepsAttiva, (newVal) => {
 });
 watch(sfidaRecordWeek1, (newVal) => {
   localStorage.setItem('sfidaRecordWeek1_' + getActiveAtletaId(), String(newVal));
-});
-watch(ottimizzaDigitazione, (newVal) => {
-  localStorage.setItem('ottimizzaDigitazione_' + getActiveAtletaId(), String(newVal));
-});
-watch(regolaProgressioneW2, (newVal) => {
-  localStorage.setItem('regolaProgressioneW2_' + getActiveAtletaId(), newVal);
 });
 
 const vibraTattile = (ms = 12) => {

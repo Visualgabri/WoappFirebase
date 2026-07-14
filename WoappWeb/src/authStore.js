@@ -620,6 +620,8 @@ export const faticaPesanteW1PctGlobal = ref(parseFloat(localStorage.getItem('fat
 export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteW1Pct') || localStorage.getItem('faticaDevastanteW1Pct_' + athleteIdForInit) || '10'));
 export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
 export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
+export const ottimizzaDigitazioneGlobal = ref(localStorage.getItem('ottimizzaDigitazioneGlobal') === 'true');
+export const regolaProgressioneW2Global = ref(localStorage.getItem('regolaProgressioneW2Global') || 'reps');
 
 // Flag per evitare loop di sincronizzazione bidirezionale Firestore -> local -> Firestore
 let isSyncingFromFirestore = false;
@@ -645,6 +647,8 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         faticaDevastanteW1Pct: faticaDevastanteW1PctGlobal.value,
         faticaPesanteStoricoPct: faticaPesanteStoricoPctGlobal.value,
         faticaDevastanteStoricoPct: faticaDevastanteStoricoPctGlobal.value,
+        ottimizzaDigitazione: ottimizzaDigitazioneGlobal.value,
+        regolaProgressioneW2: regolaProgressioneW2Global.value,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
@@ -676,6 +680,8 @@ export const syncConfigurazioniListener = () => {
       if (data.faticaDevastanteW1Pct !== undefined) faticaDevastanteW1PctGlobal.value = parseFloat(data.faticaDevastanteW1Pct);
       if (data.faticaPesanteStoricoPct !== undefined) faticaPesanteStoricoPctGlobal.value = parseFloat(data.faticaPesanteStoricoPct);
       if (data.faticaDevastanteStoricoPct !== undefined) faticaDevastanteStoricoPctGlobal.value = parseFloat(data.faticaDevastanteStoricoPct);
+      if (data.ottimizzaDigitazione !== undefined) ottimizzaDigitazioneGlobal.value = data.ottimizzaDigitazione === true || data.ottimizzaDigitazione === 'true';
+      if (data.regolaProgressioneW2 !== undefined) regolaProgressioneW2Global.value = data.regolaProgressioneW2;
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
       salvaConfigurazioniGlobaliFirestore();
@@ -736,6 +742,14 @@ watch(faticaPesanteStoricoPctGlobal, (newVal) => {
 });
 watch(faticaDevastanteStoricoPctGlobal, (newVal) => {
   localStorage.setItem('faticaDevastanteStoricoPct', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(ottimizzaDigitazioneGlobal, (newVal) => {
+  localStorage.setItem('ottimizzaDigitazioneGlobal', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(regolaProgressioneW2Global, (newVal) => {
+  localStorage.setItem('regolaProgressioneW2Global', newVal);
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {

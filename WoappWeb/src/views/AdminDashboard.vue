@@ -165,6 +165,39 @@
                 class="mt-1"
               ></v-select>
             </v-col>
+
+            <!-- Regola Progressione W2 & Ottimizzazione Note -->
+            <v-col cols="12" sm="6" class="mt-2">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Progressione Week 2</span>
+              <v-select
+                v-model="regolaProgressioneW2"
+                :items="[
+                  { title: 'Reps (+1)', value: 'reps' },
+                  { title: 'Peso (+Step)', value: 'peso' },
+                  { title: 'Testo \'Aumenta peso\'', value: 'scritta' }
+                ]"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-select>
+            </v-col>
+
+            <v-col cols="12" sm="6" class="d-flex align-center mt-4">
+              <v-switch
+                v-model="ottimizzaDigitazione"
+                color="orange-darken-3"
+                hide-details
+                density="compact"
+                class="mr-2"
+              ></v-switch>
+              <div class="text-left">
+                <span class="text-caption font-weight-bold text-white d-block" style="font-size: 0.72rem; line-height: 1.1;">Ottimizza Note (.lazy)</span>
+                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; text-transform: none; line-height: 1.2;">Evita rallentamenti durante la digitazione</span>
+              </div>
+            </v-col>
           </v-row>
 
           <v-divider class="my-4 border-soft"></v-divider>
@@ -1262,7 +1295,9 @@ import {
   faticaPesanteW1PctGlobal,
   faticaDevastanteW1PctGlobal,
   faticaPesanteStoricoPctGlobal,
-  faticaDevastanteStoricoPctGlobal
+  faticaDevastanteStoricoPctGlobal,
+  ottimizzaDigitazioneGlobal,
+  regolaProgressioneW2Global
 } from '../authStore.js';
 
 // Local mappings for global settings
@@ -1277,6 +1312,8 @@ const FATICA_PESANTE_W1_PCT = faticaPesanteW1PctGlobal;
 const FATICA_DEVASTANTE_W1_PCT = faticaDevastanteW1PctGlobal;
 const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
 const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
+const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
+const regolaProgressioneW2 = regolaProgressioneW2Global;
 
 // Stato di base
 const listaAtleti = ref([]);

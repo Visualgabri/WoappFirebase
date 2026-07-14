@@ -403,6 +403,47 @@
                 class="ml-2 flex-shrink-0"
               ></v-switch>
             </div>
+
+            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+            
+            <!-- Switch Ottimizza Digitazione Note -->
+            <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
+              <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">✍️ Ottimizza Digitazione Note</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Evita rallentamenti e lag aggiornando i calcoli grafici solo dopo aver finito di scrivere (consigliato su cellulari datati)</span>
+              </div>
+              <v-switch
+                v-model="ottimizzaDigitazione"
+                color="orange-darken-3"
+                hide-details
+                density="compact"
+                class="ml-2 flex-shrink-0"
+              ></v-switch>
+            </div>
+
+            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+
+            <!-- Regola Progressione Week 2 -->
+            <div class="d-flex align-center justify-space-between" style="min-height: 40px;">
+              <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">⚙️ Progressione Week 2</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Regola di calcolo per le proposte della seconda settimana</span>
+              </div>
+              <v-select
+                v-model="regolaProgressioneW2"
+                :items="[
+                  { title: 'Reps (+1)', value: 'reps' },
+                  { title: 'Peso (+Step)', value: 'peso' },
+                  { title: 'Testo \'Aumenta peso\'', value: 'scritta' }
+                ]"
+                variant="outlined"
+                density="compact"
+                hide-details
+                rounded="lg"
+                color="orange-darken-3"
+                style="font-size: 0.72rem; max-width: 175px; min-width: 150px;"
+              ></v-select>
+            </div>
           </div>
         </div>
       </div>
@@ -620,6 +661,8 @@ const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualizzazione
 const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + getActiveAtletaId()) !== 'false');
 const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId()) !== 'false');
 const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + getActiveAtletaId()) === 'true');
+const ottimizzaDigitazione = ref(localStorage.getItem('ottimizzaDigitazione_' + getActiveAtletaId()) === 'true');
+const regolaProgressioneW2 = ref(localStorage.getItem('regolaProgressioneW2_' + getActiveAtletaId()) || 'reps');
 
 // Salvataggio automatico al cambio
 watch(layoutEsercizi, (newVal) => {
@@ -652,6 +695,8 @@ watch([selectedAthlete, idCliente], () => {
   ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
   ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
   sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
+  ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
+  regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
 });
 
 watch(stileVisualizzazioneGhost, (newVal) => {
@@ -665,6 +710,12 @@ watch(ghostAutoregolazioneRepsAttiva, (newVal) => {
 });
 watch(sfidaRecordWeek1, (newVal) => {
   localStorage.setItem('sfidaRecordWeek1_' + getActiveAtletaId(), String(newVal));
+});
+watch(ottimizzaDigitazione, (newVal) => {
+  localStorage.setItem('ottimizzaDigitazione_' + getActiveAtletaId(), String(newVal));
+});
+watch(regolaProgressioneW2, (newVal) => {
+  localStorage.setItem('regolaProgressioneW2_' + getActiveAtletaId(), newVal);
 });
 
 const vibraTattile = (ms = 12) => {

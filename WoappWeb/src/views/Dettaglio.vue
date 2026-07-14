@@ -881,7 +881,52 @@
               </v-btn>
             </div>
             
+            <!-- Textarea con ottimizzazione digitazione (.lazy) -->
             <v-textarea
+              v-if="ottimizzaDigitazione"
+              v-model.lazy="inputSettimane[sett].ins"
+              label="Carico o note (es. 45kg)"
+              variant="outlined"
+              density="compact"
+              hide-details
+              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
+              rows="1"
+              auto-grow
+              color="orange-darken-3"
+              class="custom-weight-input transition-all"
+              :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
+              @blur="salvaDatoSettimanale(sett, 'ins')"
+              :id="'input-peso-w' + sett"
+            >
+              <template v-slot:append-inner>
+                <div 
+                  class="d-flex align-center gap-1 pr-1"
+                  style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
+                  @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
+                  @mouseover="$event.currentTarget.style.opacity = '1'"
+                  @mouseleave="$event.currentTarget.style.opacity = '0.85'"
+                >
+                  <span 
+                    class="font-weight-black uppercase"
+                    :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
+                    :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
+                  >
+                    {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
+                  </span>
+                  <v-icon
+                    :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
+                    :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
+                    :size="layoutCorrente === 'super_compatto' ? 14 : 18"
+                  >
+                    {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
+                  </v-icon>
+                </div>
+              </template>
+            </v-textarea>
+
+            <!-- Textarea standard in tempo reale (default) -->
+            <v-textarea
+              v-else
               v-model="inputSettimane[sett].ins"
               label="Carico o note (es. 45kg)"
               variant="outlined"
@@ -3210,6 +3255,8 @@ const stileVisualizzazioneGhost = ref('range');
 const ghostPRAttackAttivo = ref(true);
 const ghostAutoregolazioneRepsAttiva = ref(true);
 const sfidaRecordWeek1 = ref(false);
+const ottimizzaDigitazione = ref(false);
+const regolaProgressioneW2 = ref('reps');
 
 const ottieniRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;
@@ -3856,6 +3903,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
   
+  if (ghost.isWeek2Scritta) return null;
+  
   // Se è a corpo libero (rep exercise) o a percentuali, non ha senso proporre un range di pesi
   if (ghost.isRepExercise) return null;
   
@@ -3953,7 +4002,14 @@ const getGhostWeightsRangeForWeek = (sett) => {
   }
 
   // Standard weeks (2, 3, 5, 6)
-  const pesoProposto = (ghost.isPostScarico && ghost.pesoProposto !== undefined) ? ghost.pesoProposto : (ghost.peso || pesoBase);
+  let pesoProposto = (ghost.isPostScarico && ghost.pesoProposto !== undefined) ? ghost.pesoProposto : (ghost.peso || pesoBase);
+
+  // Applica preferenza globale per Week 2
+  if (sett === 2 && regolaProgressioneW2.value === 'peso') {
+    if (pesoProposto <= pesoBase) {
+      pesoProposto = pesoBase + step; // Forza l'aumento di peso di almeno uno step
+    }
+  }
 
   if (pesoProposto > pesoBase) {
     // 1. Volume (Aumento Ripetizioni)
@@ -4070,7 +4126,12 @@ const getGhostRenderInfo = (sett) => {
   const isManubri = isManubriEsercizio(workout.value);
   const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
 
-  if (ghost.isGhostInfortunio && !ghostSbloccato.value) {
+  if (ghost.isWeek2Scritta) {
+    icon = 'mdi-trending-up';
+    color = '#ffb74d';
+    label = 'Consigliato:';
+    valueText = 'Aumenta peso';
+  } else if (ghost.isGhostInfortunio && !ghostSbloccato.value) {
     icon = 'mdi-bandage';
     color = '#ef4444'; // red-lighten-2
     label = 'Proposta Comfort (-20%):';
@@ -6097,6 +6158,8 @@ const caricaDatiEsercizio = async () => {
     ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
     sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
     posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
+    ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
+    regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
     inizializzaParametriProposta(atletaId);
 
     const schemaRef = workout.value?.num_scheda;
@@ -6166,6 +6229,8 @@ const caricaDatiEsercizio = async () => {
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
       posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
+      ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
+      regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
       inizializzaParametriProposta(atletaId);
 
       // Se UrlNormal è vuoto o non valido, proviamo a ripristinarlo dal backup JSON locale
@@ -6254,6 +6319,8 @@ const caricaEsercizioDaBackup = async () => {
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
       posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
+      ottimizzaDigitazione.value = localStorage.getItem('ottimizzaDigitazione_' + atletaId) === 'true';
+      regolaProgressioneW2.value = localStorage.getItem('regolaProgressioneW2_' + atletaId) || 'reps';
       inizializzaParametriProposta(atletaId);
 
       for (let w = 1; w <= 6; w++) {
@@ -7458,6 +7525,17 @@ const getGhostLiftStandard = (sett) => {
 
     // Proposta specifica per Week 2 (configurabile)
     if (sett === 2) {
+      if (regolaProgressioneW2.value === 'scritta' && !isRepEx) {
+        const w1Ins = inputSettimane.value[1]?.ins || '';
+        return {
+          text: w1Ins,
+          peso: 0,
+          label: 'W1',
+          isWeek2Scritta: true,
+          isRepExercise: false
+        };
+      }
+
       const baseW = propostaBaseWeek2.value; // "W1" o "W6 Prec."
       
       if (baseW === 'W6 Prec.') {

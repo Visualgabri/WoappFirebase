@@ -112,6 +112,45 @@
           <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>.
         </div>
       </v-card>
+
+      <!-- Avviso Infortunio Attivo / Comfort Articolare -->
+      <v-card
+        v-if="infortuniAttiviEsercizio.length > 0"
+        class="text-left border d-flex align-start card-glass mt-2"
+        :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5 mb-2' : 'py-2.5 px-4 mb-3')"
+        :style="{
+          background: 'rgba(239, 68, 68, 0.12) !important',
+          border: '1.5px solid rgba(239, 68, 68, 0.35) !important',
+          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.15)',
+          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important')
+        }"
+      >
+        <v-icon color="red-lighten-2" class="mr-3 mt-0.5 flex-shrink-0" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-bandage</v-icon>
+        <div class="text-slate-dark w-100" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineSpace: 1.35 }">
+          <div class="d-flex align-center justify-space-between w-100 mb-1">
+            <strong class="text-red-lighten-2 text-uppercase font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Comfort Articolare a Rischio</strong>
+            <v-btn
+              variant="text"
+              color="green-accent-3"
+              size="x-small"
+              class="font-weight-black text-none py-0 px-1"
+              style="height: 18px; font-size: 0.6rem;"
+              @click="segnaComeGuarito(infortuniAttiviEsercizio[0].id)"
+            >
+              Risolto/Guarito
+            </v-btn>
+          </div>
+          <div v-for="inf in infortuniAttiviEsercizio" :key="inf.id" class="mb-1 text-slate-light">
+            Rilevato fastidio/infortunio alla zona <strong class="text-white">{{ inf.articolazione_coinvolta }}</strong> (Gravità: {{ inf.gravita }}/10).
+            <span v-if="inf.note" class="d-block mt-0.5 italic text-orange-lighten-2" style="font-size: 0.9em; opacity: 0.9;">
+              Note: "{{ inf.note }}"
+            </span>
+          </div>
+          <div class="mt-1 font-weight-bold text-orange-lighten-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.68rem' }">
+            🛡️ Il Ghost propone un carico ridotto (-20%) per sicurezza.
+          </div>
+        </div>
+      </v-card>
     </div>
 
 
@@ -583,6 +622,19 @@
               </v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
             </div>
+            
+            <!-- Bottone Segnala Fastidio / Infortunio -->
+            <v-btn
+              v-if="sett === settimanaAttiva && !isSchedaPassata"
+              variant="text"
+              color="red-lighten-2"
+              size="x-small"
+              class="font-weight-black text-none"
+              style="font-size: 0.65rem;"
+              @click="apriSegnalazioneInfortunio"
+            >
+              🩹 Segnala Fastidio
+            </v-btn>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
@@ -673,7 +725,14 @@
           <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5' : (layoutCorrente === 'compatto' ? 'mt-2 mb-0.5' : 'mt-3.5 mb-1'), 'position-relative']">
             <div v-if="getGhostLiftSmart(sett)" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5 px-1 animate-fade-in' : 'mb-1.5 px-1 animate-fade-in'">
               <div class="d-flex align-center justify-space-between">
-                <span v-if="getGhostLiftSmart(sett).isMetodo" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                <span v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato" class="text-super-caption text-red-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
+                  <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="red-lighten-2">mdi-bandage</v-icon>
+                  <span>GHOST COMFORT (-20%):</span>
+                  <span class="text-green-accent-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
+                    {{ formatWeight(getGhostLiftSmart(sett).peso || getGhostLiftSmart(sett).suggerito || getGhostLiftSmart(sett).pesoProposto) }} kg
+                  </span>
+                </span>
+                <span v-else-if="getGhostLiftSmart(sett).isMetodo" class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', letterSpacing: '0.04em' }">
                   <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="orange-lighten-2">mdi-cog-play-outline</v-icon>
                   <span>{{ getGhostLiftSmart(sett).metodoLabel }}:</span>
                   <span class="text-white font-weight-black ml-1 d-inline-flex align-center gap-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.72rem' : '0.85rem' }">
@@ -784,6 +843,29 @@
                   </span>
                 </span>
                 <div class="d-flex align-center gap-1">
+                  <!-- Tasto sblocca progressione per infortunio -->
+                  <v-btn
+                    v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato && sett === settimanaAttiva"
+                    variant="flat"
+                    color="red-darken-3"
+                    size="x-small"
+                    class="font-weight-black text-none mr-1 px-1.5 py-0"
+                    style="height: 18px; font-size: 0.58rem; border-radius: 4px;"
+                    @click.stop="ghostSbloccato = true"
+                  >
+                    Sblocca Progressione
+                  </v-btn>
+                  <v-chip
+                    v-else-if="getGhostLiftSmart(sett).isGhostInfortunio && ghostSbloccato && sett === settimanaAttiva"
+                    color="green-accent-4"
+                    variant="flat"
+                    size="x-small"
+                    style="height: 16px; font-size: 0.55rem;"
+                    class="font-weight-black text-white px-1.5 mr-1"
+                  >
+                    Sbloccato
+                  </v-chip>
+
                   <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="apriAiutoCaricoDettagliato(sett)">
                     {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
                   </span>
@@ -2994,6 +3076,122 @@
         ></v-img>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog per Segnalazione Infortunio / Fastidio (Premium Glassmorphism Style) -->
+    <v-dialog v-model="dialogInfortunio" max-width="500" rounded="xl">
+      <v-card class="card-glass border border-soft text-slate-dark rounded-xl elevation-24" style="background: rgba(15, 23, 42, 0.9) !important; backdrop-filter: blur(15px); border: 1.5px solid rgba(255,255,255,0.08) !important;">
+        <v-card-title class="font-weight-black d-flex align-center justify-space-between pt-4 pb-2 border-bottom-soft" style="border-color: rgba(255,255,255,0.08) !important;">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="red-lighten-2">mdi-bandage</v-icon>
+            <span style="font-size: 1.1rem; letter-spacing: 0.02em;" class="text-white">Segnala Fastidio / Infortunio</span>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="dialogInfortunio = false" color="white"></v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pt-4 pb-3">
+          <p class="text-caption text-slate-light mb-4" style="color: rgba(255,255,255,0.6) !important;">
+            Registra un problema articolare riscontrato in questo esercizio. Il sistema applicherà automaticamente una riduzione del 20% sul carico target per proteggerti.
+          </p>
+
+          <!-- Articolazione Coinvolta -->
+          <div class="mb-4 text-left">
+            <span class="text-caption font-weight-black d-block mb-1.5 text-white">Articolazione / Zona coinvolta *</span>
+            <v-chip-group
+              v-model="infortunioArticolazione"
+              column
+              mandatory
+              color="red-lighten-2"
+              selected-class="font-weight-black text-white bg-red-darken-3"
+            >
+              <v-chip
+                v-for="art in listaArticolazioni"
+                :key="art"
+                :value="art"
+                size="small"
+                variant="outlined"
+                class="rounded-lg text-white"
+                style="border-color: rgba(255,255,255,0.2) !important;"
+              >
+                {{ art }}
+              </v-chip>
+            </v-chip-group>
+          </div>
+
+          <!-- Intensità Dolore/Fastidio (Scala 1-10) -->
+          <div class="mb-4 text-left">
+            <div class="d-flex justify-space-between align-center mb-1">
+              <span class="text-caption font-weight-black text-white">Intensità Dolore / Fastidio (1-10) *</span>
+              <v-chip
+                :color="infortunioGravita <= 3 ? 'green' : (infortunioGravita <= 7 ? 'amber-darken-2' : 'red-darken-2')"
+                size="x-small"
+                class="font-weight-black text-white"
+                variant="flat"
+              >
+                {{ infortunioGravita }}/10 - {{ infortunioGravita <= 3 ? 'Lieve' : (infortunioGravita <= 7 ? 'Moderato' : 'Acuto / Stop') }}
+              </v-chip>
+            </div>
+            <v-chip-group
+              v-model="infortunioGravita"
+              column
+              mandatory
+              color="red-lighten-2"
+              selected-class="font-weight-black text-white bg-red-darken-3"
+            >
+              <v-chip
+                v-for="num in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
+                :key="num"
+                :value="num"
+                size="small"
+                variant="outlined"
+                class="rounded-lg px-2 text-white"
+                style="min-width: 32px; justify-content: center; border-color: rgba(255,255,255,0.2) !important;"
+              >
+                {{ num }}
+              </v-chip>
+            </v-chip-group>
+          </div>
+
+          <!-- Note/Dettagli dell'infortunio -->
+          <div class="text-left">
+            <span class="text-caption font-weight-black d-block mb-1 text-white">Dettagli / Note aggiuntive</span>
+            <v-textarea
+              v-model="infortunioNote"
+              placeholder="Descrivi cosa hai avvertito (es. fitta improvvisa alla spalla nella terza serie...)"
+              variant="outlined"
+              density="comfortable"
+              rows="3"
+              rounded="lg"
+              hide-details
+              color="red-lighten-2"
+              theme="dark"
+              class="text-white"
+              style="background: rgba(0,0,0,0.2);"
+            ></v-textarea>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="px-4 pb-4 pt-1 justify-end gap-2 border-top-soft" style="border-color: rgba(255,255,255,0.08) !important;">
+          <v-btn
+            variant="text"
+            color="white"
+            class="font-weight-bold text-none rounded-lg text-white"
+            @click="dialogInfortunio = false"
+            :disabled="salvataggioInfortunio"
+          >
+            Annulla
+          </v-btn>
+          <v-btn
+            variant="flat"
+            color="red-darken-3"
+            class="font-weight-black text-none rounded-lg px-4 text-white"
+            @click="confermaSegnalazioneInfortunio"
+            :loading="salvataggioInfortunio"
+          >
+            Salva Segnalazione
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -3002,7 +3200,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -3689,6 +3887,28 @@ const getGhostLiftSmart = (sett) => {
     }
     if (smartGhost.isWeek1) {
       smartGhost.suggerito = smartWeight;
+    }
+  }
+
+  // Se c'è un infortunio attivo per l'esercizio e non è stato sbloccato manualmente
+  if (infortuniAttiviEsercizio.value && infortuniAttiviEsercizio.value.length > 0 && !ghostSbloccato.value) {
+    const applicaRiduzioneInfortunio = (wVal) => {
+      if (wVal === null || wVal === undefined || wVal <= 0) return wVal;
+      const isManubri = isManubriEsercizio(workout.value);
+      const step = getWeightStep(isManubri, wVal);
+      const reduced = wVal * 0.8; // -20%
+      return Math.max(step, Math.round(reduced / step) * step);
+    };
+
+    smartGhost.isGhostInfortunio = true;
+    if (smartGhost.peso > 0) {
+      smartGhost.peso = applicaRiduzioneInfortunio(smartGhost.peso);
+    }
+    if (smartGhost.pesoProposto > 0) {
+      smartGhost.pesoProposto = applicaRiduzioneInfortunio(smartGhost.pesoProposto);
+    }
+    if (smartGhost.suggerito > 0) {
+      smartGhost.suggerito = applicaRiduzioneInfortunio(smartGhost.suggerito);
     }
   }
   
@@ -4486,6 +4706,113 @@ const numFaticaw6Val = ref('');
 const indRepsStartVal = ref('');
 
 const previousWorkout = ref(null);
+
+// Gestione Comfort Articolare e Infortuni
+const ghostSbloccato = ref(false);
+const dialogInfortunio = ref(false);
+const infortunioArticolazione = ref('');
+const infortunioGravita = ref(3);
+const infortunioNote = ref('');
+const salvataggioInfortunio = ref(false);
+
+const listaArticolazioni = [
+  'Spalla',
+  'Gomito',
+  'Polso',
+  'Cervicale / Collo',
+  'Lombare / Schiena',
+  'Anche / Bacino',
+  'Ginocchio',
+  'Caviglia',
+  'Altro'
+];
+
+const ottieniArticolazioneSuggerita = () => {
+  if (!workout.value) return 'Altro';
+  const settore = String(workout.value.des_settore || '').toLowerCase();
+  const settorePrinc = String(workout.value.des_settore_princ || '').toLowerCase();
+  
+  if (settorePrinc.includes('petto') || settorePrinc.includes('spall') || settore.includes('petto') || settore.includes('spall') || settore.includes('deltoid')) {
+    return 'Spalla';
+  }
+  if (settorePrinc.includes('bracc') || settore.includes('bicipit') || settore.includes('tricipit') || settore.includes('brach')) {
+    return 'Gomito';
+  }
+  if (settorePrinc.includes('avambracc') || settore.includes('polso')) {
+    return 'Polso';
+  }
+  if (settorePrinc.includes('dorsal') || settorePrinc.includes('schiena') || settore.includes('trazion') || settore.includes('remator')) {
+    return 'Lombare / Schiena';
+  }
+  if (settorePrinc.includes('gambe') || settorePrinc.includes('glutei') || settore.includes('squat') || settore.includes('affond') || settore.includes('pressa')) {
+    if (settore.includes('polpacc') || settore.includes('gastrocn')) return 'Caviglia';
+    return 'Ginocchio';
+  }
+  if (settorePrinc.includes('addom') || settore.includes('crunch') || settore.includes('plank')) {
+    return 'Lombare / Schiena';
+  }
+  return 'Altro';
+};
+
+const infortuniAttiviEsercizio = computed(() => {
+  if (!workout.value || !globalInfortuni.value) return [];
+  
+  const currentExName = String(workout.value.des_esercizio || '').trim().toLowerCase();
+  const suggestedJoint = ottieniArticolazioneSuggerita().toLowerCase();
+  
+  return globalInfortuni.value.filter(inf => {
+    if (inf.stato !== 'attivo') return false;
+    
+    const matchesExName = inf.esercizi_originari && inf.esercizi_originari.some(ex => String(ex).toLowerCase().trim() === currentExName);
+    
+    const matchesJoint = inf.articolazione_coinvolta && (
+      String(inf.articolazione_coinvolta).toLowerCase().includes(suggestedJoint) ||
+      suggestedJoint.includes(String(inf.articolazione_coinvolta).toLowerCase())
+    );
+    
+    return matchesExName || matchesJoint;
+  });
+});
+
+const apriSegnalazioneInfortunio = () => {
+  vibraTattile(10);
+  infortunioArticolazione.value = ottieniArticolazioneSuggerita();
+  infortunioGravita.value = 3;
+  infortunioNote.value = '';
+  dialogInfortunio.value = true;
+};
+
+const confermaSegnalazioneInfortunio = async () => {
+  if (!workout.value) return;
+  salvataggioInfortunio.value = true;
+  try {
+    await segnalaInfortunio({
+      articolazione_coinvolta: infortunioArticolazione.value,
+      gravita: infortunioGravita.value,
+      note: infortunioNote.value,
+      esercizi_originari: [workout.value.des_esercizio]
+    });
+    dialogInfortunio.value = false;
+    ghostSbloccato.value = false;
+  } catch (err) {
+    console.error("Errore salvataggio infortunio:", err);
+  } finally {
+    salvataggioInfortunio.value = false;
+  }
+};
+
+const segnaComeGuarito = async (idInfortunio) => {
+  vibraTattile(10);
+  try {
+    await risolviInfortunio(idInfortunio);
+  } catch (err) {
+    console.error("Errore risoluzione infortunio:", err);
+  }
+};
+
+watch(workout, () => {
+  ghostSbloccato.value = false;
+});
 
 const analisiRipetizioniCiclo = computed(() => {
   if (!workout.value || !previousWorkout.value) return null;

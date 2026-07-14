@@ -27,6 +27,7 @@ export const setSelectedAthlete = (val) => {
   selectedAthlete.value = val;
   localStorage.setItem('selectedAthlete', val);
   syncStoryboardListener();
+  syncInfortuniListener();
 };
 
 // Aggiorna Scheda selezionata globally
@@ -86,7 +87,12 @@ export const logout = async () => {
     storyboardUnsubscribe();
     storyboardUnsubscribe = null;
   }
+  if (infortuniUnsubscribe) {
+    infortuniUnsubscribe();
+    infortuniUnsubscribe = null;
+  }
   globalStoryboard.value = [];
+  globalInfortuni.value = [];
 };
 
 // Stato di Timer Globale per il Recupero (Premium UX)
@@ -488,6 +494,11 @@ export const globalStoryboard = ref([]);
 export const loadingStoryboard = ref(false);
 let storyboardUnsubscribe = null;
 
+// Stato cache globale Infortuni
+export const globalInfortuni = ref([]);
+export const loadingInfortuni = ref(false);
+let infortuniUnsubscribe = null;
+
 export const syncStoryboardListener = () => {
   if (storyboardUnsubscribe) {
     storyboardUnsubscribe();
@@ -523,9 +534,76 @@ export const syncStoryboardListener = () => {
   });
 };
 
+export const syncInfortuniListener = () => {
+  if (infortuniUnsubscribe) {
+    infortuniUnsubscribe();
+    infortuniUnsubscribe = null;
+  }
+
+  const athlete = selectedAthlete.value;
+  if (!athlete) {
+    globalInfortuni.value = [];
+    return;
+  }
+
+  loadingInfortuni.value = true;
+
+  const q = query(
+    collection(db, 'infortuni'),
+    where('id_cliente', '==', athlete)
+  );
+
+  infortuniUnsubscribe = onSnapshot(q, (snapshot) => {
+    const data = [];
+    snapshot.forEach((doc) => {
+      data.push({ id: doc.id, ...doc.data() });
+    });
+    globalInfortuni.value = data;
+    loadingInfortuni.value = false;
+  }, (error) => {
+    console.error("Errore nel listener degli infortuni:", error);
+    loadingInfortuni.value = false;
+  });
+};
+
+export const segnalaInfortunio = async (infortunioData) => {
+  try {
+    const newDocRef = doc(collection(db, 'infortuni'));
+    const payload = {
+      id_cliente: selectedAthlete.value,
+      data_inizio: new Date().toISOString(),
+      data_risoluzione: null,
+      stato: 'attivo',
+      ...infortunioData
+    };
+    await setDoc(newDocRef, payload);
+    return { success: true, id: newDocRef.id };
+  } catch (error) {
+    console.error("Errore nel salvataggio dell'infortunio:", error);
+    throw error;
+  }
+};
+
+export const risolviInfortunio = async (idInfortunio) => {
+  try {
+    const docRef = doc(db, 'infortuni', idInfortunio);
+    await setDoc(docRef, {
+      stato: 'risolto',
+      data_risoluzione: new Date().toISOString()
+    }, { merge: true });
+    return { success: true };
+  } catch (error) {
+    console.error("Errore nella risoluzione dell'infortunio:", error);
+    throw error;
+  }
+};
+
 // Avvia il listener al caricamento se abbiamo già un atleta e una scheda salvati
 if (selectedAthlete.value && selectedSheet.value) {
   syncStoryboardListener();
+}
+if (selectedAthlete.value) {
+  syncInfortuniListener();
 }
 
 // Parametri di proposta carichi globali (generici per tutti gli atleti)

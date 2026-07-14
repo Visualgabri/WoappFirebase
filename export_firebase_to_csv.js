@@ -45,6 +45,32 @@ args.forEach(arg => {
   }
 });
 
+function ottieniArticolazioneSuggerita(record) {
+  const settore = String(record.des_settore || '').toLowerCase();
+  const settorePrinc = String(record.des_settore_princ || '').toLowerCase();
+  
+  if (settorePrinc.includes('petto') || settorePrinc.includes('spall') || settore.includes('petto') || settore.includes('spall') || settore.includes('deltoid')) {
+    return 'Spalla';
+  }
+  if (settorePrinc.includes('bracc') || settore.includes('bicipit') || settore.includes('tricipit') || settore.includes('brach')) {
+    return 'Gomito';
+  }
+  if (settorePrinc.includes('avambracc') || settore.includes('polso')) {
+    return 'Polso';
+  }
+  if (settorePrinc.includes('dorsal') || settorePrinc.includes('schiena') || settore.includes('trazion') || settore.includes('remator')) {
+    return 'Lombare / Schiena';
+  }
+  if (settorePrinc.includes('gambe') || settorePrinc.includes('glutei') || settore.includes('squat') || settore.includes('affond') || settore.includes('pressa')) {
+    if (settore.includes('polpacc') || settore.includes('gastrocn')) return 'Caviglia';
+    return 'Ginocchio';
+  }
+  if (settorePrinc.includes('addom') || settore.includes('crunch') || settore.includes('plank')) {
+    return 'Lombare / Schiena';
+  }
+  return 'Altro';
+}
+
 async function run() {
   console.log(`[Firebase Export] Avvio esportazione...`);
   
@@ -70,6 +96,20 @@ async function run() {
   const snapshot = await query.get();
   console.log(`[Firebase Export] Letti ${snapshot.size} documenti.`);
 
+  // Caricamento infortuni attivi per lo stesso cliente
+  let infortuni = [];
+  if (filterCliente) {
+    console.log(`[Firebase Export] Caricamento infortuni attivi per cliente: ${filterCliente}`);
+    const infSnapshot = await db.collection('infortuni')
+      .where('id_cliente', '==', filterCliente)
+      .where('stato', '==', 'attivo')
+      .get();
+    infSnapshot.forEach(doc => {
+      infortuni.push(doc.data());
+    });
+    console.log(`[Firebase Export] Trovati ${infortuni.length} infortuni attivi.`);
+  }
+
   const records = [];
   snapshot.forEach(doc => {
     records.push(doc.data());
@@ -91,6 +131,26 @@ async function run() {
 
   // Popola ciascuna riga con i valori dei documenti
   for (const record of records) {
+    // Calcola se l'esercizio ha infortuni attivi corrispondenti
+    let prefissoInfortunio = "";
+    if (infortuni.length > 0) {
+      const currentExName = String(record.des_esercizio || '').trim().toLowerCase();
+      const suggestedJoint = ottieniArticolazioneSuggerita(record).toLowerCase();
+      
+      const matchingInjuries = infortuni.filter(inf => {
+        const matchesExName = inf.esercizi_originari && inf.esercizi_originari.some(ex => String(ex).toLowerCase().trim() === currentExName);
+        const matchesJoint = inf.articolazione_coinvolta && (
+          String(inf.articolazione_coinvolta).toLowerCase().includes(suggestedJoint) ||
+          suggestedJoint.includes(String(inf.articolazione_coinvolta).toLowerCase())
+        );
+        return matchesExName || matchesJoint;
+      });
+      
+      if (matchingInjuries.length > 0) {
+        prefissoInfortunio = matchingInjuries.map(inf => `[🩹 INFORTUNIO ${String(inf.articolazione_coinvolta).toUpperCase()} (Dolore: ${inf.gravita}/10)${inf.note ? ' - Note: ' + inf.note : ''}]`).join(' ') + ' ';
+      }
+    }
+
     const rowCells = headers.map(header => {
       let val = record[header];
       if (val === undefined || val === null) {
@@ -99,6 +159,11 @@ async function run() {
       
       // Converte booleani e numeri in stringhe pulite
       val = String(val).trim();
+
+      // Se stiamo esportando des_note, aggiungiamo il prefisso infortunio
+      if (header === 'des_note' && prefissoInfortunio) {
+        val = prefissoInfortunio + val;
+      }
       
       // Escapa i doppi apici raddoppiandoli per conformità allo standard CSV
       const escapedVal = val.replace(/"/g, '""');

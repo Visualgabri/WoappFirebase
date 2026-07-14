@@ -98,6 +98,11 @@
         <span>WORKOUTS</span>
       </v-btn>
 
+      <v-btn to="/infortuni" id="nav-infortuni" @click="vibraTattile(8)">
+        <v-icon>mdi-bandage</v-icon>
+        <span>Infortuni</span>
+      </v-btn>
+
       <v-btn to="/grafici" id="nav-grafici" @click="vibraTattile(8)">
         <v-icon>mdi-chart-bar</v-icon>
         <span>Grafici</span>

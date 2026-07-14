@@ -804,10 +804,13 @@
                     </span>
                   </template>
                   
-                  <!-- Caso Post Scarico o Altro con Range -->
+                  <!-- Caso Post Scarico o progressione standard -->
                   <template v-else>
-                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold">
-                      (Proposto: {{ getGhostWeightsRangeText(sett) }})
+                    <span v-if="getGhostLiftSmart(sett).text">
+                      (prec. {{ getGhostLiftSmart(sett).label }}: <strong class="text-slate-light">{{ getGhostLiftSmart(sett).text }}</strong>)
+                    </span>
+                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold ml-1.5">
+                      • range: {{ getGhostWeightsRangeText(sett) }}
                     </span>
                   </template>
                 </div>
@@ -4110,7 +4113,16 @@ const getGhostRenderInfo = (sett) => {
       valueText = ghost.isRepExercise ? `${ghost.text}r` : `${formatWeight(ghost.suggerito)} kg`;
     }
   } else {
-    valueText = ghost.text || '';
+    // Caso standard delle settimane progressive (W2, W3, W4 se non scarico, W5, W6)
+    const range = getGhostWeightsRangeForWeek(sett);
+    if (range && range.consigliato) {
+      valueText = range.consigliato.display;
+    } else {
+      valueText = ghost.text || '';
+      if (ghost.isRepExercise && valueText && !valueText.endsWith('r')) {
+        valueText += 'r';
+      }
+    }
   }
 
   // Costruisce la descrizione storica (Riga 2)
@@ -4121,9 +4133,9 @@ const getGhostRenderInfo = (sett) => {
   } else if (ghost.isPostScarico) {
     hasReference = true;
   } else if (ghost.isOverload || ghost.isMetodo || ghost.isMandatory) {
-    if (stileVisualizzazioneGhost.value === 'range' && !ghost.isRepExercise && getGhostWeightsRangeText(sett)) {
-      hasReference = true;
-    }
+    hasReference = true;
+  } else if (ghost.text) {
+    hasReference = true;
   }
 
   return { icon, color, label, valueText, hasReference };

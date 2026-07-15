@@ -3802,6 +3802,16 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     return propostaWeek1.value?.peso || null;
   }
 
+  // Nuova regola per Week 2 a peso
+  if (sett === 2 && regolaProgressioneW2.value === 'peso') {
+    const infoBase = getBaseWeekInfo(2);
+    if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
+      const isManubri = isManubriEsercizio(workout.value);
+      const step = getWeightStep(isManubri, infoBase.pesoBase);
+      return infoBase.pesoBase + step; // Proponi esattamente W1 + step (es. 12 + 2 = 14)
+    }
+  }
+
   const volInfo = getVolumeProgressionInfoForWeek(sett);
   if (volInfo.active) {
     return volInfo.pesoBase;
@@ -3913,7 +3923,9 @@ const getGhostWeightsRangeForWeek = (sett) => {
   const repsBaseVal = info ? info.repsBase : 10;
 
   const isManubri = isManubriEsercizio(workout.value);
-  const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
+  const pesoBaseOriginale = ghost.pesoBaseOriginale || ghost.peso || 0;
+  const pesoEffettivoBase = (ghost.text && estraiPesoDaInput(ghost.text)) ? parseFloat(estraiPesoDaInput(ghost.text)) : null;
+  const pesoBase = (pesoEffettivoBase !== null && pesoEffettivoBase > 0) ? pesoEffettivoBase : pesoBaseOriginale;
   const step = getWeightStep(isManubri, sett === 1 ? (ghost.suggerito || ghost.peso || 0) : pesoBase);
 
   // Calcolo per Week 1
@@ -4300,6 +4312,14 @@ const caricoConsigliatoViaDiMezzo = computed(() => {
 });
 
 const spiegazioneDinamicaConsigliata = computed(() => {
+  if (aiutoWeek.value === 2 && regolaProgressioneW2.value === 'peso') {
+    const infoBase = getBaseWeekInfo(2);
+    const pesoEffettivoW1 = infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) ? infoBase.pesoBase : 0;
+    if (pesoEffettivoW1 > 0) {
+      return `📈 Progressione a carico attiva per la Week 2! Il sistema propone un incremento di 1 step rispetto al carico reale di ${pesoEffettivoW1} kg sollevato in Week 1.`;
+    }
+  }
+
   if (volumeProgressionInfo.value.active) {
     const info = volumeProgressionInfo.value;
     return `⚡ Progressione di volume attiva! Le ripetizioni richieste sono aumentate (da ${info.repsBase} a ${info.repsTarget} reps). Mantenere lo stesso peso di ${info.pesoBase} kg (usato in W${info.baseWNum}${info.isPreviousWorkoutW6 ? ' prec.' : ''}) è già a tutti gli effetti una progressione. Non occorre aumentare il carico!`;
@@ -4331,7 +4351,9 @@ const strategieProgressione = computed(() => {
   const ghost = getGhostLiftSmart(sett);
   if (!ghost || ghost.isRepExercise) return [];
 
-  const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
+  const pesoBaseOriginale = ghost.pesoBaseOriginale || ghost.peso || 0;
+  const pesoEffettivoBase = (ghost.text && estraiPesoDaInput(ghost.text)) ? parseFloat(estraiPesoDaInput(ghost.text)) : null;
+  const pesoBase = (pesoEffettivoBase !== null && pesoEffettivoBase > 0) ? pesoEffettivoBase : pesoBaseOriginale;
   
   const baseWeekInfo = getBaseWeekInfo(sett);
   const repsBaseVal = baseWeekInfo ? baseWeekInfo.repsBase : 10;

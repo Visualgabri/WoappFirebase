@@ -4022,6 +4022,26 @@ const getGhostWeightsRangeForWeek = (sett) => {
     // Se il peso micro coincide con la base o con il proposto, non c'è una via di mezzo reale di carico!
     // Applichiamo l'Opzione 3: differenziamo tramite ripetizioni sul peso base
     if (pesoMicro <= pesoBase || pesoMicro >= pesoProposto) {
+      if (sett === 2 && regolaProgressioneW2.value === 'peso') {
+        return {
+          prudenziale: {
+            value: `${pesoBase}x${repsVolume}r`,
+            display: `${formatWeight(pesoBase)}x${repsVolume}r`,
+            label: 'Volume'
+          },
+          consigliato: {
+            value: String(pesoProposto),
+            display: `${formatWeight(pesoProposto)} kg`,
+            label: 'Consigliato'
+          },
+          sfidante: {
+            value: String(pesoProposto + step),
+            display: `${formatWeight(pesoProposto + step)} kg`,
+            label: 'Sfidante'
+          }
+        };
+      }
+
       const repsVolumeLeggero = repsVolume;
       const repsVolumeForte = repsVolume + 1;
       
@@ -7362,6 +7382,29 @@ function formatRepsDisplay(val) {
 
 const getGhostLift = (sett) => {
   if (!workout.value) return null;
+
+  // Se è un esercizio a corpo libero con reps in aumento, senza onda e senza scarico in W4, il Ghost non consiglia nulla
+  if (isCorpoLiberoEsercizio(workout.value)) {
+    const r1 = getRepsForWeek(1);
+    const r2 = getRepsForWeek(2);
+    const r3 = getRepsForWeek(3);
+    const r4 = getRepsForWeek(4);
+    const r5 = getRepsForWeek(5);
+    const r6 = getRepsForWeek(6);
+    
+    const repsInAumento = (r2 !== null && r1 !== null && r2 > r1) ||
+                          (r3 !== null && r2 !== null && r3 > r2) ||
+                          (r4 !== null && r3 !== null && r4 > r3) ||
+                          (r5 !== null && r4 !== null && r5 > r4) ||
+                          (r6 !== null && r5 !== null && r6 > r5);
+                          
+    const hasOnda = isOndaProgression(workout.value);
+    const hasScaricoW4 = r4 !== null && r3 !== null && r4 < r3;
+    
+    if (repsInAumento && !hasOnda && !hasScaricoW4) {
+      return null;
+    }
+  }
 
   // 1. Controlla se c'è un metodo attivo configurato in des_estesa_start
   if (workout.value.des_estesa_start) {

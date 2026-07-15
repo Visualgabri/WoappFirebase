@@ -131,7 +131,7 @@ const rilevaCaricoMonolateraleSmart = (nomeEsercizio) => {
   if (!nomeEsercizio) return 'doppio';
   const lower = String(nomeEsercizio).toLowerCase();
   const keywords = [
-    'hip thrust', 'hipthrust', 'belt', 'cintura', 'dip', 'trazioni', 
+    'hip thrust', 'hipthrust', 'belt', 'cintura', 'dip', 'trazioni',
     'zavorra', 'zavorrate', 'monolaterale', 'singolo', 'one arm',
     'sovraccarico'
   ];
@@ -141,26 +141,26 @@ const rilevaCaricoMonolateraleSmart = (nomeEsercizio) => {
 const rilevaPesoBilanciereSmart = (nomeEsercizio, savedBar) => {
   if (!nomeEsercizio) return savedBar;
   const lower = String(nomeEsercizio).toLowerCase();
-  
+
   // Se contiene esplicitamente "bilanciere", "bil.", "ez" o "barbell", allora usa il bilanciere di default (savedBar)
   if (lower.includes('bilanciere') || lower.includes('bil.') || lower.includes('ez') || lower.includes('barbell')) {
     return savedBar;
   }
-  
+
   // Altrimenti, se contiene parole chiave tipiche di macchine, manubri, cavi o corpo libero, metti 0
   const zeroKeywords = [
-    'pressa', 'press', 'cavo', 'cavi', 'cable', 'macchina', 'machine', 
+    'pressa', 'press', 'cavo', 'cavi', 'cable', 'macchina', 'machine',
     'manubri', 'manubrio', 'db', 'dumbbell', 'trazioni', 'dip', 'piegamenti',
     'corpo libero', 'crunch', 'addome', 'plank', 'pulley', 'pectoral',
     'extension', 'curl', 'adductor', 'abductor', 'multipower', 'hack squat',
     'smith', 'glute', 'vertical traction', 'low row', 'rower', 'calf',
     'crossover', 'lat', 'peck'
   ];
-  
+
   if (zeroKeywords.some(k => lower.includes(k))) {
     return 0; // Macchina / Senza bilanciere
   }
-  
+
   return savedBar;
 };
 
@@ -206,7 +206,7 @@ export const apriCalcolatoreDischi = (pesoTotaleStr, pesoLatoStr, cliccatoSu, no
   } else {
     targetPesoTotale.value = tot;
     tipoBilanciere.value = defaultBar;
-    
+
     const bar = defaultBar;
     const latoCalc = (tot - bar) / divider;
     targetPesoLato.value = latoCalc > 0 ? latoCalc : 0;
@@ -621,7 +621,11 @@ export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('
 export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
 export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
 export const ottimizzaDigitazioneGlobal = ref(localStorage.getItem('ottimizzaDigitazioneGlobal') === 'true');
-export const regolaProgressioneW2Global = ref(localStorage.getItem('regolaProgressioneW2Global') || 'reps');
+const localW2 = localStorage.getItem('regolaProgressioneW2Global');
+export const regolaProgressioneW2Global = ref(localW2 && localW2 !== 'reps' ? localW2 : 'peso');
+if (localW2 === 'reps') {
+  localStorage.setItem('regolaProgressioneW2Global', 'peso');
+}
 
 // Flag per evitare loop di sincronizzazione bidirezionale Firestore -> local -> Firestore
 let isSyncingFromFirestore = false;
@@ -681,7 +685,9 @@ export const syncConfigurazioniListener = () => {
       if (data.faticaPesanteStoricoPct !== undefined) faticaPesanteStoricoPctGlobal.value = parseFloat(data.faticaPesanteStoricoPct);
       if (data.faticaDevastanteStoricoPct !== undefined) faticaDevastanteStoricoPctGlobal.value = parseFloat(data.faticaDevastanteStoricoPct);
       if (data.ottimizzaDigitazione !== undefined) ottimizzaDigitazioneGlobal.value = data.ottimizzaDigitazione === true || data.ottimizzaDigitazione === 'true';
-      if (data.regolaProgressioneW2 !== undefined) regolaProgressioneW2Global.value = data.regolaProgressioneW2;
+      if (data.regolaProgressioneW2 !== undefined) {
+        regolaProgressioneW2Global.value = data.regolaProgressioneW2 === 'reps' ? 'peso' : data.regolaProgressioneW2;
+      }
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
       salvaConfigurazioniGlobaliFirestore();

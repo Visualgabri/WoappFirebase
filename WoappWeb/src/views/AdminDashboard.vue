@@ -172,7 +172,6 @@
               <v-select
                 v-model="regolaProgressioneW2"
                 :items="[
-                  { title: 'Reps (+1)', value: 'reps' },
                   { title: 'Peso (+Step)', value: 'peso' },
                   { title: 'Testo \'Aumenta peso\'', value: 'scritta' }
                 ]"

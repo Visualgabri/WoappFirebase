@@ -1107,7 +1107,7 @@
               <div v-if="!infoSuperset.isLast" class="d-flex align-center justify-center gap-1.5 animate-pulse mb-3">
                 <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
                 <span class="text-super-caption text-purple-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.05em; padding-top: 2px;">
-                  Superset: passa subito all'esercizio successivo!
+                  Superset {{ infoSuperset.letter }}: passa subito all'esercizio successivo!
                 </span>
                 <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
               </div>
@@ -1123,26 +1123,10 @@
                 }"
               >
                 <!-- Intestazione con badge e modalità -->
-                <div class="d-flex align-center justify-space-between mb-2">
-                  <div class="d-flex align-center">
-                    <v-icon color="purple-lighten-2" size="14" class="mr-1">mdi-link-variant</v-icon>
-                    <span class="text-super-caption font-weight-black text-purple-lighten-3 uppercase mr-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
-                      SUPERSET {{ infoSuperset.letter }}
-                    </span>
-                    <v-chip
-                      color="deep-purple-accent-4"
-                      size="x-small"
-                      class="text-super-caption font-weight-black px-1.5 py-0 text-white"
-                      style="height: 14px; font-size: 0.5rem; min-width: auto; line-height: 1;"
-                      variant="flat"
-                    >
-                      {{ infoSuperset.currentIndex }} di {{ infoSuperset.total }}
-                    </v-chip>
-                  </div>
-                  
+                <div class="d-flex align-center mb-2">
+                  <v-icon color="purple-lighten-2" size="14" class="mr-1.5">mdi-link-variant</v-icon>
                   <span 
-                    class="text-super-caption font-weight-black uppercase" 
-                    :class="infoSuperset.isLast ? 'text-amber-lighten-2' : 'text-green-accent-3'"
+                    class="text-super-caption font-weight-black text-purple-lighten-3 uppercase" 
                     :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem', letterSpacing: '0.05em' }"
                   >
                     <template v-if="!infoSuperset.isLast">
@@ -1197,7 +1181,7 @@
             <div v-if="!infoSuperset.isLast" class="d-flex align-center justify-center gap-1.5 animate-pulse mb-3">
               <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
               <span class="text-super-caption text-purple-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.05em; padding-top: 2px;">
-                Superset: passa subito all'esercizio successivo!
+                Superset {{ infoSuperset.letter }}: passa subito all'esercizio successivo!
               </span>
               <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
             </div>
@@ -1213,26 +1197,10 @@
               }"
             >
               <!-- Intestazione con badge e modalità -->
-              <div class="d-flex align-center justify-space-between mb-2">
-                <div class="d-flex align-center">
-                  <v-icon color="purple-lighten-2" size="14" class="mr-1">mdi-link-variant</v-icon>
-                  <span class="text-super-caption font-weight-black text-purple-lighten-3 uppercase mr-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.6rem', letterSpacing: '0.05em' }">
-                    SUPERSET {{ infoSuperset.letter }}
-                  </span>
-                  <v-chip
-                    color="deep-purple-accent-4"
-                    size="x-small"
-                    class="text-super-caption font-weight-black px-1.5 py-0 text-white"
-                    style="height: 14px; font-size: 0.5rem; min-width: auto; line-height: 1;"
-                    variant="flat"
-                  >
-                    {{ infoSuperset.currentIndex }} di {{ infoSuperset.total }}
-                  </v-chip>
-                </div>
-                
+              <div class="d-flex align-center mb-2">
+                <v-icon color="purple-lighten-2" size="14" class="mr-1.5">mdi-link-variant</v-icon>
                 <span 
-                  class="text-super-caption font-weight-black uppercase" 
-                  :class="infoSuperset.isLast ? 'text-amber-lighten-2' : 'text-green-accent-3'"
+                  class="text-super-caption font-weight-black text-purple-lighten-3 uppercase" 
                   :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem', letterSpacing: '0.05em' }"
                 >
                   <template v-if="!infoSuperset.isLast">

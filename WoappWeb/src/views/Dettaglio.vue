@@ -2266,20 +2266,6 @@
 
               <!-- CASO STANDARD (WEEK 1 VALIDA E ALTRE WEEKS) -->
               <div v-else class="d-flex flex-column gap-3.5">
-                <!-- Se c'è il pulsante per caricare scheda precedente (solo W1) -->
-                <div v-if="previousWorkout && aiutoWeek === 1" class="text-left">
-                  <v-btn
-                    prepend-icon="mdi-calendar-arrow-left"
-                    variant="outlined"
-                    color="orange-darken-3"
-                    density="comfortable"
-                    class="font-weight-black text-none w-100 rounded-lg"
-                    style="font-size: 0.72rem; letter-spacing: 0.05em; background: rgba(249, 115, 22, 0.04); border-color: rgba(249, 115, 22, 0.25) !important; height: 32px;"
-                    @click="dialogProgressioniPrecedente = true"
-                  >
-                    Vedi Progressione Scheda Precedente
-                  </v-btn>
-                </div>
 
                 <!-- 1. PROPOSTA CONSIGLIATA HERO CARD -->
                 <div class="pa-4 rounded-xl text-left border position-relative overflow-hidden" 
@@ -3816,33 +3802,33 @@ const getGhostWeightsRangeForWeek = (sett) => {
   if (sett === 1) {
     const defaultPeso = ghost.suggerito || ghost.peso || 0;
     if (defaultPeso <= 0) return null;
-    let min = isManubri ? Math.floor((defaultPeso * 0.95) / step) * step : Math.round((defaultPeso * 0.95) / step) * step;
+    let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.round((defaultPeso * 0.95) / step) * step;
     let medio = defaultPeso;
     let max = 0;
     
     // Evita il collasso delle opzioni (Prudenziale uguale a Consigliato)
     if (min === medio && defaultPeso - step > 0) {
-      min = defaultPeso - step;
+      min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : defaultPeso - step;
     }
     
     const recordVal = sfidaRecordWeek1.value ? ghost.recordVal : null;
     if (recordVal && recordVal > 0) {
       if (recordVal >= defaultPeso) {
         if (recordVal <= defaultPeso * 1.25) {
-          max = Math.round((recordVal + step) / step) * step;
+          max = isManubri ? getDumbbellSequenceWeight(recordVal, 'up') : Math.round((recordVal + step) / step) * step;
         } else {
-          max = isManubri ? Math.ceil((defaultPeso * 1.10) / step) * step : Math.round((defaultPeso * 1.10) / step) * step;
+          max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.10) / step) * step;
         }
       } else {
-        max = medio + step;
+        max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
       }
     } else {
-      max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
+      max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.05) / step) * step;
     }
     
     // Evita il collasso delle opzioni (Sfidante uguale a Consigliato)
     if (max === medio) {
-      max = defaultPeso + step;
+      max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
     }
     
     let sfidanteLabel = 'Sfidante';
@@ -3931,8 +3917,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
             label: 'Consigliato'
           },
           sfidante: {
-            value: String(pesoProposto + step),
-            display: `${formatWeight(pesoProposto + step)} kg`,
+            value: String(isManubri ? getDumbbellSequenceWeight(pesoProposto, 'up') : pesoProposto + step),
+            display: `${formatWeight(isManubri ? getDumbbellSequenceWeight(pesoProposto, 'up') : pesoProposto + step)} kg`,
             label: 'Sfidante'
           }
         };
@@ -4199,33 +4185,6 @@ const opzioniStradeProgressione = computed(() => {
   if (!workout.value) return [];
   const sett = aiutoWeek.value;
   
-  if (sett === 1) {
-    if (!propostaWeek1.value || propostaWeek1.value.erroreCarichi) return [];
-    return [
-      {
-        tipo: 'safe',
-        titolo: '🛡️ Safe',
-        sottoTitolo: 'Prudenziale',
-        valore: `${formatWeight(propostaWeek1.value.pesoPrudenziale)} kg`,
-        peso: propostaWeek1.value.pesoPrudenziale
-      },
-      {
-        tipo: 'smart',
-        titolo: '💡 Smart',
-        sottoTitolo: 'Consigliato',
-        valore: `${formatWeight(propostaWeek1.value.pesoConsigliato)} kg`,
-        peso: propostaWeek1.value.pesoConsigliato
-      },
-      {
-        tipo: 'sfidante',
-        titolo: '🔥 Sfidante',
-        sottoTitolo: (propostaWeek1.value.hasRecord && propostaWeek1.value.sfidanteLabel.includes('Supera')) ? 'Record Attack' : 'Avanzato',
-        valore: `${formatWeight(propostaWeek1.value.pesoSfidante)} kg`,
-        peso: propostaWeek1.value.pesoSfidante
-      }
-    ];
-  }
-  
   const range = getGhostWeightsRangeForWeek(sett);
   if (!range) return [];
   
@@ -4235,21 +4194,21 @@ const opzioniStradeProgressione = computed(() => {
       titolo: '🛡️ Safe',
       sottoTitolo: range.prudenziale.label || 'Prudenziale',
       valore: range.prudenziale.display,
-      peso: range.prudenziale.value
+      peso: parseFloat(range.prudenziale.value)
     },
     {
       tipo: 'smart',
       titolo: '💡 Smart',
       sottoTitolo: range.consigliato.label || 'Consigliato',
       valore: range.consigliato.display,
-      peso: range.consigliato.value
+      peso: parseFloat(range.consigliato.value)
     },
     {
       tipo: 'sfidante',
       titolo: '🔥 Sfidante',
       sottoTitolo: range.sfidante.label || 'Sfidante',
       valore: range.sfidante.display,
-      peso: range.sfidante.value
+      peso: parseFloat(range.sfidante.value)
     }
   ];
 });
@@ -5093,6 +5052,28 @@ const getWeightStep = (isManubri, baseWeight) => {
   return p >= 10 ? 2.0 : 1.0;
 };
 
+const getDumbbellSequenceWeight = (currentWeight, direction) => {
+  const w = Math.round(parseFloat(currentWeight)) || 0;
+  if (direction === 'up') {
+    if (w < 10) return w + 1;
+    return Math.floor(w / 2) * 2 + 2;
+  } else if (direction === 'down') {
+    if (w <= 10) return Math.max(0, w - 1);
+    if (w === 12) return 10;
+    return Math.ceil((w - 2) / 2) * 2;
+  }
+  return w;
+};
+
+const arrotondaManubrioCommerciale = (peso) => {
+  const p = parseFloat(peso) || 0;
+  if (p <= 10) {
+    return Math.round(p);
+  } else {
+    return Math.round(p / 2.0) * 2.0;
+  }
+};
+
 const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return null;
   const part = String(prescrizioneStr).split('|')[0].trim();
@@ -5325,7 +5306,16 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
       weightCalc = estimated1RM * getNSCAPercentage(repsW1Totali);
     }
     weightCalc = weightCalc * dateFactor;
-    return Math.round(weightCalc / step) * step;
+    
+    if (isManubri) {
+      if (weightCalc <= 10.0) {
+        return Math.round(weightCalc);
+      } else {
+        return Math.round(weightCalc / 2.0) * 2.0;
+      }
+    } else {
+      return Math.round(weightCalc / step) * step;
+    }
   };
 
   // Determina i 3 RIR target teorici per i 3 livelli di fatica
@@ -5482,9 +5472,13 @@ const propostaWeek1 = computed(() => {
   
   const recordVal = sfidaRecordWeek1.value ? ottieniRecordStoricoPerReps(currW1Reps) : null;
   
-  let min = isManubri ? Math.floor((defaultPeso * 0.95) / step) * step : Math.round((defaultPeso * 0.95) / step) * step;
+  let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.round((defaultPeso * 0.95) / step) * step;
   let medio = defaultPeso;
-  let max = isManubri ? Math.ceil((defaultPeso * 1.05) / step) * step : Math.round((defaultPeso * 1.05) / step) * step;
+  let max = 0;
+  
+  if (min === medio && defaultPeso - step > 0) {
+    min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : defaultPeso - step;
+  }
   
   let hasRecord = false;
   let sfidanteLabel = 'Sfidante';
@@ -5493,12 +5487,16 @@ const propostaWeek1 = computed(() => {
     hasRecord = true;
     if (recordVal >= defaultPeso) {
       if (recordVal <= defaultPeso * 1.25) {
-        max = Math.round((recordVal + step) / step) * step;
+        max = isManubri ? getDumbbellSequenceWeight(recordVal, 'up') : Math.round((recordVal + step) / step) * step;
       } else {
-        max = isManubri ? Math.ceil((defaultPeso * 1.10) / step) * step : Math.round((defaultPeso * 1.10) / step) * step;
+        max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.10) / step) * step;
       }
     } else {
-      max = medio + step;
+      max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
+    }
+    
+    if (max === medio) {
+      max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
     }
     
     const isBeatingRecord = max > recordVal;
@@ -5509,6 +5507,11 @@ const propostaWeek1 = computed(() => {
       sfidanteLabel = `🏆 Eguaglia Record (${formatWeight(recordVal)}kg)`;
     } else {
       sfidanteLabel = `Sfidante (Record: ${formatWeight(recordVal)}kg)`;
+    }
+  } else {
+    max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.05) / step) * step;
+    if (max === medio) {
+      max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
     }
   }
 

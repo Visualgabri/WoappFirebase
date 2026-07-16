@@ -311,6 +311,28 @@ const getWeightStep = (isManubri, baseWeight) => {
   return p >= 10 ? 2.0 : 1.0;
 };
 
+const getDumbbellSequenceWeight = (currentWeight, direction) => {
+  const w = Math.round(parseFloat(currentWeight)) || 0;
+  if (direction === 'up') {
+    if (w < 10) return w + 1;
+    return Math.floor(w / 2) * 2 + 2;
+  } else if (direction === 'down') {
+    if (w <= 10) return Math.max(0, w - 1);
+    if (w === 12) return 10;
+    return Math.ceil((w - 2) / 2) * 2;
+  }
+  return w;
+};
+
+const arrotondaManubrioCommerciale = (peso) => {
+  const p = parseFloat(peso) || 0;
+  if (p <= 10) {
+    return Math.round(p);
+  } else {
+    return Math.round(p / 2.0) * 2.0;
+  }
+};
+
 const getNSCAPercentage = (reps) => {
   const r = Math.max(1, Math.min(30, Math.round(reps)));
   const table = {
@@ -369,7 +391,16 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
       weightCalc = estimated1RM * getNSCAPercentage(repsW1Totali);
     }
     weightCalc = weightCalc * dateFactor;
-    return Math.round(weightCalc / step) * step;
+    
+    if (isManubri) {
+      if (weightCalc <= 10.0) {
+        return Math.round(weightCalc);
+      } else {
+        return Math.round(weightCalc / 2.0) * 2.0;
+      }
+    } else {
+      return Math.round(weightCalc / step) * step;
+    }
   };
 
   // Determina i 3 RIR target teorici per i 3 livelli di fatica

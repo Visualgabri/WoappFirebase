@@ -621,6 +621,14 @@ export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('
 export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
 export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
 export const ottimizzaDigitazioneGlobal = ref(localStorage.getItem('ottimizzaDigitazioneGlobal') === 'true');
+export const deallenamentoSoglia1Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia1') || localStorage.getItem('deallenamentoSoglia1_' + athleteIdForInit) || '30', 10));
+export const deallenamentoSoglia2Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia2') || localStorage.getItem('deallenamentoSoglia2_' + athleteIdForInit) || '90', 10));
+export const deallenamentoSoglia3Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia3') || localStorage.getItem('deallenamentoSoglia3_' + athleteIdForInit) || '180', 10));
+export const deallenamentoSoglia4Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia4') || localStorage.getItem('deallenamentoSoglia4_' + athleteIdForInit) || '365', 10));
+export const deallenamentoPct1Global = ref(parseFloat(localStorage.getItem('deallenamentoPct1') || localStorage.getItem('deallenamentoPct1_' + athleteIdForInit) || '1'));
+export const deallenamentoPct2Global = ref(parseFloat(localStorage.getItem('deallenamentoPct2') || localStorage.getItem('deallenamentoPct2_' + athleteIdForInit) || '3'));
+export const deallenamentoPct3Global = ref(parseFloat(localStorage.getItem('deallenamentoPct3') || localStorage.getItem('deallenamentoPct3_' + athleteIdForInit) || '10'));
+export const deallenamentoPct4Global = ref(parseFloat(localStorage.getItem('deallenamentoPct4') || localStorage.getItem('deallenamentoPct4_' + athleteIdForInit) || '25'));
 const localW2 = localStorage.getItem('regolaProgressioneW2Global');
 export const regolaProgressioneW2Global = ref(localW2 && localW2 !== 'reps' ? localW2 : 'peso');
 if (localW2 === 'reps') {
@@ -653,6 +661,14 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         faticaDevastanteStoricoPct: faticaDevastanteStoricoPctGlobal.value,
         ottimizzaDigitazione: ottimizzaDigitazioneGlobal.value,
         regolaProgressioneW2: regolaProgressioneW2Global.value,
+        deallenamentoSoglia1: deallenamentoSoglia1Global.value,
+        deallenamentoSoglia2: deallenamentoSoglia2Global.value,
+        deallenamentoSoglia3: deallenamentoSoglia3Global.value,
+        deallenamentoSoglia4: deallenamentoSoglia4Global.value,
+        deallenamentoPct1: deallenamentoPct1Global.value,
+        deallenamentoPct2: deallenamentoPct2Global.value,
+        deallenamentoPct3: deallenamentoPct3Global.value,
+        deallenamentoPct4: deallenamentoPct4Global.value,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
@@ -688,6 +704,14 @@ export const syncConfigurazioniListener = () => {
       if (data.regolaProgressioneW2 !== undefined) {
         regolaProgressioneW2Global.value = data.regolaProgressioneW2 === 'reps' ? 'peso' : data.regolaProgressioneW2;
       }
+      if (data.deallenamentoSoglia1 !== undefined) deallenamentoSoglia1Global.value = parseInt(data.deallenamentoSoglia1, 10);
+      if (data.deallenamentoSoglia2 !== undefined) deallenamentoSoglia2Global.value = parseInt(data.deallenamentoSoglia2, 10);
+      if (data.deallenamentoSoglia3 !== undefined) deallenamentoSoglia3Global.value = parseInt(data.deallenamentoSoglia3, 10);
+      if (data.deallenamentoSoglia4 !== undefined) deallenamentoSoglia4Global.value = parseInt(data.deallenamentoSoglia4, 10);
+      if (data.deallenamentoPct1 !== undefined) deallenamentoPct1Global.value = parseFloat(data.deallenamentoPct1);
+      if (data.deallenamentoPct2 !== undefined) deallenamentoPct2Global.value = parseFloat(data.deallenamentoPct2);
+      if (data.deallenamentoPct3 !== undefined) deallenamentoPct3Global.value = parseFloat(data.deallenamentoPct3);
+      if (data.deallenamentoPct4 !== undefined) deallenamentoPct4Global.value = parseFloat(data.deallenamentoPct4);
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
       salvaConfigurazioniGlobaliFirestore();
@@ -756,6 +780,38 @@ watch(ottimizzaDigitazioneGlobal, (newVal) => {
 });
 watch(regolaProgressioneW2Global, (newVal) => {
   localStorage.setItem('regolaProgressioneW2Global', newVal);
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoSoglia1Global, (newVal) => {
+  localStorage.setItem('deallenamentoSoglia1', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoSoglia2Global, (newVal) => {
+  localStorage.setItem('deallenamentoSoglia2', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoSoglia3Global, (newVal) => {
+  localStorage.setItem('deallenamentoSoglia3', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoSoglia4Global, (newVal) => {
+  localStorage.setItem('deallenamentoSoglia4', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoPct1Global, (newVal) => {
+  localStorage.setItem('deallenamentoPct1', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoPct2Global, (newVal) => {
+  localStorage.setItem('deallenamentoPct2', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoPct3Global, (newVal) => {
+  localStorage.setItem('deallenamentoPct3', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(deallenamentoPct4Global, (newVal) => {
+  localStorage.setItem('deallenamentoPct4', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {

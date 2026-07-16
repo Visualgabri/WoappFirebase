@@ -367,6 +367,156 @@
               ></v-text-field>
             </v-col>
           </v-row>
+
+          <v-divider class="my-4 border-soft"></v-divider>
+
+          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
+            ⏱️ Deallenamento & Sbalzi di Reps
+          </div>
+
+          <v-row dense>
+            <!-- Soglia 1 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 1 (gg)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_SOGLIA1"
+                type="number"
+                step="1"
+                min="0"
+                suffix="gg"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+            <!-- Pct 1 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 1 (%)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_PCT1"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Soglia 2 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 2 (gg)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_SOGLIA2"
+                type="number"
+                step="1"
+                min="0"
+                suffix="gg"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+            <!-- Pct 2 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 2 (%)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_PCT2"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+
+          <v-row dense class="mt-2">
+            <!-- Soglia 3 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 3 (gg)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_SOGLIA3"
+                type="number"
+                step="1"
+                min="0"
+                suffix="gg"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+            <!-- Pct 3 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 3 (%)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_PCT3"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Soglia 4 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 4 (gg)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_SOGLIA4"
+                type="number"
+                step="1"
+                min="0"
+                suffix="gg"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+            <!-- Pct 4 -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 4 (%)</span>
+              <v-text-field
+                v-model.number="DEALLENAMENTO_PCT4"
+                type="number"
+                step="0.5"
+                min="0"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-card>
@@ -1296,7 +1446,15 @@ import {
   faticaPesanteStoricoPctGlobal,
   faticaDevastanteStoricoPctGlobal,
   ottimizzaDigitazioneGlobal,
-  regolaProgressioneW2Global
+  regolaProgressioneW2Global,
+  deallenamentoSoglia1Global,
+  deallenamentoSoglia2Global,
+  deallenamentoSoglia3Global,
+  deallenamentoSoglia4Global,
+  deallenamentoPct1Global,
+  deallenamentoPct2Global,
+  deallenamentoPct3Global,
+  deallenamentoPct4Global
 } from '../authStore.js';
 
 // Local mappings for global settings
@@ -1313,6 +1471,14 @@ const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
 const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
 const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
 const regolaProgressioneW2 = regolaProgressioneW2Global;
+const DEALLENAMENTO_SOGLIA1 = deallenamentoSoglia1Global;
+const DEALLENAMENTO_SOGLIA2 = deallenamentoSoglia2Global;
+const DEALLENAMENTO_SOGLIA3 = deallenamentoSoglia3Global;
+const DEALLENAMENTO_SOGLIA4 = deallenamentoSoglia4Global;
+const DEALLENAMENTO_PCT1 = deallenamentoPct1Global;
+const DEALLENAMENTO_PCT2 = deallenamentoPct2Global;
+const DEALLENAMENTO_PCT3 = deallenamentoPct3Global;
+const DEALLENAMENTO_PCT4 = deallenamentoPct4Global;
 
 // Stato di base
 const listaAtleti = ref([]);

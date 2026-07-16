@@ -3015,7 +3015,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -5248,14 +5248,26 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     estimated1RM = wBase / getNSCAPercentage(repsBaseTotali);
   }
 
-  // Riduzione prudenziale in base al tempo passato
+  // Riduzione prudenziale in base al tempo passato (dinamica da Pannello Coach)
   let dateFactor = 1.0;
-  if (giorniTrascorsi > 180) {
-    dateFactor = 0.97; // max -3%
-  } else if (giorniTrascorsi > 90) {
-    dateFactor = 0.98; // -2%
-  } else if (giorniTrascorsi > 30) {
-    dateFactor = 0.99; // -1%
+  const s1 = deallenamentoSoglia1Global.value !== undefined ? deallenamentoSoglia1Global.value : 30;
+  const s2 = deallenamentoSoglia2Global.value !== undefined ? deallenamentoSoglia2Global.value : 90;
+  const s3 = deallenamentoSoglia3Global.value !== undefined ? deallenamentoSoglia3Global.value : 180;
+  const s4 = deallenamentoSoglia4Global.value !== undefined ? deallenamentoSoglia4Global.value : 365;
+
+  const p1 = deallenamentoPct1Global.value !== undefined ? deallenamentoPct1Global.value : 1.0;
+  const p2 = deallenamentoPct2Global.value !== undefined ? deallenamentoPct2Global.value : 3.0;
+  const p3 = deallenamentoPct3Global.value !== undefined ? deallenamentoPct3Global.value : 10.0;
+  const p4 = deallenamentoPct4Global.value !== undefined ? deallenamentoPct4Global.value : 25.0;
+
+  if (giorniTrascorsi > s4) {
+    dateFactor = 1.0 - (p4 / 100);
+  } else if (giorniTrascorsi > s3) {
+    dateFactor = 1.0 - (p3 / 100);
+  } else if (giorniTrascorsi > s2) {
+    dateFactor = 1.0 - (p2 / 100);
+  } else if (giorniTrascorsi > s1) {
+    dateFactor = 1.0 - (p1 / 100);
   }
 
   // Helper per calcolare e arrotondare il peso per un certo RIR target
@@ -5270,6 +5282,21 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
       weightCalc = estimated1RM * getNSCAPercentage(repsW1Totali);
     }
     weightCalc = weightCalc * dateFactor;
+
+    // A. Penalizzazione per Sbalzo di Ripetizioni (Reps Gap Penalty)
+    const repsDiff = r1 - rBase;
+    if (repsDiff > 4) {
+      const excessReps = repsDiff - 4;
+      const repsGapFactor = 1.0 - (excessReps * 0.02); // 2% per rep in eccesso oltre le 4
+      weightCalc = weightCalc * Math.max(0.5, repsGapFactor);
+    }
+
+    // B. Dampener per Esercizi di Isolamento / Cavi ad alte reps
+    const isCavoOAlzate = /cavo|alzate|alzata|croci|curl|estensioni|pushdown|kickback|fly|lateral/i.test(workout.value?.des_esercizio || '');
+    const isIsolamento = ['Spalle', 'Bicipiti', 'Tricipiti', 'Polpacci'].includes(workout.value?.des_settore || '') || isCavoOAlzate;
+    if (isIsolamento && r1 > 12) {
+      weightCalc = weightCalc * 0.80; // Riduzione del 20%
+    }
     
     if (isManubri) {
       if (weightCalc <= 10.0) {

@@ -200,15 +200,17 @@ const isCorpoLiberoEsercizio = (ex) => {
   const name = String(ex.des_esercizio || '').toLowerCase();
   const note = String(ex.des_note_attrezzo || '').toLowerCase();
   const attr = String(ex.des_note_gen_attr || '').toLowerCase();
+  const settore = String(ex.des_settore || '').toLowerCase();
+  const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
   
   const keywords = [
     'corpo libero', 'corpolibero', 'trazioni', 'dip', 'piegamenti', 
     'push up', 'push-up', 'crunch', 'plank', 'sit up', 'sit-up', 
     'addominali', 'addome', 'leg raise', 'hyperextension', 'corpo_libero',
-    'dragon'
+    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout'
   ];
   
-  return keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k));
+  return keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || settore.includes(k) || settorePrinc.includes(k));
 };
 
 const estraiSerieDaPrescrizione = (prescrizioneStr) => {
@@ -944,6 +946,7 @@ const getGhostLiftStandard = (sett) => {
       const baseWNum = parseInt(baseW.replace('W', ''), 10) || 5;
       const baseIns = inputSettimane.value[baseWNum]?.ins;
       if (!baseIns) return null;
+      if (isRepEx) return { text: baseIns, peso: 0, label: baseW, isRepExercise: true };
       const pesoStrBase = estraiPesoDaInput(baseIns);
       if (!pesoStrBase) return null;
       const pesoBase = parseFloat(pesoStrBase);
@@ -1172,9 +1175,16 @@ const propostaWeek1 = {
     let baseRIR = null;
     let fatica = '';
     let baseWeekNum = null;
+    
+    const isRepEx = isCorpoLiberoOVolumeEsercizio(workout.value);
+    
     const prevW6Weight = previousWorkout.value.num_ins6;
     if (prevW6Weight && !isNaN(parseFloat(String(prevW6Weight).replace(',', '.')))) {
-      basePeso = parseFloat(String(prevW6Weight).replace(',', '.'));
+      const w6Val = parseFloat(String(prevW6Weight).replace(',', '.'));
+      const w6InsText = previousWorkout.value.ins_week6 || '';
+      const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(w6InsText);
+      
+      basePeso = isRepEx && !haPesoEsplicito ? 0 : w6Val;
       baseReps = parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10;
       baseRIR = estraiRIRDaPrescrizione(previousWorkout.value.des_week6) !== null ? estraiRIRDaPrescrizione(previousWorkout.value.des_week6) : 0;
       fatica = previousWorkout.value.num_faticaw6 || '';
@@ -1184,9 +1194,17 @@ const propostaWeek1 = {
         const val = previousWorkout.value['ins_week' + w];
         if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
           const pesoStr = estraiPesoDaInput(val);
-          if (pesoStr) {
+          const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(val);
+          
+          if (pesoStr && (!isRepEx || haPesoEsplicito)) {
             basePeso = parseFloat(pesoStr);
             baseReps = parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+            baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
+            baseWeekNum = w;
+            break;
+          } else if (isRepEx) {
+            basePeso = 0;
+            baseReps = estraiRepsDaInput(val) || parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
             baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
             baseWeekNum = w;
             break;
@@ -1194,7 +1212,22 @@ const propostaWeek1 = {
         }
       }
     }
-    if (basePeso === null || isNaN(basePeso) || basePeso <= 0) return { erroreCarichi: true };
+    
+    if (isRepEx && baseWeekNum === null) {
+      for (let w = 6; w >= 1; w--) {
+        const val = previousWorkout.value['ins_week' + w];
+        if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
+          basePeso = 0;
+          baseReps = estraiRepsDaInput(val) || parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+          baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
+          baseWeekNum = w;
+          break;
+        }
+      }
+    }
+    
+    if (!isRepEx && (basePeso === null || isNaN(basePeso) || basePeso <= 0)) return { erroreCarichi: true };
+    if (isRepEx && baseWeekNum === null) return { erroreCarichi: true };
     const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 10;
     const giorniTrascorsi = 10; // Mocked
     let proposta = calcolaPropostaCaricoDinamico(basePeso, baseReps, baseRIR, currW1Reps, fatica, giorniTrascorsi);

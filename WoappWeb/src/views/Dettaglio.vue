@@ -5284,19 +5284,24 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     weightCalc = weightCalc * dateFactor;
 
     // A. Penalizzazione per Sbalzo di Ripetizioni (Reps Gap Penalty)
+    let repsGapFactor = 1.0;
     const repsDiff = r1 - rBase;
     if (repsDiff > 4) {
       const excessReps = repsDiff - 4;
-      const repsGapFactor = 1.0 - (excessReps * 0.02); // 2% per rep in eccesso oltre le 4
-      weightCalc = weightCalc * Math.max(0.5, repsGapFactor);
+      repsGapFactor = Math.max(0.5, 1.0 - (excessReps * 0.02)); // 2% per rep in eccesso oltre le 4
     }
 
     // B. Dampener per Esercizi di Isolamento / Cavi ad alte reps
+    let isolationFactor = 1.0;
     const isCavoOAlzate = /cavo|alzate|alzata|croci|curl|estensioni|pushdown|kickback|fly|lateral/i.test(workout.value?.des_esercizio || '');
     const isIsolamento = ['Spalle', 'Bicipiti', 'Tricipiti', 'Polpacci'].includes(workout.value?.des_settore || '') || isCavoOAlzate;
     if (isIsolamento && r1 > 12) {
-      weightCalc = weightCalc * 0.80; // Riduzione del 20%
+      isolationFactor = 0.80; // Riduzione del 20%
     }
+
+    // Cap combined penalty at 20% max reduction (factor 0.80)
+    const combinedPenaltyFactor = Math.max(0.80, repsGapFactor * isolationFactor);
+    weightCalc = weightCalc * combinedPenaltyFactor;
     
     if (isManubri) {
       if (weightCalc <= 10.0) {

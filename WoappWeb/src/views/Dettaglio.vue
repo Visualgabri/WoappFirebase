@@ -1141,7 +1141,7 @@
                   @click="vaiAdEsercizioCollegato(infoSuperset.nextExercise.id)"
                   style="cursor: pointer; background-color: rgba(255, 255, 255, 0.03) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important;"
                 >
-                  <div class="overflow-hidden mr-2.5 bg-black border-soft" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded'" :style="{ width: layoutCorrente === 'super_compatto' ? '28px' : '36px', height: layoutCorrente === 'super_compatto' ? '28px' : '36px', flexShrink: 0 }">
+                  <div class="overflow-hidden mr-4 bg-black border-soft" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded'" :style="{ width: layoutCorrente === 'super_compatto' ? '28px' : '36px', height: layoutCorrente === 'super_compatto' ? '28px' : '36px', flexShrink: 0 }">
                     <v-img :src="getGifUrl(infoSuperset.nextExercise.UrlNormal)" :width="layoutCorrente === 'super_compatto' ? 28 : 36" :height="layoutCorrente === 'super_compatto' ? 28 : 36" cover></v-img>
                   </div>
                   
@@ -1151,7 +1151,7 @@
                       <v-icon v-if="infoSuperset.nextExercise.flg_video === 'true' || infoSuperset.nextExercise.flg_video === true" color="orange" size="12" class="ml-1" title="Video richiesto">mdi-video</v-icon>
                     </div>
                     <div class="text-super-caption text-purple-lighten-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
-                      Prescrizione: {{ formatPrescrizioneSuperset(infoSuperset.nextExercise) }}
+                      {{ formatPrescrizioneSuperset(infoSuperset.nextExercise) }}
                     </div>
                   </div>
                   
@@ -1210,7 +1210,7 @@
                 @click="vaiAdEsercizioCollegato(infoSuperset.nextExercise.id)"
                 style="cursor: pointer; background-color: rgba(255, 255, 255, 0.03) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important;"
               >
-                <div class="overflow-hidden mr-2.5 bg-black border-soft" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded'" :style="{ width: layoutCorrente === 'super_compatto' ? '28px' : '36px', height: layoutCorrente === 'super_compatto' ? '28px' : '36px', flexShrink: 0 }">
+                <div class="overflow-hidden mr-4 bg-black border-soft" :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded'" :style="{ width: layoutCorrente === 'super_compatto' ? '28px' : '36px', height: layoutCorrente === 'super_compatto' ? '28px' : '36px', flexShrink: 0 }">
                   <v-img :src="getGifUrl(infoSuperset.nextExercise.UrlNormal)" :width="layoutCorrente === 'super_compatto' ? 28 : 36" :height="layoutCorrente === 'super_compatto' ? 28 : 36" cover></v-img>
                 </div>
                 
@@ -1220,7 +1220,7 @@
                     <v-icon v-if="infoSuperset.nextExercise.flg_video === 'true' || infoSuperset.nextExercise.flg_video === true" color="orange" size="12" class="ml-1" title="Video richiesto">mdi-video</v-icon>
                   </div>
                   <div class="text-super-caption text-purple-lighten-3 font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
-                    Prescrizione: {{ formatPrescrizioneSuperset(infoSuperset.nextExercise) }}
+                    {{ formatPrescrizioneSuperset(infoSuperset.nextExercise) }}
                   </div>
                 </div>
                 

@@ -1077,6 +1077,30 @@
               </v-row>
             </div>
           </div>
+            <!-- Sezione Recupero (Fine Giro) per Superset inside orange active card -->
+            <div 
+              v-if="sett === settimanaAttiva && infoSuperset.inSuperset && infoSuperset.isLast && workout.des_rec_report" 
+              class="border-top-soft d-flex align-center justify-space-between animate-fade-in"
+              :class="layoutCorrente === 'super_compatto' ? 'mt-2.5 pt-2' : (layoutCorrente === 'compatto' ? 'mt-3.5 pt-3' : 'mt-4 pt-3.5')"
+            >
+              <span 
+                class="text-super-caption text-orange-lighten-3 font-weight-medium"
+                :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.62rem' }"
+              >
+                🔄 Fine Giro! Recupera prima di ricominciare.
+              </span>
+              <v-chip
+                color="orange-darken-3"
+                variant="flat"
+                size="x-small"
+                class="font-weight-black text-white px-2.5 py-0"
+                style="font-size: 0.58rem; height: 20px; cursor: pointer; line-height: 1;"
+                @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
+              >
+                ⏱️ AVVIA RECUPERO: {{ workout.des_rec_report }}
+              </v-chip>
+            </div>
+
             <!-- Option B (dentro la week attiva): se renderSupersetPosizione === 'dentro_week' e sett === settimanaAttiva -->
             <div v-if="infoSuperset.inSuperset && renderSupersetPosizione === 'dentro_week' && sett === settimanaAttiva" class="mt-4 border-top-soft pt-3 animate-fade-in">
               <div 
@@ -1117,7 +1141,7 @@
                       Esercizio successivo ({{ infoSuperset.currentIndex + 1 }} di {{ infoSuperset.total }})
                     </template>
                     <template v-else>
-                      🔄 Fine Giro • Ricomincia (1 di {{ infoSuperset.total }})
+                      👉 Prossimo Giro: Ricomincia da (1 di {{ infoSuperset.total }})
                     </template>
                   </span>
                 </div>
@@ -1154,23 +1178,6 @@
                   >
                     VAI ➔
                   </v-btn>
-                </div>
-                
-                <!-- Messaggio di recupero se è l'ultimo esercizio del superset -->
-                <div v-if="infoSuperset.isLast && workout.des_rec_report" class="d-flex align-center justify-space-between mt-2 pt-2 border-top-soft">
-                  <span class="text-super-caption text-muted font-weight-medium">
-                    ⚠️ Completa questa serie e poi recupera.
-                  </span>
-                  <v-chip
-                    color="amber-darken-3"
-                    variant="flat"
-                    size="x-small"
-                    class="font-weight-black text-white px-2 py-0"
-                    style="font-size: 0.58rem; height: 16px; cursor: pointer; line-height: 1;"
-                    @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
-                  >
-                    ⏱️ RECUPERO: {{ workout.des_rec_report }}
-                  </v-chip>
                 </div>
               </div>
             </div>
@@ -1216,7 +1223,7 @@
                     Esercizio successivo ({{ infoSuperset.currentIndex + 1 }} di {{ infoSuperset.total }})
                   </template>
                   <template v-else>
-                    🔄 Fine Giro • Ricomincia (1 di {{ infoSuperset.total }})
+                    👉 Prossimo Giro: Ricomincia da (1 di {{ infoSuperset.total }})
                   </template>
                 </span>
               </div>
@@ -1253,23 +1260,6 @@
                 >
                   VAI ➔
                 </v-btn>
-              </div>
-              
-              <!-- Messaggio di recupero se è l'ultimo esercizio del superset -->
-              <div v-if="infoSuperset.isLast && workout.des_rec_report" class="d-flex align-center justify-space-between mt-2 pt-2 border-top-soft">
-                <span class="text-super-caption text-muted font-weight-medium">
-                  ⚠️ Completa questa serie e poi recupera.
-                </span>
-                <v-chip
-                  color="amber-darken-3"
-                  variant="flat"
-                  size="x-small"
-                  class="font-weight-black text-white px-2 py-0"
-                  style="font-size: 0.58rem; height: 16px; cursor: pointer; line-height: 1;"
-                  @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
-                >
-                  ⏱️ RECUPERO: {{ workout.des_rec_report }}
-                </v-chip>
               </div>
             </div>
           </div>

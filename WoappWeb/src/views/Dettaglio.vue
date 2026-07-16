@@ -1103,6 +1103,14 @@
 
             <!-- Option B (dentro la week attiva): se renderSupersetPosizione === 'dentro_week' e sett === settimanaAttiva -->
             <div v-if="infoSuperset.inSuperset && renderSupersetPosizione === 'dentro_week' && sett === settimanaAttiva" class="mt-4 border-top-soft pt-3 animate-fade-in">
+              <!-- Indicatore direzionale superset senza recupero -->
+              <div v-if="!infoSuperset.isLast" class="d-flex align-center justify-center gap-1.5 animate-pulse mb-3">
+                <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
+                <span class="text-super-caption text-purple-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.05em; padding-top: 2px;">
+                  Superset: passa subito all'esercizio successivo!
+                </span>
+                <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
+              </div>
               <div 
                 class="text-left position-relative"
                 :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"
@@ -1185,6 +1193,14 @@
 
           <!-- Option A (sotto la week attiva): se renderSupersetPosizione === 'sotto_week' e sett === settimanaAttiva -->
           <div v-if="infoSuperset.inSuperset && renderSupersetPosizione === 'sotto_week' && sett === settimanaAttiva" :class="layoutCorrente === 'super_compatto' ? 'mb-2.5 mt-0.5' : (layoutCorrente === 'compatto' ? 'mb-4 mt-1' : 'mb-6 mt-1')">
+            <!-- Indicatore direzionale superset senza recupero -->
+            <div v-if="!infoSuperset.isLast" class="d-flex align-center justify-center gap-1.5 animate-pulse mb-3">
+              <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
+              <span class="text-super-caption text-purple-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.05em; padding-top: 2px;">
+                Superset: passa subito all'esercizio successivo!
+              </span>
+              <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
+            </div>
             <div 
               class="text-left position-relative animate-fade-in"
               :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"

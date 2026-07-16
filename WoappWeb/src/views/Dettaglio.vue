@@ -5377,7 +5377,7 @@ const propostaWeek1 = computed(() => {
   let fatica = '';
   let baseWeekNum = null;
   
-  const isRepEx = isCorpoLiberoOVolumeEsercizio(workout.value);
+  const isRepEx = isCorpoLiberoEsercizio(workout.value);
   
   // 1. Controlla prima la Week 6 (Miglior Carico num_ins6)
   const prevW6Weight = previousWorkout.value.num_ins6;
@@ -7525,7 +7525,7 @@ const getGhostLiftStandard = (sett) => {
   }
 
   // Rileva se è un esercizio a corpo libero (reps, non kg) o incentrato sul volume
-  const isRepEx = isCorpoLiberoOVolumeEsercizio(workout.value);
+  const isRepEx = isCorpoLiberoEsercizio(workout.value);
 
   // Per la Week 1, proponiamo in base al miglior carico del mesociclo precedente (num_ins6) o fallback
   if (sett === 1) {

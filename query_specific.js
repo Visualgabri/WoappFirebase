@@ -700,7 +700,7 @@ const getGhostLiftStandard = (sett) => {
     return null;
   }
 
-  const isRepEx = isCorpoLiberoOVolumeEsercizio(workout.value);
+  const isRepEx = isCorpoLiberoEsercizio(workout.value);
 
   if (sett === 1) {
     if (!previousWorkout.value) return null;
@@ -1176,7 +1176,7 @@ const propostaWeek1 = {
     let fatica = '';
     let baseWeekNum = null;
     
-    const isRepEx = isCorpoLiberoOVolumeEsercizio(workout.value);
+    const isRepEx = isCorpoLiberoEsercizio(workout.value);
     
     const prevW6Weight = previousWorkout.value.num_ins6;
     if (prevW6Weight && !isNaN(parseFloat(String(prevW6Weight).replace(',', '.')))) {

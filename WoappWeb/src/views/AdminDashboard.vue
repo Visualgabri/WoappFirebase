@@ -516,6 +516,42 @@
                 class="mt-1"
               ></v-text-field>
             </v-col>
+            <!-- Riduzione Max Instabili -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione Max Instabili (%)</span>
+              <v-text-field
+                v-model.number="PENALITA_MAX_INSTABILI_PCT"
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
+            <!-- Riduzione Max Stabili -->
+            <v-col cols="12" sm="6" md="3">
+              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione Max Stabili (%)</span>
+              <v-text-field
+                v-model.number="PENALITA_MAX_STABILI_PCT"
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                suffix="%"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+                class="mt-1"
+              ></v-text-field>
+            </v-col>
           </v-row>
         </v-col>
       </v-row>
@@ -1454,7 +1490,9 @@ import {
   deallenamentoPct1Global,
   deallenamentoPct2Global,
   deallenamentoPct3Global,
-  deallenamentoPct4Global
+  deallenamentoPct4Global,
+  penalitaMaxInstabiliPctGlobal,
+  penalitaMaxStabiliPctGlobal
 } from '../authStore.js';
 
 // Local mappings for global settings
@@ -1479,6 +1517,8 @@ const DEALLENAMENTO_PCT1 = deallenamentoPct1Global;
 const DEALLENAMENTO_PCT2 = deallenamentoPct2Global;
 const DEALLENAMENTO_PCT3 = deallenamentoPct3Global;
 const DEALLENAMENTO_PCT4 = deallenamentoPct4Global;
+const PENALITA_MAX_INSTABILI_PCT = penalitaMaxInstabiliPctGlobal;
+const PENALITA_MAX_STABILI_PCT = penalitaMaxStabiliPctGlobal;
 
 // Stato di base
 const listaAtleti = ref([]);

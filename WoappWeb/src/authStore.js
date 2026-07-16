@@ -629,6 +629,8 @@ export const deallenamentoPct1Global = ref(parseFloat(localStorage.getItem('deal
 export const deallenamentoPct2Global = ref(parseFloat(localStorage.getItem('deallenamentoPct2') || localStorage.getItem('deallenamentoPct2_' + athleteIdForInit) || '3'));
 export const deallenamentoPct3Global = ref(parseFloat(localStorage.getItem('deallenamentoPct3') || localStorage.getItem('deallenamentoPct3_' + athleteIdForInit) || '10'));
 export const deallenamentoPct4Global = ref(parseFloat(localStorage.getItem('deallenamentoPct4') || localStorage.getItem('deallenamentoPct4_' + athleteIdForInit) || '25'));
+export const penalitaMaxInstabiliPctGlobal = ref(parseFloat(localStorage.getItem('penalitaMaxInstabiliPct') || localStorage.getItem('penalitaMaxInstabiliPct_' + athleteIdForInit) || '64'));
+export const penalitaMaxStabiliPctGlobal = ref(parseFloat(localStorage.getItem('penalitaMaxStabiliPct') || localStorage.getItem('penalitaMaxStabiliPct_' + athleteIdForInit) || '14'));
 const localW2 = localStorage.getItem('regolaProgressioneW2Global');
 export const regolaProgressioneW2Global = ref(localW2 && localW2 !== 'reps' ? localW2 : 'peso');
 if (localW2 === 'reps') {
@@ -669,6 +671,8 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         deallenamentoPct2: deallenamentoPct2Global.value,
         deallenamentoPct3: deallenamentoPct3Global.value,
         deallenamentoPct4: deallenamentoPct4Global.value,
+        penalitaMaxInstabiliPct: penalitaMaxInstabiliPctGlobal.value,
+        penalitaMaxStabiliPct: penalitaMaxStabiliPctGlobal.value,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
@@ -712,6 +716,8 @@ export const syncConfigurazioniListener = () => {
       if (data.deallenamentoPct2 !== undefined) deallenamentoPct2Global.value = parseFloat(data.deallenamentoPct2);
       if (data.deallenamentoPct3 !== undefined) deallenamentoPct3Global.value = parseFloat(data.deallenamentoPct3);
       if (data.deallenamentoPct4 !== undefined) deallenamentoPct4Global.value = parseFloat(data.deallenamentoPct4);
+      if (data.penalitaMaxInstabiliPct !== undefined) penalitaMaxInstabiliPctGlobal.value = parseFloat(data.penalitaMaxInstabiliPct);
+      if (data.penalitaMaxStabiliPct !== undefined) penalitaMaxStabiliPctGlobal.value = parseFloat(data.penalitaMaxStabiliPct);
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
       salvaConfigurazioniGlobaliFirestore();
@@ -812,6 +818,14 @@ watch(deallenamentoPct3Global, (newVal) => {
 });
 watch(deallenamentoPct4Global, (newVal) => {
   localStorage.setItem('deallenamentoPct4', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(penalitaMaxInstabiliPctGlobal, (newVal) => {
+  localStorage.setItem('penalitaMaxInstabiliPct', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(penalitaMaxStabiliPctGlobal, (newVal) => {
+  localStorage.setItem('penalitaMaxStabiliPct', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {

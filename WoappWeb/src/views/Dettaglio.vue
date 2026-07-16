@@ -3015,7 +3015,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -3049,6 +3049,8 @@ const router = useRouter();
 const propostaBaseWeek2 = propostaBaseWeek2Global;
 const propostaBaseWeek5 = propostaBaseWeek5Global;
 const propostaBaseWeek6 = propostaBaseWeek6Global;
+const PENALITA_MAX_INSTABILI_PCT = penalitaMaxInstabiliPctGlobal;
+const PENALITA_MAX_STABILI_PCT = penalitaMaxStabiliPctGlobal;
 const INCREMENTO_PESO_POST_SCARICO_PCT = incrementoPesoPostScaricoPctGlobal;
 const SOGLIA_FORZA_MANUBRI = sogliaForzaManubriGlobal;
 const INCREMENTO_MANUBRI_LEGGERO = incrementoManubriLeggeroGlobal;
@@ -5286,9 +5288,18 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     // A. Penalizzazione per Sbalzo di Ripetizioni (Reps Gap Penalty)
     let repsGapFactor = 1.0;
     const repsDiff = r1 - rBase;
+    
+    // Rilevamento instabilità esercizio (cavo, manubri, elastico)
+    const isInstabile = /cavo|manubri|elastico/i.test(workout.value?.des_esercizio || '');
+    const repsGapRate = isInstabile ? 0.05 : 0.02; // 5% per rep su instabili, 2% su stabili
+    const isolationRate = isInstabile ? 0.60 : 0.80; // Riduzione del 40% vs 20%
+    const maxPenaltyPct = isInstabile
+      ? (penalitaMaxInstabiliPctGlobal.value !== undefined ? penalitaMaxInstabiliPctGlobal.value : 64.0)
+      : (penalitaMaxStabiliPctGlobal.value !== undefined ? penalitaMaxStabiliPctGlobal.value : 14.0);
+
     if (repsDiff > 4) {
       const excessReps = repsDiff - 4;
-      repsGapFactor = Math.max(0.5, 1.0 - (excessReps * 0.02)); // 2% per rep in eccesso oltre le 4
+      repsGapFactor = Math.max(0.5, 1.0 - (excessReps * repsGapRate));
     }
 
     // B. Dampener per Esercizi di Isolamento / Cavi ad alte reps
@@ -5296,11 +5307,12 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     const isCavoOAlzate = /cavo|alzate|alzata|croci|curl|estensioni|pushdown|kickback|fly|lateral/i.test(workout.value?.des_esercizio || '');
     const isIsolamento = ['Spalle', 'Bicipiti', 'Tricipiti', 'Polpacci'].includes(workout.value?.des_settore || '') || isCavoOAlzate;
     if (isIsolamento && r1 > 12) {
-      isolationFactor = 0.80; // Riduzione del 20%
+      isolationFactor = isolationRate;
     }
 
-    // Cap combined penalty at 20% max reduction (factor 0.80)
-    const combinedPenaltyFactor = Math.max(0.80, repsGapFactor * isolationFactor);
+    // Cap combined penalty dynamically based on exercise stability
+    const capFactor = 1.0 - (maxPenaltyPct / 100);
+    const combinedPenaltyFactor = Math.max(capFactor, repsGapFactor * isolationFactor);
     weightCalc = weightCalc * combinedPenaltyFactor;
     
     if (isManubri) {

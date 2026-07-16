@@ -1107,7 +1107,7 @@
               <div v-if="!infoSuperset.isLast" class="d-flex align-center justify-center gap-1.5 animate-pulse mb-3">
                 <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
                 <span class="text-super-caption text-purple-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.05em; padding-top: 2px;">
-                  Superset {{ infoSuperset.letter }}: passa subito all'esercizio successivo!
+                  SUPERSET {{ infoSuperset.letter }}: PASSA AL SUCCESSIVO ({{ infoSuperset.currentIndex + 1 }} di {{ infoSuperset.total }}) SENZA RECUPERO!
                 </span>
                 <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
               </div>
@@ -1122,19 +1122,14 @@
                   boxShadow: '0 4px 15px rgba(124, 58, 237, 0.05)'
                 }"
               >
-                <!-- Intestazione con badge e modalità -->
-                <div class="d-flex align-center mb-2">
+                <!-- Intestazione con badge e modalità (solo per il prossimo giro) -->
+                <div v-if="infoSuperset.isLast" class="d-flex align-center mb-2">
                   <v-icon color="purple-lighten-2" size="14" class="mr-1.5">mdi-link-variant</v-icon>
                   <span 
                     class="text-super-caption font-weight-black text-purple-lighten-3 uppercase" 
                     :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem', letterSpacing: '0.05em' }"
                   >
-                    <template v-if="!infoSuperset.isLast">
-                      Esercizio successivo ({{ infoSuperset.currentIndex + 1 }} di {{ infoSuperset.total }})
-                    </template>
-                    <template v-else>
-                      👉 Prossimo Giro: Ricomincia da (1 di {{ infoSuperset.total }})
-                    </template>
+                    👉 Prossimo Giro: Ricomincia da (1 di {{ infoSuperset.total }})
                   </span>
                 </div>
                 
@@ -1181,7 +1176,7 @@
             <div v-if="!infoSuperset.isLast" class="d-flex align-center justify-center gap-1.5 animate-pulse mb-3">
               <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
               <span class="text-super-caption text-purple-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.05em; padding-top: 2px;">
-                Superset {{ infoSuperset.letter }}: passa subito all'esercizio successivo!
+                SUPERSET {{ infoSuperset.letter }}: PASSA AL SUCCESSIVO ({{ infoSuperset.currentIndex + 1 }} di {{ infoSuperset.total }}) SENZA RECUPERO!
               </span>
               <v-icon color="deep-purple-accent-4" size="18">mdi-arrow-down-bold</v-icon>
             </div>
@@ -1196,19 +1191,14 @@
                 boxShadow: '0 4px 15px rgba(124, 58, 237, 0.05)'
               }"
             >
-              <!-- Intestazione con badge e modalità -->
-              <div class="d-flex align-center mb-2">
+              <!-- Intestazione con badge e modalità (solo per il prossimo giro) -->
+              <div v-if="infoSuperset.isLast" class="d-flex align-center mb-2">
                 <v-icon color="purple-lighten-2" size="14" class="mr-1.5">mdi-link-variant</v-icon>
                 <span 
                   class="text-super-caption font-weight-black text-purple-lighten-3 uppercase" 
                   :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem', letterSpacing: '0.05em' }"
                 >
-                  <template v-if="!infoSuperset.isLast">
-                    Esercizio successivo ({{ infoSuperset.currentIndex + 1 }} di {{ infoSuperset.total }})
-                  </template>
-                  <template v-else>
-                    👉 Prossimo Giro: Ricomincia da (1 di {{ infoSuperset.total }})
-                  </template>
+                  👉 Prossimo Giro: Ricomincia da (1 di {{ infoSuperset.total }})
                 </span>
               </div>
               

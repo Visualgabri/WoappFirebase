@@ -5291,8 +5291,8 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     
     // Rilevamento instabilità esercizio (cavo, manubri, elastico)
     const isInstabile = /cavo|manubri|elastico/i.test(workout.value?.des_esercizio || '');
-    const repsGapRate = isInstabile ? 0.05 : 0.02; // 5% per rep su instabili, 2% su stabili
-    const isolationRate = isInstabile ? 0.60 : 0.80; // Riduzione del 40% vs 20%
+    const repsGapRate = 0.02; // Standard 2% per rep di sbalzo
+    const isolationRate = 0.80; // Standard 20% per isolamento
     const maxPenaltyPct = isInstabile
       ? (penalitaMaxInstabiliPctGlobal.value !== undefined ? penalitaMaxInstabiliPctGlobal.value : 64.0)
       : (penalitaMaxStabiliPctGlobal.value !== undefined ? penalitaMaxStabiliPctGlobal.value : 14.0);

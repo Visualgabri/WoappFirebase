@@ -4087,7 +4087,7 @@ const getGhostRenderInfo = (sett) => {
       label = 'Nota:';
       valueText = 'Carica il Miglior Carico W6 per la stima';
     } else {
-      valueText = ghost.isRepExercise ? `${ghost.text}r` : `${formatWeight(ghost.suggerito)} kg`;
+      valueText = ghost.isRepExercise ? (ghost.peso > 0 ? `${formatWeight(ghost.peso)}kg x${ghost.reps}r` : `${ghost.reps}r`) : `${formatWeight(ghost.suggerito)} kg`;
     }
   } else {
     // Caso standard delle settimane progressive (W2, W3, W4 se non scarico, W5, W6)
@@ -4965,6 +4965,85 @@ const isCorpoLiberoEsercizio = (ex) => {
   return keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k));
 };
 
+const estraiSerieDaPrescrizione = (prescrizioneStr) => {
+  if (!prescrizioneStr) return null;
+  const part = String(prescrizioneStr).split('|')[0].trim();
+  const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
+  
+  const matchX = cleanPart.match(/^(\d+)\s*[xX]/);
+  if (matchX) {
+    return parseInt(matchX[1], 10);
+  }
+  return null;
+};
+
+const getPrescriptionReps = (ex, w) => {
+  if (!ex) return null;
+  const repsVal = ex['reps_week' + w];
+  if (repsVal && !isNaN(parseInt(repsVal, 10))) {
+    return parseInt(repsVal, 10);
+  }
+  return estraiRepsDaPrescrizione(ex['des_week' + w]);
+};
+
+const getPrescriptionSets = (ex, w) => {
+  if (!ex) return null;
+  return estraiSerieDaPrescrizione(ex['des_week' + w]);
+};
+
+const isVolumeProgressionOrCompensation = (ex, w) => {
+  if (!ex || w < 2) return false;
+  const repsCurr = getPrescriptionReps(ex, w);
+  const repsPrev = getPrescriptionReps(ex, w - 1);
+  const setsCurr = getPrescriptionSets(ex, w);
+  const setsPrev = getPrescriptionSets(ex, w - 1);
+  
+  if (repsCurr === null || repsPrev === null) return false;
+  
+  if (repsCurr > repsPrev || (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev)) {
+    return true;
+  }
+  
+  if (repsCurr < repsPrev && (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev)) {
+    return true;
+  }
+  
+  return false;
+};
+
+const isCorpoLiberoOVolumeEsercizio = (ex) => {
+  if (!ex) return false;
+  if (isCorpoLiberoEsercizio(ex)) return true;
+  
+  for (let w = 2; w <= 6; w++) {
+    if (isVolumeProgressionOrCompensation(ex, w)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const consenteProgressioneIntensita = (ex, targetWeek) => {
+  if (!ex) return false;
+  if (isCorpoLiberoOVolumeEsercizio(ex)) return false;
+  if (targetWeek === 1) return true;
+  
+  const repsCurr = getPrescriptionReps(ex, targetWeek);
+  const repsPrev = getPrescriptionReps(ex, targetWeek - 1);
+  
+  if (repsCurr === null || repsPrev === null) return false;
+  if (repsCurr >= repsPrev) return false;
+  
+  const setsCurr = getPrescriptionSets(ex, targetWeek);
+  const setsPrev = getPrescriptionSets(ex, targetWeek - 1);
+  
+  if (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev) {
+    return false;
+  }
+  
+  return true;
+};
+
 const isOndaProgression = (ex) => {
   if (!ex) return false;
   
@@ -5093,6 +5172,10 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   if (!pesoStr) return null;
   const pesoBase = parseFloat(pesoStr);
   if (isNaN(pesoBase) || pesoBase <= 0) return null;
+  
+  if (!consenteProgressioneIntensita(workout.value, targetWeek)) {
+    return pesoBase;
+  }
   
   let repsBase = estraiRepsDaInput(baseInsText);
   if (repsBase === null || isNaN(repsBase) || repsBase <= 0) {
@@ -5329,8 +5412,12 @@ const propostaWeek1 = computed(() => {
   let proposta = calcolaPropostaCaricoDinamico(basePeso, baseReps, baseRIR, currW1Reps, fatica, giorniTrascorsi);
   if (proposta === null) return null;
 
-  // Limita il peso se a corpo libero e le reps salgono rispetto a settimana precedente
-  if (isCorpoLiberoEsercizio(workout.value) && currW1Reps && baseReps && currW1Reps > baseReps) {
+  // Limita il peso se a corpo libero e le reps salgono rispetto a settimana precedente, o se è a corpo libero / volume
+  if (isCorpoLiberoOVolumeEsercizio(workout.value)) {
+    if (proposta > basePeso) {
+      proposta = basePeso;
+    }
+  } else if (isCorpoLiberoEsercizio(workout.value) && currW1Reps && baseReps && currW1Reps > baseReps) {
     if (proposta > basePeso) {
       proposta = basePeso;
     }
@@ -7404,8 +7491,8 @@ const getGhostLiftStandard = (sett) => {
     return null;
   }
 
-  // Rileva se è un esercizio a corpo libero (reps, non kg)
-  const isRepEx = isCorpoLiberoEsercizio(workout.value);
+  // Rileva se è un esercizio a corpo libero (reps, non kg) o incentrato sul volume
+  const isRepEx = isCorpoLiberoOVolumeEsercizio(workout.value);
 
   // Per la Week 1, proponiamo in base al miglior carico del mesociclo precedente (num_ins6) o fallback
   if (sett === 1) {
@@ -7668,12 +7755,16 @@ const getGhostLiftStandard = (sett) => {
             }
           }
         }
+
+        if (!consenteProgressioneIntensita(workout.value, 5)) {
+          pesoProposto = pesoBase;
+        }
         
         // Se a corpo libero e le reps salgono tra la base e W5, non proponiamo aumento peso post-scarico (isPostScarico: false)
         const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
         const repsTarget = workout.value['reps_week' + 5] ? parseInt(workout.value['reps_week' + 5], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 5]) || 10);
         
-        if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
+        if (isRepEx && repsTarget > repsBase) {
           return {
             text: baseIns,
             peso: pesoBase,
@@ -7752,12 +7843,16 @@ const getGhostLiftStandard = (sett) => {
           }
         }
       }
+
+      if (!consenteProgressioneIntensita(workout.value, 6)) {
+        pesoProposto = pesoBase;
+      }
       
       // Se a corpo libero e le reps salgono tra la base e W6, non proponiamo aumento peso (isPostScarico: false)
       const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
       const repsTarget = workout.value['reps_week' + 6] ? parseInt(workout.value['reps_week' + 6], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 6]) || 10);
       
-      if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
+      if (isRepEx && repsTarget > repsBase) {
         return {
           text: baseIns,
           peso: pesoBase,

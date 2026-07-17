@@ -995,7 +995,8 @@
               v-if="block.type === 'superset'"
               class="superset-group-card border-superset elevation-2 text-left"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-3' : 'rounded-3xl pa-4 mb-4')
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-3' : 'rounded-3xl pa-4 mb-4'),
+                { 'completed': block.exercises.every(ex => ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim() !== '') }
               ]"
             >
               <!-- Nascondiamo l'header sia in compatto che in super compatto per risparmiare spazio verticale -->
@@ -1036,12 +1037,15 @@
                   :key="ex.id"
                   :id="'esercizio-' + ex.id"
                   class="superset-exercise-item position-relative d-flex align-center"
-                  :class="{
-                    'border-bottom-soft': index < block.exercises.length - 1,
-                    'py-1.5': layoutEsercizi === 'super_compatto',
-                    'py-2.5': layoutEsercizi === 'compatto',
-                    'py-3': layoutEsercizi === 'standard'
-                  }"
+                  :class="[
+                    {
+                      'border-bottom-soft': index < block.exercises.length - 1,
+                      'py-1.5': layoutEsercizi === 'super_compatto',
+                      'py-2.5': layoutEsercizi === 'compatto',
+                      'py-3': layoutEsercizi === 'standard'
+                    },
+                    { 'completed': ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim() !== '' }
+                  ]"
                   @click="vaiAlDettaglio(ex.id)"
                 >
                   <!-- Linea di collegamento tratteggiata (mostrata in standard e compatto) -->
@@ -1398,7 +1402,8 @@
               :id="'esercizio-' + block.exercise.id"
               class="exercise-item-card elevation-1 d-flex align-center"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-2.5 mb-3' : 'rounded-3xl pa-3 mb-4')
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-2.5 mb-3' : 'rounded-3xl pa-3 mb-4'),
+                { 'completed': block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() !== '' }
               ]"
               @click="vaiAlDettaglio(block.exercise.id)"
             >
@@ -5348,5 +5353,28 @@ const recuperiRaggruppati = computed(() => {
   top: 6px !important;
   font-size: 0.75rem !important;
   opacity: 0.4 !important;
+}
+
+/* Card esercizio completato con sfumatura verde premium */
+.exercise-item-card.completed {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(30, 41, 59, 0.65) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 0 12px rgba(16, 185, 129, 0.05) !important;
+}
+
+.exercise-item-card.completed:hover {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Superset card completata */
+.superset-group-card.completed {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(30, 41, 59, 0.65) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Singoli esercizi completati all'interno della superserie */
+.superset-exercise-item.completed {
+  background-color: rgba(16, 185, 129, 0.04) !important;
 }
 </style>

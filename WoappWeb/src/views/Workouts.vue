@@ -5357,24 +5357,24 @@ const recuperiRaggruppati = computed(() => {
 
 /* Card esercizio completato con sfumatura verde premium */
 .exercise-item-card.completed {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(30, 41, 59, 0.65) 100%) !important;
-  border-color: rgba(16, 185, 129, 0.25) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 0 12px rgba(16, 185, 129, 0.05) !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(30, 41, 59, 0.75) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 0 16px rgba(16, 185, 129, 0.1) !important;
 }
 
 .exercise-item-card.completed:hover {
-  border-color: rgba(16, 185, 129, 0.4) !important;
-  box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.6) !important;
+  box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.25) !important;
 }
 
 /* Superset card completata */
 .superset-group-card.completed {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(30, 41, 59, 0.65) 100%) !important;
-  border-color: rgba(16, 185, 129, 0.2) !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(30, 41, 59, 0.75) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
 }
 
 /* Singoli esercizi completati all'interno della superserie */
 .superset-exercise-item.completed {
-  background-color: rgba(16, 185, 129, 0.04) !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
 }
 </style>

@@ -3480,11 +3480,11 @@ const trovaPrimoIncompletoInSettimana = (w) => {
   return null;
 };
 
-// Cerca il prossimo esercizio da fare globalmente partendo dalla settimana visualizzata
+// Cerca il prossimo esercizio da fare globalmente partendo dalla settimana attiva della scheda (non da quella correntemente visualizzata)
 const trovaProssimoEsercizioDaFareGlobale = () => {
   if (listaAllenamenti.value.length === 0) return null;
   
-  const startW = settimanaAttivaGiorno.value;
+  const startW = settimanaAttiva.value;
   
   // Scansione in avanti da startW a 6
   for (let w = startW; w <= 6; w++) {

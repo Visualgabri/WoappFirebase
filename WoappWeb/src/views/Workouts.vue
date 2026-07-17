@@ -3460,31 +3460,82 @@ watch(mostraPromemoriaChiusura, (newVal) => {
   setGlobalSettimanaDaChiudere(newVal);
 }, { immediate: true });
 
+// Cerca il primo esercizio incompleto in una specifica settimana
+const trovaPrimoIncompletoInSettimana = (w) => {
+  for (const g of listaGiorniDisponibili.value) {
+    const eserciziDelGiorno = listaAllenamenti.value.filter(
+      item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(item.num_riga_giorno) > 0
+    );
+    eserciziDelGiorno.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
+    
+    const primoIncompleto = eserciziDelGiorno.find(ex => {
+      const val = ex['ins_week' + w];
+      return !val || val.trim() === '';
+    });
+    
+    if (primoIncompleto) {
+      return { giorno: g, esercizioId: primoIncompleto.id };
+    }
+  }
+  return null;
+};
+
+// Cerca il prossimo esercizio da fare globalmente partendo dalla settimana visualizzata
+const trovaProssimoEsercizioDaFareGlobale = () => {
+  if (listaAllenamenti.value.length === 0) return null;
+  
+  const startW = settimanaAttivaGiorno.value;
+  
+  // Scansione in avanti da startW a 6
+  for (let w = startW; w <= 6; w++) {
+    const ris = trovaPrimoIncompletoInSettimana(w);
+    if (ris) return { week: w, giorno: ris.giorno, esercizioId: ris.esercizioId };
+  }
+  
+  // Scansione all'indietro (wrap-around) da 1 a startW - 1
+  for (let w = 1; w < startW; w++) {
+    const ris = trovaPrimoIncompletoInSettimana(w);
+    if (ris) return { week: w, giorno: ris.giorno, esercizioId: ris.esercizioId };
+  }
+  
+  return null;
+};
+
 watch(() => playClickTrigger.value, () => {
   console.log('[Play - Workouts.vue] playClickTrigger watcher fired. Current value:', playClickTrigger.value);
   
-  const giornoGiusto = determinaGiornoAttivo();
-  const selezionatoIniziato = isGiornoSelezionatoIniziato();
+  const prossimo = trovaProssimoEsercizioDaFareGlobale();
   
-  // Se il giorno selezionato ha ancora esercizi da fare E è stato iniziato (o coincide con il giorno giusto da fare), rimaniamo su questo giorno
-  if (haEserciziDaFare.value && (selezionatoIniziato || giornoSelezionato.value === giornoGiusto)) {
-    console.log('[Play - Workouts.vue] Staying on current day:', giornoSelezionato.value);
-    vaiAlPrimoEsercizioDaFare();
-    return;
-  }
-  
-  console.log('[Play - Workouts.vue] Active day determined:', giornoGiusto);
-  if (giornoSelezionato.value !== giornoGiusto) {
-    console.log(`[Play - Workouts.vue] Switching day from ${giornoSelezionato.value} to ${giornoGiusto}`);
-    giornoSelezionato.value = giornoGiusto;
-    salvaGiornoSelezionato(giornoGiusto);
-    nextTick(() => {
-      setTimeout(() => {
-        vaiAlPrimoEsercizioDaFare();
-      }, 400);
-    });
+  if (prossimo) {
+    console.log('[Play - Workouts.vue] Prossimo esercizio da fare trovato:', prossimo);
+    const { week, giorno } = prossimo;
+    
+    const weekChanged = settimanaAttivaGiorno.value !== week;
+    const dayChanged = giornoSelezionato.value !== giorno;
+    
+    if (weekChanged) {
+      console.log(`[Play - Workouts.vue] Switching week from ${settimanaAttivaGiorno.value} to ${week}`);
+      overrideWeek.value = week;
+    }
+    
+    if (dayChanged) {
+      console.log(`[Play - Workouts.vue] Switching day from ${giornoSelezionato.value} to ${giorno}`);
+      giornoSelezionato.value = giorno;
+      salvaGiornoSelezionato(giorno);
+    }
+    
+    if (weekChanged || dayChanged) {
+      nextTick(() => {
+        setTimeout(() => {
+          vaiAlPrimoEsercizioDaFare();
+        }, 400);
+      });
+    } else {
+      console.log('[Play - Workouts.vue] Day and week are matching target, calling vaiAlPrimoEsercizioDaFare()');
+      vaiAlPrimoEsercizioDaFare();
+    }
   } else {
-    console.log('[Play - Workouts.vue] Day is already active, calling vaiAlPrimoEsercizioDaFare()');
+    console.log('[Play - Workouts.vue] Nessun esercizio incompleto trovato globalmente. Fallback al giorno corrente.');
     vaiAlPrimoEsercizioDaFare();
   }
 });
@@ -3561,28 +3612,32 @@ const gestisciScrollIniziale = () => {
   if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
     localStorage.removeItem('scrollPrimoEsercizioDaFare');
     
-    const giornoGiusto = determinaGiornoAttivo();
-    const selezionatoIniziato = isGiornoSelezionatoIniziato();
-    
-    // Se il giorno attualmente selezionato ha esercizi da fare E è stato iniziato (o coincide con il giorno giusto), rimaniamo su questo
-    if (haEserciziDaFare.value && (selezionatoIniziato || giornoSelezionato.value === giornoGiusto)) {
+    const prossimo = trovaProssimoEsercizioDaFareGlobale();
+    if (prossimo) {
+      const { week, giorno } = prossimo;
+      const weekChanged = settimanaAttivaGiorno.value !== week;
+      const dayChanged = giornoSelezionato.value !== giorno;
+      
+      if (weekChanged) {
+        overrideWeek.value = week;
+      }
+      if (dayChanged) {
+        giornoSelezionato.value = giorno;
+        salvaGiornoSelezionato(giorno);
+      }
+      
       nextTick(() => {
         setTimeout(() => {
           vaiAlPrimoEsercizioDaFare();
         }, 400);
       });
-      return;
+    } else {
+      nextTick(() => {
+        setTimeout(() => {
+          vaiAlPrimoEsercizioDaFare();
+        }, 400);
+      });
     }
-    
-    if (giornoSelezionato.value !== giornoGiusto) {
-      giornoSelezionato.value = giornoGiusto;
-      salvaGiornoSelezionato(giornoGiusto);
-    }
-    nextTick(() => {
-      setTimeout(() => {
-        vaiAlPrimoEsercizioDaFare();
-      }, 400);
-    });
   } else {
     scrollaAllUltimoEsercizio();
   }

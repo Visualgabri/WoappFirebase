@@ -1775,6 +1775,30 @@
 
             <v-row dense>
               <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="modificaForm.des_giorno"
+                  label="Giorno di Allenamento (es. A, B, C, D)"
+                  density="comfortable"
+                  variant="outlined"
+                  color="orange-darken-3"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="modificaForm.num_riga_giorno"
+                  label="Numero Esercizio (Posizione)"
+                  type="number"
+                  density="comfortable"
+                  variant="outlined"
+                  color="orange-darken-3"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-row dense>
+              <v-col cols="12" sm="6">
                 <v-combobox
                   v-model="modificaForm.des_settore"
                   :items="['PETTORALI', 'DORSALI', 'SPALLE', 'BICIPITI', 'TRICIPITI', 'GAMBE', 'FEMORALI', 'POLPACCI', 'CORE', 'ADDOME', 'CARDIO', 'FULL BODY']"
@@ -8562,6 +8586,8 @@ const apriDialogModifica = () => {
   modificaForm.value = {
     des_esercizio: workout.value.des_esercizio || '',
     des_settore: workout.value.des_settore || '',
+    des_giorno: workout.value.des_giorno || '',
+    num_riga_giorno: workout.value.num_riga_giorno !== undefined ? workout.value.num_riga_giorno : '',
     des_rec_report: workout.value.des_rec_report || '',
     des_esercizio_2: workout.value.des_esercizio_2 || '',
     alf_superserie: workout.value.alf_superserie || '',
@@ -8590,6 +8616,8 @@ const salvaModificheEsercizio = async () => {
     await aggiornaDatoECommit({
       des_esercizio: modificaForm.value.des_esercizio,
       des_settore: modificaForm.value.des_settore,
+      des_giorno: (modificaForm.value.des_giorno || '').trim().toUpperCase(),
+      num_riga_giorno: isNaN(parseInt(modificaForm.value.num_riga_giorno)) ? modificaForm.value.num_riga_giorno : parseInt(modificaForm.value.num_riga_giorno),
       des_rec_report: modificaForm.value.des_rec_report,
       des_esercizio_2: modificaForm.value.des_esercizio_2,
       alf_superserie: modificaForm.value.alf_superserie,

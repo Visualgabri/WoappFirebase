@@ -187,7 +187,7 @@
           <!-- Card Header (Sempre visibile, cliccabile) -->
           <div
             class="pa-3 py-3.5 cursor-pointer d-flex align-center justify-space-between select-none"
-            @click="selectedWeek = (selectedWeek === sett ? null : sett)"
+            @click="selectedWeek = (selectedWeek === sett ? null : sett); disattivaHighlightChiusura(sett);"
           >
             <div class="d-flex align-center min-width-0 flex-grow-1">
               <v-icon
@@ -233,11 +233,12 @@
               <!-- Switch di completamento rapido sempre accessibile dal header senza espandere! -->
               <v-switch
                 :model-value="isWeekCompleted(sett)"
-                @update:model-value="(val) => setWeekCompleted(sett, val)"
+                @update:model-value="(val) => { setWeekCompleted(sett, val); disattivaHighlightChiusura(sett); }"
                 color="green-accent-4"
                 hide-details
                 density="compact"
                 class="scale-switch mr-2"
+                :class="{ 'glowing-pulse-switch': evidenziaSwitchWeek === sett }"
                 @click.stop
               ></v-switch>
               
@@ -543,6 +544,13 @@ const caricamento = ref(true);
 const snackbar = ref(false);
 const mostraManuale = ref(false);
 const selectedWeek = ref(1);
+const evidenziaSwitchWeek = ref(null);
+
+const disattivaHighlightChiusura = (w) => {
+  if (evidenziaSwitchWeek.value === w) {
+    evidenziaSwitchWeek.value = null;
+  }
+};
 
 // Aggiunti i ref mancanti
 const allExercises = ref([]);
@@ -1264,6 +1272,17 @@ const tornaIndietro = () => {
 onMounted(() => {
   riportaAInizioPagina();
   caricaDati();
+
+  if (localStorage.getItem('highlightChiusuraWeek') === 'true') {
+    const targetW = parseInt(localStorage.getItem('highlightChiusuraWeekNumber'));
+    if (!isNaN(targetW)) {
+      selectedWeek.value = targetW;
+      evidenziaSwitchWeek.value = targetW;
+    }
+    localStorage.removeItem('highlightChiusuraWeek');
+    localStorage.removeItem('highlightChiusuraWeekNumber');
+  }
+
   window.addEventListener('touchstart', handleTouchStart, { passive: true });
   window.addEventListener('touchend', handleTouchEnd, { passive: true });
 });

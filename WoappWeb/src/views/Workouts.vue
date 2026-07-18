@@ -1756,7 +1756,10 @@
               block
               :size="layoutEsercizi === 'super_compatto' ? 'small' : (layoutEsercizi === 'compatto' ? 'default' : 'large')"
               class="font-weight-black text-none elevation-2"
-              :class="layoutEsercizi === 'super_compatto' ? 'rounded-lg' : 'rounded-xl'"
+              :class="[
+                layoutEsercizi === 'super_compatto' ? 'rounded-lg' : 'rounded-xl',
+                { 'glowing-pulse-btn': mostraPromemoriaChiusura }
+              ]"
               :color="isCmpTrue(headerGiorno['cmp' + settimanaAttivaGiorno]) ? 'green-darken-3' : 'orange-darken-3'"
               :style="{
                 height: layoutEsercizi === 'super_compatto' ? '36px' : (layoutEsercizi === 'compatto' ? '42px' : '48px'),

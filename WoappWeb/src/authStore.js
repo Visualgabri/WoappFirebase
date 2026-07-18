@@ -856,4 +856,76 @@ export const getStoryboardBackup = async () => {
   return backupDataPromise;
 };
 
+// Chiude la settimana attiva del giorno attivo dell'atleta selezionato
+export const chiudiSettimanaAttivaGiornoAttivo = async () => {
+  const athlete = selectedAthlete.value;
+  const sheet = selectedSheet.value;
+  if (!athlete || !sheet) return false;
+
+  const day = localStorage.getItem('giornoAttivo_' + athlete) || 'A';
+  const week = parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1;
+
+  // Trova l'intestazione del giorno (riga 0)
+  const header = globalStoryboard.value.find(item => {
+    const riga = parseInt(item.num_riga_giorno);
+    const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    return riga === 0 &&
+           (item.des_giorno || '').trim().toUpperCase() === day.trim().toUpperCase() &&
+           String(item[keyIdCliente]) === String(athlete) &&
+           String(item.num_scheda) === String(sheet);
+  });
+
+  if (!header) {
+    console.warn("Intestazione giorno non trovata per la chiusura rapida.");
+    return false;
+  }
+
+  const campoCmp = 'cmp' + week;
+  const valString = 'true';
+
+  // Rimuovi flag keepOpen
+  const keepOpenKey = `keepOpen_${athlete}_${day}_W${week}`;
+  localStorage.removeItem(keepOpenKey);
+
+  // Formatta timestamps
+  const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const now = new Date();
+  const gg = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const timestamp_ute = `${gg}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+
+  // Aggiorna localmente nello store
+  header[campoCmp] = valString;
+  header.timestamp = timestamp;
+  header.timestamp_ute = timestamp_ute;
+
+  // Salva offline nel localStorage per funzionamento istantaneo
+  const key1 = `offline_storyboard_${header.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates[campoCmp] = valString;
+  updates['timestamp'] = timestamp;
+  updates['timestamp_ute'] = timestamp_ute;
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  // Salva su Firebase in background
+  try {
+    const docRef = doc(db, 'STORYBOARD', header.id);
+    await setDoc(docRef, { [campoCmp]: valString, timestamp, timestamp_ute }, { merge: true });
+    console.log("Completamento giorno sincronizzato con Firebase da Chiusura Rapida!");
+    return true;
+  } catch (err) {
+    console.warn("Errore salvataggio completamento giorno Firebase da Chiusura Rapida:", err);
+    return false;
+  }
+};
+
+
 

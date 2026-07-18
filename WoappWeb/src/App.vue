@@ -237,18 +237,53 @@
     <v-dialog v-model="mostraDialogAvvisoChiusura" max-width="400" rounded="xl">
       <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
         <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0">
-          <v-icon color="orange-darken-3" class="mr-2">mdi-alert-circle-outline</v-icon>
+          <v-icon color="orange-darken-3" class="mr-2 animate-bounce">mdi-trophy-outline</v-icon>
           Allenamento Completato! ⚡
         </v-card-title>
         <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
-          Ottimo lavoro! Hai completato tutti gli esercizi dell'allenamento di oggi. 
-          Ora devi <strong>chiudere la settimana</strong> per registrare i tuoi progressi.
+          Ottimo lavoro! Hai completato tutti gli esercizi per l'allenamento di oggi (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>).
+          <br><br>
+          Scegli come vuoi procedere per registrare i tuoi progressi:
         </v-card-text>
-        <v-card-actions class="px-0 pb-0">
-          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="confermaVaiAlWorkout" class="text-white font-weight-bold">
-            Vai a Chiudere la Settimana
+        <v-card-actions class="d-flex flex-column gap-2 px-0 pb-0">
+          <v-btn 
+            color="green-darken-2" 
+            block 
+            variant="flat" 
+            rounded="lg" 
+            @click="chiudiRapido" 
+            class="text-white font-weight-black text-none w-100 mx-0"
+            height="44"
+            :loading="caricamentoChiusuraRapida"
+          >
+            <v-icon class="mr-1">mdi-flash</v-icon> Chiudi Sessione Ora ⚡
+          </v-btn>
+          <v-btn 
+            color="orange-darken-3" 
+            block 
+            variant="tonal" 
+            rounded="lg" 
+            @click="vaiADettaglioEChiudi" 
+            class="text-white font-weight-bold text-none w-100 mx-0"
+            height="44"
+          >
+            <v-icon class="mr-1">mdi-pencil-outline</v-icon> Aggiungi Note e Durata ⏱️
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Congratulazioni Premium -->
+    <v-dialog v-model="mostraCongratulazioni" max-width="350" rounded="xl" persistent>
+      <v-card class="pa-6 rounded-2xl card-glass border text-center" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; border-color: rgba(249, 115, 22, 0.3) !important; backdrop-filter: blur(25px) !important;">
+        <div class="emoji-celebration mb-4" style="font-size: 3.5rem;">🎉</div>
+        <h3 class="text-h6 font-weight-black text-white mb-2">Grandioso!</h3>
+        <p class="text-body-2 text-slate-light" style="color: #e2e8f0 !important; line-height: 1.4;">
+          La sessione del <span class="font-weight-black text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} (Week {{ infoGiornoDaChiudere.week }})</span> è stata salvata e chiusa con successo!
+        </p>
+        <div class="mt-4 font-weight-bold text-caption text-orange-lighten-2 animate-pulse">
+          Sincronizzazione in corso...
+        </div>
       </v-card>
     </v-dialog>
 
@@ -484,7 +519,7 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');
@@ -648,15 +683,77 @@ const eseguiLogout = async () => {
 };
 
 const mostraDialogAvvisoChiusura = ref(false);
+const mostraCongratulazioni = ref(false);
+const caricamentoChiusuraRapida = ref(false);
+const infoGiornoDaChiudere = ref({ giorno: 'A', week: 1 });
 
 const cliccaPlayGlobale = () => {
   vibraTattile(12);
   console.log('[Play - App.vue] CliccaPlayGlobale triggered.');
+  
+  // Carica le info del giorno e settimana correnti da localStorage
+  const athlete = selectedAthlete.value || 'default';
+  infoGiornoDaChiudere.value = {
+    giorno: localStorage.getItem('giornoAttivo_' + athlete) || 'A',
+    week: parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1
+  };
+
   if (globalSettimanaDaChiudere.value && !globalHaEserciziDaFare.value) {
     console.log('[Play - App.vue] Settimana da chiudere dialog shown.');
     mostraDialogAvvisoChiusura.value = true;
   } else {
     console.log('[Play - App.vue] Executing eseguiAzionePlay.');
+    eseguiAzionePlay();
+  }
+};
+
+const getActiveHeaderId = () => {
+  const athlete = selectedAthlete.value;
+  const sheet = selectedSheet.value;
+  if (!athlete || !sheet) return null;
+
+  const day = localStorage.getItem('giornoAttivo_' + athlete) || 'A';
+
+  const header = globalStoryboard.value.find(item => {
+    const riga = parseInt(item.num_riga_giorno);
+    const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    return riga === 0 &&
+           (item.des_giorno || '').trim().toUpperCase() === day.trim().toUpperCase() &&
+           String(item[keyIdCliente]) === String(athlete) &&
+           String(item.num_scheda) === String(sheet);
+  });
+  return header ? header.id : null;
+};
+
+const chiudiRapido = async () => {
+  caricamentoChiusuraRapida.value = true;
+  try {
+    const success = await chiudiSettimanaAttivaGiornoAttivo();
+    if (success) {
+      mostraDialogAvvisoChiusura.value = false;
+      mostraCongratulazioni.value = true;
+      setTimeout(() => {
+        mostraCongratulazioni.value = false;
+      }, 2500);
+    }
+  } catch (err) {
+    console.error("Errore durante la chiusura rapida:", err);
+  } finally {
+    caricamentoChiusuraRapida.value = false;
+  }
+};
+
+const vaiADettaglioEChiudi = () => {
+  mostraDialogAvvisoChiusura.value = false;
+  const activeHeaderId = getActiveHeaderId();
+  if (activeHeaderId) {
+    const athlete = selectedAthlete.value;
+    const week = parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1;
+    localStorage.setItem('highlightChiusuraWeek', 'true');
+    localStorage.setItem('highlightChiusuraWeekNumber', String(week));
+    router.push({ name: 'DettaglioSessione', params: { id: activeHeaderId } });
+  } else {
+    // Fallback: se non troviamo la riga, andiamo alla home
     eseguiAzionePlay();
   }
 };

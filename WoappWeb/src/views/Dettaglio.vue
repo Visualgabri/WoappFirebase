@@ -270,6 +270,8 @@
           :class="[
             layoutCorrente === 'super_compatto' ? 'rounded-sm mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'rounded-lg mt-2 pa-2.5' : 'rounded-xl mt-3 pa-3')
           ]"
+          style="cursor: pointer;"
+          @click="dialogLivelloForza = true"
         >
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center gap-1 flex-wrap">
@@ -3031,6 +3033,118 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog Dettaglio Livello Forza Premium -->
+    <v-dialog v-model="dialogLivelloForza" max-width="480" rounded="xl">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(25px) !important;">
+        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-3" style="border-bottom: 1px solid rgba(255,255,255,0.08) !important; padding-bottom: 12px !important;">
+          <div class="d-flex align-center">
+            <v-icon color="orange-darken-3" class="mr-2" size="24">mdi-sword-cross</v-icon>
+            <span style="font-size: 1rem; letter-spacing: 0.05em; color: #f8fafc !important;">DETTAGLIO LIVELLO FORZA</span>
+          </div>
+          <v-btn icon size="small" variant="text" color="grey" @click="dialogLivelloForza = false" style="width: 28px; height: 28px;">
+            <v-icon size="16">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <div v-if="parsedRmt(workout?.des_esercizio_2)" class="text-left">
+          <!-- Livello Corrente Header -->
+          <div class="d-flex align-center justify-space-between mb-4 pa-3 rounded-xl bg-slate-900 border-soft" style="background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255,255,255,0.05) !important;">
+            <div>
+              <span class="text-super-caption text-muted font-weight-black uppercase d-block" style="font-size: 0.58rem;">Livello Attuale</span>
+              <div class="d-flex align-center gap-1 mt-1">
+                <v-chip
+                  :color="parsedRmt(workout.des_esercizio_2).livelloColore"
+                  size="x-small"
+                  class="font-weight-black uppercase px-2 text-white"
+                  variant="flat"
+                  style="letter-spacing: 0.05em; height: 20px;"
+                >
+                  {{ parsedRmt(workout.des_esercizio_2).livelloTesto }}
+                </v-chip>
+                <div class="d-flex align-center gap-0.5 ml-1.5">
+                  <v-icon v-for="i in parsedRmt(workout.des_esercizio_2).stelle" :key="i" color="amber-darken-2" size="14">
+                    mdi-star
+                  </v-icon>
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-super-caption text-muted font-weight-black uppercase d-block" style="font-size: 0.58rem;">Massimale (1RMT)</span>
+              <span class="text-subtitle-1 font-weight-black text-white mt-1 d-block" style="line-height: 1;">
+                {{ parsedRmt(workout.des_esercizio_2).massimale }} <span class="text-caption text-muted" style="font-size: 0.68rem;">KG</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Discorso di Congratulazioni e Motivazione -->
+          <div class="mb-4">
+            <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1.5" style="font-size: 0.88rem;">
+              {{ getStrengthGreeting(parsedRmt(workout.des_esercizio_2).livelloTesto) }}
+            </div>
+            <p class="text-body-2 text-slate-light" style="color: #cbd5e1 !important; line-height: 1.5; font-size: 0.78rem;">
+              {{ getStrengthSpeech(parsedRmt(workout.des_esercizio_2)) }}
+            </p>
+          </div>
+
+          <!-- Analisi Variazione Mesociclo Precedente -->
+          <div 
+            v-if="parsedRmt(workout.des_esercizio_2).variazione" 
+            class="pa-3 mb-4 rounded-xl border" 
+            :style="{ 
+              background: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04))' : 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04))', 
+              borderColor: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)'
+            }"
+          >
+            <div class="d-flex align-start gap-2.5">
+              <v-icon 
+                :color="parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'red-lighten-2' : 'green-lighten-2'"
+                size="18"
+                class="flex-shrink-0 mt-0.5"
+              >
+                {{ parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'mdi-trending-down' : 'mdi-trending-up' }}
+              </v-icon>
+              <div>
+                <span class="text-super-caption font-weight-black uppercase d-block" style="font-size: 0.58rem;" :style="{ color: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '#f87171' : '#34d399' }">
+                  Andamento Mesociclo Precedente
+                </span>
+                <span class="text-body-2 text-slate-light mt-1 d-block" style="font-size: 0.76rem; line-height: 1.45; color: #cbd5e1 !important;">
+                  {{ getVariationExplanation(parsedRmt(workout.des_esercizio_2)) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progresso al Prossimo Livello -->
+          <div class="pa-3 rounded-xl bg-slate-900 border-soft" style="background: rgba(15, 23, 42, 0.4) !important; border: 1px solid rgba(255,255,255,0.05) !important;">
+            <div class="d-flex justify-space-between align-center mb-1.5">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem;">Progresso al Prossimo Livello</span>
+              <span class="text-super-caption text-amber-darken-2 font-weight-black" style="font-size: 0.58rem;">
+                {{ getRmtProgress(parsedRmt(workout.des_esercizio_2)) }}%
+              </span>
+            </div>
+            <v-progress-linear
+              :model-value="getRmtProgress(parsedRmt(workout.des_esercizio_2))"
+              color="amber-darken-2"
+              height="6"
+              rounded
+              striped
+              active
+              class="elevation-1 mb-2"
+            ></v-progress-linear>
+            <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.65rem; line-height: 1.3; color: #94a3b8 !important;">
+              {{ getNextLevelRequirement(parsedRmt(workout.des_esercizio_2)) }}
+            </div>
+          </div>
+        </div>
+
+        <v-card-actions class="px-0 pt-4 pb-0 mt-2">
+          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="dialogLivelloForza = false" class="text-white font-weight-black text-none" height="42" style="font-size: 0.85rem;">
+            Continua a Spingere! ⚡
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -4736,10 +4850,61 @@ const previousWorkout = ref(null);
 // Gestione Comfort Articolare e Infortuni
 const ghostSbloccato = ref(false);
 const dialogInfortunio = ref(false);
+const dialogLivelloForza = ref(false);
 const infortunioArticolazione = ref('');
 const infortunioGravita = ref(3);
 const infortunioNote = ref('');
 const salvataggioInfortunio = ref(false);
+
+const getStrengthGreeting = (livello) => {
+  const map = {
+    'Neofita': 'Benvenuto nel percorso di forza! 🚀',
+    'Principiante': 'Ottimo inizio, stai progredendo! 💪',
+    'Intermedio': 'Sei sulla buona strada, continuiamo a spingere! 🔥',
+    'Avanzato': 'Livello impressionante! Sei tra i migliori! 🎖️',
+    'Elite': 'Sei una macchina da guerra! Livello Elite assoluto! 🏆'
+  };
+  return map[livello] || 'Grande livello di forza!';
+};
+
+const getStrengthSpeech = (rmt) => {
+  if (!rmt) return '';
+  const massimaleStr = rmt.massimale || '0';
+  const livello = rmt.livelloTesto || '';
+
+  const map = {
+    'Neofita': `Il tuo massimale teorico (1RMT) di ${massimaleStr} kg è un punto di partenza fantastico. In questa fase iniziale, le tue riserve di adattamento neuromuscolare sono enormi: ogni sessione di allenamento ti renderà visibilmente più forte!`,
+    'Principiante': `Ottimo lavoro, hai raggiunto un massimale di ${massimaleStr} kg. Stai consolidando la tua tecnica esecutiva e la coordinazione motoria. Continua con costanza e vedrai salire i carichi in sicurezza settimana dopo settimana.`,
+    'Intermedio': `Complimenti per aver conquistato un massimale di ${massimaleStr} kg! Questo livello indica che hai già superato la fase iniziale e che i tuoi muscoli rispondono con forza a un lavoro programmato. La dedizione sta dando ottimi frutti.`,
+    'Avanzato': `Sei a un livello eccezionale con ben ${massimaleStr} kg di massimale! A questo punto della programmazione, ogni singolo chilo aggiunto richiede impegno costante, precisione millimetrica e un'intensità mentale da vero atleta.`,
+    'Elite': `Incredibile prestazione di ben ${massimaleStr} kg! Sei nel top assoluto per questo esercizio. Raggiungere il livello Elite dimostra che hai ottimizzato la coordinazione intra-muscolare, la tecnica e la resilienza fisica al massimo potenziale.`
+  };
+  return map[livello] || `Il tuo massimale attuale è di ${massimaleStr} kg. Continua così per raggiungere vette ancora più alte!`;
+};
+
+const getVariationExplanation = (rmt) => {
+  if (!rmt || !rmt.variazione) return '';
+  const varStr = rmt.variazione;
+  const isDown = varStr.includes('↓');
+  const percent = varStr.replace(/[↓↑\s%]/g, '');
+
+  if (isDown) {
+    return `Rispetto al mesociclo precedente, il tuo massimale teorico su questo esercizio è diminuito del ${percent}%. Questo calo può essere causato da una fase temporanea di stanchezza, da una settimana di scarico programmata, da un cambio di focus o da un range di ripetizioni differente. È parte integrante del percorso atletico, continua a lavorare!`;
+  } else {
+    return `Rispetto al mesociclo precedente, hai superato il tuo vecchio massimale del ${percent}%! Questo progresso testimonia una periodizzazione ottimale, un ottimo recupero energetico e una risposta muscolare eccellente. Continua su questa strada!`;
+  }
+};
+
+const getNextLevelRequirement = (rmt) => {
+  if (!rmt) return '';
+  if (rmt.prossimoLivello) {
+    const current = parseFloat(rmt.massimale.replace(',', '.')) || 0;
+    const targetDiff = parseFloat(rmt.prossimoLivello.replace(',', '.')) || 0;
+    const targetPeso = Math.round((current + targetDiff) * 10) / 10;
+    return `Ti mancano circa ${rmt.prossimoLivello} kg di incremento (peso target: ${targetPeso} kg) per sbloccare la prossima stella e avanzare di livello!`;
+  }
+  return 'Hai già raggiunto il massimo livello registrato per questo esercizio! Continua a consolidare questa prestazione eccezionale!';
+};
 
 const listaArticolazioni = [
   'Spalla',

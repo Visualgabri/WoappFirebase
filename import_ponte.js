@@ -311,8 +311,13 @@ async function run() {
     // 4. Rimozione degli esercizi rimossi dall'Excel
     let deletedCount = 0;
     querySnap.forEach(docSnap => {
+      const data = docSnap.data();
+      const rigaNum = parseInt(data.num_riga_giorno);
+      if (rigaNum === 0) {
+        // Preserva la riga 0 (contiene note, tempi e chiusure settimanali dell'atleta)
+        return;
+      }
       if (!processedDocIds.has(docSnap.id)) {
-        const data = docSnap.data();
         console.log(`  [Rimozione] Riga ${data.des_giorno}_${data.num_riga_giorno}: Esercizio '${data.des_esercizio}' eliminato.`);
         operations.push({
           ref: docSnap.ref,

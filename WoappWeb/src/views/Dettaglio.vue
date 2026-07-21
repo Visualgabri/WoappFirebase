@@ -790,8 +790,8 @@
                     <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'">
                       - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
                     </span>)
-                    <span v-if="sfidaRecordWeek1 && getGhostLiftSmart(sett).recordVal" class="text-amber-lighten-1 ml-1.5 font-weight-bold">
-                      🏆 Record: {{ formatWeight(getGhostLiftSmart(sett).recordVal) }} kg
+                    <span v-if="getRiferimentoSfidaRecord(sett)" class="text-amber-lighten-1 ml-1.5 font-weight-bold" :title="getRiferimentoSfidaRecord(sett).isStima ? 'Calcolato da stima massimale storico' : 'Record storico reale'">
+                      🏆 Sfida: {{ formatWeight(getRiferimentoSfidaRecord(sett).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(sett).peso)) }} kg
                     </span>
                     <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" title="Carica il Miglior Carico W6 per una stima più precisa">
                       ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }}
@@ -813,6 +813,9 @@
                     </span>
                     <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold ml-1.5">
                       • range: {{ getGhostWeightsRangeText(sett) }}
+                    </span>
+                    <span v-if="getRiferimentoSfidaRecord(sett)" class="text-amber-lighten-1 font-weight-bold ml-1.5" :title="getRiferimentoSfidaRecord(sett).isStima ? 'Calcolato da stima massimale storico' : 'Record storico reale'">
+                      🏆 Sfida: {{ formatWeight(getRiferimentoSfidaRecord(sett).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(sett).peso)) }} kg
                     </span>
                   </template>
                 </div>
@@ -2025,7 +2028,7 @@
               <v-icon color="orange-lighten-2" size="14" class="mr-1">mdi-target</v-icon>
               <span class="text-super-caption font-weight-black text-orange-lighten-2" style="font-size: 0.65rem !important;">
                 <template v-if="suggerimentoRecord.isScarico">SCARICO:</template>
-                <template v-else>GOAL W{{settimanaAttiva}}:</template>
+                <template v-else>OBIETTIVO W{{settimanaAttiva}}:</template>
               </span>
               <span class="text-white font-weight-black ml-1" style="font-size: 0.72rem;">
                 <template v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg <span class="text-muted font-weight-medium" style="font-size:0.55rem;">(da W2)</span></template>
@@ -2037,7 +2040,7 @@
             <div v-if="suggerimentoRecord.record > 0" class="d-flex align-center mr-3" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
               <v-icon color="amber-lighten-1" size="12" class="mr-1 pb-0.5">mdi-trophy</v-icon>
               <span class="text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Pesi di W{{settimanaAttiva}}: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
+                Record in W{{settimanaAttiva}}: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
               </span>
             </div>
 
@@ -2045,12 +2048,12 @@
             <div v-if="suggerimentoRecord.recordAbsolute > 0" class="d-flex align-center" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
               <v-icon color="cyan-lighten-2" size="12" class="mr-1 pb-0.5">mdi-fire</v-icon>
               <span class="text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Max Assoluto: 
+                Record Assoluto: 
                 <span class="text-white ml-0.5">
                   {{ suggerimentoRecord.recordAbsolute }} kg
                   <span class="text-muted lowercase font-weight-bold" style="font-size: 0.55rem;">
                     <template v-if="soloCorrispondenti">
-                      (in W{{ suggerimentoRecord.recordAbsoluteWeek }})
+                      (in W{{ suggerimentoRecord.recordAbsoluteWeek }}<template v-if="suggerimentoRecord.recordAbsoluteReps !== null">, {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}</template>)
                     </template>
                     <template v-else>
                       (in W{{ suggerimentoRecord.recordAbsoluteWeek }}, 
@@ -2499,6 +2502,7 @@
                         'border-right': w !== 3 && w !== 6,
                         'timeline-red-cell': isMatchingReps(prevEx, w)
                       }"
+                      :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
                     >
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="text-super-caption text-white font-weight-medium d-block text-truncate px-0.5 opacity-70" style="font-size: 0.6rem; line-height: 1;">
@@ -2513,6 +2517,7 @@
                     </div>
                   </v-col>
                 </v-row>
+
               </div>
             </div>
 
@@ -2522,7 +2527,7 @@
                 <thead>
                   <tr>
                     <th class="sticky-col header-cell text-left" style="width: 75px;">Scheda</th>
-                    <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}">
+                    <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}" :style="{ opacity: (soloCorrispondenti && getRepsPerWeek(w) !== targetRepsRange) ? 0.45 : 1.0 }">
                       <div class="text-white">W{{ w }}</div>
                     </th>
                     <th class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
@@ -2545,7 +2550,7 @@
                       </div>
                     </td>
                     
-                    <td v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="body-cell font-weight-bold text-center" :class="{'red-cell': isMatchingReps(prevEx, w)}" style="word-wrap: break-word;">
+                    <td v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="body-cell font-weight-bold text-center" :class="{'red-cell': isMatchingReps(prevEx, w)}" style="word-wrap: break-word;" :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }">
                       <div v-if="prevEx['des_week' + w]" class="text-super-caption text-white font-weight-medium" style="font-size: 0.65rem; line-height: 1; opacity: 0.8;">
                         {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
                       </div>
@@ -3267,6 +3272,72 @@ const ottieniRecordStoricoPerReps = (targetReps) => {
   });
 
   return maxWeight > 0 ? maxWeight : null;
+};
+
+const stimaRecordStoricoPerReps = (targetReps) => {
+  if (!workout.value || !storicoEsercizio.value.length || !targetReps) return null;
+  const currentNumScheda = parseInt(workout.value.num_scheda);
+  
+  let best1RM = 0;
+
+  storicoEsercizio.value.forEach(prevEx => {
+    const sNum = parseInt(prevEx.num_scheda);
+    if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+    
+    for (let w = 1; w <= 6; w++) {
+      const insVal = prevEx['ins_week' + w];
+      if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+        const weightStr = estraiPesoDaInput(insVal);
+        if (weightStr) {
+          const weight = parseFloat(weightStr);
+          if (!isNaN(weight) && weight > 0) {
+            const repsVal = prevEx['reps_week' + w];
+            let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+            const inputReps = estraiRepsDaInput(insVal);
+            if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
+              repsNum = inputReps;
+            }
+            if (repsNum) {
+              const e1rm = weight * (1 + repsNum / 30);
+              if (e1rm > best1RM) {
+                best1RM = e1rm;
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  if (best1RM > 0) {
+    const estimatedWeight = best1RM / (1 + targetReps / 30);
+    return Math.round(estimatedWeight * 10) / 10;
+  }
+  return null;
+};
+
+const getRiferimentoSfidaRecord = (sett) => {
+  if (!workout.value || !storicoEsercizio.value.length) return null;
+  const repsTarget = getRepsPerWeek(sett);
+  if (!repsTarget) return null;
+
+  const recordEsatto = ottieniRecordStoricoPerReps(repsTarget);
+  if (recordEsatto && recordEsatto > 0) {
+    return {
+      peso: recordEsatto,
+      isStima: false
+    };
+  }
+
+  const recordStimato = stimaRecordStoricoPerReps(repsTarget);
+  if (recordStimato && recordStimato > 0) {
+    return {
+      peso: recordStimato,
+      isStima: true
+    };
+  }
+
+  return null;
 };
 
 const analizzaRecordSettimana = (sett) => {
@@ -4202,6 +4273,8 @@ const getGhostRenderInfo = (sett) => {
   } else if (ghost.isOverload || ghost.isMetodo || ghost.isMandatory) {
     hasReference = true;
   } else if (ghost.text) {
+    hasReference = true;
+  } else if (getRiferimentoSfidaRecord(sett)) {
     hasReference = true;
   }
 

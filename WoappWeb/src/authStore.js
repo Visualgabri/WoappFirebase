@@ -317,7 +317,52 @@ const sendTimerNotification = (label) => {
   }
 };
 
-export const startGlobalTimer = (seconds, label = 'Recupero') => {
+const playMinWarningBeep = () => {
+  try {
+    const alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = alarmCtx.createOscillator();
+    const gainNode = alarmCtx.createGain();
+
+    osc.connect(gainNode);
+    gainNode.connect(alarmCtx.destination);
+
+    osc.type = 'sine'; // Suono più dolce
+    osc.frequency.setValueAtTime(880, alarmCtx.currentTime); // 880 Hz (La5)
+
+    gainNode.gain.setValueAtTime(0, alarmCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.6, alarmCtx.currentTime + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, alarmCtx.currentTime + 0.55);
+
+    osc.start(alarmCtx.currentTime);
+    osc.stop(alarmCtx.currentTime + 0.6);
+
+    setTimeout(() => {
+      try {
+        alarmCtx.close();
+      } catch (e) { }
+    }, 1000);
+  } catch (err) {
+    console.error("Non è stato possibile riprodurre il beep di avviso minimo:", err);
+  }
+};
+
+const sendMinWarningNotification = (label) => {
+  if (window.Notification && Notification.permission === 'granted') {
+    try {
+      new Notification("Recupero Minimo Raggiunto! ⏱️", {
+        body: label ? `Puoi ripartire per: ${label}` : 'Puoi riprendere l\'allenamento!',
+        icon: '/logo.png',
+        vibrate: [100, 50, 100],
+        tag: 'timer-recupero-min',
+        requireInteraction: false
+      });
+    } catch (e) {
+      console.warn("Errore nell'invio della notifica di recupero minimo:", e);
+    }
+  }
+};
+
+export const startGlobalTimer = (seconds, label = 'Recupero', minSeconds = null) => {
   if (activeTimer.value && activeTimer.value.intervalId) {
     clearInterval(activeTimer.value.intervalId);
   }
@@ -325,9 +370,12 @@ export const startGlobalTimer = (seconds, label = 'Recupero') => {
   activeTimer.value = {
     remainingSeconds: seconds,
     totalSeconds: seconds,
+    minSeconds: minSeconds,
     label: label,
     isPaused: false,
-    intervalId: null
+    intervalId: null,
+    hasPlayedMinWarning: false,
+    isMinReached: false
   };
   resumeGlobalTimer();
 };
@@ -356,6 +404,25 @@ export const resumeGlobalTimer = () => {
     if (!activeTimer.value) return;
     if (activeTimer.value.remainingSeconds > 1) {
       activeTimer.value.remainingSeconds--;
+
+      // Controllo per la soglia minima del recupero
+      if (activeTimer.value.minSeconds) {
+        const elapsed = activeTimer.value.totalSeconds - activeTimer.value.remainingSeconds;
+        if (elapsed >= activeTimer.value.minSeconds) {
+          activeTimer.value.isMinReached = true;
+          if (!activeTimer.value.hasPlayedMinWarning) {
+            activeTimer.value.hasPlayedMinWarning = true;
+            if (navigator.vibrate) {
+              navigator.vibrate([100, 50, 100]);
+            }
+            playMinWarningBeep();
+            if (document.visibilityState === 'hidden') {
+              sendMinWarningNotification(activeTimer.value.label);
+            }
+          }
+        }
+      }
+
       if (activeTimer.value.remainingSeconds === 10 && navigator.vibrate) {
         navigator.vibrate([40, 40, 40]);
       }

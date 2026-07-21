@@ -1975,7 +1975,7 @@ const isCmpTrue = (val) => {
 };
 
 const parseTimeToSeconds = (tStr) => {
-  if (!tStr) return 90;
+  if (!tStr) return { seconds: 90, minSeconds: null };
 
   const parseSinglePartToSeconds = (p) => {
     // Normalizza apici doppi, apici singoli consecutivi e spazi
@@ -2034,25 +2034,26 @@ const parseTimeToSeconds = (tStr) => {
   }
 
   if (parts.length > 1) {
-    // Range individuato: prendiamo il limite superiore (l'ultimo elemento)
-    const upperStr = parts[parts.length - 1].trim();
-    const upperVal = parseSinglePartToSeconds(upperStr);
-    if (upperVal > 0) return upperVal;
-
-    // Fallback al limite inferiore
     const lowerStr = parts[0].trim();
+    const upperStr = parts[parts.length - 1].trim();
     const lowerVal = parseSinglePartToSeconds(lowerStr);
-    if (lowerVal > 0) return lowerVal;
+    const upperVal = parseSinglePartToSeconds(upperStr);
+
+    if (upperVal > 0 && lowerVal > 0) {
+      return { seconds: upperVal, minSeconds: lowerVal };
+    }
+    if (upperVal > 0) return { seconds: upperVal, minSeconds: null };
+    if (lowerVal > 0) return { seconds: lowerVal, minSeconds: null };
   }
 
   const defaultTimer = parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10);
   const val = parseSinglePartToSeconds(clean);
-  return val > 0 ? val : defaultTimer;
+  return { seconds: val > 0 ? val : defaultTimer, minSeconds: null };
 };
 
 const avviaTimerRecupero = (recStr, label) => {
-  const seconds = parseTimeToSeconds(recStr);
-  startGlobalTimer(seconds, label);
+  const parsed = parseTimeToSeconds(recStr);
+  startGlobalTimer(parsed.seconds, label, parsed.minSeconds);
 };
 
 

@@ -122,8 +122,13 @@
         :class="[
           'global-timer-pill rounded-2xl justify-space-between elevation-4',
           timerSizeConfig.paddingClass,
-          timerThemeGlobal === 'solid-contrast' ? 'timer-theme-solid-contrast' :
-          timerThemeGlobal === 'orange-glow' ? 'timer-theme-orange-glow' : 'timer-theme-accent-dark'
+          activeTimer.isMinReached ? (
+            timerThemeGlobal === 'solid-contrast' ? 'timer-theme-solid-contrast-success' :
+            timerThemeGlobal === 'orange-glow' ? 'timer-theme-green-glow' : 'timer-theme-success-glow'
+          ) : (
+            timerThemeGlobal === 'solid-contrast' ? 'timer-theme-solid-contrast' :
+            timerThemeGlobal === 'orange-glow' ? 'timer-theme-orange-glow' : 'timer-theme-accent-dark'
+          )
         ]"
         :style="{ maxWidth: timerSizeConfig.maxWidth }"
       >
@@ -131,7 +136,7 @@
           <!-- Circular Progress Circle -->
           <v-progress-circular
             :model-value="(activeTimer.remainingSeconds / activeTimer.totalSeconds) * 100"
-            :color="timerThemeGlobal === 'solid-contrast' ? 'white' : 'orange-darken-3'"
+            :color="activeTimer.isMinReached ? (timerThemeGlobal === 'solid-contrast' ? 'green-darken-2' : 'green-accent-3') : (timerThemeGlobal === 'solid-contrast' ? 'white' : 'orange-darken-3')"
             :size="timerSizeConfig.circleSize"
             :width="timerSizeConfig.circleWidth"
             class="mr-3 flex-shrink-0"
@@ -153,10 +158,10 @@
               class="text-super-caption uppercase font-weight-black" 
               :style="{ 
                 fontSize: timerSizeConfig.fontSizeSub, 
-                color: timerThemeGlobal === 'solid-contrast' ? '#431407' : '#fdba74'
+                color: activeTimer.isMinReached ? (timerThemeGlobal === 'solid-contrast' ? '#1b5e20' : '#4ade80') : (timerThemeGlobal === 'solid-contrast' ? '#431407' : '#fdba74')
               }"
             >
-              Recupero Attivo
+              {{ activeTimer.isMinReached ? 'Recupero Ottimale' : 'Recupero Attivo' }}
               <span v-if="timerThemeGlobal === 'accent-dark' && layoutEserciziGlobal !== 'super_compatto'"> • Totale: {{ formattaTempo(activeTimer.totalSeconds) }}</span>
             </div>
             <div 
@@ -174,7 +179,7 @@
               v-if="timerThemeGlobal !== 'accent-dark'" 
               class="text-super-caption font-weight-bold"
               :style="{ 
-                color: timerThemeGlobal === 'solid-contrast' ? '#451a03' : '#cbd5e1',
+                color: activeTimer.isMinReached ? (timerThemeGlobal === 'solid-contrast' ? '#1b5e20' : '#86efac') : (timerThemeGlobal === 'solid-contrast' ? '#451a03' : '#cbd5e1'),
                 fontSize: timerSizeConfig.fontSizeSub,
                 marginTop: '1px'
               }"
@@ -958,6 +963,48 @@ const elencoDischiGrafica = computed(() => {
   border: 2px solid rgba(255, 255, 255, 0.2) !important;
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
   box-shadow: 0 10px 25px rgba(234, 88, 12, 0.45) !important;
+}
+
+.timer-theme-solid-contrast-success {
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.45) !important;
+}
+
+.timer-theme-green-glow {
+  border: 1px solid var(--card-border) !important;
+  background: linear-gradient(135deg, var(--card-bg-dark) 65%, rgba(34, 197, 94, 0.22) 100%) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 30px rgba(34, 197, 94, 0.3) !important;
+  animation: pulse-glow-green 2.5s infinite alternate;
+}
+
+@keyframes pulse-glow-green {
+  0% {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 15px rgba(34, 197, 94, 0.15) !important;
+  }
+  100% {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 35px rgba(34, 197, 94, 0.4) !important;
+  }
+}
+
+.timer-theme-success-glow {
+  border: 2px solid rgba(34, 197, 94, 0.5) !important;
+  background: rgba(10, 25, 15, 0.94) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(34, 197, 94, 0.25) !important;
+  animation: pulse-border-success 2s infinite alternate;
+}
+
+@keyframes pulse-border-success {
+  0% {
+    border-color: rgba(34, 197, 94, 0.35) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 10px rgba(34, 197, 94, 0.15) !important;
+  }
+  100% {
+    border-color: rgba(34, 197, 94, 0.7) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(34, 197, 94, 0.35) !important;
+  }
 }
 
 .fixed-play-fab {

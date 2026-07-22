@@ -2003,69 +2003,184 @@
             </v-tab>
           </v-tabs>
           
-          <!-- Rigo 2: Target Mesociclo Attuale (Solo per Cronologia) -->
-          <div v-if="activeTabAnalisi === 1" class="px-3 pb-2 pt-2 d-flex align-center gap-1 overflow-x-auto scrollbar-hidden">
-            <span class="text-super-caption text-muted font-weight-black uppercase mr-1" style="font-size: 0.5rem; white-space: nowrap;">Reps:</span>
-            <div v-for="w in [1,2,3,4,5,6]" :key="w" 
-              class="px-1.5 py-0.5 rounded border d-flex flex-column align-center"
-              :style="{ 
-                backgroundColor: w === settimanaAttiva ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255,255,255,0.03)',
-                borderColor: w === settimanaAttiva ? '#f97316' : 'rgba(255,255,255,0.1)',
-                minWidth: '48px'
-              }"
-            >
-              <span style="font-size: 0.45rem; color: #94a3b8;" class="font-weight-bold">W{{w}}</span>
-              <span style="font-size: 0.6rem; color: #fb923c;" class="font-weight-black">
-                {{ parsedPrescription(workout?.['des_week' + w])?.reps || workout?.['des_week' + w] || '-' }}
-              </span>
+          <!-- Rigo 2: Target Reps Settimana Attiva (Punto 3 - Semplificato e Prominente) -->
+          <div v-if="activeTabAnalisi === 1" class="px-3 py-2 bg-slate-950 border-top d-flex align-center justify-space-between" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
+            <div class="d-flex align-center gap-2">
+              <v-chip color="orange-darken-3" size="small" class="font-weight-black text-white" variant="flat" style="font-size: 0.7rem; height: 22px;">
+                WEEK {{ settimanaAttiva }}
+              </v-chip>
+              <div class="d-flex align-baseline gap-1 text-left">
+                <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.05em;">TARGET REPS:</span>
+                <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 ml-1" style="font-size: 0.95rem; line-height: 1;">
+                  {{ getRepsPerWeek(settimanaAttiva) }} REPS
+                </span>
+                <span v-if="parsedPrescription(workout?.['des_week' + settimanaAttiva])?.sets" class="text-super-caption text-muted font-weight-bold ml-1" style="font-size: 0.65rem;">
+                  ({{ parsedPrescription(workout?.['des_week' + settimanaAttiva])?.sets }} serie)
+                </span>
+              </div>
             </div>
           </div>
 
-          <!-- Rigo 3: Suggerimento Peso (Solo per Cronologia) -->
-          <div v-if="activeTabAnalisi === 1 && suggerimentoRecord" class="px-3 py-1.5 bg-black d-flex align-center gap-2 border-top flex-wrap" style="border-color: rgba(249, 115, 22, 0.2) !important;">
-            <!-- Goal -->
-            <div v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico" class="d-flex align-center mr-3">
-              <v-icon color="orange-lighten-2" size="14" class="mr-1">mdi-target</v-icon>
-              <span class="text-super-caption font-weight-black text-orange-lighten-2" style="font-size: 0.65rem !important;">
-                <template v-if="suggerimentoRecord.isScarico">SCARICO:</template>
-                <template v-else>OBIETTIVO W{{settimanaAttiva}}:</template>
-              </span>
-              <span class="text-white font-weight-black ml-1" style="font-size: 0.72rem;">
-                <template v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg <span class="text-muted font-weight-medium" style="font-size:0.55rem;">(da W2)</span></template>
-                <template v-else>{{ suggerimentoRecord.target }} kg</template>
-              </span>
-            </div>
-            
-            <!-- Record Week Corrente -->
-            <div v-if="suggerimentoRecord.record > 0" class="d-flex align-center mr-3" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
-              <v-icon color="amber-lighten-1" size="12" class="mr-1 pb-0.5">mdi-trophy</v-icon>
-              <span class="text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Record in W{{settimanaAttiva}}: <span class="text-white ml-0.5">{{ suggerimentoRecord.record }} kg</span>
-              </span>
-            </div>
+          <!-- Rigo 3: Suggerimento Peso & Record Storico (Punto 2 - 3 Layout Selezionabili) -->
+          <div v-if="activeTabAnalisi === 1 && suggerimentoRecord" class="px-3 py-2 bg-black border-top text-left" style="border-color: rgba(249, 115, 22, 0.2) !important;">
 
-            <!-- Record Assoluto -->
-            <div v-if="suggerimentoRecord.recordAbsolute > 0" class="d-flex align-center" :class="{'pl-2 border-left-soft': suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico}">
-              <v-icon color="cyan-lighten-2" size="12" class="mr-1 pb-0.5">mdi-fire</v-icon>
-              <span class="text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                Record Assoluto: 
-                <span class="text-white ml-0.5">
-                  {{ suggerimentoRecord.recordAbsolute }} kg
-                  <span class="text-muted lowercase font-weight-bold" style="font-size: 0.55rem;">
-                    <template v-if="soloCorrispondenti">
-                      (in W{{ suggerimentoRecord.recordAbsoluteWeek }}<template v-if="suggerimentoRecord.recordAbsoluteReps !== null">, {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}</template>)
-                    </template>
-                    <template v-else>
-                      (in W{{ suggerimentoRecord.recordAbsoluteWeek }}, 
-                      <template v-if="suggerimentoRecord.recordAbsoluteReps !== null">{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}, </template>
-                      Sch {{ suggerimentoRecord.recordAbsoluteSheet }}
-                      <template v-if="suggerimentoRecord.recordAbsoluteDay"> {{ suggerimentoRecord.recordAbsoluteDay }}</template>, 
-                      {{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) || formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }})
-                    </template>
+            <!-- PROPOSTA A: 3 CARD DASHBOARD (default) -->
+            <template v-if="(stileRecordStorico || 'cards') === 'cards'">
+              <v-row dense class="ma-0 gap-1.5 align-stretch">
+                <!-- Card 1: Obiettivo -->
+                <v-col cols="12" sm="4" class="pa-0 flex-grow-1">
+                  <div class="pa-2 rounded-xl border text-left h-100 d-flex flex-column justify-center" style="background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.3) !important;">
+                    <div class="d-flex align-center gap-1 mb-0.5">
+                      <v-icon color="orange-lighten-2" size="12">mdi-target</v-icon>
+                      <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.55rem; letter-spacing: 0.04em;">
+                        <template v-if="suggerimentoRecord.isScarico">SCARICO W{{settimanaAttiva}}</template>
+                        <template v-else>OBIETTIVO W{{settimanaAttiva}}</template>
+                      </span>
+                    </div>
+                    <div class="text-subtitle-1 font-weight-black text-white leading-tight">
+                      <template v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg</template>
+                      <template v-else>{{ suggerimentoRecord.target }} kg</template>
+                    </div>
+                  </div>
+                </v-col>
+
+                <!-- Card 2: Record Week -->
+                <v-col cols="12" sm="4" class="pa-0 flex-grow-1" v-if="suggerimentoRecord.record > 0">
+                  <div class="pa-2 rounded-xl border text-left h-100 d-flex flex-column justify-center" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3) !important;">
+                    <div class="d-flex align-center gap-1 mb-0.5">
+                      <v-icon color="amber-lighten-1" size="12">mdi-trophy</v-icon>
+                      <span class="text-super-caption font-weight-black text-amber-lighten-1 uppercase" style="font-size: 0.55rem; letter-spacing: 0.04em;">
+                        RECORD IN W{{settimanaAttiva}}
+                      </span>
+                    </div>
+                    <div class="text-subtitle-1 font-weight-black text-white leading-tight">
+                      {{ suggerimentoRecord.record }} kg
+                    </div>
+                    <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.5rem;">
+                      a {{ getRepsPerWeek(settimanaAttiva) }} reps
+                    </div>
+                  </div>
+                </v-col>
+
+                <!-- Card 3: Record Assoluto -->
+                <v-col cols="12" sm="4" class="pa-0 flex-grow-1" v-if="suggerimentoRecord.recordAbsolute > 0">
+                  <div class="pa-2 rounded-xl border text-left h-100 d-flex flex-column justify-center" style="background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.35) !important;">
+                    <div class="d-flex align-center gap-1 mb-0.5">
+                      <v-icon color="cyan-lighten-2" size="12">mdi-fire</v-icon>
+                      <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.55rem; letter-spacing: 0.04em;">
+                        RECORD ASSOLUTO (PR)
+                      </span>
+                    </div>
+                    <div class="text-subtitle-1 font-weight-black text-white leading-tight">
+                      {{ suggerimentoRecord.recordAbsolute }} kg
+                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 font-weight-bold" style="font-size: 0.6rem;">
+                        ({{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }})
+                      </span>
+                    </div>
+                    <div class="text-super-caption text-slate-light font-weight-bold mt-0.5" style="font-size: 0.52rem; line-height: 1.2;">
+                      Sch. {{ suggerimentoRecord.recordAbsoluteSheet || '-' }} <template v-if="suggerimentoRecord.recordAbsoluteDay">{{ suggerimentoRecord.recordAbsoluteDay }}</template> • 
+                      {{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}
+                      <span v-if="tempoTrascorso(suggerimentoRecord.recordAbsoluteDate)" class="text-cyan-lighten-3"> ({{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) }})</span>
+                    </div>
+                  </div>
+                </v-col>
+              </v-row>
+            </template>
+
+            <!-- PROPOSTA B: HERO BANNER PR -->
+            <template v-else-if="stileRecordStorico === 'hero'">
+              <div v-if="suggerimentoRecord.recordAbsolute > 0" class="pa-2.5 rounded-xl border mb-2 text-left" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.04) 100%); border-color: rgba(6, 182, 212, 0.35) !important;">
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <div class="d-flex align-center gap-1.5">
+                    <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
+                    <span class="text-caption font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.05em;">
+                      RECORD ASSOLUTO ESERCIZIO
+                    </span>
+                  </div>
+                  <v-chip color="cyan-darken-2" size="x-small" class="font-weight-black text-white" variant="flat" style="font-size: 0.52rem; height: 16px;">
+                    PR
+                  </v-chip>
+                </div>
+                
+                <div class="d-flex align-baseline gap-2">
+                  <span class="text-h6 font-weight-black text-white">{{ suggerimentoRecord.recordAbsolute }} kg</span>
+                  <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-caption text-cyan-lighten-3 font-weight-black">
+                    × {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                   </span>
-                </span>
-              </span>
-            </div>
+                </div>
+
+                <div class="text-super-caption text-slate-light font-weight-bold mt-1 d-flex align-center gap-1.5 flex-wrap" style="font-size: 0.55rem;">
+                  <span>📍 Scheda {{ suggerimentoRecord.recordAbsoluteSheet || '-' }} <template v-if="suggerimentoRecord.recordAbsoluteDay">{{ suggerimentoRecord.recordAbsoluteDay }}</template></span>
+                  <span>•</span>
+                  <span>🗓️ {{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}</span>
+                  <span v-if="tempoTrascorso(suggerimentoRecord.recordAbsoluteDate)" class="text-cyan-lighten-2">({{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) }})</span>
+                </div>
+              </div>
+
+              <div class="d-flex align-center gap-2">
+                <div v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico" class="px-2.5 py-1.5 rounded-lg border border-soft flex-grow-1 text-left" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.2) !important;">
+                  <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-block" style="font-size: 0.52rem;">🎯 OBIETTIVO W{{settimanaAttiva}}</span>
+                  <span class="text-subtitle-2 font-weight-black text-white">
+                    <template v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg</template>
+                    <template v-else>{{ suggerimentoRecord.target }} kg</template>
+                  </span>
+                </div>
+                <div v-if="suggerimentoRecord.record > 0" class="px-2.5 py-1.5 rounded-lg border border-soft flex-grow-1 text-left" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2) !important;">
+                  <span class="text-super-caption text-amber-lighten-1 font-weight-black uppercase d-block" style="font-size: 0.52rem;">🏆 RECORD IN W{{settimanaAttiva}}</span>
+                  <span class="text-subtitle-2 font-weight-black text-white">{{ suggerimentoRecord.record }} kg</span>
+                </div>
+              </div>
+            </template>
+
+            <!-- PROPOSTA C: COMPACT TIMELINE STACK -->
+            <template v-else-if="stileRecordStorico === 'timeline'">
+              <div class="d-flex flex-column gap-1.5 text-left">
+                <div v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.isScarico" class="d-flex align-center justify-space-between px-2.5 py-1 rounded-lg border border-soft" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.2) !important;">
+                  <div class="d-flex align-center gap-1.5">
+                    <v-icon color="orange-lighten-2" size="12">mdi-target</v-icon>
+                    <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.55rem;">
+                      OBIETTIVO W{{settimanaAttiva}}
+                    </span>
+                  </div>
+                  <span class="text-caption font-weight-black text-white">
+                    <template v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg</template>
+                    <template v-else>{{ suggerimentoRecord.target }} kg</template>
+                  </span>
+                </div>
+
+                <div v-if="suggerimentoRecord.record > 0" class="d-flex align-center justify-space-between px-2.5 py-1 rounded-lg border border-soft" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2) !important;">
+                  <div class="d-flex align-center gap-1.5">
+                    <v-icon color="amber-lighten-1" size="12">mdi-trophy</v-icon>
+                    <span class="text-super-caption font-weight-black text-amber-lighten-1 uppercase" style="font-size: 0.55rem;">
+                      RECORD IN W{{settimanaAttiva}}
+                    </span>
+                  </div>
+                  <span class="text-caption font-weight-black text-white">{{ suggerimentoRecord.record }} kg</span>
+                </div>
+
+                <div v-if="suggerimentoRecord.recordAbsolute > 0" class="px-2.5 py-1.5 rounded-lg border border-soft" style="background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.25) !important;">
+                  <div class="d-flex align-center justify-space-between">
+                    <div class="d-flex align-center gap-1.5">
+                      <v-icon color="cyan-lighten-2" size="12">mdi-fire</v-icon>
+                      <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.55rem;">
+                        RECORD ASSOLUTO
+                      </span>
+                    </div>
+                    <span class="text-caption font-weight-black text-white">
+                      {{ suggerimentoRecord.recordAbsolute }} kg
+                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 font-weight-bold" style="font-size: 0.55rem;">
+                        ({{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }})
+                      </span>
+                    </span>
+                  </div>
+                  <div class="text-super-caption text-slate-light font-weight-bold mt-0.5" style="font-size: 0.52rem;">
+                    Sch. {{ suggerimentoRecord.recordAbsoluteSheet || '-' }} <template v-if="suggerimentoRecord.recordAbsoluteDay">{{ suggerimentoRecord.recordAbsoluteDay }}</template> • 
+                    {{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}
+                    <span v-if="tempoTrascorso(suggerimentoRecord.recordAbsoluteDate)" class="text-cyan-lighten-3"> ({{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) }})</span>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- Rigo 4: Controlli Visualizzazione (Solo per Cronologia) -->
@@ -3231,6 +3346,7 @@ const getRepsPerWeek = (sett) => {
 // --- LOGICA RECORD & INCREMENTI GHOST ---
 const modalitaIncrementoGhost = ref('ibrida');
 const stileVisualizzazioneGhost = ref('range');
+const stileRecordStorico = ref('cards');
 const ghostPRAttackAttivo = ref(true);
 const ghostAutoregolazioneRepsAttiva = ref(true);
 const sfidaRecordWeek1 = ref(false);
@@ -3317,27 +3433,48 @@ const stimaRecordStoricoPerReps = (targetReps) => {
 };
 
 const getRiferimentoSfidaRecord = (sett) => {
-  if (!workout.value || !storicoEsercizio.value.length) return null;
+  if (!workout.value) return null;
   const repsTarget = getRepsPerWeek(sett);
   if (!repsTarget) return null;
 
   const recordEsatto = ottieniRecordStoricoPerReps(repsTarget);
-  if (recordEsatto && recordEsatto > 0) {
-    return {
-      peso: recordEsatto,
-      isStima: false
-    };
-  }
-
   const recordStimato = stimaRecordStoricoPerReps(repsTarget);
-  if (recordStimato && recordStimato > 0) {
-    return {
-      peso: recordStimato,
-      isStima: true
-    };
+
+  let stimaDaSchedaCorrente = 0;
+  if (sett > 1 && inputSettimane.value) {
+    for (let w = 1; w < sett; w++) {
+      const insVal = inputSettimane.value[w]?.ins;
+      if (insVal) {
+        const weightStr = estraiPesoDaInput(insVal);
+        if (weightStr) {
+          const weight = parseFloat(weightStr);
+          if (!isNaN(weight) && weight > 0) {
+            const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
+            const e1rm = weight * (1 + rExecuted / 30);
+            const estW = e1rm / (1 + repsTarget / 30);
+            if (estW > stimaDaSchedaCorrente) {
+              stimaDaSchedaCorrente = estW;
+            }
+          }
+        }
+      }
+    }
   }
 
-  return null;
+  const pesoMassimo = Math.max(
+    recordEsatto || 0,
+    recordStimato || 0,
+    stimaDaSchedaCorrente || 0
+  );
+
+  if (pesoMassimo <= 0) return null;
+
+  const isStima = pesoMassimo !== recordEsatto;
+
+  return {
+    peso: Math.round(pesoMassimo * 10) / 10,
+    isStima: isStima
+  };
 };
 
 const analizzaRecordSettimana = (sett) => {
@@ -6602,6 +6739,7 @@ const caricaDatiEsercizio = async () => {
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
       modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
       stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
+      stileRecordStorico.value = localStorage.getItem('stileRecordStorico_' + atletaId) || 'cards';
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
@@ -6690,6 +6828,7 @@ const caricaEsercizioDaBackup = async () => {
       modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
       modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
       stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
+      stileRecordStorico.value = localStorage.getItem('stileRecordStorico_' + atletaId) || 'cards';
       ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
       ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
       sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';

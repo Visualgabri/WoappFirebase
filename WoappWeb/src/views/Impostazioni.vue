@@ -443,6 +443,30 @@
                 style="font-size: 0.72rem; max-width: 175px; min-width: 150px;"
               ></v-select>
             </div>
+
+            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+
+            <!-- Stile Record Storico -->
+            <div class="d-flex align-center justify-space-between" style="min-height: 40px;">
+              <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">🏆 Stile Record Storico</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Layout per Obiettivi e Record nel dialogo dello storico</span>
+              </div>
+              <v-select
+                v-model="stileRecordStorico"
+                :items="[
+                  { title: '📊 3 Card (Default)', value: 'cards' },
+                  { title: '⭐ Hero Banner PR', value: 'hero' },
+                  { title: '📑 Timeline Compatta', value: 'timeline' }
+                ]"
+                variant="outlined"
+                density="compact"
+                hide-details
+                rounded="lg"
+                color="orange-darken-3"
+                style="font-size: 0.72rem; max-width: 175px; min-width: 150px;"
+              ></v-select>
+            </div>
           </div>
         </div>
       </div>
@@ -659,6 +683,7 @@ const getActiveAtletaId = () => {
 
 const modalitaIncrementoGhost = ref('ibrida');
 const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualizzazioneGhost_' + getActiveAtletaId()) || 'range');
+const stileRecordStorico = ref(localStorage.getItem('stileRecordStorico_' + getActiveAtletaId()) || 'cards');
 const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + getActiveAtletaId()) !== 'false');
 const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId()) !== 'false');
 const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + getActiveAtletaId()) === 'true');
@@ -693,6 +718,7 @@ watch([selectedAthlete, idCliente], () => {
   const atletaId = getActiveAtletaId();
   modalitaIncrementoGhost.value = 'ibrida';
   stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
+  stileRecordStorico.value = localStorage.getItem('stileRecordStorico_' + atletaId) || 'cards';
   ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
   ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
   sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
@@ -700,6 +726,9 @@ watch([selectedAthlete, idCliente], () => {
 
 watch(stileVisualizzazioneGhost, (newVal) => {
   localStorage.setItem('stileVisualizzazioneGhost_' + getActiveAtletaId(), newVal);
+});
+watch(stileRecordStorico, (newVal) => {
+  localStorage.setItem('stileRecordStorico_' + getActiveAtletaId(), newVal);
 });
 watch(ghostPRAttackAttivo, (newVal) => {
   localStorage.setItem('ghostPRAttackAttivo_' + getActiveAtletaId(), String(newVal));

@@ -3227,6 +3227,18 @@
             >
               ✅ Segna come Guarito / Risolto
             </v-btn>
+
+            <v-btn
+              block
+              color="red-darken-4"
+              variant="tonal"
+              class="font-weight-black text-none rounded-lg text-red-lighten-2"
+              height="36"
+              style="font-size: 0.75rem;"
+              @click="apriConfermaEliminaDettaglio(fastidioSelezionato.id)"
+            >
+              🗑️ Elimina Definitivamente
+            </v-btn>
           </div>
         </div>
 
@@ -3287,6 +3299,42 @@
         </div>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog Custom Conferma Eliminazione da Dettaglio -->
+    <v-dialog v-model="dialogConfermaEliminaDettaglio" max-width="400" rounded="xl">
+      <v-card class="card-glass border border-soft pa-5 text-center rounded-2xl" style="background: rgba(15, 23, 42, 0.95) !important; backdrop-filter: blur(20px) !important;">
+        <div class="mb-3 d-inline-flex pa-3 rounded-circle text-red-lighten-2 border border-soft" style="background: rgba(239, 68, 68, 0.1);">
+          <v-icon size="32" color="red-lighten-2">mdi-delete-alert</v-icon>
+        </div>
+        <h3 class="text-subtitle-1 font-weight-black text-slate-dark mb-1">Eliminare la segnalazione?</h3>
+        <p class="text-caption text-slate mb-4" style="color: #94a3b8 !important;">
+          Questa azione rimuoverà definitivamente l'infortunio dallo storico del tuo profilo.
+        </p>
+        <div class="d-flex justify-center gap-2">
+          <v-btn
+            variant="outlined"
+            color="slate"
+            class="font-weight-bold text-none rounded-xl flex-grow-1"
+            height="38"
+            style="font-size: 0.78rem;"
+            @click="dialogConfermaEliminaDettaglio = false"
+          >
+            No, Annulla
+          </v-btn>
+          <v-btn
+            color="red-darken-3"
+            variant="flat"
+            class="font-weight-black text-none rounded-xl text-white flex-grow-1 elevation-2"
+            height="38"
+            style="font-size: 0.78rem;"
+            :loading="eliminandoFastidioDettaglio"
+            @click="confermaEliminaFastidioDaDettaglio"
+          >
+            Sì, Elimina
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -3295,7 +3343,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -5312,6 +5360,31 @@ const risolviInfortunioEChiudi = async (id) => {
     dialogFastidio.value = false;
   } catch (err) {
     console.error("Errore risoluzione infortunio:", err);
+  }
+};
+
+const dialogConfermaEliminaDettaglio = ref(false);
+const idFastidioDaEliminareDettaglio = ref(null);
+const eliminandoFastidioDettaglio = ref(false);
+
+const apriConfermaEliminaDettaglio = (id) => {
+  idFastidioDaEliminareDettaglio.value = id;
+  dialogConfermaEliminaDettaglio.value = true;
+};
+
+const confermaEliminaFastidioDaDettaglio = async () => {
+  if (!idFastidioDaEliminareDettaglio.value) return;
+  eliminandoFastidioDettaglio.value = true;
+  vibraTattile(20);
+  try {
+    await eliminaInfortunio(idFastidioDaEliminareDettaglio.value);
+    dialogConfermaEliminaDettaglio.value = false;
+    dialogFastidio.value = false;
+    idFastidioDaEliminareDettaglio.value = null;
+  } catch (err) {
+    console.error("Errore eliminazione fastidio da dettaglio:", err);
+  } finally {
+    eliminandoFastidioDettaglio.value = false;
   }
 };
 

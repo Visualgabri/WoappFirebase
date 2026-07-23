@@ -261,10 +261,12 @@
                   color="red-lighten-3"
                   size="x-small"
                   class="font-weight-bold text-none rounded-lg"
-                  icon="mdi-delete-outline"
+                  icon
                   title="Elimina Definitivamente"
                   @click="eliminaInfortunioClick(inf.id)"
-                ></v-btn>
+                >
+                  <v-icon size="16">mdi-delete-outline</v-icon>
+                </v-btn>
                 <v-btn
                   variant="outlined"
                   color="orange-lighten-2"
@@ -333,10 +335,12 @@
                   color="red-lighten-3"
                   size="x-small"
                   class="font-weight-bold text-none rounded-lg"
-                  icon="mdi-delete-outline"
+                  icon
                   title="Elimina Definitivamente"
                   @click="eliminaInfortunioClick(inf.id)"
-                ></v-btn>
+                >
+                  <v-icon size="16">mdi-delete-outline</v-icon>
+                </v-btn>
                 <v-btn
                   variant="outlined"
                   color="orange-lighten-2"
@@ -362,8 +366,43 @@
           </v-card>
         </div>
       </div>
-
     </div>
+
+    <!-- Dialog Custom Conferma Eliminazione (Premium App UI) -->
+    <v-dialog v-model="dialogConfermaElimina" max-width="400" rounded="xl">
+      <v-card class="card-glass border border-soft pa-5 text-center rounded-2xl" style="background: rgba(15, 23, 42, 0.95) !important; backdrop-filter: blur(20px) !important;">
+        <div class="mb-3 d-inline-flex pa-3 rounded-circle text-red-lighten-2 border border-soft" style="background: rgba(239, 68, 68, 0.1);">
+          <v-icon size="32" color="red-lighten-2">mdi-delete-alert</v-icon>
+        </div>
+        <h3 class="text-subtitle-1 font-weight-black text-slate-dark mb-1">Eliminare la segnalazione?</h3>
+        <p class="text-caption text-slate mb-4" style="color: #94a3b8 !important;">
+          Questa azione rimuoverà definitivamente l'infortunio dallo storico del tuo profilo.
+        </p>
+        <div class="d-flex justify-center gap-2">
+          <v-btn
+            variant="outlined"
+            color="slate"
+            class="font-weight-bold text-none rounded-xl flex-grow-1"
+            height="38"
+            style="font-size: 0.78rem;"
+            @click="dialogConfermaElimina = false"
+          >
+            No, Annulla
+          </v-btn>
+          <v-btn
+            color="red-darken-3"
+            variant="flat"
+            class="font-weight-black text-none rounded-xl text-white flex-grow-1 elevation-2"
+            height="38"
+            style="font-size: 0.78rem;"
+            :loading="eliminandoInfortunio"
+            @click="confermaEliminazioneInfortunio"
+          >
+            Sì, Elimina
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -485,13 +524,28 @@ const riapriInfortunioClick = async (id) => {
   }
 };
 
-const eliminaInfortunioClick = async (id) => {
-  if (!confirm("Sei sicuro di voler eliminare definitivamente questa segnalazione?")) return;
+const dialogConfermaElimina = ref(false);
+const idInfortunioDaEliminare = ref(null);
+const eliminandoInfortunio = ref(false);
+
+const eliminaInfortunioClick = (id) => {
+  vibraTattile(15);
+  idInfortunioDaEliminare.value = id;
+  dialogConfermaElimina.value = true;
+};
+
+const confermaEliminazioneInfortunio = async () => {
+  if (!idInfortunioDaEliminare.value) return;
+  eliminandoInfortunio.value = true;
   vibraTattile(20);
   try {
-    await eliminaInfortunio(id);
+    await eliminaInfortunio(idInfortunioDaEliminare.value);
+    dialogConfermaElimina.value = false;
+    idInfortunioDaEliminare.value = null;
   } catch (err) {
     console.error("Errore eliminazione infortunio:", err);
+  } finally {
+    eliminandoInfortunio.value = false;
   }
 };
 

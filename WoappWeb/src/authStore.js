@@ -680,6 +680,9 @@ export const eliminaInfortunio = async (idInfortunio) => {
   try {
     const docRef = doc(db, 'infortuni', idInfortunio);
     await deleteDoc(docRef);
+    if (globalInfortuni.value) {
+      globalInfortuni.value = globalInfortuni.value.filter(inf => inf.id !== idInfortunio);
+    }
     return { success: true };
   } catch (error) {
     console.error("Errore nell'eliminazione dell'infortunio:", error);

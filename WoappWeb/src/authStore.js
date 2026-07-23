@@ -726,7 +726,7 @@ export const syncDeployVersionListener = () => {
     deployVersionUnsubscribe = null;
   }
 
-  const docRef = doc(db, 'APP_CONFIG', 'deploy_version');
+  const docRef = doc(db, 'METADATA', 'deploy_version');
 
   deployVersionUnsubscribe = onSnapshot(docRef, (docSnap) => {
     if (docSnap.exists()) {
@@ -781,7 +781,7 @@ export const ignoraBannerDeploy = () => {
 
 export const inviaNotificaDeploy = async (payload) => {
   try {
-    const docRef = doc(db, 'APP_CONFIG', 'deploy_version');
+    const docRef = doc(db, 'METADATA', 'deploy_version');
     const newVersionId = 'v_' + Date.now();
     const dataToSave = {
       version_id: newVersionId,

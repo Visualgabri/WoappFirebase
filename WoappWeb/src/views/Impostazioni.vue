@@ -497,12 +497,7 @@
           <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">Destinatario / Atleta Specifico:</span>
           <v-select
             v-model="atletaDeployTargetForm"
-            :items="[
-              { title: '🌐 Tutti gli Atleti', value: 'tutti' },
-              { title: '👤 Atleta #1 (Gabriele Belmonte)', value: '1' },
-              { title: '👤 Atleta #2 (Jessica)', value: '2' },
-              { title: '👤 Atleta #3', value: '3' }
-            ]"
+            :items="listaAtletiDeploySelect"
             variant="outlined"
             density="compact"
             color="orange-darken-3"
@@ -538,6 +533,11 @@
           🚀 INVIA NOTIFICA DEPLOY IN TEMPO REALE
         </v-btn>
       </div>
+
+      <!-- Snackbar Feedback Invio Deploy -->
+      <v-snackbar v-model="snackbarDeployShow" :color="snackbarDeployColor" timeout="4000" rounded="lg">
+        {{ snackbarDeployMessage }}
+      </v-snackbar>
     </v-card>
 
     <!-- SEZIONE 4: BACKUP & RIPRISTINO DATI -->
@@ -702,7 +702,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -721,7 +721,8 @@ import {
   temaHeaderGiornoGlobal,
   ottimizzaDigitazioneGlobal,
   regolaProgressioneW2Global,
-  inviaNotificaDeploy
+  inviaNotificaDeploy,
+  ORDINE_ORIGINALE_ATLETI
 } from '../authStore.js';
 
 const router = useRouter();
@@ -732,6 +733,24 @@ const messaggioDeployGeneraleForm = ref('È stata pubblicata una nuova versione 
 const atletaDeployTargetForm = ref('tutti');
 const notaDeployPersonalizzataForm = ref('');
 const inviandoDeployNotifica = ref(false);
+const snackbarDeployShow = ref(false);
+const snackbarDeployMessage = ref('');
+const snackbarDeployColor = ref('success');
+
+// Computed per popolare dinamicamente la tendina atleti in base alla lista ufficiale degli atleti (con ID e Nomi)
+const listaAtletiDeploySelect = computed(() => {
+  const items = [{ title: '🌐 Tutti gli Atleti (Tutti)', value: 'tutti' }];
+  ORDINE_ORIGINALE_ATLETI.forEach(id => {
+    const nome = getNomeAtleta(id);
+    if (nome) {
+      items.push({
+        title: `${nome} (ID: ${id})`,
+        value: String(id)
+      });
+    }
+  });
+  return items;
+});
 
 const eseguiInvioNotificaDeploy = async () => {
   try {
@@ -746,9 +765,14 @@ const eseguiInvioNotificaDeploy = async () => {
       payload.notes_per_athlete[atletaDeployTargetForm.value] = notaDeployPersonalizzataForm.value.trim();
     }
     await inviaNotificaDeploy(payload);
-    alert("🚀 Notifica Deploy inviata in tempo reale a tutti gli utenti!");
+    snackbarDeployColor.value = 'success';
+    snackbarDeployMessage.value = "🚀 Notifica Deploy inviata in tempo reale a tutti gli utenti!";
+    snackbarDeployShow.value = true;
   } catch (err) {
-    alert("Errore nell'invio notifica: " + err.message);
+    console.error("Errore invio notifica deploy:", err);
+    snackbarDeployColor.value = 'error';
+    snackbarDeployMessage.value = "Errore nell'invio notifica: " + (err.message || 'Controlla i permessi di rete');
+    snackbarDeployShow.value = true;
   } finally {
     inviandoDeployNotifica.value = false;
   }

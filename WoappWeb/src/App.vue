@@ -545,14 +545,14 @@
             </v-avatar>
             <div>
               <span 
-                class="text-caption font-weight-black uppercase d-block" 
-                :class="deployVersionInfo?.tipo === 'messaggio' ? 'text-purple-lighten-2' : 'text-orange-lighten-2'"
+                v-if="deployVersionInfo?.tipo === 'messaggio'"
+                class="text-caption font-weight-black uppercase d-block text-purple-lighten-2" 
                 style="letter-spacing: 0.08em; font-size: 0.68rem;"
               >
-                {{ deployVersionInfo?.tipo === 'messaggio' ? '💬 MESSAGGIO DAL COACH' : '⚡ DEPLOY IN TEMPO REALE' }}
+                💬 MESSAGGIO DAL COACH
               </span>
               <h2 class="text-h6 font-weight-black text-white" style="line-height: 1.15;">
-                {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 MESSAGGIO IN TEMPO REALE' : '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!') }}
+                {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 MESSAGGIO DAL COACH' : '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!') }}
               </h2>
             </div>
           </div>
@@ -578,16 +578,8 @@
           </p>
         </div>
 
-        <!-- Indicatore Visuale Swipe / Pull to Refresh (Solo se è un Deploy con nuova build) -->
-        <div v-if="deployVersionInfo?.tipo !== 'messaggio'" class="d-flex align-center justify-center gap-2 py-2 mb-3 rounded-lg bg-black border border-soft opacity-90">
-          <v-icon color="orange-lighten-2" size="20" class="animate-bounce">mdi-arrow-up-bold-circle-outline</v-icon>
-          <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-            Fai Swipe verso l'alto 👆 oppure tocca sotto per ricaricare
-          </span>
-        </div>
-
         <!-- Azioni Principali (Distinte per tipo) -->
-        <div class="d-flex flex-column gap-2">
+        <div class="d-flex flex-column gap-2 mt-2">
           <!-- CASO BUILD / DEPLOY: Pulsante Ricarica App -->
           <template v-if="deployVersionInfo?.tipo !== 'messaggio'">
             <v-btn
@@ -601,18 +593,6 @@
               @click="accettaEAggiornaDeploy"
             >
               🚀 RICARICA ED AGGIORNA ORA
-            </v-btn>
-
-            <v-btn
-              variant="text"
-              color="grey-lighten-1"
-              block
-              size="small"
-              class="font-weight-bold text-none"
-              style="font-size: 0.72rem;"
-              @click="ignoraBannerDeploy"
-            >
-              Continua e aggiorna più tardi
             </v-btn>
           </template>
 

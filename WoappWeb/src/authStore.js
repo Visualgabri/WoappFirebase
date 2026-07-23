@@ -712,6 +712,96 @@ if (selectedAthlete.value) {
   syncInfortuniListener();
 }
 
+// --- STATO NOTIFICA DEPLOY & AGGIORNAMENTO REAL-TIME ---
+export const showDeployBanner = ref(false);
+export const deployVersionInfo = ref(null);
+export const deployCustomNoteForMe = ref('');
+export const lastSeenDeployVersion = ref(localStorage.getItem('woapp_last_deploy_version') || '');
+
+let deployVersionUnsubscribe = null;
+
+export const syncDeployVersionListener = () => {
+  if (deployVersionUnsubscribe) {
+    deployVersionUnsubscribe();
+    deployVersionUnsubscribe = null;
+  }
+
+  const docRef = doc(db, 'APP_CONFIG', 'deploy_version');
+
+  deployVersionUnsubscribe = onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const versionId = data.version_id || data.timestamp || '';
+      
+      // Se c'è un version_id e non è mai stato visto dall'atleta
+      if (versionId && versionId !== lastSeenDeployVersion.value) {
+        deployVersionInfo.value = data;
+        
+        // Verifica se c'è una nota personalizzata per questo specifico atleta/cliente
+        const currentAthlete = selectedAthlete.value || idCliente.value || '';
+        if (data.notes_per_athlete && currentAthlete && data.notes_per_athlete[currentAthlete]) {
+          deployCustomNoteForMe.value = data.notes_per_athlete[currentAthlete];
+        } else if (data.target_atleta_id && String(data.target_atleta_id) === String(currentAthlete)) {
+          deployCustomNoteForMe.value = data.message_general || data.titolo || '';
+        } else {
+          deployCustomNoteForMe.value = '';
+        }
+
+        // Se la notifica è destinata a tutti o specificamente a questo atleta
+        if (!data.target_atleta_id || String(data.target_atleta_id) === String(currentAthlete) || (data.notes_per_athlete && data.notes_per_athlete[currentAthlete])) {
+          showDeployBanner.value = true;
+        }
+      }
+    }
+  }, (err) => {
+    console.warn("Errore listener deploy_version:", err);
+  });
+};
+
+export const accettaEAggiornaDeploy = () => {
+  if (deployVersionInfo.value && deployVersionInfo.value.version_id) {
+    localStorage.setItem('woapp_last_deploy_version', deployVersionInfo.value.version_id);
+    lastSeenDeployVersion.value = deployVersionInfo.value.version_id;
+  } else {
+    const fallbackId = 'v_' + Date.now();
+    localStorage.setItem('woapp_last_deploy_version', fallbackId);
+    lastSeenDeployVersion.value = fallbackId;
+  }
+  showDeployBanner.value = false;
+  window.location.reload(true);
+};
+
+export const ignoraBannerDeploy = () => {
+  if (deployVersionInfo.value && deployVersionInfo.value.version_id) {
+    localStorage.setItem('woapp_last_deploy_version', deployVersionInfo.value.version_id);
+    lastSeenDeployVersion.value = deployVersionInfo.value.version_id;
+  }
+  showDeployBanner.value = false;
+};
+
+export const inviaNotificaDeploy = async (payload) => {
+  try {
+    const docRef = doc(db, 'APP_CONFIG', 'deploy_version');
+    const newVersionId = 'v_' + Date.now();
+    const dataToSave = {
+      version_id: newVersionId,
+      timestamp: new Date().toISOString(),
+      titolo: payload.titolo || '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!',
+      message_general: payload.message_general || 'È stata pubblicata una nuova versione dell\'applicazione con importanti novità.',
+      target_atleta_id: payload.target_atleta_id || null,
+      notes_per_athlete: payload.notes_per_athlete || {}
+    };
+    await setDoc(docRef, dataToSave, { merge: true });
+    return { success: true, version_id: newVersionId };
+  } catch (error) {
+    console.error("Errore nell'invio notifica deploy:", error);
+    throw error;
+  }
+};
+
+// Avvia immediatamente il listener per le notifiche di deploy
+syncDeployVersionListener();
+
 // Parametri di proposta carichi globali (generici per tutti gli atleti)
 const athleteIdForInit = localStorage.getItem('selectedAthlete') || '';
 

@@ -448,6 +448,98 @@
       </div>
     </v-card>
 
+    <!-- SEZIONE COACH: NOTIFICA DEPLOY & AGGIORNAMENTO REAL-TIME -->
+    <v-card 
+      v-if="ruolo === 'coach'"
+      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
+      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
+      elevation="2"
+      style="border-color: rgba(249, 115, 22, 0.4) !important;"
+    >
+      <div class="d-flex align-center justify-space-between mb-4">
+        <div class="d-flex align-center">
+          <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-rocket-launch-outline</v-icon>
+          <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Invia Notifica Deploy Real-Time</span>
+        </div>
+        <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white">COACH ONLY 📋</v-chip>
+      </div>
+
+      <div class="pa-4 rounded-xl card-glass border-soft" style="background: rgba(30, 41, 59, 0.3) !important;">
+        <p class="text-super-caption text-muted mb-3" style="font-size: 0.68rem; line-height: 1.35;">
+          Fai comparire all'istante (in tempo reale) il banner di aggiornamento con l'indicatore di swipe-up a tutti gli atleti connessi o ad un atleta specifico.
+        </p>
+
+        <!-- Titolo Notifica -->
+        <v-text-field
+          v-model="titoloDeployForm"
+          label="Titolo Banner Deploy"
+          variant="outlined"
+          density="compact"
+          color="orange-darken-3"
+          class="mb-2"
+          hide-details
+        ></v-text-field>
+
+        <!-- Note Generali -->
+        <v-textarea
+          v-model="messaggioDeployGeneraleForm"
+          label="Note di Rilascio Generali (per tutti gli atleti)"
+          variant="outlined"
+          density="compact"
+          rows="2"
+          color="orange-darken-3"
+          class="mb-3"
+          hide-details
+        ></v-textarea>
+
+        <!-- Selettore Atleta Target -->
+        <div class="mb-3">
+          <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">Destinatario / Atleta Specifico:</span>
+          <v-select
+            v-model="atletaDeployTargetForm"
+            :items="[
+              { title: '🌐 Tutti gli Atleti', value: 'tutti' },
+              { title: '👤 Atleta #1 (Gabriele Belmonte)', value: '1' },
+              { title: '👤 Atleta #2 (Jessica)', value: '2' },
+              { title: '👤 Atleta #3', value: '3' }
+            ]"
+            variant="outlined"
+            density="compact"
+            color="orange-darken-3"
+            hide-details
+          ></v-select>
+        </div>
+
+        <!-- Nota Personalizzata Atleta -->
+        <v-textarea
+          v-if="atletaDeployTargetForm !== 'tutti'"
+          v-model="notaDeployPersonalizzataForm"
+          label="💬 Nota del Coach Riservata a Questo Atleta"
+          placeholder="es. Gabriele, ho aggiornato la tua scheda con le varianti per il petto e impostato il tempo di recupero a 90s."
+          variant="outlined"
+          density="compact"
+          rows="2"
+          color="purple-lighten-2"
+          class="mb-3"
+          hide-details
+        ></v-textarea>
+
+        <v-btn
+          color="orange-darken-3"
+          block
+          size="small"
+          variant="flat"
+          rounded="lg"
+          class="font-weight-black text-none text-white mt-2"
+          style="height: 38px; font-size: 0.8rem;"
+          @click="eseguiInvioNotificaDeploy"
+          :loading="inviandoDeployNotifica"
+        >
+          🚀 INVIA NOTIFICA DEPLOY IN TEMPO REALE
+        </v-btn>
+      </div>
+    </v-card>
+
     <!-- SEZIONE 4: BACKUP & RIPRISTINO DATI -->
     <v-card 
       v-if="atletaSelezionato && schedaSelezionata"
@@ -628,10 +720,39 @@ import {
   comportamentoPlayGlobal,
   temaHeaderGiornoGlobal,
   ottimizzaDigitazioneGlobal,
-  regolaProgressioneW2Global
+  regolaProgressioneW2Global,
+  inviaNotificaDeploy
 } from '../authStore.js';
 
 const router = useRouter();
+
+// Modulo Coach Deploy Notifica
+const titoloDeployForm = ref('🚀 NUOVO AGGIORNAMENTO DISPONIBILE!');
+const messaggioDeployGeneraleForm = ref('È stata pubblicata una nuova versione dell\'applicazione con importanti novità.');
+const atletaDeployTargetForm = ref('tutti');
+const notaDeployPersonalizzataForm = ref('');
+const inviandoDeployNotifica = ref(false);
+
+const eseguiInvioNotificaDeploy = async () => {
+  try {
+    inviandoDeployNotifica.value = true;
+    const payload = {
+      titolo: titoloDeployForm.value,
+      message_general: messaggioDeployGeneraleForm.value,
+      target_atleta_id: atletaDeployTargetForm.value !== 'tutti' ? atletaDeployTargetForm.value : null,
+      notes_per_athlete: {}
+    };
+    if (atletaDeployTargetForm.value !== 'tutti' && notaDeployPersonalizzataForm.value.trim()) {
+      payload.notes_per_athlete[atletaDeployTargetForm.value] = notaDeployPersonalizzataForm.value.trim();
+    }
+    await inviaNotificaDeploy(payload);
+    alert("🚀 Notifica Deploy inviata in tempo reale a tutti gli utenti!");
+  } catch (err) {
+    alert("Errore nell'invio notifica: " + err.message);
+  } finally {
+    inviandoDeployNotifica.value = false;
+  }
+};
 
 // Refs locali collegati ai globali
 const atletaSelezionato = ref(selectedAthlete.value);

@@ -535,72 +535,54 @@
             : '0 20px 50px rgba(249, 115, 22, 0.25) !important'
         }"
       >
-        <!-- Header con Icona Animata -->
-        <div class="d-flex align-center justify-space-between mb-3 border-bottom-soft pb-3">
-          <div class="d-flex align-center gap-2.5">
-            <v-avatar size="44" :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" class="elevation-4">
-              <v-icon color="white" size="26" class="animate-bounce">
-                {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch' }}
-              </v-icon>
-            </v-avatar>
-            <div>
-              <h2 class="text-h6 font-weight-black text-white" style="line-height: 1.15;">
-                {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 MESSAGGIO DAL COACH' : '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!') }}
-              </h2>
-            </div>
-          </div>
+        <!-- Header con Icona -->
+        <div class="d-flex align-center gap-3 mb-4 pb-2 border-bottom-soft">
+          <v-avatar size="42" :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" class="elevation-4">
+            <v-icon color="white" size="24">
+              {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch' }}
+            </v-icon>
+          </v-avatar>
+          <h2 class="text-h6 font-weight-black text-white mb-0" style="line-height: 1.2;">
+            {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento Disponibile!') }}
+          </h2>
         </div>
 
-        <!-- Note Generali -->
-        <div class="mb-3">
-          <p class="text-body-2 text-slate-light mb-0" style="font-size: 0.82rem; line-height: 1.45; color: #e2e8f0 !important;">
-            {{ deployVersionInfo?.message_general || 'Hai una nuova comunicazione dall\'applicazione.' }}
+        <!-- Contenuto del Messaggio (Unico ed Essenziale) -->
+        <div class="pa-4 rounded-xl mb-4 text-left border" style="background: rgba(15, 23, 42, 0.6) !important; border-color: rgba(255, 255, 255, 0.1) !important;">
+          <p class="text-body-1 text-white mb-0" style="font-size: 0.9rem; line-height: 1.5; color: #f8fafc !important;">
+            {{ deployCustomNoteForMe || deployVersionInfo?.message_general || (deployVersionInfo?.tipo === 'messaggio' ? 'Hai una nuova comunicazione dal tuo Coach.' : 'È stata pubblicata una nuova versione dell\'applicazione.') }}
           </p>
         </div>
 
-        <!-- NOTE PERSONALIZZATE PER L'ATLETA SPECIFICO (Se presente) -->
-        <div v-if="deployCustomNoteForMe" class="pa-3 rounded-xl mb-4 bg-slate-950 border border-soft text-left animate-pulse-slow" style="border-color: rgba(168, 85, 247, 0.4) !important; background: rgba(168, 85, 247, 0.08) !important;">
-          <div class="d-flex align-center gap-1.5 mb-1 text-purple-lighten-2 font-weight-black text-caption uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">
-            <span style="font-size: 1.1rem;">💬</span> NOTA DEL COACH PER TE:
-          </div>
-          <p class="text-body-2 text-white font-italic mb-0" style="font-size: 0.82rem; line-height: 1.4;">
-            "{{ deployCustomNoteForMe }}"
-          </p>
-        </div>
+        <!-- Azione Unica Principale -->
+        <div>
+          <v-btn
+            v-if="deployVersionInfo?.tipo !== 'messaggio'"
+            color="orange-darken-3"
+            block
+            size="large"
+            variant="flat"
+            rounded="xl"
+            class="font-weight-black text-none text-white elevation-6"
+            style="height: 48px; font-size: 0.92rem;"
+            @click="accettaEAggiornaDeploy"
+          >
+            🚀 RICARICA ED AGGIORNA ORA
+          </v-btn>
 
-        <!-- Azioni Principali (Distinte per tipo) -->
-        <div class="d-flex flex-column gap-2 mt-2">
-          <!-- CASO BUILD / DEPLOY: Pulsante Ricarica App -->
-          <template v-if="deployVersionInfo?.tipo !== 'messaggio'">
-            <v-btn
-              color="orange-darken-3"
-              block
-              size="large"
-              variant="flat"
-              rounded="xl"
-              class="font-weight-black text-none text-white elevation-6"
-              style="height: 50px; font-size: 0.95rem; letter-spacing: 0.02em;"
-              @click="accettaEAggiornaDeploy"
-            >
-              🚀 RICARICA ED AGGIORNA ORA
-            </v-btn>
-          </template>
-
-          <!-- CASO MESSAGGIO SIMPLE: Pulsante Chiusura senza Ricaricamento -->
-          <template v-else>
-            <v-btn
-              color="purple-darken-3"
-              block
-              size="large"
-              variant="flat"
-              rounded="xl"
-              class="font-weight-black text-none text-white elevation-6"
-              style="height: 50px; font-size: 0.95rem; letter-spacing: 0.02em;"
-              @click="chiudiBannerNotifica"
-            >
-              👍 HO CAPITO / HO LETTO
-            </v-btn>
-          </template>
+          <v-btn
+            v-else
+            color="purple-darken-3"
+            block
+            size="large"
+            variant="flat"
+            rounded="xl"
+            class="font-weight-black text-none text-white elevation-6"
+            style="height: 48px; font-size: 0.92rem;"
+            @click="chiudiBannerNotifica"
+          >
+            HO CAPITO 👍
+          </v-btn>
         </div>
       </v-card>
     </v-dialog>

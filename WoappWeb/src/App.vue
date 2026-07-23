@@ -518,36 +518,53 @@
       </v-card>
     </v-dialog>
 
-    <!-- HERO SHEET / BANNER DEPLOY REAL-TIME & AGGIORNAMENTO (Glassmorphism Premium UX) -->
+    <!-- HERO SHEET / BANNER DEPLOY & MESSAGGI REAL-TIME (Glassmorphism Premium UX) -->
     <v-dialog v-model="showDeployBanner" max-width="520" rounded="2xl" persistent>
       <v-card
         class="pa-5 rounded-2xl border text-left overflow-hidden position-relative animate-fade-in"
-        style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%) !important; border: 2px solid rgba(249, 115, 22, 0.5) !important; backdrop-filter: blur(30px) !important; box-shadow: 0 20px 50px rgba(249, 115, 22, 0.25) !important;"
+        :style="{
+          background: deployVersionInfo?.tipo === 'messaggio' 
+            ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.98) 100%) !important'
+            : 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%) !important',
+          border: deployVersionInfo?.tipo === 'messaggio'
+            ? '2px solid rgba(168, 85, 247, 0.5) !important'
+            : '2px solid rgba(249, 115, 22, 0.5) !important',
+          backdropFilter: 'blur(30px) !important',
+          boxShadow: deployVersionInfo?.tipo === 'messaggio'
+            ? '0 20px 50px rgba(168, 85, 247, 0.25) !important'
+            : '0 20px 50px rgba(249, 115, 22, 0.25) !important'
+        }"
       >
         <!-- Header con Icona Animata -->
         <div class="d-flex align-center justify-space-between mb-3 border-bottom-soft pb-3">
           <div class="d-flex align-center gap-2.5">
-            <v-avatar size="44" color="orange-darken-3" class="elevation-4">
-              <v-icon color="white" size="26" class="animate-bounce">mdi-rocket-launch</v-icon>
+            <v-avatar size="44" :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" class="elevation-4">
+              <v-icon color="white" size="26" class="animate-bounce">
+                {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch' }}
+              </v-icon>
             </v-avatar>
             <div>
-              <span class="text-caption font-weight-black text-orange-lighten-2 uppercase d-block" style="letter-spacing: 0.08em; font-size: 0.68rem;">
-                DEPLOY IN TEMPO REALE
+              <span 
+                class="text-caption font-weight-black uppercase d-block" 
+                :class="deployVersionInfo?.tipo === 'messaggio' ? 'text-purple-lighten-2' : 'text-orange-lighten-2'"
+                style="letter-spacing: 0.08em; font-size: 0.68rem;"
+              >
+                {{ deployVersionInfo?.tipo === 'messaggio' ? '💬 MESSAGGIO DAL COACH' : '⚡ DEPLOY IN TEMPO REALE' }}
               </span>
               <h2 class="text-h6 font-weight-black text-white" style="line-height: 1.15;">
-                {{ deployVersionInfo?.titolo || '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!' }}
+                {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 MESSAGGIO IN TEMPO REALE' : '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!') }}
               </h2>
             </div>
           </div>
-          <v-chip color="orange-darken-3" variant="flat" size="x-small" class="font-weight-black text-white px-2">
+          <v-chip :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" variant="flat" size="x-small" class="font-weight-black text-white px-2">
             LIVE ⚡
           </v-chip>
         </div>
 
-        <!-- Note di Rilascio Generali -->
+        <!-- Note Generali -->
         <div class="mb-3">
           <p class="text-body-2 text-slate-light mb-0" style="font-size: 0.82rem; line-height: 1.45; color: #e2e8f0 !important;">
-            {{ deployVersionInfo?.message_general || 'È stata pubblicata una nuova versione dell\'applicazione con importanti novità e miglioramenti di prestazione.' }}
+            {{ deployVersionInfo?.message_general || 'Hai una nuova comunicazione dall\'applicazione.' }}
           </p>
         </div>
 
@@ -561,40 +578,59 @@
           </p>
         </div>
 
-        <!-- Indicatore Visuale Swipe / Pull to Refresh -->
-        <div class="d-flex align-center justify-center gap-2 py-2 mb-3 rounded-lg bg-black border border-soft opacity-90">
+        <!-- Indicatore Visuale Swipe / Pull to Refresh (Solo se è un Deploy con nuova build) -->
+        <div v-if="deployVersionInfo?.tipo !== 'messaggio'" class="d-flex align-center justify-center gap-2 py-2 mb-3 rounded-lg bg-black border border-soft opacity-90">
           <v-icon color="orange-lighten-2" size="20" class="animate-bounce">mdi-arrow-up-bold-circle-outline</v-icon>
           <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
             Fai Swipe verso l'alto 👆 oppure tocca sotto per ricaricare
           </span>
         </div>
 
-        <!-- Azioni Principali -->
+        <!-- Azioni Principali (Distinte per tipo) -->
         <div class="d-flex flex-column gap-2">
-          <v-btn
-            color="orange-darken-3"
-            block
-            size="large"
-            variant="flat"
-            rounded="xl"
-            class="font-weight-black text-none text-white elevation-6"
-            style="height: 50px; font-size: 0.95rem; letter-spacing: 0.02em;"
-            @click="accettaEAggiornaDeploy"
-          >
-            🚀 RICARICA ED AGGIORNA ORA
-          </v-btn>
+          <!-- CASO BUILD / DEPLOY: Pulsante Ricarica App -->
+          <template v-if="deployVersionInfo?.tipo !== 'messaggio'">
+            <v-btn
+              color="orange-darken-3"
+              block
+              size="large"
+              variant="flat"
+              rounded="xl"
+              class="font-weight-black text-none text-white elevation-6"
+              style="height: 50px; font-size: 0.95rem; letter-spacing: 0.02em;"
+              @click="accettaEAggiornaDeploy"
+            >
+              🚀 RICARICA ED AGGIORNA ORA
+            </v-btn>
 
-          <v-btn
-            variant="text"
-            color="grey-lighten-1"
-            block
-            size="small"
-            class="font-weight-bold text-none"
-            style="font-size: 0.72rem;"
-            @click="ignoraBannerDeploy"
-          >
-            Continua e aggiorna più tardi
-          </v-btn>
+            <v-btn
+              variant="text"
+              color="grey-lighten-1"
+              block
+              size="small"
+              class="font-weight-bold text-none"
+              style="font-size: 0.72rem;"
+              @click="ignoraBannerDeploy"
+            >
+              Continua e aggiorna più tardi
+            </v-btn>
+          </template>
+
+          <!-- CASO MESSAGGIO SIMPLE: Pulsante Chiusura senza Ricaricamento -->
+          <template v-else>
+            <v-btn
+              color="purple-darken-3"
+              block
+              size="large"
+              variant="flat"
+              rounded="xl"
+              class="font-weight-black text-none text-white elevation-6"
+              style="height: 50px; font-size: 0.95rem; letter-spacing: 0.02em;"
+              @click="chiudiBannerNotifica"
+            >
+              👍 HO CAPITO / HO LETTO
+            </v-btn>
+          </template>
         </div>
       </v-card>
     </v-dialog>
@@ -605,7 +641,7 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica } from './authStore.js';
 
 const router = useRouter();
 const globalTransition = ref('fade');

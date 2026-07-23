@@ -465,14 +465,31 @@
       </div>
 
       <div class="pa-4 rounded-xl card-glass border-soft" style="background: rgba(30, 41, 59, 0.3) !important;">
-        <p class="text-super-caption text-muted mb-3" style="font-size: 0.68rem; line-height: 1.35;">
-          Fai comparire all'istante (in tempo reale) il banner di aggiornamento con l'indicatore di swipe-up a tutti gli atleti connessi o ad un atleta specifico.
-        </p>
+        <!-- Selettore Tipo Notifica (Deploy vs Messaggio) -->
+        <div class="mb-3">
+          <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.65rem;">Seleziona Scopo Notifica:</span>
+          <v-btn-toggle
+            v-model="tipoNotificaForm"
+            mandatory
+            selected-class="bg-orange-darken-3 text-white"
+            density="comfortable"
+            rounded="xl"
+            class="w-100 card-glass border"
+            style="height: 38px;"
+          >
+            <v-btn value="deploy" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 50%;">
+              🚀 Nuovo Deploy (Richiede Ricarica)
+            </v-btn>
+            <v-btn value="messaggio" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 50%;">
+              💬 Messaggio Coach (Nessuna Ricarica)
+            </v-btn>
+          </v-btn-toggle>
+        </div>
 
         <!-- Titolo Notifica -->
         <v-text-field
           v-model="titoloDeployForm"
-          label="Titolo Banner Deploy"
+          label="Titolo Banner"
           variant="outlined"
           density="compact"
           color="orange-darken-3"
@@ -728,6 +745,7 @@ import {
 const router = useRouter();
 
 // Modulo Coach Deploy Notifica
+const tipoNotificaForm = ref('deploy'); // 'deploy' | 'messaggio'
 const titoloDeployForm = ref('🚀 NUOVO AGGIORNAMENTO DISPONIBILE!');
 const messaggioDeployGeneraleForm = ref('È stata pubblicata una nuova versione dell\'applicazione con importanti novità.');
 const atletaDeployTargetForm = ref('tutti');
@@ -736,6 +754,16 @@ const inviandoDeployNotifica = ref(false);
 const snackbarDeployShow = ref(false);
 const snackbarDeployMessage = ref('');
 const snackbarDeployColor = ref('success');
+
+watch(tipoNotificaForm, (nuovoTipo) => {
+  if (nuovoTipo === 'messaggio') {
+    titoloDeployForm.value = '💬 MESSAGGIO IN TEMPO REALE DAL COACH';
+    messaggioDeployGeneraleForm.value = 'Hai una nuova comunicazione dal tuo Coach.';
+  } else {
+    titoloDeployForm.value = '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!';
+    messaggioDeployGeneraleForm.value = 'È stata pubblicata una nuova versione dell\'applicazione con importanti novità.';
+  }
+});
 
 // Computed per popolare dinamicamente la tendina atleti in base alla lista ufficiale degli atleti (con ID e Nomi)
 const listaAtletiDeploySelect = computed(() => {
@@ -756,6 +784,7 @@ const eseguiInvioNotificaDeploy = async () => {
   try {
     inviandoDeployNotifica.value = true;
     const payload = {
+      tipo: tipoNotificaForm.value,
       titolo: titoloDeployForm.value,
       message_general: messaggioDeployGeneraleForm.value,
       target_atleta_id: atletaDeployTargetForm.value !== 'tutti' ? atletaDeployTargetForm.value : null,
@@ -766,7 +795,9 @@ const eseguiInvioNotificaDeploy = async () => {
     }
     await inviaNotificaDeploy(payload);
     snackbarDeployColor.value = 'success';
-    snackbarDeployMessage.value = "🚀 Notifica Deploy inviata in tempo reale a tutti gli utenti!";
+    snackbarDeployMessage.value = payload.tipo === 'messaggio' 
+      ? "💬 Messaggio inviato in tempo reale!" 
+      : "🚀 Notifica Deploy inviata in tempo reale a tutti gli utenti!";
     snackbarDeployShow.value = true;
   } catch (err) {
     console.error("Errore invio notifica deploy:", err);

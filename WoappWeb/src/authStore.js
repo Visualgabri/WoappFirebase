@@ -758,7 +758,7 @@ export const syncDeployVersionListener = () => {
   });
 };
 
-export const accettaEAggiornaDeploy = () => {
+export const chiudiBannerNotifica = () => {
   if (deployVersionInfo.value && deployVersionInfo.value.version_id) {
     localStorage.setItem('woapp_last_deploy_version', deployVersionInfo.value.version_id);
     lastSeenDeployVersion.value = deployVersionInfo.value.version_id;
@@ -768,15 +768,15 @@ export const accettaEAggiornaDeploy = () => {
     lastSeenDeployVersion.value = fallbackId;
   }
   showDeployBanner.value = false;
+};
+
+export const accettaEAggiornaDeploy = () => {
+  chiudiBannerNotifica();
   window.location.reload(true);
 };
 
 export const ignoraBannerDeploy = () => {
-  if (deployVersionInfo.value && deployVersionInfo.value.version_id) {
-    localStorage.setItem('woapp_last_deploy_version', deployVersionInfo.value.version_id);
-    lastSeenDeployVersion.value = deployVersionInfo.value.version_id;
-  }
-  showDeployBanner.value = false;
+  chiudiBannerNotifica();
 };
 
 export const inviaNotificaDeploy = async (payload) => {
@@ -786,8 +786,9 @@ export const inviaNotificaDeploy = async (payload) => {
     const dataToSave = {
       version_id: newVersionId,
       timestamp: new Date().toISOString(),
-      titolo: payload.titolo || '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!',
-      message_general: payload.message_general || 'È stata pubblicata una nuova versione dell\'applicazione con importanti novità.',
+      tipo: payload.tipo || 'deploy', // 'deploy' oppure 'messaggio'
+      titolo: payload.titolo || (payload.tipo === 'messaggio' ? '💬 MESSAGGIO IN TEMPO REALE DAL COACH' : '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!'),
+      message_general: payload.message_general || 'È stata pubblicata una nuova comunicazione dell\'applicazione.',
       target_atleta_id: payload.target_atleta_id || null,
       notes_per_athlete: payload.notes_per_athlete || {}
     };

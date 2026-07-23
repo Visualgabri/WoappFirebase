@@ -953,10 +953,11 @@
                 v-for="chip in chipProgressioneQualitativa"
                 :key="chip.id"
                 size="x-small"
-                variant="tonal"
-                color="purple-lighten-3"
-                class="font-weight-bold cursor-pointer"
-                style="font-size: 0.58rem; height: 22px;"
+                :variant="chip.primary ? 'flat' : 'tonal'"
+                :color="chip.primary ? 'amber-accent-3' : 'purple-lighten-3'"
+                class="font-weight-black cursor-pointer"
+                :class="{'text-black animate-pulse': chip.primary}"
+                :style="{ fontSize: chip.primary ? '0.62rem' : '0.58rem', height: chip.primary ? '24px' : '22px' }"
                 @click="applicaDriverProgressione(sett, chip.label)"
               >
                 {{ chip.icon }} {{ chip.label }}
@@ -3512,7 +3513,8 @@ const regolaProgressioneW2 = regolaProgressioneW2Global;
 
 // --- LOGICA ANTI-STALLO & PROGRESSIONE MULTIDIMENSIONALE (SOLUZIONI 1, 3, 4) ---
 const chipProgressioneQualitativa = [
-  { id: 'tut', icon: '⏱️', label: 'Eccentrica più lenta' },
+  { id: 'extra_rep', icon: '📈', label: '+1 Rep Extra (Più Ripetizioni)', primary: true },
+  { id: 'tut', icon: '⏱️', label: 'Eccentrica più lenta (TUT)' },
   { id: 'rom', icon: '🧘', label: 'Maggiore ROM / Controllo' },
   { id: 'rir', icon: '📉', label: 'Sforzo Percepito Minore (RIR+1)' },
   { id: 'pausa', icon: '⏱️', label: 'Pausa nel punto critico' },
@@ -3535,6 +3537,13 @@ const haDriverQualitativoAccreditato = (sett) => {
     lower.includes('recupero') ||
     lower.includes('qualitat') ||
     lower.includes('fermo') ||
+    lower.includes('+1') ||
+    lower.includes('+2') ||
+    lower.includes('+3') ||
+    lower.includes('extra') ||
+    lower.includes('reps in più') ||
+    lower.includes('più reps') ||
+    lower.includes('rep extra') ||
     val.includes('🌟')
   );
 };
@@ -3574,9 +3583,29 @@ const applicaDriverProgressione = (sett, labelChip) => {
   vibraTattile(12);
   const targetInput = inputSettimane.value[sett];
   if (targetInput) {
-    const currentVal = targetInput.ins ? String(targetInput.ins).trim() : '';
+    let currentVal = targetInput.ins ? String(targetInput.ins).trim() : '';
+    const isMantenimento = labelChip.toLowerCase().includes('mantenimento');
+    const isExtraRep = labelChip.toLowerCase().includes('rep') || labelChip.includes('+');
+
+    if (isExtraRep) {
+      // Se l'utente ha scritto ad es. "10 x12r", incrementiamo le reps da 12 a 13 e aggiungiamo [+1 Rep Extra]
+      const matchReps = currentVal.match(/(x\s*|reps?\s*|r\s*)(\d+)/i) || currentVal.match(/(\d+)\s*r\b/i);
+      if (matchReps && matchReps[2]) {
+        const oldReps = parseInt(matchReps[2], 10);
+        const newReps = oldReps + 1;
+        currentVal = currentVal.replace(matchReps[0], matchReps[0].replace(String(oldReps), String(newReps)));
+      }
+      if (!currentVal.toLowerCase().includes('extra') && !currentVal.includes('+1')) {
+        currentVal = currentVal ? `${currentVal} [+1 Rep Extra]` : `[+1 Rep Extra]`;
+      }
+      targetInput.ins = currentVal;
+      salvaDatoSettimanale(sett, 'ins');
+      snackbarMessaggio.value = `📈 Progressione di Ripetizioni (+1 Rep Extra) accreditata per W${sett}!`;
+      snackbarSalvataggio.value = true;
+      return;
+    }
+
     if (!currentVal.toLowerCase().includes(labelChip.toLowerCase())) {
-      const isMantenimento = labelChip.toLowerCase().includes('mantenimento');
       targetInput.ins = currentVal ? `${currentVal} [${labelChip}]` : `[${labelChip}]`;
       salvaDatoSettimanale(sett, 'ins');
       if (isMantenimento) {

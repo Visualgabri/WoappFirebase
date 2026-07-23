@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy-auto": "npm run build && npx firebase deploy --only hosting && node ../trigger_deploy_notification.js"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",

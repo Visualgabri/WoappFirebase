@@ -113,31 +113,31 @@
         </div>
       </v-card>
 
-      <!-- Avviso Infortunio Attivo / Comfort Articolare (Option 2A Sintetica & Premium) -->
-      <div v-if="infortuniAttiviEsercizio.length > 0" class="mt-2 mb-2">
+      <!-- Avviso Infortunio Attivo / Comfort Articolare (Option 2A Sintetica & Super Compatta) -->
+      <div v-if="infortuniAttiviEsercizio.length > 0" class="mt-1 mb-1.5">
         <v-chip
           color="red-darken-3"
           variant="flat"
-          class="w-100 justify-space-between font-weight-black py-2 px-3 rounded-xl elevation-2 cursor-pointer"
-          style="height: auto; min-height: 38px;"
+          class="w-100 justify-space-between font-weight-black px-2.5 rounded-lg cursor-pointer"
+          style="height: 28px; font-size: 0.65rem;"
           @click="apriGestioneFastidioPannello(infortuniAttiviEsercizio[0])"
         >
-          <div class="d-flex align-center gap-2 text-truncate">
-            <v-icon size="18" color="white">mdi-bandage</v-icon>
-            <span class="text-caption font-weight-black text-white text-truncate">
+          <div class="d-flex align-center gap-1.5 text-truncate">
+            <v-icon size="14" color="white">mdi-bandage</v-icon>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.65rem;">
               {{ infortuniAttiviEsercizio[0].articolazione_coinvolta }} ({{ infortuniAttiviEsercizio[0].gravita }}/10)
               <template v-if="infortuniAttiviEsercizio[0].applica_riduzione !== false && (infortuniAttiviEsercizio[0].percentuale_riduzione ?? 20) > 0">
-                • Suggerito: -{{ infortuniAttiviEsercizio[0].percentuale_riduzione ?? 20 }}%
+                • -{{ infortuniAttiviEsercizio[0].percentuale_riduzione ?? 20 }}%
               </template>
               <template v-else>
-                • Monitoraggio (Carico 100%)
+                • Monitoraggio (100%)
               </template>
             </span>
           </div>
-          <div class="d-flex align-center gap-1 flex-shrink-0">
-            <v-chip size="x-small" color="white" variant="outlined" class="font-weight-black text-white px-1.5" style="height: 18px; font-size: 0.58rem;">
+          <div class="d-flex align-center flex-shrink-0 ml-1">
+            <span class="text-white font-weight-bold" style="font-size: 0.58rem; opacity: 0.9;">
               ✏️ Modifica
-            </v-chip>
+            </span>
           </div>
         </v-chip>
       </div>
@@ -721,29 +721,7 @@
                   </div>
                   
                   <div class="d-flex align-center gap-1">
-                    <!-- Badge minimale per infortunio (4A - Tap apre Bottom Sheet) -->
-                    <v-chip
-                      v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato && sett === settimanaAttiva"
-                      color="red-darken-3"
-                      variant="flat"
-                      size="x-small"
-                      class="font-weight-black text-white px-1.5 mr-1 cursor-pointer"
-                      style="height: 18px; font-size: 0.55rem;"
-                      @click.stop="apriGestioneFastidioPannello(infortuniAttiviEsercizio[0])"
-                    >
-                      🛡️ Comfort
-                    </v-chip>
-                    <v-chip
-                      v-else-if="getGhostLiftSmart(sett).isGhostInfortunio && ghostSbloccato && sett === settimanaAttiva"
-                      color="green-darken-3"
-                      variant="outlined"
-                      size="x-small"
-                      class="font-weight-bold text-white px-1.5 mr-1 cursor-pointer"
-                      style="height: 18px; font-size: 0.55rem;"
-                      @click.stop="apriGestioneFastidioPannello(infortuniAttiviEsercizio[0])"
-                    >
-                      🟢 100%
-                    </v-chip>
+
 
                     <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="apriAiutoCaricoDettagliato(sett)">
                       {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
@@ -3199,15 +3177,16 @@
             </p>
           </div>
 
-          <!-- Pulsanti Touch-Friendly Generosi per Mobile (4A) -->
-          <div class="d-flex flex-column gap-2.5 mb-2">
+          <!-- Pulsanti Modale Fastidio/Infortunio (Più compatti) -->
+          <div class="d-flex flex-column gap-2 mb-2">
             <v-btn
               v-if="ghostSbloccato"
               block
               color="orange-darken-3"
               variant="flat"
-              class="font-weight-black text-none rounded-xl text-white"
-              height="50"
+              class="font-weight-black text-none rounded-lg text-white"
+              height="36"
+              style="font-size: 0.75rem;"
               @click="ghostSbloccato = false; dialogFastidio = false;"
             >
               🛡️ Applica Riduzione Carico Proposta (-{{ fastidioSelezionato.percentuale_riduzione ?? 20 }}%)
@@ -3217,8 +3196,9 @@
               block
               color="blue-grey-darken-3"
               variant="flat"
-              class="font-weight-black text-none rounded-xl text-white"
-              height="50"
+              class="font-weight-black text-none rounded-lg text-white"
+              height="36"
+              style="font-size: 0.75rem;"
               @click="ghostSbloccato = true; dialogFastidio = false;"
             >
               🔓 Sblocca / Usa Peso Originale (100%)
@@ -3228,8 +3208,9 @@
               block
               color="orange-lighten-2"
               variant="outlined"
-              class="font-weight-black text-none rounded-xl"
-              height="46"
+              class="font-weight-black text-none rounded-lg"
+              height="36"
+              style="font-size: 0.75rem;"
               @click="inviaAFormModificaFastidio"
             >
               ✏️ Modifica Gravità / Note / % Riduzione
@@ -3239,8 +3220,9 @@
               block
               color="green-darken-2"
               variant="flat"
-              class="font-weight-black text-none rounded-xl text-white"
-              height="46"
+              class="font-weight-black text-none rounded-lg text-white"
+              height="36"
+              style="font-size: 0.75rem;"
               @click="risolviInfortunioEChiudi(fastidioSelezionato.id)"
             >
               ✅ Segna come Guarito / Risolto
@@ -3298,7 +3280,7 @@
 
           <div class="d-flex justify-end gap-2">
             <v-btn v-if="fastidioSelezionato && mostraModificaDirettaForm" variant="text" color="slate" class="font-weight-bold text-none rounded-lg" @click="mostraModificaDirettaForm = false">Annulla</v-btn>
-            <v-btn block color="red-darken-3" variant="flat" class="font-weight-black text-none rounded-xl text-white" height="48" @click="salvaFastidioDaDettaglio" :loading="salvandoFastidio">
+            <v-btn block color="red-darken-3" variant="flat" class="font-weight-black text-none rounded-lg text-white" height="38" style="font-size: 0.78rem;" @click="salvaFastidioDaDettaglio" :loading="salvandoFastidio">
               {{ fastidioSelezionato ? 'Salva Modifiche Fastidio' : 'Registra Fastidio / Infortunio' }}
             </v-btn>
           </div>

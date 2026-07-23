@@ -113,45 +113,34 @@
         </div>
       </v-card>
 
-      <!-- Avviso Infortunio Attivo / Comfort Articolare -->
-      <v-card
-        v-if="infortuniAttiviEsercizio.length > 0"
-        class="text-left border d-flex align-start card-glass mt-2"
-        :class="layoutCorrente === 'super_compatto' ? 'py-1.5 px-2.5 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-2 px-3.5 mb-2' : 'py-2.5 px-4 mb-3')"
-        :style="{
-          background: 'rgba(239, 68, 68, 0.12) !important',
-          border: '1.5px solid rgba(239, 68, 68, 0.35) !important',
-          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.15)',
-          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important')
-        }"
-      >
-        <v-icon color="red-lighten-2" class="mr-3 mt-0.5 flex-shrink-0" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-bandage</v-icon>
-        <div class="text-slate-dark w-100" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineSpace: 1.35 }">
-          <div class="d-flex align-center justify-space-between w-100 mb-1.5">
-            <strong class="text-red-lighten-2 text-uppercase font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Comfort Articolare a Rischio</strong>
-            <v-btn
-              variant="flat"
-              color="green-darken-2"
-              size="x-small"
-              class="font-weight-black text-none px-2 py-0 text-white rounded-lg elevation-1 d-inline-flex align-center"
-              style="height: 22px; font-size: 0.62rem;"
-              prepend-icon="mdi-check-circle"
-              @click="segnaComeGuarito(infortuniAttiviEsercizio[0].id)"
-            >
-              Segna Risolto/Guarito
-            </v-btn>
-          </div>
-          <div v-for="inf in infortuniAttiviEsercizio" :key="inf.id" class="mb-1 text-slate-light">
-            Rilevato fastidio/infortunio alla zona <strong class="text-white">{{ inf.articolazione_coinvolta }}</strong> (Gravità: {{ inf.gravita }}/10).
-            <span v-if="inf.note" class="d-block mt-0.5 italic text-orange-lighten-2" style="font-size: 0.9em; opacity: 0.9;">
-              Note: "{{ inf.note }}"
+      <!-- Avviso Infortunio Attivo / Comfort Articolare (Option 2A Sintetica & Premium) -->
+      <div v-if="infortuniAttiviEsercizio.length > 0" class="mt-2 mb-2">
+        <v-chip
+          color="red-darken-3"
+          variant="flat"
+          class="w-100 justify-space-between font-weight-black py-2 px-3 rounded-xl elevation-2 cursor-pointer"
+          style="height: auto; min-height: 38px;"
+          @click="apriGestioneFastidioPannello(infortuniAttiviEsercizio[0])"
+        >
+          <div class="d-flex align-center gap-2 text-truncate">
+            <v-icon size="18" color="white">mdi-bandage</v-icon>
+            <span class="text-caption font-weight-black text-white text-truncate">
+              {{ infortuniAttiviEsercizio[0].articolazione_coinvolta }} ({{ infortuniAttiviEsercizio[0].gravita }}/10)
+              <template v-if="infortuniAttiviEsercizio[0].applica_riduzione !== false && (infortuniAttiviEsercizio[0].percentuale_riduzione ?? 20) > 0">
+                • Suggerito: -{{ infortuniAttiviEsercizio[0].percentuale_riduzione ?? 20 }}%
+              </template>
+              <template v-else>
+                • Monitoraggio (Carico 100%)
+              </template>
             </span>
           </div>
-          <div class="mt-1 font-weight-bold text-orange-lighten-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.68rem' }">
-            🛡️ Il sistema propone un carico consigliato ridotto del 20% per sicurezza.
+          <div class="d-flex align-center gap-1 flex-shrink-0">
+            <v-chip size="x-small" color="white" variant="outlined" class="font-weight-black text-white px-1.5" style="height: 18px; font-size: 0.58rem;">
+              ✏️ Modifica
+            </v-chip>
           </div>
-        </div>
-      </v-card>
+        </v-chip>
+      </div>
     </div>
 
 
@@ -625,19 +614,6 @@
               </v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
             </div>
-            
-            <!-- Bottone Segnala Fastidio / Infortunio -->
-            <v-btn
-              v-if="sett === settimanaAttiva && !isSchedaPassata"
-              variant="text"
-              color="red-lighten-2"
-              size="x-small"
-              class="font-weight-black text-none"
-              style="font-size: 0.65rem;"
-              @click="apriSegnalazioneInfortunio"
-            >
-              🩹 Segnala Fastidio
-            </v-btn>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
@@ -745,27 +721,28 @@
                   </div>
                   
                   <div class="d-flex align-center gap-1">
-                    <!-- Tasto sblocca progressione per infortunio -->
-                    <v-btn
+                    <!-- Badge minimale per infortunio (4A - Tap apre Bottom Sheet) -->
+                    <v-chip
                       v-if="getGhostLiftSmart(sett).isGhostInfortunio && !ghostSbloccato && sett === settimanaAttiva"
-                      variant="flat"
                       color="red-darken-3"
+                      variant="flat"
                       size="x-small"
-                      class="font-weight-black text-none mr-1 px-1.5 py-0"
-                      style="height: 18px; font-size: 0.58rem; border-radius: 4px;"
-                      @click.stop="ghostSbloccato = true"
+                      class="font-weight-black text-white px-1.5 mr-1 cursor-pointer"
+                      style="height: 18px; font-size: 0.55rem;"
+                      @click.stop="apriGestioneFastidioPannello(infortuniAttiviEsercizio[0])"
                     >
-                      Sblocca
-                    </v-btn>
+                      🛡️ Comfort
+                    </v-chip>
                     <v-chip
                       v-else-if="getGhostLiftSmart(sett).isGhostInfortunio && ghostSbloccato && sett === settimanaAttiva"
-                      color="green-accent-4"
-                      variant="flat"
+                      color="green-darken-3"
+                      variant="outlined"
                       size="x-small"
-                      style="height: 16px; font-size: 0.55rem;"
-                      class="font-weight-black text-white px-1.5 mr-1"
+                      class="font-weight-bold text-white px-1.5 mr-1 cursor-pointer"
+                      style="height: 18px; font-size: 0.55rem;"
+                      @click.stop="apriGestioneFastidioPannello(infortuniAttiviEsercizio[0])"
                     >
-                      Sbloccato
+                      🟢 100%
                     </v-chip>
 
                     <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="apriAiutoCaricoDettagliato(sett)">
@@ -3196,6 +3173,138 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog Bottom Sheet Gestione Fastidio/Infortunio (Premium & Touch Friendly - 1A, 2A, 3A, 3C, 4A) -->
+    <v-dialog v-model="dialogFastidio" max-width="500" transition="dialog-bottom-transition">
+      <v-card class="card-glass border border-soft rounded-t-xl rounded-b-xl pa-4 text-left">
+        <div class="d-flex align-center justify-space-between mb-3 border-bottom-soft pb-2">
+          <span class="font-weight-black text-subtitle-1 text-slate-dark d-flex align-center gap-2">
+            <v-icon color="red-lighten-2">mdi-bandage</v-icon>
+            {{ (fastidioSelezionato && !mostraModificaDirettaForm) ? 'Gestisci Fastidio / Infortunio' : (fastidioSelezionato ? 'Modifica Fastidio' : 'Segnala Fastidio') }}
+          </span>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="dialogFastidio = false"></v-btn>
+        </div>
+
+        <!-- Vista 1: Gestione Infortunio Esistente -->
+        <div v-if="fastidioSelezionato && !mostraModificaDirettaForm" class="mb-2">
+          <div class="pa-3 rounded-xl border border-soft mb-4" style="background: rgba(239, 68, 68, 0.08);">
+            <div class="d-flex align-center justify-space-between mb-1">
+              <strong class="text-subtitle-1 font-weight-black text-slate-dark">{{ fastidioSelezionato.articolazione_coinvolta }}</strong>
+              <v-chip size="x-small" color="red-darken-2" class="font-weight-black text-white" variant="flat">
+                Dolore: {{ fastidioSelezionato.gravita }}/10
+              </v-chip>
+            </div>
+            <p v-if="fastidioSelezionato.note" class="text-caption text-slate italic mb-0">
+              "{{ fastidioSelezionato.note }}"
+            </p>
+          </div>
+
+          <!-- Pulsanti Touch-Friendly Generosi per Mobile (4A) -->
+          <div class="d-flex flex-column gap-2.5 mb-2">
+            <v-btn
+              v-if="ghostSbloccato"
+              block
+              color="orange-darken-3"
+              variant="flat"
+              class="font-weight-black text-none rounded-xl text-white"
+              height="50"
+              @click="ghostSbloccato = false; dialogFastidio = false;"
+            >
+              🛡️ Applica Riduzione Carico Proposta (-{{ fastidioSelezionato.percentuale_riduzione ?? 20 }}%)
+            </v-btn>
+            <v-btn
+              v-else
+              block
+              color="blue-grey-darken-3"
+              variant="flat"
+              class="font-weight-black text-none rounded-xl text-white"
+              height="50"
+              @click="ghostSbloccato = true; dialogFastidio = false;"
+            >
+              🔓 Sblocca / Usa Peso Originale (100%)
+            </v-btn>
+
+            <v-btn
+              block
+              color="orange-lighten-2"
+              variant="outlined"
+              class="font-weight-black text-none rounded-xl"
+              height="46"
+              @click="inviaAFormModificaFastidio"
+            >
+              ✏️ Modifica Gravità / Note / % Riduzione
+            </v-btn>
+
+            <v-btn
+              block
+              color="green-darken-2"
+              variant="flat"
+              class="font-weight-black text-none rounded-xl text-white"
+              height="46"
+              @click="risolviInfortunioEChiudi(fastidioSelezionato.id)"
+            >
+              ✅ Segna come Guarito / Risolto
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- Vista 2: Form Inserimento / Modifica Fastidio (1A, 3A, 3C) -->
+        <div v-else class="mb-2">
+          <!-- Zona -->
+          <div class="mb-3">
+            <span class="text-caption font-weight-black d-block mb-1 text-slate-dark">Zona Interessata *</span>
+            <v-chip-group v-model="formFastidioArticolazione" column mandatory color="red-lighten-2" selected-class="font-weight-black text-white bg-red-darken-3">
+              <v-chip v-for="art in listaArticolazioniLocal" :key="art" :value="art" size="small" variant="outlined" class="rounded-lg">{{ art }}</v-chip>
+            </v-chip-group>
+          </div>
+
+          <!-- Gravità (1-10) -->
+          <div class="mb-3">
+            <div class="d-flex justify-space-between align-center mb-1">
+              <span class="text-caption font-weight-black text-slate-dark">Intensità Fastidio (1-10) *</span>
+              <v-chip :color="formFastidioGravita <= 3 ? 'green' : (formFastidioGravita <= 7 ? 'amber-darken-2' : 'red-darken-2')" size="x-small" class="font-weight-black text-white" variant="flat">
+                {{ formFastidioGravita }}/10 - {{ formFastidioGravita <= 2 ? 'Lievissimo' : (formFastidioGravita <= 4 ? 'Lieve' : (formFastidioGravita <= 7 ? 'Moderato' : 'Acuto / Stop')) }}
+              </v-chip>
+            </div>
+            <v-chip-group v-model="formFastidioGravita" column mandatory color="red-lighten-2" selected-class="font-weight-black text-white bg-red-darken-3" @update:model-value="onFormFastidioGravitaChange">
+              <v-chip v-for="num in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="num" :value="num" size="small" variant="outlined" class="rounded-lg px-2" style="min-width: 32px; justify-content: center;">{{ num }}</v-chip>
+            </v-chip-group>
+          </div>
+
+          <!-- Riduzione Custom (3C) -->
+          <div class="mb-3 pa-3 rounded-lg border border-soft" style="background: rgba(255, 255, 255, 0.03);">
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-caption font-weight-black text-slate-dark d-flex align-center gap-1">🛡️ Applica Riduzione Carico</span>
+              <v-switch v-model="formFastidioApplica" color="orange-darken-2" density="compact" hide-details inset></v-switch>
+            </div>
+            <div v-if="formFastidioApplica" class="mt-2">
+              <span class="text-super-caption text-muted font-weight-bold d-block mb-1">Percentuale di riduzione:</span>
+              <v-chip-group v-model="formFastidioPct" column mandatory selected-class="font-weight-black text-white bg-orange-darken-3">
+                <v-chip v-for="pct in [0, 10, 15, 20, 25, 30, 40]" :key="pct" :value="pct" size="small" variant="outlined" class="rounded-lg">
+                  {{ pct === 0 ? '0% (Solo avviso)' : '-' + pct + '%' }}
+                </v-chip>
+              </v-chip-group>
+            </div>
+            <div v-else class="text-super-caption text-muted italic mt-1">
+              * Verrà registrato solo come avviso/monitoraggio senza tagliare i pesi consigliati.
+            </div>
+          </div>
+
+          <!-- Note -->
+          <div class="mb-4">
+            <span class="text-caption font-weight-black d-block mb-1 text-slate-dark">Note / Descrizione dell'accaduto</span>
+            <v-textarea v-model="formFastidioNote" placeholder="Es. avvertito leggero fastidio alla spalla durante le ultime rep..." variant="outlined" density="comfortable" rows="2" rounded="lg" hide-details color="red-lighten-2"></v-textarea>
+          </div>
+
+          <div class="d-flex justify-end gap-2">
+            <v-btn v-if="fastidioSelezionato && mostraModificaDirettaForm" variant="text" color="slate" class="font-weight-bold text-none rounded-lg" @click="mostraModificaDirettaForm = false">Annulla</v-btn>
+            <v-btn block color="red-darken-3" variant="flat" class="font-weight-black text-none rounded-xl text-white" height="48" @click="salvaFastidioDaDettaglio" :loading="salvandoFastidio">
+              {{ fastidioSelezionato ? 'Salva Modifiche Fastidio' : 'Registra Fastidio / Infortunio' }}
+            </v-btn>
+          </div>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -3204,7 +3313,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, risolviInfortunio, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -4000,23 +4109,33 @@ const getGhostLiftSmart = (sett) => {
 
   // Se c'è un infortunio attivo per l'esercizio e non è stato sbloccato manualmente
   if (infortuniAttiviEsercizio.value && infortuniAttiviEsercizio.value.length > 0 && !ghostSbloccato.value) {
-    const applicaRiduzioneInfortunio = (wVal) => {
-      if (wVal === null || wVal === undefined || wVal <= 0) return wVal;
-      const isManubri = isManubriEsercizio(workout.value);
-      const step = getWeightStep(isManubri, wVal);
-      const reduced = wVal * 0.8; // -20%
-      return Math.max(step, Math.round(reduced / step) * step);
-    };
-
+    const inf = infortuniAttiviEsercizio.value[0];
+    const applica = inf.applica_riduzione !== false;
+    const pct = inf.percentuale_riduzione !== undefined ? inf.percentuale_riduzione : calcolaPercentualeConsigliata(inf.gravita || 3);
+    
     smartGhost.isGhostInfortunio = true;
-    if (smartGhost.peso > 0) {
-      smartGhost.peso = applicaRiduzioneInfortunio(smartGhost.peso);
-    }
-    if (smartGhost.pesoProposto > 0) {
-      smartGhost.pesoProposto = applicaRiduzioneInfortunio(smartGhost.pesoProposto);
-    }
-    if (smartGhost.suggerito > 0) {
-      smartGhost.suggerito = applicaRiduzioneInfortunio(smartGhost.suggerito);
+    smartGhost.percentualeInfortunio = pct;
+    smartGhost.applicaRiduzioneInfortunio = applica;
+
+    if (applica && pct > 0) {
+      const applicaRiduzioneInfortunio = (wVal) => {
+        if (wVal === null || wVal === undefined || wVal <= 0) return wVal;
+        const isManubri = isManubriEsercizio(workout.value);
+        const step = getWeightStep(isManubri, wVal);
+        const factor = (100 - pct) / 100;
+        const reduced = wVal * factor;
+        return Math.max(step, Math.round(reduced / step) * step);
+      };
+
+      if (smartGhost.peso > 0) {
+        smartGhost.peso = applicaRiduzioneInfortunio(smartGhost.peso);
+      }
+      if (smartGhost.pesoProposto > 0) {
+        smartGhost.pesoProposto = applicaRiduzioneInfortunio(smartGhost.pesoProposto);
+      }
+      if (smartGhost.suggerito > 0) {
+        smartGhost.suggerito = applicaRiduzioneInfortunio(smartGhost.suggerito);
+      }
     }
   }
   
@@ -4281,7 +4400,8 @@ const getGhostRenderInfo = (sett) => {
   } else if (ghost.isGhostInfortunio && !ghostSbloccato.value) {
     icon = 'mdi-bandage';
     color = '#ef4444'; // red-lighten-2
-    label = 'Proposta Comfort (-20%):';
+    const pct = ghost.percentualeInfortunio ?? 20;
+    label = (ghost.applicaRiduzioneInfortunio !== false && pct > 0) ? `Proposta Comfort (-${pct}%):` : 'Monitoraggio Fastidio:';
     valueText = `${formatWeight(ghost.peso || ghost.suggerito || ghost.pesoProposto)} kg`;
   } else if (ghost.isScarico) {
     icon = 'mdi-battery-charging-40';
@@ -5109,37 +5229,105 @@ const infortuniAttiviEsercizio = computed(() => {
   });
 });
 
-const apriSegnalazioneInfortunio = () => {
-  vibraTattile(10);
-  infortunioArticolazione.value = ottieniArticolazioneSuggerita();
-  infortunioGravita.value = 3;
-  infortunioNote.value = '';
-  dialogInfortunio.value = true;
-};
 
-const confermaSegnalazioneInfortunio = async () => {
-  if (!workout.value) return;
-  salvataggioInfortunio.value = true;
-  try {
-    await segnalaInfortunio({
-      articolazione_coinvolta: infortunioArticolazione.value,
-      gravita: infortunioGravita.value,
-      note: infortunioNote.value,
-      esercizi_originari: [workout.value.des_esercizio]
-    });
-    dialogInfortunio.value = false;
-    ghostSbloccato.value = false;
-  } catch (err) {
-    console.error("Errore salvataggio infortunio:", err);
-  } finally {
-    salvataggioInfortunio.value = false;
-  }
-};
 
 const segnaComeGuarito = async (idInfortunio) => {
   vibraTattile(10);
   try {
     await risolviInfortunio(idInfortunio);
+  } catch (err) {
+    console.error("Errore risoluzione infortunio:", err);
+  }
+};
+
+// Gestione Dialog Bottom Sheet Fastidio / Infortunio (Option 1A, 2A, 3A, 3C, 4A)
+const dialogFastidio = ref(false);
+const fastidioSelezionato = ref(null);
+const formFastidioArticolazione = ref('Spalla');
+const formFastidioGravita = ref(3);
+const formFastidioPct = ref(10);
+const formFastidioApplica = ref(true);
+const formFastidioNote = ref('');
+const salvandoFastidio = ref(false);
+const mostraModificaDirettaForm = ref(false);
+
+const listaArticolazioniLocal = [
+  'Spalla',
+  'Gomito',
+  'Polso',
+  'Cervicale / Collo',
+  'Lombare / Schiena',
+  'Anche / Bacino',
+  'Ginocchio',
+  'Caviglia',
+  'Altro'
+];
+
+const apriGestioneFastidioPannello = (inf = null) => {
+  vibraTattile(10);
+  if (inf) {
+    fastidioSelezionato.value = inf;
+    formFastidioArticolazione.value = inf.articolazione_coinvolta || 'Spalla';
+    formFastidioGravita.value = inf.gravita || 3;
+    formFastidioPct.value = inf.percentuale_riduzione !== undefined ? inf.percentuale_riduzione : calcolaPercentualeConsigliata(inf.gravita || 3);
+    formFastidioApplica.value = inf.applica_riduzione !== undefined ? inf.applica_riduzione : true;
+    formFastidioNote.value = inf.note || '';
+    mostraModificaDirettaForm.value = false;
+  } else {
+    fastidioSelezionato.value = null;
+    formFastidioArticolazione.value = typeof ottieniArticolazioneSuggerita === 'function' ? ottieniArticolazioneSuggerita() : 'Spalla';
+    formFastidioGravita.value = 3;
+    formFastidioPct.value = calcolaPercentualeConsigliata(3);
+    formFastidioApplica.value = true;
+    formFastidioNote.value = '';
+    mostraModificaDirettaForm.value = true;
+  }
+  dialogFastidio.value = true;
+};
+
+const apriSegnalazioneInfortunio = () => {
+  apriGestioneFastidioPannello(null);
+};
+
+const onFormFastidioGravitaChange = (val) => {
+  formFastidioPct.value = calcolaPercentualeConsigliata(val);
+};
+
+const inviaAFormModificaFastidio = () => {
+  mostraModificaDirettaForm.value = true;
+};
+
+const salvaFastidioDaDettaglio = async () => {
+  salvandoFastidio.value = true;
+  vibraTattile(15);
+  try {
+    const payload = {
+      articolazione_coinvolta: formFastidioArticolazione.value,
+      gravita: formFastidioGravita.value,
+      percentuale_riduzione: formFastidioPct.value,
+      applica_riduzione: formFastidioApplica.value,
+      note: formFastidioNote.value,
+      esercizi_originari: workout.value?.des_esercizio ? [workout.value.des_esercizio] : []
+    };
+    if (fastidioSelezionato.value && fastidioSelezionato.value.id) {
+      await aggiornaInfortunio(fastidioSelezionato.value.id, payload);
+    } else {
+      await segnalaInfortunio(payload);
+    }
+    dialogFastidio.value = false;
+    ghostSbloccato.value = false;
+  } catch (err) {
+    console.error("Errore salvataggio fastidio:", err);
+  } finally {
+    salvandoFastidio.value = false;
+  }
+};
+
+const risolviInfortunioEChiudi = async (id) => {
+  vibraTattile(15);
+  try {
+    await risolviInfortunio(id);
+    dialogFastidio.value = false;
   } catch (err) {
     console.error("Errore risoluzione infortunio:", err);
   }

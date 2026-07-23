@@ -633,20 +633,45 @@ export const syncInfortuniListener = () => {
   });
 };
 
+export const calcolaPercentualeConsigliata = (gravita) => {
+  const g = parseInt(gravita) || 1;
+  if (g <= 2) return 0;
+  if (g <= 4) return 10;
+  if (g <= 6) return 20;
+  if (g <= 8) return 30;
+  return 40;
+};
+
 export const segnalaInfortunio = async (infortunioData) => {
   try {
     const newDocRef = doc(collection(db, 'infortuni'));
+    const defaultPct = calcolaPercentualeConsigliata(infortunioData.gravita || 3);
     const payload = {
       id_cliente: selectedAthlete.value,
       data_inizio: new Date().toISOString(),
       data_risoluzione: null,
       stato: 'attivo',
+      percentuale_riduzione: infortunioData.percentuale_riduzione !== undefined ? infortunioData.percentuale_riduzione : defaultPct,
+      applica_riduzione: infortunioData.applica_riduzione !== undefined ? infortunioData.applica_riduzione : true,
       ...infortunioData
     };
     await setDoc(newDocRef, payload);
     return { success: true, id: newDocRef.id };
   } catch (error) {
     console.error("Errore nel salvataggio dell'infortunio:", error);
+    throw error;
+  }
+};
+
+export const aggiornaInfortunio = async (idInfortunio, infortunioData) => {
+  try {
+    const docRef = doc(db, 'infortuni', idInfortunio);
+    await setDoc(docRef, {
+      ...infortunioData
+    }, { merge: true });
+    return { success: true };
+  } catch (error) {
+    console.error("Errore nell'aggiornamento dell'infortunio:", error);
     throw error;
   }
 };

@@ -37,17 +37,15 @@
         class="font-weight-black text-none rounded-xl text-white mb-4"
         style="height: 48px;"
         prepend-icon="mdi-plus-circle-outline"
-        @click="apriFormNuovo"
-      >
-        Segnala Nuovo Infortunio / Fastidio
       </v-btn>
 
-      <!-- Form per Inserimento Nuovo Infortunio (Espandibile) -->
+      <!-- Form per Inserimento/Modifica Infortunio (Espandibile) -->
       <v-expand-transition>
         <v-card v-if="mostraFormNuovo" class="card-glass border border-soft rounded-xl mb-4 text-left pa-4">
           <div class="d-flex align-center justify-space-between mb-3 border-bottom-soft pb-2">
             <span class="font-weight-black text-subtitle-1 text-slate-dark d-flex align-center gap-2">
-              <v-icon color="red-lighten-2">mdi-bandage</v-icon> Registra Fastidio / Infortunio
+              <v-icon color="red-lighten-2">mdi-bandage</v-icon>
+              {{ infortunioInModificaId ? 'Modifica Fastidio / Infortunio' : 'Registra Fastidio / Infortunio' }}
             </span>
             <v-btn icon="mdi-close" variant="text" size="small" @click="mostraFormNuovo = false"></v-btn>
           </div>
@@ -85,7 +83,7 @@
                 class="font-weight-black text-white"
                 variant="flat"
               >
-                {{ nuovoGravita }}/10 - {{ nuovoGravita <= 3 ? 'Lieve' : (nuovoGravita <= 7 ? 'Moderato' : 'Acuto / Stop') }}
+                {{ nuovoGravita }}/10 - {{ nuovoGravita <= 2 ? 'Lievissimo' : (nuovoGravita <= 4 ? 'Fastidio Lieve' : (nuovoGravita <= 7 ? 'Moderato' : 'Acuto / Stop')) }}
               </v-chip>
             </div>
             <v-chip-group
@@ -94,6 +92,7 @@
               mandatory
               color="red-lighten-2"
               selected-class="font-weight-black text-white bg-red-darken-3"
+              @update:model-value="onGravitaChange"
             >
               <v-chip
                 v-for="num in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
@@ -109,15 +108,57 @@
             </v-chip-group>
           </div>
 
+          <!-- Riduzione Carico Custom (3A + 3C) -->
+          <div class="mb-3 pa-3 rounded-lg border border-soft" style="background: rgba(255, 255, 255, 0.03);">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <span class="text-caption font-weight-black text-slate-dark d-flex align-center gap-1">
+                🛡️ Applica Riduzione Carico
+              </span>
+              <v-switch
+                v-model="nuovoApplicaRiduzione"
+                color="orange-darken-2"
+                density="compact"
+                hide-details
+                inset
+              ></v-switch>
+            </div>
+
+            <div v-if="nuovoApplicaRiduzione" class="mt-2">
+              <span class="text-super-caption text-muted font-weight-bold d-block mb-1">
+                Percentuale di riduzione consigliata:
+              </span>
+              <v-chip-group
+                v-model="nuovoPercentuale"
+                column
+                mandatory
+                selected-class="font-weight-black text-white bg-orange-darken-3"
+              >
+                <v-chip
+                  v-for="pct in [0, 10, 15, 20, 25, 30, 40]"
+                  :key="pct"
+                  :value="pct"
+                  size="small"
+                  variant="outlined"
+                  class="rounded-lg"
+                >
+                  {{ pct === 0 ? '0% (Solo avviso)' : '-' + pct + '%' }}
+                </v-chip>
+              </v-chip-group>
+            </div>
+            <div v-else class="text-super-caption text-muted italic mt-1">
+              * La segnalazione verrà registrata per monitoraggio, ma non taglierà il peso nei suggerimenti.
+            </div>
+          </div>
+
           <!-- Note/Dettagli dell'infortunio -->
           <div class="mb-4">
             <span class="text-caption font-weight-black d-block mb-1 text-slate-dark">Note / Descrizione dell'accaduto</span>
             <v-textarea
               v-model="nuovoNote"
-              placeholder="Indica quando è successo e cosa hai sentito (es. dolore spalla dx durante la panca, avvertita fitta...)"
+              placeholder="Indica quando è successo e cosa hai sentito (es. fastidio spalla dx durante panca...)"
               variant="outlined"
               density="comfortable"
-              rows="3"
+              rows="2"
               rounded="lg"
               hide-details
               color="red-lighten-2"
@@ -144,10 +185,10 @@
               variant="flat"
               color="red-darken-3"
               class="font-weight-black text-none rounded-lg px-4 text-white"
-              @click="salvaNuovoInfortunio"
+              @click="salvaInfortunio"
               :loading="salvando"
             >
-              Registra Infortunio
+              {{ infortunioInModificaId ? 'Aggiorna Infortunio' : 'Registra Infortunio' }}
             </v-btn>
           </div>
         </v-card>
@@ -171,17 +212,35 @@
           >
             <v-icon color="red-lighten-2" class="mr-3 mt-0.5">mdi-bandage</v-icon>
             <div class="flex-grow-1">
-              <div class="d-flex align-center justify-space-between flex-wrap">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-1">
                 <span class="font-weight-black text-slate-dark text-subtitle-2">
                   {{ inf.articolazione_coinvolta }}
                 </span>
-                <v-chip
-                  :color="inf.gravita <= 3 ? 'green' : (inf.gravita <= 7 ? 'amber-darken-2' : 'red-darken-2')"
-                  size="x-small"
-                  class="font-weight-black text-white"
-                >
-                  Dolore: {{ inf.gravita }}/10
-                </v-chip>
+                <div class="d-flex align-center gap-1">
+                  <v-chip
+                    :color="inf.gravita <= 3 ? 'green' : (inf.gravita <= 7 ? 'amber-darken-2' : 'red-darken-2')"
+                    size="x-small"
+                    class="font-weight-black text-white"
+                  >
+                    Dolore: {{ inf.gravita }}/10
+                  </v-chip>
+                  <v-chip
+                    v-if="inf.applica_riduzione !== false && (inf.percentuale_riduzione ?? 20) > 0"
+                    color="orange-darken-3"
+                    size="x-small"
+                    class="font-weight-black text-white"
+                  >
+                    -{{ inf.percentuale_riduzione ?? 20 }}% Carico
+                  </v-chip>
+                  <v-chip
+                    v-else
+                    color="grey-darken-1"
+                    size="x-small"
+                    class="font-weight-bold text-white"
+                  >
+                    Solo Monitoraggio
+                  </v-chip>
+                </div>
               </div>
               <span class="text-super-caption text-muted d-block mt-0.5">
                 Segnalato il: {{ formattaData(inf.data_inizio) }}
@@ -196,7 +255,17 @@
               </div>
               
               <!-- Azioni -->
-              <div class="d-flex justify-end mt-2 pt-2 border-top-soft">
+              <div class="d-flex justify-end align-center mt-2 pt-2 border-top-soft gap-2">
+                <v-btn
+                  variant="outlined"
+                  color="orange-lighten-2"
+                  size="x-small"
+                  class="font-weight-bold text-none rounded-lg"
+                  prepend-icon="mdi-pencil"
+                  @click="apriFormModifica(inf)"
+                >
+                  Modifica
+                </v-btn>
                 <v-btn
                   variant="flat"
                   color="green-accent-4"
@@ -205,7 +274,7 @@
                   prepend-icon="mdi-check-circle"
                   @click="risolviInfortunioClick(inf.id)"
                 >
-                  Segna come Guarito / Risolto
+                  Guarito / Risolto
                 </v-btn>
               </div>
             </div>
@@ -258,13 +327,16 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { selectedAthlete, ruolo, getNomeAtleta, globalInfortuni, segnalaInfortunio, risolviInfortunio, syncInfortuniListener } from '../authStore.js';
+import { selectedAthlete, ruolo, getNomeAtleta, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, calcolaPercentualeConsigliata, syncInfortuniListener } from '../authStore.js';
 
 const mostraFormNuovo = ref(false);
+const infortunioInModificaId = ref(null);
 const salvando = ref(false);
 
 const nuovoArticolazione = ref('Spalla');
 const nuovoGravita = ref(3);
+const nuovoPercentuale = ref(10);
+const nuovoApplicaRiduzione = ref(true);
 const nuovoNote = ref('');
 const nuovoEsercizio = ref('');
 
@@ -296,29 +368,55 @@ const vibraTattile = (ms = 12) => {
   }
 };
 
+const onGravitaChange = (val) => {
+  nuovoPercentuale.value = calcolaPercentualeConsigliata(val);
+};
+
 const apriFormNuovo = () => {
   vibraTattile(10);
+  infortunioInModificaId.value = null;
   nuovoArticolazione.value = 'Spalla';
   nuovoGravita.value = 3;
+  nuovoPercentuale.value = calcolaPercentualeConsigliata(3);
+  nuovoApplicaRiduzione.value = true;
   nuovoNote.value = '';
   nuovoEsercizio.value = '';
   mostraFormNuovo.value = true;
 };
 
-const salvaNuovoInfortunio = async () => {
+const apriFormModifica = (inf) => {
+  vibraTattile(10);
+  infortunioInModificaId.value = inf.id;
+  nuovoArticolazione.value = inf.articolazione_coinvolta || 'Spalla';
+  nuovoGravita.value = inf.gravita || 3;
+  nuovoPercentuale.value = inf.percentuale_riduzione !== undefined ? inf.percentuale_riduzione : calcolaPercentualeConsigliata(inf.gravita || 3);
+  nuovoApplicaRiduzione.value = inf.applica_riduzione !== undefined ? inf.applica_riduzione : true;
+  nuovoNote.value = inf.note || '';
+  nuovoEsercizio.value = (inf.esercizi_originari && inf.esercizi_originari[0]) || '';
+  mostraFormNuovo.value = true;
+};
+
+const salvaInfortunio = async () => {
   salvando.value = true;
   vibraTattile(15);
   try {
     const payload = {
       articolazione_coinvolta: nuovoArticolazione.value,
       gravita: nuovoGravita.value,
+      percentuale_riduzione: nuovoPercentuale.value,
+      applica_riduzione: nuovoApplicaRiduzione.value,
       note: nuovoNote.value,
       esercizi_originari: nuovoEsercizio.value.trim() ? [nuovoEsercizio.value.trim()] : []
     };
-    await segnalaInfortunio(payload);
+    if (infortunioInModificaId.value) {
+      await aggiornaInfortunio(infortunioInModificaId.value, payload);
+    } else {
+      await segnalaInfortunio(payload);
+    }
     mostraFormNuovo.value = false;
+    infortunioInModificaId.value = null;
   } catch (err) {
-    console.error("Errore salvataggio nuovo infortunio:", err);
+    console.error("Errore salvataggio infortunio:", err);
   } finally {
     salvando.value = false;
   }

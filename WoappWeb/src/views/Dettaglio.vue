@@ -2336,8 +2336,8 @@
                       <v-card 
                         class="pa-2 rounded-xl text-center border bg-slate-900 d-flex flex-column justify-space-between fill-height"
                         :style="{
-                          borderColor: strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.35) !important' : 'rgba(255,255,255,0.08) !important',
-                          background: strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.04) !important' : 'rgba(255,255,255,0.01) !important'
+                          borderColor: strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.35) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.35) !important' : 'rgba(255,255,255,0.08) !important'),
+                          background: strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.04) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.04) !important' : 'rgba(255,255,255,0.01) !important')
                         }"
                         elevation="0"
                         style="min-height: 100px;"
@@ -2367,6 +2367,16 @@
                       </v-card>
                     </v-col>
                   </v-row>
+
+                  <!-- Nota esplicativa sulla Sfida / Sfidante -->
+                  <div class="mt-1.5 px-2 py-1.5 rounded-lg bg-slate-900 border text-super-caption text-slate-light" style="font-size: 0.56rem; border-color: rgba(255,255,255,0.06) !important; line-height: 1.3;">
+                    <span v-if="getRiferimentoSfidaRecord(aiutoWeek)" class="text-amber-lighten-2 font-weight-medium d-flex align-center gap-1">
+                      🏆 <strong>Sfida Record:</strong> Carico target ({{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(aiutoWeek).peso)) }} kg) calcolato per eguagliare o superare il tuo Record Storico su {{ getRepsPerWeek(aiutoWeek) }} reps ({{ getRiferimentoSfidaRecord(aiutoWeek).isStima ? 'stima 1RM' : 'record reale' }}).
+                    </span>
+                    <span v-else class="text-orange-lighten-2 font-weight-medium d-flex align-center gap-1">
+                      🔥 <strong>Sfidante:</strong> Carico ambizioso orientato alla massima prestazione per provare a stabilire un nuovo primato personale (PR).
+                    </span>
+                  </div>
                 </div>
 
                 <!-- 3. DATI DI CALCOLO E DETTAGLI SCIENTIFICI -->

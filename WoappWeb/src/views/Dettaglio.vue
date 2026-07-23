@@ -928,6 +928,90 @@
             </v-textarea>
           </div>
 
+          <!-- BANNER SMART STAGNATION GUARD & CHIP RAPIDI (Soluzione 1) -->
+          <div 
+            v-if="isStagnazioneSettimana(sett)" 
+            class="my-2 pa-2.5 rounded-xl border text-left animate-fade-in"
+            style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%) !important; border: 1.5px solid rgba(168, 85, 247, 0.35) !important;"
+          >
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <div class="d-flex align-center gap-1.5">
+                <v-icon size="16" color="purple-lighten-2">mdi-alert-decagram</v-icon>
+                <span class="font-weight-black text-purple-lighten-2 text-super-caption uppercase" style="letter-spacing: 0.04em; font-size: 0.60rem;">
+                  Progressione Non Rilevata su kg/reps
+                </span>
+              </div>
+              <v-chip color="purple-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.5rem; height: 16px;">
+                EDUCATIVO
+              </v-chip>
+            </div>
+            <p class="text-super-caption text-slate-light mb-2" style="font-size: 0.65rem; line-height: 1.35; color: #cbd5e1 !important;">
+              Stesso peso di W{{ sett - 1 }} senza ripetizioni in più. Hai migliorato uno di questi parametri qualitativi oggi?
+            </p>
+            <div class="d-flex flex-wrap gap-1">
+              <v-chip
+                v-for="chip in chipProgressioneQualitativa"
+                :key="chip.id"
+                size="x-small"
+                variant="tonal"
+                color="purple-lighten-3"
+                class="font-weight-bold cursor-pointer"
+                style="font-size: 0.58rem; height: 22px;"
+                @click="applicaDriverProgressione(sett, chip.label)"
+              >
+                {{ chip.icon }} {{ chip.label }}
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- BADGE PROGRESSIONE QUALITATIVA ACCREDITATA -->
+          <div 
+            v-else-if="haDriverQualitativoAccreditato(sett) && (inputSettimane[sett]?.ins)" 
+            class="my-1.5 px-2.5 py-1 rounded-lg border d-flex align-center gap-1.5 bg-slate-900 text-left"
+            style="border-color: rgba(168, 85, 247, 0.3) !important;"
+          >
+            <span style="font-size: 0.75rem;">🌟</span>
+            <span class="text-super-caption text-purple-lighten-3 font-weight-black" style="font-size: 0.62rem;">
+              Progressione Qualitativa Registrata!
+            </span>
+          </div>
+
+          <!-- RESOCONTO AUDIT STALLO WEEK 6 - SGRIDATA BONARIA DEL COACH (Soluzione 3) -->
+          <v-card
+            v-if="sett === 6 && auditStalloW6.hasStall"
+            class="mt-3 mb-2 pa-3 rounded-xl border text-left animate-fade-in"
+            style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%) !important; border: 1.5px solid rgba(245, 158, 11, 0.4) !important;"
+            elevation="0"
+          >
+            <div class="d-flex align-center gap-2 mb-2">
+              <span style="font-size: 1.4rem; line-height: 1;">🛋️</span>
+              <div>
+                <div class="text-amber-lighten-1 font-weight-black text-caption uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">
+                  SGRIDATA DEL COACH: ZONA DI COMFORT RILEVATA!
+                </div>
+                <div class="text-super-caption text-slate-light" style="font-size: 0.58rem;">
+                  Analisi Mesociclo Completa su {{ workout?.des_esercizio }}
+                </div>
+              </div>
+            </div>
+            <p class="text-super-caption text-white mb-2" style="font-size: 0.68rem; line-height: 1.4;">
+              Hai usato <strong>{{ auditStalloW6.peso }} kg</strong> per diverse settimane senza registrare variazioni di peso, reps, tempo sotto tensione o sensazioni.
+            </p>
+            <div class="pa-2 rounded-lg mb-2.5 bg-slate-950 border border-soft text-super-caption text-amber-lighten-2" style="font-size: 0.62rem; line-height: 1.35; border-color: rgba(245, 158, 11, 0.2) !important;">
+              💡 <em>"Mantenere lo stesso peso senza spingere su altri parametri rende l'esercizio una routine di mantenimento, non di crescita!"</em>
+            </div>
+            <v-btn
+              block
+              color="amber-darken-3"
+              size="small"
+              class="font-weight-black text-none rounded-lg text-white"
+              style="font-size: 0.70rem;"
+              @click="apriAiutoCaricoDettagliato(6)"
+            >
+              🚀 Scopri la Proposta di Sblocco per la Prossima Scheda
+            </v-btn>
+          </v-card>
+
           <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
           <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(workout) || isOndaProgression(workout))" :class="[layoutCorrente === 'super_compatto' ? 'mt-2 pt-2' : 'mt-4 pt-4', 'border-top-soft']">
             <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
@@ -3426,6 +3510,105 @@ const sfidaRecordWeek1 = ref(false);
 const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
 const regolaProgressioneW2 = regolaProgressioneW2Global;
 
+// --- LOGICA ANTI-STALLO & PROGRESSIONE MULTIDIMENSIONALE (SOLUZIONI 1, 3, 4) ---
+const chipProgressioneQualitativa = [
+  { id: 'tut', icon: '⏱️', label: 'Eccentrica più lenta' },
+  { id: 'rom', icon: '🧘', label: 'Maggiore ROM / Controllo' },
+  { id: 'rir', icon: '📉', label: 'Sforzo Percepito Minore (RIR+1)' },
+  { id: 'pausa', icon: '⏱️', label: 'Pausa nel punto critico' },
+  { id: 'densita', icon: '⚡', label: 'Recupero Ridotto' },
+  { id: 'mantenimento', icon: '🟢', label: 'Nessuno / Mantenimento' }
+];
+
+const haDriverQualitativoAccreditato = (sett) => {
+  const val = inputSettimane.value[sett]?.ins || '';
+  if (!val) return false;
+  const lower = String(val).toLowerCase();
+  if (lower.includes('mantenimento') || lower.includes('nessuno')) return false;
+  return (
+    lower.includes('eccentrica') ||
+    lower.includes('tut') ||
+    lower.includes('rom') ||
+    lower.includes('controllo') ||
+    lower.includes('rir') ||
+    lower.includes('pausa') ||
+    lower.includes('recupero') ||
+    lower.includes('qualitat') ||
+    lower.includes('fermo') ||
+    val.includes('🌟')
+  );
+};
+
+const isStagnazioneSettimana = (sett) => {
+  if (sett <= 1) return false;
+  const currentIns = inputSettimane.value[sett]?.ins;
+  if (!currentIns || String(currentIns).trim() === '' || String(currentIns).trim() === '-') return false;
+  
+  if (haDriverQualitativoAccreditato(sett)) return false;
+
+  const currentPesoStr = estraiPesoDaInput(currentIns);
+  if (!currentPesoStr) return false;
+  const currentPeso = parseFloat(currentPesoStr);
+  if (isNaN(currentPeso) || currentPeso <= 0) return false;
+
+  const currentReps = estraiRepsDaInput(currentIns) || getRepsPerWeek(sett);
+
+  let prevW = sett - 1;
+  while (prevW >= 1 && (!inputSettimane.value[prevW]?.ins || String(inputSettimane.value[prevW]?.ins).trim() === '' || String(inputSettimane.value[prevW]?.ins).trim() === '-')) {
+    prevW--;
+  }
+  if (prevW < 1) return false;
+
+  const prevIns = inputSettimane.value[prevW]?.ins;
+  const prevPesoStr = estraiPesoDaInput(prevIns);
+  if (!prevPesoStr) return false;
+  const prevPeso = parseFloat(prevPesoStr);
+  if (isNaN(prevPeso) || prevPeso <= 0) return false;
+
+  const prevReps = estraiRepsDaInput(prevIns) || getRepsPerWeek(prevW);
+
+  return currentPeso <= prevPeso && currentReps <= prevReps;
+};
+
+const applicaDriverProgressione = (sett, labelChip) => {
+  vibraTattile(12);
+  const targetInput = inputSettimane.value[sett];
+  if (targetInput) {
+    const currentVal = targetInput.ins ? String(targetInput.ins).trim() : '';
+    if (!currentVal.toLowerCase().includes(labelChip.toLowerCase())) {
+      const isMantenimento = labelChip.toLowerCase().includes('mantenimento');
+      targetInput.ins = currentVal ? `${currentVal} [${labelChip}]` : `[${labelChip}]`;
+      salvaDatoSettimanale(sett, 'ins');
+      if (isMantenimento) {
+        snackbarMessaggio.value = `🟢 Registrato stato di Mantenimento per W${sett}`;
+      } else {
+        snackbarMessaggio.value = `🌟 Progressione Qualitativa accreditata per W${sett}!`;
+      }
+      snackbarSalvataggio.value = true;
+    }
+  }
+};
+
+const auditStalloW6 = computed(() => {
+  if (!workout.value) return { hasStall: false };
+  let countStagnant = 0;
+  let lastPeso = null;
+
+  for (let w = 2; w <= 6; w++) {
+    if (isStagnazioneSettimana(w)) {
+      countStagnant++;
+      const pStr = estraiPesoDaInput(inputSettimane.value[w]?.ins);
+      if (pStr) lastPeso = parseFloat(pStr);
+    }
+  }
+
+  return {
+    hasStall: countStagnant >= 3, // 4+ settimane totali compresa la prima
+    weeksStagnant: countStagnant + 1,
+    peso: lastPeso || 0
+  };
+});
+
 const ottieniRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;
   const currentNumScheda = parseInt(workout.value.num_scheda);
@@ -4475,13 +4658,23 @@ const getGhostRenderInfo = (sett) => {
     }
   } else {
     // Caso standard delle settimane progressive (W2, W3, W4 se non scarico, W5, W6)
-    const range = getGhostWeightsRangeForWeek(sett);
-    if (range && range.consigliato) {
-      valueText = range.consigliato.display;
+    const isStallPrev = sett > 2 && isStagnazioneSettimana(sett - 1);
+    if (isStallPrev && !ghost.isScarico && !ghost.isGhostInfortunio) {
+      icon = 'mdi-lightning-bolt-circle';
+      color = '#c084fc'; // purple-lighten-2
+      label = '⚡ SFIDA ANTI-STALLO:';
+      const step = getWeightStep(isManubri, pesoBase);
+      const pesoSfidante = (pesoBase > 0) ? pesoBase + step : (ghost.peso || 0) + step;
+      valueText = `${formatWeight(pesoSfidante)} kg (o ${formatWeight(pesoBase)}kg + TUT)`;
     } else {
-      valueText = ghost.text || '';
-      if (ghost.isRepExercise && valueText && !valueText.endsWith('r')) {
-        valueText += 'r';
+      const range = getGhostWeightsRangeForWeek(sett);
+      if (range && range.consigliato) {
+        valueText = range.consigliato.display;
+      } else {
+        valueText = ghost.text || '';
+        if (ghost.isRepExercise && valueText && !valueText.endsWith('r')) {
+          valueText += 'r';
+        }
       }
     }
   }

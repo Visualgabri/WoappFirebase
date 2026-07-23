@@ -673,13 +673,28 @@ const rigeneraGraficoEsercizio = () => {
           reps = estraiRepsDaPrescrizione(w[`des_week${wNum}`]);
         }
 
+        const rawLower = String(rawIns || '').toLowerCase();
+        const hasQualitativeTag = rawIns && (
+          rawLower.includes('eccentrica') ||
+          rawLower.includes('tut') ||
+          rawLower.includes('rom') ||
+          rawLower.includes('controllo') ||
+          rawLower.includes('rir') ||
+          rawLower.includes('pausa') ||
+          rawLower.includes('recupero') ||
+          rawLower.includes('qualitat') ||
+          rawLower.includes('fermo') ||
+          String(rawIns).includes('🌟')
+        );
+
         if (reps > 0) {
           const e1rm = parseFloat((peso * (1 + reps / 30)).toFixed(1));
           dataPoints.push({
             label: `Wo ${numScheda} - W${wNum}`,
             peso: peso,
             reps: reps,
-            e1rm: e1rm
+            e1rm: e1rm,
+            hasQualitativeTag: hasQualitativeTag
           });
         }
       }
@@ -700,6 +715,8 @@ const rigeneraGraficoEsercizio = () => {
   const labels = filteredPoints.map(p => p.label);
   const dataCarico = filteredPoints.map(p => p.peso);
   const data1RM = filteredPoints.map(p => p.e1rm);
+  const pointColors = filteredPoints.map(p => p.hasQualitativeTag ? '#c084fc' : '#ea580c');
+  const pointRadii = filteredPoints.map(p => p.hasQualitativeTag ? 6 : 4);
 
   const datasets = [];
 
@@ -710,10 +727,10 @@ const rigeneraGraficoEsercizio = () => {
     borderColor: '#f97316',
     backgroundColor: 'rgba(249, 115, 22, 0.06)',
     borderWidth: 3,
-    pointBackgroundColor: '#ea580c',
+    pointBackgroundColor: pointColors,
     pointBorderColor: '#ffffff',
-    pointRadius: 4,
-    pointHoverRadius: 6,
+    pointRadius: pointRadii,
+    pointHoverRadius: 7,
     fill: true,
     tension: 0.15
   });
@@ -971,10 +988,11 @@ const esercizioChartOptions = ref({
           const label = context.dataset.label;
           const val = context.raw;
           
-          if (datasetIndex === 0 && tipoAnalisiEsercizio.value === 'tutte') {
+          if (datasetIndex === 0) {
             const pt = filteredPointsLocal.value[index];
             if (pt) {
-              return ` Carico: ${pt.peso} kg (${pt.reps} reps)`;
+              const qual = pt.hasQualitativeTag ? ' 🌟 (Progressione Qualitativa)' : '';
+              return ` Carico: ${pt.peso} kg (${pt.reps} reps)${qual}`;
             }
           }
           return ` ${label}: ${val} kg`;

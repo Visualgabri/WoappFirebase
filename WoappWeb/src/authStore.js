@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue';
-import { collection, query, where, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase.js';
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh

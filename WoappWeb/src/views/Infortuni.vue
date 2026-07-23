@@ -263,7 +263,7 @@
                   class="font-weight-bold text-none rounded-lg"
                   icon
                   title="Elimina Definitivamente"
-                  @click="eliminaInfortunioClick(inf.id)"
+                  @click="eliminaInfortunioClick(inf)"
                 >
                   <v-icon size="16">mdi-delete-outline</v-icon>
                 </v-btn>
@@ -314,7 +314,7 @@
             <v-icon color="green-lighten-2" class="mr-3 mt-0.5">mdi-check-circle-outline</v-icon>
             <div class="flex-grow-1">
               <div class="d-flex align-center justify-space-between flex-wrap gap-1">
-                <span class="font-weight-bold text-slate-dark text-caption">
+                <span class="font-weight-bold text-white text-caption">
                   {{ inf.articolazione_coinvolta }} (Guarito)
                 </span>
                 <span class="text-super-caption text-muted font-weight-bold">
@@ -337,7 +337,7 @@
                   class="font-weight-bold text-none rounded-lg"
                   icon
                   title="Elimina Definitivamente"
-                  @click="eliminaInfortunioClick(inf.id)"
+                  @click="eliminaInfortunioClick(inf)"
                 >
                   <v-icon size="16">mdi-delete-outline</v-icon>
                 </v-btn>
@@ -374,9 +374,11 @@
         <div class="mb-3 d-inline-flex pa-3 rounded-circle text-red-lighten-2 border border-soft" style="background: rgba(239, 68, 68, 0.1);">
           <v-icon size="32" color="red-lighten-2">mdi-delete-alert</v-icon>
         </div>
-        <h3 class="text-subtitle-1 font-weight-black text-slate-dark mb-1">Eliminare la segnalazione?</h3>
+        <h3 class="text-subtitle-1 font-weight-black text-white mb-1">
+          Eliminare {{ infortunioDaEliminare?.articolazione_coinvolta ? '"' + infortunioDaEliminare.articolazione_coinvolta + '"' : 'la segnalazione' }}?
+        </h3>
         <p class="text-caption text-slate mb-4" style="color: #94a3b8 !important;">
-          Questa azione rimuoverà definitivamente l'infortunio dallo storico del tuo profilo.
+          Questa azione rimuoverà definitivamente la segnalazione dallo storico del tuo profilo.
         </p>
         <div class="d-flex justify-center gap-2">
           <v-btn
@@ -526,11 +528,18 @@ const riapriInfortunioClick = async (id) => {
 
 const dialogConfermaElimina = ref(false);
 const idInfortunioDaEliminare = ref(null);
+const infortunioDaEliminare = ref(null);
 const eliminandoInfortunio = ref(false);
 
-const eliminaInfortunioClick = (id) => {
+const eliminaInfortunioClick = (target) => {
   vibraTattile(15);
-  idInfortunioDaEliminare.value = id;
+  if (typeof target === 'object' && target !== null) {
+    infortunioDaEliminare.value = target;
+    idInfortunioDaEliminare.value = target.id;
+  } else {
+    idInfortunioDaEliminare.value = target;
+    infortunioDaEliminare.value = globalInfortuni.value?.find(i => i.id === target) || null;
+  }
   dialogConfermaElimina.value = true;
 };
 
@@ -542,6 +551,7 @@ const confermaEliminazioneInfortunio = async () => {
     await eliminaInfortunio(idInfortunioDaEliminare.value);
     dialogConfermaElimina.value = false;
     idInfortunioDaEliminare.value = null;
+    infortunioDaEliminare.value = null;
   } catch (err) {
     console.error("Errore eliminazione infortunio:", err);
   } finally {

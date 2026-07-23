@@ -371,14 +371,17 @@
     <!-- Dialog Custom Conferma Eliminazione (Premium App UI) -->
     <v-dialog v-model="dialogConfermaElimina" max-width="400" rounded="xl">
       <v-card class="card-glass border border-soft pa-5 text-center rounded-2xl" style="background: rgba(15, 23, 42, 0.95) !important; backdrop-filter: blur(20px) !important;">
-        <div class="mb-3 d-inline-flex pa-3 rounded-circle text-red-lighten-2 border border-soft" style="background: rgba(239, 68, 68, 0.1);">
-          <v-icon size="32" color="red-lighten-2">mdi-delete-alert</v-icon>
+        <div class="d-flex align-center justify-center gap-2 mx-auto mb-3 px-4 py-2 rounded-pill border border-soft text-red-lighten-2" style="background: rgba(239, 68, 68, 0.12); width: fit-content;">
+          <v-icon size="20" color="red-lighten-2">mdi-delete-outline</v-icon>
+          <span class="font-weight-black text-subtitle-2 text-red-lighten-2 uppercase tracking-wide">
+            {{ infortunioDaEliminare?.articolazione_coinvolta || 'Segnalazione' }}
+          </span>
         </div>
         <h3 class="text-subtitle-1 font-weight-black text-white mb-1">
-          Eliminare {{ infortunioDaEliminare?.articolazione_coinvolta ? '"' + infortunioDaEliminare.articolazione_coinvolta + '"' : 'la segnalazione' }}?
+          Eliminare questa segnalazione?
         </h3>
         <p class="text-caption text-slate mb-4" style="color: #94a3b8 !important;">
-          Questa azione rimuoverà definitivamente la segnalazione dallo storico del tuo profilo.
+          Sei sicuro di voler eliminare definitivamente <strong>{{ infortunioDaEliminare?.articolazione_coinvolta }}</strong> dallo storico del tuo profilo?
         </p>
         <div class="d-flex justify-center gap-2">
           <v-btn

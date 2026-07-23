@@ -536,20 +536,20 @@
         }"
       >
         <!-- Header con Icona -->
-        <div class="d-flex align-center gap-3 mb-4 pb-2 border-bottom-soft">
-          <v-avatar size="42" :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" class="elevation-4">
-            <v-icon color="white" size="24">
+        <div class="d-flex align-center gap-3 mb-3 pb-2 border-bottom-soft">
+          <v-avatar size="36" :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" class="elevation-4">
+            <v-icon color="white" size="20">
               {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch' }}
             </v-icon>
           </v-avatar>
-          <h2 class="text-h6 font-weight-black text-white mb-0" style="line-height: 1.2;">
+          <h2 class="text-subtitle-2 font-weight-bold text-slate-light mb-0" style="font-size: 0.95rem; line-height: 1.2; opacity: 0.9;">
             {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento Disponibile!') }}
           </h2>
         </div>
 
-        <!-- Contenuto del Messaggio (Unico ed Essenziale) -->
+        <!-- Contenuto del Messaggio (Ingrandito e Leggibile) -->
         <div class="pa-4 rounded-xl mb-4 text-left border" style="background: rgba(15, 23, 42, 0.6) !important; border-color: rgba(255, 255, 255, 0.1) !important;">
-          <p class="text-body-1 text-white mb-0" style="font-size: 0.9rem; line-height: 1.5; color: #f8fafc !important;">
+          <p class="text-body-1 text-white mb-0" style="font-size: 1.15rem; font-weight: 600; line-height: 1.5; color: #ffffff !important;">
             {{ deployCustomNoteForMe || deployVersionInfo?.message_general || (deployVersionInfo?.tipo === 'messaggio' ? 'Hai una nuova comunicazione dal tuo Coach.' : 'È stata pubblicata una nuova versione dell\'applicazione.') }}
           </p>
         </div>

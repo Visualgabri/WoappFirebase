@@ -676,6 +676,17 @@ export const aggiornaInfortunio = async (idInfortunio, infortunioData) => {
   }
 };
 
+export const eliminaInfortunio = async (idInfortunio) => {
+  try {
+    const docRef = doc(db, 'infortuni', idInfortunio);
+    await deleteDoc(docRef);
+    return { success: true };
+  } catch (error) {
+    console.error("Errore nell'eliminazione dell'infortunio:", error);
+    throw error;
+  }
+};
+
 export const risolviInfortunio = async (idInfortunio) => {
   try {
     const docRef = doc(db, 'infortuni', idInfortunio);

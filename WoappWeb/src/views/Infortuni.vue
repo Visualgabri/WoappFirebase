@@ -254,8 +254,17 @@
                 </span>
               </div>
               
-              <!-- Azioni -->
-              <div class="d-flex justify-end align-center mt-2 pt-2 border-top-soft gap-2">
+              <!-- Azioni Infortunio Attivo -->
+              <div class="d-flex justify-end align-center mt-2 pt-2 border-top-soft gap-2 flex-wrap">
+                <v-btn
+                  variant="text"
+                  color="red-lighten-3"
+                  size="x-small"
+                  class="font-weight-bold text-none rounded-lg"
+                  icon="mdi-delete-outline"
+                  title="Elimina Definitivamente"
+                  @click="eliminaInfortunioClick(inf.id)"
+                ></v-btn>
                 <v-btn
                   variant="outlined"
                   color="orange-lighten-2"
@@ -298,11 +307,11 @@
             v-for="inf in resolvedInjuries"
             :key="inf.id"
             class="card-glass border border-soft rounded-xl pa-3 d-flex align-start"
-            style="opacity: 0.65; border-left: 4px solid rgba(16, 185, 129, 0.5) !important;"
+            style="opacity: 0.8; border-left: 4px solid rgba(16, 185, 129, 0.5) !important;"
           >
             <v-icon color="green-lighten-2" class="mr-3 mt-0.5">mdi-check-circle-outline</v-icon>
             <div class="flex-grow-1">
-              <div class="d-flex align-center justify-space-between flex-wrap">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-1">
                 <span class="font-weight-bold text-slate-dark text-caption">
                   {{ inf.articolazione_coinvolta }} (Guarito)
                 </span>
@@ -313,9 +322,42 @@
               <span class="text-super-caption text-muted d-block mt-0.5">
                 Periodo: {{ formattaData(inf.data_inizio) }} ➔ {{ formattaData(inf.data_risoluzione) }}
               </span>
-              <p v-if="inf.note" class="text-super-caption text-slate mt-1.5 mb-0 italic">
+              <p v-if="inf.note" class="text-super-caption text-slate mt-1.5 mb-1 italic">
                 "{{ inf.note }}"
               </p>
+
+              <!-- Azioni Infortunio Storico (Modifica, Riapri, Elimina) -->
+              <div class="d-flex justify-end align-center mt-2 pt-1 border-top-soft gap-2 flex-wrap">
+                <v-btn
+                  variant="text"
+                  color="red-lighten-3"
+                  size="x-small"
+                  class="font-weight-bold text-none rounded-lg"
+                  icon="mdi-delete-outline"
+                  title="Elimina Definitivamente"
+                  @click="eliminaInfortunioClick(inf.id)"
+                ></v-btn>
+                <v-btn
+                  variant="outlined"
+                  color="orange-lighten-2"
+                  size="x-small"
+                  class="font-weight-bold text-none rounded-lg"
+                  prepend-icon="mdi-pencil"
+                  @click="apriFormModifica(inf)"
+                >
+                  Modifica
+                </v-btn>
+                <v-btn
+                  variant="tonal"
+                  color="amber-darken-2"
+                  size="x-small"
+                  class="font-weight-bold text-none rounded-lg"
+                  prepend-icon="mdi-refresh"
+                  @click="riapriInfortunioClick(inf.id)"
+                >
+                  Riapri
+                </v-btn>
+              </div>
             </div>
           </v-card>
         </div>
@@ -327,7 +369,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { selectedAthlete, ruolo, getNomeAtleta, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, calcolaPercentualeConsigliata, syncInfortuniListener } from '../authStore.js';
+import { selectedAthlete, ruolo, getNomeAtleta, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, syncInfortuniListener } from '../authStore.js';
 
 const mostraFormNuovo = ref(false);
 const infortunioInModificaId = ref(null);
@@ -428,6 +470,28 @@ const risolviInfortunioClick = async (id) => {
     await risolviInfortunio(id);
   } catch (err) {
     console.error("Errore risoluzione infortunio:", err);
+  }
+};
+
+const riapriInfortunioClick = async (id) => {
+  vibraTattile(15);
+  try {
+    await aggiornaInfortunio(id, {
+      stato: 'attivo',
+      data_risoluzione: null
+    });
+  } catch (err) {
+    console.error("Errore riapertura infortunio:", err);
+  }
+};
+
+const eliminaInfortunioClick = async (id) => {
+  if (!confirm("Sei sicuro di voler eliminare definitivamente questa segnalazione?")) return;
+  vibraTattile(20);
+  try {
+    await eliminaInfortunio(id);
+  } catch (err) {
+    console.error("Errore eliminazione infortunio:", err);
   }
 };
 

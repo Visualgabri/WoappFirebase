@@ -544,21 +544,11 @@
               </v-icon>
             </v-avatar>
             <div>
-              <span 
-                v-if="deployVersionInfo?.tipo === 'messaggio'"
-                class="text-caption font-weight-black uppercase d-block text-purple-lighten-2" 
-                style="letter-spacing: 0.08em; font-size: 0.68rem;"
-              >
-                💬 MESSAGGIO DAL COACH
-              </span>
               <h2 class="text-h6 font-weight-black text-white" style="line-height: 1.15;">
                 {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 MESSAGGIO DAL COACH' : '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!') }}
               </h2>
             </div>
           </div>
-          <v-chip :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" variant="flat" size="x-small" class="font-weight-black text-white px-2">
-            LIVE ⚡
-          </v-chip>
         </div>
 
         <!-- Note Generali -->

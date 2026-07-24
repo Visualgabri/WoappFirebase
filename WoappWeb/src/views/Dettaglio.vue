@@ -511,6 +511,38 @@
       </div>
     </div>
 
+      <!-- Banner Avviso Coach: Stallo Mesociclo Precedente -->
+      <v-card
+        v-if="settimanaAttiva === 1 && isStalledInPreviousMesocycle"
+        class="text-left border d-flex flex-column mb-3 animate-pulse"
+        style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.18), rgba(239, 68, 68, 0.08)) !important; border: 1.5px solid rgba(249, 115, 22, 0.5) !important; border-left: 4px solid #f97316 !important; border-radius: 12px !important; padding: 12px;"
+      >
+        <div class="d-flex align-start">
+          <v-icon color="orange-darken-2" class="mr-2 flex-shrink-0 mt-0.5" size="20">mdi-alert-decagram</v-icon>
+          <div class="flex-grow-1">
+            <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important;">
+              ⚠️ Coach Warning: Nessuna Progressione nel Mesociclo Precedente
+            </h4>
+            <p class="text-slate-light font-weight-medium mb-2" style="font-size: 0.72rem; line-height: 1.4; color: #ffedd5 !important;">
+              Su questo esercizio non sono state registrate progressioni tra W1 e W6 dello scorso mesociclo. 
+              In questa Week 1 prova a segnare anche solo <strong>+1 rep o +0.5/1 kg</strong>!
+            </p>
+            <div class="d-flex align-center gap-2">
+              <v-btn
+                color="orange-darken-3"
+                size="x-small"
+                variant="flat"
+                class="font-weight-black text-white text-none"
+                rounded="lg"
+                @click="impostaCaricoLimite"
+              >
+                🏋️ Carico ancora al limite
+              </v-btn>
+            </div>
+          </div>
+        </div>
+      </v-card>
+
       <!-- 3. Note Coach, Setup Attrezzo e Tecnica (Unificati e Compatti) -->
       <v-card
         v-if="workout && ((workout.des_note && String(workout.des_note).trim()) || (workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()) || (workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()) || (workout.des_estesa_start && String(workout.des_estesa_start).trim()))"
@@ -3637,6 +3669,73 @@ const auditStalloW6 = computed(() => {
     peso: lastPeso || 0
   };
 });
+
+const isStalledInPreviousMesocycle = computed(() => {
+  if (!workout.value || !previousWorkout.value) return false;
+  
+  const parsePesoLocalInternal = (val) => {
+    if (!val) return 0;
+    const clean = String(val).replace(/,/g, '.').trim();
+    if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+    const parts = cleanNum.split(/\s+/);
+    const num = parseFloat(parts[0]);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const estraiRepsInternal = (str) => {
+    if (!str) return null;
+    let clean = String(str).replace(/,/g, '.').trim();
+    clean = clean.replace(/^\s*\d+\s*[xX]\s*/g, '').trim();
+    const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
+    if (matchR) return parseFloat(matchR[1]);
+    const matchNum = clean.match(/^(\d+(?:\.\d+)?)/);
+    if (matchNum) return parseFloat(matchNum[1]);
+    return null;
+  };
+
+  const useRep = previousWorkout.value.des_esercizio && String(previousWorkout.value.des_esercizio).toLowerCase().includes('corpo libero');
+  const w1Val = useRep ? (estraiRepsInternal(previousWorkout.value.ins_week1) || 0) : parsePesoLocalInternal(previousWorkout.value.ins_week1);
+  
+  let latestVal = 0;
+  for (let w = 6; w >= 1; w--) {
+    const val = useRep ? (estraiRepsInternal(previousWorkout.value['ins_week' + w]) || 0) : parsePesoLocalInternal(previousWorkout.value['ins_week' + w]);
+    if (val > 0) {
+      latestVal = val;
+      break;
+    }
+  }
+
+  return (w1Val > 0 && latestVal <= w1Val);
+});
+
+const impostaCaricoLimite = () => {
+  if (!workout.value || !settimanaAttiva.value) return;
+  const sett = settimanaAttiva.value;
+  let currentVal = inputSettimane.value[sett]?.ins ? String(inputSettimane.value[sett].ins).trim() : '';
+  
+  if (!currentVal) {
+    const prevVal = previousWorkout.value ? previousWorkout.value.ins_week1 : '';
+    if (prevVal) {
+      inputSettimane.value[sett].ins = `${prevVal} [CARICO LIMITATO]`;
+    } else {
+      inputSettimane.value[sett].ins = `[CARICO LIMITATO]`;
+    }
+  } else if (!currentVal.includes('[CARICO LIMITATO]')) {
+    inputSettimane.value[sett].ins = `${currentVal} [CARICO LIMITATO]`;
+  }
+
+  if (!noteEsercizio.value.includes('Carico ancora al limite')) {
+    noteEsercizio.value = noteEsercizio.value 
+      ? `${noteEsercizio.value} | Carico ancora al limite dal mesociclo precedente`
+      : 'Carico ancora al limite dal mesociclo precedente';
+  }
+
+  salvaNoteEsercizio();
+  salvaDatoSettimanale(sett, 'ins');
+  snackbarMessaggio.value = `🏋️ Segnalato al Coach: Carico al limite per W${sett}`;
+  snackbarSalvataggio.value = true;
+};
 
 const ottieniRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;

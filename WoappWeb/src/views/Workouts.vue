@@ -1684,6 +1684,17 @@
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
                     <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange" size="16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
+                    <v-chip
+                      v-if="settimanaAttivaGiorno === 1 && stalloInSchedaPrecedente(block.exercise)"
+                      color="deep-orange-darken-3"
+                      size="x-small"
+                      variant="flat"
+                      class="font-weight-black text-white ml-2 animate-pulse cursor-pointer d-inline-flex align-center"
+                      style="font-size: 0.60rem; height: 18px; border-radius: 4px; vertical-align: middle;"
+                      @click.stop="apriInfoStallo(block.exercise)"
+                    >
+                      ⚠️ COACH: STALLO
+                    </v-chip>
                   </h4>
 
                   <!-- Settore e Emoji Sforzo -->
@@ -1946,6 +1957,56 @@
         <v-btn color="orange-darken-3" block rounded="xl" class="font-weight-black text-none py-2 text-white" height="44" @click="dialogRecuperiAvviso = false">
           Ho capito, grazie!
         </v-btn>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Avviso Coach: Stallo dal Mesociclo Precedente -->
+    <v-dialog v-model="dialogStalloEsercizio" max-width="480">
+      <v-card class="card-glass-dark rounded-2xl border-soft pa-4 text-left" style="background: rgba(15, 23, 42, 0.96) !important; border: 1.5px solid rgba(249, 115, 22, 0.4) !important;">
+        <div class="d-flex align-center mb-3">
+          <v-avatar color="orange-darken-3" size="40" class="mr-3 text-white elevation-2">
+            <v-icon size="24">mdi-alert-decagram</v-icon>
+          </v-avatar>
+          <div>
+            <h3 class="text-subtitle-1 font-weight-black text-white mb-0" style="line-height: 1.2;">
+              Avviso Coach: Progressione in Stallo
+            </h3>
+            <span class="text-caption text-orange-lighten-2 font-weight-black">
+              {{ esercizioStalloSelezionato?.des_esercizio }}
+            </span>
+          </div>
+        </div>
+
+        <div class="pa-3 rounded-xl mb-4" style="background: rgba(249, 115, 22, 0.08); border: 1px dashed rgba(249, 115, 22, 0.3);">
+          <p class="text-caption text-slate-light mb-0" style="line-height: 1.5; font-size: 0.78rem;">
+            📣 <strong>Messaggio del Coach:</strong> Nel mesociclo precedente tra la prima e la sesta settimana non è stata registrata alcuna progressione su questo esercizio. 
+            <br/><br/>
+            In questa prima settimana del nuovo mesociclo, <strong>prova a segnare almeno un piccolo incremento</strong> (+1 rep o +0.5/1 kg) se possibile! 
+          </p>
+        </div>
+
+        <div class="d-flex align-center justify-space-between gap-2 flex-wrap">
+          <v-btn
+            color="orange-darken-3"
+            variant="flat"
+            rounded="lg"
+            class="font-weight-black text-white text-none flex-grow-1"
+            size="small"
+            @click="dialogStalloEsercizio = false"
+          >
+            💪 Ho Capito, Ci Provo!
+          </v-btn>
+          <v-btn
+            color="grey-darken-3"
+            variant="tonal"
+            rounded="lg"
+            class="font-weight-bold text-white text-none"
+            size="small"
+            @click="segnaCaricoLimiteRapido(esercizioStalloSelezionato)"
+          >
+            🏋️ Carico ancora al limite
+          </v-btn>
+        </div>
       </v-card>
     </v-dialog>
 
@@ -2512,6 +2573,70 @@ const esisteInSchedaPrecedente = (ex) => {
            parseInt(b.num_scheda) === targetScheda &&
            parseInt(b.num_riga_giorno) > 0;
   });
+};
+
+// Funzione che rileva lo STALLO (nessuna progressione tra W1 e W6) nel mesociclo precedente
+const stalloInSchedaPrecedente = (ex) => {
+  if (!ex || !allExercisesBackup.value.length) return false;
+  
+  const currentNumScheda = parseInt(ex.num_scheda);
+  if (isNaN(currentNumScheda) || currentNumScheda <= 1) return false;
+  
+  const targetScheda = currentNumScheda - 1;
+  const nomeEx = String(ex.des_esercizio || '').trim().toLowerCase();
+  const keyIdCliente = Object.keys(ex).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+  const atletaId = ex[keyIdCliente] || '';
+
+  if (!nomeEx || !atletaId) return false;
+
+  const exPrev = allExercisesBackup.value.find(b => {
+    const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+    return String(bAtletaId) === String(atletaId) &&
+           String(b.des_esercizio || '').trim().toLowerCase() === nomeEx &&
+           parseInt(b.num_scheda) === targetScheda &&
+           parseInt(b.num_riga_giorno) > 0;
+  });
+
+  if (!exPrev) return false;
+
+  const useRep = isRepProgression(exPrev);
+  const parsePesoLocalInternal = (val) => {
+    if (!val) return 0;
+    const clean = String(val).replace(/,/g, '.').trim();
+    if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
+    const parts = cleanNum.split(/\s+/);
+    const num = parseFloat(parts[0]);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const w1Val = useRep ? (estraiRepsDaInput(exPrev.ins_week1) || 0) : parsePesoLocalInternal(exPrev.ins_week1);
+  
+  let latestVal = 0;
+  for (let w = 6; w >= 1; w--) {
+    const val = useRep ? (estraiRepsDaInput(exPrev['ins_week' + w]) || 0) : parsePesoLocalInternal(exPrev['ins_week' + w]);
+    if (val > 0) {
+      latestVal = val;
+      break;
+    }
+  }
+
+  // Se la Week 1 ha un valore registrato e l'ultimo valore (W6) è <= W1, l'esercizio era in stallo
+  return (w1Val > 0 && latestVal <= w1Val);
+};
+
+const dialogStalloEsercizio = ref(false);
+const esercizioStalloSelezionato = ref(null);
+
+const apriInfoStallo = (ex) => {
+  esercizioStalloSelezionato.value = ex;
+  dialogStalloEsercizio.value = true;
+};
+
+const segnaCaricoLimiteRapido = (ex) => {
+  if (!ex) return;
+  dialogStalloEsercizio.value = false;
+  vaiAlDettaglio(ex.id, 1);
 };
 
 const getLavoroStyle = (val) => {

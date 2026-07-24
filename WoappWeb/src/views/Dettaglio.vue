@@ -2086,21 +2086,13 @@
           </v-tabs>
           
           <!-- Rigo 2: Target Reps Settimana Attiva (Punto 3 - Semplificato e Prominente) -->
-          <div v-if="activeTabAnalisi === 1" class="px-3 py-2 bg-slate-950 border-top d-flex align-center justify-space-between" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
-            <div class="d-flex align-center gap-2">
-              <v-chip color="orange-darken-3" size="small" class="font-weight-black text-white" variant="flat" style="font-size: 0.7rem; height: 22px;">
-                WEEK {{ settimanaAttiva }}
-              </v-chip>
-              <div class="d-flex align-baseline gap-1 text-left">
-                <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.05em;">TARGET REPS:</span>
-                <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 ml-1" style="font-size: 0.95rem; line-height: 1;">
-                  {{ getRepsPerWeek(settimanaAttiva) }} REPS
-                </span>
-                <span v-if="parsedPrescription(workout?.['des_week' + settimanaAttiva])?.sets" class="text-super-caption text-muted font-weight-bold ml-1" style="font-size: 0.65rem;">
-                  ({{ parsedPrescription(workout?.['des_week' + settimanaAttiva])?.sets }} serie)
-                </span>
-              </div>
-            </div>
+          <div v-if="activeTabAnalisi === 1" class="mb-1.5 px-3 py-2 bg-slate-950 border-top d-flex align-center justify-center position-relative" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
+            <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" style="font-size: 0.65rem; height: 20px; left: 12px;">
+              WEEK {{ settimanaAttiva }}
+            </v-chip>
+            <span class="text-caption font-weight-black text-orange-lighten-2 text-center" style="font-size: 0.9rem; letter-spacing: 0.02em;">
+              {{ getRepsPerWeek(settimanaAttiva) }} REPS
+            </span>
           </div>
 
           <!-- Rigo 3: Hero Banner dei Due Record Assoluti & Obiettivo W (Micro-tipografia Premium) -->
@@ -2235,17 +2227,12 @@
           <!-- TAB 0: PROPOSTA CARICO (SMART) -->
           <div v-if="activeTabAnalisi === 0" class="pt-1">
             <!-- Target Attuale (Badge Compatto) -->
-            <div class="mb-2.5 px-3 py-2 bg-slate-950 border rounded-xl d-flex align-center justify-space-between" style="border-color: rgba(249, 115, 22, 0.25) !important;">
-              <div class="d-flex align-center gap-2">
-                <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat" style="font-size: 0.65rem; height: 20px;">
-                  WEEK {{ aiutoWeek }}
-                </v-chip>
-                <span class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.85rem;">
-                  {{ formatRepsDisplay(targetRepsAttive) }} REPS
-                </span>
-              </div>
-              <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.6rem;">
-                ({{ targetPrescrizioneAttiva }})
+            <div class="mb-2.5 px-3 py-2 bg-slate-950 border rounded-xl d-flex align-center justify-center position-relative" style="border-color: rgba(249, 115, 22, 0.25) !important;">
+              <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" style="font-size: 0.65rem; height: 20px; left: 12px;">
+                WEEK {{ aiutoWeek }}
+              </v-chip>
+              <span class="text-caption font-weight-black text-orange-lighten-2 text-center" style="font-size: 0.9rem; letter-spacing: 0.02em;">
+                {{ formatRepsDisplay(targetRepsAttive) }} REPS
               </span>
             </div>
 
@@ -2451,25 +2438,63 @@
                   </v-row>
 
                   <!-- Micro-scheda Riassuntiva Riferimenti Record (Soluzione 3) -->
-                  <div v-if="getRiferimentoSfidaRecord(aiutoWeek)" class="mt-1.5 pa-2 rounded-lg bg-slate-900 border text-super-caption text-slate-light d-flex flex-column gap-1" style="font-size: 0.56rem; border-color: rgba(255,255,255,0.06) !important;">
-                    <div class="d-flex align-center justify-space-between border-b pb-1" style="border-color: rgba(255,255,255,0.04) !important;">
-                      <span class="text-slate-light font-weight-medium d-flex align-center gap-1">
-                        📜 <strong>Record Storico Reale:</strong>
+                  <div v-if="getRiferimentoSfidaRecord(aiutoWeek)" class="mt-1.5 pa-2 rounded-lg bg-slate-900 border text-super-caption text-slate-light d-flex flex-column gap-1" style="font-size: 0.55rem; border-color: rgba(255,255,255,0.06) !important;">
+                    <div 
+                      v-if="getRiferimentoSfidaRecord(aiutoWeek).massimale1RM" 
+                      class="d-flex align-center justify-space-between border-b py-1.5 px-2 transition-colors rounded text-no-wrap overflow-x-auto scrollbar-none" 
+                      :class="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource ? 'cursor-pointer hover:bg-slate-800/80 active:bg-slate-700' : ''"
+                      style="border-color: rgba(255,255,255,0.04) !important; min-height: 36px;"
+                      :title="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource ? '1RM Max assoluto storico. Clicca per aprire Sch. ' + getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.numScheda : ''"
+                      @click="vaiADettaglioStorico(getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource?.id)"
+                    >
+                      <span class="text-slate-light font-weight-bold d-flex align-center gap-1 shrink-0">
+                        🏆 <strong>1RM Max Storico:</strong>
                       </span>
-                      <span v-if="getRiferimentoSfidaRecord(aiutoWeek).recordReale" class="text-amber-lighten-1 font-weight-black">
-                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).recordReale) }} kg <span class="text-super-caption text-muted">({{ getRepsPerWeek(aiutoWeek) }}r svolte in passato)</span>
+                      <span class="text-purple-lighten-2 font-weight-black text-right shrink-0 ml-2">
+                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).massimale1RM) }} kg 
+                        <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">
+                          <template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource">
+                            (da {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.peso }}kg×{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.reps }}r • Sch.{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.numScheda }}<template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso"> • {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso }}</template>)
+                          </template>
+                          <template v-else>
+                            (stima 1RM)
+                          </template>
+                        </span>
+                      </span>
+                    </div>
+
+                    <div 
+                      class="d-flex align-center justify-space-between border-b py-1.5 px-2 transition-colors rounded text-no-wrap overflow-x-auto scrollbar-none" 
+                      :class="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo ? 'cursor-pointer hover:bg-slate-800/80 active:bg-slate-700' : ''"
+                      style="border-color: rgba(255,255,255,0.04) !important; min-height: 36px;"
+                      :title="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo ? 'Record su ripetizioni target. Clicca per aprire Sch. ' + getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.numScheda : ''"
+                      @click="vaiADettaglioStorico(getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo?.id)"
+                    >
+                      <span class="text-slate-light font-weight-bold d-flex align-center gap-1 shrink-0">
+                        📜 <strong>Record Reale:</strong>
+                      </span>
+                      <span v-if="getRiferimentoSfidaRecord(aiutoWeek).recordReale" class="text-amber-lighten-1 font-weight-black text-right shrink-0 ml-2">
+                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).recordReale) }} kg 
+                        <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">
+                          <template v-if="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo">
+                            ({{ getRepsPerWeek(aiutoWeek) }}r • Sch.{{ getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.numScheda }}<template v-if="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.tempoTrascorso"> • {{ getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.tempoTrascorso }}</template>)
+                          </template>
+                          <template v-else>
+                            ({{ getRepsPerWeek(aiutoWeek) }}r in passato)
+                          </template>
+                        </span>
                       </span>
                       <span v-else class="text-muted font-weight-bold">
-                        N.D. <span class="text-super-caption text-muted">(Mai registrato su {{ getRepsPerWeek(aiutoWeek) }}r)</span>
+                        N.D. <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">(Mai svolto {{ getRepsPerWeek(aiutoWeek) }}r)</span>
                       </span>
                     </div>
                     
-                    <div class="d-flex align-center justify-space-between pt-0.5">
-                      <span class="text-slate-light font-weight-medium d-flex align-center gap-1">
-                        📊 <strong>Stima Teorica (1RM):</strong>
+                    <div class="d-flex align-center justify-space-between py-1 px-2 text-no-wrap overflow-x-auto scrollbar-none" style="min-height: 32px;">
+                      <span class="text-slate-light font-weight-bold d-flex align-center gap-1 shrink-0">
+                        📊 <strong>Stima Target:</strong>
                       </span>
-                      <span v-if="getRiferimentoSfidaRecord(aiutoWeek).recordStimato" class="text-orange-lighten-2 font-weight-black">
-                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).recordStimato) }} kg <span class="text-super-caption text-muted">(Stima da altre serie per {{ getRepsPerWeek(aiutoWeek) }}r)</span>
+                      <span v-if="getRiferimentoSfidaRecord(aiutoWeek).recordStimato" class="text-orange-lighten-2 font-weight-black text-right shrink-0 ml-2">
+                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).recordStimato) }} kg <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">(da altre serie)</span>
                       </span>
                       <span v-else class="text-muted font-weight-bold">
                         N.D.
@@ -2498,7 +2523,7 @@
                       <!-- Dati Calcolo ed Aggiustamenti per standard weeks -->
                       <div v-if="aiutoWeek > 1 && caricoIdealeConsigliato" class="d-flex align-center gap-1.5 flex-wrap mb-2.5 px-2 py-1.5 bg-slate-900 rounded-lg border text-super-caption text-slate-light" style="font-size: 0.58rem; border-color: rgba(255,255,255,0.05) !important;">
                         <span>🏋️ Base: <strong>Sch.{{ caricoIdealeConsigliato.numScheda }} W{{ caricoIdealeConsigliato.week }} ({{ caricoIdealeConsigliato.pesoOriginale }}kg ×{{ formatRepsDisplay(caricoIdealeConsigliato.repsOriginali) }})</strong></span>
-                        <span>• 1RM Stimato: <strong class="text-green-accent-3">{{ caricoIdealeConsigliato.massimaleStimato }} kg</strong></span>
+                        <span>• 1RM Base Recente: <strong class="text-green-accent-3">{{ caricoIdealeConsigliato.massimaleStimato }} kg</strong></span>
                       </div>
                       
                       <!-- Riferimenti specifici: Scheda e Stima Forza -->
@@ -3747,12 +3772,26 @@ const impostaCaricoLimite = () => {
   snackbarSalvataggio.value = true;
 };
 
-const ottieniRecordStoricoPerReps = (targetReps) => {
+const tempoTrascorsoBreve = (dateStr) => {
+  const str = tempoTrascorso(dateStr);
+  if (!str) return '';
+  return str
+    .replace(' mesi fa', 'm fa')
+    .replace(' mese fa', 'm fa')
+    .replace(' sett fa', 'w fa')
+    .replace(' gg fa', 'g fa')
+    .replace(' anni fa', 'a fa')
+    .replace(' anno fa', 'a fa');
+};
+
+const ottieniDettaglioRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;
   const currentNumScheda = parseInt(workout.value.num_scheda);
   if (isNaN(currentNumScheda)) return null;
 
   let maxWeight = 0;
+  let bestRecord = null;
+
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
     if (!isNaN(sNum) && sNum >= currentNumScheda) return; // solo schede passate
@@ -3773,6 +3812,14 @@ const ottieniRecordStoricoPerReps = (targetReps) => {
             if (repsNum === targetReps) {
               if (weight > maxWeight) {
                 maxWeight = weight;
+                const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+                bestRecord = {
+                  peso: weight,
+                  id: prevEx.id,
+                  numScheda: prevEx.num_scheda,
+                  date: dEx,
+                  tempoTrascorso: tempoTrascorsoBreve(dEx)
+                };
               }
             }
           }
@@ -3781,14 +3828,45 @@ const ottieniRecordStoricoPerReps = (targetReps) => {
     }
   });
 
-  return maxWeight > 0 ? maxWeight : null;
+  return bestRecord;
+};
+
+const ottieniRecordStoricoPerReps = (targetReps) => {
+  const dett = ottieniDettaglioRecordStoricoPerReps(targetReps);
+  return dett ? dett.peso : null;
+};
+
+const calcolaE1RMSmorzato = (peso, reps, isCavoOMacchina) => {
+  let repsEffettive = reps;
+  if (reps > 10) {
+    repsEffettive = 10 + (reps - 10) * 0.5;
+  }
+  let e1rm = peso * (1 + repsEffettive / 30);
+  if (isCavoOMacchina && reps > 8) {
+    e1rm *= 0.88;
+  }
+  return e1rm;
+};
+
+const calcolaPesoDaE1RMSmorzato = (e1rm, targetReps, isCavoOMacchina) => {
+  let repsTargetEffettive = targetReps;
+  if (targetReps > 10) {
+    repsTargetEffettive = 10 + (targetReps - 10) * 0.5;
+  }
+  let pesoStimato = e1rm / (1 + repsTargetEffettive / 30);
+  if (isCavoOMacchina && targetReps > 8) {
+    pesoStimato *= 0.92;
+  }
+  return pesoStimato;
 };
 
 const stimaRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length || !targetReps) return null;
   const currentNumScheda = parseInt(workout.value.num_scheda);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
   
   let best1RM = 0;
+  let maxWeightRealLogged = 0;
 
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
@@ -3801,6 +3879,7 @@ const stimaRecordStoricoPerReps = (targetReps) => {
         if (weightStr) {
           const weight = parseFloat(weightStr);
           if (!isNaN(weight) && weight > 0) {
+            if (weight > maxWeightRealLogged) maxWeightRealLogged = weight;
             const repsVal = prevEx['reps_week' + w];
             let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
             const inputReps = estraiRepsDaInput(insVal);
@@ -3808,7 +3887,7 @@ const stimaRecordStoricoPerReps = (targetReps) => {
               repsNum = inputReps;
             }
             if (repsNum) {
-              const e1rm = weight * (1 + repsNum / 30);
+              const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
               if (e1rm > best1RM) {
                 best1RM = e1rm;
               }
@@ -3820,19 +3899,113 @@ const stimaRecordStoricoPerReps = (targetReps) => {
   });
 
   if (best1RM > 0) {
-    const estimatedWeight = best1RM / (1 + targetReps / 30);
+    let estimatedWeight = calcolaPesoDaE1RMSmorzato(best1RM, targetReps, isCavo);
+    if (maxWeightRealLogged > 0 && estimatedWeight > maxWeightRealLogged * 1.25) {
+      estimatedWeight = maxWeightRealLogged * 1.25;
+    }
     return Math.round(estimatedWeight * 10) / 10;
   }
   return null;
+};
+
+const arrotondaAStep125 = (val) => {
+  if (val === null || val === undefined || isNaN(val) || val <= 0) return null;
+  const step = 1.25;
+  const rounded = Math.round(val / step) * step;
+  return Math.round(rounded * 100) / 100;
+};
+
+const calcolaDettaglioMassimale1RMPuro = () => {
+  if (!workout.value) return { best1RM: 0, bestSource: null };
+  const currentNumScheda = parseInt(workout.value.num_scheda);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  let best1RM = 0;
+  let bestSource = null;
+
+  if (storicoEsercizio.value && storicoEsercizio.value.length) {
+    storicoEsercizio.value.forEach(prevEx => {
+      const sNum = parseInt(prevEx.num_scheda);
+      if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+      for (let w = 1; w <= 6; w++) {
+        const insVal = prevEx['ins_week' + w];
+        if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+          const weightStr = estraiPesoDaInput(insVal);
+          if (weightStr) {
+            const weight = parseFloat(weightStr);
+            if (!isNaN(weight) && weight > 0) {
+              const repsVal = prevEx['reps_week' + w];
+              let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+              const inputReps = estraiRepsDaInput(insVal);
+              if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
+                repsNum = inputReps;
+              }
+              if (repsNum) {
+                const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
+                if (e1rm > best1RM) {
+                  best1RM = e1rm;
+                  const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+                  bestSource = {
+                    id: prevEx.id,
+                    peso: weight,
+                    reps: repsNum,
+                    numScheda: prevEx.num_scheda,
+                    date: dEx,
+                    tempoTrascorso: tempoTrascorsoBreve(dEx)
+                  };
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  if (inputSettimane.value) {
+    Object.keys(inputSettimane.value).forEach(w => {
+      const insVal = inputSettimane.value[w]?.ins;
+      if (insVal) {
+        const weightStr = estraiPesoDaInput(insVal);
+        if (weightStr) {
+          const weight = parseFloat(weightStr);
+          if (!isNaN(weight) && weight > 0) {
+            const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(parseInt(w, 10));
+            if (rExecuted) {
+              const e1rm = calcolaE1RMSmorzato(weight, rExecuted, isCavo);
+              if (e1rm > best1RM) {
+                best1RM = e1rm;
+                bestSource = {
+                  id: workout.value.id,
+                  peso: weight,
+                  reps: rExecuted,
+                  numScheda: workout.value.num_scheda,
+                  date: workout.value.dat_scheda_ult_ex || workout.value.timestamp,
+                  tempoTrascorso: tempoTrascorsoBreve(workout.value.dat_scheda_ult_ex || workout.value.timestamp) || 'questa scheda'
+                };
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  return { best1RM, bestSource };
+};
+
+const calcolaMassimale1RMPuro = () => {
+  return calcolaDettaglioMassimale1RMPuro().best1RM;
 };
 
 const getRiferimentoSfidaRecord = (sett) => {
   if (!workout.value) return null;
   const repsTarget = getRepsPerWeek(sett);
   if (!repsTarget) return null;
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
 
-  const recordEsatto = ottieniRecordStoricoPerReps(repsTarget);
-  const recordStimato = stimaRecordStoricoPerReps(repsTarget);
+  const recordRealeInfo = ottieniDettaglioRecordStoricoPerReps(repsTarget);
+  const recordEsatto = recordRealeInfo ? recordRealeInfo.peso : null;
+  const recordStimatoRaw = stimaRecordStoricoPerReps(repsTarget);
 
   let stimaDaSchedaCorrente = 0;
   if (sett > 1 && inputSettimane.value) {
@@ -3844,8 +4017,8 @@ const getRiferimentoSfidaRecord = (sett) => {
           const weight = parseFloat(weightStr);
           if (!isNaN(weight) && weight > 0) {
             const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
-            const e1rm = weight * (1 + rExecuted / 30);
-            const estW = e1rm / (1 + repsTarget / 30);
+            const e1rm = calcolaE1RMSmorzato(weight, rExecuted, isCavo);
+            const estW = calcolaPesoDaE1RMSmorzato(e1rm, repsTarget, isCavo);
             if (estW > stimaDaSchedaCorrente) {
               stimaDaSchedaCorrente = estW;
             }
@@ -3855,10 +4028,15 @@ const getRiferimentoSfidaRecord = (sett) => {
     }
   }
 
+  const recordStimatoUnrounded = Math.max(recordStimatoRaw || 0, stimaDaSchedaCorrente || 0);
+  const recordStimato = recordStimatoUnrounded > 0 ? arrotondaAStep125(recordStimatoUnrounded) : null;
+  const massimaleInfo = calcolaDettaglioMassimale1RMPuro();
+  const massimaleRaw = massimaleInfo ? massimaleInfo.best1RM : 0;
+  const massimale1RM = massimaleRaw > 0 ? arrotondaAStep125(massimaleRaw) : null;
+
   const pesoMassimo = Math.max(
     recordEsatto || 0,
-    recordStimato || 0,
-    stimaDaSchedaCorrente || 0
+    recordStimato || 0
   );
 
   if (pesoMassimo <= 0) return null;
@@ -3866,9 +4044,12 @@ const getRiferimentoSfidaRecord = (sett) => {
   const isStima = pesoMassimo !== recordEsatto;
 
   return {
-    peso: Math.round(pesoMassimo * 10) / 10,
-    recordReale: recordEsatto ? Math.round(recordEsatto * 10) / 10 : null,
-    recordStimato: (recordStimato || stimaDaSchedaCorrente) ? Math.round(Math.max(recordStimato || 0, stimaDaSchedaCorrente || 0) * 10) / 10 : null,
+    peso: arrotondaAStep125(pesoMassimo),
+    recordReale: recordEsatto ? arrotondaAStep125(recordEsatto) : null,
+    recordRealeInfo: recordRealeInfo,
+    recordStimato: recordStimato,
+    massimale1RM: massimale1RM,
+    massimaleInfo: massimaleInfo,
     isStima: isStima
   };
 };
@@ -4602,90 +4783,39 @@ const getGhostWeightsRangeForWeek = (sett) => {
   }
 
   // Standard weeks (2, 3, 5, 6)
-  let pesoProposto = (ghost.isPostScarico && ghost.pesoProposto !== undefined) ? ghost.pesoProposto : (ghost.peso || pesoBase);
+  const isTargetCompletato = repsBaseVal >= repsTarget;
+  const isEsuberoReps = repsBaseVal >= repsTarget + 2;
+  const isRepsIncomplete = repsBaseVal < repsTarget;
 
-  // Applica preferenza globale per Week 2
-  if (sett === 2 && regolaProgressioneW2.value === 'peso') {
-    if (pesoProposto <= pesoBase) {
-      pesoProposto = pesoBase + step; // Forza l'aumento di peso di almeno uno step
-    }
-  }
+  const pesoConsigliato = isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step;
+  const pesoSfidante = isManubri ? getDumbbellSequenceWeight(pesoConsigliato, 'up') : pesoConsigliato + step;
 
-  if (pesoProposto > pesoBase) {
-    // 1. Volume (Aumento Ripetizioni)
-    const repsVolume = Math.max(repsTarget + 1, repsBaseVal + 1);
-    
-    // 2. Micro-carico (Graduale)
-    let pesoMicro = pesoBase + (pesoProposto - pesoBase) / 2;
-    pesoMicro = Math.round(pesoMicro / step) * step;
-
-    // Se il peso micro coincide con la base o con il proposto, non c'è una via di mezzo reale di carico!
-    // Applichiamo l'Opzione 3: differenziamo tramite ripetizioni sul peso base
-    if (pesoMicro <= pesoBase || pesoMicro >= pesoProposto) {
-      if (sett === 2 && regolaProgressioneW2.value === 'peso') {
-        return {
-          prudenziale: {
-            value: `${pesoBase}x${repsVolume}r`,
-            display: `${formatWeight(pesoBase)}x${repsVolume}r`,
-            label: 'Volume'
-          },
-          consigliato: {
-            value: String(pesoProposto),
-            display: `${formatWeight(pesoProposto)} kg`,
-            label: 'Consigliato'
-          },
-          sfidante: {
-            value: String(isManubri ? getDumbbellSequenceWeight(pesoProposto, 'up') : pesoProposto + step),
-            display: `${formatWeight(isManubri ? getDumbbellSequenceWeight(pesoProposto, 'up') : pesoProposto + step)} kg`,
-            label: 'Sfidante'
-          }
-        };
-      }
-
-      const repsVolumeLeggero = repsVolume;
-      const repsVolumeForte = repsVolume + 1;
-      
-      return {
-        prudenziale: {
-          value: `${pesoBase}x${repsVolumeLeggero}r`,
-          display: `${formatWeight(pesoBase)}x${repsVolumeLeggero}r`,
-          label: 'Volume'
-        },
-        consigliato: {
-          value: `${pesoBase}x${repsVolumeForte}r`,
-          display: `${formatWeight(pesoBase)}x${repsVolumeForte}r`,
-          label: 'Volume+'
-        },
-        sfidante: {
-          value: String(pesoProposto),
-          display: `${formatWeight(pesoProposto)} kg`,
-          label: 'Sfidante'
-        }
-      };
-    }
-
-    // Altrimenti, se esiste un peso intermedio reale
+  // Scenario 0: Intensificazione (repsTarget < repsBaseVal)
+  // Se la settimana attuale richiede meno reps rispetto a quanto già svolto la settimana prima (es. W5 7r -> W6 6r),
+  // l'atleta ha già dominato pesoBase x repsBaseVal, quindi 45kg a 6r sarebbe regressivo. Fai scattare l'incremento di peso!
+  if (repsTarget < repsBaseVal) {
+    const pesoSfidantePlus = isManubri ? getDumbbellSequenceWeight(pesoSfidante, 'up') : pesoSfidante + step;
     return {
       prudenziale: {
-        value: `${pesoBase}x${repsVolume}r`,
-        display: `${formatWeight(pesoBase)}x${repsVolume}r`,
-        label: 'Volume'
+        value: String(pesoConsigliato),
+        display: `${formatWeight(pesoConsigliato)} kg`,
+        label: 'Prudenziale'
       },
       consigliato: {
-        value: String(pesoMicro),
-        display: `${formatWeight(pesoMicro)} kg`,
+        value: String(pesoSfidante),
+        display: `${formatWeight(pesoSfidante)} kg`,
         label: 'Consigliato'
       },
       sfidante: {
-        value: String(pesoProposto),
-        display: `${formatWeight(pesoProposto)} kg`,
+        value: String(pesoSfidantePlus),
+        display: `${formatWeight(pesoSfidantePlus)} kg`,
         label: 'Sfidante'
       }
     };
-  } else {
-    // Se non c'è proposta di incremento del peso (pesoProposto <= pesoBase)
-    const repsProg1 = Math.max(repsTarget + 1, repsBaseVal + 1);
-    const repsProg2 = repsProg1 + 1;
+  }
+
+  // Scenario 1: Reps Incomplete (< target)
+  if (isRepsIncomplete) {
     return {
       prudenziale: {
         value: String(pesoBase),
@@ -4693,17 +4823,58 @@ const getGhostWeightsRangeForWeek = (sett) => {
         label: 'Prudenziale'
       },
       consigliato: {
-        value: `${pesoBase}x${repsProg1}r`,
-        display: `${formatWeight(pesoBase)}x${repsProg1}r`,
+        value: `${pesoBase}x${repsBaseVal + 1}r`,
+        display: `${formatWeight(pesoBase)}x${repsBaseVal + 1}r`,
         label: 'Consigliato (+1r)'
       },
       sfidante: {
-        value: `${pesoBase}x${repsProg2}r`,
-        display: `${formatWeight(pesoBase)}x${repsProg2}r`,
-        label: 'Sfidante (+2r)'
+        value: String(pesoConsigliato),
+        display: `${formatWeight(pesoConsigliato)} kg`,
+        label: 'Sfidante'
       }
     };
   }
+
+  // Scenario 2: Surplus Reps (>= target + 2)
+  if (isEsuberoReps) {
+    return {
+      prudenziale: {
+        value: String(pesoConsigliato),
+        display: `${formatWeight(pesoConsigliato)} kg`,
+        label: 'Prudenziale'
+      },
+      consigliato: {
+        value: `${pesoConsigliato}x${repsTarget + 1}r`,
+        display: `${formatWeight(pesoConsigliato)}x${repsTarget + 1}r`,
+        label: 'Consigliato (+1r)'
+      },
+      sfidante: {
+        value: String(pesoSfidante),
+        display: `${formatWeight(pesoSfidante)} kg`,
+        label: 'Sfidante'
+      }
+    };
+  }
+
+  // Scenario 3: Standard Success (repsBaseVal >= repsTarget, include il caso default con solo peso scritto)
+  const repsVolume = repsTarget + 1;
+  return {
+    prudenziale: {
+      value: `${pesoBase}x${repsVolume}r`,
+      display: `${formatWeight(pesoBase)}x${repsVolume}r`,
+      label: 'Prudenziale (+1r)'
+    },
+    consigliato: {
+      value: String(pesoConsigliato),
+      display: `${formatWeight(pesoConsigliato)} kg`,
+      label: 'Consigliato'
+    },
+    sfidante: {
+      value: String(pesoSfidante),
+      display: `${formatWeight(pesoSfidante)} kg`,
+      label: 'Sfidante'
+    }
+  };
 };
 
 const getGhostWeightsRangeText = (sett) => {
@@ -5918,6 +6089,24 @@ const isManubriEsercizio = (ex) => {
   const insEsercizio = String(ex.ins_esercizio || '').toLowerCase();
 
   const keywords = ['manubr', 'dumbbel', 'db'];
+  return keywords.some(k => 
+    name.includes(k) || 
+    noteAttr.includes(k) || 
+    noteGen.includes(k) || 
+    noteCoach.includes(k) || 
+    insEsercizio.includes(k)
+  );
+};
+
+const isCavoOMacchinaEsercizio = (ex) => {
+  if (!ex) return false;
+  const name = String(ex.des_esercizio || '').toLowerCase();
+  const noteAttr = String(ex.des_note_attrezzo || '').toLowerCase();
+  const noteGen = String(ex.des_note_gen_attr || '').toLowerCase();
+  const noteCoach = String(ex.des_note || '').toLowerCase();
+  const insEsercizio = String(ex.ins_esercizio || '').toLowerCase();
+
+  const keywords = ['cavo', 'cavi', 'cable', 'pulley', 'ercolina', 'pushdown', 'pulldown', 'lat machine', 'macchina', 'leg extension', 'leg curl', 'pressa', 'guided'];
   return keywords.some(k => 
     name.includes(k) || 
     noteAttr.includes(k) || 
@@ -10209,9 +10398,16 @@ const apriStoricoEsercizio = async () => {
 };
 
 const vaiADettaglioStorico = (prevExId) => {
-  vibraTattile(10);
+  vibraTattile(12);
+  if (!prevExId) return;
   dialogStorico.value = false;
-  router.push({ name: 'DettaglioWorkout', params: { id: prevExId } });
+  dialogAiutoProposta.value = false;
+
+  if (workout.value && String(workout.value.id) === String(prevExId)) {
+    riportaAInizioPagina();
+  } else {
+    router.push({ name: 'DettaglioWorkout', params: { id: prevExId } });
+  }
 };
 
 const isVolumeString = (str) => {

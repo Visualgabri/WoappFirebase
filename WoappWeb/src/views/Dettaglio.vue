@@ -3617,6 +3617,11 @@ const haDriverQualitativoAccreditato = (sett) => {
 
 const isStagnazioneSettimana = (sett) => {
   if (sett <= 1) return false;
+
+  // Se c'è un vincolo esplicito di carico dal coach (es. [KG W5] o ghost.isMandatory), NON è stagnazione!
+  const ghost = getGhostLift(sett);
+  if (ghost && (ghost.isMandatory || ghost.mandatoryLabel)) return false;
+
   const currentIns = inputSettimane.value[sett]?.ins;
   if (!currentIns || String(currentIns).trim() === '' || String(currentIns).trim() === '-') return false;
   

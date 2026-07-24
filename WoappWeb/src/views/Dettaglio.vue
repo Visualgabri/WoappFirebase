@@ -877,7 +877,7 @@
             <v-textarea
               v-if="ottimizzaDigitazione"
               v-model.lazy="inputSettimane[sett].ins"
-              label="Carico o note (es. 45kg)"
+              :label="isCorpoLiberoOVolumeEsercizio(workout) ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
               variant="outlined"
               density="compact"
               hide-details
@@ -920,7 +920,7 @@
             <v-textarea
               v-else
               v-model="inputSettimane[sett].ins"
-              label="Carico o note (es. 45kg)"
+              :label="isCorpoLiberoOVolumeEsercizio(workout) ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
               variant="outlined"
               density="compact"
               hide-details
@@ -958,6 +958,19 @@
                 </div>
               </template>
             </v-textarea>
+
+            <!-- Suggerimento Formattazione Reps (es. 3x12 -> 3x12r) -->
+            <div
+              v-if="getRepFormattingSuggestion(sett)"
+              class="d-flex align-center mt-1.5 px-2.5 py-1.5 rounded-lg cursor-pointer animate-fade-in text-left"
+              style="border: 1px solid rgba(245, 158, 11, 0.4) !important; background: rgba(245, 158, 11, 0.08) !important;"
+              @click="applicaSuggerimentoFormattazioneReps(sett, getRepFormattingSuggestion(sett).suggested)"
+            >
+              <v-icon color="amber-darken-2" size="15" class="mr-2 flex-shrink-0">mdi-lightbulb-on</v-icon>
+              <span class="text-caption font-weight-bold text-amber-lighten-2" style="font-size: 0.70rem; line-height: 1.3;">
+                {{ getRepFormattingSuggestion(sett).message }} <strong class="text-white text-decoration-underline ml-1">Tocca per formattare</strong>
+              </span>
+            </div>
           </div>
 
           <!-- BANNER SMART STAGNATION GUARD & CHIP RAPIDI (Soluzione 1) -->
@@ -8870,6 +8883,48 @@ const getGhostFieldClass = (sett) => {
   return ''; // Resta grigio spento solo se completamente vuoto
 };
 
+const getRepFormattingSuggestion = (sett) => {
+  if (!workout.value) return null;
+  const val = inputSettimane.value[sett]?.ins;
+  if (!val || !isCorpoLiberoOVolumeEsercizio(workout.value)) return null;
+  const clean = String(val).trim();
+  
+  // Rileva notazioni SxR come 3x12 o 4x10 (senza la 'r' finale)
+  const matchSxR = clean.match(/^(\d+)\s*[xX]\s*(\d+)$/);
+  if (matchSxR) {
+    const s = matchSxR[1];
+    const r = matchSxR[2];
+    return {
+      text: `${s}x${r}`,
+      suggested: `${s}x${r}r`,
+      message: `Hai scritto ${s}x${r}. Specificare ${r}r (${s}x${r}r)?`
+    };
+  }
+  
+  // Rileva numero singolo puro come "12"
+  const matchNum = clean.match(/^(\d+)$/);
+  if (matchNum) {
+    const r = matchNum[1];
+    return {
+      text: r,
+      suggested: `${r}r`,
+      message: `Hai scritto ${r}. Specificare ${r}r (${r} ripetizioni)?`
+    };
+  }
+
+  return null;
+};
+
+const applicaSuggerimentoFormattazioneReps = (sett, suggestedText) => {
+  vibraTattile(12);
+  if (inputSettimane.value[sett]) {
+    inputSettimane.value[sett].ins = suggestedText;
+    salvaDatoSettimanale(sett, 'ins');
+    snackbarMessaggio.value = `Formattato in ${suggestedText}!`;
+    snackbarSalvataggio.value = true;
+  }
+};
+
 function estraiRepsDaInput(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
@@ -8905,10 +8960,10 @@ function estraiPesoDaInput(str) {
   // Rimuove gradi (es. "30°")
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
 
-  // Rileva formato tipo "12x14r" o "12x14" (ora che è pulito)
-  const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
-  if (matchX) {
-    return matchX[1];
+  // Rileva formato tipo "3x12" o "3x12r": la notazione SxR senza "kg" espliciti NON è un peso in kg!
+  const matchSxR = clean.match(/^\s*\d+(?:\.\d+)?\s*[xX]\s*\d+(?:\.\d+)?(?:\s*[rR]?\b)?\s*$/);
+  if (matchSxR) {
+    return null;
   }
   
   // 1. Rimuoviamo il prefisso delle reps (es. "3x10", "4 x 12")

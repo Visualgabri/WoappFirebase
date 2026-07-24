@@ -2604,6 +2604,7 @@ const stalloInSchedaPrecedente = (ex) => {
     if (!val) return 0;
     const clean = String(val).replace(/,/g, '.').trim();
     if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
+    if (/^\s*\d+(?:\.\d+)?\s*[xX]\s*\d+(?:\.\d+)?(?:\s*[rR]?\b)?\s*$/.test(clean)) return 0;
     const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
     const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);
@@ -4385,6 +4386,7 @@ const reportProgressioni = computed(() => {
     const clean = String(val).replace(/,/g, '.').trim();
     const isRep = /^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean);
     if (isRep) return 0;
+    if (/^\s*\d+(?:\.\d+)?\s*[xX]\s*\d+(?:\.\d+)?(?:\s*[rR]?\b)?\s*$/.test(clean)) return 0;
     const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
     const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);

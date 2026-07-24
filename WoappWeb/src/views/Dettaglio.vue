@@ -1033,18 +1033,15 @@
               <span style="font-size: 1.4rem; line-height: 1;">🛋️</span>
               <div>
                 <div class="text-amber-lighten-1 font-weight-black text-caption uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">
-                  SGRIDATA DEL COACH: ZONA DI COMFORT RILEVATA!
-                </div>
-                <div class="text-super-caption text-slate-light" style="font-size: 0.58rem;">
-                  Analisi Mesociclo Completa su {{ workout?.des_esercizio }}
+                 ZONA DI COMFORT RILEVATA!
                 </div>
               </div>
             </div>
             <p class="text-super-caption text-white mb-2" style="font-size: 0.68rem; line-height: 1.4;">
-              Hai usato <strong>{{ auditStalloW6.peso }} kg</strong> per diverse settimane senza registrare variazioni di peso, reps, tempo sotto tensione o sensazioni.
+              Hai usato <strong>{{ auditStalloW6.peso }} kg</strong> per più settimane, senza registrare variazioni di peso, reps, tempo sotto tensione o sensazioni.
             </p>
             <div class="pa-2 rounded-lg mb-2.5 bg-slate-950 border border-soft text-super-caption text-amber-lighten-2" style="font-size: 0.62rem; line-height: 1.35; border-color: rgba(245, 158, 11, 0.2) !important;">
-              💡 <em>"Mantenere lo stesso peso senza spingere su altri parametri rende l'esercizio una routine di mantenimento, non di crescita!"</em>
+              💡 <em>"Se i parametri restano invariati, l'’'esercizio non sta progredendo."</em>
             </div>
             <v-btn
               block
@@ -1054,7 +1051,7 @@
               style="font-size: 0.70rem;"
               @click="apriAiutoCaricoDettagliato(6)"
             >
-              🚀 Scopri la Proposta di Sblocco per la Prossima Scheda
+              🚀 Scopri come sbloccarlo nella prossima scheda
             </v-btn>
           </v-card>
 
@@ -3558,13 +3555,13 @@ const regolaProgressioneW2 = regolaProgressioneW2Global;
 
 // --- LOGICA ANTI-STALLO & PROGRESSIONE MULTIDIMENSIONALE (SOLUZIONI 1, 3, 4) ---
 const chipProgressioneQualitativa = [
-  { id: 'extra_rep', icon: '📈', label: '+1 Rep Extra (Più Ripetizioni)', primary: true },
+  { id: 'extra_rep', icon: '📈', label: 'Rep Extra', primary: true },
   { id: 'tut', icon: '⏱️', label: 'Eccentrica più lenta (TUT)' },
-  { id: 'rom', icon: '🧘', label: 'Maggiore ROM / Controllo' },
+  { id: 'rom', icon: '🧘', label: 'Maggiore ROM/Controllo' },
   { id: 'rir', icon: '📉', label: 'Sforzo Percepito Minore (RIR+1)' },
   { id: 'pausa', icon: '⏱️', label: 'Pausa nel punto critico' },
   { id: 'densita', icon: '⚡', label: 'Recupero Ridotto' },
-  { id: 'mantenimento', icon: '🟢', label: 'Nessuno / Mantenimento' }
+  { id: 'mantenimento', icon: '🟢', label: 'Nessuno/Mantenimento' }
 ];
 
 const haDriverQualitativoAccreditato = (sett) => {

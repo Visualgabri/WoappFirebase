@@ -11,6 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo.png', 'favicon.svg', 'icons.svg'],
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,eot}'],
         globIgnores: ['**/storyboard_backup.json'],
         runtimeCaching: [

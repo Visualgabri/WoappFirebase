@@ -770,9 +770,29 @@ export const chiudiBannerNotifica = () => {
   showDeployBanner.value = false;
 };
 
-export const accettaEAggiornaDeploy = () => {
+export const accettaEAggiornaDeploy = async () => {
+  const versionId = deployVersionInfo.value?.version_id || ('v_' + Date.now());
   chiudiBannerNotifica();
-  window.location.reload(true);
+
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        if (reg.active) reg.active.postMessage({ type: 'SKIP_WAITING' });
+      }
+    }
+
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+  } catch (err) {
+    console.warn("Pulizia cache SW durante aggiornamento:", err);
+  }
+
+  const targetUrl = window.location.origin + window.location.pathname + '?v=' + versionId + '&t=' + Date.now();
+  window.location.href = targetUrl;
 };
 
 export const ignoraBannerDeploy = () => {

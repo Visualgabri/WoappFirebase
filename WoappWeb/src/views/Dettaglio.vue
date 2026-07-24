@@ -4739,6 +4739,11 @@ const getGhostRenderInfo = (sett) => {
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
 
+  // Se l'esercizio è a corpo libero / ripetizioni, NON mostriamo il banner CONSIGLIATO del Ghost
+  if (ghost.isRepExercise || isCorpoLiberoEsercizio(workout.value)) {
+    return null;
+  }
+
   let icon = 'mdi-lightbulb-on-outline';
   let color = '#ffb74d'; // orange-lighten-2
   let label = 'Consigliato:';

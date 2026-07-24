@@ -877,7 +877,7 @@
             <v-textarea
               v-if="ottimizzaDigitazione"
               v-model.lazy="inputSettimane[sett].ins"
-              :label="isCorpoLiberoOVolumeEsercizio(workout) ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
+              :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
               variant="outlined"
               density="compact"
               hide-details
@@ -920,7 +920,7 @@
             <v-textarea
               v-else
               v-model="inputSettimane[sett].ins"
-              :label="isCorpoLiberoOVolumeEsercizio(workout) ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
+              :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
               variant="outlined"
               density="compact"
               hide-details
@@ -8885,8 +8885,11 @@ const getGhostFieldClass = (sett) => {
 
 const getRepFormattingSuggestion = (sett) => {
   if (!workout.value) return null;
+  const ghost = getGhostLiftSmart(sett);
+  if (!ghost || !ghost.isRepExercise) return null;
+
   const val = inputSettimane.value[sett]?.ins;
-  if (!val || !isCorpoLiberoOVolumeEsercizio(workout.value)) return null;
+  if (!val) return null;
   const clean = String(val).trim();
   
   // Rileva notazioni SxR come 3x12 o 4x10 (senza la 'r' finale)

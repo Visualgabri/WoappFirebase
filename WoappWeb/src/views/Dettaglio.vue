@@ -813,11 +813,11 @@
                   
                   <!-- Caso Post Scarico o progressione standard -->
                   <template v-else>
+                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold mr-2">
+                      ↔ {{ getGhostWeightsRangeText(sett) }}
+                    </span>
                     <span v-if="getGhostLiftSmart(sett).text">
                       (prec. {{ getGhostLiftSmart(sett).label }}: <strong class="text-slate-light">{{ getGhostLiftSmart(sett).text }}</strong>)
-                    </span>
-                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold ml-1.5">
-                      • range: {{ getGhostWeightsRangeText(sett) }}
                     </span>
                   </template>
                 </div>

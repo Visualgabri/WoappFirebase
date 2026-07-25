@@ -346,6 +346,12 @@
               class="elevation-1"
             ></v-progress-linear>
           </div>
+          <!-- Single Sfida Record Badge -->
+          <div v-if="getRiferimentoSfidaRecord(settimanaAttiva)" class="mt-2 pt-1.5 border-top-soft text-left">
+            <span class="text-super-caption text-amber-lighten-1 font-weight-black d-inline-flex align-center gap-1" style="font-size: 0.62rem;" :title="getRiferimentoSfidaRecord(settimanaAttiva).isStima ? 'Calcolato da stima massimale storico' : 'Record storico reale'">
+              🏆 Sfida Record: {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} kg
+            </span>
+          </div>
         </div>
  
         <!-- Alternativo se des_esercizio_2 è una stringa Volume speciale -->
@@ -411,6 +417,18 @@
             class="font-weight-black px-2 py-0.5"
           >
             {{ workout.des_esercizio_2 }}
+          </v-chip>
+
+          <!-- 3. Fallback Chip Sfida Record per esercizi senza RMT -->
+          <v-chip
+            v-if="!parsedRmt(workout.des_esercizio_2) && getRiferimentoSfidaRecord(settimanaAttiva)"
+            color="amber-darken-3"
+            variant="tonal"
+            size="x-small"
+            class="font-weight-black px-2 py-0.5"
+            :title="getRiferimentoSfidaRecord(settimanaAttiva).isStima ? 'Calcolato da stima massimale storico' : 'Record storico reale'"
+          >
+            🏆 Sfida: {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} kg
           </v-chip>
         </div>
 
@@ -759,6 +777,9 @@
                     <span class="text-green-accent-3 font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.85rem' }">
                       {{ getGhostRenderInfo(sett).valueText }}
                     </span>
+                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold ml-1.5 text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.66rem' }">
+                      • range: {{ getGhostWeightsRangeText(sett) }}
+                    </span>
                   </div>
                   
                   <div class="d-flex align-center gap-1">
@@ -786,9 +807,6 @@
                     <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'">
                       - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
                     </span>)
-                    <span v-if="getRiferimentoSfidaRecord(sett)" class="text-amber-lighten-1 ml-1.5 font-weight-bold" :title="getRiferimentoSfidaRecord(sett).isStima ? 'Calcolato da stima massimale storico' : 'Record storico reale'">
-                      🏆 Sfida: {{ formatWeight(getRiferimentoSfidaRecord(sett).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(sett).peso)) }} kg
-                    </span>
                     <span v-if="getGhostLiftSmart(sett).stimaMenoAccurata" class="text-amber-lighten-2 ml-1" title="Carica il Miglior Carico W6 per una stima più precisa">
                       ⚠️ stima W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 5 }}
                     </span>
@@ -806,12 +824,6 @@
                   <template v-else>
                     <span v-if="getGhostLiftSmart(sett).text">
                       (prec. {{ getGhostLiftSmart(sett).label }}: <strong class="text-slate-light">{{ getGhostLiftSmart(sett).text }}</strong>)
-                    </span>
-                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold ml-1.5">
-                      • range: {{ getGhostWeightsRangeText(sett) }}
-                    </span>
-                    <span v-if="getRiferimentoSfidaRecord(sett)" class="text-amber-lighten-1 font-weight-bold ml-1.5" :title="getRiferimentoSfidaRecord(sett).isStima ? 'Calcolato da stima massimale storico' : 'Record storico reale'">
-                      🏆 Sfida: {{ formatWeight(getRiferimentoSfidaRecord(sett).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(sett).peso)) }} kg
                     </span>
                   </template>
                 </div>

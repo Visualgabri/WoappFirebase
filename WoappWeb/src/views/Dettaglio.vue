@@ -4866,11 +4866,12 @@ const getGhostWeightsRangeForWeek = (sett) => {
 
   // Scenario 0: Intensificazione (repsTarget < repsBaseVal)
   if (repsTarget < repsBaseVal) {
+    const repsVolume = repsBaseVal + 1;
     return {
       prudenziale: {
-        value: String(pesoBase),
-        display: `${formatWeight(pesoBase)} kg`,
-        label: 'Prudenziale'
+        value: `${pesoBase}x${repsVolume}r`,
+        display: `${formatWeight(pesoBase)}x${repsVolume}r`,
+        label: 'Prudenziale (+1r)'
       },
       consigliato: {
         value: String(pesoConsigliato),

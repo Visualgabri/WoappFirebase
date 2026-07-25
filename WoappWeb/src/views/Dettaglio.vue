@@ -5057,7 +5057,9 @@ const getGhostRenderInfo = (sett) => {
       label = '⚡ SFIDA ANTI-STALLO:';
       const step = getWeightStep(isManubri, pesoBase);
       const pesoSfidante = (pesoBase > 0) ? pesoBase + step : (ghost.peso || 0) + step;
-      valueText = `${formatWeight(pesoSfidante)} kg (o ${formatWeight(pesoBase)}kg + TUT)`;
+      const rangeInfo = getGhostWeightsRangeForWeek(sett);
+      const optAlt = (rangeInfo && rangeInfo.prudenziale && rangeInfo.prudenziale.display) ? rangeInfo.prudenziale.display : `${formatWeight(pesoBase)}kg`;
+      valueText = `${formatWeight(pesoSfidante)} kg (o ${optAlt})`;
     } else {
       const range = getGhostWeightsRangeForWeek(sett);
       if (range && range.consigliato) {

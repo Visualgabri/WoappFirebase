@@ -2721,6 +2721,16 @@ const isRepProgression = (ex) => {
 const estraiRepsDaInput = (str) => {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
+
+  // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
+  const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
+  if (matchRP) {
+    return parseFloat(matchRP[1]);
+  }
+
+  // Soluzione 1: Rimuove parentesi tonde (...) e quadre [...] per evitare che note personali interferiscano col calcolo
+  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').trim();
+
   const repsPrefixRegex = /^\s*\d+\s*[xX]\s*/g;
   clean = clean.replace(repsPrefixRegex, '').trim();
   

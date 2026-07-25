@@ -764,7 +764,7 @@
                       {{ getGhostRenderInfo(sett).icon }}
                     </v-icon>
                     
-                    <span class="font-weight-black text-uppercase text-truncate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', color: getGhostRenderInfo(sett).color, letterSpacing: '0.04em' }">
+                    <span class="font-weight-black text-uppercase text-truncate mr-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem', color: getGhostRenderInfo(sett).color, letterSpacing: '0.04em' }">
                       {{ getGhostRenderInfo(sett).label }}
                     </span>
                     

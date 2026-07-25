@@ -3724,23 +3724,13 @@ const isStalledInPreviousMesocycle = computed(() => {
   
   const parsePesoLocalInternal = (val) => {
     if (!val) return 0;
-    const clean = String(val).replace(/,/g, '.').trim();
-    if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
-    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
-    const parts = cleanNum.split(/\s+/);
-    const num = parseFloat(parts[0]);
-    return isNaN(num) ? 0 : num;
+    const pStr = estraiPesoDaInput(val);
+    return pStr ? parseFloat(pStr) : 0;
   };
 
   const estraiRepsInternal = (str) => {
     if (!str) return null;
-    let clean = String(str).replace(/,/g, '.').trim();
-    clean = clean.replace(/^\s*\d+\s*[xX]\s*/g, '').trim();
-    const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
-    if (matchR) return parseFloat(matchR[1]);
-    const matchNum = clean.match(/^(\d+(?:\.\d+)?)/);
-    if (matchNum) return parseFloat(matchNum[1]);
-    return null;
+    return estraiRepsDaInput(str);
   };
 
   const useRep = previousWorkout.value.des_esercizio && String(previousWorkout.value.des_esercizio).toLowerCase().includes('corpo libero');
@@ -4338,9 +4328,26 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
                   
                   // 3. Gestione dello sforzo: Aggiustamento in base alla fatica registrata in Week 6 di quel mesociclo
                   const faticaStr = String(prevEx.num_faticaw6 || '').toLowerCase().trim();
+                  const rpeVal = estraiRpeDaInput(prevEx['ins_week' + w]) || estraiRpeDaInput(prevEx.num_faticaw6);
                   let coeffFatica = 1.0;
                   let spiegazioneFatica = 'Fatica: n.d.';
-                  if (faticaStr) {
+                  if (rpeVal !== null) {
+                    if (rpeVal >= 9.5) {
+                      const stDev = FATICA_DEVASTANTE_STORICO_PCT.value;
+                      coeffFatica = 1 - (stDev / 100);
+                      spiegazioneFatica = `RPE ${rpeVal} (Sforzo elevato: -${stDev}%)`;
+                    } else if (rpeVal >= 8.5) {
+                      const stPes = FATICA_PESANTE_STORICO_PCT.value;
+                      coeffFatica = 1 - (stPes / 100);
+                      spiegazioneFatica = `RPE ${rpeVal} (Sforzo alto: -${stPes}%)`;
+                    } else if (rpeVal >= 7.5) {
+                      coeffFatica = 1.00;
+                      spiegazioneFatica = `RPE ${rpeVal} (Sforzo target: 0%)`;
+                    } else {
+                      coeffFatica = 1.01;
+                      spiegazioneFatica = `RPE ${rpeVal} (Sforzo contenuto: +1%)`;
+                    }
+                  } else if (faticaStr) {
                     if (faticaStr.includes('legger') || faticaStr.includes('bass') || faticaStr === '1' || faticaStr === '2') {
                       coeffFatica = 1.01;
                       spiegazioneFatica = 'Fatica leggera (+1%)';
@@ -9125,9 +9132,26 @@ const applicaSuggerimentoFormattazioneReps = (sett, suggestedText) => {
   }
 };
 
+function estraiRpeDaInput(str) {
+  if (!str) return null;
+  const match = String(str).match(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*(\d+(?:[\.,]\d+)?)(?:\s*[\-\/]\s*(\d+(?:[\.,]\d+)?))?/i);
+  if (!match) return null;
+  let val1 = parseFloat(match[1].replace(',', '.'));
+  let val2 = match[2] ? parseFloat(match[2].replace(',', '.')) : val1;
+  if (isNaN(val1)) return null;
+  
+  if (val1 > 10) val1 = val1 / 10;
+  if (val2 > 10) val2 = val2 / 10;
+  
+  return Math.max(val1, val2);
+}
+
 function estraiRepsDaInput(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
+  
+  // Rimuove espressioni di RPE prima dell'estrazione reps (es. "Rpe: 93 - 99", "RPE 8.5")
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
   
   // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
@@ -9160,7 +9184,11 @@ function estraiRepsDaInput(str) {
 function estraiPesoDaInput(str) {
   if (!str) return null;
   
-  let clean = str.replace(/,/g, '.').trim();
+  let clean = String(str).replace(/,/g, '.').trim();
+  
+  // Rimuove espressioni di RPE (es. "Rpe: 93 - 99", "RPE 8.5", "RPE: 9-10", "rpe 93-99", "rpe@9")
+  // per evitare che la scala di sforzo percepito interferisca con l'estrazione del carico in KG
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
   
   // Rimuove espressioni di impostazioni/metadati (es. "PIN 12", "buco 3") per evitare che interferiscano
   const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo)\b\s*\d+(?:\.\d+)?/gi;

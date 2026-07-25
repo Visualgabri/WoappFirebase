@@ -775,14 +775,21 @@ export const accettaEAggiornaDeploy = async () => {
   chiudiBannerNotifica();
 
   try {
+    // 1. Invia messaggio SKIP_WAITING e disregistra tutti i Service Worker attivi
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const reg of registrations) {
-        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        if (reg.active) reg.active.postMessage({ type: 'SKIP_WAITING' });
+        try {
+          if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          if (reg.active) reg.active.postMessage({ type: 'SKIP_WAITING' });
+          await reg.unregister();
+        } catch (swErr) {
+          console.warn("Errore unregister SW:", swErr);
+        }
       }
     }
 
+    // 2. Elimina completamente tutte le cache (Workbox e PWA cache)
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       await Promise.all(cacheNames.map(name => caches.delete(name)));
@@ -791,8 +798,10 @@ export const accettaEAggiornaDeploy = async () => {
     console.warn("Pulizia cache SW durante aggiornamento:", err);
   }
 
-  const targetUrl = window.location.origin + window.location.pathname + '?v=' + versionId + '&t=' + Date.now();
-  window.location.href = targetUrl;
+  // 3. Esegui hard replacement dell'URL con timestamp unico e senza cache
+  const cleanPath = window.location.pathname;
+  const targetUrl = window.location.origin + cleanPath + '?v=' + versionId + '&reload=' + Date.now();
+  window.location.replace(targetUrl);
 };
 
 export const ignoraBannerDeploy = () => {

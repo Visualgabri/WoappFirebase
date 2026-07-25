@@ -8,7 +8,7 @@
           icon
           color="orange-darken-3"
           variant="text"
-          @click="tornaIndietro"
+          @click="vaiAdEsercizioPrecedente"
           id="btn-dettaglio-indietro"
         >
           <v-icon :size="layoutCorrente === 'super_compatto' ? 22 : (layoutCorrente === 'compatto' ? 24 : 28)">mdi-arrow-left</v-icon>
@@ -73,7 +73,16 @@
             </v-chip>
           </h3>
         </div>
-        <v-btn icon color="slate-dark" variant="text" @click="caricaDatiEsercizio"><v-icon>mdi-refresh</v-icon></v-btn>
+        <v-btn
+          icon
+          color="orange-darken-3"
+          variant="text"
+          @click="vaiAdEsercizioSuccessivo"
+          id="btn-dettaglio-avanti"
+          :disabled="listaIdEsercizi.length <= 1 || indexCorrente === listaIdEsercizi.length - 1"
+        >
+          <v-icon :size="layoutCorrente === 'super_compatto' ? 22 : (layoutCorrente === 'compatto' ? 24 : 28)">mdi-arrow-right</v-icon>
+        </v-btn>
       </div>
 
       <!-- Avviso Scheda Passata (Modalità Storico) -->
@@ -7293,16 +7302,8 @@ const vaiAdEsercizioSuccessivo = () => {
 };
 
 const vaiAdEsercizioPrecedente = () => {
-  if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1) return;
-  
-  // Se sono sul giorno (index 0) e faccio swipe a destra, vado al primo esercizio (index 1)
-  if (indexCorrente.value === 0) {
-    transitionName.value = 'swipe-next';
-    const firstEx = tuttiEserciziGiorno.value[1];
-    if (firstEx) {
-      vibraTattile(15);
-      router.replace({ name: 'DettaglioWorkout', params: { id: firstEx.id } });
-    }
+  if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1 || indexCorrente.value <= 0) {
+    tornaIndietro();
     return;
   }
 

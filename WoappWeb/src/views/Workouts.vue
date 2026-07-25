@@ -1158,7 +1158,7 @@
                     <!-- Dettagli Centrali Estesi (Si prendono tutto lo spazio a destra) -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative mt-1" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1 pr-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : 'text-slate-dark'" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
+                      <h4 class="font-weight-black leading-tight mb-1 pr-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'text-red-lighten-3' : 'text-slate-dark')" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
@@ -1533,7 +1533,7 @@
                 <!-- Dettagli Centrali Estesi (Si prendono tutto lo spazio a destra) -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-1" style="z-index: 2;">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1 pr-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : 'text-slate-dark'" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
+                  <h4 class="font-weight-black leading-tight mb-1 pr-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark')" style="font-size: 0.82rem !important; line-height: 1.2 !important; white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}

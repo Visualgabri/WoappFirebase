@@ -4195,6 +4195,19 @@ const targetPrescrizioneAttiva = computed(() => {
   return workout.value['des_week' + aiutoWeek.value] || '';
 });
 
+const isInputIndicaLimiteOStallo = (insText, noteText, faticaText) => {
+  const text = `${insText || ''} ${noteText || ''} ${faticaText || ''}`.toLowerCase();
+  if (!text.trim()) return false;
+
+  const keywords = [
+    'difficile', 'durissimo', 'durissima', 'duro', 'dura', 'limite', 'al limite', 'a limite',
+    'pesante', 'troppo pesante', 'cedimento', 'faticoso', 'sofferto', 'max', 'stallo', 'incerto',
+    'fatica alta', 'rpe 9.5', 'rpe 10', 'rpe9.5', 'rpe10', 'molto faticoso'
+  ];
+
+  return keywords.some(kw => text.includes(kw));
+};
+
 const getBaseWeekInfo = (sett) => {
   if (!workout.value) return null;
   let baseWNum = null;
@@ -4222,6 +4235,8 @@ const getBaseWeekInfo = (sett) => {
   let repsBase = 10;
   let pesoBase = null;
   let baseInsText = '';
+  let noteText = '';
+  let faticaText = '';
 
   if (isPreviousWorkoutW6) {
     if (previousWorkout.value) {
@@ -4233,8 +4248,12 @@ const getBaseWeekInfo = (sett) => {
       }
       const prevW6Reps = previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6);
       repsBase = prevW6Reps ? parseInt(prevW6Reps, 10) : 10;
+      noteText = previousWorkout.value.des_note || '';
+      faticaText = previousWorkout.value.des_fatica || '';
     }
   } else if (baseWNum !== null) {
+    noteText = inputSettimane.value[baseWNum]?.not || '';
+    faticaText = inputSettimane.value[baseWNum]?.fatica || '';
     const baseIns = inputSettimane.value[baseWNum]?.ins;
     if (baseIns) {
       baseInsText = String(baseIns);
@@ -4263,7 +4282,9 @@ const getBaseWeekInfo = (sett) => {
     repsBase,
     repsTarget,
     pesoBase,
-    baseInsText
+    baseInsText,
+    noteText,
+    faticaText
   };
 };
 
@@ -4604,6 +4625,11 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   const infoBase = getBaseWeekInfo(sett);
   const pesoBase = infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) ? infoBase.pesoBase : 0;
   const step = getWeightStep(isManubri, pesoBase);
+
+  // Se l'utente ha segnalato che l'esercizio era al limite/difficile, consiglia di mantenere il peso base per progressione su reps
+  if (infoBase && isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText) && pesoBase > 0) {
+    return pesoBase;
+  }
   
   let result;
   if (modalitaIncrementoGhost.value === 'fissa') {
@@ -4808,28 +4834,52 @@ const getGhostWeightsRangeForWeek = (sett) => {
   const isEsuberoReps = repsBaseVal >= repsTarget + 2;
   const isRepsIncomplete = repsBaseVal < repsTarget;
 
-  const pesoConsigliato = isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step;
+  const isDifficileOStallo = info ? isInputIndicaLimiteOStallo(info.baseInsText, info.noteText, info.faticaText) : false;
+
+  const potenziale = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
+  const pesoConsigliato = (potenziale !== null && potenziale > 0 && potenziale > pesoBase) 
+    ? potenziale 
+    : (isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step);
   const pesoSfidante = isManubri ? getDumbbellSequenceWeight(pesoConsigliato, 'up') : pesoConsigliato + step;
 
-  // Scenario 0: Intensificazione (repsTarget < repsBaseVal)
-  // Se la settimana attuale richiede meno reps rispetto a quanto già svolto la settimana prima (es. W5 7r -> W6 6r),
-  // l'atleta ha già dominato pesoBase x repsBaseVal, quindi 45kg a 6r sarebbe regressivo. Fai scattare l'incremento di peso!
-  if (repsTarget < repsBaseVal) {
-    const pesoSfidantePlus = isManubri ? getDumbbellSequenceWeight(pesoSfidante, 'up') : pesoSfidante + step;
+  // Scenario Sforzo Elevato / Difficile / Limite: mantiene lo stesso peso e consiglia progressione su reps
+  if (isDifficileOStallo && pesoBase > 0) {
+    const repsVolume = Math.max(repsTarget, repsBaseVal + 1);
     return {
       prudenziale: {
+        value: String(pesoBase),
+        display: `${formatWeight(pesoBase)} kg`,
+        label: 'Prudenziale (Stesso peso)'
+      },
+      consigliato: {
+        value: `${pesoBase}x${repsVolume}r`,
+        display: `${formatWeight(pesoBase)}x${repsVolume}r`,
+        label: 'Consigliato (+1r stesso peso)'
+      },
+      sfidante: {
         value: String(pesoConsigliato),
         display: `${formatWeight(pesoConsigliato)} kg`,
+        label: 'Sfidante'
+      }
+    };
+  }
+
+  // Scenario 0: Intensificazione (repsTarget < repsBaseVal)
+  if (repsTarget < repsBaseVal) {
+    return {
+      prudenziale: {
+        value: String(pesoBase),
+        display: `${formatWeight(pesoBase)} kg`,
         label: 'Prudenziale'
       },
       consigliato: {
-        value: String(pesoSfidante),
-        display: `${formatWeight(pesoSfidante)} kg`,
+        value: String(pesoConsigliato),
+        display: `${formatWeight(pesoConsigliato)} kg`,
         label: 'Consigliato'
       },
       sfidante: {
-        value: String(pesoSfidantePlus),
-        display: `${formatWeight(pesoSfidantePlus)} kg`,
+        value: String(pesoSfidante),
+        display: `${formatWeight(pesoSfidante)} kg`,
         label: 'Sfidante'
       }
     };
@@ -5142,6 +5192,11 @@ const opzioniStradeProgressione = computed(() => {
 });
 
 const spiegazioneDinamicaConsigliata = computed(() => {
+  const infoBaseCurrent = getBaseWeekInfo(aiutoWeek.value);
+  if (infoBaseCurrent && infoBaseCurrent.baseInsText && isInputIndicaLimiteOStallo(infoBaseCurrent.baseInsText, infoBaseCurrent.noteText, infoBaseCurrent.faticaText)) {
+    return `⚡ Sforzo al limite / difficile registrato nella sessione precedente (${infoBaseCurrent.pesoBase} kg). Il sistema ti consiglia di mantenere lo stesso peso per completare una progressione di ripetizioni prima di incrementare il carico.`;
+  }
+
   if (aiutoWeek.value === 2 && regolaProgressioneW2.value === 'peso') {
     const infoBase = getBaseWeekInfo(2);
     const pesoEffettivoW1 = infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) ? infoBase.pesoBase : 0;
@@ -6248,6 +6303,12 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   if (isNaN(pesoBase) || pesoBase <= 0) return null;
   
   if (!consenteProgressioneIntensita(workout.value, targetWeek)) {
+    return pesoBase;
+  }
+  
+  const noteBase = inputSettimane.value[baseWeekNum]?.not || '';
+  const faticaBase = inputSettimane.value[baseWeekNum]?.fatica || '';
+  if (isInputIndicaLimiteOStallo(baseInsText, noteBase, faticaBase)) {
     return pesoBase;
   }
   

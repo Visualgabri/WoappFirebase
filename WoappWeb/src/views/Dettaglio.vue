@@ -2310,7 +2310,7 @@
               
               <!-- Opzione 1: W2 -->
               <div class="d-flex align-center justify-space-between bg-slate-900 border rounded-lg pa-1.5 mb-1.5" style="border-color: rgba(255,255,255,0.05) !important;">
-                <span class="text-caption text-white font-weight-black" style="font-size: 0.72rem;">Usa peso W2: <strong class="text-green-accent-3">{{ scaricoWeek4Weights.pesoW2 ? scaricoWeek4Weights.pesoW2 + ' kg' : 'N.D.' }}</strong></span>
+                <span class="text-caption dialog-text-primary font-weight-black" style="font-size: 0.72rem;">Usa peso W2: <strong class="text-green-accent-3">{{ scaricoWeek4Weights.pesoW2 ? scaricoWeek4Weights.pesoW2 + ' kg' : 'N.D.' }}</strong></span>
                 <v-btn
                   color="amber-darken-2"
                   size="x-small"
@@ -2326,7 +2326,7 @@
               
               <!-- Opzione 2: W3 -->
               <div class="d-flex align-center justify-space-between bg-slate-900 border rounded-lg pa-1.5" style="border-color: rgba(255,255,255,0.05) !important;">
-                <span class="text-caption text-white font-weight-black" style="font-size: 0.72rem;">Usa peso W3: <strong class="text-green-accent-3">{{ scaricoWeek4Weights.pesoW3 ? scaricoWeek4Weights.pesoW3 + ' kg' : 'N.D.' }}</strong></span>
+                <span class="text-caption dialog-text-primary font-weight-black" style="font-size: 0.72rem;">Usa peso W3: <strong class="text-green-accent-3">{{ scaricoWeek4Weights.pesoW3 ? scaricoWeek4Weights.pesoW3 + ' kg' : 'N.D.' }}</strong></span>
                 <v-btn
                   color="amber-darken-4"
                   size="x-small"
@@ -11518,7 +11518,8 @@ th.sticky-col {
 [data-theme="light"] .table-scheda-title,
 [data-theme="light"] .record-hero-num,
 [data-theme="light"] .opzione-peso-text,
-[data-theme="light"] .banner-record-text {
+[data-theme="light"] .banner-record-text,
+[data-theme="light"] .dialog-text-primary {
   color: #0f172a !important;
 }
 
@@ -11532,6 +11533,10 @@ th.sticky-col {
 
 [data-theme="light"] .text-slate-light {
   color: #334155 !important;
+}
+
+[data-theme="light"] .text-muted {
+  color: #64748b !important;
 }
 
 [data-theme="light"] .text-cyan-lighten-2,
@@ -11560,22 +11565,36 @@ th.sticky-col {
   color: #1d4ed8 !important;
 }
 
-[data-theme="light"] .red-cell {
-  background-color: #fef2f2 !important;
-  border: 1px solid #fca5a5 !important;
-}
-
-[data-theme="light"] .timeline-red-cell {
-  background-color: #fef2f2 !important;
-  border: 1px solid #fca5a5 !important;
-}
-
+/* Tabella Cronologia */
 [data-theme="light"] .premium-storico-table {
   background-color: #ffffff !important;
 }
 
-[data-theme="light"] .premium-storico-table tr.table-row:hover {
+[data-theme="light"] .premium-storico-table th.header-cell {
   background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .premium-storico-table th.header-cell.bg-orange-darken-4 {
+  background-color: #ffedd5 !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .premium-storico-table td.body-cell {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .premium-storico-table tr.table-row:hover td.body-cell {
+  background-color: #f8fafc !important;
+}
+
+[data-theme="light"] .red-cell,
+[data-theme="light"] .timeline-red-cell {
+  background-color: #fef2f2 !important;
+  border: 1.5px solid #fca5a5 !important;
 }
 
 </style>

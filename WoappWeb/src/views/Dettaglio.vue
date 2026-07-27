@@ -2071,7 +2071,7 @@
               <v-icon color="orange-darken-3" size="18">
                 {{ activeTabAnalisi === 0 ? 'mdi-lightbulb-on' : 'mdi-history' }}
               </v-icon>
-              <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              <span class="dialog-header-title font-weight-black text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
                 {{ activeTabAnalisi === 0 ? 'Proposta Carico: ' : 'Storico: ' }}{{ workout?.des_esercizio }}
               </span>
             </div>
@@ -2121,7 +2121,7 @@
               </div>
 
               <div class="d-flex align-baseline gap-1.5">
-                <span class="text-subtitle-1 font-weight-black text-white" style="font-size: 1.05rem; line-height: 1.1;">
+                <span class="record-hero-num text-subtitle-1 font-weight-black" style="font-size: 1.05rem; line-height: 1.1;">
                   {{ suggerimentoRecord.recordAbsolute }} kg
                 </span>
                 <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-caption text-cyan-lighten-3 font-weight-black" style="font-size: 0.72rem;">
@@ -2151,7 +2151,7 @@
                 </div>
 
                 <div class="d-flex align-baseline gap-1">
-                  <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem; line-height: 1.1;">
+                  <span class="record-hero-num text-subtitle-2 font-weight-black" style="font-size: 0.95rem; line-height: 1.1;">
                     {{ suggerimentoRecord.record }} kg
                   </span>
                   <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption font-weight-bold" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
@@ -2178,7 +2178,7 @@
                   </span>
                 </div>
 
-                <div class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem; line-height: 1.1;">
+                <div class="record-hero-num text-subtitle-2 font-weight-black" style="font-size: 0.95rem; line-height: 1.1;">
                   <span v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg</span>
                   <span v-else>{{ suggerimentoRecord.target }} kg</span>
                 </div>
@@ -2270,7 +2270,7 @@
                   >
                     {{ analizzaRecordSettimana(aiutoWeek).stato === 'record' ? 'RECORD STORICO SUPERATO' : 'VICINO AL RECORD STORICO' }}
                   </div>
-                  <div class="text-super-caption text-white font-weight-bold" style="font-size: 0.65rem; line-height: 1.25;">
+                  <div class="banner-record-text text-super-caption font-weight-bold" style="font-size: 0.65rem; line-height: 1.25;">
                     <span v-if="analizzaRecordSettimana(aiutoWeek).stato === 'record'">
                       {{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg supera il record di {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg per {{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}!
                     </span>
@@ -2428,7 +2428,7 @@
                           </span>
                         </div>
                         
-                        <div class="my-1.5 text-subtitle-2 font-weight-black text-white" style="line-height: 1.1; font-size: 0.88rem;">
+                        <div class="opzione-peso-text my-1.5 text-subtitle-2 font-weight-black" style="line-height: 1.1; font-size: 0.88rem;">
                           {{ strada.valore }}
                         </div>
                         
@@ -2666,10 +2666,10 @@
                       :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
                     >
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
-                      <span class="text-super-caption text-white font-weight-medium d-block text-truncate px-0.5 opacity-70" style="font-size: 0.6rem; line-height: 1;">
+                      <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
                         {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
                       </span>
-                      <strong class="font-weight-black d-block mt-1" style="font-size: 0.95rem; line-height: 1;" :style="{ color: isMatchingReps(prevEx, w) ? '#f87171' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }">
+                      <strong class="font-weight-black d-block mt-1" style="font-size: 0.95rem; line-height: 1;" :style="getInsWeekTextStyle(prevEx, w)">
                         {{ prevEx['ins_week' + w] || '-' }}
                       </strong>
                       <span v-if="w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold d-block mt-0.5" style="font-size: 0.50rem; line-height: 1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
@@ -2689,7 +2689,7 @@
                   <tr>
                     <th class="sticky-col header-cell text-left" style="width: 75px;">Scheda</th>
                     <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}" :style="{ opacity: (soloCorrispondenti && getRepsPerWeek(w) !== targetRepsRange) ? 0.45 : 1.0 }">
-                      <div class="text-white">W{{ w }}</div>
+                      <div class="table-header-title font-weight-bold">W{{ w }}</div>
                     </th>
                     <th class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
                     <th class="header-cell" style="width: 75px;">Peso Corp.</th>
@@ -2702,7 +2702,7 @@
                 <tbody>
                   <tr v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="table-row" style="cursor: pointer;" @click="vaiADettaglioStorico(prevEx.id)">
                     <td class="sticky-col body-cell text-left" :class="{'red-scheda-cell': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}">
-                      <div class="font-weight-black text-white" style="font-size: 0.75rem; line-height: 1.15;">S. {{ prevEx.num_scheda }}</div>
+                      <div class="table-scheda-title font-weight-black" style="font-size: 0.75rem; line-height: 1.15;">S. {{ prevEx.num_scheda }}</div>
                       <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted" style="font-size: 0.55rem; white-space: nowrap; line-height: 1.15; margin-top: 1px;">
                         {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
                       </div>
@@ -2712,10 +2712,10 @@
                     </td>
                     
                     <td v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="body-cell font-weight-bold text-center" :class="{'red-cell': isMatchingReps(prevEx, w)}" style="word-wrap: break-word;" :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }">
-                      <div v-if="prevEx['des_week' + w]" class="text-super-caption text-white font-weight-medium" style="font-size: 0.65rem; line-height: 1; opacity: 0.8;">
+                      <div v-if="prevEx['des_week' + w]" class="table-prescription-text text-super-caption font-weight-medium" style="font-size: 0.65rem; line-height: 1;">
                         {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
                       </div>
-                      <div class="font-weight-black mt-1" style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;" :style="{ color: isMatchingReps(prevEx, w) ? '#ef4444' : (prevEx['ins_week' + w] ? '#fb923c' : '#475569') }">
+                      <div class="font-weight-black mt-1" style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;" :style="getInsWeekTextStyle(prevEx, w)">
                         {{ prevEx['ins_week' + w] || '-' }}
                       </div>
                       <div v-if="w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold mt-0.5" style="font-size: 0.55rem; line-height: 1.1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
@@ -10022,6 +10022,17 @@ const getColoreFaticaStyle = (fatica) => {
   return {};
 };
 
+const getInsWeekTextStyle = (prevEx, w) => {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (isMatchingReps(prevEx, w)) {
+    return { color: isLight ? '#dc2626 !important' : '#ef4444' };
+  }
+  if (prevEx['ins_week' + w]) {
+    return { color: isLight ? '#c2410c !important' : '#fb923c' };
+  }
+  return { color: isLight ? '#94a3b8 !important' : '#475569' };
+};
+
 // Funzione unificata per caricamento dati storico e proposta
 const caricaDatiAnalisi = async (sett) => {
   aiutoWeek.value = sett || settimanaAttiva.value;
@@ -11485,6 +11496,86 @@ th.sticky-col {
 
 [data-theme="light"] th.sticky-col {
   background: #f1f5f9 !important;
+}
+
+/* --- LIGHT THEME OVERRIDES FOR CRONOLOGIA & PROPOSTA CARICO MODAL --- */
+[data-theme="light"] .card-glass-dark {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .v-card-title.bg-slate-900,
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-950,
+[data-theme="light"] .bg-black {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .dialog-header-title,
+[data-theme="light"] .table-scheda-title,
+[data-theme="light"] .record-hero-num,
+[data-theme="light"] .opzione-peso-text,
+[data-theme="light"] .banner-record-text {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .table-header-title {
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .table-prescription-text {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .text-slate-light {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .text-cyan-lighten-2,
+[data-theme="light"] .text-cyan-lighten-3 {
+  color: #0891b2 !important;
+}
+
+[data-theme="light"] .text-amber-lighten-1,
+[data-theme="light"] .text-amber-lighten-2 {
+  color: #b45309 !important;
+}
+
+[data-theme="light"] .text-orange-lighten-2 {
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .text-green-accent-3 {
+  color: #047857 !important;
+}
+
+[data-theme="light"] .text-purple-lighten-2 {
+  color: #7e22ce !important;
+}
+
+[data-theme="light"] .text-blue-lighten-3 {
+  color: #1d4ed8 !important;
+}
+
+[data-theme="light"] .red-cell {
+  background-color: #fef2f2 !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+[data-theme="light"] .timeline-red-cell {
+  background-color: #fef2f2 !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+[data-theme="light"] .premium-storico-table {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .premium-storico-table tr.table-row:hover {
+  background-color: #f1f5f9 !important;
 }
 
 </style>

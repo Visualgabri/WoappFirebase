@@ -3203,19 +3203,19 @@
     <!-- Dialog Dettaglio Livello Forza Premium -->
     <v-dialog v-model="dialogLivelloForza" max-width="480" rounded="xl">
       <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(25px) !important;">
-        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-3" style="border-bottom: 1px solid rgba(255,255,255,0.08) !important; padding-bottom: 12px !important;">
+        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center justify-space-between px-0 mb-3 border-bottom-soft" style="padding-bottom: 12px !important;">
           <div class="d-flex align-center">
             <v-icon color="orange-darken-3" class="mr-2" size="24">mdi-sword-cross</v-icon>
-            <span style="font-size: 1rem; letter-spacing: 0.05em; color: #f8fafc !important;">DETTAGLIO LIVELLO FORZA</span>
+            <span class="text-slate-dark" style="font-size: 1rem; letter-spacing: 0.05em;">DETTAGLIO LIVELLO FORZA</span>
           </div>
-          <v-btn icon size="small" variant="text" color="grey" @click="dialogLivelloForza = false" style="width: 28px; height: 28px;">
+          <v-btn icon size="small" variant="text" class="text-slate-dark" @click="dialogLivelloForza = false" style="width: 28px; height: 28px;">
             <v-icon size="16">mdi-close</v-icon>
           </v-btn>
         </v-card-title>
 
         <div v-if="parsedRmt(workout?.des_esercizio_2)" class="text-left">
           <!-- Livello Corrente Header -->
-          <div class="d-flex align-center justify-space-between mb-4 pa-3 rounded-xl bg-slate-900 border-soft" style="background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255,255,255,0.05) !important;">
+          <div class="d-flex align-center justify-space-between mb-4 pa-3 rounded-xl card-glass border-soft" style="background: var(--card-bg-soft) !important;">
             <div>
               <span class="text-super-caption text-muted font-weight-black uppercase d-block" style="font-size: 0.58rem;">Livello Attuale</span>
               <div class="d-flex align-center gap-1 mt-1">
@@ -3237,7 +3237,7 @@
             </div>
             <div class="text-right">
               <span class="text-super-caption text-muted font-weight-black uppercase d-block" style="font-size: 0.58rem;">Massimale (1RMT)</span>
-              <span class="text-subtitle-1 font-weight-black text-white mt-1 d-block" style="line-height: 1;">
+              <span class="text-subtitle-1 font-weight-black text-slate-dark mt-1 d-block" style="line-height: 1;">
                 {{ parsedRmt(workout.des_esercizio_2).massimale }} <span class="text-caption text-muted" style="font-size: 0.68rem;">KG</span>
               </span>
             </div>
@@ -3248,7 +3248,7 @@
             <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1.5" style="font-size: 0.88rem;">
               {{ getStrengthGreeting(parsedRmt(workout.des_esercizio_2).livelloTesto) }}
             </div>
-            <p class="text-body-2 text-slate-light" style="color: #cbd5e1 !important; line-height: 1.5; font-size: 0.78rem;">
+            <p class="text-body-2 text-slate-light" style="line-height: 1.5; font-size: 0.78rem;">
               {{ getStrengthSpeech(parsedRmt(workout.des_esercizio_2)) }}
             </p>
           </div>
@@ -3271,10 +3271,10 @@
                 {{ parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'mdi-trending-down' : 'mdi-trending-up' }}
               </v-icon>
               <div>
-                <span class="text-super-caption font-weight-black uppercase d-block" style="font-size: 0.58rem;" :style="{ color: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? '#f87171' : '#34d399' }">
+                <span class="text-super-caption font-weight-black uppercase d-block" style="font-size: 0.58rem;" :style="{ color: parsedRmt(workout.des_esercizio_2).variazione.includes('↓') ? 'var(--variation-red-color, #dc2626)' : 'var(--variation-green-color, #059669)' }">
                   Andamento Mesociclo Precedente
                 </span>
-                <span class="text-body-2 text-slate-light mt-1 d-block" style="font-size: 0.76rem; line-height: 1.45; color: #cbd5e1 !important;">
+                <span class="text-body-2 text-slate-light mt-1 d-block" style="font-size: 0.76rem; line-height: 1.45;">
                   {{ getVariationExplanation(parsedRmt(workout.des_esercizio_2)) }}
                 </span>
               </div>
@@ -3282,7 +3282,7 @@
           </div>
 
           <!-- Progresso al Prossimo Livello -->
-          <div class="pa-3 rounded-xl bg-slate-900 border-soft" style="background: rgba(15, 23, 42, 0.4) !important; border: 1px solid rgba(255,255,255,0.05) !important;">
+          <div class="pa-3 rounded-xl card-glass border-soft" style="background: var(--card-bg-soft) !important;">
             <div class="d-flex justify-space-between align-center mb-1.5">
               <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem;">Progresso al Prossimo Livello</span>
               <span class="text-super-caption text-amber-darken-2 font-weight-black" style="font-size: 0.58rem;">
@@ -3298,7 +3298,7 @@
               active
               class="elevation-1 mb-2"
             ></v-progress-linear>
-            <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.65rem; line-height: 1.3; color: #94a3b8 !important;">
+            <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.65rem; line-height: 1.3;">
               {{ getNextLevelRequirement(parsedRmt(workout.des_esercizio_2)) }}
             </div>
           </div>

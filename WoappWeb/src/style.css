@@ -8,6 +8,8 @@
   --text-dark: #f8fafc;
   --text-slate: #cbd5e1;
   --text-muted: #94a3b8;
+  --variation-green-color: #34d399;
+  --variation-red-color: #f87171;
   --v-field-bg: rgba(30, 41, 59, 0.4);
   --v-field-border: rgba(255, 255, 255, 0.08);
   --nav-bg: rgba(3, 7, 18, 0.8);
@@ -29,6 +31,8 @@
   --text-dark: #0f172a;       /* Charcoal Slate 900 per titoli nitidi */
   --text-slate: #334155;      /* Slate 700 per testi secondari leggibili */
   --text-muted: #64748b;      /* Slate 500 per etichette */
+  --variation-green-color: #059669;
+  --variation-red-color: #dc2626;
   --v-field-bg: #f8fafc;
   --v-field-border: #cbd5e1;
   --nav-bg: rgba(255, 255, 255, 0.95);

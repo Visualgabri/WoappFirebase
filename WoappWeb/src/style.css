@@ -750,6 +750,38 @@ body::after {
   color: #b45309 !important;
 }
 
+[data-theme="light"] .v-field__input,
+[data-theme="light"] .v-select .v-field__input,
+[data-theme="light"] .v-select .v-select__selection,
+[data-theme="light"] .v-select .v-select__selection-text,
+[data-theme="light"] .v-select .v-field {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .v-field--variant-outlined {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .premium-toggle-group .v-btn {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .premium-toggle-group .v-btn--selected {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .v-dialog .v-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15) !important;
+}
+
 [data-theme="light"] .skeleton-tab-item {
   background: #e2e8f0 !important;
 }

@@ -312,7 +312,7 @@
             <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-weight-lifter</v-icon>
             Calcolatore Dischi 🏋️
           </div>
-          <v-btn icon size="small" variant="text" color="slate-dark" @click="mostraDialogCalcolatoreDischi = false">
+          <v-btn icon size="small" variant="text" class="text-slate-dark" @click="mostraDialogCalcolatoreDischi = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -327,7 +327,7 @@
           <div class="d-flex align-center gap-3 mb-4">
             <div class="flex-grow-1 text-center pa-2.5 rounded-xl card-glass border-soft bg-slate-900-op" style="background: var(--card-bg-soft) !important;">
               <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-1" style="font-size: 0.58rem;">Peso Totale Target</span>
-              <span class="text-h6 font-weight-black text-white">
+              <span class="text-h6 font-weight-black text-slate-dark">
                 {{ targetPesoTotale }} <span class="text-caption text-muted">KG</span>
               </span>
             </div>
@@ -416,7 +416,7 @@
               >
                 <div class="d-flex align-center">
                   <div class="plate-color-indicator mr-2.5" :class="'plate-bg-' + String(item.size).replace('.', '_')"></div>
-                  <span class="font-weight-black text-white" style="font-size: 0.95rem;">
+                  <span class="font-weight-black text-slate-dark" style="font-size: 0.95rem;">
                     Disco da {{ item.size }} kg
                   </span>
                 </div>

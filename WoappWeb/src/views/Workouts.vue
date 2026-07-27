@@ -2722,6 +2722,10 @@ const estraiRepsDaInput = (str) => {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
 
+  // Rimuove indicazioni di tempo di recupero (es. "20sec", "20s", "20 sec", "20secondi", "20rec", "20recupero", "3min", "3 min")
+  clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
+  clean = clean.replace(/\d+(?:\.\d+)?\s*(?:["']|min|sec)\b/gi, ' ').trim();
+
   // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {

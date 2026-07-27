@@ -2154,8 +2154,8 @@
                   <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem; line-height: 1.1;">
                     {{ suggerimentoRecord.record }} kg
                   </span>
-                  <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 font-weight-bold" style="font-size: 0.62rem;">
-                    × {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
+                  <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption font-weight-bold" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
+                    × {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
                   </span>
                 </div>
 
@@ -9216,6 +9216,10 @@ function estraiRepsDaInput(str) {
   // Rimuove espressioni di RPE prima dell'estrazione reps (es. "Rpe: 93 - 99", "RPE 8.5")
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
   
+  // Rimuove indicazioni di tempo di recupero (es. "20sec", "20s", "20 sec", "20secondi", "20rec", "20recupero", "3min", "3 min")
+  clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
+  clean = clean.replace(/\d+(?:\.\d+)?\s*(?:["']|min|sec)\b/gi, ' ').trim();
+
   // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {
@@ -9901,11 +9905,40 @@ const suggerimentoRecord = computed(() => {
   let absRepsSheet = null;
   let absRepsDay = null;
   let absRepsDate = null;
+  let absRepsFatica = null;
 
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
     if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+    const dateVal = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
 
+    // Priorità 1: Miglior Carico W6 (num_ins6) se presente per le stesse reps target
+    if (prevEx.num_ins6) {
+      const pesoW6Num = parseFloat(String(prevEx.num_ins6).replace(',', '.'));
+      if (!isNaN(pesoW6Num) && pesoW6Num > 0) {
+        if (pesoW6Num > absGenWeight) {
+          absGenWeight = pesoW6Num;
+          absGenWeek = 6;
+          absGenReps = isMatchingReps(prevEx, 6) ? targetReps : (parseInt(prevEx.reps_week6) || targetReps);
+          absGenSheet = prevEx.num_scheda;
+          absGenDay = prevEx.des_giorno;
+          absGenDate = dateVal;
+        }
+        if (isMatchingReps(prevEx, 6)) {
+          if (pesoW6Num >= absRepsWeight) {
+            absRepsWeight = pesoW6Num;
+            absRepsWeek = 6;
+            absRepsReps = targetReps;
+            absRepsSheet = prevEx.num_scheda;
+            absRepsDay = prevEx.des_giorno;
+            absRepsDate = dateVal;
+            absRepsFatica = prevEx.num_faticaw6 || null;
+          }
+        }
+      }
+    }
+
+    // Priorità 2: Controllo settimanale W1-W6
     for (let i = 1; i <= 6; i++) {
       const val = prevEx['ins_week' + i];
       if (val) {
@@ -9915,29 +9948,29 @@ const suggerimentoRecord = computed(() => {
           if (!reps) {
             reps = estraiRepsDaPrescrizione(prevEx['des_week' + i]);
           }
+          const repsTargetWeek = reps ? parseInt(reps, 10) : targetReps;
           const inputReps = estraiRepsDaInput(val);
-          const repsNum = inputReps !== null && !isNaN(inputReps) && inputReps > 0 ? inputReps : (reps ? parseInt(reps, 10) : null);
-          const dateVal = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
 
           // Controllo PR Generale (All-Time)
           if (pesoNum > absGenWeight) {
             absGenWeight = pesoNum;
             absGenWeek = i;
-            absGenReps = repsNum;
+            absGenReps = isMatchingReps(prevEx, i) ? repsTargetWeek : (inputReps && inputReps > 0 ? inputReps : repsTargetWeek);
             absGenSheet = prevEx.num_scheda;
             absGenDay = prevEx.des_giorno;
             absGenDate = dateVal;
           }
 
-          // Controllo PR a Stesse Reps (isMatchingReps o reps === targetReps)
-          if (isMatchingReps(prevEx, i) || (repsNum && repsNum === targetReps)) {
+          // Controllo PR a Stesse Reps (isMatchingReps)
+          if (isMatchingReps(prevEx, i)) {
             if (pesoNum > absRepsWeight) {
               absRepsWeight = pesoNum;
               absRepsWeek = i;
-              absRepsReps = repsNum;
+              absRepsReps = repsTargetWeek;
               absRepsSheet = prevEx.num_scheda;
               absRepsDay = prevEx.des_giorno;
               absRepsDate = dateVal;
+              absRepsFatica = (i === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : null;
             }
           }
         }
@@ -9965,6 +9998,7 @@ const suggerimentoRecord = computed(() => {
     recordRepsSheet: absRepsSheet,
     recordRepsDay: absRepsDay,
     recordRepsDate: absRepsDate,
+    recordRepsFatica: absRepsFatica,
 
     recordAbsolute: absGenWeight,
     recordAbsoluteWeek: absGenWeek,

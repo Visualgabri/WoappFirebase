@@ -18,6 +18,24 @@ export const idCliente = ref(initialIdCliente);
 export const ruolo = ref(initialRuolo); // 'atleta' o 'coach'
 export const loadingAuth = ref(false); // Immediatamente pronto nel sistema passwordless
 
+// Stato del tema utente (scuro di default, 'light' o 'dark')
+export const currentTheme = ref(localStorage.getItem('userTheme') || 'dark');
+
+export const setTheme = (themeName, vuetifyInstance = null) => {
+  const targetTheme = (themeName === 'light') ? 'light' : 'dark';
+  currentTheme.value = targetTheme;
+  localStorage.setItem('userTheme', targetTheme);
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', targetTheme);
+    document.body.setAttribute('data-theme', targetTheme);
+  }
+
+  if (vuetifyInstance && vuetifyInstance.theme && vuetifyInstance.theme.global) {
+    vuetifyInstance.theme.global.name.value = targetTheme;
+  }
+};
+
 // Stato di selezione globale Atleta e Scheda (in stile AppSheet)
 export const selectedAthlete = ref(localStorage.getItem('selectedAthlete') || '');
 export const selectedSheet = ref(localStorage.getItem('selectedSheet') || '');

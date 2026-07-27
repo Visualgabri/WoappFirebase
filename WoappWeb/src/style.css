@@ -1,9 +1,43 @@
-:root {
+:root, [data-theme="dark"] {
   color-scheme: dark;
   --card-bg-glass: rgba(30, 41, 59, 0.65);  /* Slate 800 per card glass */
   --card-bg-dark: rgba(15, 23, 42, 0.88);   /* Slate 900 per dialogs/modals */
   --card-bg-soft: rgba(30, 41, 59, 0.4);    /* Sfondo per input/container interni */
   --card-border: rgba(255, 255, 255, 0.08); /* Bordo leggermente più chiaro */
+  --bg-main: #030712;
+  --text-dark: #f8fafc;
+  --text-slate: #cbd5e1;
+  --text-muted: #94a3b8;
+  --v-field-bg: rgba(30, 41, 59, 0.4);
+  --v-field-border: rgba(255, 255, 255, 0.08);
+  --nav-bg: rgba(3, 7, 18, 0.8);
+  --nav-border: rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+  --scheda-btn-bg: rgba(30, 41, 59, 0.5);
+  --scheda-btn-border: rgba(255, 255, 255, 0.08);
+  --scheda-btn-color: #cbd5e1;
+  --glow-opacity: 0.18;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --card-bg-glass: #ffffff;    /* Pure White per card glass */
+  --card-bg-dark: #ffffff;     /* Pure White per dialogs/modals */
+  --card-bg-soft: #f1f5f9;    /* Slate 100 per container interni */
+  --card-border: #e2e8f0;    /* Slate 200 per bordi definiti */
+  --bg-main: #f8fafc;         /* Slate 50 Soft Ice */
+  --text-dark: #0f172a;       /* Charcoal Slate 900 per titoli nitidi */
+  --text-slate: #334155;      /* Slate 700 per testi secondari leggibili */
+  --text-muted: #64748b;      /* Slate 500 per etichette */
+  --v-field-bg: #f8fafc;
+  --v-field-border: #cbd5e1;
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --nav-border: #e2e8f0;
+  --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --scheda-btn-bg: #f1f5f9;
+  --scheda-btn-border: #cbd5e1;
+  --scheda-btn-color: #0f172a;
+  --glow-opacity: 0;
 }
 
 /* Evita la selezione del testo per emulare il comportamento nativo ed evitare popup del browser */
@@ -26,11 +60,12 @@ input, textarea, [contenteditable="true"], .selectable-text, input *, textarea *
 body {
   margin: 0;
   padding: 0;
-  background-color: #030712 !important; /* Deep OLED Black */
-  color: #f8fafc !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-dark) !important;
   overflow-x: clip;
   position: relative;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Sfondi Ambient Glow - Luci Neon Soffici in stile 2026 */
@@ -78,7 +113,7 @@ body::after {
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid var(--card-border) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+  box-shadow: var(--card-shadow) !important;
   transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
               border-color 0.25s ease, 
               box-shadow 0.25s ease !important;
@@ -112,15 +147,15 @@ body::after {
 
 /* Colore testo e gradienti */
 .text-slate-dark {
-  color: #f8fafc !important; /* Grigio chiarissimo OLED */
+  color: var(--text-dark) !important;
 }
 
 .text-slate {
-  color: #cbd5e1 !important; /* Grigio morbido */
+  color: var(--text-slate) !important;
 }
 
 .text-muted {
-  color: #94a3b8 !important;
+  color: var(--text-muted) !important;
 }
 
 .text-gradient {
@@ -131,15 +166,15 @@ body::after {
 
 /* Bottoni griglia numeri scheda AppSheet 2026 */
 .scheda-grid-btn {
-  background: rgba(30, 41, 59, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #cbd5e1 !important;
+  background: var(--scheda-btn-bg) !important;
+  border: 1px solid var(--scheda-btn-border) !important;
+  color: var(--scheda-btn-color) !important;
   backdrop-filter: blur(8px);
 }
 
 .scheda-grid-btn:hover {
   border-color: rgba(249, 115, 22, 0.4) !important;
-  color: white !important;
+  color: var(--text-dark) !important;
 }
 
 .scheda-grid-btn-active {
@@ -162,16 +197,17 @@ body::after {
 
 /* Cartellino Note Coach Giallo Neon */
 .coaching-note-card {
-  background: rgba(254, 240, 138, 0.06) !important; /* Giallo sfumato OLED */
+  background: rgba(254, 240, 138, 0.08) !important;
   border-left: 5px solid #facc15 !important;
-  border: 1px solid rgba(250, 204, 21, 0.1) !important;
+  border: 1px solid rgba(250, 204, 21, 0.2) !important;
+  color: var(--text-dark) !important;
 }
 
-/* V-fields premium style dark */
+/* V-fields premium style */
 .v-field {
   border-radius: 12px !important;
-  background-color: rgba(30, 41, 59, 0.4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background-color: var(--v-field-bg) !important;
+  border: 1px solid var(--v-field-border) !important;
   transition: border-color 0.2s ease !important;
 }
 
@@ -179,36 +215,53 @@ body::after {
   border-color: #f97316 !important;
 }
 
-/* Vuetify overrides per OLED scuro */
+/* Vuetify overrides per temi dinamici */
 .v-application,
 .v-main {
-  background-color: #030712 !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-dark) !important;
 }
 
 .v-app-bar {
-  background-color: rgba(3, 7, 18, 0.8) !important;
+  background-color: var(--nav-bg) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-bottom: 1px solid var(--nav-border) !important;
 }
 
 .v-bottom-navigation {
-  background-color: rgba(3, 7, 18, 0.8) !important;
+  background-color: var(--nav-bg) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-top: 1px solid var(--nav-border) !important;
 }
 
 .bg-slate-50 {
-  background-color: transparent !important; /* Lascia passare l'OLED scuro */
+  background-color: transparent !important;
 }
 
 .bg-slate-100 {
-  background-color: rgba(30, 41, 59, 0.3) !important;
+  background-color: var(--card-bg-soft) !important;
+}
+
+.bg-slate-900 {
+  background-color: var(--card-bg-dark) !important;
+}
+
+.bg-slate-800 {
+  background-color: var(--card-bg-soft) !important;
 }
 
 .border-bottom-soft {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
+.border-top-soft {
+  border-top: 1px solid var(--card-border) !important;
+}
+
+.border-soft {
+  border-color: var(--card-border) !important;
 }
 
 .min-width-0 {
@@ -224,7 +277,7 @@ body::after {
   font-size: 0.72rem !important;
   font-weight: 800;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
   transition: all 0.2s ease;
   line-height: 1 !important;
   height: 22px;
@@ -232,26 +285,461 @@ body::after {
 
 .vol-pill-total {
   background: rgba(148, 163, 184, 0.12) !important; /* Slate / Grey */
-  color: #cbd5e1 !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
+  color: var(--text-slate) !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
 }
 
 .vol-pill-upper {
   background: rgba(96, 165, 250, 0.12) !important; /* Blue */
-  color: #60a5fa !important;
-  border-color: rgba(96, 165, 250, 0.25) !important;
+  color: #3b82f6 !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
 }
 
 .vol-pill-lower {
   background: rgba(251, 146, 60, 0.12) !important; /* Orange */
-  color: #fb923c !important;
-  border-color: rgba(251, 146, 60, 0.25) !important;
+  color: #ea580c !important;
+  border-color: rgba(251, 146, 60, 0.3) !important;
 }
 
 .vol-pill-core {
   background: rgba(74, 222, 128, 0.12) !important; /* Green */
-  color: #4ade80 !important;
-  border-color: rgba(74, 222, 128, 0.25) !important;
+  color: #10b981 !important;
+  border-color: rgba(74, 222, 128, 0.3) !important;
+}
+
+[data-theme="light"] .vol-pill-total {
+  background: rgba(71, 85, 105, 0.1) !important;
+  color: #1e293b !important;
+  border-color: rgba(71, 85, 105, 0.25) !important;
+}
+
+[data-theme="light"] .vol-pill-upper {
+  background: rgba(37, 99, 235, 0.1) !important;
+  color: #1d4ed8 !important;
+  border-color: rgba(37, 99, 235, 0.25) !important;
+}
+
+[data-theme="light"] .vol-pill-lower {
+  background: rgba(234, 88, 12, 0.1) !important;
+  color: #c2410c !important;
+  border-color: rgba(234, 88, 12, 0.25) !important;
+}
+
+[data-theme="light"] .vol-pill-core {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #047857 !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Overrides tema chiaro per Workouts & Componenti */
+[data-theme="light"] body::before,
+[data-theme="light"] body::after {
+  display: none !important;
+}
+
+[data-theme="light"] .sticky-tabs-container {
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .v-app-bar {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .v-bottom-navigation,
+[data-theme="light"] .premium-nav {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .v-bottom-navigation .v-btn,
+[data-theme="light"] .premium-nav .v-btn {
+  color: #64748b !important;
+  background-color: transparent !important;
+}
+
+[data-theme="light"] .v-bottom-navigation .v-btn--active,
+[data-theme="light"] .v-bottom-navigation .v-btn.v-btn--active,
+[data-theme="light"] .premium-nav .v-btn--active {
+  color: #ea580c !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .v-bottom-navigation .v-btn--active .v-icon,
+[data-theme="light"] .v-bottom-navigation .v-btn.v-btn--active .v-icon,
+[data-theme="light"] .premium-nav .v-btn--active .v-icon {
+  color: #ea580c !important;
+}
+
+[data-theme="light"] .card-glass,
+[data-theme="light"] .premium-card,
+[data-theme="light"] .workout-session-container,
+[data-theme="light"] .exercise-item-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .giorno-big-letter {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3) !important;
+}
+
+[data-theme="light"] .superset-group-card,
+[data-theme="light"] .compatto-superset-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-left: 5px solid #ea580c !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.08) !important;
+}
+
+[data-theme="light"] .sticky-tabs-container .card-glass {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .v-tabs {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .v-tab {
+  color: #64748b !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .sticky-tabs-container .v-tab--selected,
+[data-theme="light"] .v-tab--selected {
+  background: #ffffff !important;
+  border: 1.5px solid #ea580c !important;
+  color: #ea580c !important;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.15) !important;
+  border-radius: 12px !important;
+}
+
+[data-theme="light"] .day-header-section,
+[data-theme="light"] .day-header-section.tema-arancio {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 75%) !important;
+  border-left: 5px solid #ea580c !important;
+  border-bottom: 1px solid #fed7aa !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu {
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 75%) !important;
+  border-left: 5px solid #2563eb !important;
+  border-bottom: 1px solid #bfdbfe !important;
+}
+
+[data-theme="light"] .day-header-section.tema-verde {
+  background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 75%) !important;
+  border-left: 5px solid #059669 !important;
+  border-bottom: 1px solid #a7f3d0 !important;
+}
+
+[data-theme="light"] .volumes-premium-box {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .volumes-premium-box .bg-slate-800 {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* HOME DASHBOARD LIGHT THEME OVERRIDES */
+[data-theme="light"] .home-dashboard {
+  background-color: #f8fafc !important;
+}
+
+[data-theme="light"] .sticky-dashboard-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .home-dashboard .premium-hero-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme="light"] .date-summary-box {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .date-summary-box .text-muted {
+  color: #64748b !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .date-summary-box .text-slate-dark {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .date-summary-box .text-orange-lighten-1 {
+  color: #c2410c !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .description-callout {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%) !important;
+  border-left: 4px solid #f97316 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .dashboard-action-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .dashboard-action-card .action-avatar {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .dashboard-action-card .text-super-caption {
+  color: #334155 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .dashboard-action-card .text-blue-lighten-2 {
+  color: #2563eb !important;
+}
+
+[data-theme="light"] .dashboard-action-card .text-amber-lighten-1 {
+  color: #d97706 !important;
+}
+
+[data-theme="light"] .dashboard-action-card .text-red-lighten-2 {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .mesocycle-progress-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .progression-line-bg {
+  background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .step-number {
+  color: #334155 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .step-label {
+  color: #475569 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .step-future .step-ring {
+  background: #f1f5f9 !important;
+  border: 1.5px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .step-future .step-number {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .step-completed .step-label {
+  color: #059669 !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .step-active .step-label {
+  color: #ea580c !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .heatmap-container {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .workout-item-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .workout-item-card.active-workout-border {
+  background: #fff7ed !important;
+  border: 1.5px solid #ea580c !important;
+}
+
+[data-theme="light"] .coaching-notes-card {
+  background: linear-gradient(135deg, #fffbe6 0%, #ffffff 100%) !important;
+  border: 1px solid #fde047 !important;
+}
+
+[data-theme="light"] .header-title-text,
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-slate-dark {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-slate,
+[data-theme="light"] .text-slate-light {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .text-muted {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .text-orange-lighten-1,
+[data-theme="light"] .text-orange-lighten-2,
+[data-theme="light"] .text-orange-lighten-3,
+[data-theme="light"] .text-orange-lighten-4 {
+  color: #ea580c !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .text-amber-lighten-1,
+[data-theme="light"] .text-amber-lighten-2 {
+  color: #d97706 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .text-blue-lighten-2,
+[data-theme="light"] .text-blue-lighten-3 {
+  color: #2563eb !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .text-green-lighten-2,
+[data-theme="light"] .text-green-lighten-3,
+[data-theme="light"] .text-green-accent-3,
+[data-theme="light"] .text-green-accent-4 {
+  color: #059669 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .text-red-lighten-2,
+[data-theme="light"] .text-red-lighten-3 {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .text-orange-darken-3 {
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .prescription-chip-box {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+}
+
+[data-theme="light"] .prescription-chip-box:hover {
+  background: #e2e8f0 !important;
+  border-color: #f97316 !important;
+}
+
+[data-theme="light"] .custom-weight-input .v-field {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .custom-weight-input .v-field--focused {
+  background: #ffffff !important;
+  border-color: #ea580c !important;
+  box-shadow: 0 0 8px rgba(234, 88, 12, 0.25) !important;
+}
+
+[data-theme="light"] .custom-weight-input .v-label {
+  color: #64748b !important;
+  opacity: 0.85 !important;
+}
+
+[data-theme="light"] .custom-weight-input input,
+[data-theme="light"] .custom-weight-input textarea {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-800,
+[data-theme="light"] .bg-slate-100 {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .border-soft,
+[data-theme="light"] .border-top-soft,
+[data-theme="light"] .border-bottom-soft,
+[data-theme="light"] .border-right-soft {
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .skeleton-tab-item {
+  background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .day-tab-progress-bg {
+  background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .mini-week-capsule {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .mini-week-capsule.capsule-active {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3) !important;
+}
+
+[data-theme="light"] .mini-week-capsule.capsule-completed {
+  background: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #15803d !important;
+}
+
+[data-theme="light"] .exercise-item-card.completed {
+  background: #f0fdf4 !important;
+  border-color: #86efac !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08) !important;
+}
+
+[data-theme="light"] .superset-group-card.completed {
+  background: #f0fdf4 !important;
+  border-color: #86efac !important;
+}
+
+[data-theme="light"] .superset-exercise-item.completed {
+  background-color: rgba(220, 252, 231, 0.4) !important;
+}
+
+[data-theme="light"] .day-exercises-section {
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .recupero-accordion-group {
+  background: #ffffff !important;
+  border: 1px solid #fed7aa !important;
+}
+
+[data-theme="light"] .recupero-accordion-group > div:first-child {
+  background: #fff7ed !important;
 }
 
 .vol-label {

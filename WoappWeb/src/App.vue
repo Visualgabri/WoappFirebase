@@ -4,10 +4,9 @@
     <v-app-bar
       v-if="utente"
       flat
-      color="#0f172a"
       class="border-bottom px-2 px-sm-4"
       density="compact"
-      style="background-color: #0f172a !important; opacity: 1 !important; z-index: 1000 !important;"
+      style="background-color: var(--nav-bg) !important; z-index: 1000 !important;"
     >
       <v-app-bar-title class="text-slate-dark" style="line-height: 1.15;">
         <div class="d-flex flex-column text-left">
@@ -43,6 +42,19 @@
         id="btn-admin-panel"
       >
         <v-icon size="20">mdi-cog</v-icon>
+      </v-btn>
+
+      <!-- Pulsante Toggle Tema Chiaro / Scuro -->
+      <v-btn
+        icon
+        color="orange-lighten-2"
+        variant="text"
+        class="rounded-lg mr-1.5 btn-header-compact"
+        @click="toggleTema"
+        :title="currentTheme === 'light' ? 'Passa al Tema Scuro OLED' : 'Passa al Tema Chiaro Arctic'"
+        id="btn-toggle-theme"
+      >
+        <v-icon size="20">{{ currentTheme === 'light' ? 'mdi-weather-night' : 'mdi-white-balance-sunny' }}</v-icon>
       </v-btn>
 
       <!-- Pulsante Guida / Aiuto Progressione -->
@@ -593,11 +605,22 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica } from './authStore.js';
+import { useTheme } from 'vuetify';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme } from './authStore.js';
 
 const router = useRouter();
+const vuetifyTheme = useTheme();
 const globalTransition = ref('fade');
 const mostraDialogGuida = ref(false);
+
+const toggleTema = () => {
+  const nextTheme = currentTheme.value === 'light' ? 'dark' : 'light';
+  setTheme(nextTheme, vuetifyTheme);
+};
+
+onMounted(() => {
+  setTheme(currentTheme.value, vuetifyTheme);
+});
 
 const controllaPrimoAccesso = () => {
   const guidaVista = localStorage.getItem('woapp_guida_vista');

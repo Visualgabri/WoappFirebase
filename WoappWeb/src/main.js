@@ -25,6 +25,17 @@ const vuetify = createVuetify({
           success: '#10b981',    // Green
           error: '#ef4444',
         }
+      },
+      light: {
+        dark: false,
+        colors: {
+          background: '#f8fafc', // Slate 50 Soft Ice
+          surface: '#ffffff',    // White surface
+          primary: '#f97316',    // Orange primary
+          secondary: '#2563eb',  // Blue cobalto
+          success: '#10b981',    // Green
+          error: '#ef4444',
+        }
       }
     }
   }

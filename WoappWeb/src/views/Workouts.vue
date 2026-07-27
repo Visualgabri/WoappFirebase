@@ -76,11 +76,11 @@
           v-if="!caricamento && listaGiorniDisponibili.length > 0"
           class="card-glass rounded-xl text-center font-weight-black tracking-widest"
           :class="layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-0.5' : 'mb-0.75')"
-          :style="settimanaAttiva === 6 ? 'font-size: 0.65rem; border: 1.5px solid rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; padding: 6px 4px;' : 'font-size: 0.62rem; border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px 4px;'"
-          style="color: rgba(255, 255, 255, 0.6);"
+          :style="settimanaAttiva === 6 ? 'font-size: 0.65rem; border: 1.5px solid rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; padding: 6px 4px;' : 'font-size: 0.62rem; border: 1px solid var(--card-border); padding: 4px 4px;'"
+          style="color: var(--text-slate);"
         >
           <span :style="settimanaAttiva === 6 ? 'color: #fb923c;' : 'color: #f97316;'">SETTIMANA CORRENTE:</span>
-          <span class="text-white ml-1.5">WEEK {{ settimanaAttiva }}</span>
+          <span class="text-slate-dark ml-1.5">WEEK {{ settimanaAttiva }}</span>
           <span v-if="settimanaAttiva === 6" class="ml-2 px-1.5 py-0.5 rounded bg-orange-darken-3 text-white font-weight-black animate-pulse" style="font-size: 0.58rem; letter-spacing: normal;">
             🔥 ULTIMA SETTIMANA!
           </span>
@@ -669,7 +669,7 @@
                   <div
                     v-if="layoutEsercizi !== 'super_compatto'"
                     class="text-caption font-weight-bold d-flex align-center mt-0.5 flex-wrap"
-                    style="font-size: 0.68rem; color: #cbd5e1;"
+                    style="font-size: 0.68rem; color: var(--text-slate);"
                   >
                     <v-icon size="13" color="grey" class="mr-1">mdi-clock-outline</v-icon>
                     <span>Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
@@ -5118,7 +5118,7 @@ const recuperiRaggruppati = computed(() => {
 .sticky-tabs-container {
   position: sticky !important;
   z-index: 99 !important;
-  background: #030712 !important; /* solid background matching body to hide scrolling content */
+  background: var(--bg-main) !important; /* background dinamico per nascondere il contenuto che scorre sotto */
   padding-top: 6px !important;
   padding-bottom: 4px !important;
   margin-top: -8px !important;
@@ -5442,8 +5442,8 @@ const recuperiRaggruppati = computed(() => {
 .recovery-compact-input :deep(.v-field) {
   height: 26px !important;
   font-size: 0.62rem !important;
-  background: rgba(255, 255, 255, 0.12) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: var(--v-field-bg) !important;
+  border: 1px solid var(--v-field-border) !important;
   border-radius: 6px !important;
   transition: all 0.2s ease !important;
 }
@@ -5460,9 +5460,9 @@ const recuperiRaggruppati = computed(() => {
   text-align: center !important;
 }
 .recovery-compact-input :deep(.v-field--focused) {
-  background: rgba(255, 255, 255, 0.18) !important;
+  background: var(--v-field-bg) !important;
   border-color: #f97316 !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5) !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4) !important;
 }
 .recovery-compact-input :deep(.v-field__outline) {
   display: none !important;
@@ -5471,15 +5471,15 @@ const recuperiRaggruppati = computed(() => {
 .custom-compact-input :deep(.v-field) {
   height: 32px !important;
   font-size: 0.75rem !important;
-  background: rgba(255, 255, 255, 0.12) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: var(--v-field-bg) !important;
+  border: 1px solid var(--v-field-border) !important;
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
 }
 .custom-compact-input :deep(.v-field--focused) {
-  background: rgba(255, 255, 255, 0.18) !important;
+  background: var(--v-field-bg) !important;
   border-color: #f97316 !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5) !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4) !important;
 }
 .custom-compact-input :deep(.v-field__outline) {
   display: none !important;

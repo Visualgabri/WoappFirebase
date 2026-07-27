@@ -198,7 +198,7 @@
                 <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.85rem !important;">
                   Programma in elaborazione
                 </h4>
-                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: #cbd5e1 !important;">
+                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: var(--text-slate) !important;">
                   Questo programma di allenamento <strong>non è ancora definitivo</strong>. Il coach sta lavorando per ultimare la scheda.
                 </p>
               </div>
@@ -217,7 +217,7 @@
                 <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important; line-height: 1.25;">
                   ⚠️ Tempo di preparare il prossimo programma!
                 </h4>
-                <p class="text-slate font-weight-medium mb-3" style="font-size: 0.75rem; line-height: 1.45; color: #cbd5e1 !important;">
+                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.75rem; line-height: 1.45; color: var(--text-slate) !important;">
                   Hai superato la metà della 5° settimana di allenamento. Contatta il Coach Gabriele per fargli sapere come sta andando e permettergli di preparare la tua prossima scheda in tempo!
                 </p>
                 <v-btn
@@ -341,7 +341,7 @@
                 Note dell'Allenatore 📋
               </span>
             </div>
-            <div class="text-body-2 text-slate leading-relaxed font-weight-medium" style="color: #cbd5e1 !important; font-size: 0.82rem !important; white-space: pre-wrap;">
+            <div class="text-body-2 text-slate leading-relaxed font-weight-medium" style="color: var(--text-slate) !important; font-size: 0.82rem !important; white-space: pre-wrap;">
               {{ finalCoachNote }}
             </div>
           </v-card>
@@ -2853,12 +2853,17 @@ const apriTest = () => {
   position: sticky !important;
   top: 48px !important; /* sticks below the 48px compact global app bar */
   z-index: 100 !important;
-  background: #030712 !important; /* solid background matching body */
+  background: var(--bg-main) !important; /* solid background matching body */
   padding-top: 16px !important;
   padding-bottom: 8px !important;
   margin-top: -16px !important;
-  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1.5px solid var(--card-border) !important;
   margin-bottom: 20px !important;
+}
+
+[data-theme="light"] .sticky-dashboard-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
 .home-dashboard {
@@ -2866,15 +2871,15 @@ const apriTest = () => {
 }
 
 .text-slate-dark {
-  color: #f8fafc !important;
+  color: var(--text-dark) !important;
 }
 
 .text-slate {
-  color: #cbd5e1 !important;
+  color: var(--text-slate) !important;
 }
 
 .text-muted {
-  color: #94a3b8 !important;
+  color: var(--text-muted) !important;
 }
 
 .text-super-caption {
@@ -2883,15 +2888,15 @@ const apriTest = () => {
 }
 
 .border-top-soft {
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-top: 1px solid var(--card-border) !important;
 }
 
 .border-soft {
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 .border-right-soft {
-  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-right: 1px solid var(--card-border) !important;
 }
 
 /* 1. Header Styles */
@@ -3093,9 +3098,9 @@ const apriTest = () => {
 
 /* 5. Premium Hero Card */
 .premium-hero-card {
-  background: linear-gradient(135deg, var(--card-bg-dark) 0%, rgba(3, 7, 18, 0.95) 100%) !important;
-  border: 1px solid rgba(249, 115, 22, 0.2) !important;
-  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.5) !important;
+  background: linear-gradient(135deg, var(--card-bg-soft) 0%, var(--card-bg-glass) 100%) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: var(--card-shadow) !important;
 }
 
 .glowing-accent {

@@ -67,6 +67,42 @@
       </v-row>
     </v-card>
 
+    <!-- SEZIONE TEMA & ASPETTO -->
+    <v-card 
+      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
+      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
+      elevation="2"
+    >
+      <div class="d-flex align-center mb-4">
+        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-palette-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Aspetto & Tema Grafico</span>
+      </div>
+
+      <div class="mb-2">
+        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">🎨 Tema Grafico Applicazione</span>
+        <v-btn-toggle
+          v-model="selectedTheme"
+          mandatory
+          selected-class="bg-orange-darken-3 text-white"
+          density="comfortable"
+          rounded="xl"
+          class="w-100 card-glass border mb-2"
+          style="height: 42px;"
+          @update:model-value="cambiaTemaDaImpostazioni"
+        >
+          <v-btn value="dark" class="font-weight-bold flex-grow-1" style="font-size: 0.75rem; min-width: 50%;">
+            <v-icon class="mr-1.5" size="18">mdi-weather-night</v-icon> Tema Scuro OLED
+          </v-btn>
+          <v-btn value="light" class="font-weight-bold flex-grow-1" style="font-size: 0.75rem; min-width: 50%;">
+            <v-icon class="mr-1.5" size="18">mdi-white-balance-sunny</v-icon> Tema Chiaro Arctic
+          </v-btn>
+        </v-btn-toggle>
+        <div class="text-super-caption text-muted font-italic leading-tight">
+          * {{ selectedTheme === 'light' ? 'Tema Chiaro Arctic: interfaccia ad alta visibilità con superfici chiare, bagliori soffici e testo scuro nitido.' : 'Tema Scuro OLED: interfaccia scura con contrasto OLED, sfumature neon e vetro satinato.' }}
+        </div>
+      </div>
+    </v-card>
+
     <!-- SEZIONE 2: LAYOUT & VISUALIZZAZIONE -->
     <v-card 
       class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
@@ -721,6 +757,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useTheme } from 'vuetify';
 import { collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { 
@@ -739,10 +776,22 @@ import {
   ottimizzaDigitazioneGlobal,
   regolaProgressioneW2Global,
   inviaNotificaDeploy,
-  ORDINE_ORIGINALE_ATLETI
+  ORDINE_ORIGINALE_ATLETI,
+  currentTheme,
+  setTheme
 } from '../authStore.js';
 
 const router = useRouter();
+const vuetifyTheme = useTheme();
+const selectedTheme = ref(currentTheme.value);
+
+watch(currentTheme, (val) => {
+  selectedTheme.value = val;
+});
+
+const cambiaTemaDaImpostazioni = (newVal) => {
+  setTheme(newVal, vuetifyTheme);
+};
 
 // Modulo Coach Deploy Notifica
 const tipoNotificaForm = ref('deploy'); // 'deploy' | 'messaggio'

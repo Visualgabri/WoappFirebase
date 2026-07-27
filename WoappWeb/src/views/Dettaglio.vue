@@ -100,7 +100,7 @@
         <v-icon color="red-lighten-2" class="mr-2.5 mt-0.5 flex-shrink-0" size="18">mdi-history</v-icon>
         <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem', lineSpace: 1.35 }">
           <strong class="text-red-lighten-2 text-uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">Modalità Storico</strong><br>
-          Stai guardando l'esercizio della <strong class="text-white">Scheda {{ workout.num_scheda }}</strong>. Le modifiche qui alterano il passato.
+          Stai guardando l'esercizio della <strong class="text-slate-dark">Scheda {{ workout.num_scheda }}</strong>. Le modifiche qui alterano il passato.
         </div>
       </v-card>
 
@@ -118,7 +118,7 @@
       >
         <v-icon color="green-lighten-2" class="mr-3 flex-shrink-0" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-check-circle-outline</v-icon>
         <div class="text-slate-dark" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.75rem', lineSpace: 1.45 }">
-          <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-white">Week {{ settimanaAttiva }}</strong>.
+          <strong class="text-green-lighten-2">Giorno Completato!</strong> Questa sessione è già stata contrassegnata come completata per la <strong class="text-slate-dark">Week {{ settimanaAttiva }}</strong>.
         </div>
       </v-card>
 
@@ -444,13 +444,13 @@
             </div>
             <div class="text-slate-dark" style="font-size: 0.72rem; line-height: 1.45;">
               <div class="mb-1">
-                ⏱️ <strong class="text-white">1ª Cifra ({{ parsedTut.f1 }}s):</strong> Fase iniziale del movimento (da quando parte l’esercizio).
+                ⏱️ <strong class="text-slate-dark">1ª Cifra ({{ parsedTut.f1 }}s):</strong> Fase iniziale del movimento (da quando parte l’esercizio).
               </div>
               <div class="mb-1">
-                ⏱️ <strong class="text-white">2ª Cifra ({{ parsedTut.f2 }}s):</strong> Fase di contrazione (mantenere la tensione).
+                ⏱️ <strong class="text-slate-dark">2ª Cifra ({{ parsedTut.f2 }}s):</strong> Fase di contrazione (mantenere la tensione).
               </div>
               <div class="mb-1.5">
-                ⏱️ <strong class="text-white">3ª Cifra ({{ parsedTut.f3 }}s):</strong> Fase di ritorno (quando il movimento torna indietro o si conclude).
+                ⏱️ <strong class="text-slate-dark">3ª Cifra ({{ parsedTut.f3 }}s):</strong> Fase di ritorno (quando il movimento torna indietro o si conclude).
               </div>
               <div class="pt-2 text-super-caption text-muted font-italic" style="border-top: 1px solid rgba(255, 255, 255, 0.08) !important;">
                 Attenzione: la prima e la terza fase non sono per forza concentrica o eccentrica in modo fisso, dipende da come inizia l’esercizio (1ª fase da quando parte, 2ª in contrazione, 3ª di ritorno o chiusura).
@@ -10837,8 +10837,16 @@ const tornaIndietro = () => {
   color: #cbd5e1 !important;
 }
 
+.text-slate-dark {
+  color: var(--text-dark) !important;
+}
+
+.text-slate {
+  color: var(--text-slate) !important;
+}
+
 .text-muted {
-  color: #94a3b8 !important;
+  color: var(--text-muted) !important;
 }
 
 .uppercase {
@@ -10850,11 +10858,23 @@ const tornaIndietro = () => {
 }
 
 .bg-slate-100 {
-  background-color: rgba(30, 41, 59, 0.4) !important;
+  background-color: var(--card-bg-soft) !important;
 }
 
 .border-bottom-soft {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
+.border-top-soft {
+  border-top: 1px solid var(--card-border) !important;
+}
+
+.border-soft {
+  border: 1px solid var(--card-border) !important;
+}
+
+.border-right-soft {
+  border-right: 1px solid var(--card-border) !important;
 }
 
 .premium-card {
@@ -11314,6 +11334,130 @@ th.sticky-col {
 .scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Light Mode Overrides per Dettaglio.vue */
+[data-theme="light"] .sticky-detail-header,
+[data-theme="light"] .appsheet-top-bar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .prescription-chip-box {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+}
+
+[data-theme="light"] .prescription-chip-box:hover {
+  background: #e2e8f0 !important;
+  border-color: #f97316 !important;
+}
+
+[data-theme="light"] .week-prescription-text {
+  background-color: #fff7ed !important;
+  color: #c2410c !important;
+  border-left: 3px solid #ea580c !important;
+}
+
+[data-theme="light"] .custom-weight-input :deep(.v-field) {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .custom-weight-input :deep(.v-field--focused) {
+  background: #ffffff !important;
+  border-color: #ea580c !important;
+  box-shadow: 0 0 8px rgba(234, 88, 12, 0.25) !important;
+}
+
+[data-theme="light"] .custom-weight-input :deep(.v-label) {
+  color: #64748b !important;
+  opacity: 0.85 !important;
+}
+
+[data-theme="light"] .custom-weight-input :deep(input),
+[data-theme="light"] .custom-weight-input :deep(textarea) {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .ghost-glow-green :deep(.v-field) {
+  background: #f0fdf4 !important;
+  border: 1px solid #86efac !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15) !important;
+}
+[data-theme="light"] .ghost-glow-green :deep(input),
+[data-theme="light"] .ghost-glow-green :deep(textarea) {
+  color: #15803d !important;
+}
+[data-theme="light"] .ghost-glow-green :deep(.v-label) {
+  color: #166534 !important;
+}
+
+[data-theme="light"] .ghost-glow-blue :deep(.v-field) {
+  background: #eff6ff !important;
+  border: 1px solid #93c5fd !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.15) !important;
+}
+[data-theme="light"] .ghost-glow-blue :deep(input),
+[data-theme="light"] .ghost-glow-blue :deep(textarea) {
+  color: #1d4ed8 !important;
+}
+[data-theme="light"] .ghost-glow-blue :deep(.v-label) {
+  color: #1e40af !important;
+}
+
+[data-theme="light"] .ghost-glow-orange :deep(.v-field) {
+  background: #fff7ed !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.15) !important;
+}
+[data-theme="light"] .ghost-glow-orange :deep(input),
+[data-theme="light"] .ghost-glow-orange :deep(textarea) {
+  color: #c2410c !important;
+}
+[data-theme="light"] .ghost-glow-orange :deep(.v-label) {
+  color: #9a3412 !important;
+}
+
+[data-theme="light"] .week-log-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .week-active-border {
+  border: 2px solid #ea580c !important;
+  background-color: #fff7ed !important;
+}
+
+[data-theme="light"] .rmt-premium-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .text-red {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .header-cell {
+  background: #f1f5f9 !important;
+  color: #ea580c !important;
+  border-bottom: 1.5px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .body-cell {
+  color: #334155 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .sticky-col {
+  background: #ffffff !important;
+  border-right: 1.5px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] th.sticky-col {
+  background: #f1f5f9 !important;
 }
 
 </style>

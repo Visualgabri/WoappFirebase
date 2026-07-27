@@ -687,6 +687,69 @@ body::after {
   border-color: #cbd5e1 !important;
 }
 
+/* Stili per Stepper e Bottoni Sforzo Percepito (W6) */
+.stepper-input-box {
+  background: var(--card-bg-soft) !important;
+  border-color: var(--card-border) !important;
+}
+
+[data-theme="light"] .stepper-input-box {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.fatica-btn {
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-slate) !important;
+  transition: all 0.2s ease !important;
+}
+
+.fatica-btn-active-media {
+  background: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3) !important;
+}
+
+.fatica-btn-active-pesante {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3) !important;
+}
+
+.fatica-btn-active-devastante {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
+}
+
+[data-theme="light"] .fatica-btn {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .v-list,
+[data-theme="light"] .v-menu .v-overlay__content,
+[data-theme="light"] .v-select__content {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1) !important;
+}
+
+[data-theme="light"] .v-list-item {
+  color: #334155 !important;
+}
+
+[data-theme="light"] [style*="color: #fbbf24"],
+[data-theme="light"] [style*="color:#fbbf24"] {
+  color: #b45309 !important;
+}
+
 [data-theme="light"] .skeleton-tab-item {
   background: #e2e8f0 !important;
 }

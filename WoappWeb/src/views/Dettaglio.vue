@@ -1080,17 +1080,16 @@
               
               <!-- Stepper per Miglior Carico W6 -->
               <div 
-                class="d-flex align-center card-glass border" 
+                class="d-flex align-center card-glass border stepper-input-box" 
                 :class="[
                   layoutCorrente === 'super_compatto' ? 'px-0.5 py-0 rounded-sm' : (layoutCorrente === 'compatto' ? 'px-1 py-0.5 rounded-lg' : 'px-1 py-0.5 rounded-xl')
                 ]" 
-                style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;"
               >
                 <v-btn
                   icon
                   :size="layoutCorrente === 'super_compatto' ? '20px' : 'x-small'"
                   variant="text"
-                  color="orange-lighten-2"
+                  color="orange-darken-3"
                   @click="decrementaKgUnico"
                   id="btn-decrementa-kg-unico"
                 >
@@ -1099,7 +1098,7 @@
                 <input
                   v-model="numIns6Val"
                   type="text"
-                  class="text-center font-weight-black text-white px-1"
+                  class="text-center font-weight-black text-slate-dark px-1"
                   :style="{ width: layoutCorrente === 'super_compatto' ? '45px' : '55px', border: 'none', outline: 'none', background: 'transparent', fontSize: layoutCorrente === 'super_compatto' ? '0.8rem' : '0.9rem' }"
                   @blur="salvaKgUnico"
                   id="input-kg-unico-w6"
@@ -1108,7 +1107,7 @@
                   icon
                   :size="layoutCorrente === 'super_compatto' ? '20px' : 'x-small'"
                   variant="text"
-                  color="orange-lighten-2"
+                  color="orange-darken-3"
                   @click="incrementaKgUnico"
                   id="btn-incrementa-kg-unico"
                 >
@@ -1129,11 +1128,10 @@
                   <v-btn
                     block
                     variant="flat"
-                    :color="numFaticaw6Val === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
                     :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
                     :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                    class="font-weight-black text-none"
-                    :class="{'text-white': numFaticaw6Val === 'Media', 'text-slate': numFaticaw6Val !== 'Media'}"
+                    class="font-weight-black text-none fatica-btn"
+                    :class="{ 'fatica-btn-active-media': numFaticaw6Val === 'Media' }"
                     style="font-size: 0.72rem;"
                     :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
                     @click="salvaFatica('Media')"
@@ -1146,11 +1144,10 @@
                   <v-btn
                     block
                     variant="flat"
-                    :color="numFaticaw6Val === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
                     :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
                     :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                    class="font-weight-black text-none"
-                    :class="{'text-white': numFaticaw6Val === 'Pesante', 'text-slate': numFaticaw6Val !== 'Pesante'}"
+                    class="font-weight-black text-none fatica-btn"
+                    :class="{ 'fatica-btn-active-pesante': numFaticaw6Val === 'Pesante' }"
                     style="font-size: 0.72rem;"
                     :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
                     @click="salvaFatica('Pesante')"
@@ -1163,11 +1160,10 @@
                   <v-btn
                     block
                     variant="flat"
-                    :color="numFaticaw6Val === 'Devastante' ? 'red-darken-4' : 'grey-darken-3'"
                     :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
                     :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                    class="font-weight-black text-none"
-                    :class="{'text-white': numFaticaw6Val === 'Devastante', 'text-slate': numFaticaw6Val !== 'Devastante'}"
+                    class="font-weight-black text-none fatica-btn"
+                    :class="{ 'fatica-btn-active-devastante': numFaticaw6Val === 'Devastante' }"
                     style="font-size: 0.72rem;"
                     :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
                     @click="salvaFatica('Devastante')"
@@ -1749,12 +1745,12 @@
                     </div>
                     
                     <!-- Stepper per Miglior Carico W6 Precedente -->
-                    <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5" style="background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5 stepper-input-box">
                       <v-btn
                         icon
                         size="x-small"
                         variant="text"
-                        color="orange-lighten-2"
+                        color="orange-darken-3"
                         @click="decrementaKgUnicoPrecedente"
                       >
                         <v-icon size="18">mdi-minus</v-icon>
@@ -1762,7 +1758,7 @@
                       <input
                         v-model="numIns6ValPrecedente"
                         type="text"
-                        class="text-center font-weight-black text-white px-1"
+                        class="text-center font-weight-black text-slate-dark px-1"
                         style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
                         @blur="salvaKgUnicoPrecedente"
                       />
@@ -1770,7 +1766,7 @@
                         icon
                         size="x-small"
                         variant="text"
-                        color="orange-lighten-2"
+                        color="orange-darken-3"
                         @click="incrementaKgUnicoPrecedente"
                       >
                         <v-icon size="18">mdi-plus</v-icon>
@@ -1786,11 +1782,10 @@
                         <v-btn
                           block
                           variant="flat"
-                          :color="numFaticaw6ValPrecedente === 'Media' ? 'green-darken-3' : 'grey-darken-3'"
                           size="x-small"
                           rounded="lg"
-                          class="font-weight-black text-none"
-                          :class="{'text-white': numFaticaw6ValPrecedente === 'Media', 'text-slate': numFaticaw6ValPrecedente !== 'Media'}"
+                          class="font-weight-black text-none fatica-btn"
+                          :class="{ 'fatica-btn-active-media': numFaticaw6ValPrecedente === 'Media' }"
                           style="font-size: 0.65rem; height: 26px;"
                           @click="salvaFaticaPrecedente('Media')"
                         >
@@ -1801,11 +1796,10 @@
                         <v-btn
                           block
                           variant="flat"
-                          :color="numFaticaw6ValPrecedente === 'Pesante' ? 'orange-darken-3' : 'grey-darken-3'"
                           size="x-small"
                           rounded="lg"
-                          class="font-weight-black text-none"
-                          :class="{'text-white': numFaticaw6ValPrecedente === 'Pesante', 'text-slate': numFaticaw6ValPrecedente !== 'Pesante'}"
+                          class="font-weight-black text-none fatica-btn"
+                          :class="{ 'fatica-btn-active-pesante': numFaticaw6ValPrecedente === 'Pesante' }"
                           style="font-size: 0.65rem; height: 26px;"
                           @click="salvaFaticaPrecedente('Pesante')"
                         >
@@ -1816,11 +1810,10 @@
                         <v-btn
                           block
                           variant="flat"
-                          :color="numFaticaw6ValPrecedente === 'Devastante' ? 'red-darken-3' : 'grey-darken-3'"
                           size="x-small"
                           rounded="lg"
-                          class="font-weight-black text-none"
-                          :class="{'text-white': numFaticaw6ValPrecedente === 'Devastante', 'text-slate': numFaticaw6ValPrecedente !== 'Devastante'}"
+                          class="font-weight-black text-none fatica-btn"
+                          :class="{ 'fatica-btn-active-devastante': numFaticaw6ValPrecedente === 'Devastante' }"
                           style="font-size: 0.65rem; height: 26px;"
                           @click="salvaFaticaPrecedente('Devastante')"
                         >

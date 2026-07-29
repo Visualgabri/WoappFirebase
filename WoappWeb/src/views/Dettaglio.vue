@@ -9209,7 +9209,7 @@ function estraiRpeDaInput(str) {
   return Math.max(val1, val2);
 }
 
-function estraiRepsDaInput(str) {
+function estraiRepsDaInputSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
   
@@ -9246,6 +9246,17 @@ function estraiRepsDaInput(str) {
   }
   
   return null;
+}
+
+function estraiRepsDaInput(str) {
+  if (!str) return null;
+  const strVal = String(str);
+  const lines = strVal.split(/[\n;\r]+/);
+  if (lines.length > 1) {
+    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v));
+    if (repsList.length > 0) return Math.max(...repsList);
+  }
+  return estraiRepsDaInputSingle(strVal);
 }
 
 function estraiPesoDaInput(str) {

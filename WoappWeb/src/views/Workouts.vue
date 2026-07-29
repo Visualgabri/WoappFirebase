@@ -2718,7 +2718,7 @@ const isRepProgression = (ex) => {
   return false;
 };
 
-const estraiRepsDaInput = (str) => {
+const estraiRepsDaInputSingle = (str) => {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
 
@@ -2754,6 +2754,17 @@ const estraiRepsDaInput = (str) => {
   }
   
   return null;
+};
+
+const estraiRepsDaInput = (str) => {
+  if (!str) return null;
+  const strVal = String(str);
+  const lines = strVal.split(/[\n;\r]+/);
+  if (lines.length > 1) {
+    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v));
+    if (repsList.length > 0) return Math.max(...repsList);
+  }
+  return estraiRepsDaInputSingle(strVal);
 };
 
 const getTrendFreccia = (ex) => {

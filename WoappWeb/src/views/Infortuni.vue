@@ -37,6 +37,9 @@
         class="font-weight-black text-none rounded-xl text-white mb-4"
         style="height: 48px;"
         prepend-icon="mdi-plus-circle-outline"
+        @click="apriFormNuovo"
+      >
+        Segnala Nuovo Fastidio / Infortunio
       </v-btn>
 
       <!-- Form per Inserimento/Modifica Infortunio (Espandibile) -->

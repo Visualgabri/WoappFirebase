@@ -2107,7 +2107,12 @@
           <div v-if="activeTabAnalisi === 1 && suggerimentoRecord" class="px-3 py-2 bg-black border-top text-left" style="border-color: rgba(249, 115, 22, 0.2) !important;">
             
             <!-- HERO BANNER PR: RECORD ASSOLUTO GENERALE -->
-            <div v-if="suggerimentoRecord.recordAbsolute > 0" class="pa-2.5 rounded-xl border mb-2 text-left" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important;">
+            <div 
+              v-if="suggerimentoRecord.recordAbsolute > 0" 
+              class="pa-2.5 rounded-xl border mb-2 text-left transition-colors hover:bg-slate-800/80 active:bg-slate-700" 
+              style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important; cursor: pointer;"
+              @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteId)"
+            >
               <div class="d-flex align-center justify-space-between mb-0.5">
                 <div class="d-flex align-center gap-1">
                   <v-icon color="cyan-lighten-2" size="13">mdi-fire</v-icon>
@@ -2140,7 +2145,12 @@
             <!-- RIGA INFERIORE: RECORD A STESSE REPS + OBIETTIVO W -->
             <div class="d-flex align-stretch gap-1.5">
               <!-- Card 1: Record a Stesse Reps -->
-              <div v-if="suggerimentoRecord.record > 0" class="pa-2 rounded-xl border text-left flex-1-1 d-flex flex-column justify-center" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important;">
+              <div 
+                v-if="suggerimentoRecord.record > 0" 
+                class="pa-2 rounded-xl border text-left flex-1-1 d-flex flex-column justify-center transition-colors hover:bg-slate-800/80 active:bg-slate-700" 
+                style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important; cursor: pointer;"
+                @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsId)"
+              >
                 <div class="d-flex align-center justify-space-between mb-0.5">
                   <div class="d-flex align-center gap-1">
                     <v-icon color="amber-lighten-1" size="12">mdi-trophy</v-icon>
@@ -2462,7 +2472,7 @@
                         {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).massimale1RM) }} kg 
                         <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">
                           <template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource">
-                            (da {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.peso }}kg×{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.reps }}r • Sch.{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.numScheda }}<template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso"> • {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso }}</template>)
+                            (da {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.peso }}kg×{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.reps }}r<template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.fatica"> • Fatica: {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.fatica }}</template> • Sch.{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.numScheda }}<template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso"> • {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso }}</template>)
                           </template>
                           <template v-else>
                             (stima 1RM)
@@ -3929,68 +3939,66 @@ const calcolaDettaglioMassimale1RMPuro = () => {
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
       if (!isNaN(sNum) && sNum >= currentNumScheda) return;
-      for (let w = 1; w <= 6; w++) {
-        const insVal = prevEx['ins_week' + w];
-        if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-          const weightStr = estraiPesoDaInput(insVal);
-          if (weightStr) {
-            const weight = parseFloat(weightStr);
-            if (!isNaN(weight) && weight > 0) {
-              const repsVal = prevEx['reps_week' + w];
-              let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
-              const inputReps = estraiRepsDaInput(insVal);
-              if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
-                repsNum = inputReps;
-              }
-              if (repsNum) {
-                const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
-                if (e1rm > best1RM) {
-                  best1RM = e1rm;
-                  const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
-                  bestSource = {
-                    id: prevEx.id,
-                    peso: weight,
-                    reps: repsNum,
-                    numScheda: prevEx.num_scheda,
-                    date: dEx,
-                    tempoTrascorso: tempoTrascorsoBreve(dEx)
-                  };
-                }
-              }
-            }
+
+      // REQUIREMENT 3: Massimale calcolato esclusivamente utilizzando il miglior carico numerico registrato nella week 6 (num_ins6 / ins_week6)
+      const pesoW6Str = (prevEx.ins_week6 ? estraiPesoDaInput(prevEx.ins_week6) : null) || (prevEx.num_ins6 ? estraiPesoDaInput(prevEx.num_ins6) : null);
+      if (pesoW6Str) {
+        const weight = parseFloat(pesoW6Str);
+        if (!isNaN(weight) && weight > 0) {
+          const repsVal = prevEx.reps_week6;
+          let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx.des_week6);
+          const inputReps = estraiRepsDaInput(prevEx.ins_week6);
+          if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
+            repsNum = inputReps;
+          }
+          if (!repsNum) repsNum = 6;
+
+          const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
+          if (e1rm > best1RM) {
+            best1RM = e1rm;
+            const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+            bestSource = {
+              id: prevEx.id,
+              peso: weight,
+              reps: repsNum,
+              fatica: prevEx.num_faticaw6 || null,
+              numScheda: prevEx.num_scheda,
+              date: dEx,
+              tempoTrascorso: tempoTrascorsoBreve(dEx)
+            };
           }
         }
       }
     });
   }
 
-  if (inputSettimane.value) {
-    Object.keys(inputSettimane.value).forEach(w => {
-      const insVal = inputSettimane.value[w]?.ins;
-      if (insVal) {
-        const weightStr = estraiPesoDaInput(insVal);
-        if (weightStr) {
-          const weight = parseFloat(weightStr);
-          if (!isNaN(weight) && weight > 0) {
-            const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(parseInt(w, 10));
-            if (rExecuted) {
-              const e1rm = calcolaE1RMSmorzato(weight, rExecuted, isCavo);
-              if (e1rm > best1RM) {
-                best1RM = e1rm;
-                bestSource = {
-                  id: workout.value.id,
-                  peso: weight,
-                  reps: rExecuted,
-                  numScheda: workout.value.num_scheda,
-                  date: workout.value.dat_scheda_ult_ex || workout.value.timestamp,
-                  tempoTrascorso: tempoTrascorsoBreve(workout.value.dat_scheda_ult_ex || workout.value.timestamp) || 'questa scheda'
-                };
-              }
+  // Se la scheda corrente ha un caricamento registrato in week 6
+  if (inputSettimane.value && inputSettimane.value[6]) {
+    const insVal = inputSettimane.value[6]?.ins;
+    if (insVal) {
+      const weightStr = estraiPesoDaInput(insVal);
+      if (weightStr) {
+        const weight = parseFloat(weightStr);
+        if (!isNaN(weight) && weight > 0) {
+          const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(6);
+          if (rExecuted) {
+            const e1rm = calcolaE1RMSmorzato(weight, rExecuted, isCavo);
+            if (e1rm > best1RM) {
+              best1RM = e1rm;
+              bestSource = {
+                id: workout.value.id,
+                peso: weight,
+                reps: rExecuted,
+                fatica: workout.value.num_faticaw6 || null,
+                numScheda: workout.value.num_scheda,
+                date: workout.value.dat_scheda_ult_ex || workout.value.timestamp,
+                tempoTrascorso: 'questa scheda'
+              };
             }
           }
         }
       }
-    });
+    }
   }
 
   return { best1RM, bestSource };
@@ -9213,6 +9221,9 @@ function estraiRepsDaInputSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
   
+  // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
+  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
+
   // Rimuove espressioni di RPE prima dell'estrazione reps (es. "Rpe: 93 - 99", "RPE 8.5")
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
   
@@ -9230,7 +9241,7 @@ function estraiRepsDaInputSingle(str) {
   clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').trim();
 
   // Rimuove espressioni di impostazioni/metadati per evitare interferenze
-  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo)\b\s*\d+(?:\.\d+)?/gi;
+  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.)\b\s*\d+(?:\.\d+)?/gi;
   clean = clean.replace(cleanSettingsRegex, '').trim();
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
   
@@ -9264,12 +9275,15 @@ function estraiPesoDaInput(str) {
   
   let clean = String(str).replace(/,/g, '.').trim();
   
+  // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
+  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
+
   // Rimuove espressioni di RPE (es. "Rpe: 93 - 99", "RPE 8.5", "RPE: 9-10", "rpe 93-99", "rpe@9")
   // per evitare che la scala di sforzo percepito interferisca con l'estrazione del carico in KG
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
   
   // Rimuove espressioni di impostazioni/metadati (es. "PIN 12", "buco 3") per evitare che interferiscano
-  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo)\b\s*\d+(?:\.\d+)?/gi;
+  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.)\b\s*\d+(?:\.\d+)?/gi;
   clean = clean.replace(cleanSettingsRegex, '').trim();
   
   // Rimuove gradi (es. "30°")
@@ -9299,7 +9313,7 @@ function estraiPesoDaInput(str) {
     'regolazione', 'tacc', 'tassello', 'tavoletta', 'board', 'catena', 'catene', 'elastico', 
     'elastici', 'blocco', 'blocchi', 'box', 'serie', 'set', 'sets', 'reps', 'rep', 
     'ripetizioni', 'rip', 'colpi', 'colpo', 'giro', 'giri', 'circuiti', 'circuito', 
-    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo'
+    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo', 'tut', 't.u.t.'
   ];
   
   // Stopwords da ignorare prima del numero per trovare il prefisso reale
@@ -9584,10 +9598,8 @@ const aggiornaDatoECommit = async (updates) => {
 
 const estraiNumeroMassimo = (str) => {
   if (!str) return null;
-  const numbers = str.replace(/,/g, '.').match(/\d+(?:\.\d+)?/g);
-  if (numbers && numbers.length > 0) {
-    return Math.max(...numbers.map(Number));
-  }
+  const peso = estraiPesoDaInput(str);
+  if (peso) return parseFloat(peso);
   return null;
 };
 
@@ -9908,6 +9920,7 @@ const suggerimentoRecord = computed(() => {
   let absGenSheet = null;
   let absGenDay = null;
   let absGenDate = null;
+  let absGenId = null;
 
   // 2. Record Assoluto a Stesse Reps (PR sulle reps target di settimana)
   let absRepsWeight = 0;
@@ -9917,15 +9930,17 @@ const suggerimentoRecord = computed(() => {
   let absRepsDay = null;
   let absRepsDate = null;
   let absRepsFatica = null;
+  let absRepsId = null;
 
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
     if (!isNaN(sNum) && sNum >= currentNumScheda) return;
     const dateVal = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
 
-    // Priorità 1: Miglior Carico W6 (num_ins6) se presente per le stesse reps target
-    if (prevEx.num_ins6) {
-      const pesoW6Num = parseFloat(String(prevEx.num_ins6).replace(',', '.'));
+    // Priorità 1: Miglior Carico W6 (num_ins6 / ins_week6) se presente per le stesse reps target
+    const pesoW6Str = (prevEx.ins_week6 ? estraiPesoDaInput(prevEx.ins_week6) : null) || (prevEx.num_ins6 ? estraiPesoDaInput(prevEx.num_ins6) : null);
+    if (pesoW6Str) {
+      const pesoW6Num = parseFloat(pesoW6Str);
       if (!isNaN(pesoW6Num) && pesoW6Num > 0) {
         if (pesoW6Num > absGenWeight) {
           absGenWeight = pesoW6Num;
@@ -9934,6 +9949,7 @@ const suggerimentoRecord = computed(() => {
           absGenSheet = prevEx.num_scheda;
           absGenDay = prevEx.des_giorno;
           absGenDate = dateVal;
+          absGenId = prevEx.id;
         }
         if (isMatchingReps(prevEx, 6)) {
           if (pesoW6Num >= absRepsWeight) {
@@ -9944,6 +9960,7 @@ const suggerimentoRecord = computed(() => {
             absRepsDay = prevEx.des_giorno;
             absRepsDate = dateVal;
             absRepsFatica = prevEx.num_faticaw6 || null;
+            absRepsId = prevEx.id;
           }
         }
       }
@@ -9970,6 +9987,7 @@ const suggerimentoRecord = computed(() => {
             absGenSheet = prevEx.num_scheda;
             absGenDay = prevEx.des_giorno;
             absGenDate = dateVal;
+            absGenId = prevEx.id;
           }
 
           // Controllo PR a Stesse Reps (isMatchingReps)
@@ -9982,6 +10000,7 @@ const suggerimentoRecord = computed(() => {
               absRepsDay = prevEx.des_giorno;
               absRepsDate = dateVal;
               absRepsFatica = (i === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : null;
+              absRepsId = prevEx.id;
             }
           }
         }
@@ -10010,6 +10029,7 @@ const suggerimentoRecord = computed(() => {
     recordRepsDay: absRepsDay,
     recordRepsDate: absRepsDate,
     recordRepsFatica: absRepsFatica,
+    recordRepsId: absRepsId,
 
     recordAbsolute: absGenWeight,
     recordAbsoluteWeek: absGenWeek,
@@ -10017,6 +10037,7 @@ const suggerimentoRecord = computed(() => {
     recordAbsoluteSheet: absGenSheet,
     recordAbsoluteDay: absGenDay,
     recordAbsoluteDate: absGenDate,
+    recordAbsoluteId: absGenId,
 
     target: targetWeight,
     isScarico,

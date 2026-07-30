@@ -7445,7 +7445,7 @@ const caricaDatiEsercizio = async () => {
   // CACHE REATTIVA PER SWIPE E CARICAMENTO IMMEDIATO
   let cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
   if (!cachedEx && globalStoryboard.value && globalStoryboard.value.length > 0) {
-    cachedEx = globalStoryboard.value.find(ex => String(ex.id) === String(routeIdLocal.value) || String(ex.num_riga) === String(routeIdLocal.value));
+    cachedEx = globalStoryboard.value.find(ex => String(ex.id) === String(routeIdLocal.value));
   }
 
   if (cachedEx) {

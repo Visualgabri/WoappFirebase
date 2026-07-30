@@ -7521,9 +7521,10 @@ const caricaDatiEsercizio = async () => {
     } catch (eDoc) {}
 
     // Fallback: se routeIdLocal è un num_riga anziché l'ID di documento Firestore
-    if (!docSnap) {
+    if (!docSnap && !String(routeIdLocal.value).startsWith('STORICO_')) {
       const qNum = query(
         collection(db, 'STORYBOARD'),
+        where('ID_cliente', '==', selectedAthlete.value),
         where('num_riga', 'in', [routeIdLocal.value, String(routeIdLocal.value), Number(routeIdLocal.value)])
       );
       const snapNum = await getDocs(qNum);
@@ -7624,7 +7625,12 @@ const caricaDatiEsercizio = async () => {
 const caricaEsercizioDaBackup = async () => {
   try {
     const allData = await getStoryboardBackup();
-    const found = allData.find(item => String(item.id) === String(routeIdLocal.value) || String(item.num_riga) === String(routeIdLocal.value));
+    const found = allData.find(item => {
+      const syntheticId = `STORICO_${item.num_scheda}_${item.des_giorno}_${item.num_riga_giorno}`;
+      return String(item.id) === String(routeIdLocal.value) || 
+             String(item.num_riga) === String(routeIdLocal.value) ||
+             syntheticId === String(routeIdLocal.value);
+    });
     if (found) {
       workout.value = applicaModificheLocali(found);
       const keyIdCliente = Object.keys(found).find(k => k.includes('ID_cliente')) || 'ID_cliente';
@@ -10127,7 +10133,7 @@ const caricaDatiAnalisi = async (sett) => {
       const d = doc.data();
       const sNum = parseInt(d.num_scheda);
       if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
-        const itemId = doc.id || d.id || d.num_riga;
+        const itemId = doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
         list.push({ ...d, id: itemId });
       }
     });
@@ -10143,7 +10149,7 @@ const caricaDatiAnalisi = async (sett) => {
                parseInt(b.num_riga_giorno) > 0;
       });
       matched.forEach(b => {
-        if (!b.id) b.id = b.num_riga ? String(b.num_riga) : undefined;
+        if (!b.id) b.id = `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
       });
       matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
       storicoEsercizio.value = matched;

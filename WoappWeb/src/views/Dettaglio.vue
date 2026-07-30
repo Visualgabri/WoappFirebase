@@ -1603,7 +1603,7 @@
         ]"
         elevation="2"
         style="border: 1px solid rgba(255, 255, 255, 0.08);"
-        @click="vaiADettaglioStorico(previousWorkout.id)"
+        @click="vibraTattile(12); dialogProgressioniPrecedente = true"
       >
         <div class="d-flex align-center justify-space-between mb-2">
           <span class="text-super-caption text-muted font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
@@ -1707,8 +1707,13 @@
             <!-- Info Esercizio Precedente -->
             <div class="mb-2.5 text-left" style="line-height: 1.1;">
               <h4 class="font-weight-black text-white mt-0" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
-              <div class="text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
-                Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}
+              <div class="text-orange-lighten-2 font-weight-black uppercase d-flex align-center flex-wrap gap-1" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
+                <span>Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>
+                <template v-if="getExecutionDate(previousWorkout, storicoEsercizio, workout)">
+                  <span>•</span>
+                  <span class="text-white">🗓️ {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>
+                  <span v-if="tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout))" class="text-slate-light font-weight-bold">({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})</span>
+                </template>
               </div>
             </div>
 
@@ -2111,7 +2116,7 @@
               v-if="suggerimentoRecord.recordAbsolute > 0" 
               class="pa-2.5 rounded-xl border mb-2 text-left transition-colors hover:bg-slate-800/80 active:bg-slate-700" 
               style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important; cursor: pointer;"
-              @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteId)"
+              @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
             >
               <div class="d-flex align-center justify-space-between mb-0.5">
                 <div class="d-flex align-center gap-1">
@@ -2149,7 +2154,7 @@
                 v-if="suggerimentoRecord.record > 0" 
                 class="pa-2 rounded-xl border text-left flex-1-1 d-flex flex-column justify-center transition-colors hover:bg-slate-800/80 active:bg-slate-700" 
                 style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important; cursor: pointer;"
-                @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsId)"
+                @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
               >
                 <div class="d-flex align-center justify-space-between mb-0.5">
                   <div class="d-flex align-center gap-1">
@@ -2640,7 +2645,7 @@
                 :key="prevEx.id" 
                 class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left position-relative" 
                 style="cursor: pointer;" 
-                @click="vaiADettaglioStorico(prevEx.id)"
+                @click="vaiADettaglioStorico(prevEx)"
               >
                 <div 
                   class="d-flex align-center justify-space-between mb-1 px-1.5 py-1 rounded sticky-timeline-header"
@@ -2710,7 +2715,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="table-row" style="cursor: pointer;" @click="vaiADettaglioStorico(prevEx.id)">
+                  <tr v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="table-row" style="cursor: pointer;" @click="vaiADettaglioStorico(prevEx)">
                     <td class="sticky-col body-cell text-left" :class="{'red-scheda-cell': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}">
                       <div class="table-scheda-title font-weight-black" style="font-size: 0.75rem; line-height: 1.15;">S. {{ prevEx.num_scheda }}</div>
                       <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted" style="font-size: 0.55rem; white-space: nowrap; line-height: 1.15; margin-top: 1px;">
@@ -9746,6 +9751,20 @@ const aggiornaDatoPrecedenteECommit = async (updates) => {
       localStorage.setItem(key2, JSON.stringify(currentUpdates));
     }
 
+    // Aggiorna anche l'elemento corrispondente in storicoEsercizio per riflettere subito le modifiche nella tabella/griglia dello storico
+    if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+      const targetIdStr = String(previousWorkout.value.id || previousWorkout.value.num_riga || '');
+      const idx = storicoEsercizio.value.findIndex(ex => 
+        (ex.id && String(ex.id) === targetIdStr) || 
+        (ex.num_riga && String(ex.num_riga) === targetIdStr) ||
+        (ex.num_scheda && String(ex.num_scheda) === String(previousWorkout.value.num_scheda))
+      );
+      if (idx !== -1) {
+        storicoEsercizio.value[idx] = applicaModificheLocali({ ...storicoEsercizio.value[idx], ...updates, timestamp, timestamp_ute: timestampUte });
+        storicoEsercizio.value = [...storicoEsercizio.value];
+      }
+    }
+
     // Salva su Firestore
     await updateDoc(docRef, { ...updates, timestamp, timestamp_ute: timestampUte });
     
@@ -9952,6 +9971,7 @@ const suggerimentoRecord = computed(() => {
   let absGenRow = null;
   let absGenDate = null;
   let absGenId = null;
+  let absGenItem = null;
 
   // 2. Record Assoluto a Stesse Reps (PR sulle reps target di settimana)
   let absRepsWeight = 0;
@@ -9963,6 +9983,7 @@ const suggerimentoRecord = computed(() => {
   let absRepsDate = null;
   let absRepsFatica = null;
   let absRepsId = null;
+  let absRepsItem = null;
 
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
@@ -9983,6 +10004,7 @@ const suggerimentoRecord = computed(() => {
           absGenRow = prevEx.num_riga_giorno;
           absGenDate = dateVal;
           absGenId = prevEx.id || prevEx.num_riga;
+          absGenItem = prevEx;
         }
         if (isMatchingReps(prevEx, 6)) {
           if (pesoW6Num >= absRepsWeight) {
@@ -9995,6 +10017,7 @@ const suggerimentoRecord = computed(() => {
             absRepsDate = dateVal;
             absRepsFatica = prevEx.num_faticaw6 || null;
             absRepsId = prevEx.id || prevEx.num_riga;
+            absRepsItem = prevEx;
           }
         }
       }
@@ -10023,6 +10046,7 @@ const suggerimentoRecord = computed(() => {
             absGenRow = prevEx.num_riga_giorno;
             absGenDate = dateVal;
             absGenId = prevEx.id || prevEx.num_riga;
+            absGenItem = prevEx;
           }
 
           // Controllo PR a Stesse Reps (isMatchingReps)
@@ -10037,6 +10061,7 @@ const suggerimentoRecord = computed(() => {
               absRepsDate = dateVal;
               absRepsFatica = (i === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : null;
               absRepsId = prevEx.id || prevEx.num_riga;
+              absRepsItem = prevEx;
             }
           }
         }
@@ -10067,6 +10092,7 @@ const suggerimentoRecord = computed(() => {
     recordRepsDate: absRepsDate,
     recordRepsFatica: absRepsFatica,
     recordRepsId: absRepsId,
+    recordRepsItem: absRepsItem,
 
     recordAbsolute: absGenWeight,
     recordAbsoluteWeek: absGenWeek,
@@ -10076,6 +10102,7 @@ const suggerimentoRecord = computed(() => {
     recordAbsoluteRow: absGenRow,
     recordAbsoluteDate: absGenDate,
     recordAbsoluteId: absGenId,
+    recordAbsoluteItem: absGenItem,
 
     target: targetWeight,
     isScarico,
@@ -10622,23 +10649,51 @@ const apriStoricoEsercizio = async () => {
   eseguiScrollStorico();
 };
 
-const vaiADettaglioStorico = (prevExId) => {
+const vaiADettaglioStorico = (prevExIdOrObj) => {
   vibraTattile(12);
-  if (!prevExId) return;
-  dialogStorico.value = false;
-  dialogAiutoProposta.value = false;
+  if (!prevExIdOrObj) return;
 
-  const targetId = String(prevExId);
-  const currentId = workout.value ? String(workout.value.id || workout.value.num_riga || '') : '';
+  let targetItem = null;
+  if (typeof prevExIdOrObj === 'object' && prevExIdOrObj !== null) {
+    if (prevExIdOrObj.num_scheda && (prevExIdOrObj.ins_week1 !== undefined || prevExIdOrObj.des_week1 !== undefined || prevExIdOrObj.num_riga !== undefined)) {
+      targetItem = prevExIdOrObj;
+    } else if (prevExIdOrObj.id || prevExIdOrObj.num_riga) {
+      const idSearch = String(prevExIdOrObj.id || prevExIdOrObj.num_riga);
+      targetItem = (storicoEsercizio.value || []).find(ex => String(ex.id) === idSearch || String(ex.num_riga) === idSearch);
+    }
+  }
 
-  if (currentId && currentId === targetId) {
-    riportaAInizioPagina();
+  if (!targetItem && typeof prevExIdOrObj !== 'object') {
+    const targetIdStr = String(prevExIdOrObj);
+    if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+      targetItem = storicoEsercizio.value.find(ex => 
+        String(ex.id) === targetIdStr || 
+        String(ex.num_riga) === targetIdStr
+      );
+    }
+    if (!targetItem && globalStoryboard.value && globalStoryboard.value.length > 0) {
+      targetItem = globalStoryboard.value.find(ex => 
+        String(ex.id) === targetIdStr || 
+        String(ex.num_riga) === targetIdStr
+      );
+    }
+  }
+
+  if (targetItem) {
+    previousWorkout.value = applicaModificheLocali({ ...targetItem });
+    for (let w = 1; w <= 6; w++) {
+      inputSettimanePrecedente.value[w].ins = previousWorkout.value['ins_week' + w] || '';
+      inputSettimanePrecedente.value[w].reps = previousWorkout.value['reps_week' + w] || '';
+    }
+    numIns6ValPrecedente.value = previousWorkout.value.num_ins6 || '';
+    numFaticaw6ValPrecedente.value = previousWorkout.value.num_faticaw6 || '';
+    
+    dialogProgressioniPrecedente.value = true;
   } else {
-    if (String(route.params.id) === targetId) {
-      routeIdLocal.value = targetId;
-      riportaAInizioPagina();
-      caricaDatiEsercizio();
-    } else {
+    dialogStorico.value = false;
+    dialogAiutoProposta.value = false;
+    const targetId = String(typeof prevExIdOrObj === 'object' ? (prevExIdOrObj.id || prevExIdOrObj.num_riga) : prevExIdOrObj);
+    if (targetId) {
       router.push({ name: 'DettaglioWorkout', params: { id: targetId } });
     }
   }

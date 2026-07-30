@@ -2135,7 +2135,7 @@
               </div>
 
               <div class="text-super-caption text-slate-light font-weight-bold mt-0.5 d-flex align-center gap-1.5 flex-wrap" style="font-size: 0.53rem; line-height: 1.2;">
-                <span>📍 Sch. {{ suggerimentoRecord.recordAbsoluteSheet || '-' }}{{ suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '' }}</span>
+                <span>📍 Sch. {{ suggerimentoRecord.recordAbsoluteSheet || '-' }}{{ suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '' }}{{ (suggerimentoRecord.recordAbsoluteRow !== null && suggerimentoRecord.recordAbsoluteRow !== undefined) ? suggerimentoRecord.recordAbsoluteRow : '' }}</span>
                 <span>•</span>
                 <span>🗓️ {{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}</span>
                 <span v-if="tempoTrascorso(suggerimentoRecord.recordAbsoluteDate)" class="text-cyan-lighten-3">({{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) }})</span>
@@ -2171,7 +2171,7 @@
 
                 <div class="text-super-caption text-slate-light font-weight-bold mt-0.5" style="font-size: 0.51rem; line-height: 1.15;">
                   <span v-if="suggerimentoRecord.recordRepsSheet">
-                    Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }} • 
+                    Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }}{{ (suggerimentoRecord.recordRepsRow !== null && suggerimentoRecord.recordRepsRow !== undefined) ? suggerimentoRecord.recordRepsRow : '' }} • 
                   </span>
                   {{ formattaDataStorico(suggerimentoRecord.recordRepsDate) || 'N.D.' }}
                   <span v-if="tempoTrascorso(suggerimentoRecord.recordRepsDate)" class="text-amber-lighten-2"> ({{ tempoTrascorso(suggerimentoRecord.recordRepsDate) }})</span>
@@ -7509,12 +7509,33 @@ const caricaDatiEsercizio = async () => {
 
   caricamento.value = true;
   try {
-    const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
-    const docSnap = await getDoc(docRef);
+    let docSnap = null;
+    let targetDocId = routeIdLocal.value;
 
-    if (docSnap.exists()) {
+    try {
+      const docRef = doc(db, 'STORYBOARD', routeIdLocal.value);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        docSnap = snap;
+      }
+    } catch (eDoc) {}
+
+    // Fallback: se routeIdLocal è un num_riga anziché l'ID di documento Firestore
+    if (!docSnap) {
+      const qNum = query(
+        collection(db, 'STORYBOARD'),
+        where('num_riga', 'in', [routeIdLocal.value, String(routeIdLocal.value), Number(routeIdLocal.value)])
+      );
+      const snapNum = await getDocs(qNum);
+      if (!snapNum.empty) {
+        docSnap = snapNum.docs[0];
+        targetDocId = docSnap.id;
+      }
+    }
+
+    if (docSnap && docSnap.exists()) {
       const dati = docSnap.data();
-      workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });
+      workout.value = applicaModificheLocali({ id: targetDocId || docSnap.id, ...dati });
 
       // Recupera la settimana attiva impostata nella Home per l'atleta specifico
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || '\uFEFF"ID_cliente"';
@@ -9922,6 +9943,7 @@ const suggerimentoRecord = computed(() => {
   let absGenReps = null;
   let absGenSheet = null;
   let absGenDay = null;
+  let absGenRow = null;
   let absGenDate = null;
   let absGenId = null;
 
@@ -9931,6 +9953,7 @@ const suggerimentoRecord = computed(() => {
   let absRepsReps = null;
   let absRepsSheet = null;
   let absRepsDay = null;
+  let absRepsRow = null;
   let absRepsDate = null;
   let absRepsFatica = null;
   let absRepsId = null;
@@ -9951,6 +9974,7 @@ const suggerimentoRecord = computed(() => {
           absGenReps = isMatchingReps(prevEx, 6) ? targetReps : (parseInt(prevEx.reps_week6) || targetReps);
           absGenSheet = prevEx.num_scheda;
           absGenDay = prevEx.des_giorno;
+          absGenRow = prevEx.num_riga_giorno;
           absGenDate = dateVal;
           absGenId = prevEx.id || prevEx.num_riga;
         }
@@ -9961,6 +9985,7 @@ const suggerimentoRecord = computed(() => {
             absRepsReps = targetReps;
             absRepsSheet = prevEx.num_scheda;
             absRepsDay = prevEx.des_giorno;
+            absRepsRow = prevEx.num_riga_giorno;
             absRepsDate = dateVal;
             absRepsFatica = prevEx.num_faticaw6 || null;
             absRepsId = prevEx.id || prevEx.num_riga;
@@ -9989,6 +10014,7 @@ const suggerimentoRecord = computed(() => {
             absGenReps = isMatchingReps(prevEx, i) ? repsTargetWeek : (inputReps && inputReps > 0 ? inputReps : repsTargetWeek);
             absGenSheet = prevEx.num_scheda;
             absGenDay = prevEx.des_giorno;
+            absGenRow = prevEx.num_riga_giorno;
             absGenDate = dateVal;
             absGenId = prevEx.id || prevEx.num_riga;
           }
@@ -10001,6 +10027,7 @@ const suggerimentoRecord = computed(() => {
               absRepsReps = repsTargetWeek;
               absRepsSheet = prevEx.num_scheda;
               absRepsDay = prevEx.des_giorno;
+              absRepsRow = prevEx.num_riga_giorno;
               absRepsDate = dateVal;
               absRepsFatica = (i === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : null;
               absRepsId = prevEx.id || prevEx.num_riga;
@@ -10030,6 +10057,7 @@ const suggerimentoRecord = computed(() => {
     recordRepsValue: absRepsReps,
     recordRepsSheet: absRepsSheet,
     recordRepsDay: absRepsDay,
+    recordRepsRow: absRepsRow,
     recordRepsDate: absRepsDate,
     recordRepsFatica: absRepsFatica,
     recordRepsId: absRepsId,
@@ -10039,6 +10067,7 @@ const suggerimentoRecord = computed(() => {
     recordAbsoluteReps: absGenReps,
     recordAbsoluteSheet: absGenSheet,
     recordAbsoluteDay: absGenDay,
+    recordAbsoluteRow: absGenRow,
     recordAbsoluteDate: absGenDate,
     recordAbsoluteId: absGenId,
 

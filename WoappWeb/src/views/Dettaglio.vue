@@ -3828,7 +3828,7 @@ const ottieniDettaglioRecordStoricoPerReps = (targetReps) => {
                 const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
                 bestRecord = {
                   peso: weight,
-                  id: prevEx.id,
+                  id: prevEx.id || prevEx.num_riga,
                   numScheda: prevEx.num_scheda,
                   date: dEx,
                   tempoTrascorso: tempoTrascorsoBreve(dEx)
@@ -3958,7 +3958,7 @@ const calcolaDettaglioMassimale1RMPuro = () => {
             best1RM = e1rm;
             const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
             bestSource = {
-              id: prevEx.id,
+              id: prevEx.id || prevEx.num_riga,
               peso: weight,
               reps: repsNum,
               fatica: prevEx.num_faticaw6 || null,
@@ -6765,7 +6765,8 @@ const caricaEsercizioPrecedente = async () => {
       const sNum = parseInt(d.num_scheda);
       if (sNum < currentSchedaNum) {
         if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
-          bestPrev = { id: doc.id, ...d };
+          const itemId = doc.id || d.id || d.num_riga;
+          bestPrev = { ...d, id: itemId };
         }
       }
     });
@@ -6782,7 +6783,9 @@ const caricaEsercizioPrecedente = async () => {
       });
       if (matched.length > 0) {
         matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
-        previousWorkout.value = applicaModificheLocali(matched[0]);
+        const item = matched[0];
+        if (!item.id && item.num_riga) item.id = String(item.num_riga);
+        previousWorkout.value = applicaModificheLocali(item);
       }
     }
 
@@ -9949,7 +9952,7 @@ const suggerimentoRecord = computed(() => {
           absGenSheet = prevEx.num_scheda;
           absGenDay = prevEx.des_giorno;
           absGenDate = dateVal;
-          absGenId = prevEx.id;
+          absGenId = prevEx.id || prevEx.num_riga;
         }
         if (isMatchingReps(prevEx, 6)) {
           if (pesoW6Num >= absRepsWeight) {
@@ -9960,7 +9963,7 @@ const suggerimentoRecord = computed(() => {
             absRepsDay = prevEx.des_giorno;
             absRepsDate = dateVal;
             absRepsFatica = prevEx.num_faticaw6 || null;
-            absRepsId = prevEx.id;
+            absRepsId = prevEx.id || prevEx.num_riga;
           }
         }
       }
@@ -9987,7 +9990,7 @@ const suggerimentoRecord = computed(() => {
             absGenSheet = prevEx.num_scheda;
             absGenDay = prevEx.des_giorno;
             absGenDate = dateVal;
-            absGenId = prevEx.id;
+            absGenId = prevEx.id || prevEx.num_riga;
           }
 
           // Controllo PR a Stesse Reps (isMatchingReps)
@@ -10000,7 +10003,7 @@ const suggerimentoRecord = computed(() => {
               absRepsDay = prevEx.des_giorno;
               absRepsDate = dateVal;
               absRepsFatica = (i === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : null;
-              absRepsId = prevEx.id;
+              absRepsId = prevEx.id || prevEx.num_riga;
             }
           }
         }
@@ -10095,7 +10098,8 @@ const caricaDatiAnalisi = async (sett) => {
       const d = doc.data();
       const sNum = parseInt(d.num_scheda);
       if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
-        list.push({ id: doc.id, ...d });
+        const itemId = doc.id || d.id || d.num_riga;
+        list.push({ ...d, id: itemId });
       }
     });
     list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
@@ -10108,6 +10112,9 @@ const caricaDatiAnalisi = async (sett) => {
                String(b.des_esercizio).trim() === String(desEsercizio).trim() &&
                parseInt(b.num_scheda) <= currentNumScheda &&
                parseInt(b.num_riga_giorno) > 0;
+      });
+      matched.forEach(b => {
+        if (!b.id) b.id = b.num_riga ? String(b.num_riga) : undefined;
       });
       matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
       storicoEsercizio.value = matched;
@@ -10586,10 +10593,19 @@ const vaiADettaglioStorico = (prevExId) => {
   dialogStorico.value = false;
   dialogAiutoProposta.value = false;
 
-  if (workout.value && String(workout.value.id) === String(prevExId)) {
+  const targetId = String(prevExId);
+  const currentId = workout.value ? String(workout.value.id || workout.value.num_riga || '') : '';
+
+  if (currentId && currentId === targetId) {
     riportaAInizioPagina();
   } else {
-    router.push({ name: 'DettaglioWorkout', params: { id: prevExId } });
+    if (String(route.params.id) === targetId) {
+      routeIdLocal.value = targetId;
+      riportaAInizioPagina();
+      caricaDatiEsercizio();
+    } else {
+      router.push({ name: 'DettaglioWorkout', params: { id: targetId } });
+    }
   }
 };
 

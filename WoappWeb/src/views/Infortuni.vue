@@ -171,15 +171,18 @@
           <!-- Esercizi Coinvolti (opzionale) -->
           <div class="mb-4">
             <span class="text-caption font-weight-black d-block mb-1 text-slate-dark">Esercizi in cui si è verificato (es. Panca Piana)</span>
-            <v-text-field
+            <v-combobox
               v-model="nuovoEsercizio"
-              placeholder="Nome esercizio (opzionale)"
+              :items="opzioniEsercizi"
+              placeholder="Seleziona o cerca esercizio della scheda..."
               variant="outlined"
               density="compact"
               rounded="lg"
               hide-details
+              clearable
               color="red-lighten-2"
-            ></v-text-field>
+              no-data-text="Nessun esercizio trovato nella scheda"
+            ></v-combobox>
           </div>
 
           <div class="d-flex justify-end gap-2">
@@ -415,8 +418,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { selectedAthlete, ruolo, getNomeAtleta, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, syncInfortuniListener } from '../authStore.js';
+import { ref, computed, onMounted } from 'vue';
+import { selectedAthlete, selectedSheet, ruolo, getNomeAtleta, globalInfortuni, globalStoryboard, syncStoryboardListener, getStoryboardBackup, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, syncInfortuniListener } from '../authStore.js';
 
 const mostraFormNuovo = ref(false);
 const infortunioInModificaId = ref(null);
@@ -428,6 +431,68 @@ const nuovoPercentuale = ref(10);
 const nuovoApplicaRiduzione = ref(true);
 const nuovoNote = ref('');
 const nuovoEsercizio = ref('');
+
+const eserciziBackup = ref([]);
+
+onMounted(async () => {
+  try {
+    syncStoryboardListener();
+  } catch (e) {}
+  try {
+    const backup = await getStoryboardBackup();
+    if (backup && Array.isArray(backup)) {
+      eserciziBackup.value = backup;
+    }
+  } catch (e) {
+    console.warn("Impossibile caricare backup per esercizi infortuni:", e);
+  }
+});
+
+const opzioniEsercizi = computed(() => {
+  const nomi = new Set();
+  const currentAthlete = String(selectedAthlete.value || '').trim();
+  const currentSheet = String(selectedSheet.value || '').trim();
+
+  // 1. Dati dallo storyboard globale (scheda corrente dell'atleta)
+  if (globalStoryboard.value && globalStoryboard.value.length > 0) {
+    globalStoryboard.value.forEach(item => {
+      if (item && item.des_esercizio && String(item.des_esercizio).trim()) {
+        const riga = item.num_riga_giorno !== undefined ? parseInt(item.num_riga_giorno) : 1;
+        if (isNaN(riga) || riga > 0 || !String(item.des_esercizio).toUpperCase().startsWith('GIORNO')) {
+          nomi.add(String(item.des_esercizio).trim());
+        }
+      }
+    });
+  }
+
+  // 2. Se vuoto o come supporto dal backup offline
+  if (nomi.size === 0 && eserciziBackup.value && eserciziBackup.value.length > 0) {
+    eserciziBackup.value.forEach(item => {
+      if (!item || !item.des_esercizio || !String(item.des_esercizio).trim()) return;
+      const itemAthlete = String(item.ID_cliente || item.id_cliente || '').trim();
+      const itemSheet = String(item.num_scheda || '').trim();
+
+      const matchAthlete = !currentAthlete || itemAthlete === currentAthlete;
+      const matchSheet = !currentSheet || itemSheet === currentSheet;
+
+      if (matchAthlete && matchSheet) {
+        nomi.add(String(item.des_esercizio).trim());
+      }
+    });
+
+    if (nomi.size === 0 && currentAthlete) {
+      eserciziBackup.value.forEach(item => {
+        if (!item || !item.des_esercizio || !String(item.des_esercizio).trim()) return;
+        const itemAthlete = String(item.ID_cliente || item.id_cliente || '').trim();
+        if (itemAthlete === currentAthlete) {
+          nomi.add(String(item.des_esercizio).trim());
+        }
+      });
+    }
+  }
+
+  return Array.from(nomi).sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+});
 
 const listaArticolazioni = [
   'Spalla',
@@ -489,13 +554,17 @@ const salvaInfortunio = async () => {
   salvando.value = true;
   vibraTattile(15);
   try {
+    const exVal = typeof nuovoEsercizio.value === 'string'
+      ? nuovoEsercizio.value.trim()
+      : (nuovoEsercizio.value ? String(nuovoEsercizio.value).trim() : '');
+
     const payload = {
       articolazione_coinvolta: nuovoArticolazione.value,
       gravita: nuovoGravita.value,
       percentuale_riduzione: nuovoPercentuale.value,
       applica_riduzione: nuovoApplicaRiduzione.value,
       note: nuovoNote.value,
-      esercizi_originari: nuovoEsercizio.value.trim() ? [nuovoEsercizio.value.trim()] : []
+      esercizi_originari: exVal ? [exVal] : []
     };
     if (infortunioInModificaId.value) {
       await aggiornaInfortunio(infortunioInModificaId.value, payload);

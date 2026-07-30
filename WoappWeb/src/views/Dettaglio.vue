@@ -2658,7 +2658,7 @@
 
                 <!-- Note statiche -->
                 <div class="text-super-caption text-muted mb-1.5 italic" style="font-size: 0.62rem !important; line-height: 1.25;">
-                  <span v-if="prevEx.des_giorno" class="font-weight-black text-orange-lighten-2 mr-1">Giorno {{ prevEx.des_giorno }}</span>
+                  <span v-if="prevEx.des_giorno" class="font-weight-black text-orange-lighten-2 mr-1">Giorno {{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</span>
                   <span v-if="(prevEx.des_note_attrezzo || prevEx.des_note) && String(prevEx.des_note_attrezzo || prevEx.des_note).trim()">
                     • Note: {{ prevEx.des_note_attrezzo || prevEx.des_note }}
                   </span>
@@ -2737,7 +2737,7 @@
                       {{ prevEx.num_ins6 ? prevEx.num_ins6 + ' kg' : '-' }}
                     </td>
                     <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.peso_corporeo || '-' }}</td>
-                    <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno || '-' }}</td>
+                    <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</td>
                     <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note || ''">{{ prevEx.des_note || '-' }}</td>
                     <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_attrezzo || ''">{{ prevEx.des_note_attrezzo || '-' }}</td>
                     <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_gen_attr || ''">{{ prevEx.des_note_gen_attr || '-' }}</td>
@@ -6765,7 +6765,7 @@ const caricaEsercizioPrecedente = async () => {
       const sNum = parseInt(d.num_scheda);
       if (sNum < currentSchedaNum) {
         if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
-          const itemId = `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
+          const itemId = doc.id || d.id || d.num_riga;
           bestPrev = { ...d, id: itemId };
         }
       }
@@ -6784,7 +6784,7 @@ const caricaEsercizioPrecedente = async () => {
       if (matched.length > 0) {
         matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
         const item = matched[0];
-        item.id = `STORICO_${item.num_scheda}_${item.des_giorno}_${item.num_riga_giorno}`;
+        if (!item.id && item.num_riga) item.id = String(item.num_riga);
         previousWorkout.value = applicaModificheLocali(item);
       }
     }
@@ -10133,8 +10133,7 @@ const caricaDatiAnalisi = async (sett) => {
       const d = doc.data();
       const sNum = parseInt(d.num_scheda);
       if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
-        const isStorico = sNum < currentNumScheda;
-        const itemId = isStorico ? `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}` : (doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`);
+        const itemId = doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
         list.push({ ...d, id: itemId });
       }
     });
@@ -10150,8 +10149,7 @@ const caricaDatiAnalisi = async (sett) => {
                parseInt(b.num_riga_giorno) > 0;
       });
       matched.forEach(b => {
-        const isStorico = parseInt(b.num_scheda) < currentNumScheda;
-        b.id = isStorico ? `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}` : (b.id || `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`);
+        b.id = `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
       });
       matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
       storicoEsercizio.value = matched;

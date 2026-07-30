@@ -6765,7 +6765,7 @@ const caricaEsercizioPrecedente = async () => {
       const sNum = parseInt(d.num_scheda);
       if (sNum < currentSchedaNum) {
         if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
-          const itemId = doc.id || d.id || d.num_riga;
+          const itemId = `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
           bestPrev = { ...d, id: itemId };
         }
       }
@@ -6784,7 +6784,7 @@ const caricaEsercizioPrecedente = async () => {
       if (matched.length > 0) {
         matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
         const item = matched[0];
-        if (!item.id && item.num_riga) item.id = String(item.num_riga);
+        item.id = `STORICO_${item.num_scheda}_${item.des_giorno}_${item.num_riga_giorno}`;
         previousWorkout.value = applicaModificheLocali(item);
       }
     }
@@ -10133,7 +10133,8 @@ const caricaDatiAnalisi = async (sett) => {
       const d = doc.data();
       const sNum = parseInt(d.num_scheda);
       if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
-        const itemId = doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
+        const isStorico = sNum < currentNumScheda;
+        const itemId = isStorico ? `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}` : (doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`);
         list.push({ ...d, id: itemId });
       }
     });
@@ -10149,7 +10150,8 @@ const caricaDatiAnalisi = async (sett) => {
                parseInt(b.num_riga_giorno) > 0;
       });
       matched.forEach(b => {
-        if (!b.id) b.id = `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+        const isStorico = parseInt(b.num_scheda) < currentNumScheda;
+        b.id = isStorico ? `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}` : (b.id || `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`);
       });
       matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
       storicoEsercizio.value = matched;

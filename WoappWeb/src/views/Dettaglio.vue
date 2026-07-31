@@ -459,21 +459,50 @@
           </v-card>
         </v-expand-transition>
 
-        <!-- Action Row (Precedente, Elimina, Storico, WhatsApp) -->
+        <!-- Action Row (Precedente, Cronologia, WhatsApp, Modifica, Elimina) -->
         <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5 pt-1' : 'mt-2 mb-1 pt-2', 'd-flex align-center justify-space-between px-1 border-top-soft gap-2 flex-wrap']">
-          <div class="d-flex align-center gap-2">
-            <!-- Tasto PRECEDENTE -->
+          <div class="d-flex align-center gap-1.5 flex-wrap">
+            <!-- Tasto PRECEDENTE (Amber / Orange) -->
             <v-btn
               v-if="previousWorkout"
               prepend-icon="mdi-calendar-arrow-left"
-              variant="text"
-              color="orange-darken-3"
-              class="font-weight-black text-none px-2"
+              variant="tonal"
+              color="orange-lighten-2"
+              class="font-weight-black text-none px-2.5 rounded-lg"
               :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="dialogProgressioniPrecedente = true"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.72rem', letterSpacing: '0.05em' }"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.70rem', letterSpacing: '0.03em', height: '28px' }"
             >
               PRECEDENTE
+            </v-btn>
+
+            <!-- Tasto CRONOLOGIA / STORICO (Cyan/Azzurro distinto!) -->
+            <v-btn
+              prepend-icon="mdi-chart-timeline-variant"
+              variant="tonal"
+              color="cyan-accent-3"
+              class="font-weight-black text-none px-2.5 rounded-lg"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              @click="apriStoricoEsercizio"
+              title="Mostra Cronologia & Grafico Prestazioni Esercizio"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.70rem', letterSpacing: '0.03em', height: '28px' }"
+            >
+              CRONOLOGIA
+            </v-btn>
+          </div>
+
+          <div class="d-flex align-center gap-1">
+            <!-- Tasto Aereo (WhatsApp - Verde Smeraldo) -->
+            <v-btn
+              icon
+              variant="tonal"
+              color="green-accent-3"
+              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              @click="inviaVideoWhatsApp"
+              title="Invia Video Esecuzione al Coach"
+              style="width: 28px; height: 28px;"
+            >
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-whatsapp</v-icon>
             </v-btn>
 
             <!-- Tasto MODIFICA (solo Coach) -->
@@ -481,12 +510,13 @@
               v-if="ruolo === 'coach'"
               icon
               variant="text"
-              color="orange-lighten-2"
+              color="amber-lighten-2"
               :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="apriDialogModifica"
               title="Modifica Esercizio"
+              style="width: 28px; height: 28px;"
             >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-pencil</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-pencil</v-icon>
             </v-btn>
 
             <!-- Tasto ELIMINA (solo Coach) -->
@@ -498,34 +528,9 @@
               :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
               @click="dialogElimina = true"
               title="Elimina Esercizio"
+              style="width: 28px; height: 28px;"
             >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-delete</v-icon>
-            </v-btn>
-          </div>
-
-          <div v-if="!['compatto', 'super_compatto'].includes(layoutCorrente) || !haColonnaDestraAlta" class="d-flex align-center gap-2">
-            <!-- Tasto Freccia con Orologio (Riepilogo Storico) -->
-            <v-btn
-              icon
-              variant="text"
-              color="orange-darken-3"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-              @click="apriStoricoEsercizio"
-              title="Storico Esercizio"
-            >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 22">mdi-history</v-icon>
-            </v-btn>
-
-            <!-- Tasto Aereo (WhatsApp) -->
-            <v-btn
-              icon
-              variant="text"
-              color="orange-darken-3"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-              @click="inviaVideoWhatsApp"
-              title="Invia Video al Coach"
-            >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-whatsapp</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-delete</v-icon>
             </v-btn>
           </div>
         </div>
@@ -655,18 +660,20 @@
                   ({{ pulisciParentesiQuadre(workout['des_week' + sett]) }})
                 </span>
               </span>
-              <v-chip
-                v-if="sett === settimanaAttiva || haRecupero(inputSettimane[sett].ins)"
-                :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-darken-2' : (isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3')"
-                size="x-small"
-                class="ml-2 font-weight-black px-1.5 text-white"
-                :style="{ height: '16px', fontSize: '0.55rem' }"
-                variant="flat"
-              >
-                {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA') }}
-              </v-chip>
-              <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="ml-2 font-weight-bold px-1.5" style="height: 16px; font-size: 0.55rem;" variant="outlined">ALTRE</v-chip>
             </div>
+
+            <!-- Chip di Stato riposizionato sulla destra -->
+            <v-chip
+              v-if="sett === settimanaAttiva || haRecupero(inputSettimane[sett].ins)"
+              :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-darken-2' : (isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3')"
+              size="x-small"
+              class="font-weight-black px-2 text-white"
+              :style="{ height: '18px', fontSize: '0.58rem' }"
+              variant="flat"
+            >
+              {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA') }}
+            </v-chip>
+            <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5" style="height: 18px; font-size: 0.58rem;" variant="outlined">ALTRE</v-chip>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->

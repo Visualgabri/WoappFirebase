@@ -1697,49 +1697,48 @@
           </v-btn>
         </v-card-title>
         
-        <!-- Tolto il padding top eccessivo (da pa-3 a pt-2) -->
-        <v-card-text class="px-3 pt-0 pb-3 scrollbar-custom" style="max-height: 85vh;">
+        <!-- Info Esercizio Precedente (Fisso in primo piano nello scroll) -->
+        <div v-if="previousWorkout" class="px-3 py-2 border-bottom bg-slate-900 text-left" style="line-height: 1.1; flex-shrink: 0;">
+          <h4 class="font-weight-black text-white mt-0" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
+          <div class="text-orange-lighten-2 font-weight-black uppercase d-flex align-center flex-wrap gap-1" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
+            <span>Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>
+            <template v-if="getExecutionDate(previousWorkout, storicoEsercizio, workout)">
+              <span>•</span>
+              <span class="text-white">🗓️ {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>
+              <span v-if="tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout))" class="text-slate-light font-weight-bold ml-1"> ({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})</span>
+            </template>
+          </div>
+        </div>
+
+        <v-card-text class="px-3 pt-2 pb-3 scrollbar-custom" style="max-height: 85vh;">
           <div v-if="!previousWorkout" class="text-center py-6">
             <v-icon size="36" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
             <p class="text-caption text-muted">Nessun dato o scheda precedente trovata per questo esercizio.</p>
           </div>
-          <div v-else class="pt-2">
-            <!-- Info Esercizio Precedente -->
-            <div class="mb-2.5 text-left" style="line-height: 1.1;">
-              <h4 class="font-weight-black text-white mt-0" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
-              <div class="text-orange-lighten-2 font-weight-black uppercase d-flex align-center flex-wrap gap-1" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
-                <span>Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>
-                <template v-if="getExecutionDate(previousWorkout, storicoEsercizio, workout)">
-                  <span>•</span>
-                  <span class="text-white">🗓️ {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>
-                  <span v-if="tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout))" class="text-slate-light font-weight-bold">({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})</span>
-                </template>
-              </div>
-            </div>
-
+          <div v-else>
             <!-- Lista delle 6 settimane delle progressioni precedenti (Carico a tutta larghezza e prescrizione sopra) -->
             <div class="d-flex flex-column gap-2 mb-3">
               <div v-for="w in [6, 5, 4, 3, 2, 1]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-2 text-left">
                 <!-- Settimana + Prescrizione (Sopra) -->
                 <div class="d-flex align-center justify-space-between mb-1.5" style="line-height: 1.1;">
-                  <div class="font-weight-black text-white uppercase d-flex align-center gap-1.5" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
+                  <div class="font-weight-black text-white uppercase d-flex align-center gap-1" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
                     <span>Week {{ w }}</span>
-                    <span class="text-orange-lighten-2 font-weight-black" style="font-size: 1.05rem !important; text-transform: none;">
+                    <span class="text-orange-lighten-2 font-weight-black ml-1" style="font-size: 1.05rem !important; text-transform: none;">
                       ({{ previousWorkout['des_week' + w] ? pulisciParentesiQuadre(previousWorkout['des_week' + w]) : 'N.D.' }})
                     </span>
                   </div>
                 </div>
                 
-                <!-- Carico (A tutta larghezza) -->
+                <!-- Carico (A tutta larghezza - Textarea per evitare troncamento testo) -->
                 <div class="w-100">
-                  <input
+                  <textarea
                     v-model="inputSettimanePrecedente[w].ins"
-                    type="text"
                     placeholder="Carico (es. 45 kg)"
                     class="custom-compact-ins-field font-weight-black text-white w-100"
-                    style="width: 100%; border: 1px solid rgba(255, 255, 255, 0.25); outline: none; background: rgba(255, 255, 255, 0.12); font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; height: 38px;"
+                    rows="1"
+                    style="width: 100%; border: 1px solid rgba(255, 255, 255, 0.25); outline: none; background: rgba(255, 255, 255, 0.12); font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; height: auto; field-sizing: content; resize: vertical; line-height: 1.35; box-sizing: border-box;"
                     @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
-                  />
+                  ></textarea>
                 </div>
 
                 <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito) - Spostato sotto la Week 6 -->
@@ -11443,6 +11442,9 @@ th.sticky-col {
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   background: rgba(255, 255, 255, 0.12) !important;
   transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .custom-compact-ins-field:focus {

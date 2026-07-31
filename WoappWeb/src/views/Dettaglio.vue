@@ -9323,9 +9323,14 @@ function estraiPesoDaInput(str) {
   // Rimuove gradi (es. "30°")
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
 
-  // Rileva formato tipo "3x12" o "3x12r": la notazione SxR senza "kg" espliciti NON è un peso in kg!
-  const matchSxR = clean.match(/^\s*\d+(?:\.\d+)?\s*[xX]\s*\d+(?:\.\d+)?(?:\s*[rR]?\b)?\s*$/);
+  // Rileva formato tipo "30x12r", "30 x12r" o "3x12"
+  const matchSxR = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*([rR])?\b)?\s*$/);
   if (matchSxR) {
+    const num1 = parseFloat(matchSxR[1]);
+    const hasExplicitReps = !!matchSxR[3];
+    if (hasExplicitReps || num1 > 5) {
+      return String(num1);
+    }
     return null;
   }
   

@@ -438,6 +438,17 @@
               <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
               <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Record Esercizio</span>
             </div>
+            <v-chip
+              size="x-small"
+              color="amber-darken-3"
+              variant="flat"
+              class="font-weight-black cursor-pointer px-2.5 py-1 text-white elevation-1"
+              style="font-size: 0.60rem; height: 22px; z-index: 2;"
+              @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
+            >
+              <v-icon start icon="mdi-brain" size="12" class="mr-1" />
+              Strategia Coach
+            </v-chip>
           </div>
 
           <v-row dense class="align-center">
@@ -481,23 +492,12 @@
             </v-col>
           </v-row>
 
-          <!-- Status Linea Trend Progressione & Tasto Strategia Coach -->
-          <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft d-flex align-center justify-space-between px-1">
-            <span class="text-super-caption font-weight-black d-flex align-center gap-1 text-truncate" :class="valutazioneProgressione.colore" style="font-size: 0.58rem; max-width: 72%;">
-              <v-icon size="11" class="mr-0.5">{{ valutazioneProgressione.icona }}</v-icon>
+          <!-- Status Linea Trend Progressione / Suggerimento Target -->
+          <div v-if="valutazioneProgressione" class="mt-2 pt-1.5 border-top-soft d-flex align-center px-1">
+            <span class="text-super-caption font-weight-black d-flex align-center gap-1 text-truncate" :class="valutazioneProgressione.colore" style="font-size: 0.60rem; width: 100%;">
+              <v-icon size="12" class="mr-0.5">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>
-            <v-chip
-              size="x-small"
-              color="amber-darken-3"
-              variant="tonal"
-              class="font-weight-black cursor-pointer px-2.5 py-1 flex-shrink-0"
-              style="font-size: 0.58rem; min-height: 22px; z-index: 2;"
-              @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
-            >
-              <v-icon start icon="mdi-brain" size="11" class="mr-0.5" />
-              Strategia
-            </v-chip>
           </div>
         </div>
         <div 
@@ -10474,9 +10474,16 @@ const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
   const isScarico = (w === 4 && isWeek4Scarico.value);
 
-  // Se la settimana attiva è di scarico (W4), non mostrare la scritta
+  // Se la settimana attiva è di scarico (W4), mostrare suggerimento dedicato
   if (isScarico) {
-    return null;
+    const targetWeight = suggerimentoRecord.value?.target || 0;
+    return {
+      testo: targetWeight > 0 
+        ? `🛡️ Obiettivo Scarico W${w}: ${formatWeight(targetWeight)} kg`
+        : `🛡️ W${w} Scarico: Mantieni tecnica e recupero`,
+      colore: 'text-blue-lighten-3',
+      icona: 'mdi-shield-check'
+    };
   }
 
   if (!suggerimentoRecord.value) {

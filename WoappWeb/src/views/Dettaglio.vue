@@ -490,11 +490,23 @@
             </v-col>
           </v-row>
 
-          <!-- Status Linea Trend Progressione -->
-          <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft text-center">
-            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1" :class="valutazioneProgressione.colore" style="font-size: 0.58rem;">
+          <!-- Status Linea Trend Progressione & Tasto Strategia Coach -->
+          <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft d-flex align-center justify-space-between px-1">
+            <span class="text-super-caption font-weight-black d-flex align-center gap-1 text-truncate" :class="valutazioneProgressione.colore" style="font-size: 0.58rem; max-width: 72%;">
+              <v-icon size="11" class="mr-0.5">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>
+            <v-chip
+              size="x-small"
+              color="amber-darken-3"
+              variant="tonal"
+              class="font-weight-black cursor-pointer px-2 flex-shrink-0"
+              style="font-size: 0.56rem; height: 20px;"
+              @click="vibraTattile(15); dialogStrategiaCoach = true"
+            >
+              <v-icon start icon="mdi-brain" size="11" class="mr-0.5" />
+              Strategia
+            </v-chip>
           </div>
         </div>
         <div 
@@ -2204,6 +2216,168 @@
           </v-btn>
           <v-btn color="red-darken-3" variant="flat" rounded="lg" size="small" class="font-weight-bold text-none flex-grow-1 text-white" :loading="eliminandoEsercizio" @click="eliminaEsercizio">
             Elimina
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Strategia Coach (Roadmap & Analisi e1RM) -->
+    <v-dialog v-model="dialogStrategiaCoach" max-width="580" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <!-- Header -->
+        <v-card-title class="pa-3 border-bottom bg-slate-900 d-flex align-center justify-space-between" style="min-height: 48px;">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <v-icon color="amber-darken-2" size="20">mdi-brain</v-icon>
+            <span class="dialog-header-title font-weight-black text-truncate" style="font-size: 0.88rem; letter-spacing: 0.02em;">
+              Strategia Coach: {{ workout?.des_esercizio }}
+            </span>
+          </div>
+          <v-btn icon variant="text" width="26" height="26" color="grey" @click="dialogStrategiaCoach = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-4 text-left" style="max-height: 75vh;">
+          <!-- BANNER NARRATIVO DIAGNOSI -->
+          <div 
+            class="pa-3 rounded-xl border mb-3" 
+            :style="{
+              background: meStatoBg(strategiaCoachData.stato),
+              borderColor: meStatoBorder(strategiaCoachData.stato)
+            }"
+          >
+            <div class="d-flex align-center gap-2 mb-1">
+              <v-icon size="18" :color="meStatoColor(strategiaCoachData.stato)">
+                {{ meStatoIcona(strategiaCoachData.stato) }}
+              </v-icon>
+              <span class="font-weight-black text-caption uppercase" :class="meStatoTextClass(strategiaCoachData.stato)" style="letter-spacing: 0.04em;">
+                {{ meStatoTitolo(strategiaCoachData.stato) }}
+              </span>
+            </div>
+            <p class="text-caption text-slate-light mb-0" style="font-size: 0.72rem; line-height: 1.4; color: #cbd5e1 !important;">
+              {{ meStatoDescrizione(strategiaCoachData) }}
+            </p>
+          </div>
+
+          <!-- SCHEDA CONFRONTO PRESTAZIONALE (e1RM) -->
+          <div class="pa-3 bg-slate-950 rounded-xl border border-soft mb-3">
+            <div class="text-super-caption font-weight-black text-amber-lighten-2 uppercase mb-2" style="font-size: 0.62rem; letter-spacing: 0.05em;">
+              📊 Confronto Massimale Stimato (e1RM)
+            </div>
+            <v-row dense class="align-center">
+              <v-col cols="6">
+                <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(6, 182, 212, 0.3) !important;">
+                  <span class="text-super-caption text-cyan-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">PICCO STORICO PR</span>
+                  <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
+                    {{ strategiaCoachData.prWeight > 0 ? strategiaCoachData.prWeight + ' kg' : '--' }}
+                  </span>
+                  <span v-if="strategiaCoachData.prWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
+                    ×{{ meFormatNum(strategiaCoachData.prReps) }}r (e1RM ~{{ meFormatNum(strategiaCoachData.e1rmStorico) }}kg)
+                  </span>
+                </div>
+              </v-col>
+              <v-col cols="6">
+                <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(249, 115, 22, 0.3) !important;">
+                  <span class="text-super-caption text-orange-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">MESOCICLO ATTUALE</span>
+                  <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
+                    {{ strategiaCoachData.bestCurrentWeight > 0 ? strategiaCoachData.bestCurrentWeight + ' kg' : '--' }}
+                  </span>
+                  <span v-if="strategiaCoachData.bestCurrentWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
+                    ×{{ meFormatNum(strategiaCoachData.bestCurrentReps) }}r (e1RM ~{{ meFormatNum(strategiaCoachData.e1rmAttuale) }}kg)
+                  </span>
+                  <span v-else class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">Non ancora inserito</span>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <!-- ROADMAP PROGETTATA A 6 SETTIMANE -->
+          <div class="mb-3">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <span class="text-super-caption font-weight-black text-white uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+                🗺️ Roadmap di Progressione (W1 - W6)
+              </span>
+              <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 18px;">
+                {{ meAttrezzoLabel(strategiaCoachData.isManubri) }}
+              </v-chip>
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+              <div 
+                v-for="step in strategiaCoachData.roadmap" 
+                :key="step.week"
+                class="pa-2.5 rounded-xl border text-left position-relative"
+                :style="{
+                  background: step.week === settimanaAttiva ? 'rgba(245, 158, 11, 0.12)' : 'rgba(15, 23, 42, 0.6)',
+                  borderColor: step.week === settimanaAttiva ? 'rgba(245, 158, 11, 0.6)' : 'rgba(255, 255, 255, 0.08)'
+                }"
+              >
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <div class="d-flex align-center gap-1.5">
+                    <v-chip 
+                      :color="step.color + '-darken-2'" 
+                      size="x-small" 
+                      variant="flat" 
+                      class="font-weight-black text-white px-1.5" 
+                      style="font-size: 0.58rem; height: 18px;"
+                    >
+                      W{{ step.week }}
+                    </v-chip>
+                    <span class="font-weight-black text-white text-caption" style="font-size: 0.75rem;">
+                      {{ step.fase }}
+                    </span>
+                  </div>
+                  <v-chip 
+                    v-if="step.week === settimanaAttiva" 
+                    color="amber-accent-3" 
+                    size="x-small" 
+                    class="font-weight-black text-black animate-pulse" 
+                    style="font-size: 0.50rem; height: 16px;"
+                  >
+                    ATTIVA ORA
+                  </v-chip>
+                </div>
+
+                <div class="d-flex align-center justify-space-between my-1">
+                  <div class="d-flex align-baseline gap-1">
+                    <span class="text-subtitle-2 font-weight-black text-amber-lighten-1" style="font-size: 0.92rem;">
+                      {{ step.carico }}
+                    </span>
+                    <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.65rem;">
+                      ({{ step.reps }})
+                    </span>
+                  </div>
+                  <span class="text-super-caption font-weight-black text-purple-lighten-3" style="font-size: 0.62rem;">
+                    {{ step.rpe }}
+                  </span>
+                </div>
+
+                <p class="text-super-caption text-slate-light mb-0" style="font-size: 0.62rem; line-height: 1.3; color: #94a3b8 !important;">
+                  {{ step.note }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TACTICAL TIPS -->
+          <div class="pa-2.5 rounded-xl border bg-slate-950" style="border-color: rgba(245, 158, 11, 0.2) !important;">
+            <div class="d-flex align-center gap-1.5 mb-1">
+              <v-icon color="amber-lighten-2" size="14">mdi-lightbulb-on</v-icon>
+              <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.60rem;">
+                Consigli Tattici FlexCoach
+              </span>
+            </div>
+            <ul class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35; color: #cbd5e1 !important;">
+              <li>Non forzare carichi elevati nella settimana 4 di scarico.</li>
+              <li>Se in W2 completi le 8 ripetizioni con RPE &lt; 8, incrementa di {{ strategiaCoachData.isManubri ? '1 kg' : '2.5 kg' }} in W3.</li>
+              <li>Mantieni un tempo sotto tensione (TUT) controllato sulla fase eccentrica.</li>
+            </ul>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="xl" class="font-weight-black text-none text-white py-2" @click="dialogStrategiaCoach = false">
+            Ho capito il piano!
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -10296,7 +10470,29 @@ const suggerimentoRecord = computed(() => {
   };
 });
 
+const dialogStrategiaCoach = ref(false);
+
+const calcE1RM = (weight, reps) => {
+  const w = parseFloat(weight) || 0;
+  const r = parseInt(reps) || 1;
+  if (w <= 0) return 0;
+  return w * (1 + r / 30);
+};
+
 const valutazioneProgressione = computed(() => {
+  const w = settimanaAttiva.value;
+  const isScarico = (w === 4 && isWeek4Scarico.value);
+
+  // 1. Se la settimana attiva è di scarico (W4), mostrare esplicitamente lo stato di SCARICO
+  if (isScarico) {
+    return {
+      testo: '🛡️ Settimana di Scarico Rigenerativo',
+      colore: 'text-blue-lighten-3',
+      icona: 'mdi-shield-check',
+      isScarico: true
+    };
+  }
+
   if (!suggerimentoRecord.value) {
     return {
       testo: '✨ Primo ciclo di allenamento',
@@ -10305,10 +10501,10 @@ const valutazioneProgressione = computed(() => {
     };
   }
 
-  const rec = suggerimentoRecord.value.record || suggerimentoRecord.value.recordAbsolute;
-  const target = suggerimentoRecord.value.target;
+  const recWeight = suggerimentoRecord.value.record || suggerimentoRecord.value.recordAbsolute;
+  const recReps = suggerimentoRecord.value.recordRepsValue || suggerimentoRecord.value.recordAbsoluteReps || getRepsPerWeek(w);
 
-  if (!rec || rec <= 0) {
+  if (!recWeight || recWeight <= 0) {
     return {
       testo: '✨ Primo ciclo di allenamento',
       colore: 'text-amber-lighten-2',
@@ -10316,29 +10512,267 @@ const valutazioneProgressione = computed(() => {
     };
   }
 
-  if (target > rec) {
-    const diff = target - rec;
-    const perc = Math.round((diff / rec) * 100);
+  const e1rmHistoric = calcE1RM(recWeight, recReps);
+
+  // Trova il miglior carico inserito nel mesociclo ATTUALE (W1-W6 del workout corrente)
+  let bestCurrentWeight = 0;
+  let bestCurrentReps = getRepsPerWeek(w);
+  let bestCurrentE1RM = 0;
+  let currentLogged = false;
+
+  for (let i = 1; i <= 6; i++) {
+    const val = workout.value?.['ins_week' + i];
+    if (val) {
+      const pesoNum = parseFloat(estraiPesoDaInput(val));
+      if (!isNaN(pesoNum) && pesoNum > 0) {
+        currentLogged = true;
+        const repsInput = estraiRepsDaInput(val) || getRepsPerWeek(i);
+        const e1rm = calcE1RM(pesoNum, repsInput);
+        if (e1rm > bestCurrentE1RM) {
+          bestCurrentE1RM = e1rm;
+          bestCurrentWeight = pesoNum;
+          bestCurrentReps = repsInput;
+        }
+      }
+    }
+  }
+
+  // Se l'atleta non ha ancora inserito alcun dato nel mesociclo attuale
+  if (!currentLogged || bestCurrentE1RM === 0) {
+    const targetWeight = suggerimentoRecord.value.target;
     return {
-      testo: `📈 In miglioramento (+${formatWeight(diff)} kg / +${perc}%)`,
+      testo: `🎯 Obiettivo W${w}: ${formatWeight(targetWeight)} kg (PR ${formatWeight(recWeight)}kg)`,
+      colore: 'text-cyan-lighten-2',
+      icona: 'mdi-target'
+    };
+  }
+
+  // Confronta e1RM attuale con e1RM storico
+  const diffE1RM = bestCurrentE1RM - e1rmHistoric;
+  const diffKg = bestCurrentWeight - recWeight;
+
+  if (bestCurrentE1RM >= e1rmHistoric) {
+    const perc = Math.round((diffE1RM / e1rmHistoric) * 100);
+    const diffKgDisplay = diffKg > 0 ? formatWeight(diffKg) : formatWeight(Math.max(diffE1RM / 1.2, 0.5));
+    return {
+      testo: `📈 In miglioramento (+${diffKgDisplay} kg / +${perc}%)`,
       colore: 'text-green-lighten-2',
       icona: 'mdi-trending-up'
     };
-  } else if (target === rec) {
+  } else if (bestCurrentE1RM >= 0.95 * e1rmHistoric) {
     return {
-      testo: '🔵 Carico in linea con il tuo PR',
+      testo: '🔵 Carico in linea col tuo PR storico',
       colore: 'text-cyan-lighten-2',
       icona: 'mdi-minus-circle-outline'
     };
   } else {
-    const diff = rec - target;
+    const diffKgAbs = Math.abs(diffKg) > 0 ? Math.abs(diffKg) : Math.round((e1rmHistoric - bestCurrentE1RM) / 1.2);
+    const percAbs = Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100);
     return {
-      testo: `🟠 Sotto al record storico (-${formatWeight(diff)} kg)`,
+      testo: `🟠 Sotto al picco storico (-${formatWeight(diffKgAbs)} kg / -${percAbs}%)`,
       colore: 'text-orange-lighten-2',
       icona: 'mdi-trending-down'
     };
   }
 });
+
+const strategiaCoachData = computed(() => {
+  const wActive = settimanaAttiva.value;
+  const exName = workout.value?.des_esercizio || 'Esercizio';
+  const isManubri = isManubriEsercizio(workout.value);
+
+  // PR Storico
+  const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
+  const prReps = suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || 8;
+  const e1rmStorico = calcE1RM(prWeight, prReps);
+
+  // Prestazione Attuale (Miglior e1RM nel mesociclo corrente)
+  let bestCurrentWeight = 0;
+  let bestCurrentReps = 8;
+  let bestCurrentE1RM = 0;
+  for (let i = 1; i <= 6; i++) {
+    const val = workout.value?.['ins_week' + i];
+    if (val) {
+      const pesoNum = parseFloat(estraiPesoDaInput(val));
+      if (!isNaN(pesoNum) && pesoNum > 0) {
+        const repsInput = estraiRepsDaInput(val) || getRepsPerWeek(i);
+        const e1rm = calcE1RM(pesoNum, repsInput);
+        if (e1rm > bestCurrentE1RM) {
+          bestCurrentE1RM = e1rm;
+          bestCurrentWeight = pesoNum;
+          bestCurrentReps = repsInput;
+        }
+      }
+    }
+  }
+
+  // Determina lo stato prestazionale
+  let stato = 'PRIMA_VOLTA';
+  let diffKg = 0;
+  let diffPerc = 0;
+  if (prWeight > 0) {
+    if (bestCurrentE1RM === 0) {
+      stato = 'INIZIO';
+    } else if (bestCurrentE1RM >= e1rmStorico) {
+      stato = 'PROGRESSIONE';
+      diffKg = bestCurrentWeight - prWeight;
+      diffPerc = Math.round(((bestCurrentE1RM - e1rmStorico) / e1rmStorico) * 100);
+    } else if (bestCurrentE1RM >= 0.95 * e1rmStorico) {
+      stato = 'IN_LINEA';
+    } else {
+      stato = 'CALO';
+      diffKg = prWeight - bestCurrentWeight;
+      diffPerc = Math.round(((e1rmStorico - bestCurrentE1RM) / e1rmStorico) * 100);
+    }
+  }
+
+  // Costruzione Roadmap W1 -> W6
+  const basePR = prWeight > 0 ? prWeight : 20;
+  const step = isManubri ? 1.0 : 2.5;
+
+  const w1Target = Math.max(Math.round((basePR * 0.82) / step) * step, isManubri ? 12 : 20);
+  const w2Target = Math.max(Math.round((basePR * 0.90) / step) * step, w1Target + step);
+  const w3Target = Math.max(Math.round((basePR * 0.98) / step) * step, w2Target + step);
+  const w4Target = Math.max(Math.round((basePR * 0.72) / step) * step, isManubri ? 10 : 15);
+  const w5Target = Math.max(basePR + (isManubri ? 1.0 : 2.5), w3Target + step);
+  const w6Target = Math.max(w5Target + (isManubri ? 1.0 : 2.5), basePR + (isManubri ? 2.0 : 5.0));
+
+  const roadmap = [
+    {
+      week: 1,
+      fase: 'Accumulo & Tecnica',
+      reps: '3x8 reps',
+      carico: `${w1Target} kg`,
+      rpe: 'RPE 7-8',
+      note: 'Volume sicuro. Focus su controllo e ritmo esecutivo.',
+      color: 'cyan'
+    },
+    {
+      week: 2,
+      fase: 'Progressione Carico',
+      reps: '3x8 reps',
+      carico: `${w2Target} kg`,
+      rpe: 'RPE 8',
+      note: 'Incremento sostenibile. Mantieni la stessa qualità esecutiva.',
+      color: 'amber'
+    },
+    {
+      week: 3,
+      fase: 'Pareggio PR Storico',
+      reps: '3x6-8 reps',
+      carico: `${w3Target} kg`,
+      rpe: 'RPE 8.5-9',
+      note: 'Test di pareggio del tuo record storico passato.',
+      color: 'orange'
+    },
+    {
+      week: 4,
+      fase: 'Scarico Rigenerativo',
+      reps: '3x8 reps',
+      carico: `${w4Target} kg`,
+      rpe: 'RPE 6-7',
+      note: 'Riduzione del carico per permettere il recupero neurale.',
+      color: 'blue'
+    },
+    {
+      week: 5,
+      fase: 'Picco Intensità (Rottura Stallo)',
+      reps: '3x5-6 reps',
+      carico: `${w5Target} kg`,
+      rpe: 'RPE 9-9.5',
+      note: 'Supera il tetto dei kg storici lavorando a ripetizioni leggermente inferiori.',
+      color: 'purple'
+    },
+    {
+      week: 6,
+      fase: 'Test Nuovo Record Assoluto',
+      reps: '3x6-8 reps',
+      carico: `${w6Target} kg`,
+      rpe: 'RPE 10',
+      note: 'Test finale per consolidare il nuovo PR assoluto.',
+      color: 'green'
+    }
+  ];
+
+  return {
+    exName,
+    isManubri,
+    prWeight,
+    prReps,
+    e1rmStorico: Math.round(e1rmStorico * 10) / 10,
+    bestCurrentWeight,
+    bestCurrentReps,
+    e1rmAttuale: Math.round(bestCurrentE1RM * 10) / 10,
+    stato,
+    diffKg,
+    diffPerc,
+    roadmap
+  };
+});
+
+const meStatoBg = (s) => {
+  if (s === 'CALO') return 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.03) 100%)';
+  if (s === 'PROGRESSIONE') return 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.03) 100%)';
+  if (s === 'IN_LINEA') return 'linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.03) 100%)';
+  return 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.03) 100%)';
+};
+
+const meStatoBorder = (s) => {
+  if (s === 'CALO') return 'rgba(239, 68, 68, 0.35) !important';
+  if (s === 'PROGRESSIONE') return 'rgba(34, 197, 94, 0.35) !important';
+  if (s === 'IN_LINEA') return 'rgba(6, 182, 212, 0.35) !important';
+  return 'rgba(245, 158, 11, 0.35) !important';
+};
+
+const meStatoColor = (s) => {
+  if (s === 'CALO') return 'red-lighten-2';
+  if (s === 'PROGRESSIONE') return 'green-lighten-2';
+  if (s === 'IN_LINEA') return 'cyan-lighten-2';
+  return 'amber-lighten-2';
+};
+
+const meStatoIcona = (s) => {
+  if (s === 'CALO') return 'mdi-alert-circle-outline';
+  if (s === 'PROGRESSIONE') return 'mdi-trending-up';
+  if (s === 'IN_LINEA') return 'mdi-minus-circle-outline';
+  return 'mdi-sparkles';
+};
+
+const meStatoTextClass = (s) => {
+  if (s === 'CALO') return 'text-red-lighten-2';
+  if (s === 'PROGRESSIONE') return 'text-green-lighten-2';
+  if (s === 'IN_LINEA') return 'text-cyan-lighten-2';
+  return 'text-amber-lighten-2';
+};
+
+const meStatoTitolo = (s) => {
+  if (s === 'CALO') return 'Calo temporaneo rispetto al Picco Storico';
+  if (s === 'PROGRESSIONE') return 'In Progressione rispetto al Picco Storico!';
+  if (s === 'IN_LINEA') return 'Carico in linea con i tuoi Standard';
+  return 'Inizio Nuovo Ciclo di Progressione';
+};
+
+const meStatoDescrizione = (data) => {
+  if (data.stato === 'CALO') {
+    return `Attualmente la tua forza stimata (${data.e1rmAttuale > 0 ? data.e1rmAttuale + 'kg e1RM' : 'carico attuale'}) è inferiore di circa -${data.diffKg > 0 ? data.diffKg : 2}kg (-${data.diffPerc}%) rispetto al tuo record di ${data.prWeight}kg x ${data.prReps}r. Il piano qui sotto ti guiderà passo-passo per rientrare in quota PR.`;
+  }
+  if (data.stato === 'PROGRESSIONE') {
+    return `Complimenti! Stai superando la tua forza storica con una progressione stimata del +${data.diffPerc}%. Segui la roadmap per consolidare e testare un nuovo record assoluto.`;
+  }
+  if (data.stato === 'IN_LINEA') {
+    return `I tuoi carichi correnti sono in linea con il tuo PR di ${data.prWeight}kg x ${data.prReps}r. Il piano ti permetterà di rompere la fase di stallo nelle settimane 5 e 6.`;
+  }
+  return `Questo è il tuo primo ciclo per questo esercizio o stai impostando i carichi base. Segui la roadmap progressiva consigliata dal Coach.`;
+};
+
+const meFormatNum = (val) => {
+  if (!val || isNaN(val)) return '0';
+  return val.toString();
+};
+
+const meAttrezzoLabel = (isManubri) => {
+  return isManubri ? 'Step Carico Manubri (+1 kg)' : 'Step Carico Bilanciere/Cavi (+2.5 kg)';
+};
 
 const getColoreFaticaStyle = (fatica) => {
   if (!fatica) return {};

@@ -74,16 +74,75 @@
           </h3>
         </div>
         <div class="d-flex align-center flex-shrink-0 gap-0.5">
-          <v-btn
-            icon
-            color="orange-darken-3"
-            variant="text"
-            @click="dialogRicercaRapida = true"
-            title="Cerca Esercizio"
-            id="btn-dettaglio-ricerca"
-          >
-            <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : (layoutCorrente === 'compatto' ? 20 : 22)">mdi-magnify</v-icon>
-          </v-btn>
+          <!-- Teleport del Menu a 3 Puntini nella barra fissa in alto (#top-app-bar-actions) -->
+          <teleport to="#top-app-bar-actions">
+            <v-menu location="bottom end" transition="scale-transition">
+              <template v-slot:activator="{ props }">
+                <v-btn
+                  icon
+                  color="orange-darken-3"
+                  variant="text"
+                  v-bind="props"
+                  title="Opzioni Esercizio"
+                  id="btn-dettaglio-menu-opzioni"
+                  class="rounded-lg mr-1.5 btn-header-compact"
+                >
+                  <v-icon size="20">mdi-dots-vertical</v-icon>
+                </v-btn>
+              </template>
+              <v-list class="bg-slate-900 border border-slate-700 py-1" density="compact" width="210">
+                <!-- Modifica Esercizio (Coach) -->
+                <v-list-item
+                  v-if="ruolo === 'coach'"
+                  @click="apriDialogModifica"
+                  class="px-3"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="amber-lighten-2" size="20" class="mr-2">mdi-pencil</v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Modifica Esercizio</v-list-item-title>
+                </v-list-item>
+
+                <!-- Elimina Esercizio (Coach) -->
+                <v-list-item
+                  v-if="ruolo === 'coach'"
+                  @click="dialogElimina = true"
+                  class="px-3"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="red-lighten-2" size="20" class="mr-2">mdi-delete</v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Elimina Esercizio</v-list-item-title>
+                </v-list-item>
+
+                <v-divider v-if="ruolo === 'coach'" class="my-1 border-slate-700"></v-divider>
+
+                <!-- Invia Video WhatsApp -->
+                <v-list-item
+                  @click="inviaVideoWhatsApp"
+                  class="px-3"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="green-accent-3" size="20" class="mr-2">mdi-whatsapp</v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Invia Video WhatsApp</v-list-item-title>
+                </v-list-item>
+
+                <!-- Cerca Esercizio -->
+                <v-list-item
+                  @click="dialogRicercaRapida = true"
+                  class="px-3"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="orange-darken-3" size="20" class="mr-2">mdi-magnify</v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Cerca Esercizio</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </teleport>
+
+          <!-- Tasto Avanti -->
           <v-btn
             icon
             color="orange-darken-3"
@@ -180,7 +239,7 @@
     </div>
 
     <!-- Contenuto Principale (Stile AppSheet verticale fedele) -->
-    <div v-else class="exercise-detail-area">
+    <div v-else class="exercise-detail-area mt-3.5">
 
       <!-- Layout Flessibile per GIF a sinistra e scritte a destra in modalità compatto/super_compatto -->
       <div 
@@ -194,7 +253,7 @@
           :style="{ width: layoutCorrente === 'super_compatto' ? '90px' : '120px' }"
         >
           <v-card 
-            class="image-premium-frame overflow-hidden elevation-2 bg-black w-100" 
+            class="image-premium-frame overflow-hidden elevation-2 bg-black w-100 position-relative" 
             :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded-lg'"
             :style="{ height: layoutCorrente === 'super_compatto' ? '70px' : '95px' }"
           >
@@ -219,7 +278,7 @@
         <!-- GIF dell'Esercizio Standard (per layout normale) -->
         <v-card 
           v-else
-          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0 mx-auto mb-3 rounded-xl" 
+          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0 mx-auto mb-3 rounded-xl position-relative" 
           max-width="280px"
           height="150px"
         >
@@ -365,9 +424,81 @@
           </div>
         </div>
 
-        <!-- Rigo Dettaglio Rapido -->
+        <!-- Alternativo: Card Record Assoluto & Record a Reps per esercizi senza Livello Forza (RMT) -->
         <div 
-          v-if="parsedTut || (workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2)) || (!parsedRmt(workout.des_esercizio_2) && getRiferimentoSfidaRecord(settimanaAttiva))"
+          v-else 
+          class="rmt-premium-card card-glass border-amber-darken-3-op cursor-pointer"
+          :class="[
+            layoutCorrente === 'super_compatto' ? 'rounded-sm mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'rounded-lg mt-2 pa-2.5' : 'rounded-xl mt-3 pa-3')
+          ]"
+          @click="apriStoricoEsercizio"
+        >
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="d-flex align-center gap-1">
+              <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
+              <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Record Esercizio</span>
+            </div>
+            <v-chip
+              color="cyan-darken-2"
+              size="x-small"
+              class="font-weight-black uppercase text-super-caption px-1.5 py-0.5 elevation-1 text-white"
+              variant="flat"
+              style="letter-spacing: 0.05em; height: 16px; font-size: 0.52rem;"
+            >
+              PR STORICO
+            </v-chip>
+          </div>
+
+          <v-row dense class="align-center">
+            <v-col cols="6" class="border-right-soft">
+              <div class="text-center">
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">PR Assoluto</span>
+                <span class="font-weight-black text-cyan-lighten-2" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                  <template v-if="suggerimentoRecord && suggerimentoRecord.recordAbsolute > 0">
+                    {{ formatWeight(suggerimentoRecord.recordAbsolute) }}<span class="text-super-caption text-muted">KG</span>
+                    <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-0.5" style="font-size: 0.60rem;">
+                      ×{{ suggerimentoRecord.recordAbsoluteReps }}r
+                    </span>
+                  </template>
+                  <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
+                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }}<span class="text-super-caption text-muted">KG</span>
+                  </template>
+                  <template v-else>
+                    --
+                  </template>
+                </span>
+              </div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-center">
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Record {{ getRepsPerWeek(settimanaAttiva) }} Reps</span>
+                <span class="font-weight-black text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                  <template v-if="suggerimentoRecord && suggerimentoRecord.record > 0">
+                    {{ formatWeight(suggerimentoRecord.record) }}<span class="text-super-caption text-muted">KG</span>
+                    <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-0.5" style="font-size: 0.60rem;">
+                      ×{{ suggerimentoRecord.recordRepsValue }}r
+                    </span>
+                  </template>
+                  <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
+                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }}<span class="text-super-caption text-muted">KG</span>
+                  </template>
+                  <template v-else>
+                    --
+                  </template>
+                </span>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Status Linea Trend Progressione -->
+          <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft text-center">
+            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1" :class="valutazioneProgressione.colore" style="font-size: 0.58rem;">
+              {{ valutazioneProgressione.testo }}
+            </span>
+          </div>
+        </div>
+        <div 
+          v-if="parsedTut || (workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2))"
           :class="[layoutCorrente === 'super_compatto' ? 'mt-0.5 gap-1' : (layoutCorrente === 'compatto' ? 'mt-1 gap-1.25' : 'mt-1 gap-1.5'), 'text-caption font-weight-bold text-slate d-flex align-center flex-wrap']"
         >
           <!-- 1. Chip TUT (se presente) -->
@@ -393,18 +524,6 @@
             class="font-weight-black px-2 py-0.5"
           >
             {{ workout.des_esercizio_2 }}
-          </v-chip>
-
-          <!-- 3. Fallback Chip Sfida Record per esercizi senza RMT -->
-          <v-chip
-            v-if="!parsedRmt(workout.des_esercizio_2) && getRiferimentoSfidaRecord(settimanaAttiva)"
-            color="amber-darken-3"
-            variant="tonal"
-            size="x-small"
-            class="font-weight-black px-2 py-0.5"
-            :title="getRiferimentoSfidaRecord(settimanaAttiva).isStima ? 'Calcolato da stima massimale storico' : 'Record storico reale'"
-          >
-            🏆 Sfida: {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} kg
           </v-chip>
         </div>
 
@@ -441,83 +560,39 @@
           </v-card>
         </v-expand-transition>
 
-        <!-- Action Row (Precedente, Cronologia, WhatsApp, Modifica, Elimina) - Proposta 1 Premium -->
-        <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5 pt-1' : 'mt-2 mb-1 pt-2', 'd-flex align-center justify-space-between px-1 border-top-soft gap-2 flex-wrap']">
-          <div class="d-flex align-center gap-2 flex-wrap">
-            <!-- Tasto PRECEDENTE (Amber / Orange - Touch target 34px/40px) -->
-            <v-btn
-              v-if="previousWorkout"
-              prepend-icon="mdi-calendar-arrow-left"
-              variant="tonal"
-              color="orange-lighten-2"
-              class="font-weight-black text-none px-3 rounded-xl elevation-1"
-              :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
-              @click="dialogProgressioniPrecedente = true"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.70rem' : '0.78rem', letterSpacing: '0.03em', height: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
-            >
-              PRECEDENTE
-            </v-btn>
-
-            <!-- Tasto CRONOLOGIA / STORICO (Cyan/Azzurro distinto - Touch target 34px/40px) -->
-            <v-btn
-              prepend-icon="mdi-chart-timeline-variant"
-              variant="tonal"
-              color="cyan-accent-3"
-              class="font-weight-black text-none px-3 rounded-xl elevation-1"
-              :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
-              @click="apriStoricoEsercizio"
-              title="Mostra Cronologia & Grafico Prestazioni Esercizio"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.70rem' : '0.78rem', letterSpacing: '0.03em', height: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
-            >
-              CRONOLOGIA
-            </v-btn>
-          </div>
-
-          <div class="d-flex align-center gap-1.5">
-            <!-- Tasto WhatsApp (Verde Smeraldo - Touch target 34px/40px) -->
-            <v-btn
-              icon
-              variant="tonal"
-              color="green-accent-3"
-              class="rounded-lg elevation-1"
-              @click="inviaVideoWhatsApp"
-              title="Invia Video Esecuzione al Coach"
-              :style="{ width: layoutCorrente === 'super_compatto' ? '34px' : '40px', height: layoutCorrente === 'super_compatto' ? '34px' : '40px', minWidth: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
-            >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 20">mdi-whatsapp</v-icon>
-            </v-btn>
-
-            <!-- Tasto MODIFICA (solo Coach - Touch target 34px/40px) -->
-            <v-btn
-              v-if="ruolo === 'coach'"
-              icon
-              variant="tonal"
-              color="amber-lighten-2"
-              class="rounded-lg"
-              @click="apriDialogModifica"
-              title="Modifica Esercizio"
-              :style="{ width: layoutCorrente === 'super_compatto' ? '34px' : '40px', height: layoutCorrente === 'super_compatto' ? '34px' : '40px', minWidth: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
-            >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 20">mdi-pencil</v-icon>
-            </v-btn>
-
-            <!-- Tasto ELIMINA (solo Coach - Touch target 34px/40px) -->
-            <v-btn
-              v-if="ruolo === 'coach'"
-              icon
-              variant="tonal"
-              color="red-lighten-2"
-              class="rounded-lg"
-              @click="dialogElimina = true"
-              title="Elimina Esercizio"
-              :style="{ width: layoutCorrente === 'super_compatto' ? '34px' : '40px', height: layoutCorrente === 'super_compatto' ? '34px' : '40px', minWidth: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
-            >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 20">mdi-delete</v-icon>
-            </v-btn>
           </div>
         </div>
-      </div>
-    </div>
+
+        <!-- Action Row (Scorso, Storico) - Tastiera Compatta -->
+        <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1.5 mb-1 pt-1' : 'mt-2 mb-1.5 pt-1.5', 'd-flex align-center justify-center w-100 gap-2 border-top-soft']">
+          <!-- Tasto Scorso (ex PRECEDENTE) -->
+          <v-btn
+            v-if="previousWorkout"
+            prepend-icon="mdi-calendar-arrow-left"
+            variant="tonal"
+            color="orange-lighten-2"
+            class="font-weight-black text-none px-3.5 rounded-lg elevation-1"
+            :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+            @click="dialogProgressioniPrecedente = true"
+            :style="{ fontSize: '0.72rem', letterSpacing: '0.02em', height: '32px' }"
+          >
+            Scorso
+          </v-btn>
+
+          <!-- Tasto Storico (ex CRONOLOGIA) -->
+          <v-btn
+            prepend-icon="mdi-chart-timeline-variant"
+            variant="tonal"
+            color="cyan-accent-3"
+            class="font-weight-black text-none px-3.5 rounded-lg elevation-1"
+            :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+            @click="apriStoricoEsercizio"
+            title="Mostra Cronologia & Grafico Prestazioni Esercizio"
+            :style="{ fontSize: '0.72rem', letterSpacing: '0.02em', height: '32px' }"
+          >
+            Storico
+          </v-btn>
+        </div>
 
       <!-- Banner Avviso Coach: Stallo Mesociclo Precedente -->
       <v-card
@@ -2217,56 +2292,55 @@
             </div>
 
             <!-- RIGA INFERIORE: RECORD A STESSE REPS + OBIETTIVO W -->
-            <div class="d-flex align-stretch gap-1.5">
+            <div class="d-flex align-stretch gap-1.5 w-100 min-width-0">
               <!-- Card 1: Record a Stesse Reps -->
               <div 
                 v-if="suggerimentoRecord.record > 0" 
-                class="pa-2 rounded-xl border text-left flex-1-1 d-flex flex-column justify-center transition-colors hover:bg-slate-800/80 active:bg-slate-700" 
-                style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important; cursor: pointer;"
+                class="pa-2 rounded-xl border text-left d-flex flex-column justify-center transition-colors hover:bg-slate-800/80 active:bg-slate-700 overflow-hidden" 
+                style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important; cursor: pointer; flex: 1 1 0%; min-width: 0;"
                 @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
               >
                 <div class="d-flex align-center justify-space-between mb-0.5">
-                  <div class="d-flex align-center gap-1">
+                  <div class="d-flex align-center gap-1 text-truncate">
                     <v-icon color="amber-lighten-1" size="12">mdi-trophy</v-icon>
-                    <span class="text-super-caption font-weight-black text-amber-lighten-1 uppercase" style="font-size: 0.55rem; letter-spacing: 0.03em;">
+                    <span class="text-super-caption font-weight-black text-amber-lighten-1 uppercase text-truncate" style="font-size: 0.55rem; letter-spacing: 0.03em;">
                       RECORD A {{ getRepsPerWeek(settimanaAttiva) }} REPS
                     </span>
                   </div>
                 </div>
 
-                <div class="d-flex align-baseline gap-1">
+                <div class="d-flex align-baseline gap-1 text-truncate">
                   <span class="record-hero-num text-subtitle-2 font-weight-black" style="font-size: 0.95rem; line-height: 1.1;">
                     {{ suggerimentoRecord.record }} kg
                   </span>
-                  <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption font-weight-bold" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
+                  <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption font-weight-bold text-truncate" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
                     × {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
                   </span>
                 </div>
 
-                <div class="text-super-caption text-slate-light font-weight-bold mt-0.5" style="font-size: 0.51rem; line-height: 1.15;">
+                <div class="text-super-caption text-slate-light font-weight-bold mt-0.5 text-truncate" style="font-size: 0.51rem; line-height: 1.15; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                   <span v-if="suggerimentoRecord.recordRepsSheet">
-                    Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }}{{ (suggerimentoRecord.recordRepsRow !== null && suggerimentoRecord.recordRepsRow !== undefined) ? suggerimentoRecord.recordRepsRow : '' }} • 
+                    Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }} • 
                   </span>
                   {{ formattaDataStorico(suggerimentoRecord.recordRepsDate) || 'N.D.' }}
-                  <span v-if="tempoTrascorso(suggerimentoRecord.recordRepsDate)" class="text-amber-lighten-2"> ({{ tempoTrascorso(suggerimentoRecord.recordRepsDate) }})</span>
                 </div>
               </div>
 
               <!-- Card 2: Obiettivo W Attiva -->
-              <div v-if="suggerimentoRecord.target > 0 || suggerimentoRecord.isScarico" class="pa-2 rounded-xl border text-left flex-1-1 d-flex flex-column justify-center" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.3) !important;">
-                <div class="d-flex align-center gap-1 mb-0.5">
+              <div v-if="suggerimentoRecord.target > 0 || suggerimentoRecord.isScarico" class="pa-2 rounded-xl border text-left d-flex flex-column justify-center overflow-hidden" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.3) !important; flex: 1 1 0%; min-width: 0;">
+                <div class="d-flex align-center gap-1 mb-0.5 text-truncate">
                   <v-icon color="orange-lighten-2" size="12">mdi-target</v-icon>
-                  <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.55rem; letter-spacing: 0.03em;">
+                  <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase text-truncate" style="font-size: 0.55rem; letter-spacing: 0.03em;">
                     <span v-if="suggerimentoRecord.isScarico">SCARICO W{{settimanaAttiva}}</span>
                     <span v-else>OBIETTIVO W{{settimanaAttiva}}</span>
                   </span>
                 </div>
 
-                <div class="record-hero-num text-subtitle-2 font-weight-black" style="font-size: 0.95rem; line-height: 1.1;">
-                  <span v-if="suggerimentoRecord.isScarico">{{ suggerimentoRecord.pesoWeek2 || '??' }} kg</span>
+                <div class="record-hero-num text-subtitle-2 font-weight-black text-truncate" style="font-size: 0.95rem; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                  <span v-if="suggerimentoRecord.isScarico">{{ estraiPesoDaInput(suggerimentoRecord.pesoWeek2) ? formatWeight(estraiPesoDaInput(suggerimentoRecord.pesoWeek2)) + ' kg' : 'Scarico' }}</span>
                   <span v-else>{{ suggerimentoRecord.target }} kg</span>
                 </div>
-                <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.51rem;">
+                <div class="text-super-caption text-muted font-weight-bold text-truncate" style="font-size: 0.51rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                   a {{ getRepsPerWeek(settimanaAttiva) }} reps target
                 </div>
               </div>
@@ -10220,6 +10294,50 @@ const suggerimentoRecord = computed(() => {
     isScarico,
     pesoWeek2: pesoW2
   };
+});
+
+const valutazioneProgressione = computed(() => {
+  if (!suggerimentoRecord.value) {
+    return {
+      testo: '✨ Primo ciclo di allenamento',
+      colore: 'text-amber-lighten-2',
+      icona: 'mdi-sparkles'
+    };
+  }
+
+  const rec = suggerimentoRecord.value.record || suggerimentoRecord.value.recordAbsolute;
+  const target = suggerimentoRecord.value.target;
+
+  if (!rec || rec <= 0) {
+    return {
+      testo: '✨ Primo ciclo di allenamento',
+      colore: 'text-amber-lighten-2',
+      icona: 'mdi-sparkles'
+    };
+  }
+
+  if (target > rec) {
+    const diff = target - rec;
+    const perc = Math.round((diff / rec) * 100);
+    return {
+      testo: `📈 In miglioramento (+${formatWeight(diff)} kg / +${perc}%)`,
+      colore: 'text-green-lighten-2',
+      icona: 'mdi-trending-up'
+    };
+  } else if (target === rec) {
+    return {
+      testo: '🔵 Carico in linea con il tuo PR',
+      colore: 'text-cyan-lighten-2',
+      icona: 'mdi-minus-circle-outline'
+    };
+  } else {
+    const diff = rec - target;
+    return {
+      testo: `🟠 Sotto al record storico (-${formatWeight(diff)} kg)`,
+      colore: 'text-orange-lighten-2',
+      icona: 'mdi-trending-down'
+    };
+  }
 });
 
 const getColoreFaticaStyle = (fatica) => {

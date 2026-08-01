@@ -44,6 +44,9 @@
         <v-icon size="20">mdi-cog</v-icon>
       </v-btn>
 
+      <!-- Slot per azioni dinamiche di pagina (es. menu 3 puntini Dettaglio esercizio) -->
+      <div id="top-app-bar-actions" class="d-flex align-center"></div>
+
       <!-- Pulsante Toggle Tema Chiaro / Scuro -->
       <v-btn
         icon

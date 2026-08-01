@@ -989,25 +989,6 @@
               <p class="mt-2 text-caption text-muted">Nessun esercizio presente per il giorno {{ giornoSelezionato }} in questa scheda.</p>
             </div>
 
-            <!-- Stato Vuoto se nessun esercizio corrisponde alla ricerca/filtro -->
-            <div v-else-if="eserciziFiltratiRicerca.length === 0" class="text-center my-8 py-6 card-glass rounded-xl pa-4">
-              <v-icon color="orange-lighten-2" size="40" class="mb-2">mdi-text-search-to-leave</v-icon>
-              <h4 class="text-subtitle-2 font-weight-black text-slate-dark">Nessun esercizio trovato</h4>
-              <p class="text-caption text-muted mt-1 mb-3">
-                Nessun esercizio corrisponde ai criteri di ricerca attuali.
-              </p>
-              <v-btn
-                variant="tonal"
-                color="orange-darken-3"
-                size="small"
-                class="font-weight-black text-none"
-                rounded="lg"
-                @click="testoRicercaEsercizio = ''; settoreFiltroSelezionato = 'Tutti'"
-              >
-                Azzera Filtri di Ricerca
-              </v-btn>
-            </div>
-
             <!-- Lista Esercizi con Miniature a Sinistra -->
             <div v-else class="exercise-list">
           <template v-for="(block, bIdx) in blocchiEsercizi" :key="bIdx">

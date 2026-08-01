@@ -3062,7 +3062,7 @@ const risultatiRicercaGlobaleRaggruppati = computed(() => {
 const vaiADettaglioDaRicercaGlobale = (id) => {
   vibraTattile(10);
   dialogRicercaGlobaleScheda.value = false;
-  router.push('/dettaglio/' + id);
+  router.push({ name: 'DettaglioWorkout', params: { id } });
 };
 
 // Raggruppa gli esercizi consecutivi in blocchi (singoli o superset)

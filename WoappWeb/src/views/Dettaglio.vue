@@ -1834,13 +1834,16 @@
       </v-card>
     </v-dialog>
 
-    <!-- Dialog Ricerca Rapida Esercizio -->
-    <v-dialog v-model="dialogRicercaRapida" max-width="500" scrollable>
+    <!-- Dialog Ricerca Rapida Esercizio (Tutta la Scheda Raggruppata) -->
+    <v-dialog v-model="dialogRicercaRapida" max-width="550" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px); background: #0b0f19 !important;">
         <v-card-title class="pa-3 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2">
             <v-icon color="orange-lighten-2" size="20">mdi-magnify</v-icon>
-            <span class="text-subtitle-2 font-weight-black text-white">Ricerca Rapida Esercizio</span>
+            <div>
+              <span class="text-subtitle-2 font-weight-black text-white d-block leading-tight">Ricerca Rapida Scheda</span>
+              <span class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.58rem;">Tutti gli esercizi della Scheda {{ workout?.num_scheda || '' }}</span>
+            </div>
           </div>
           <v-btn icon variant="text" width="28" height="28" color="grey" @click="dialogRicercaRapida = false">
             <v-icon size="18">mdi-close</v-icon>
@@ -1850,7 +1853,7 @@
         <v-card-text class="pa-3">
           <v-text-field
             v-model="testoRicercaDettaglio"
-            placeholder="Cerca per nome o settore..."
+            placeholder="Cerca per nome o settore muscolare..."
             variant="outlined"
             density="compact"
             hide-details
@@ -1861,36 +1864,51 @@
             class="mb-3 rounded-xl"
           ></v-text-field>
 
-          <!-- Lista risultati della ricerca -->
-          <div v-if="eserciziRicercatiDettaglio.length === 0" class="text-center py-6 text-muted text-caption">
+          <!-- Lista risultati della ricerca raggruppati per giorno -->
+          <div v-if="eserciziRicercatiDettaglioRaggruppati.length === 0" class="text-center py-6 text-muted text-caption">
             Nessun esercizio trovato per "{{ testoRicercaDettaglio }}".
           </div>
 
-          <div v-else class="d-flex flex-column gap-1.5 scrollbar-custom" style="max-height: 60vh;">
+          <div v-else class="d-flex flex-column gap-3 scrollbar-custom" style="max-height: 65vh;">
             <div
-              v-for="item in eserciziRicercatiDettaglio"
-              :key="item.id"
-              class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between cursor-pointer card-glass hover-scale"
-              :style="{
-                background: String(item.id) === String(workout?.id) ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 255, 255, 0.03)',
-                borderColor: String(item.id) === String(workout?.id) ? 'rgba(249, 115, 22, 0.4)' : 'rgba(255, 255, 255, 0.08)'
-              }"
-              @click="vaiADettaglioEsercizioRicercato(item.id)"
+              v-for="gruppo in eserciziRicercatiDettaglioRaggruppati"
+              :key="gruppo.giorno"
+              class="d-flex flex-column gap-1.5"
             >
-              <div class="d-flex align-center gap-2 min-width-0">
-                <v-chip size="x-small" color="orange-darken-3" variant="flat" class="font-weight-black text-white px-1.5 flex-shrink-0" style="height: 18px; font-size: 0.6rem;">
-                  {{ item.des_giorno }}{{ item.num_riga_giorno }}
+              <div class="d-flex align-center px-1">
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2 mr-2" style="height: 18px; font-size: 0.6rem;">
+                  GIORNO {{ gruppo.giorno }}
                 </v-chip>
-                <div class="text-truncate">
-                  <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.8rem;">
-                    {{ item.des_esercizio }}
-                  </div>
-                  <div v-if="item.des_settore" class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.6rem;">
-                    {{ item.des_settore }}
+                <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.6rem;">
+                  {{ gruppo.esercizi.length }} eserciz{{ gruppo.esercizi.length === 1 ? 'io' : 'i' }}
+                </span>
+              </div>
+
+              <div
+                v-for="item in gruppo.esercizi"
+                :key="item.id"
+                class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between cursor-pointer card-glass hover-scale ml-1"
+                :style="{
+                  background: String(item.id) === String(workout?.id) ? 'rgba(249, 115, 22, 0.18)' : 'rgba(255, 255, 255, 0.03)',
+                  borderColor: String(item.id) === String(workout?.id) ? 'rgba(249, 115, 22, 0.45)' : 'rgba(255, 255, 255, 0.08)'
+                }"
+                @click="vaiADettaglioEsercizioRicercato(item.id)"
+              >
+                <div class="d-flex align-center gap-2 min-width-0">
+                  <v-chip size="x-small" color="orange-darken-3" variant="outlined" class="font-weight-black px-1.5 flex-shrink-0" style="height: 18px; font-size: 0.58rem;">
+                    {{ item.des_giorno }}{{ item.num_riga_giorno }}
+                  </v-chip>
+                  <div class="text-truncate">
+                    <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.8rem;">
+                      {{ item.des_esercizio }}
+                    </div>
+                    <div v-if="item.des_settore" class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.6rem;">
+                      {{ item.des_settore }}
+                    </div>
                   </div>
                 </div>
+                <v-icon size="18" color="orange-lighten-2" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
               </div>
-              <v-icon size="18" color="orange-lighten-2" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
             </div>
           </div>
         </v-card-text>
@@ -5597,15 +5615,31 @@ const tuttiEserciziGiorno = ref([]);
 const dialogRicercaRapida = ref(false);
 const testoRicercaDettaglio = ref('');
 
-const eserciziRicercatiDettaglio = computed(() => {
+const eserciziRicercatiDettaglioRaggruppati = computed(() => {
   if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) return [];
   const query = testoRicercaDettaglio.value.toLowerCase().trim();
-  if (!query) return tuttiEserciziGiorno.value;
-  return tuttiEserciziGiorno.value.filter(item => {
-    const nome = String(item.des_esercizio || '').toLowerCase();
-    const settore = String(item.des_settore || '').toLowerCase();
-    return nome.includes(query) || settore.includes(query);
+  
+  let lista = tuttiEserciziGiorno.value;
+  if (query) {
+    lista = lista.filter(item => {
+      const nome = String(item.des_esercizio || '').toLowerCase();
+      const settore = String(item.des_settore || '').toLowerCase();
+      const note = String(item.des_note_attrezzo || '').toLowerCase();
+      return nome.includes(query) || settore.includes(query) || note.includes(query);
+    });
+  }
+
+  const mappa = {};
+  lista.forEach(ex => {
+    const g = (ex.des_giorno || 'A').trim().toUpperCase();
+    if (!mappa[g]) mappa[g] = [];
+    mappa[g].push(ex);
   });
+
+  return Object.keys(mappa).sort().map(giorno => ({
+    giorno,
+    esercizi: mappa[giorno].sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0))
+  }));
 });
 
 const vaiADettaglioEsercizioRicercato = (id) => {

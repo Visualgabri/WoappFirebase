@@ -42,7 +42,10 @@
         </div>
       </div>
       <div class="header-actions d-flex align-center gap-1">
-        <v-btn icon color="slate-dark" variant="text" @click="caricaAllenamenti"><v-icon>mdi-refresh</v-icon></v-btn>
+        <v-btn icon color="orange-darken-3" variant="tonal" size="small" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
+          <v-icon size="20">mdi-magnify</v-icon>
+        </v-btn>
+        <v-btn icon color="slate-dark" variant="text" @click="caricaAllenamenti" title="Aggiorna"><v-icon>mdi-refresh</v-icon></v-btn>
       </div>
     </div>
 
@@ -184,69 +187,6 @@
             </div>
           </v-tab>
         </v-tabs>
-      </div>
-
-      <!-- Barra di Ricerca & Filtro Esercizio (Glassmorphism Dark Mode) -->
-      <div v-if="!caricamento && listaGiorniDisponibili.length > 0" class="mb-3">
-        <v-card
-          class="pa-2.5 rounded-2xl border card-glass elevation-1 text-left"
-          style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6)) !important; border: 1px solid rgba(249, 115, 22, 0.25) !important;"
-        >
-          <div class="d-flex align-center gap-2">
-            <v-text-field
-              v-model="testoRicercaEsercizio"
-              placeholder="Cerca esercizio, settore o attrezzo..."
-              variant="outlined"
-              density="compact"
-              hide-details
-              clearable
-              color="orange-darken-3"
-              prepend-inner-icon="mdi-magnify"
-              class="search-exercise-input rounded-xl"
-              style="font-size: 0.82rem;"
-            ></v-text-field>
-
-            <v-btn
-              v-if="testoRicercaEsercizio || settoreFiltroSelezionato !== 'Tutti'"
-              variant="tonal"
-              color="orange-lighten-2"
-              size="small"
-              class="font-weight-black text-none px-2.5 rounded-lg flex-shrink-0"
-              style="height: 40px; font-size: 0.68rem;"
-              @click="testoRicercaEsercizio = ''; settoreFiltroSelezionato = 'Tutti'"
-            >
-              <v-icon size="14" class="mr-1">mdi-refresh</v-icon>
-              Reset
-            </v-btn>
-          </div>
-
-          <!-- Quick Sector Chips -->
-          <div class="d-flex align-center gap-1.5 overflow-x-auto pt-2 pb-0.5 no-scrollbar">
-            <v-chip
-              v-for="settore in filtriSettoriDisponibili"
-              :key="settore"
-              size="x-small"
-              variant="flat"
-              class="font-weight-black cursor-pointer flex-shrink-0"
-              :color="settoreFiltroSelezionato === settore ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.06)'"
-              :class="settoreFiltroSelezionato === settore ? 'text-white' : 'text-slate-dark'"
-              style="font-size: 0.62rem; height: 22px;"
-              @click="settoreFiltroSelezionato = settore"
-            >
-              {{ settore }}
-            </v-chip>
-          </div>
-        </v-card>
-
-        <!-- Feedback Risultati Ricerca -->
-        <div v-if="testoRicercaEsercizio || settoreFiltroSelezionato !== 'Tutti'" class="d-flex align-center justify-space-between px-2 pt-1 pb-0.5">
-          <span class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.65rem;">
-            🔎 Risultati: {{ eserciziFiltratiRicerca.length }} di {{ eserciziFiltrati.length }} esercizi
-          </span>
-          <span v-if="eserciziFiltratiRicerca.length === 0" class="text-super-caption text-red-lighten-2 font-weight-bold" style="font-size: 0.65rem;">
-            Nessuna corrispondenza trovata
-          </span>
-        </div>
       </div>
 
       <!-- Indicatore di Caricamento -->
@@ -2092,6 +2032,126 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog Ricerca Globale Scheda (Tutti i giorni raggruppati) -->
+    <v-dialog v-model="dialogRicercaGlobaleScheda" max-width="580" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px); background: #0b0f19 !important;">
+        <v-card-title class="pa-3.5 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange-lighten-2" size="22">mdi-magnify</v-icon>
+            <div>
+              <span class="text-subtitle-1 font-weight-black text-white d-block leading-tight">Ricerca Esercizi Scheda</span>
+              <span class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.62rem;">
+                Filtra tutti gli esercizi della Scheda {{ schedaSelezionata || '' }} (Tutti i Giorni)
+              </span>
+            </div>
+          </div>
+          <v-btn icon variant="text" width="28" height="28" color="grey" @click="dialogRicercaGlobaleScheda = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3.5">
+          <!-- Campo di ricerca testo -->
+          <v-text-field
+            v-model="testoRicercaGlobale"
+            placeholder="Cerca esercizio, settore o attrezzo..."
+            variant="outlined"
+            density="compact"
+            hide-details
+            clearable
+            autofocus
+            color="orange-darken-3"
+            prepend-inner-icon="mdi-magnify"
+            class="mb-2.5 rounded-xl"
+          ></v-text-field>
+
+          <!-- Chip Filtri Settori Muscolari -->
+          <div class="d-flex align-center gap-1.5 overflow-x-auto pb-2 mb-2 no-scrollbar">
+            <v-chip
+              v-for="settore in filtriSettoriGlobali"
+              :key="settore"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="settoreFiltroGlobale === settore ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+              :class="settoreFiltroGlobale === settore ? 'text-white' : 'text-slate-dark'"
+              style="font-size: 0.62rem; height: 22px;"
+              @click="settoreFiltroGlobale = settore"
+            >
+              {{ settore }}
+            </v-chip>
+          </div>
+
+          <!-- Stato vuoto se nessun risultato -->
+          <div v-if="risultatiRicercaGlobaleRaggruppati.length === 0" class="text-center py-8 text-muted text-caption card-glass rounded-xl pa-4">
+            <v-icon size="36" color="orange-lighten-2" class="mb-2">mdi-dumbbell-off</v-icon>
+            <div class="font-weight-bold text-slate-dark">Nessun esercizio trovato</div>
+            <p class="text-super-caption text-muted mt-1 mb-3">Nessuna corrispondenza per "{{ testoRicercaGlobale || settoreFiltroGlobale }}" in tutta la scheda.</p>
+            <v-btn size="x-small" color="orange-darken-3" variant="tonal" class="font-weight-black text-none" @click="testoRicercaGlobale = ''; settoreFiltroGlobale = 'Tutti'">
+              Azzera Filtri
+            </v-btn>
+          </div>
+
+          <!-- Risultati Raggruppati per Giorno -->
+          <div v-else class="d-flex flex-column gap-3.5 scrollbar-custom" style="max-height: 60vh;">
+            <div
+              v-for="gruppo in risultatiRicercaGlobaleRaggruppati"
+              :key="gruppo.giorno"
+              class="d-flex flex-column gap-1.5"
+            >
+              <div class="d-flex align-center justify-space-between px-1">
+                <div class="d-flex align-center">
+                  <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2 mr-2" style="height: 20px; font-size: 0.65rem;">
+                    GIORNO {{ gruppo.giorno }}
+                  </v-chip>
+                  <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
+                    {{ gruppo.esercizi.length }} eserciz{{ gruppo.esercizi.length === 1 ? 'io' : 'i' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="d-flex flex-column gap-1.5">
+                <div
+                  v-for="item in gruppo.esercizi"
+                  :key="item.id"
+                  class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between cursor-pointer card-glass hover-scale"
+                  style="background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08);"
+                  @click="vaiADettaglioDaRicercaGlobale(item.id)"
+                >
+                  <div class="d-flex align-center gap-2.5 min-width-0">
+                    <div class="rounded-lg overflow-hidden flex-shrink-0" style="width: 38px; height: 38px; border: 1px solid rgba(255,255,255,0.08);">
+                      <v-img :src="getGifUrl(item.UrlNormal) || '/logo.png'" cover height="100%" width="100%">
+                        <template v-slot:placeholder>
+                          <div class="fill-height d-flex align-center justify-center bg-slate-900">
+                            <v-icon color="grey" size="14">mdi-dumbbell</v-icon>
+                          </div>
+                        </template>
+                      </v-img>
+                    </div>
+                    <div class="text-truncate">
+                      <div class="d-flex align-center gap-1">
+                        <v-chip size="x-small" color="orange-darken-3" variant="outlined" class="font-weight-black px-1" style="height: 16px; font-size: 0.55rem;">
+                          {{ item.des_giorno }}{{ item.num_riga_giorno }}
+                        </v-chip>
+                        <span class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem;">
+                          {{ item.des_esercizio }}
+                        </span>
+                      </div>
+                      <div v-if="item.des_settore" class="text-super-caption text-orange-lighten-2 font-weight-bold mt-0.5" style="font-size: 0.62rem;">
+                        {{ item.des_settore }}
+                        <span v-if="item.des_week1" class="text-muted font-weight-regular ml-1.5">• {{ item.des_week1 }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <v-icon size="18" color="orange-lighten-2" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
 
 
 
@@ -2962,49 +3022,74 @@ const settimanaDaChiuderePerGiorno = (g) => {
   return 'FINE'; // Se tutte sono chiuse
 };
 
-// Stato e Logica per Ricerca & Filtro Esercizio
-const testoRicercaEsercizio = ref('');
-const settoreFiltroSelezionato = ref('Tutti');
+// Stato e Logica per Ricerca Globale Scheda (Tutti i giorni)
+const dialogRicercaGlobaleScheda = ref(false);
+const testoRicercaGlobale = ref('');
+const settoreFiltroGlobale = ref('Tutti');
 
-const filtriSettoriDisponibili = computed(() => {
+const filtriSettoriGlobali = computed(() => {
   const set = new Set(['Tutti']);
-  if (eserciziFiltrati.value) {
-    eserciziFiltrati.value.forEach(ex => {
-      const sec = getSettorePrincipale(ex.des_settore);
-      if (sec && sec !== 'Altro') set.add(sec);
+  if (listaAllenamenti.value) {
+    listaAllenamenti.value.forEach(ex => {
+      if (parseInt(ex.num_riga_giorno) > 0) {
+        const sec = getSettorePrincipale(ex.des_settore);
+        if (sec && sec !== 'Altro') set.add(sec);
+      }
     });
   }
   return Array.from(set);
 });
 
-const eserciziFiltratiRicerca = computed(() => {
-  if (!eserciziFiltrati.value) return [];
-  let lista = eserciziFiltrati.value;
+const risultatiRicercaGlobaleRaggruppati = computed(() => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return [];
+  
+  let esercizi = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) > 0);
 
-  if (settoreFiltroSelezionato.value && settoreFiltroSelezionato.value !== 'Tutti') {
-    lista = lista.filter(ex => getSettorePrincipale(ex.des_settore) === settoreFiltroSelezionato.value);
+  if (settoreFiltroGlobale.value && settoreFiltroGlobale.value !== 'Tutti') {
+    esercizi = esercizi.filter(ex => getSettorePrincipale(ex.des_settore) === settoreFiltroGlobale.value);
   }
 
-  if (testoRicercaEsercizio.value && testoRicercaEsercizio.value.trim() !== '') {
-    const query = testoRicercaEsercizio.value.trim().toLowerCase();
-    lista = lista.filter(ex => {
+  if (testoRicercaGlobale.value && testoRicercaGlobale.value.trim() !== '') {
+    const q = testoRicercaGlobale.value.trim().toLowerCase();
+    esercizi = esercizi.filter(ex => {
       const nome = String(ex.des_esercizio || '').toLowerCase();
       const note = String(ex.des_note_attrezzo || '').toLowerCase();
       const settore = String(ex.des_settore || '').toLowerCase();
       const attr = String(ex.des_note_gen_attr || '').toLowerCase();
-      return nome.includes(query) || note.includes(query) || settore.includes(query) || attr.includes(query);
+      return nome.includes(q) || note.includes(q) || settore.includes(q) || attr.includes(q);
     });
   }
 
-  return lista;
+  const mappaGiorni = {};
+  esercizi.forEach(ex => {
+    const g = (ex.des_giorno || 'A').trim().toUpperCase();
+    if (!mappaGiorni[g]) {
+      mappaGiorni[g] = [];
+    }
+    mappaGiorni[g].push(ex);
+  });
+
+  return Object.keys(mappaGiorni).sort().map(giorno => {
+    const exList = mappaGiorni[giorno].sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
+    return {
+      giorno,
+      esercizi: exList
+    };
+  });
 });
+
+const vaiADettaglioDaRicercaGlobale = (id) => {
+  vibraTattile(10);
+  dialogRicercaGlobaleScheda.value = false;
+  router.push('/dettaglio/' + id);
+};
 
 // Raggruppa gli esercizi consecutivi in blocchi (singoli o superset)
 const blocchiEsercizi = computed(() => {
   const blocks = [];
   let currentSuperset = null;
   
-  eserciziFiltratiRicerca.value.forEach((ex) => {
+  eserciziFiltrati.value.forEach((ex) => {
     const ss = (ex.alf_superserie || '').trim().toUpperCase();
     if (ss) {
       if (currentSuperset && currentSuperset.letter === ss) {

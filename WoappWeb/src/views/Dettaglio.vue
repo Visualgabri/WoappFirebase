@@ -73,16 +73,28 @@
             </v-chip>
           </h3>
         </div>
-        <v-btn
-          icon
-          color="orange-darken-3"
-          variant="text"
-          @click="vaiAdEsercizioSuccessivo"
-          id="btn-dettaglio-avanti"
-          :disabled="listaIdEsercizi.length <= 1 || indexCorrente === listaIdEsercizi.length - 1"
-        >
-          <v-icon :size="layoutCorrente === 'super_compatto' ? 22 : (layoutCorrente === 'compatto' ? 24 : 28)">mdi-arrow-right</v-icon>
-        </v-btn>
+        <div class="d-flex align-center flex-shrink-0 gap-0.5">
+          <v-btn
+            icon
+            color="orange-darken-3"
+            variant="text"
+            @click="dialogRicercaRapida = true"
+            title="Cerca Esercizio"
+            id="btn-dettaglio-ricerca"
+          >
+            <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : (layoutCorrente === 'compatto' ? 20 : 22)">mdi-magnify</v-icon>
+          </v-btn>
+          <v-btn
+            icon
+            color="orange-darken-3"
+            variant="text"
+            @click="vaiAdEsercizioSuccessivo"
+            id="btn-dettaglio-avanti"
+            :disabled="listaIdEsercizi.length <= 1 || indexCorrente === listaIdEsercizi.length - 1"
+          >
+            <v-icon :size="layoutCorrente === 'super_compatto' ? 22 : (layoutCorrente === 'compatto' ? 24 : 28)">mdi-arrow-right</v-icon>
+          </v-btn>
+        </div>
       </div>
 
       <!-- Avviso Scheda Passata (Modalità Storico) -->
@@ -202,36 +214,6 @@
             </v-img>
           </v-card>
 
-          <!-- Icone di Azione Rapida allineate sotto la GIF (solo se la colonna destra è alta) -->
-          <div v-if="haColonnaDestraAlta" class="d-flex align-center justify-center gap-2 mt-2">
-            <!-- Tasto Storico -->
-            <v-btn
-              icon
-              variant="flat"
-              color="rgba(255, 255, 255, 0.05)"
-              class="card-glass border border-soft"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-              style="width: 32px; height: 32px; min-width: 32px; border-radius: 50% !important;"
-              @click="apriStoricoEsercizio"
-              title="Storico Esercizio"
-            >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 16 : 19" color="orange-lighten-2">mdi-history</v-icon>
-            </v-btn>
-
-            <!-- Tasto WhatsApp -->
-            <v-btn
-              icon
-              variant="flat"
-              color="rgba(255, 255, 255, 0.05)"
-              class="card-glass border border-soft"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-              style="width: 32px; height: 32px; min-width: 32px; border-radius: 50% !important;"
-              @click="inviaVideoWhatsApp"
-              title="Invia Video al Coach"
-            >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 17" color="orange-lighten-2">mdi-whatsapp</v-icon>
-            </v-btn>
-          </div>
         </div>
 
         <!-- GIF dell'Esercizio Standard (per layout normale) -->
@@ -459,78 +441,78 @@
           </v-card>
         </v-expand-transition>
 
-        <!-- Action Row (Precedente, Cronologia, WhatsApp, Modifica, Elimina) -->
+        <!-- Action Row (Precedente, Cronologia, WhatsApp, Modifica, Elimina) - Proposta 1 Premium -->
         <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5 pt-1' : 'mt-2 mb-1 pt-2', 'd-flex align-center justify-space-between px-1 border-top-soft gap-2 flex-wrap']">
-          <div class="d-flex align-center gap-1.5 flex-wrap">
-            <!-- Tasto PRECEDENTE (Amber / Orange) -->
+          <div class="d-flex align-center gap-2 flex-wrap">
+            <!-- Tasto PRECEDENTE (Amber / Orange - Touch target 34px/40px) -->
             <v-btn
               v-if="previousWorkout"
               prepend-icon="mdi-calendar-arrow-left"
               variant="tonal"
               color="orange-lighten-2"
-              class="font-weight-black text-none px-2.5 rounded-lg"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              class="font-weight-black text-none px-3 rounded-xl elevation-1"
+              :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
               @click="dialogProgressioniPrecedente = true"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.70rem', letterSpacing: '0.03em', height: '28px' }"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.70rem' : '0.78rem', letterSpacing: '0.03em', height: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
             >
               PRECEDENTE
             </v-btn>
 
-            <!-- Tasto CRONOLOGIA / STORICO (Cyan/Azzurro distinto!) -->
+            <!-- Tasto CRONOLOGIA / STORICO (Cyan/Azzurro distinto - Touch target 34px/40px) -->
             <v-btn
               prepend-icon="mdi-chart-timeline-variant"
               variant="tonal"
               color="cyan-accent-3"
-              class="font-weight-black text-none px-2.5 rounded-lg"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              class="font-weight-black text-none px-3 rounded-xl elevation-1"
+              :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
               @click="apriStoricoEsercizio"
               title="Mostra Cronologia & Grafico Prestazioni Esercizio"
-              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.62rem' : '0.70rem', letterSpacing: '0.03em', height: '28px' }"
+              :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.70rem' : '0.78rem', letterSpacing: '0.03em', height: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
             >
               CRONOLOGIA
             </v-btn>
           </div>
 
-          <div class="d-flex align-center gap-1">
-            <!-- Tasto Aereo (WhatsApp - Verde Smeraldo) -->
+          <div class="d-flex align-center gap-1.5">
+            <!-- Tasto WhatsApp (Verde Smeraldo - Touch target 34px/40px) -->
             <v-btn
               icon
               variant="tonal"
               color="green-accent-3"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              class="rounded-lg elevation-1"
               @click="inviaVideoWhatsApp"
               title="Invia Video Esecuzione al Coach"
-              style="width: 28px; height: 28px;"
+              :style="{ width: layoutCorrente === 'super_compatto' ? '34px' : '40px', height: layoutCorrente === 'super_compatto' ? '34px' : '40px', minWidth: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
             >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-whatsapp</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 20">mdi-whatsapp</v-icon>
             </v-btn>
 
-            <!-- Tasto MODIFICA (solo Coach) -->
+            <!-- Tasto MODIFICA (solo Coach - Touch target 34px/40px) -->
             <v-btn
               v-if="ruolo === 'coach'"
               icon
-              variant="text"
+              variant="tonal"
               color="amber-lighten-2"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              class="rounded-lg"
               @click="apriDialogModifica"
               title="Modifica Esercizio"
-              style="width: 28px; height: 28px;"
+              :style="{ width: layoutCorrente === 'super_compatto' ? '34px' : '40px', height: layoutCorrente === 'super_compatto' ? '34px' : '40px', minWidth: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
             >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-pencil</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 20">mdi-pencil</v-icon>
             </v-btn>
 
-            <!-- Tasto ELIMINA (solo Coach) -->
+            <!-- Tasto ELIMINA (solo Coach - Touch target 34px/40px) -->
             <v-btn
               v-if="ruolo === 'coach'"
               icon
-              variant="text"
+              variant="tonal"
               color="red-lighten-2"
-              :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
+              class="rounded-lg"
               @click="dialogElimina = true"
               title="Elimina Esercizio"
-              style="width: 28px; height: 28px;"
+              :style="{ width: layoutCorrente === 'super_compatto' ? '34px' : '40px', height: layoutCorrente === 'super_compatto' ? '34px' : '40px', minWidth: layoutCorrente === 'super_compatto' ? '34px' : '40px' }"
             >
-              <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-delete</v-icon>
+              <v-icon :size="layoutCorrente === 'super_compatto' ? 18 : 20">mdi-delete</v-icon>
             </v-btn>
           </div>
         </div>
@@ -1849,6 +1831,69 @@
             Chiudi
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Ricerca Rapida Esercizio -->
+    <v-dialog v-model="dialogRicercaRapida" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px); background: #0b0f19 !important;">
+        <v-card-title class="pa-3 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange-lighten-2" size="20">mdi-magnify</v-icon>
+            <span class="text-subtitle-2 font-weight-black text-white">Ricerca Rapida Esercizio</span>
+          </div>
+          <v-btn icon variant="text" width="28" height="28" color="grey" @click="dialogRicercaRapida = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3">
+          <v-text-field
+            v-model="testoRicercaDettaglio"
+            placeholder="Cerca per nome o settore..."
+            variant="outlined"
+            density="compact"
+            hide-details
+            clearable
+            autofocus
+            color="orange-darken-3"
+            prepend-inner-icon="mdi-magnify"
+            class="mb-3 rounded-xl"
+          ></v-text-field>
+
+          <!-- Lista risultati della ricerca -->
+          <div v-if="eserciziRicercatiDettaglio.length === 0" class="text-center py-6 text-muted text-caption">
+            Nessun esercizio trovato per "{{ testoRicercaDettaglio }}".
+          </div>
+
+          <div v-else class="d-flex flex-column gap-1.5 scrollbar-custom" style="max-height: 60vh;">
+            <div
+              v-for="item in eserciziRicercatiDettaglio"
+              :key="item.id"
+              class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between cursor-pointer card-glass hover-scale"
+              :style="{
+                background: String(item.id) === String(workout?.id) ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                borderColor: String(item.id) === String(workout?.id) ? 'rgba(249, 115, 22, 0.4)' : 'rgba(255, 255, 255, 0.08)'
+              }"
+              @click="vaiADettaglioEsercizioRicercato(item.id)"
+            >
+              <div class="d-flex align-center gap-2 min-width-0">
+                <v-chip size="x-small" color="orange-darken-3" variant="flat" class="font-weight-black text-white px-1.5 flex-shrink-0" style="height: 18px; font-size: 0.6rem;">
+                  {{ item.des_giorno }}{{ item.num_riga_giorno }}
+                </v-chip>
+                <div class="text-truncate">
+                  <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.8rem;">
+                    {{ item.des_esercizio }}
+                  </div>
+                  <div v-if="item.des_settore" class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.6rem;">
+                    {{ item.des_settore }}
+                  </div>
+                </div>
+              </div>
+              <v-icon size="18" color="orange-lighten-2" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+            </div>
+          </div>
+        </v-card-text>
       </v-card>
     </v-dialog>
 
@@ -5547,6 +5592,28 @@ const routeIdLocal = ref(route.params.id);
 const transitionName = ref(''); // Vuoto per evitare animazioni all'apertura dalla lista
 const settimanaAttiva = ref(1);
 const tuttiEserciziGiorno = ref([]);
+
+// Ricerca Rapida Esercizi nel Dettaglio
+const dialogRicercaRapida = ref(false);
+const testoRicercaDettaglio = ref('');
+
+const eserciziRicercatiDettaglio = computed(() => {
+  if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) return [];
+  const query = testoRicercaDettaglio.value.toLowerCase().trim();
+  if (!query) return tuttiEserciziGiorno.value;
+  return tuttiEserciziGiorno.value.filter(item => {
+    const nome = String(item.des_esercizio || '').toLowerCase();
+    const settore = String(item.des_settore || '').toLowerCase();
+    return nome.includes(query) || settore.includes(query);
+  });
+});
+
+const vaiADettaglioEsercizioRicercato = (id) => {
+  vibraTattile(10);
+  dialogRicercaRapida.value = false;
+  testoRicercaDettaglio.value = '';
+  router.replace({ name: 'DettaglioWorkout', params: { id } });
+};
 
 // Verifica se stiamo guardando una scheda passata (Modalità Storico)
 const isSchedaPassata = computed(() => {

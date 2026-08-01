@@ -438,21 +438,12 @@
               <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
               <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Record Esercizio</span>
             </div>
-            <v-chip
-              color="cyan-darken-2"
-              size="x-small"
-              class="font-weight-black uppercase text-super-caption px-1.5 py-0.5 elevation-1 text-white"
-              variant="flat"
-              style="letter-spacing: 0.05em; height: 16px; font-size: 0.52rem;"
-            >
-              PR STORICO
-            </v-chip>
           </div>
 
           <v-row dense class="align-center">
             <v-col cols="6" class="border-right-soft">
               <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">PR Assoluto</span>
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max Assoluto</span>
                 <span class="font-weight-black text-cyan-lighten-2" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
                   <template v-if="suggerimentoRecord && suggerimentoRecord.recordAbsolute > 0">
                     {{ formatWeight(suggerimentoRecord.recordAbsolute) }}<span class="text-super-caption text-muted">KG</span>
@@ -471,7 +462,7 @@
             </v-col>
             <v-col cols="6">
               <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Record {{ getRepsPerWeek(settimanaAttiva) }} Reps</span>
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max {{ getRepsPerWeek(settimanaAttiva) }} Reps</span>
                 <span class="font-weight-black text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
                   <template v-if="suggerimentoRecord && suggerimentoRecord.record > 0">
                     {{ formatWeight(suggerimentoRecord.record) }}<span class="text-super-caption text-muted">KG</span>
@@ -500,9 +491,9 @@
               size="x-small"
               color="amber-darken-3"
               variant="tonal"
-              class="font-weight-black cursor-pointer px-2 flex-shrink-0"
-              style="font-size: 0.56rem; height: 20px;"
-              @click="vibraTattile(15); dialogStrategiaCoach = true"
+              class="font-weight-black cursor-pointer px-2.5 py-1 flex-shrink-0"
+              style="font-size: 0.58rem; min-height: 22px; z-index: 2;"
+              @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
             >
               <v-icon start icon="mdi-brain" size="11" class="mr-0.5" />
               Strategia
@@ -2267,7 +2258,7 @@
             <v-row dense class="align-center">
               <v-col cols="6">
                 <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(6, 182, 212, 0.3) !important;">
-                  <span class="text-super-caption text-cyan-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">PICCO STORICO PR</span>
+                  <span class="text-super-caption text-cyan-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Record Storico</span>
                   <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
                     {{ strategiaCoachData.prWeight > 0 ? strategiaCoachData.prWeight + ' kg' : '--' }}
                   </span>
@@ -2278,7 +2269,7 @@
               </v-col>
               <v-col cols="6">
                 <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(249, 115, 22, 0.3) !important;">
-                  <span class="text-super-caption text-orange-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">MESOCICLO ATTUALE</span>
+                  <span class="text-super-caption text-orange-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Attuale</span>
                   <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
                     {{ strategiaCoachData.bestCurrentWeight > 0 ? strategiaCoachData.bestCurrentWeight + ' kg' : '--' }}
                   </span>
@@ -10483,14 +10474,9 @@ const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
   const isScarico = (w === 4 && isWeek4Scarico.value);
 
-  // 1. Se la settimana attiva è di scarico (W4), mostrare esplicitamente lo stato di SCARICO
+  // Se la settimana attiva è di scarico (W4), non mostrare la scritta
   if (isScarico) {
-    return {
-      testo: '🛡️ Settimana di Scarico Rigenerativo',
-      colore: 'text-blue-lighten-3',
-      icona: 'mdi-shield-check',
-      isScarico: true
-    };
+    return null;
   }
 
   if (!suggerimentoRecord.value) {

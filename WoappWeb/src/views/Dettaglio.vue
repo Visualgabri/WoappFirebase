@@ -433,25 +433,54 @@
           ]"
           @click="apriStoricoEsercizio"
         >
-          <!-- Header Card Record: Titolo a Sinistra, Pulsante Strategia Compatto a Destra -->
-          <div class="d-flex align-center justify-space-between mb-2">
+          <!-- Header Card Record: Titolo a Sinistra, Toolbar Azioni Unificata (Scorso, Storico, Strategia) a Destra -->
+          <div class="d-flex align-center justify-space-between mb-2 gap-1 flex-wrap">
             <div class="d-flex align-center gap-1.5">
               <v-icon color="cyan-lighten-2" size="15">mdi-trophy-outline</v-icon>
               <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" style="letter-spacing: 0.05em;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.60rem' : '0.68rem' }">
                 Record
               </span>
             </div>
-            <v-chip
-              size="x-small"
-              color="amber-darken-3"
-              variant="outlined"
-              class="font-weight-black cursor-pointer px-2 text-amber-lighten-2 flex-shrink-0"
-              style="font-size: 0.58rem; height: 20px; z-index: 2; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.4) !important;"
-              @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
-            >
-              <v-icon icon="mdi-brain" size="12" class="mr-1" color="amber-lighten-2" />
-              Strategia
-            </v-chip>
+
+            <!-- Toolbar Azioni Unificata (Scorso, Storico, Strategia) -->
+            <div class="d-flex align-center gap-1 flex-wrap">
+              <v-chip
+                v-if="previousWorkout"
+                size="x-small"
+                color="orange-lighten-2"
+                variant="tonal"
+                class="font-weight-black cursor-pointer px-2 text-orange-lighten-2 flex-shrink-0"
+                style="font-size: 0.58rem; height: 20px; z-index: 2;"
+                @click.stop="vibraTattile(15); dialogProgressioniPrecedente = true"
+              >
+                <v-icon icon="mdi-calendar-arrow-left" size="12" class="mr-1" color="orange-lighten-2" />
+                Scorso
+              </v-chip>
+
+              <v-chip
+                size="x-small"
+                color="cyan-accent-3"
+                variant="tonal"
+                class="font-weight-black cursor-pointer px-2 text-cyan-accent-3 flex-shrink-0"
+                style="font-size: 0.58rem; height: 20px; z-index: 2;"
+                @click.stop="vibraTattile(15); apriStoricoEsercizio()"
+              >
+                <v-icon icon="mdi-chart-timeline-variant" size="12" class="mr-1" color="cyan-accent-3" />
+                Storico
+              </v-chip>
+
+              <v-chip
+                size="x-small"
+                color="amber-darken-3"
+                variant="outlined"
+                class="font-weight-black cursor-pointer px-2 text-amber-lighten-2 flex-shrink-0"
+                style="font-size: 0.58rem; height: 20px; z-index: 2; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.4) !important;"
+                @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
+              >
+                <v-icon icon="mdi-brain" size="12" class="mr-1" color="amber-lighten-2" />
+                Strategia
+              </v-chip>
+            </div>
           </div>
 
           <v-row dense class="align-center">
@@ -567,37 +596,6 @@
         </v-expand-transition>
 
           </div>
-        </div>
-
-        <!-- Action Row (Scorso, Storico) - Tastiera Compatta -->
-        <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1.5 mb-1 pt-1' : 'mt-2 mb-1.5 pt-1.5', 'd-flex align-center justify-center w-100 gap-2 border-top-soft']">
-          <!-- Tasto Scorso (ex PRECEDENTE) -->
-          <v-btn
-            v-if="previousWorkout"
-            prepend-icon="mdi-calendar-arrow-left"
-            variant="tonal"
-            color="orange-lighten-2"
-            class="font-weight-black text-none px-3.5 rounded-lg elevation-1"
-            :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-            @click="dialogProgressioniPrecedente = true"
-            :style="{ fontSize: '0.72rem', letterSpacing: '0.02em', height: '32px' }"
-          >
-            Scorso
-          </v-btn>
-
-          <!-- Tasto Storico (ex CRONOLOGIA) -->
-          <v-btn
-            prepend-icon="mdi-chart-timeline-variant"
-            variant="tonal"
-            color="cyan-accent-3"
-            class="font-weight-black text-none px-3.5 rounded-lg elevation-1"
-            :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-            @click="apriStoricoEsercizio"
-            title="Mostra Cronologia & Grafico Prestazioni Esercizio"
-            :style="{ fontSize: '0.72rem', letterSpacing: '0.02em', height: '32px' }"
-          >
-            Storico
-          </v-btn>
         </div>
 
       <!-- Banner Avviso Coach: Stallo Mesociclo Precedente -->

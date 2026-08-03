@@ -435,9 +435,9 @@
         >
           <!-- Header Card Record: Titolo a Sinistra, Pulsante Strategia a Destra -->
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="d-flex align-center gap-1.5">
-              <v-icon color="cyan-lighten-2" size="15">mdi-trophy-outline</v-icon>
-              <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" style="letter-spacing: 0.05em;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.60rem' : '0.68rem' }">
+            <div class="d-flex align-center gap-1">
+              <v-icon color="cyan-lighten-2" size="13">mdi-trophy-outline</v-icon>
+              <span class="text-super-caption text-cyan-lighten-2 font-weight-bold uppercase" style="font-size: 0.55rem; letter-spacing: 0.04em;">
                 Record
               </span>
             </div>
@@ -725,18 +725,18 @@
               </span>
             </div>
 
-            <!-- Chip di Stato riposizionato sulla destra -->
+            <!-- Tag di Stato (Etichetta informativa non cliccabile) -->
             <v-chip
               v-if="sett === settimanaAttiva || haRecupero(inputSettimane[sett].ins)"
-              :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-darken-2' : (isWeekCompleted(sett) ? 'green-accent-4' : 'orange-darken-3')"
+              :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-lighten-2' : (isWeekCompleted(sett) ? 'green-lighten-2' : 'orange-lighten-2')"
               size="x-small"
-              class="font-weight-black px-2 text-white"
-              :style="{ height: '18px', fontSize: '0.58rem' }"
-              variant="flat"
+              class="font-weight-black px-1.5"
+              :style="{ height: '16px', fontSize: '0.52rem', letterSpacing: '0.04em', background: (sett === settimanaAttiva && !isWeekCompleted(sett)) ? 'rgba(249, 115, 22, 0.12) !important' : '', border: (sett === settimanaAttiva && !isWeekCompleted(sett)) ? '1px solid rgba(249, 115, 22, 0.3) !important' : '', pointerEvents: 'none' }"
+              variant="tonal"
             >
-              {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? 'COMPLETATA' : 'ATTIVA') }}
+              {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? '✓ COMPLETATA' : 'ATTIVA') }}
             </v-chip>
-            <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5" style="height: 18px; font-size: 0.58rem;" variant="outlined">ALTRE</v-chip>
+            <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->

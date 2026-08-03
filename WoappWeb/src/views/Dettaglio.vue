@@ -2303,7 +2303,8 @@
                   borderColor: step.week === settimanaAttiva ? 'rgba(245, 158, 11, 0.6)' : 'rgba(255, 255, 255, 0.08)'
                 }"
               >
-                <div class="d-flex align-center justify-space-between mb-1">
+                <!-- Intestazione Settimana & Fase -->
+                <div class="d-flex align-center justify-space-between mb-1.5">
                   <div class="d-flex align-center gap-1.5">
                     <v-chip 
                       :color="step.color + '-darken-2'" 
@@ -2318,34 +2319,71 @@
                       {{ step.fase }}
                     </span>
                   </div>
-                  <v-chip 
-                    v-if="step.week === settimanaAttiva" 
-                    color="amber-accent-3" 
-                    size="x-small" 
-                    class="font-weight-black text-black animate-pulse" 
-                    style="font-size: 0.50rem; height: 16px;"
-                  >
-                    ATTIVA ORA
-                  </v-chip>
+                  <div class="d-flex align-center gap-1">
+                    <v-chip 
+                      v-if="step.isLogged" 
+                      color="green-darken-3" 
+                      size="x-small" 
+                      variant="flat"
+                      class="font-weight-black text-green-lighten-3 px-1.5" 
+                      style="font-size: 0.50rem; height: 16px;"
+                    >
+                      ✓ ESEGUITO
+                    </v-chip>
+                    <v-chip 
+                      v-if="step.week === settimanaAttiva" 
+                      color="amber-accent-3" 
+                      size="x-small" 
+                      class="font-weight-black text-black animate-pulse" 
+                      style="font-size: 0.50rem; height: 16px;"
+                    >
+                      ATTIVA ORA
+                    </v-chip>
+                  </div>
                 </div>
 
-                <div class="d-flex align-center justify-space-between my-1">
-                  <div class="d-flex align-baseline gap-1">
-                    <span class="text-subtitle-2 font-weight-black text-amber-lighten-1" style="font-size: 0.92rem;">
-                      {{ step.carico }}
+                <!-- BOX A DOPPIO INDICATORE (REALE / RICALIBRATO + TARGET TEORICO PR) -->
+                <div class="pa-2 rounded-lg d-flex align-center justify-space-between" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);">
+                  <!-- Indicatore 1: Dato Reale Sollevato o Proiezione Reale -->
+                  <div>
+                    <span class="text-super-caption font-weight-black uppercase d-block" :class="step.isLogged ? 'text-green-lighten-2' : 'text-amber-lighten-2'" style="font-size: 0.53rem; letter-spacing: 0.03em;">
+                      {{ step.isLogged ? '⚡ Reale Sollevato:' : '⚡ Proiezione Reale:' }}
                     </span>
-                    <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.65rem;">
-                      ({{ step.reps }})
-                    </span>
+                    <div class="d-flex align-baseline gap-1 mt-0.5">
+                      <span class="text-subtitle-2 font-weight-black" :class="step.isLogged ? 'text-green-accent-3' : 'text-amber-lighten-1'" style="font-size: 0.95rem; line-height: 1;">
+                        {{ step.caricoReale }}
+                      </span>
+                      <span class="text-super-caption font-weight-bold" :class="step.isLogged ? 'text-green-lighten-3' : 'text-slate-300'" style="font-size: 0.65rem;">
+                        ({{ step.repsReali }})
+                      </span>
+                    </div>
                   </div>
-                  <span class="text-super-caption font-weight-black text-purple-lighten-3" style="font-size: 0.62rem;">
+
+                  <!-- Indicatore 2: Target Teorico PR Storico -->
+                  <div class="text-right pl-2" style="border-left: 1px solid rgba(255, 255, 255, 0.1); min-width: 105px;">
+                    <span class="text-super-caption font-weight-bold text-cyan-lighten-3 uppercase d-block text-truncate" style="font-size: 0.51rem; letter-spacing: 0.02em;">
+                      🎯 Target Teorico PR
+                    </span>
+                    <div class="d-flex align-baseline justify-end gap-1 mt-0.5">
+                      <span class="text-caption font-weight-black text-cyan-lighten-2" style="font-size: 0.78rem; line-height: 1;">
+                        {{ step.caricoTeorico }}
+                      </span>
+                      <span class="text-super-caption text-cyan-lighten-4 opacity-80" style="font-size: 0.58rem;">
+                        ({{ step.repsTeoriche }})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Note & RPE -->
+                <div class="d-flex align-center justify-space-between mt-1.5 px-0.5">
+                  <p class="text-super-caption text-slate-light mb-0 text-truncate" style="font-size: 0.60rem; line-height: 1.3; color: #94a3b8 !important; max-width: 78%;">
+                    {{ step.note }}
+                  </p>
+                  <span class="text-super-caption font-weight-black text-purple-lighten-3" style="font-size: 0.60rem;">
                     {{ step.rpe }}
                   </span>
                 </div>
-
-                <p class="text-super-caption text-slate-light mb-0" style="font-size: 0.62rem; line-height: 1.3; color: #94a3b8 !important;">
-                  {{ step.note }}
-                </p>
               </div>
             </div>
           </div>
@@ -10633,61 +10671,76 @@ const strategiaCoachData = computed(() => {
   const w5Target = Math.max(w3Target + step, e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.02, r5) : w3Target + step);
   const w6Target = Math.max(w5Target + step, e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.05, r6) : w5Target + step);
 
-  const roadmap = [
-    {
-      week: 1,
-      fase: 'Accumulo & Tecnica',
-      reps: `3x${r1} reps`,
-      carico: `${w1Target} kg`,
-      rpe: 'RPE 7-8',
-      note: 'Volume sicuro. Focus su controllo e ritmo esecutivo.',
-      color: 'cyan'
-    },
-    {
-      week: 2,
-      fase: 'Progressione Carico',
-      reps: `3x${r2} reps`,
-      carico: `${w2Target} kg`,
-      rpe: 'RPE 8',
-      note: 'Incremento sostenibile. Mantieni la stessa qualità esecutiva.',
-      color: 'amber'
-    },
-    {
-      week: 3,
-      fase: 'Pareggio PR Storico',
-      reps: `3x${r3} reps`,
-      carico: `${w3Target} kg`,
-      rpe: 'RPE 8.5-9',
-      note: 'Test di pareggio del tuo record storico passato.',
-      color: 'orange'
-    },
-    {
-      week: 4,
-      fase: 'Scarico Rigenerativo',
-      reps: `3x${r4} reps`,
-      carico: `${w4Target} kg`,
-      rpe: 'RPE 6-7',
-      note: 'Riduzione del carico per permettere il recupero neurale.',
-      color: 'blue'
-    },
-    {
-      week: 5,
-      fase: 'Picco Intensità (Rottura Stallo)',
-      reps: `3x${Math.max(r5 - 2, 1)}-${r5} reps`,
-      carico: `${w5Target} kg`,
-      rpe: 'RPE 9-9.5',
-      note: 'Supera il tetto dei kg storici lavorando a intensità elevata.',
-      color: 'purple'
-    },
-    {
-      week: 6,
-      fase: 'Test Nuovo Record Assoluto',
-      reps: `3x${r6} reps`,
-      carico: `${w6Target} kg`,
-      rpe: 'RPE 10',
-      note: 'Test finale per consolidare il nuovo PR assoluto.',
-      color: 'green'
+  // Calcolo del picco reale eseguito prima dello scarico (W1-W3)
+  let peakLoggedPreScarico = 0;
+  for (let i = 1; i <= 3; i++) {
+    const val = workout.value?.['ins_week' + i];
+    if (val) {
+      const p = parseFloat(estraiPesoDaInput(val));
+      if (!isNaN(p) && p > peakLoggedPreScarico) {
+        peakLoggedPreScarico = p;
+      }
     }
+  }
+
+  const buildStepData = (w, fase, color, rpe, note, targetPeso, targetRepsStr) => {
+    const val = workout.value?.['ins_week' + w];
+    let isLogged = false;
+    let pesoRealeVal = null;
+    let repsRealiVal = null;
+
+    if (val) {
+      const p = parseFloat(estraiPesoDaInput(val));
+      if (!isNaN(p) && p > 0) {
+        isLogged = true;
+        pesoRealeVal = p;
+        repsRealiVal = estraiRepsDaInput(val) || getRepsPerWeek(w);
+      }
+    }
+
+    let caricoRealeText = '';
+    let repsRealiText = '';
+
+    if (isLogged) {
+      caricoRealeText = `${formatWeight(pesoRealeVal)} kg`;
+      repsRealiText = `x${formatRepsDisplay(repsRealiVal)}r`;
+    } else {
+      let pesoProiettato = targetPeso;
+      if (w === 4) {
+        const valW2 = workout.value?.['ins_week2'];
+        const pW2 = valW2 ? parseFloat(estraiPesoDaInput(valW2)) : 0;
+        if (pW2 > 0) pesoProiettato = pW2;
+        else if (peakLoggedPreScarico > 0) pesoProiettato = Math.max(peakLoggedPreScarico - step, isManubri ? 4 : 10);
+      } else if (w === 5) {
+        if (peakLoggedPreScarico > 0) pesoProiettato = peakLoggedPreScarico + step;
+      } else if (w === 6) {
+        if (peakLoggedPreScarico > 0) pesoProiettato = peakLoggedPreScarico + (step * 2);
+      }
+      caricoRealeText = `${formatWeight(pesoProiettato)} kg`;
+      repsRealiText = targetRepsStr;
+    }
+
+    return {
+      week: w,
+      fase,
+      color,
+      rpe,
+      note,
+      caricoTeorico: `${formatWeight(targetPeso)} kg`,
+      repsTeoriche: targetRepsStr,
+      isLogged,
+      caricoReale: caricoRealeText,
+      repsReali: repsRealiText
+    };
+  };
+
+  const roadmap = [
+    buildStepData(1, 'Accumulo & Tecnica', 'cyan', 'RPE 7-8', 'Volume sicuro. Focus su controllo e ritmo esecutivo.', w1Target, `3x${r1} reps`),
+    buildStepData(2, 'Progressione Carico', 'amber', 'RPE 8', 'Incremento sostenibile. Mantieni la stessa qualità esecutiva.', w2Target, `3x${r2} reps`),
+    buildStepData(3, 'Pareggio PR Storico', 'orange', 'RPE 8.5-9', 'Test di pareggio del tuo record storico passato.', w3Target, `3x${r3} reps`),
+    buildStepData(4, 'Scarico Rigenerativo', 'blue', 'RPE 6-7', 'Riduzione del carico per permettere il recupero neurale.', w4Target, `3x${r4} reps`),
+    buildStepData(5, 'Picco Intensità (Rottura Stallo)', 'purple', 'RPE 9-9.5', 'Supera il tetto dei kg storici lavorando a intensità elevata.', w5Target, `3x${Math.max(r5 - 2, 1)}-${r5} reps`),
+    buildStepData(6, 'Test Nuovo Record Assoluto', 'green', 'RPE 10', 'Test finale per consolidare il nuovo PR assoluto.', w6Target, `3x${r6} reps`)
   ];
 
   return {

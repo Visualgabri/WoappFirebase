@@ -433,15 +433,8 @@
           ]"
           @click="apriStoricoEsercizio"
         >
-          <!-- Header Card Record: Titolo a Sinistra, Pulsante Strategia a Destra -->
-          <div class="d-flex align-center justify-space-between mb-2">
-            <div class="d-flex align-center gap-1">
-              <v-icon color="cyan-lighten-2" size="13">mdi-trophy-outline</v-icon>
-              <span class="text-super-caption text-cyan-lighten-2 font-weight-bold uppercase" style="font-size: 0.55rem; letter-spacing: 0.04em;">
-                Record
-              </span>
-            </div>
-
+          <!-- Header Card Record: Pulsante Strategia a Destra -->
+          <div class="d-flex align-center justify-end mb-2">
             <v-chip
               size="x-small"
               color="amber-darken-3"
@@ -496,10 +489,10 @@
             </v-col>
           </v-row>
 
-          <!-- Status Linea Trend Progressione / Suggerimento Target (Senza text-truncate per mostrare tutta la scritta) -->
+          <!-- Status Linea Trend Progressione / Suggerimento Target -->
           <div v-if="valutazioneProgressione" class="mt-2 pt-1.5 border-top-soft d-flex align-center justify-center px-1">
-            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.62rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.3;">
-              <v-icon size="12" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
+            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.54rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.25;">
+              <v-icon size="11" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>
           </div>

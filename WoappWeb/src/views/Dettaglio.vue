@@ -433,8 +433,8 @@
           ]"
           @click="apriStoricoEsercizio"
         >
-          <!-- Header Card Record: Titolo a Sinistra, Toolbar Azioni Unificata (Scorso, Storico, Strategia) a Destra -->
-          <div class="d-flex align-center justify-space-between mb-2 gap-1 flex-wrap">
+          <!-- Header Card Record: Titolo a Sinistra, Pulsante Strategia a Destra -->
+          <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center gap-1.5">
               <v-icon color="cyan-lighten-2" size="15">mdi-trophy-outline</v-icon>
               <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" style="letter-spacing: 0.05em;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.60rem' : '0.68rem' }">
@@ -442,45 +442,17 @@
               </span>
             </div>
 
-            <!-- Toolbar Azioni Unificata (Scorso, Storico, Strategia) -->
-            <div class="d-flex align-center gap-1 flex-wrap">
-              <v-chip
-                v-if="previousWorkout"
-                size="x-small"
-                color="orange-lighten-2"
-                variant="tonal"
-                class="font-weight-black cursor-pointer px-2 text-orange-lighten-2 flex-shrink-0"
-                style="font-size: 0.58rem; height: 20px; z-index: 2;"
-                @click.stop="vibraTattile(15); dialogProgressioniPrecedente = true"
-              >
-                <v-icon icon="mdi-calendar-arrow-left" size="12" class="mr-1" color="orange-lighten-2" />
-                Scorso
-              </v-chip>
-
-              <v-chip
-                size="x-small"
-                color="cyan-accent-3"
-                variant="tonal"
-                class="font-weight-black cursor-pointer px-2 text-cyan-accent-3 flex-shrink-0"
-                style="font-size: 0.58rem; height: 20px; z-index: 2;"
-                @click.stop="vibraTattile(15); apriStoricoEsercizio()"
-              >
-                <v-icon icon="mdi-chart-timeline-variant" size="12" class="mr-1" color="cyan-accent-3" />
-                Storico
-              </v-chip>
-
-              <v-chip
-                size="x-small"
-                color="amber-darken-3"
-                variant="outlined"
-                class="font-weight-black cursor-pointer px-2 text-amber-lighten-2 flex-shrink-0"
-                style="font-size: 0.58rem; height: 20px; z-index: 2; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.4) !important;"
-                @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
-              >
-                <v-icon icon="mdi-brain" size="12" class="mr-1" color="amber-lighten-2" />
-                Strategia
-              </v-chip>
-            </div>
+            <v-chip
+              size="x-small"
+              color="amber-darken-3"
+              variant="outlined"
+              class="font-weight-black cursor-pointer px-2 text-amber-lighten-2 flex-shrink-0"
+              style="font-size: 0.58rem; height: 20px; z-index: 2; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.4) !important;"
+              @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
+            >
+              <v-icon icon="mdi-brain" size="12" class="mr-1" color="amber-lighten-2" />
+              Strategia
+            </v-chip>
           </div>
 
           <v-row dense class="align-center">
@@ -524,14 +496,15 @@
             </v-col>
           </v-row>
 
-          <!-- Status Linea Trend Progressione / Suggerimento Target -->
+          <!-- Status Linea Trend Progressione / Suggerimento Target (Senza text-truncate per mostrare tutta la scritta) -->
           <div v-if="valutazioneProgressione" class="mt-2 pt-1.5 border-top-soft d-flex align-center justify-center px-1">
-            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-truncate" :class="valutazioneProgressione.colore" style="font-size: 0.62rem; width: 100%;">
-              <v-icon size="12" class="mr-0.5">{{ valutazioneProgressione.icona }}</v-icon>
+            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.62rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.3;">
+              <v-icon size="12" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>
           </div>
         </div>
+
         <div 
           v-if="parsedTut || (workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2))"
           :class="[layoutCorrente === 'super_compatto' ? 'mt-0.5 gap-1' : (layoutCorrente === 'compatto' ? 'mt-1 gap-1.25' : 'mt-1 gap-1.5'), 'text-caption font-weight-bold text-slate d-flex align-center flex-wrap']"
@@ -594,6 +567,35 @@
             </div>
           </v-card>
         </v-expand-transition>
+
+        <!-- Action Row (Scorso, Storico) - Soluzione 1 (Disposta pulita in alto a destra sopra le week) -->
+        <div class="d-flex align-center justify-end gap-2 mt-2 mb-1 px-0.5">
+          <v-btn
+            v-if="previousWorkout"
+            prepend-icon="mdi-calendar-arrow-left"
+            variant="tonal"
+            color="orange-lighten-2"
+            size="x-small"
+            class="font-weight-black text-none px-2.5 rounded-lg elevation-1"
+            style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
+            @click="dialogProgressioniPrecedente = true"
+          >
+            Scorso
+          </v-btn>
+
+          <v-btn
+            prepend-icon="mdi-chart-timeline-variant"
+            variant="tonal"
+            color="cyan-accent-3"
+            size="x-small"
+            class="font-weight-black text-none px-2.5 rounded-lg elevation-1"
+            style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
+            @click="apriStoricoEsercizio"
+            title="Mostra Cronologia & Grafico Prestazioni Esercizio"
+          >
+            Storico
+          </v-btn>
+        </div>
 
           </div>
         </div>

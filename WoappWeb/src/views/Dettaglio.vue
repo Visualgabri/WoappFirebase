@@ -2238,7 +2238,7 @@
             }"
           >
             <div class="d-flex align-center gap-2 mb-1">
-              <v-icon size="18" :color="meStatoColor(strategiaCoachData.stato)">
+              <v-icon size="18" :color="meStatoColor(strategiaCoachData.stato)" class="mr-2 flex-shrink-0">
                 {{ meStatoIcona(strategiaCoachData.stato) }}
               </v-icon>
               <span class="font-weight-black text-caption uppercase" :class="meStatoTextClass(strategiaCoachData.stato)" style="letter-spacing: 0.04em;">
@@ -2287,11 +2287,11 @@
 
           <!-- ROADMAP PROGETTATA A 6 SETTIMANE -->
           <div class="mb-3">
-            <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-super-caption font-weight-black text-white uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+            <div class="d-flex align-center justify-space-between mb-2 gap-2">
+              <span class="text-super-caption font-weight-black text-white uppercase text-truncate" style="font-size: 0.65rem; letter-spacing: 0.05em;">
                 🗺️ Roadmap di Progressione (W1 - W6)
               </span>
-              <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white px-2" style="font-size: 0.55rem; height: 20px; white-space: nowrap;">
+              <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white px-2 flex-shrink-0" style="font-size: 0.55rem; height: 20px; white-space: nowrap;">
                 {{ meAttrezzoLabel(strategiaCoachData.isManubri) }}
               </v-chip>
             </div>
@@ -2313,7 +2313,7 @@
                       :color="step.color + '-darken-2'" 
                       size="x-small" 
                       variant="flat" 
-                      class="font-weight-black text-white px-1.5" 
+                      class="font-weight-black text-white px-1.5 mr-2 flex-shrink-0" 
                       style="font-size: 0.58rem; height: 18px;"
                     >
                       W{{ step.week }}
@@ -10706,7 +10706,7 @@ const strategiaCoachData = computed(() => {
 
     if (isLogged) {
       caricoRealeText = `${formatWeight(pesoRealeVal)}kg`;
-      repsRealiText = `${formatRepsDisplay(repsRealiVal)}r`;
+      repsRealiText = formatRepsDisplay(repsRealiVal);
     } else {
       let pesoProiettato = targetPeso;
       if (w === 4) {
@@ -10798,23 +10798,23 @@ const meStatoTextClass = (s) => {
 };
 
 const meStatoTitolo = (s) => {
-  if (s === 'CALO') return 'Calo temporaneo rispetto al Picco Storico';
-  if (s === 'PROGRESSIONE') return 'In Progressione rispetto al Picco Storico!';
-  if (s === 'IN_LINEA') return 'Carico in linea con i tuoi Standard';
-  return 'Inizio Nuovo Ciclo di Progressione';
+  if (s === 'CALO') return 'Calo temporaneo dal Picco Storico';
+  if (s === 'PROGRESSIONE') return 'In Progressione sul PR!';
+  if (s === 'IN_LINEA') return 'In Linea con i tuoi Standard';
+  return 'Nuovo Ciclo di Progressione';
 };
 
 const meStatoDescrizione = (data) => {
   if (data.stato === 'CALO') {
-    return `Attualmente la tua forza stimata (${data.e1rmAttuale > 0 ? data.e1rmAttuale + 'kg e1RM' : 'carico attuale'}) è inferiore di circa -${data.diffKg > 0 ? data.diffKg : 2}kg (-${data.diffPerc}%) rispetto al tuo record di ${data.prWeight}kg x ${data.prReps}r. Il piano qui sotto ti guiderà passo-passo per rientrare in quota PR.`;
+    return `Forza stimata (${data.e1rmAttuale > 0 ? data.e1rmAttuale + 'kg e1RM' : 'attuale'}) a -${data.diffKg > 0 ? formatWeight(data.diffKg) : 2}kg (-${data.diffPerc}%) dal tuo PR di ${data.prWeight}kg × ${data.prReps}r. Il piano ti guiderà per rientrare in quota PR.`;
   }
   if (data.stato === 'PROGRESSIONE') {
-    return `Complimenti! Stai superando la tua forza storica con una progressione stimata del +${data.diffPerc}%. Segui la roadmap per consolidare e testare un nuovo record assoluto.`;
+    return `Stai superando la forza storica (+${data.diffPerc}%). Segui la roadmap per consolidare il nuovo record.`;
   }
   if (data.stato === 'IN_LINEA') {
-    return `I tuoi carichi correnti sono in linea con il tuo PR di ${data.prWeight}kg x ${data.prReps}r. Il piano ti permetterà di rompere la fase di stallo nelle settimane 5 e 6.`;
+    return `Carichi correnti in linea con il tuo PR di ${data.prWeight}kg × ${data.prReps}r. La roadmap ti aiuterà a rompere lo stallo in W5 e W6.`;
   }
-  return `Questo è il tuo primo ciclo per questo esercizio o stai impostando i carichi base. Segui la roadmap progressiva consigliata dal Coach.`;
+  return `Primo ciclo per questo esercizio. Segui la roadmap consigliata dal Coach.`;
 };
 
 const meFormatNum = (val) => {
@@ -10823,7 +10823,7 @@ const meFormatNum = (val) => {
 };
 
 const meAttrezzoLabel = (isManubri) => {
-  return isManubri ? 'Step Carico Manubri (+1 kg)' : 'Step Carico Bilanciere/Cavi (+2.5 kg)';
+  return isManubri ? 'Step Manubri (+1kg)' : 'Step Bilanciere/Cavi (+2.5kg)';
 };
 
 const getColoreFaticaStyle = (fatica) => {

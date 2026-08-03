@@ -2256,27 +2256,30 @@
               📊 Confronto Massimale Stimato (e1RM)
             </div>
             <v-row dense class="align-center">
-              <v-col cols="6">
-                <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(6, 182, 212, 0.3) !important;">
-                  <span class="text-super-caption text-cyan-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Record Storico</span>
-                  <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
-                    {{ strategiaCoachData.prWeight > 0 ? strategiaCoachData.prWeight + ' kg' : '--' }}
-                  </span>
-                  <span v-if="strategiaCoachData.prWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
-                    ×{{ meFormatNum(strategiaCoachData.prReps) }}r (e1RM ~{{ meFormatNum(strategiaCoachData.e1rmStorico) }}kg)
-                  </span>
-                </div>
-              </v-col>
+              <!-- SINISTRA: ATTUALE (ALLINEATO CON COLONNA REALE SOTTO) -->
               <v-col cols="6">
                 <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(249, 115, 22, 0.3) !important;">
                   <span class="text-super-caption text-orange-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Attuale</span>
                   <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
-                    {{ strategiaCoachData.bestCurrentWeight > 0 ? strategiaCoachData.bestCurrentWeight + ' kg' : '--' }}
+                    {{ strategiaCoachData.bestCurrentWeight > 0 ? formatWeight(strategiaCoachData.bestCurrentWeight) + 'kg' : '--' }}
                   </span>
                   <span v-if="strategiaCoachData.bestCurrentWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
                     ×{{ meFormatNum(strategiaCoachData.bestCurrentReps) }}r (e1RM ~{{ meFormatNum(strategiaCoachData.e1rmAttuale) }}kg)
                   </span>
                   <span v-else class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">Non ancora inserito</span>
+                </div>
+              </v-col>
+
+              <!-- DESTRI: RECORD STORICO (ALLINEATO CON COLONNA TARGET TEORICO SOTTO) -->
+              <v-col cols="6">
+                <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(6, 182, 212, 0.3) !important;">
+                  <span class="text-super-caption text-cyan-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Record Storico</span>
+                  <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
+                    {{ strategiaCoachData.prWeight > 0 ? formatWeight(strategiaCoachData.prWeight) + 'kg' : '--' }}
+                  </span>
+                  <span v-if="strategiaCoachData.prWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
+                    ×{{ meFormatNum(strategiaCoachData.prReps) }}r (e1RM ~{{ meFormatNum(strategiaCoachData.e1rmStorico) }}kg)
+                  </span>
                 </div>
               </v-col>
             </v-row>
@@ -2288,7 +2291,7 @@
               <span class="text-super-caption font-weight-black text-white uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
                 🗺️ Roadmap di Progressione (W1 - W6)
               </span>
-              <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.52rem; height: 18px;">
+              <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white px-2" style="font-size: 0.55rem; height: 20px; white-space: nowrap;">
                 {{ meAttrezzoLabel(strategiaCoachData.isManubri) }}
               </v-chip>
             </div>
@@ -2343,44 +2346,44 @@
                 </div>
 
                 <!-- BOX A DOPPIO INDICATORE (REALE / RICALIBRATO + TARGET TEORICO PR) -->
-                <div class="pa-2 rounded-lg d-flex align-center justify-space-between" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);">
+                <div class="pa-2 rounded-lg d-flex align-center justify-space-between gap-1" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);">
                   <!-- Indicatore 1: Dato Reale Sollevato o Proiezione Reale -->
                   <div>
                     <span class="text-super-caption font-weight-black uppercase d-block" :class="step.isLogged ? 'text-green-lighten-2' : 'text-amber-lighten-2'" style="font-size: 0.53rem; letter-spacing: 0.03em;">
-                      {{ step.isLogged ? '⚡ Reale Sollevato:' : '⚡ Proiezione Reale:' }}
+                      {{ step.isLogged ? '⚡ Reale:' : '⚡ Proiezione:' }}
                     </span>
                     <div class="d-flex align-baseline gap-1 mt-0.5">
                       <span class="text-subtitle-2 font-weight-black" :class="step.isLogged ? 'text-green-accent-3' : 'text-amber-lighten-1'" style="font-size: 0.95rem; line-height: 1;">
                         {{ step.caricoReale }}
                       </span>
-                      <span class="text-super-caption font-weight-bold" :class="step.isLogged ? 'text-green-lighten-3' : 'text-slate-300'" style="font-size: 0.65rem;">
+                      <span class="text-super-caption font-weight-bold ml-1" :class="step.isLogged ? 'text-green-lighten-3' : 'text-slate-300'" style="font-size: 0.65rem;">
                         ({{ step.repsReali }})
                       </span>
                     </div>
                   </div>
 
                   <!-- Indicatore 2: Target Teorico PR Storico -->
-                  <div class="text-right pl-2" style="border-left: 1px solid rgba(255, 255, 255, 0.1); min-width: 105px;">
-                    <span class="text-super-caption font-weight-bold text-cyan-lighten-3 uppercase d-block text-truncate" style="font-size: 0.51rem; letter-spacing: 0.02em;">
-                      🎯 Target Teorico PR
+                  <div class="text-right pl-2" style="border-left: 1px solid rgba(255, 255, 255, 0.1);">
+                    <span class="text-super-caption font-weight-bold text-cyan-lighten-3 uppercase d-block" style="font-size: 0.52rem; letter-spacing: 0.02em; white-space: nowrap;">
+                      🎯 Target PR
                     </span>
                     <div class="d-flex align-baseline justify-end gap-1 mt-0.5">
                       <span class="text-caption font-weight-black text-cyan-lighten-2" style="font-size: 0.78rem; line-height: 1;">
                         {{ step.caricoTeorico }}
                       </span>
-                      <span class="text-super-caption text-cyan-lighten-4 opacity-80" style="font-size: 0.58rem;">
+                      <span class="text-super-caption text-cyan-lighten-4 opacity-80 ml-1" style="font-size: 0.58rem;">
                         ({{ step.repsTeoriche }})
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Note & RPE -->
-                <div class="d-flex align-center justify-space-between mt-1.5 px-0.5">
-                  <p class="text-super-caption text-slate-light mb-0 text-truncate" style="font-size: 0.60rem; line-height: 1.3; color: #94a3b8 !important; max-width: 78%;">
+                <!-- Note & RPE (Senza text-truncate per mostrare tutto il testo senza puntini) -->
+                <div class="d-flex align-start justify-space-between mt-1.5 px-0.5 gap-2">
+                  <p class="text-super-caption text-slate-light mb-0" style="font-size: 0.60rem; line-height: 1.35; color: #cbd5e1 !important; white-space: normal; word-break: break-word; flex: 1;">
                     {{ step.note }}
                   </p>
-                  <span class="text-super-caption font-weight-black text-purple-lighten-3" style="font-size: 0.60rem;">
+                  <span class="text-super-caption font-weight-black text-purple-lighten-3 flex-shrink-0 mt-0.5" style="font-size: 0.60rem;">
                     {{ step.rpe }}
                   </span>
                 </div>
@@ -10702,8 +10705,8 @@ const strategiaCoachData = computed(() => {
     let repsRealiText = '';
 
     if (isLogged) {
-      caricoRealeText = `${formatWeight(pesoRealeVal)} kg`;
-      repsRealiText = `x${formatRepsDisplay(repsRealiVal)}r`;
+      caricoRealeText = `${formatWeight(pesoRealeVal)}kg`;
+      repsRealiText = `${formatRepsDisplay(repsRealiVal)}r`;
     } else {
       let pesoProiettato = targetPeso;
       if (w === 4) {
@@ -10716,7 +10719,7 @@ const strategiaCoachData = computed(() => {
       } else if (w === 6) {
         if (peakLoggedPreScarico > 0) pesoProiettato = peakLoggedPreScarico + (step * 2);
       }
-      caricoRealeText = `${formatWeight(pesoProiettato)} kg`;
+      caricoRealeText = `${formatWeight(pesoProiettato)}kg`;
       repsRealiText = targetRepsStr;
     }
 
@@ -10726,7 +10729,7 @@ const strategiaCoachData = computed(() => {
       color,
       rpe,
       note,
-      caricoTeorico: `${formatWeight(targetPeso)} kg`,
+      caricoTeorico: `${formatWeight(targetPeso)}kg`,
       repsTeoriche: targetRepsStr,
       isLogged,
       caricoReale: caricoRealeText,

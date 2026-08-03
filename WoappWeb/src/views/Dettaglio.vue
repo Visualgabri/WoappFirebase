@@ -436,7 +436,7 @@
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center gap-1">
               <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
-              <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Record Esercizio</span>
+              <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Record</span>
             </div>
             <v-chip
               size="x-small"
@@ -892,7 +892,7 @@
             </div>
             
             <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-              💡 Non aumentare il peso oltre W3. Se leggero, aumenta le reps e scrivi es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>
+              💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
             <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
@@ -2360,7 +2360,7 @@
             </div>
             <ul class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35; color: #cbd5e1 !important;">
               <li>Non forzare carichi elevati nella settimana 4 di scarico.</li>
-              <li>Se in W2 completi le 8 ripetizioni con RPE &lt; 8, incrementa di {{ strategiaCoachData.isManubri ? '1 kg' : '2.5 kg' }} in W3.</li>
+              <li>Se in W2 completi le {{ getRepsPerWeek(2) }} ripetizioni con RPE &lt; 8, incrementa di {{ strategiaCoachData.isManubri ? '1 kg' : '2.5 kg' }} in W3.</li>
               <li>Mantieni un tempo sotto tensione (TUT) controllato sulla fase eccentrica.</li>
             </ul>
           </div>
@@ -4380,6 +4380,7 @@ const getRiferimentoSfidaRecord = (sett) => {
 
 const analizzaRecordSettimana = (sett) => {
   if (!workout.value) return null;
+  if (sett === 4 && isWeek4Scarico.value) return null;
   const targetReps = getRepsPerWeek(sett);
   const recordVal = ottieniRecordStoricoPerReps(targetReps);
   if (!recordVal) return null;
@@ -10472,19 +10473,6 @@ const calcE1RM = (weight, reps) => {
 
 const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
-  const isScarico = (w === 4 && isWeek4Scarico.value);
-
-  // Se la settimana attiva è di scarico (W4), mostrare suggerimento dedicato
-  if (isScarico) {
-    const targetWeight = suggerimentoRecord.value?.target || 0;
-    return {
-      testo: targetWeight > 0 
-        ? `🛡️ Obiettivo Scarico W${w}: ${formatWeight(targetWeight)} kg`
-        : `🛡️ W${w} Scarico: Mantieni tecnica e recupero`,
-      colore: 'text-blue-lighten-3',
-      icona: 'mdi-shield-check'
-    };
-  }
 
   if (!suggerimentoRecord.value) {
     return {
@@ -10576,12 +10564,12 @@ const strategiaCoachData = computed(() => {
 
   // PR Storico
   const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
-  const prReps = suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || 8;
+  const prReps = suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || getRepsPerWeek(wActive) || 8;
   const e1rmStorico = calcE1RM(prWeight, prReps);
 
   // Prestazione Attuale (Miglior e1RM nel mesociclo corrente)
   let bestCurrentWeight = 0;
-  let bestCurrentReps = 8;
+  let bestCurrentReps = getRepsPerWeek(wActive) || 8;
   let bestCurrentE1RM = 0;
   for (let i = 1; i <= 6; i++) {
     const val = workout.value?.['ins_week' + i];
@@ -10619,22 +10607,37 @@ const strategiaCoachData = computed(() => {
     }
   }
 
-  // Costruzione Roadmap W1 -> W6
-  const basePR = prWeight > 0 ? prWeight : 20;
+  // Costruzione Roadmap W1 -> W6 basata su reps prescritte
   const step = isManubri ? 1.0 : 2.5;
 
-  const w1Target = Math.max(Math.round((basePR * 0.82) / step) * step, isManubri ? 12 : 20);
-  const w2Target = Math.max(Math.round((basePR * 0.90) / step) * step, w1Target + step);
-  const w3Target = Math.max(Math.round((basePR * 0.98) / step) * step, w2Target + step);
-  const w4Target = Math.max(Math.round((basePR * 0.72) / step) * step, isManubri ? 10 : 15);
-  const w5Target = Math.max(basePR + (isManubri ? 1.0 : 2.5), w3Target + step);
-  const w6Target = Math.max(w5Target + (isManubri ? 1.0 : 2.5), basePR + (isManubri ? 2.0 : 5.0));
+  const calcWeightForReps = (targetE1RM, targetReps) => {
+    if (targetE1RM <= 0) return isManubri ? 10 : 20;
+    const rawW = targetE1RM / (1 + targetReps / 30);
+    return Math.max(Math.round(rawW / step) * step, isManubri ? 4 : 10);
+  };
+
+  const r1 = getRepsPerWeek(1);
+  const r2 = getRepsPerWeek(2);
+  const r3 = getRepsPerWeek(3);
+  const r4 = getRepsPerWeek(4);
+  const r5 = getRepsPerWeek(5);
+  const r6 = getRepsPerWeek(6);
+
+  const w1Target = e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r1) : 20;
+  const w2Target = e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.92, r2) : w1Target + step;
+  const w3Target = e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.98, r3) : w2Target + step;
+  
+  // Per W4 (Scarico), usa il carico di W2 per coerenza col Ghost
+  const w4Target = w2Target > 0 ? w2Target : (e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r4) : w1Target);
+  
+  const w5Target = Math.max(w3Target + step, e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.02, r5) : w3Target + step);
+  const w6Target = Math.max(w5Target + step, e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.05, r6) : w5Target + step);
 
   const roadmap = [
     {
       week: 1,
       fase: 'Accumulo & Tecnica',
-      reps: '3x8 reps',
+      reps: `3x${r1} reps`,
       carico: `${w1Target} kg`,
       rpe: 'RPE 7-8',
       note: 'Volume sicuro. Focus su controllo e ritmo esecutivo.',
@@ -10643,7 +10646,7 @@ const strategiaCoachData = computed(() => {
     {
       week: 2,
       fase: 'Progressione Carico',
-      reps: '3x8 reps',
+      reps: `3x${r2} reps`,
       carico: `${w2Target} kg`,
       rpe: 'RPE 8',
       note: 'Incremento sostenibile. Mantieni la stessa qualità esecutiva.',
@@ -10652,7 +10655,7 @@ const strategiaCoachData = computed(() => {
     {
       week: 3,
       fase: 'Pareggio PR Storico',
-      reps: '3x6-8 reps',
+      reps: `3x${r3} reps`,
       carico: `${w3Target} kg`,
       rpe: 'RPE 8.5-9',
       note: 'Test di pareggio del tuo record storico passato.',
@@ -10661,7 +10664,7 @@ const strategiaCoachData = computed(() => {
     {
       week: 4,
       fase: 'Scarico Rigenerativo',
-      reps: '3x8 reps',
+      reps: `3x${r4} reps`,
       carico: `${w4Target} kg`,
       rpe: 'RPE 6-7',
       note: 'Riduzione del carico per permettere il recupero neurale.',
@@ -10670,16 +10673,16 @@ const strategiaCoachData = computed(() => {
     {
       week: 5,
       fase: 'Picco Intensità (Rottura Stallo)',
-      reps: '3x5-6 reps',
+      reps: `3x${Math.max(r5 - 2, 1)}-${r5} reps`,
       carico: `${w5Target} kg`,
       rpe: 'RPE 9-9.5',
-      note: 'Supera il tetto dei kg storici lavorando a ripetizioni leggermente inferiori.',
+      note: 'Supera il tetto dei kg storici lavorando a intensità elevata.',
       color: 'purple'
     },
     {
       week: 6,
       fase: 'Test Nuovo Record Assoluto',
-      reps: '3x6-8 reps',
+      reps: `3x${r6} reps`,
       carico: `${w6Target} kg`,
       rpe: 'RPE 10',
       note: 'Test finale per consolidare il nuovo PR assoluto.',

@@ -490,9 +490,9 @@
           </v-row>
 
           <!-- Status Linea Trend Progressione / Suggerimento Target -->
-          <div v-if="valutazioneProgressione" class="mt-2 pt-1.5 border-top-soft d-flex align-center justify-center px-1">
-            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.54rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.25;">
-              <v-icon size="11" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
+          <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft d-flex align-center justify-center px-1">
+            <span class="text-super-caption font-weight-bold d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.46rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.25; opacity: 0.9;">
+              <v-icon size="10" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>
           </div>

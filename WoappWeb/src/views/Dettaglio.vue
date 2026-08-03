@@ -433,37 +433,40 @@
           ]"
           @click="apriStoricoEsercizio"
         >
+          <!-- Header Card Record: Titolo a Sinistra, Pulsante Strategia Compatto a Destra -->
           <div class="d-flex align-center justify-space-between mb-2">
-            <div class="d-flex align-center gap-1">
-              <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
-              <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Record</span>
+            <div class="d-flex align-center gap-1.5">
+              <v-icon color="cyan-lighten-2" size="15">mdi-trophy-outline</v-icon>
+              <span class="text-caption text-cyan-lighten-2 font-weight-black uppercase" style="letter-spacing: 0.05em;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.60rem' : '0.68rem' }">
+                Record
+              </span>
             </div>
             <v-chip
               size="x-small"
               color="amber-darken-3"
-              variant="flat"
-              class="font-weight-black cursor-pointer px-2.5 py-1 text-white elevation-1"
-              style="font-size: 0.60rem; height: 22px; z-index: 2;"
+              variant="outlined"
+              class="font-weight-black cursor-pointer px-2 text-amber-lighten-2 flex-shrink-0"
+              style="font-size: 0.58rem; height: 20px; z-index: 2; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.4) !important;"
               @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
             >
-              <v-icon start icon="mdi-brain" size="12" class="mr-1" />
-              Strategia Coach
+              <v-icon icon="mdi-brain" size="12" class="mr-1" color="amber-lighten-2" />
+              Strategia
             </v-chip>
           </div>
 
           <v-row dense class="align-center">
             <v-col cols="6" class="border-right-soft">
               <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max Assoluto</span>
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max Assoluto</span>
                 <span class="font-weight-black text-cyan-lighten-2" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
                   <template v-if="suggerimentoRecord && suggerimentoRecord.recordAbsolute > 0">
-                    {{ formatWeight(suggerimentoRecord.recordAbsolute) }}<span class="text-super-caption text-muted">KG</span>
-                    <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-0.5" style="font-size: 0.60rem;">
+                    {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                    <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.62rem;">
                       ×{{ suggerimentoRecord.recordAbsoluteReps }}r
                     </span>
                   </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }}<span class="text-super-caption text-muted">KG</span>
+                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                   </template>
                   <template v-else>
                     --
@@ -473,16 +476,16 @@
             </v-col>
             <v-col cols="6">
               <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max {{ getRepsPerWeek(settimanaAttiva) }} Reps</span>
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max {{ getRepsPerWeek(settimanaAttiva) }} Reps</span>
                 <span class="font-weight-black text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
                   <template v-if="suggerimentoRecord && suggerimentoRecord.record > 0">
-                    {{ formatWeight(suggerimentoRecord.record) }}<span class="text-super-caption text-muted">KG</span>
-                    <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-0.5" style="font-size: 0.60rem;">
+                    {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                    <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-1" style="font-size: 0.62rem;">
                       ×{{ suggerimentoRecord.recordRepsValue }}r
                     </span>
                   </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }}<span class="text-super-caption text-muted">KG</span>
+                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                   </template>
                   <template v-else>
                     --
@@ -493,8 +496,8 @@
           </v-row>
 
           <!-- Status Linea Trend Progressione / Suggerimento Target -->
-          <div v-if="valutazioneProgressione" class="mt-2 pt-1.5 border-top-soft d-flex align-center px-1">
-            <span class="text-super-caption font-weight-black d-flex align-center gap-1 text-truncate" :class="valutazioneProgressione.colore" style="font-size: 0.60rem; width: 100%;">
+          <div v-if="valutazioneProgressione" class="mt-2 pt-1.5 border-top-soft d-flex align-center justify-center px-1">
+            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-truncate" :class="valutazioneProgressione.colore" style="font-size: 0.62rem; width: 100%;">
               <v-icon size="12" class="mr-0.5">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>

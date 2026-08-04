@@ -4017,6 +4017,9 @@ const isStagnazioneSettimana = (sett) => {
   const ghost = getGhostLift(sett);
   if (ghost && (ghost.isMandatory || ghost.mandatoryLabel)) return false;
 
+  // Se la settimana è di scarico (W4 scarico o ghost.isScarico), NON è stagnazione!
+  if ((sett === 4 && isWeek4Scarico?.value) || (ghost && ghost.isScarico)) return false;
+
   const currentIns = inputSettimane.value[sett]?.ins;
   if (!currentIns || String(currentIns).trim() === '' || String(currentIns).trim() === '-') return false;
   
@@ -4042,6 +4045,29 @@ const isStagnazioneSettimana = (sett) => {
   if (isNaN(prevPeso) || prevPeso <= 0) return false;
 
   const prevReps = estraiRepsDaInput(prevIns) || getRepsPerWeek(prevW);
+
+  // Se il peso attuale è inferiore a prevPeso ma è uguale a un peso usato in una settimana precedente (es. W2),
+  // verifichiamo se le reps sono aumentate rispetto a quella settimana a pari peso (progressione di volume).
+  if (currentPeso < prevPeso) {
+    let sameWeightW = prevW - 1;
+    while (sameWeightW >= 1) {
+      const matchIns = inputSettimane.value[sameWeightW]?.ins;
+      if (matchIns) {
+        const matchPesoStr = estraiPesoDaInput(matchIns);
+        if (matchPesoStr) {
+          const matchPeso = parseFloat(matchPesoStr);
+          if (!isNaN(matchPeso) && Math.abs(matchPeso - currentPeso) < 0.1) {
+            const matchReps = estraiRepsDaInput(matchIns) || getRepsPerWeek(sameWeightW);
+            if (currentReps > matchReps) {
+              // Progressione di volume/reps rispetto alla settimana a pari carico -> non è stagnazione!
+              return false;
+            }
+          }
+        }
+      }
+      sameWeightW--;
+    }
+  }
 
   return currentPeso <= prevPeso && currentReps <= prevReps;
 };

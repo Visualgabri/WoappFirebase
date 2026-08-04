@@ -176,6 +176,7 @@
         <v-card
           v-for="sett in [1, 2, 3, 4, 5, 6]"
           :key="sett"
+          :id="'week-card-' + sett"
           class="mb-4 rounded-2xl border week-expandable-card transition-all"
           :class="{
             'card-expanded': selectedWeek === sett,
@@ -431,7 +432,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
+import { ref, onMounted, computed, watch, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'; // Aggiunto onBeforeRouteLeave
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -1278,6 +1279,14 @@ onMounted(() => {
     if (!isNaN(targetW)) {
       selectedWeek.value = targetW;
       evidenziaSwitchWeek.value = targetW;
+      nextTick(() => {
+        setTimeout(() => {
+          const el = document.getElementById('week-card-' + targetW);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      });
     }
     localStorage.removeItem('highlightChiusuraWeek');
     localStorage.removeItem('highlightChiusuraWeekNumber');

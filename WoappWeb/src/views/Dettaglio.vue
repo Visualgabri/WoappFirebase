@@ -2685,7 +2685,7 @@
             </div>
 
             <!-- CASO SCARICO WEEK 4 -->
-            <div v-if="aiutoWeek === 4 && isWeek4Scarico" class="mb-3 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
+            <div v-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-3 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
               <div class="d-flex align-center justify-space-between mb-1.5">
                 <span class="text-super-caption text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
                   🔋 SCARICO ATTIVO (W4)
@@ -2732,6 +2732,21 @@
             <div v-else-if="caricandoAiutoCarico" class="text-center py-6">
               <v-progress-circular indeterminate color="orange" size="28" class="mb-2"></v-progress-circular>
               <p class="text-super-caption text-muted">Calcolo proposta in corso...</p>
+            </div>
+
+            <!-- CASO GHOST COACH SET -->
+            <div v-else-if="getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-3 text-left animate-fade-in">
+              <div class="pa-3.5 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.3) !important; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.02) 100%) !important;">
+                <div class="d-flex align-center gap-2 mb-1.5">
+                  <v-icon color="amber-darken-2" size="20">mdi-alert-decagram-outline</v-icon>
+                  <span class="text-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.72rem; letter-spacing: 0.04em;">
+                    Carichi impostati dal Coach
+                  </span>
+                </div>
+                <div class="text-super-caption text-slate-light font-weight-bold" style="font-size: 0.72rem; line-height: 1.45;">
+                  I carichi per questo esercizio di forza sono già impostati dal coach, per cui non c'è alcuna proposta o variazione da consigliare.
+                </div>
+              </div>
             </div>
 
             <div v-else-if="aiutoWeek !== 4 && proposteStoricoCalcolate.length === 0 && (aiutoWeek === 1 ? propostaWeek1?.erroreCarichi : true)" class="text-center py-6">
@@ -5140,7 +5155,7 @@ const getGhostWeightsRangeForWeek = (sett) => {
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
   
-  if (ghost.isWeek2Scritta) return null;
+  if (ghost.isWeek2Scritta || ghost.isCoachSet) return null;
   
   // Se è a corpo libero (rep exercise) o a percentuali, non ha senso proporre un range di pesi
   if (ghost.isRepExercise) return null;
@@ -5157,7 +5172,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
 
   // Calcolo per Week 1
   if (sett === 1) {
-    const defaultPeso = ghost.suggerito || ghost.peso || 0;
+    let defaultPeso = ghost.suggerito || ghost.peso || 0;
+    if (isManubri) defaultPeso = arrotondaManubrioCommerciale(defaultPeso);
     if (defaultPeso <= 0) return null;
     let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.round((defaultPeso * 0.95) / step) * step;
     let medio = defaultPeso;
@@ -5186,6 +5202,12 @@ const getGhostWeightsRangeForWeek = (sett) => {
     // Evita il collasso delle opzioni (Sfidante uguale a Consigliato)
     if (max === medio) {
       max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
+    }
+    
+    if (isManubri) {
+      min = arrotondaManubrioCommerciale(min);
+      medio = arrotondaManubrioCommerciale(medio);
+      max = arrotondaManubrioCommerciale(max);
     }
     
     let sfidanteLabel = 'Sfidante';
@@ -5219,7 +5241,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
   }
 
   if (ghost.isScarico) {
-    const scaricoPeso = ghost.peso || 0;
+    let scaricoPeso = ghost.peso || 0;
+    if (isManubri) scaricoPeso = arrotondaManubrioCommerciale(scaricoPeso);
     const repsVolume = Math.max(repsTarget + 1, repsBaseVal + 1);
     return {
       prudenziale: {
@@ -5248,10 +5271,15 @@ const getGhostWeightsRangeForWeek = (sett) => {
   const isDifficileOStallo = info ? isInputIndicaLimiteOStallo(info.baseInsText, info.noteText, info.faticaText) : false;
 
   const potenziale = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
-  const pesoConsigliato = (potenziale !== null && potenziale > 0 && potenziale > pesoBase) 
+  let pesoConsigliato = (potenziale !== null && potenziale > 0 && potenziale > pesoBase) 
     ? potenziale 
     : (isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step);
-  const pesoSfidante = isManubri ? getDumbbellSequenceWeight(pesoConsigliato, 'up') : pesoConsigliato + step;
+  let pesoSfidante = isManubri ? getDumbbellSequenceWeight(pesoConsigliato, 'up') : pesoConsigliato + step;
+
+  if (isManubri) {
+    pesoConsigliato = arrotondaManubrioCommerciale(pesoConsigliato);
+    pesoSfidante = arrotondaManubrioCommerciale(pesoSfidante);
+  }
 
   // Scenario Sforzo Elevato / Difficile / Limite: mantiene lo stesso peso e consiglia progressione su reps
   if (isDifficileOStallo && pesoBase > 0) {
@@ -5410,6 +5438,11 @@ const getGhostRenderInfo = (sett) => {
     color = '#ffb74d';
     label = 'Consigliato:';
     valueText = 'Aumenta peso';
+  } else if (ghost.isCoachSet) {
+    icon = 'mdi-alert-decagram-outline';
+    color = '#fbbf24'; // amber-lighten-2
+    label = 'Coach:';
+    valueText = 'Carichi impostati dal coach';
   } else if (ghost.isGhostInfortunio && !ghostSbloccato.value) {
     icon = 'mdi-bandage';
     color = '#ef4444'; // red-lighten-2
@@ -5479,7 +5512,9 @@ const getGhostRenderInfo = (sett) => {
   }
 
   // Costruisce la descrizione storica (Riga 2)
-  if (ghost.isWeek1 && !ghost.erroreCarichi) {
+  if (ghost.isCoachSet) {
+    hasReference = false;
+  } else if (ghost.isWeek1 && !ghost.erroreCarichi) {
     hasReference = true;
   } else if (ghost.isScarico) {
     hasReference = true;
@@ -6851,6 +6886,10 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
     }
   }
   
+  if (isManubri) {
+    proposedWeight = arrotondaManubrioCommerciale(proposedWeight);
+  }
+  
   return proposedWeight;
 };
 
@@ -6993,6 +7032,12 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     pesoDevastante = Math.max(0, pesoPesante - step);
   } else if (pesoDevastante >= pesoMedia && pesoMedia > 0) {
     pesoDevastante = Math.max(0, pesoMedia - (2 * step));
+  }
+
+  if (isManubri) {
+    pesoMedia = arrotondaManubrioCommerciale(pesoMedia);
+    pesoPesante = arrotondaManubrioCommerciale(pesoPesante);
+    pesoDevastante = arrotondaManubrioCommerciale(pesoDevastante);
   }
 
   // Restituisce il peso specifico richiesto in base alla fatica dell'esercizio
@@ -7163,9 +7208,23 @@ const propostaWeek1 = computed(() => {
     }
   }
 
+  let finalProposta = proposta;
+  let finalBasePeso = basePeso;
+  let finalMin = min;
+  let finalMedio = medio;
+  let finalMax = max;
+
+  if (isManubri) {
+    finalProposta = arrotondaManubrioCommerciale(finalProposta);
+    finalBasePeso = arrotondaManubrioCommerciale(finalBasePeso);
+    finalMin = arrotondaManubrioCommerciale(finalMin);
+    finalMedio = arrotondaManubrioCommerciale(finalMedio);
+    finalMax = arrotondaManubrioCommerciale(finalMax);
+  }
+
   return {
-    peso: proposta,
-    prevPeso: basePeso,
+    peso: finalProposta,
+    prevPeso: finalBasePeso,
     prevReps: baseReps,
     currReps: currW1Reps,
     fatica: fatica || 'Nessuna',
@@ -7175,9 +7234,9 @@ const propostaWeek1 = computed(() => {
     rirTarget: rirW1,
     recordVal: recordVal,
     hasRecord: hasRecord,
-    pesoPrudenziale: min,
-    pesoConsigliato: medio,
-    pesoSfidante: max,
+    pesoPrudenziale: finalMin,
+    pesoConsigliato: finalMedio,
+    pesoSfidante: finalMax,
     sfidanteLabel: sfidanteLabel,
     sfidaRecordWeek1: sfidaRecordWeek1.value
   };
@@ -9188,6 +9247,20 @@ const getGhostLift = (sett) => {
   return getGhostLiftStandard(sett);
 };
 
+const hasCoachLoad = (str) => {
+  if (!str) return false;
+  const cleanStr = pulisciParentesiQuadre(str);
+  const parts = cleanStr.split('|');
+  if (parts.length >= 2) {
+    const part2 = parts[1].trim();
+    const cleanPart2 = part2.replace(/KG/i, '').trim();
+    const peso = parseFloat(cleanPart2.replace(',', '.'));
+    if (!isNaN(peso) && peso > 0) return true;
+  }
+  const extracted = parseFloat(estraiPesoDaInput(str));
+  return !isNaN(extracted) && extracted > 0;
+};
+
 const getGhostLiftStandard = (sett) => {
   if (!workout.value) return null;
 
@@ -9197,6 +9270,18 @@ const getGhostLiftStandard = (sett) => {
   const hasPercFlag = workout.value.flg_perc && String(workout.value.flg_perc).includes('V%');
   if (prescrizione.includes('%') || hasPercFlag) {
     return null;
+  }
+
+  // Quando un esercizio è di forza e già impostato nelle settimane col carico, il Ghost non consiglia nulla ma segnala Coach Set
+  const isStrengthEx = !!parsedRmt(workout.value.des_esercizio_2);
+  if (isStrengthEx && hasCoachLoad(prescrizione)) {
+    return {
+      isCoachSet: true,
+      text: 'Impostato dal Coach',
+      label: 'Coach Set',
+      peso: 0,
+      isRepExercise: false
+    };
   }
 
   // Rileva se è un esercizio a corpo libero (reps, non kg) o incentrato sul volume
@@ -9467,6 +9552,10 @@ const getGhostLiftStandard = (sett) => {
         if (!consenteProgressioneIntensita(workout.value, 5)) {
           pesoProposto = pesoBase;
         }
+
+        if (isManubri) {
+          pesoProposto = arrotondaManubrioCommerciale(pesoProposto);
+        }
         
         // Se a corpo libero e le reps salgono tra la base e W5, non proponiamo aumento peso post-scarico (isPostScarico: false)
         const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
@@ -9555,6 +9644,10 @@ const getGhostLiftStandard = (sett) => {
 
       if (!consenteProgressioneIntensita(workout.value, 6)) {
         pesoProposto = pesoBase;
+      }
+
+      if (isManubri) {
+        pesoProposto = arrotondaManubrioCommerciale(pesoProposto);
       }
       
       // Se a corpo libero e le reps salgono tra la base e W6, non proponiamo aumento peso (isPostScarico: false)
@@ -10723,7 +10816,8 @@ const valutazioneProgressione = computed(() => {
 
   if (bestCurrentE1RM >= e1rmHistoric) {
     const perc = Math.round((diffE1RM / e1rmHistoric) * 100);
-    const diffKgDisplay = diffKg > 0 ? formatWeight(diffKg) : formatWeight(Math.max(diffE1RM / 1.2, 0.5));
+    const rawDiff = diffKg > 0 ? diffKg : Math.max(diffE1RM / 1.2, 0.5);
+    const diffKgDisplay = formatWeight(Math.round(rawDiff * 10) / 10);
     return {
       testo: `📈 In miglioramento (+${diffKgDisplay} kg / +${perc}%)`,
       colore: 'text-green-lighten-2',
@@ -10798,11 +10892,15 @@ const strategiaCoachData = computed(() => {
 
   // Costruzione Roadmap W1 -> W6 basata su reps prescritte
   const step = isManubri ? 1.0 : 2.5;
+  const getStepFor = (w) => isManubri ? (w >= 10 ? 2.0 : 1.0) : 2.5;
+
+  const adjustDumbbell = (w) => isManubri ? arrotondaManubrioCommerciale(w) : w;
 
   const calcWeightForReps = (targetE1RM, targetReps) => {
     if (targetE1RM <= 0) return isManubri ? 10 : 20;
     const rawW = targetE1RM / (1 + targetReps / 30);
-    return Math.max(Math.round(rawW / step) * step, isManubri ? 4 : 10);
+    const rounded = Math.max(Math.round(rawW / step) * step, isManubri ? 4 : 10);
+    return adjustDumbbell(rounded);
   };
 
   const r1 = getRepsPerWeek(1);
@@ -10812,15 +10910,15 @@ const strategiaCoachData = computed(() => {
   const r5 = getRepsPerWeek(5);
   const r6 = getRepsPerWeek(6);
 
-  const w1Target = e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r1) : 20;
-  const w2Target = e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.92, r2) : w1Target + step;
-  const w3Target = e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.98, r3) : w2Target + step;
+  const w1Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r1) : (isManubri ? 10 : 20));
+  const w2Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.92, r2) : w1Target + getStepFor(w1Target));
+  const w3Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.98, r3) : w2Target + getStepFor(w2Target));
   
   // Per W4 (Scarico), usa il carico di W2 per coerenza col Ghost
-  const w4Target = w2Target > 0 ? w2Target : (e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r4) : w1Target);
+  const w4Target = adjustDumbbell(w2Target > 0 ? w2Target : (e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r4) : w1Target));
   
-  const w5Target = Math.max(w3Target + step, e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.02, r5) : w3Target + step);
-  const w6Target = Math.max(w5Target + step, e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.05, r6) : w5Target + step);
+  const w5Target = adjustDumbbell(Math.max(w3Target + getStepFor(w3Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.02, r5) : w3Target + getStepFor(w3Target)));
+  const w6Target = adjustDumbbell(Math.max(w5Target + getStepFor(w5Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.05, r6) : w5Target + getStepFor(w5Target)));
 
   // Calcolo del picco reale eseguito prima dello scarico (W1-W3)
   let peakLoggedPreScarico = 0;
@@ -10861,12 +10959,17 @@ const strategiaCoachData = computed(() => {
         const valW2 = workout.value?.['ins_week2'];
         const pW2 = valW2 ? parseFloat(estraiPesoDaInput(valW2)) : 0;
         if (pW2 > 0) pesoProiettato = pW2;
-        else if (peakLoggedPreScarico > 0) pesoProiettato = Math.max(peakLoggedPreScarico - step, isManubri ? 4 : 10);
+        else if (peakLoggedPreScarico > 0) pesoProiettato = Math.max(peakLoggedPreScarico - getStepFor(peakLoggedPreScarico), isManubri ? 4 : 10);
       } else if (w === 5) {
-        if (peakLoggedPreScarico > 0) pesoProiettato = peakLoggedPreScarico + step;
+        if (peakLoggedPreScarico > 0) pesoProiettato = peakLoggedPreScarico + getStepFor(peakLoggedPreScarico);
       } else if (w === 6) {
-        if (peakLoggedPreScarico > 0) pesoProiettato = peakLoggedPreScarico + (step * 2);
+        if (peakLoggedPreScarico > 0) {
+          const stepW5 = getStepFor(peakLoggedPreScarico);
+          const pesoW5 = peakLoggedPreScarico + stepW5;
+          pesoProiettato = pesoW5 + getStepFor(pesoW5);
+        }
       }
+      pesoProiettato = adjustDumbbell(pesoProiettato);
       caricoRealeText = `${formatWeight(pesoProiettato)}kg`;
       repsRealiText = targetRepsStr;
     }

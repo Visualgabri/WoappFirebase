@@ -1113,8 +1113,16 @@ export const chiudiSettimanaAttivaGiornoAttivo = async () => {
   const sheet = selectedSheet.value;
   if (!athlete || !sheet) return false;
 
-  const day = localStorage.getItem('giornoAttivo_' + athlete) || 'A';
-  const week = parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1;
+  // Controlla se c'è un giorno/settimana temporaneo impostato dalla modale di chiusura globale
+  const tempDay = localStorage.getItem('giornoDaChiudereTemporaneo_' + athlete);
+  const tempWeekStr = localStorage.getItem('settimanaDaChiudereTemporanea_' + athlete);
+  
+  const day = tempDay || localStorage.getItem('giornoAttivo_' + athlete) || 'A';
+  const week = tempWeekStr ? parseInt(tempWeekStr) : (parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1);
+
+  // Pulisci i valori temporanei dopo averli letti
+  localStorage.removeItem('giornoDaChiudereTemporaneo_' + athlete);
+  localStorage.removeItem('settimanaDaChiudereTemporanea_' + athlete);
 
   // Trova l'intestazione del giorno (riga 0)
   const header = globalStoryboard.value.find(item => {

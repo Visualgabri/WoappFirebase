@@ -609,7 +609,7 @@
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme } from './authStore.js';
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
@@ -787,19 +787,92 @@ const mostraCongratulazioni = ref(false);
 const caricamentoChiusuraRapida = ref(false);
 const infoGiornoDaChiudere = ref({ giorno: 'A', week: 1 });
 
+const getGiornoDaChiudereGlobale = () => {
+  const athlete = selectedAthlete.value;
+  const sheet = selectedSheet.value;
+  if (!athlete || !sheet || !globalStoryboard.value || globalStoryboard.value.length === 0) return null;
+
+  const isCmpTrue = (val) => String(val).toLowerCase() === 'true';
+
+  // Raccogli tutti i giorni della scheda (riga 0)
+  const headers = globalStoryboard.value.filter(item => {
+    const riga = parseInt(item.num_riga_giorno);
+    const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    return riga === 0 &&
+           String(item[keyIdCliente]) === String(athlete) &&
+           String(item.num_scheda) === String(sheet);
+  });
+
+  for (const header of headers) {
+    const day = (header.des_giorno || '').trim().toUpperCase();
+    if (!day) continue;
+
+    // Trova la prima settimana non chiusa per questo giorno
+    let activeW = null;
+    for (let w = 1; w <= 6; w++) {
+      if (!isCmpTrue(header['cmp' + w])) {
+        activeW = w;
+        break;
+      }
+    }
+    if (!activeW) continue; // Tutte le 6 settimane sono chiuse per questo giorno
+
+    // Se l'utente ha impostato keepOpen per questa specifica settimana, non considerarla come da chiudere
+    const keepOpenKey = `keepOpen_${athlete}_${day}_W${activeW}`;
+    if (localStorage.getItem(keepOpenKey) === 'true') {
+      continue;
+    }
+
+    // Verifica se tutti gli esercizi di questo giorno per activeW sono compilati
+    const eserciziDelGiorno = globalStoryboard.value.filter(item => {
+      const riga = parseInt(item.num_riga_giorno);
+      const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+      return riga > 0 &&
+             (item.des_giorno || '').trim().toUpperCase() === day &&
+             String(item[keyIdCliente]) === String(athlete) &&
+             String(item.num_scheda) === String(sheet);
+    });
+
+    if (eserciziDelGiorno.length === 0) continue;
+
+    const tuttiCompilati = eserciziDelGiorno.every(ex => {
+      const val = ex['ins_week' + activeW];
+      return val && val.trim() !== '';
+    });
+
+    if (tuttiCompilati) {
+      return { giorno: day, week: activeW, headerId: header.id };
+    }
+  }
+
+  return null;
+};
+
+// Watcher per tenere sincronizzato lo stato globale di settimana da chiudere
+watch([globalStoryboard, selectedAthlete, selectedSheet], () => {
+  const daChiudere = getGiornoDaChiudereGlobale();
+  if (daChiudere) {
+    setGlobalSettimanaDaChiudere(true);
+  } else {
+    setGlobalSettimanaDaChiudere(false);
+  }
+}, { deep: true, immediate: true });
+
 const cliccaPlayGlobale = () => {
-  vibraTattile(12);
+  if (typeof vibraTattile === 'function') vibraTattile(12);
   console.log('[Play - App.vue] CliccaPlayGlobale triggered.');
   
-  // Carica le info del giorno e settimana correnti da localStorage
-  const athlete = selectedAthlete.value || 'default';
-  infoGiornoDaChiudere.value = {
-    giorno: localStorage.getItem('giornoAttivo_' + athlete) || 'A',
-    week: parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1
-  };
+  const daChiudere = getGiornoDaChiudereGlobale();
 
-  if (globalSettimanaDaChiudere.value && !globalHaEserciziDaFare.value) {
-    console.log('[Play - App.vue] Settimana da chiudere dialog shown.');
+  if (daChiudere) {
+    console.log('[Play - App.vue] Settimana da chiudere dialog shown:', daChiudere);
+    infoGiornoDaChiudere.value = {
+      giorno: daChiudere.giorno,
+      week: daChiudere.week
+    };
+    const athlete = selectedAthlete.value || 'default';
+    localStorage.setItem('giornoDaChiudereTemporaneo_' + athlete, daChiudere.giorno);
+    localStorage.setItem('settimanaDaChiudereTemporanea_' + athlete, String(daChiudere.week));
     mostraDialogAvvisoChiusura.value = true;
   } else {
     console.log('[Play - App.vue] Executing eseguiAzionePlay.');
@@ -807,12 +880,10 @@ const cliccaPlayGlobale = () => {
   }
 };
 
-const getActiveHeaderId = () => {
+const getActiveHeaderIdForDay = (day) => {
   const athlete = selectedAthlete.value;
   const sheet = selectedSheet.value;
   if (!athlete || !sheet) return null;
-
-  const day = localStorage.getItem('giornoAttivo_' + athlete) || 'A';
 
   const header = globalStoryboard.value.find(item => {
     const riga = parseInt(item.num_riga_giorno);
@@ -845,10 +916,19 @@ const chiudiRapido = async () => {
 
 const vaiADettaglioEChiudi = () => {
   mostraDialogAvvisoChiusura.value = false;
-  const activeHeaderId = getActiveHeaderId();
+  const athlete = selectedAthlete.value;
+  const tempDay = localStorage.getItem('giornoDaChiudereTemporaneo_' + athlete);
+  const tempWeekStr = localStorage.getItem('settimanaDaChiudereTemporanea_' + athlete);
+
+  const day = tempDay || localStorage.getItem('giornoAttivo_' + athlete) || 'A';
+  const week = tempWeekStr ? parseInt(tempWeekStr) : (parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1);
+
+  // Pulisci i valori temporanei
+  localStorage.removeItem('giornoDaChiudereTemporaneo_' + athlete);
+  localStorage.removeItem('settimanaDaChiudereTemporanea_' + athlete);
+
+  const activeHeaderId = getActiveHeaderIdForDay(day);
   if (activeHeaderId) {
-    const athlete = selectedAthlete.value;
-    const week = parseInt(localStorage.getItem('settimanaAttiva_' + athlete)) || 1;
     localStorage.setItem('highlightChiusuraWeek', 'true');
     localStorage.setItem('highlightChiusuraWeekNumber', String(week));
     router.push({ name: 'DettaglioSessione', params: { id: activeHeaderId } });

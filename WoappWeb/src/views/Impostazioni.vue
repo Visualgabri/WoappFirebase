@@ -889,7 +889,7 @@ const snackbarDeployColor = ref('success');
 watch(tipoNotificaForm, (nuovoTipo) => {
   if (nuovoTipo === 'messaggio') {
     titoloDeployForm.value = '💬 Messaggio dal Coach';
-    messaggioDeployGeneraleForm.value = 'Hai un nuovo messaggio dal tuo Coach.';
+    messaggioDeployGeneraleForm.value = '';
     if (atletaDeployTargetForm.value === 'tutti' && ORDINE_ORIGINALE_ATLETI.length > 0) {
       atletaDeployTargetForm.value = String(ORDINE_ORIGINALE_ATLETI[0]);
     }

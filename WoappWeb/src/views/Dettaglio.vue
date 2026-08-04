@@ -453,14 +453,19 @@
               <div class="text-center">
                 <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max Assoluto</span>
                 <span class="font-weight-black text-cyan-lighten-2" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
-                  <template v-if="suggerimentoRecord && suggerimentoRecord.recordAbsolute > 0">
-                    {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                    <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.62rem;">
-                      ×{{ suggerimentoRecord.recordAbsoluteReps }}r
-                    </span>
+                  <template v-if="suggerimentoRecord && (suggerimentoRecord.recordAbsolute > 0 || suggerimentoRecord.recordAbsoluteReps > 0)">
+                    <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordAbsoluteHasWeight">
+                      {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute) }}
+                    </template>
+                    <template v-else>
+                      {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.62rem;">
+                        ×{{ suggerimentoRecord.recordAbsoluteReps }}r
+                      </span>
+                    </template>
                   </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span v-if="!isCorpoLiberoEsercizio(workout)" class="text-super-caption text-muted ml-0.5">kg</span><template v-if="isCorpoLiberoEsercizio(workout)">r</template>
                   </template>
                   <template v-else>
                     --
@@ -472,14 +477,19 @@
               <div class="text-center">
                 <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max {{ getRepsPerWeek(settimanaAttiva) }} Reps</span>
                 <span class="font-weight-black text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
-                  <template v-if="suggerimentoRecord && suggerimentoRecord.record > 0">
-                    {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                    <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-1" style="font-size: 0.62rem;">
-                      ×{{ suggerimentoRecord.recordRepsValue }}r
-                    </span>
+                  <template v-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
+                    <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
+                      {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record) }}
+                    </template>
+                    <template v-else>
+                      {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                      <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-1" style="font-size: 0.62rem;">
+                        ×{{ suggerimentoRecord.recordRepsValue }}r
+                      </span>
+                    </template>
                   </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} <span v-if="!isCorpoLiberoEsercizio(workout)" class="text-super-caption text-muted ml-0.5">kg</span><template v-if="isCorpoLiberoEsercizio(workout)">r</template>
                   </template>
                   <template v-else>
                     --
@@ -868,10 +878,18 @@
                   
                   <!-- Caso Scarico -->
                   <template v-else-if="getGhostLiftSmart(sett).isScarico">
-                    Usa <span class="text-green-accent-3 font-weight-bold">{{ formatWeight(getGhostLiftSmart(sett).peso) }} kg</span> (W2)
-                    <span v-if="scaricoWeek4Weights.pesoW3">
-                      • max <span class="text-green-accent-3 font-weight-bold">{{ formatWeight(scaricoWeek4Weights.pesoW3) }} kg</span> (W3)
-                    </span>
+                    <template v-if="isCorpoLiberoEsercizio(workout)">
+                      Usa <span class="text-green-accent-3 font-weight-bold">{{ scaricoWeek4Weights.textW2 || (formatRepsDisplay(getGhostLiftSmart(sett).peso) || 'W2') }}</span> (W2)
+                      <span v-if="scaricoWeek4Weights.textW3">
+                        • prec. W3: <strong class="text-slate-light">{{ scaricoWeek4Weights.textW3 }}</strong>
+                      </span>
+                    </template>
+                    <template v-else>
+                      Usa <span class="text-green-accent-3 font-weight-bold">{{ formatWeight(getGhostLiftSmart(sett).peso) }} kg</span> (W2)
+                      <span v-if="scaricoWeek4Weights.textW3 || scaricoWeek4Weights.pesoW3">
+                        • prec. W3: <strong class="text-slate-light">{{ scaricoWeek4Weights.textW3 || (formatWeight(scaricoWeek4Weights.pesoW3) + ' kg') }}</strong>
+                      </span>
+                    </template>
                   </template>
                   
                   <!-- Caso Post Scarico o progressione standard -->
@@ -2478,9 +2496,14 @@
 
               <div class="d-flex align-baseline gap-1.5">
                 <span class="record-hero-num text-subtitle-1 font-weight-black" style="font-size: 1.05rem; line-height: 1.1;">
-                  {{ suggerimentoRecord.recordAbsolute }} kg
+                  <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordAbsoluteHasWeight">
+                    {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute) }}
+                  </template>
+                  <template v-else>
+                    {{ suggerimentoRecord.recordAbsolute }} kg
+                  </template>
                 </span>
-                <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-caption text-cyan-lighten-3 font-weight-black" style="font-size: 0.72rem;">
+                <span v-if="suggerimentoRecord.recordAbsoluteReps !== null && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" class="text-caption text-cyan-lighten-3 font-weight-black" style="font-size: 0.72rem;">
                   × {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                 </span>
               </div>
@@ -2497,7 +2520,7 @@
             <div class="d-flex align-stretch gap-1.5 w-100 min-width-0">
               <!-- Card 1: Record a Stesse Reps -->
               <div 
-                v-if="suggerimentoRecord.record > 0" 
+                v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
                 class="pa-2 rounded-xl border text-left d-flex flex-column justify-center transition-colors hover:bg-slate-800/80 active:bg-slate-700 overflow-hidden" 
                 style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important; cursor: pointer; flex: 1 1 0%; min-width: 0;"
                 @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
@@ -2513,9 +2536,14 @@
 
                 <div class="d-flex align-baseline gap-1 text-truncate">
                   <span class="record-hero-num text-subtitle-2 font-weight-black" style="font-size: 0.95rem; line-height: 1.1;">
-                    {{ suggerimentoRecord.record }} kg
+                    <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
+                      {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record) }}
+                    </template>
+                    <template v-else>
+                      {{ suggerimentoRecord.record }} kg
+                    </template>
                   </span>
-                  <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption font-weight-bold text-truncate" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
+                  <span v-if="suggerimentoRecord.recordRepsValue && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
                     × {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
                   </span>
                 </div>
@@ -2539,8 +2567,8 @@
                 </div>
 
                 <div class="record-hero-num text-subtitle-2 font-weight-black text-truncate" style="font-size: 0.95rem; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                  <span v-if="suggerimentoRecord.isScarico">{{ estraiPesoDaInput(suggerimentoRecord.pesoWeek2) ? formatWeight(estraiPesoDaInput(suggerimentoRecord.pesoWeek2)) + ' kg' : 'Scarico' }}</span>
-                  <span v-else>{{ suggerimentoRecord.target }} kg</span>
+                  <span v-if="suggerimentoRecord.isScarico">{{ estraiPesoDaInput(suggerimentoRecord.pesoWeek2) ? formatWeight(estraiPesoDaInput(suggerimentoRecord.pesoWeek2)) + (isCorpoLiberoEsercizio(workout) ? 'r' : ' kg') : 'Scarico' }}</span>
+                  <span v-else>{{ isCorpoLiberoEsercizio(workout) ? getRepsPerWeek(settimanaAttiva) + 'r' : suggerimentoRecord.target + ' kg' }}</span>
                 </div>
                 <div class="text-super-caption text-muted font-weight-bold text-truncate" style="font-size: 0.51rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                   a {{ getRepsPerWeek(settimanaAttiva) }} reps target
@@ -5500,10 +5528,10 @@ const volumeProgressionInfo = computed(() => {
 });
 
 const scaricoWeek4Weights = computed(() => {
-  if (!workout.value) return { pesoW2: null, pesoW3: null };
+  if (!workout.value) return { pesoW2: null, pesoW3: null, textW2: '', textW3: '' };
   
-  const w2Ins = inputSettimane.value[2]?.ins;
-  const w3Ins = inputSettimane.value[3]?.ins;
+  const w2Ins = inputSettimane.value[2]?.ins || workout.value?.ins_week2 || '';
+  const w3Ins = inputSettimane.value[3]?.ins || workout.value?.ins_week3 || '';
   
   const w2Str = w2Ins ? estraiPesoDaInput(w2Ins) : null;
   const w3Str = w3Ins ? estraiPesoDaInput(w3Ins) : null;
@@ -5511,8 +5539,10 @@ const scaricoWeek4Weights = computed(() => {
   return {
     pesoW2: w2Str ? parseFloat(w2Str) : null,
     pesoW3: w3Str ? parseFloat(w3Str) : null,
-    insW2: w2Ins || '',
-    insW3: w3Ins || ''
+    textW2: String(w2Ins).trim(),
+    textW3: String(w3Ins).trim(),
+    insW2: w2Ins,
+    insW3: w3Ins
   };
 });
 
@@ -10350,6 +10380,7 @@ const suggerimentoRecord = computed(() => {
   const w = settimanaAttiva.value;
   const targetReps = getRepsPerWeek(w);
   const currentNumScheda = parseInt(workout.value?.num_scheda);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
 
   // 1. Record Assoluto Generale dell'Esercizio (PR di sempre su qualsiasi rep)
   let absGenWeight = 0;
@@ -10361,6 +10392,7 @@ const suggerimentoRecord = computed(() => {
   let absGenDate = null;
   let absGenId = null;
   let absGenItem = null;
+  let absGenHasWeight = false;
 
   // 2. Record Assoluto a Stesse Reps (PR sulle reps target di settimana)
   let absRepsWeight = 0;
@@ -10373,6 +10405,7 @@ const suggerimentoRecord = computed(() => {
   let absRepsFatica = null;
   let absRepsId = null;
   let absRepsItem = null;
+  let absRepsHasWeight = false;
 
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
@@ -10380,14 +10413,28 @@ const suggerimentoRecord = computed(() => {
     const dateVal = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
 
     // Priorità 1: Miglior Carico W6 (num_ins6 / ins_week6) se presente per le stesse reps target
-    const pesoW6Str = (prevEx.ins_week6 ? estraiPesoDaInput(prevEx.ins_week6) : null) || (prevEx.num_ins6 ? estraiPesoDaInput(prevEx.num_ins6) : null);
-    if (pesoW6Str) {
-      const pesoW6Num = parseFloat(pesoW6Str);
-      if (!isNaN(pesoW6Num) && pesoW6Num > 0) {
-        if (pesoW6Num > absGenWeight) {
+    const rawInsW6 = prevEx.ins_week6 || prevEx.num_ins6;
+    if (rawInsW6) {
+      const hasKgW6 = /kg\b/i.test(String(rawInsW6));
+      let pesoW6Num = 0;
+      let repsW6Num = 0;
+      if (isCorpoLibero && !hasKgW6) {
+        pesoW6Num = 0;
+        repsW6Num = estraiRepsDaInput(rawInsW6) || parseFloat(rawInsW6) || 0;
+      } else {
+        pesoW6Num = parseFloat(estraiPesoDaInput(rawInsW6)) || 0;
+        repsW6Num = estraiRepsDaInput(rawInsW6) || (parseInt(prevEx.reps_week6) || targetReps);
+      }
+
+      if (pesoW6Num > 0 || (isCorpoLibero && repsW6Num > 0)) {
+        const valToCompare = pesoW6Num > 0 ? pesoW6Num : repsW6Num;
+        const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
+
+        if (valToCompare > currentGenVal) {
           absGenWeight = pesoW6Num;
+          absGenReps = repsW6Num;
+          absGenHasWeight = pesoW6Num > 0;
           absGenWeek = 6;
-          absGenReps = isMatchingReps(prevEx, 6) ? targetReps : (parseInt(prevEx.reps_week6) || targetReps);
           absGenSheet = prevEx.num_scheda;
           absGenDay = prevEx.des_giorno;
           absGenRow = prevEx.num_riga_giorno;
@@ -10396,10 +10443,12 @@ const suggerimentoRecord = computed(() => {
           absGenItem = prevEx;
         }
         if (isMatchingReps(prevEx, 6)) {
-          if (pesoW6Num >= absRepsWeight) {
+          const currentRepsVal = absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0);
+          if (valToCompare >= currentRepsVal) {
             absRepsWeight = pesoW6Num;
+            absRepsReps = repsW6Num;
+            absRepsHasWeight = pesoW6Num > 0;
             absRepsWeek = 6;
-            absRepsReps = targetReps;
             absRepsSheet = prevEx.num_scheda;
             absRepsDay = prevEx.des_giorno;
             absRepsRow = prevEx.num_riga_giorno;
@@ -10416,20 +10465,30 @@ const suggerimentoRecord = computed(() => {
     for (let i = 1; i <= 6; i++) {
       const val = prevEx['ins_week' + i];
       if (val) {
-        const pesoNum = parseFloat(estraiPesoDaInput(val));
-        if (!isNaN(pesoNum) && pesoNum > 0) {
-          let reps = prevEx['reps_week' + i];
-          if (!reps) {
-            reps = estraiRepsDaPrescrizione(prevEx['des_week' + i]);
-          }
-          const repsTargetWeek = reps ? parseInt(reps, 10) : targetReps;
+        const hasKg = /kg\b/i.test(String(val));
+        let pesoNum = 0;
+        let repsNum = 0;
+        if (isCorpoLibero && !hasKg) {
+          pesoNum = 0;
+          repsNum = estraiRepsDaInput(val) || parseFloat(val) || 0;
+        } else {
+          pesoNum = parseFloat(estraiPesoDaInput(val)) || 0;
+          let repsPrescr = prevEx['reps_week' + i] || estraiRepsDaPrescrizione(prevEx['des_week' + i]);
+          const repsTargetWeek = repsPrescr ? parseInt(repsPrescr, 10) : targetReps;
           const inputReps = estraiRepsDaInput(val);
+          repsNum = inputReps && inputReps > 0 ? inputReps : repsTargetWeek;
+        }
+
+        if (pesoNum > 0 || (isCorpoLibero && repsNum > 0)) {
+          const valToCompare = pesoNum > 0 ? pesoNum : repsNum;
+          const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
 
           // Controllo PR Generale (All-Time)
-          if (pesoNum > absGenWeight) {
+          if (valToCompare > currentGenVal) {
             absGenWeight = pesoNum;
+            absGenReps = repsNum;
+            absGenHasWeight = pesoNum > 0;
             absGenWeek = i;
-            absGenReps = isMatchingReps(prevEx, i) ? repsTargetWeek : (inputReps && inputReps > 0 ? inputReps : repsTargetWeek);
             absGenSheet = prevEx.num_scheda;
             absGenDay = prevEx.des_giorno;
             absGenRow = prevEx.num_riga_giorno;
@@ -10440,10 +10499,12 @@ const suggerimentoRecord = computed(() => {
 
           // Controllo PR a Stesse Reps (isMatchingReps)
           if (isMatchingReps(prevEx, i)) {
-            if (pesoNum > absRepsWeight) {
+            const currentRepsVal = absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0);
+            if (valToCompare > currentRepsVal) {
               absRepsWeight = pesoNum;
+              absRepsReps = repsNum;
+              absRepsHasWeight = pesoNum > 0;
               absRepsWeek = i;
-              absRepsReps = repsTargetWeek;
               absRepsSheet = prevEx.num_scheda;
               absRepsDay = prevEx.des_giorno;
               absRepsRow = prevEx.num_riga_giorno;
@@ -10469,12 +10530,13 @@ const suggerimentoRecord = computed(() => {
   const baseRec = absRepsWeight > 0 ? absRepsWeight : absGenWeight;
   const targetWeight = baseRec > 0 ? baseRec + increment : 0;
 
-  if (absGenWeight === 0 && absRepsWeight === 0 && !isScarico) return null;
+  if (absGenWeight === 0 && absRepsWeight === 0 && !absGenReps && !absRepsReps && !isScarico) return null;
 
   return {
     record: absRepsWeight,
     recordRepsWeek: absRepsWeek,
     recordRepsValue: absRepsReps,
+    recordHasWeight: absRepsHasWeight,
     recordRepsSheet: absRepsSheet,
     recordRepsDay: absRepsDay,
     recordRepsRow: absRepsRow,
@@ -10486,6 +10548,7 @@ const suggerimentoRecord = computed(() => {
     recordAbsolute: absGenWeight,
     recordAbsoluteWeek: absGenWeek,
     recordAbsoluteReps: absGenReps,
+    recordAbsoluteHasWeight: absGenHasWeight,
     recordAbsoluteSheet: absGenSheet,
     recordAbsoluteDay: absGenDay,
     recordAbsoluteRow: absGenRow,
@@ -10510,6 +10573,7 @@ const calcE1RM = (weight, reps) => {
 
 const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
 
   if (!suggerimentoRecord.value) {
     return {
@@ -10517,6 +10581,69 @@ const valutazioneProgressione = computed(() => {
       colore: 'text-amber-lighten-2',
       icona: 'mdi-sparkles'
     };
+  }
+
+  const hasWeight = !isCorpoLibero || suggerimentoRecord.value.recordHasWeight || suggerimentoRecord.value.recordAbsoluteHasWeight;
+
+  if (isCorpoLibero && !hasWeight) {
+    const recReps = suggerimentoRecord.value.recordRepsValue || suggerimentoRecord.value.recordAbsoluteReps || getRepsPerWeek(w);
+
+    if (!recReps || recReps <= 0) {
+      return {
+        testo: '✨ Primo ciclo di allenamento',
+        colore: 'text-amber-lighten-2',
+        icona: 'mdi-sparkles'
+      };
+    }
+
+    let bestCurrentReps = 0;
+    let currentLogged = false;
+
+    for (let i = 1; i <= 6; i++) {
+      const val = workout.value?.['ins_week' + i];
+      if (val) {
+        const repsInput = estraiRepsDaInput(val) || parseFloat(val);
+        if (!isNaN(repsInput) && repsInput > 0) {
+          currentLogged = true;
+          if (repsInput > bestCurrentReps) {
+            bestCurrentReps = repsInput;
+          }
+        }
+      }
+    }
+
+    if (!currentLogged || bestCurrentReps === 0) {
+      return {
+        testo: `🎯 Obiettivo W${w}: ${getRepsPerWeek(w)}r (PR ${recReps}r)`,
+        colore: 'text-cyan-lighten-2',
+        icona: 'mdi-target'
+      };
+    }
+
+    const diffReps = bestCurrentReps - recReps;
+    if (bestCurrentReps >= recReps) {
+      const perc = recReps > 0 ? Math.round((diffReps / recReps) * 100) : 0;
+      const diffRepsDisplay = diffReps > 0 ? `+${diffReps} r` : `0 r`;
+      return {
+        testo: `📈 In miglioramento (${diffRepsDisplay} / +${perc}%)`,
+        colore: 'text-green-lighten-2',
+        icona: 'mdi-trending-up'
+      };
+    } else if (bestCurrentReps >= recReps - 1) {
+      return {
+        testo: '🔵 Reps in linea col tuo PR storico',
+        colore: 'text-cyan-lighten-2',
+        icona: 'mdi-minus-circle-outline'
+      };
+    } else {
+      const diffRepsAbs = Math.abs(diffReps);
+      const percAbs = recReps > 0 ? Math.round((diffRepsAbs / recReps) * 100) : 0;
+      return {
+        testo: `🟠 Sotto al picco storico (-${diffRepsAbs} r / -${percAbs}%)`,
+        colore: 'text-orange-lighten-2',
+        icona: 'mdi-trending-down'
+      };
+    }
   }
 
   const recWeight = suggerimentoRecord.value.record || suggerimentoRecord.value.recordAbsolute;

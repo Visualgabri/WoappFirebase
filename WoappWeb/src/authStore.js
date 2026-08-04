@@ -751,22 +751,29 @@ export const syncDeployVersionListener = () => {
       const data = docSnap.data();
       const versionId = data.version_id || data.timestamp || '';
       
-      // Se c'è un version_id e non è mai stato visto dall'atleta
+      // Se c'è un version_id e non è mai stato visto da questo utente
       if (versionId && versionId !== lastSeenDeployVersion.value) {
         deployVersionInfo.value = data;
-        
-        // Verifica se c'è una nota personalizzata per questo specifico atleta/cliente
-        const currentAthlete = selectedAthlete.value || idCliente.value || '';
-        if (data.notes_per_athlete && currentAthlete && data.notes_per_athlete[currentAthlete]) {
-          deployCustomNoteForMe.value = data.notes_per_athlete[currentAthlete];
-        } else if (data.target_atleta_id && String(data.target_atleta_id) === String(currentAthlete)) {
-          deployCustomNoteForMe.value = data.message_general || data.titolo || '';
-        } else {
-          deployCustomNoteForMe.value = '';
-        }
 
-        // Se la notifica è destinata a tutti o specificamente a questo atleta
-        if (!data.target_atleta_id || String(data.target_atleta_id) === String(currentAthlete) || (data.notes_per_athlete && data.notes_per_athlete[currentAthlete])) {
+        // Se la notifica ha un destinatario specifico (target_atleta_id):
+        if (data.target_atleta_id) {
+          // Si mostra ESCLUSIVAMENTE se l'utente connesso è un atleta E il suo idCliente corrisponde a target_atleta_id
+          const isTargetedAthlete = ruolo.value === 'atleta' && String(idCliente.value) === String(data.target_atleta_id);
+          if (isTargetedAthlete) {
+            deployCustomNoteForMe.value = (data.notes_per_athlete && data.notes_per_athlete[idCliente.value]) || data.message_general || data.titolo || '';
+            showDeployBanner.value = true;
+          } else {
+            // Se sono il coach o un altro atleta, NON mostrare il banner del messaggio privato
+            showDeployBanner.value = false;
+          }
+        } else {
+          // Notifica Deploy Generale (Broadcast a tutti)
+          const myId = idCliente.value || '';
+          if (myId && data.notes_per_athlete && data.notes_per_athlete[myId]) {
+            deployCustomNoteForMe.value = data.notes_per_athlete[myId];
+          } else {
+            deployCustomNoteForMe.value = '';
+          }
           showDeployBanner.value = true;
         }
       }
@@ -834,8 +841,8 @@ export const inviaNotificaDeploy = async (payload) => {
       version_id: newVersionId,
       timestamp: new Date().toISOString(),
       tipo: payload.tipo || 'deploy', // 'deploy' oppure 'messaggio'
-      titolo: payload.titolo || (payload.tipo === 'messaggio' ? '💬 MESSAGGIO IN TEMPO REALE DAL COACH' : '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!'),
-      message_general: payload.message_general || 'È stata pubblicata una nuova comunicazione dell\'applicazione.',
+      titolo: payload.titolo || (payload.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento!'),
+      message_general: payload.message_general || 'Nuova versione applicazione disponibile.',
       target_atleta_id: payload.target_atleta_id || null,
       notes_per_athlete: payload.notes_per_athlete || {}
     };

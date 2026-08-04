@@ -498,7 +498,7 @@
             {{ tipoNotificaForm === 'deploy' ? 'mdi-rocket-launch-outline' : 'mdi-comment-text-outline' }}
           </v-icon>
           <span class="font-weight-black uppercase" :class="tipoNotificaForm === 'deploy' ? 'text-orange-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.68rem; letter-spacing: 0.03em;">
-            {{ tipoNotificaForm === 'deploy' ? 'Invia Notifica Deploy Real-Time' : 'Invia Messaggio Diretto ad Atleta' }}
+            {{ tipoNotificaForm === 'deploy' ? 'Invia Notifica Deploy' : 'Invia Messaggio Privato' }}
           </span>
         </div>
         <v-chip :color="tipoNotificaForm === 'deploy' ? 'orange-darken-3' : 'purple-darken-2'" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.55rem; height: 18px;">
@@ -506,10 +506,10 @@
         </v-chip>
       </div>
 
-      <div class="pa-3 rounded-xl card-glass border-soft" style="background: rgba(15, 23, 42, 0.4) !important;">
+      <div class="pa-3 rounded-xl inner-setting-box border-soft">
         <!-- Selettore Tab Notifica (1. Deploy vs 2. Messaggio Privato) -->
         <div class="mb-3">
-          <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.60rem;">Seleziona Scopo Notifica:</span>
+          <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">Seleziona Tipo Notifica:</span>
           <v-btn-toggle
             v-model="tipoNotificaForm"
             mandatory
@@ -524,7 +524,7 @@
               :class="tipoNotificaForm === 'deploy' ? 'bg-orange-darken-3 text-white' : 'text-slate-300'"
               style="font-size: 0.64rem; padding: 0 6px;"
             >
-              🚀 1. Deploy App (Tutti)
+              🚀 Deploy (Tutti)
             </v-btn>
             <v-btn 
               value="messaggio" 
@@ -532,7 +532,7 @@
               :class="tipoNotificaForm === 'messaggio' ? 'bg-purple-darken-2 text-white' : 'text-slate-300'"
               style="font-size: 0.64rem; padding: 0 6px;"
             >
-              💬 2. Messaggio Privato (Singolo)
+              💬 Messaggio Privato
             </v-btn>
           </v-btn-toggle>
         </div>
@@ -540,40 +540,50 @@
         <!-- AMBIENTE 1: DEPLOY GLOBALE (DESTINATARIO BLOCCATO SU TUTTI) -->
         <template v-if="tipoNotificaForm === 'deploy'">
           <!-- Banner esplicativo Destinatario fittizio fisse -->
-          <div class="pa-2 rounded-lg border border-orange-500/30 bg-orange-500/10 d-flex align-center gap-2 mb-2.5">
+          <div class="pa-2 rounded-lg border border-orange-500/30 bg-orange-500/10 d-flex align-center gap-2 mb-3">
             <v-icon color="orange-darken-2" size="16">mdi-earth</v-icon>
             <div class="text-left">
               <div class="font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.60rem; letter-spacing: 0.02em;">
-                Destinatario: TUTTI GLI UTENTI (BROADCAST)
+                Destinatari: Tutti gli utenti
               </div>
-              <div class="text-slate-light" style="font-size: 0.56rem; line-height: 1.2;">
-                ⚠️ Notifica di aggiornamento applicazione ricevuta da tutti gli atleti attivi.
+              <div class="text-slate-light" style="font-size: 0.58rem; line-height: 1.2;">
+                Notifica di aggiornamento inviata a tutti gli atleti attivi.
               </div>
             </div>
           </div>
 
           <!-- Titolo Notifica -->
-          <v-text-field
-            v-model="titoloDeployForm"
-            label="Titolo Banner Aggiornamento"
-            variant="outlined"
-            density="compact"
-            color="orange-darken-3"
-            class="mb-2 custom-compact-field"
-            hide-details
-          ></v-text-field>
+          <div class="mb-3 text-left">
+            <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">
+              📌 Titolo Notifica:
+            </span>
+            <v-text-field
+              v-model="titoloDeployForm"
+              placeholder="Titolo notifica..."
+              variant="outlined"
+              density="compact"
+              color="orange-darken-3"
+              class="custom-compact-field"
+              hide-details
+            ></v-text-field>
+          </div>
 
           <!-- Note Generali -->
-          <v-textarea
-            v-model="messaggioDeployGeneraleForm"
-            label="Note di Rilascio Generali (per tutti)"
-            variant="outlined"
-            density="compact"
-            rows="2"
-            color="orange-darken-3"
-            class="mb-2 custom-compact-field"
-            hide-details
-          ></v-textarea>
+          <div class="mb-3 text-left">
+            <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">
+              📝 Note di Rilascio:
+            </span>
+            <v-textarea
+              v-model="messaggioDeployGeneraleForm"
+              placeholder="Descrizione aggiornamento..."
+              variant="outlined"
+              density="compact"
+              rows="2"
+              color="orange-darken-3"
+              class="custom-compact-field"
+              hide-details
+            ></v-textarea>
+          </div>
 
           <v-btn
             color="orange-darken-3"
@@ -581,21 +591,21 @@
             size="small"
             variant="flat"
             rounded="lg"
-            class="font-weight-black text-none text-white mt-2"
-            style="height: 36px; font-size: 0.72rem; letter-spacing: 0.02em;"
+            class="font-weight-black text-none text-white mt-3"
+            style="height: 38px; font-size: 0.76rem; letter-spacing: 0.02em;"
             @click="eseguiInvioNotificaDeploy"
             :loading="inviandoDeployNotifica"
           >
-            🚀 INVIA NOTIFICA DEPLOY A TUTTI GLI UTENTI
+            🚀 INVIA NOTIFICA DEPLOY
           </v-btn>
         </template>
 
         <!-- AMBIENTE 2: MESSAGGIO PRIVATO PER SINGOLO ATLETA -->
         <template v-else>
-          <!-- Selettore Obbligatorio Atleta Singolo (SENZA l'opzione "Tutti") -->
-          <div class="mb-2 text-left">
-            <span class="text-super-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.60rem;">
-              👤 Seleziona l'Atleta Destinatario:
+          <!-- Selettore Obbligatorio Atleta Singolo -->
+          <div class="mb-3 text-left">
+            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
+              👤 Seleziona Atleta Destinatario:
             </span>
             <v-select
               v-model="atletaDeployTargetForm"
@@ -604,34 +614,43 @@
               variant="outlined"
               density="compact"
               color="purple-darken-2"
-              class="custom-compact-field mb-2"
+              class="custom-compact-field"
               hide-details
             ></v-select>
           </div>
 
           <!-- Titolo Messaggio -->
-          <v-text-field
-            v-model="titoloDeployForm"
-            label="Oggetto Messaggio"
-            variant="outlined"
-            density="compact"
-            color="purple-darken-2"
-            class="mb-2 custom-compact-field"
-            hide-details
-          ></v-text-field>
+          <div class="mb-3 text-left">
+            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
+              💬 Oggetto del Messaggio:
+            </span>
+            <v-text-field
+              v-model="titoloDeployForm"
+              placeholder="Oggetto messaggio..."
+              variant="outlined"
+              density="compact"
+              color="purple-darken-2"
+              class="custom-compact-field"
+              hide-details
+            ></v-text-field>
+          </div>
 
           <!-- Testo del Messaggio Privato -->
-          <v-textarea
-            v-model="messaggioDeployGeneraleForm"
-            label="💬 Testo del Messaggio Riservato"
-            placeholder="Scrivi il messaggio riservato a questo atleta..."
-            variant="outlined"
-            density="compact"
-            rows="2"
-            color="purple-darken-2"
-            class="mb-2 custom-compact-field"
-            hide-details
-          ></v-textarea>
+          <div class="mb-3 text-left">
+            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
+              ✉️ Testo del Messaggio Riservato:
+            </span>
+            <v-textarea
+              v-model="messaggioDeployGeneraleForm"
+              placeholder="Scrivi il messaggio riservato all'atleta..."
+              variant="outlined"
+              density="compact"
+              rows="2"
+              color="purple-darken-2"
+              class="custom-compact-field"
+              hide-details
+            ></v-textarea>
+          </div>
 
           <v-btn
             color="purple-darken-2"
@@ -639,13 +658,13 @@
             size="small"
             variant="flat"
             rounded="lg"
-            class="font-weight-black text-none text-white mt-2"
-            style="height: 36px; font-size: 0.72rem; letter-spacing: 0.02em;"
+            class="font-weight-black text-none text-white mt-3"
+            style="height: 38px; font-size: 0.76rem; letter-spacing: 0.02em;"
             :disabled="!atletaDeployTargetForm || atletaDeployTargetForm === 'tutti'"
             @click="eseguiInvioNotificaDeploy"
             :loading="inviandoDeployNotifica"
           >
-            ✉️ INVIA MESSAGGIO PRIVATO A {{ getNomeAtletaTarget(atletaDeployTargetForm) }}
+            ✉️ Invia Messaggio Privato
           </v-btn>
         </template>
       </div>
@@ -668,9 +687,9 @@
         <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Backup & Ripristino Scheda</span>
       </div>
 
-      <div class="pa-4 rounded-xl card-glass border-soft" style="background: rgba(30, 41, 59, 0.2) !important;">
+      <div class="pa-4 rounded-xl inner-setting-box border-soft">
         <div class="text-left mb-3">
-          <span class="text-caption font-weight-bold text-white d-block">Esporta / Importa Dati Scheda</span>
+          <span class="text-caption font-weight-black text-slate-dark d-block">Esporta / Importa Dati Scheda</span>
           <span class="text-super-caption text-muted d-block mt-1" style="font-size: 0.65rem; line-height: 1.3; text-transform: none;">
             Esporta tutti i carichi, ripetizioni, note e completamenti registrati per la scheda attiva (n.{{ schedaSelezionata }}) in un file JSON locale, oppure importa un file salvato in precedenza.
           </span>
@@ -858,8 +877,8 @@ const cambiaTemaDaImpostazioni = (newVal) => {
 
 // Modulo Coach Deploy Notifica
 const tipoNotificaForm = ref('deploy'); // 'deploy' | 'messaggio'
-const titoloDeployForm = ref('🚀 NUOVO AGGIORNAMENTO DISPONIBILE!');
-const messaggioDeployGeneraleForm = ref('È stata pubblicata una nuova versione dell\'applicazione con importanti novità.');
+const titoloDeployForm = ref('🚀 Nuovo Aggiornamento!');
+const messaggioDeployGeneraleForm = ref('Nuova versione disponibile con miglioramenti.');
 const atletaDeployTargetForm = ref('tutti');
 const notaDeployPersonalizzataForm = ref('');
 const inviandoDeployNotifica = ref(false);
@@ -869,14 +888,14 @@ const snackbarDeployColor = ref('success');
 
 watch(tipoNotificaForm, (nuovoTipo) => {
   if (nuovoTipo === 'messaggio') {
-    titoloDeployForm.value = '💬 MESSAGGIO IN TEMPO REALE DAL COACH';
-    messaggioDeployGeneraleForm.value = 'Hai una nuova comunicazione dal tuo Coach.';
+    titoloDeployForm.value = '💬 Messaggio dal Coach';
+    messaggioDeployGeneraleForm.value = 'Hai un nuovo messaggio dal tuo Coach.';
     if (atletaDeployTargetForm.value === 'tutti' && ORDINE_ORIGINALE_ATLETI.length > 0) {
       atletaDeployTargetForm.value = String(ORDINE_ORIGINALE_ATLETI[0]);
     }
   } else {
-    titoloDeployForm.value = '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!';
-    messaggioDeployGeneraleForm.value = 'È stata pubblicata una nuova versione dell\'applicazione con importanti novità.';
+    titoloDeployForm.value = '🚀 Nuovo Aggiornamento!';
+    messaggioDeployGeneraleForm.value = 'Nuova versione disponibile con miglioramenti.';
     atletaDeployTargetForm.value = 'tutti';
   }
 });
@@ -1289,15 +1308,30 @@ const formattaDataEsportazione = (isoString) => {
 }
 
 .text-slate-dark {
-  color: #f8fafc !important;
+  color: #f8fafc;
 }
 
 .text-slate {
-  color: #cbd5e1 !important;
+  color: #cbd5e1;
 }
 
 .text-muted {
-  color: #94a3b8 !important;
+  color: #94a3b8;
+}
+
+:deep([data-theme="light"]) .text-slate-dark,
+[data-theme="light"] .text-slate-dark {
+  color: #0f172a !important;
+}
+
+:deep([data-theme="light"]) .text-slate,
+[data-theme="light"] .text-slate {
+  color: #334155 !important;
+}
+
+:deep([data-theme="light"]) .text-muted,
+[data-theme="light"] .text-muted {
+  color: #475569 !important;
 }
 
 .text-super-caption {

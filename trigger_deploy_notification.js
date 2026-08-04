@@ -17,8 +17,8 @@ async function triggerDeploy() {
     version_id: versionId,
     timestamp: timestamp,
     tipo: 'deploy',
-    titolo: '🚀 NUOVO AGGIORNAMENTO DISPONIBILE!',
-    message_general: 'È stata pubblicata una nuova versione dell\'applicazione con importanti novità e miglioramenti.',
+    titolo: '🚀 Nuovo Aggiornamento!',
+    message_general: 'Nuova versione disponibile con miglioramenti e novità.',
     target_atleta_id: null,
     notes_per_athlete: {}
   }, { merge: true });

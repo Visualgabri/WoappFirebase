@@ -6152,13 +6152,13 @@ const getStrengthSpeech = (rmt) => {
   const livello = rmt.livelloTesto || '';
 
   const map = {
-    'Neofita': `Il tuo massimale teorico (1RMT) di ${massimaleStr} kg è un punto di partenza fantastico. In questa fase iniziale, le tue riserve di adattamento neuromuscolare sono enormi: ogni sessione di allenamento ti renderà visibilmente più forte!`,
-    'Principiante': `Ottimo lavoro, hai raggiunto un massimale di ${massimaleStr} kg. Stai consolidando la tua tecnica esecutiva e la coordinazione motoria. Continua con costanza e vedrai salire i carichi in sicurezza settimana dopo settimana.`,
-    'Intermedio': `Complimenti per aver conquistato un massimale di ${massimaleStr} kg! Questo livello indica che hai già superato la fase iniziale e che i tuoi muscoli rispondono con forza a un lavoro programmato. La dedizione sta dando ottimi frutti.`,
-    'Avanzato': `Sei a un livello eccezionale con ben ${massimaleStr} kg di massimale! A questo punto della programmazione, ogni singolo chilo aggiunto richiede impegno costante, precisione millimetrica e un'intensità mentale da vero atleta.`,
-    'Elite': `Incredibile prestazione di ben ${massimaleStr} kg! Sei nel top assoluto per questo esercizio. Raggiungere il livello Elite dimostra che hai ottimizzato la coordinazione intra-muscolare, la tecnica e la resilienza fisica al massimo potenziale.`
+    'Neofita': `Massimale (1RMT): ${massimaleStr} kg. Ottimo punto di partenza: in questa fase i margini di adattamento sono enormi e ogni sessione aumenterà la tua forza.`,
+    'Principiante': `Massimale (1RMT): ${massimaleStr} kg. Stai consolidando tecnica esecutiva e coordinazione motoria: con costanza i carichi saliranno regolarmente in sicurezza.`,
+    'Intermedio': `Massimale (1RMT): ${massimaleStr} kg. Fase iniziale superata: i muscoli rispondono bene alla programmazione e la dedizione porta risultati.`,
+    'Avanzato': `Massimale (1RMT): ${massimaleStr} kg. Livello avanzato: ogni chilo extra richiede impegno costante, tecnica millimetrica e massima intensità.`,
+    'Elite': `Massimale (1RMT): ${massimaleStr} kg. Top assoluto nell'esercizio: coordinazione, tecnica e resilienza fisica sono al massimo potenziale.`
   };
-  return map[livello] || `Il tuo massimale attuale è di ${massimaleStr} kg. Continua così per raggiungere vette ancora più alte!`;
+  return map[livello] || `Massimale (1RMT): ${massimaleStr} kg. Continua a spingere per migliorare ancora.`;
 };
 
 const getVariationExplanation = (rmt) => {
@@ -6168,9 +6168,9 @@ const getVariationExplanation = (rmt) => {
   const percent = varStr.replace(/[↓↑\s%]/g, '');
 
   if (isDown) {
-    return `Rispetto al mesociclo precedente, il tuo massimale teorico su questo esercizio è diminuito del ${percent}%. Questo calo può essere causato da una fase temporanea di stanchezza, da una settimana di scarico programmata, da un cambio di focus o da un range di ripetizioni differente. È parte integrante del percorso atletico, continua a lavorare!`;
+    return `Massimale -${percent}% rispetto al mesociclo precedente. Calo fisiologico: può dipendere da stanchezza, scarico, cambio focus o diverso range di reps.`;
   } else {
-    return `Rispetto al mesociclo precedente, hai superato il tuo vecchio massimale del ${percent}%! Questo progresso testimonia una periodizzazione ottimale, un ottimo recupero energetico e una risposta muscolare eccellente. Continua su questa strada!`;
+    return `Massimale +${percent}% rispetto al mesociclo precedente! Progresso frutto di ottima periodizzazione, recupero e risposta muscolare.`;
   }
 };
 
@@ -6180,9 +6180,9 @@ const getNextLevelRequirement = (rmt) => {
     const current = parseFloat(rmt.massimale.replace(',', '.')) || 0;
     const targetDiff = parseFloat(rmt.prossimoLivello.replace(',', '.')) || 0;
     const targetPeso = Math.round((current + targetDiff) * 10) / 10;
-    return `Ti mancano circa ${rmt.prossimoLivello} kg di incremento (peso target: ${targetPeso} kg) per sbloccare la prossima stella e avanzare di livello!`;
+    return `Mancano circa ${rmt.prossimoLivello} kg (target: ${targetPeso} kg) per sbloccare la prossima stella e avanzare di livello.`;
   }
-  return 'Hai già raggiunto il massimo livello registrato per questo esercizio! Continua a consolidare questa prestazione eccezionale!';
+  return 'Livello massimo raggiunto! Continua a consolidare questa prestazione.';
 };
 
 const listaArticolazioni = [

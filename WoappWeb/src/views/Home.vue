@@ -1737,22 +1737,24 @@ const scaricaReportPDF = () => {
   
   y += 8;
 
-  // Colonne: Esercizio (largo) | G | W1 | Ultimo | Δ | %
+  // Colonne: Esercizio | G | TARGET | W1 | ULTIMO | PROGR | %
   const colX = {
     nome: marginL + 1,
-    giorno: marginL + 82,
-    w1: marginL + 94,
-    ultimo: marginL + 120,
-    delta: marginL + 146,
-    pct: marginL + 170
+    giorno: marginL + 59,
+    target: marginL + 71,
+    w1: marginL + 96,
+    ultimo: marginL + 121,
+    delta: marginL + 149,
+    pct: marginL + 172
   };
   const colW = {
-    nome: 79,
+    nome: 57,
     giorno: 11,
+    target: 24,
     w1: 24,
-    ultimo: 24,
-    delta: 23,
-    pct: 16
+    ultimo: 27,
+    delta: 22,
+    pct: 14
   };
   
   // Disegna header tabella
@@ -1764,6 +1766,7 @@ const scaricaReportPDF = () => {
     doc.setFontSize(7);
     doc.text('ESERCIZIO', colX.nome + 1, yPos + 5);
     doc.text('G', colX.giorno + 1, yPos + 5);
+    doc.text('TARGET', colX.target + 1, yPos + 5);
     doc.text('W1', colX.w1 + 1, yPos + 5);
     doc.text('ULTIMO', colX.ultimo + 1, yPos + 5);
     doc.text('PROGR.', colX.delta + 1, yPos + 5);
@@ -1900,7 +1903,6 @@ const scaricaReportPDF = () => {
       colorType = 'negative';
     } else if (isPercV) {
       // Per gli esercizi %V dove non è inserito un peso diretto in kg
-      const targetStr = ex.des_week1 || ex.ins_week1 || 'Target %V';
       deltaText = 'Note %V';
       pctText = 'In Target';
       colorType = 'neutral';
@@ -1912,10 +1914,12 @@ const scaricaReportPDF = () => {
     
     const rigaNum = ex.num_riga_giorno || ex.num_ordine || '';
     const coordStr = `${ex.des_giorno || ''}${rigaNum}`;
+    const targetRange = ex.des_qta_report || ex.des_week1 || '-';
 
     righe.push({
       nome: ex.des_esercizio || 'Esercizio',
       giorno: coordStr || ex.des_giorno || '-',
+      targetRange,
       w1Val, latestVal, latestW, delta, pct, isRep, unit, isPercV,
       deltaText, pctText, colorType,
       settore: ex.des_settore || '',
@@ -1977,20 +1981,26 @@ const scaricaReportPDF = () => {
       doc.text(line, colX.nome + 2, y + 3.5 + i * 3.5);
     });
     
-    // Giorno
+    // Giorno / Coordinata
     doc.setTextColor(100, 116, 139);
     doc.text(String(r.giorno), colX.giorno + 1, textY);
     
+    // Target / Range Reps
+    doc.setTextColor(100, 116, 139);
+    const targetStr = String(r.targetRange || '-').slice(0, 14);
+    doc.text(targetStr, colX.target + 1, textY);
+    
     // W1: Priorità a quello che ha scritto l'atleta (ins_week1)
+    doc.setTextColor(51, 65, 85);
     let w1Str = '-';
     const insW1Clean = String(r.exOriginal?.ins_week1 || '').trim();
     if (insW1Clean) {
       const firstLineW1 = insW1Clean.split(/\r?\n/)[0];
-      w1Str = firstLineW1.slice(0, 16);
+      w1Str = firstLineW1.slice(0, 15);
     } else if (r.w1Val > 0) {
       w1Str = `${fmtVal(r.w1Val)}${r.unit}`;
     } else if (r.exOriginal?.des_week1) {
-      w1Str = String(r.exOriginal.des_week1).slice(0, 16);
+      w1Str = String(r.exOriginal.des_week1).slice(0, 15);
     }
     doc.text(w1Str, colX.w1 + 1, textY);
     

@@ -464,8 +464,11 @@
                       </span>
                     </template>
                   </template>
+                  <template v-else-if="isCorpoLiberoEsercizio(workout)">
+                    --
+                  </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span v-if="!isCorpoLiberoEsercizio(workout)" class="text-super-caption text-muted ml-0.5">kg</span><template v-if="isCorpoLiberoEsercizio(workout)">r</template>
+                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                   </template>
                   <template v-else>
                     --
@@ -488,8 +491,11 @@
                       </span>
                     </template>
                   </template>
+                  <template v-else-if="isCorpoLiberoEsercizio(workout) && (!suggerimentoRecord || !suggerimentoRecord.recordHasWeight)">
+                    🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
+                  </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} <span v-if="!isCorpoLiberoEsercizio(workout)" class="text-super-caption text-muted ml-0.5">kg</span><template v-if="isCorpoLiberoEsercizio(workout)">r</template>
+                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                   </template>
                   <template v-else>
                     --
@@ -2263,23 +2269,29 @@
             </p>
           </div>
 
-          <!-- SCHEDA CONFRONTO PRESTAZIONALE (e1RM) -->
-          <div class="pa-3 bg-slate-950 rounded-xl border border-soft mb-3">
-            <div class="text-super-caption font-weight-black text-amber-lighten-2 uppercase mb-2" style="font-size: 0.62rem; letter-spacing: 0.05em;">
-              📊 Confronto Massimale Stimato (e1RM)
+          <!-- BARRA STATO PRESTAZIONALE E SPUNTI -->
+          <div class="mb-3 text-left">
+            <div class="text-super-caption text-slate-light uppercase font-weight-black mb-1.5" style="font-size: 0.58rem; letter-spacing: 0.04em;">
+              {{ strategiaCoachData.isCorpoLiberoPuro ? '📊 CONFRONTO RECORD RIPETIZIONI' : '📊 CONFRONTO MASSIMALE STIMATO (E1RM)' }}
             </div>
-            <v-row dense class="align-center">
-              <!-- SINISTRA: ATTUALE (ALLINEATO CON COLONNA REALE SOTTO) -->
+
+            <v-row dense class="mb-2">
+              <!-- SINISTRI: PRESTAZIONE ATTUALE -->
               <v-col cols="6">
                 <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(249, 115, 22, 0.3) !important;">
                   <span class="text-super-caption text-orange-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Attuale</span>
                   <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
-                    {{ strategiaCoachData.bestCurrentWeight > 0 ? formatWeight(strategiaCoachData.bestCurrentWeight) + 'kg' : '--' }}
+                    <template v-if="strategiaCoachData.isCorpoLiberoPuro">
+                      {{ (strategiaCoachData.bestCurrentReps > 0 && meFormatNum(strategiaCoachData.bestCurrentReps) !== '0') ? formatRepsDisplay(strategiaCoachData.bestCurrentReps) : '--' }}
+                    </template>
+                    <template v-else>
+                      {{ strategiaCoachData.bestCurrentWeight > 0 ? formatWeight(strategiaCoachData.bestCurrentWeight) + 'kg' : '--' }}
+                    </template>
                   </span>
-                  <span v-if="strategiaCoachData.bestCurrentWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
+                  <span v-if="!strategiaCoachData.isCorpoLiberoPuro && strategiaCoachData.bestCurrentWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
                     ×{{ meFormatNum(strategiaCoachData.bestCurrentReps) }}r (e1RM ~{{ meFormatNum(strategiaCoachData.e1rmAttuale) }}kg)
                   </span>
-                  <span v-else class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">Non ancora inserito</span>
+                  <span v-else-if="!strategiaCoachData.isCorpoLiberoPuro" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">Non ancora inserito</span>
                 </div>
               </v-col>
 
@@ -2288,9 +2300,14 @@
                 <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(6, 182, 212, 0.3) !important;">
                   <span class="text-super-caption text-cyan-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Record Storico</span>
                   <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
-                    {{ strategiaCoachData.prWeight > 0 ? formatWeight(strategiaCoachData.prWeight) + 'kg' : '--' }}
+                    <template v-if="strategiaCoachData.isCorpoLiberoPuro">
+                      {{ (strategiaCoachData.prReps > 0 && meFormatNum(strategiaCoachData.prReps) !== '0') ? formatRepsDisplay(strategiaCoachData.prReps) : '--' }}
+                    </template>
+                    <template v-else>
+                      {{ strategiaCoachData.prWeight > 0 ? formatWeight(strategiaCoachData.prWeight) + 'kg' : '--' }}
+                    </template>
                   </span>
-                  <span v-if="strategiaCoachData.prWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
+                  <span v-if="!strategiaCoachData.isCorpoLiberoPuro && strategiaCoachData.prWeight > 0" class="text-super-caption text-muted d-block" style="font-size: 0.55rem;">
                     ×{{ meFormatNum(strategiaCoachData.prReps) }}r (e1RM ~{{ meFormatNum(strategiaCoachData.e1rmStorico) }}kg)
                   </span>
                 </div>
@@ -2305,7 +2322,7 @@
                 🗺️ Roadmap di Progressione (W1 - W6)
               </span>
               <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white px-2 flex-shrink-0" style="font-size: 0.55rem; height: 20px; white-space: nowrap;">
-                {{ meAttrezzoLabel(strategiaCoachData.isManubri) }}
+                {{ meAttrezzoLabel(strategiaCoachData.isManubri, strategiaCoachData.isCorpoLiberoPuro) }}
               </v-chip>
             </div>
 
@@ -2369,7 +2386,7 @@
                       <span class="text-subtitle-2 font-weight-black" :class="step.isLogged ? 'text-green-accent-3' : 'text-amber-lighten-1'" style="font-size: 0.95rem; line-height: 1;">
                         {{ step.caricoReale }}
                       </span>
-                      <span class="text-super-caption font-weight-bold ml-1" :class="step.isLogged ? 'text-green-lighten-3' : 'text-slate-300'" style="font-size: 0.65rem;">
+                      <span v-if="step.repsReali" class="text-super-caption font-weight-bold ml-1" :class="step.isLogged ? 'text-green-lighten-3' : 'text-slate-300'" style="font-size: 0.65rem;">
                         ({{ step.repsReali }})
                       </span>
                     </div>
@@ -2384,7 +2401,7 @@
                       <span class="text-caption font-weight-black text-cyan-lighten-2" style="font-size: 0.78rem; line-height: 1;">
                         {{ step.caricoTeorico }}
                       </span>
-                      <span class="text-super-caption text-cyan-lighten-4 opacity-80 ml-1" style="font-size: 0.58rem;">
+                      <span v-if="step.repsTeoriche" class="text-super-caption text-cyan-lighten-4 opacity-80 ml-1" style="font-size: 0.58rem;">
                         ({{ step.repsTeoriche }})
                       </span>
                     </div>
@@ -2413,8 +2430,9 @@
               </span>
             </div>
             <ul class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35; color: #cbd5e1 !important;">
-              <li>Non forzare carichi elevati nella settimana 4 di scarico.</li>
-              <li>Se in W2 completi le {{ getRepsPerWeek(2) }} ripetizioni con RPE &lt; 8, incrementa di {{ strategiaCoachData.isManubri ? '1 kg' : '2.5 kg' }} in W3.</li>
+              <li v-if="!strategiaCoachData.isCorpoLiberoPuro">Non forzare carichi elevati nella settimana 4 di scarico.</li>
+              <li v-else>Nella settimana 4 di scarico, mantieni le ripetizioni senza cercare l'esaurimento.</li>
+              <li>Se in W2 completi le {{ getRepsPerWeek(2) }} ripetizioni con RPE &lt; 8, {{ strategiaCoachData.isCorpoLiberoPuro ? 'incrementa le ripetizioni o aggiungi peso' : (strategiaCoachData.isManubri ? 'incrementa di 1 kg' : 'incrementa di 2.5 kg') }} in W3.</li>
               <li>Mantieni un tempo sotto tensione (TUT) controllato sulla fase eccentrica.</li>
             </ul>
           </div>
@@ -2850,7 +2868,7 @@
                   <!-- Micro-scheda Riassuntiva Riferimenti Record (Soluzione 3) -->
                   <div v-if="getRiferimentoSfidaRecord(aiutoWeek)" class="mt-1.5 pa-2 rounded-lg bg-slate-900 border text-super-caption text-slate-light d-flex flex-column gap-1" style="font-size: 0.55rem; border-color: rgba(255,255,255,0.06) !important;">
                     <div 
-                      v-if="getRiferimentoSfidaRecord(aiutoWeek).massimale1RM" 
+                      v-if="!isCorpoLiberoEsercizio(workout) && getRiferimentoSfidaRecord(aiutoWeek).massimale1RM" 
                       class="d-flex align-center justify-space-between border-b py-1.5 px-2 transition-colors rounded text-no-wrap overflow-x-auto scrollbar-none" 
                       :class="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource ? 'cursor-pointer hover:bg-slate-800/80 active:bg-slate-700' : ''"
                       style="border-color: rgba(255,255,255,0.04) !important; min-height: 36px;"
@@ -2903,8 +2921,11 @@
                       <span class="text-slate-light font-weight-bold d-flex align-center gap-1 shrink-0">
                         📊 <strong>Stima Target:</strong>
                       </span>
-                      <span v-if="getRiferimentoSfidaRecord(aiutoWeek).recordStimato" class="text-orange-lighten-2 font-weight-black text-right shrink-0 ml-2">
+                      <span v-if="!isCorpoLiberoEsercizio(workout) && getRiferimentoSfidaRecord(aiutoWeek).recordStimato" class="text-orange-lighten-2 font-weight-black text-right shrink-0 ml-2">
                         {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).recordStimato) }} kg <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">(da altre serie)</span>
+                      </span>
+                      <span v-else-if="isCorpoLiberoEsercizio(workout)" class="text-orange-lighten-2 font-weight-black text-right shrink-0 ml-2">
+                        🎯 {{ formatRepsDisplay(getRepsPerWeek(aiutoWeek)) }}
                       </span>
                       <span v-else class="text-muted font-weight-bold">
                         N.D.
@@ -10840,15 +10861,23 @@ const valutazioneProgressione = computed(() => {
   }
 });
 
+const meAttrezzoLabel = (isManubri, isCorpoLiberoPuro) => {
+  if (isCorpoLiberoPuro) return 'Progressione Ripetizioni';
+  return isManubri ? 'Step Manubri (+1kg)' : 'Step Bilanciere/Cavi (+2.5kg)';
+};
+
 const strategiaCoachData = computed(() => {
   const wActive = settimanaAttiva.value;
   const exName = workout.value?.des_esercizio || 'Esercizio';
   const isManubri = isManubriEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const hasWeight = !isCorpoLibero || (suggerimentoRecord.value?.recordHasWeight || suggerimentoRecord.value?.recordAbsoluteHasWeight);
+  const isCorpoLiberoPuro = isCorpoLibero && !hasWeight;
 
   // PR Storico
   const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
   const prReps = suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || getRepsPerWeek(wActive) || 8;
-  const e1rmStorico = calcE1RM(prWeight, prReps);
+  const e1rmStorico = isCorpoLiberoPuro ? 0 : calcE1RM(prWeight, prReps);
 
   // Prestazione Attuale (Miglior e1RM nel mesociclo corrente)
   let bestCurrentWeight = 0;
@@ -10857,14 +10886,24 @@ const strategiaCoachData = computed(() => {
   for (let i = 1; i <= 6; i++) {
     const val = workout.value?.['ins_week' + i];
     if (val) {
-      const pesoNum = parseFloat(estraiPesoDaInput(val));
-      if (!isNaN(pesoNum) && pesoNum > 0) {
-        const repsInput = estraiRepsDaInput(val) || getRepsPerWeek(i);
-        const e1rm = calcE1RM(pesoNum, repsInput);
-        if (e1rm > bestCurrentE1RM) {
-          bestCurrentE1RM = e1rm;
-          bestCurrentWeight = pesoNum;
-          bestCurrentReps = repsInput;
+      if (isCorpoLiberoPuro) {
+        const repsInput = estraiRepsDaInput(val) || parseFloat(val);
+        if (!isNaN(repsInput) && repsInput > 0) {
+          if (repsInput > bestCurrentReps || bestCurrentE1RM === 0) {
+            bestCurrentReps = repsInput;
+            bestCurrentE1RM = repsInput;
+          }
+        }
+      } else {
+        const pesoNum = parseFloat(estraiPesoDaInput(val));
+        if (!isNaN(pesoNum) && pesoNum > 0) {
+          const repsInput = estraiRepsDaInput(val) || getRepsPerWeek(i);
+          const e1rm = calcE1RM(pesoNum, repsInput);
+          if (e1rm > bestCurrentE1RM) {
+            bestCurrentE1RM = e1rm;
+            bestCurrentWeight = pesoNum;
+            bestCurrentReps = repsInput;
+          }
         }
       }
     }
@@ -10874,7 +10913,23 @@ const strategiaCoachData = computed(() => {
   let stato = 'PRIMA_VOLTA';
   let diffKg = 0;
   let diffPerc = 0;
-  if (prWeight > 0) {
+  if (isCorpoLiberoPuro) {
+    if (prReps > 0) {
+      if (bestCurrentReps === 0) {
+        stato = 'INIZIO';
+      } else if (bestCurrentReps >= prReps) {
+        stato = 'PROGRESSIONE';
+        diffKg = bestCurrentReps - prReps;
+        diffPerc = prReps > 0 ? Math.round(((bestCurrentReps - prReps) / prReps) * 100) : 0;
+      } else if (bestCurrentReps >= prReps - 1) {
+        stato = 'IN_LINEA';
+      } else {
+        stato = 'CALO';
+        diffKg = prReps - bestCurrentReps;
+        diffPerc = prReps > 0 ? Math.round(((prReps - bestCurrentReps) / prReps) * 100) : 0;
+      }
+    }
+  } else if (prWeight > 0) {
     if (bestCurrentE1RM === 0) {
       stato = 'INIZIO';
     } else if (bestCurrentE1RM >= e1rmStorico) {
@@ -10939,16 +10994,44 @@ const strategiaCoachData = computed(() => {
     let repsRealiVal = null;
 
     if (val) {
-      const p = parseFloat(estraiPesoDaInput(val));
-      if (!isNaN(p) && p > 0) {
-        isLogged = true;
-        pesoRealeVal = p;
-        repsRealiVal = estraiRepsDaInput(val) || getRepsPerWeek(w);
+      if (isCorpoLiberoPuro) {
+        const rIn = estraiRepsDaInput(val) || parseFloat(val);
+        if (!isNaN(rIn) && rIn > 0) {
+          isLogged = true;
+          repsRealiVal = rIn;
+        }
+      } else {
+        const p = parseFloat(estraiPesoDaInput(val));
+        if (!isNaN(p) && p > 0) {
+          isLogged = true;
+          pesoRealeVal = p;
+          repsRealiVal = estraiRepsDaInput(val) || getRepsPerWeek(w);
+        }
       }
     }
 
     let caricoRealeText = '';
     let repsRealiText = '';
+
+    if (isCorpoLiberoPuro) {
+      if (isLogged) {
+        caricoRealeText = formatRepsDisplay(repsRealiVal);
+      } else {
+        caricoRealeText = targetRepsStr;
+      }
+      return {
+        week: w,
+        fase,
+        color,
+        rpe,
+        note,
+        caricoTeorico: targetRepsStr,
+        repsTeoriche: '',
+        isLogged,
+        caricoReale: caricoRealeText,
+        repsReali: ''
+      };
+    }
 
     if (isLogged) {
       caricoRealeText = `${formatWeight(pesoRealeVal)}kg`;
@@ -11000,6 +11083,7 @@ const strategiaCoachData = computed(() => {
   return {
     exName,
     isManubri,
+    isCorpoLiberoPuro,
     prWeight,
     prReps,
     e1rmStorico: Math.round(e1rmStorico * 10) / 10,
@@ -11056,6 +11140,18 @@ const meStatoTitolo = (s) => {
 };
 
 const meStatoDescrizione = (data) => {
+  if (data.isCorpoLiberoPuro) {
+    if (data.stato === 'CALO') {
+      return `Prestazione in calo dal tuo PR di ${data.prReps}r. Il piano ti guiderà per ritornare al tuo picco.`;
+    }
+    if (data.stato === 'PROGRESSIONE') {
+      return `Stai superando il tuo livello storico di ripetizioni (+${data.diffKg} r). Segui la roadmap per consolidare il nuovo record.`;
+    }
+    if (data.stato === 'IN_LINEA') {
+      return `Ripetizioni in linea con il tuo PR di ${data.prReps}r. La roadmap ti aiuterà ad incrementare il volume nelle prossime settimane.`;
+    }
+    return `Primo ciclo per questo esercizio a corpo libero. Segui la roadmap di ripetizioni consigliata dal Coach.`;
+  }
   if (data.stato === 'CALO') {
     return `Forza stimata (${data.e1rmAttuale > 0 ? data.e1rmAttuale + 'kg e1RM' : 'attuale'}) a -${data.diffKg > 0 ? formatWeight(data.diffKg) : 2}kg (-${data.diffPerc}%) dal tuo PR di ${data.prWeight}kg × ${data.prReps}r. Il piano ti guiderà per rientrare in quota PR.`;
   }
@@ -11071,10 +11167,6 @@ const meStatoDescrizione = (data) => {
 const meFormatNum = (val) => {
   if (!val || isNaN(val)) return '0';
   return val.toString();
-};
-
-const meAttrezzoLabel = (isManubri) => {
-  return isManubri ? 'Step Manubri (+1kg)' : 'Step Bilanciere/Cavi (+2.5kg)';
 };
 
 const getColoreFaticaStyle = (fatica) => {

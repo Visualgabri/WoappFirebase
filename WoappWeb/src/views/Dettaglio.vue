@@ -829,7 +829,7 @@
             style="background: rgba(249, 115, 22, 0.03) !important; border: 1px dashed rgba(249, 115, 22, 0.15) !important;"
           >
             <div>
-              <p v-html="'📢 ' + formattaIstruzioneFine(workout.des_estesa_end, sett)" class="text-orange-lighten-3 font-weight-bold mb-0" style="font-size: 0.72rem; line-height: 1.4; color: #ffb74d !important;"></p>
+              <p v-html="'📢 ' + formattaIstruzioneFine(workout.des_estesa_end, sett)" class="text-orange-lighten-3 font-weight-bold mb-0" style="font-size: 0.72rem; line-height: 1.4;"></p>
             </div>
           </div>
 
@@ -911,7 +911,7 @@
               </div>
             </div>
             
-            <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" style="color: #fbbf24;" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
+            <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
               💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
@@ -1775,7 +1775,7 @@
         <v-card-title class="px-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900" style="min-height: 40px;">
           <div class="d-flex align-center gap-2">
             <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
-            <span class="font-weight-black text-white" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">Progressione Scheda Precedente</span>
+            <span class="font-weight-black text-slate-dark" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">Progressione Scheda Precedente</span>
           </div>
           <!-- Pulsante X più piccolo -->
           <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogProgressioniPrecedente = false">
@@ -1785,12 +1785,12 @@
         
         <!-- Info Esercizio Precedente (Fisso in primo piano nello scroll) -->
         <div v-if="previousWorkout" class="px-3 py-2 border-bottom bg-slate-900 text-left" style="line-height: 1.1; flex-shrink: 0;">
-          <h4 class="font-weight-black text-white mt-0" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
+          <h4 class="font-weight-black text-slate-dark mt-0" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ previousWorkout.des_esercizio }}</h4>
           <div class="text-orange-lighten-2 font-weight-black uppercase d-flex align-center flex-wrap gap-1" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
             <span>Scheda {{ previousWorkout.num_scheda }} • Giorno {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>
             <template v-if="getExecutionDate(previousWorkout, storicoEsercizio, workout)">
               <span>•</span>
-              <span class="text-white">🗓️ {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>
+              <span class="text-slate-dark">🗓️ {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>
               <span v-if="tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout))" class="text-slate-light font-weight-bold ml-1"> ({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})</span>
             </template>
           </div>
@@ -1804,10 +1804,10 @@
           <div v-else>
             <!-- Lista delle 6 settimane delle progressioni precedenti (Carico a tutta larghezza e prescrizione sopra) -->
             <div class="d-flex flex-column gap-2 mb-3">
-              <div v-for="w in [6, 5, 4, 3, 2, 1]" :key="w" class="rounded-xl border border-soft bg-slate-950 pa-2 text-left">
+              <div v-for="w in [6, 5, 4, 3, 2, 1]" :key="w" class="rounded-xl border border-soft card-glass-dark pa-2 text-left">
                 <!-- Settimana + Prescrizione (Sopra) -->
                 <div class="d-flex align-center justify-space-between mb-1.5" style="line-height: 1.1;">
-                  <div class="font-weight-black text-white uppercase d-flex align-center gap-1" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
+                  <div class="font-weight-black text-slate-dark uppercase d-flex align-center gap-1" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
                     <span>Week {{ w }}</span>
                     <span class="text-orange-lighten-2 font-weight-black ml-1" style="font-size: 1.05rem !important; text-transform: none;">
                       ({{ previousWorkout['des_week' + w] ? pulisciParentesiQuadre(previousWorkout['des_week' + w]) : 'N.D.' }})
@@ -1820,9 +1820,9 @@
                   <textarea
                     v-model="inputSettimanePrecedente[w].ins"
                     placeholder="Carico (es. 45 kg)"
-                    class="custom-compact-ins-field font-weight-black text-white w-100"
+                    class="custom-prev-ins-field font-weight-black text-slate-dark w-100"
                     rows="1"
-                    style="width: 100%; border: 1px solid rgba(255, 255, 255, 0.25); outline: none; background: rgba(255, 255, 255, 0.12); font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; height: auto; field-sizing: content; resize: vertical; line-height: 1.35; box-sizing: border-box;"
+                    style="width: 100%; outline: none; font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; height: auto; field-sizing: content; resize: vertical; line-height: 1.35; box-sizing: border-box;"
                     @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
                   ></textarea>
                 </div>
@@ -2495,7 +2495,7 @@
             <!-- HERO BANNER PR: RECORD ASSOLUTO GENERALE -->
             <div 
               v-if="suggerimentoRecord.recordAbsolute > 0" 
-              class="pa-2.5 rounded-xl border mb-2 text-left transition-colors hover:bg-slate-800/80 active:bg-slate-700" 
+              class="record-hero-pr-assoluto pa-2.5 rounded-xl border mb-2 text-left transition-colors hover:bg-slate-800/80 active:bg-slate-700" 
               style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important; cursor: pointer;"
               @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
             >
@@ -2538,7 +2538,7 @@
               <!-- Card 1: Record a Stesse Reps -->
               <div 
                 v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
-                class="pa-2 rounded-xl border text-left d-flex flex-column justify-center transition-colors hover:bg-slate-800/80 active:bg-slate-700 overflow-hidden" 
+                class="record-hero-reps pa-2 rounded-xl border text-left d-flex flex-column justify-center transition-colors hover:bg-slate-800/80 active:bg-slate-700 overflow-hidden" 
                 style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important; cursor: pointer; flex: 1 1 0%; min-width: 0;"
                 @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
               >
@@ -2574,7 +2574,7 @@
               </div>
 
               <!-- Card 2: Obiettivo W Attiva -->
-              <div v-if="suggerimentoRecord.target > 0 || suggerimentoRecord.isScarico" class="pa-2 rounded-xl border text-left d-flex flex-column justify-center overflow-hidden" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.3) !important; flex: 1 1 0%; min-width: 0;">
+              <div v-if="suggerimentoRecord.target > 0 || suggerimentoRecord.isScarico" class="record-hero-target pa-2 rounded-xl border text-left d-flex flex-column justify-center overflow-hidden" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.3) !important; flex: 1 1 0%; min-width: 0;">
                 <div class="d-flex align-center gap-1 mb-0.5 text-truncate">
                   <v-icon color="orange-lighten-2" size="12">mdi-target</v-icon>
                   <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase text-truncate" style="font-size: 0.55rem; letter-spacing: 0.03em;">
@@ -3059,7 +3059,7 @@
                   class="d-flex align-center justify-space-between mb-1 px-1.5 py-1 rounded sticky-timeline-header"
                   :class="{'red-scheda-header': !soloCorrispondenti && haSettimanaCorrispondente(prevEx), 'bg-slate-900': soloCorrispondenti || !haSettimanaCorrispondente(prevEx)}"
                 >
-                  <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem !important;">
+                  <span class="text-caption font-weight-black text-slate-dark uppercase" style="font-size: 0.72rem !important;">
                     Scheda {{ prevEx.num_scheda }}
                   </span>
                   <div class="d-flex align-center gap-1.5">
@@ -5444,8 +5444,10 @@ const getGhostRenderInfo = (sett) => {
     return null;
   }
 
+  const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light';
+
   let icon = 'mdi-lightbulb-on-outline';
-  let color = '#ffb74d'; // orange-lighten-2
+  let color = isLight ? '#c2410c' : '#ffb74d'; // Burnt orange in light mode vs Light orange in dark mode
   let label = 'Consigliato:';
   let valueText = '';
   let refText = '';
@@ -5456,52 +5458,52 @@ const getGhostRenderInfo = (sett) => {
 
   if (ghost.isWeek2Scritta) {
     icon = 'mdi-trending-up';
-    color = '#ffb74d';
+    color = isLight ? '#c2410c' : '#ffb74d';
     label = 'Consigliato:';
     valueText = 'Aumenta peso';
   } else if (ghost.isCoachSet) {
     icon = 'mdi-alert-decagram-outline';
-    color = '#fbbf24'; // amber-lighten-2
+    color = isLight ? '#b45309' : '#fbbf24';
     label = 'Coach:';
     valueText = 'Carichi impostati dal coach';
   } else if (ghost.isGhostInfortunio && !ghostSbloccato.value) {
     icon = 'mdi-bandage';
-    color = '#ef4444'; // red-lighten-2
+    color = isLight ? '#dc2626' : '#ef4444';
     const pct = ghost.percentualeInfortunio ?? 20;
     label = (ghost.applicaRiduzioneInfortunio !== false && pct > 0) ? `Proposta Comfort (-${pct}%):` : 'Monitoraggio Fastidio:';
     valueText = `${formatWeight(ghost.peso || ghost.suggerito || ghost.pesoProposto)} kg`;
   } else if (ghost.isScarico) {
     icon = 'mdi-battery-charging-40';
-    color = '#fbbf24'; // amber-lighten-2
+    color = isLight ? '#b45309' : '#fbbf24';
     label = 'Scarico:';
     valueText = `${formatWeight(ghost.peso)} kg`;
   } else if (ghost.isMetodo) {
     icon = 'mdi-cog-play-outline';
-    color = '#ffb74d';
+    color = isLight ? '#c2410c' : '#ffb74d';
     label = `${ghost.metodoLabel}:`;
     valueText = ghost.text;
   } else if (ghost.isMandatory) {
     icon = 'mdi-alert-decagram-outline';
-    color = '#f87171'; // red-lighten-1
+    color = isLight ? '#dc2626' : '#f87171';
     label = `${ghost.mandatoryLabel}:`;
     valueText = ghost.text;
   } else if (ghost.isOverload) {
     icon = ghost.peso > ghost.pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral';
-    color = '#ffb74d';
+    color = isLight ? '#c2410c' : '#ffb74d';
     label = ghost.peso > ghost.pesoBaseOriginale ? 'Consigliato (Aumento):' : 'Consigliato (Mantieni):';
     valueText = ghost.text;
   } else if (ghost.isPostScarico) {
     icon = ghost.pesoProposto > ghost.pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral';
-    color = '#ffb74d';
+    color = isLight ? '#c2410c' : '#ffb74d';
     label = ghost.pesoProposto > ghost.pesoBaseOriginale ? 'Consigliato (Aumento):' : 'Consigliato (Mantieni):';
     valueText = ghost.text;
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
-    color = '#ffb74d';
+    color = isLight ? '#c2410c' : '#ffb74d';
     label = 'Proposto W1:';
     if (ghost.erroreCarichi) {
       icon = 'mdi-alert-circle-outline';
-      color = '#f87171';
+      color = isLight ? '#dc2626' : '#f87171';
       label = 'Nota:';
       valueText = 'Carica il Miglior Carico W6 per la stima';
     } else {
@@ -5512,7 +5514,7 @@ const getGhostRenderInfo = (sett) => {
     const isStallPrev = sett > 2 && isStagnazioneSettimana(sett - 1);
     if (isStallPrev && !ghost.isScarico && !ghost.isGhostInfortunio) {
       icon = 'mdi-lightning-bolt-circle';
-      color = '#c084fc'; // purple-lighten-2
+      color = isLight ? '#7e22ce' : '#c084fc';
       label = '⚡ SFIDA ANTI-STALLO:';
       const step = getWeightStep(isManubri, pesoBase);
       const pesoSfidante = (pesoBase > 0) ? pesoBase + step : (ghost.peso || 0) + step;
@@ -11172,9 +11174,10 @@ const meFormatNum = (val) => {
 const getColoreFaticaStyle = (fatica) => {
   if (!fatica) return {};
   const f = fatica.trim().toLowerCase();
-  if (f === 'media') return { color: '#81c784 !important' }; // Light green
-  if (f === 'pesante') return { color: '#ffb74d !important' }; // Light orange
-  if (f === 'devastante') return { color: '#e57373 !important' }; // Light red
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (f === 'media') return { color: isLight ? '#166534 !important' : '#81c784 !important' }; // Forest green vs Light green
+  if (f === 'pesante') return { color: isLight ? '#b45309 !important' : '#ffb74d !important' }; // Amber brown vs Light orange
+  if (f === 'devastante') return { color: isLight ? '#dc2626 !important' : '#e57373 !important' }; // Vivid red vs Light red
   return {};
 };
 
@@ -12577,43 +12580,43 @@ th.sticky-col {
 /* Light Mode Overrides per Dettaglio.vue */
 [data-theme="light"] .sticky-detail-header,
 [data-theme="light"] .appsheet-top-bar {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  background: var(--nav-bg) !important;
+  border-bottom: 1px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .prescription-chip-box {
-  background: #f1f5f9 !important;
-  border: 1px solid #cbd5e1 !important;
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border) !important;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
 }
 
 [data-theme="light"] .prescription-chip-box:hover {
-  background: #e2e8f0 !important;
-  border-color: #f97316 !important;
+  background: var(--card-border) !important;
+  border-color: var(--brand-accent) !important;
 }
 
 [data-theme="light"] .week-prescription-text {
-  background-color: #fff7ed !important;
-  color: #c2410c !important;
-  border-left: 3px solid #ea580c !important;
+  background-color: var(--brand-accent-bg) !important;
+  color: var(--brand-accent) !important;
+  border-left: 3px solid var(--brand-accent) !important;
 }
 
 [data-theme="light"] .custom-weight-input :deep(.v-field),
 [data-theme="light"] .custom-textarea-input :deep(.v-field) {
-  background: #ffffff !important;
-  border: 1.5px solid #cbd5e1 !important;
+  background: var(--card-bg-glass) !important;
+  border: 1.5px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .custom-weight-input :deep(.v-field--focused),
 [data-theme="light"] .custom-textarea-input :deep(.v-field--focused) {
-  background: #ffffff !important;
-  border-color: #ea580c !important;
-  box-shadow: 0 0 8px rgba(234, 88, 12, 0.25) !important;
+  background: var(--card-bg-glass) !important;
+  border-color: var(--brand-accent) !important;
+  box-shadow: 0 0 8px var(--brand-accent-glow) !important;
 }
 
 [data-theme="light"] .custom-weight-input :deep(.v-label),
 [data-theme="light"] .custom-textarea-input :deep(.v-label) {
-  color: #64748b !important;
+  color: var(--text-muted) !important;
   opacity: 0.85 !important;
 }
 
@@ -12621,7 +12624,7 @@ th.sticky-col {
 [data-theme="light"] .custom-weight-input :deep(textarea),
 [data-theme="light"] .custom-textarea-input :deep(input),
 [data-theme="light"] .custom-textarea-input :deep(textarea) {
-  color: #0f172a !important;
+  color: var(--text-dark) !important;
   font-weight: 700 !important;
 }
 
@@ -12632,10 +12635,10 @@ th.sticky-col {
 }
 [data-theme="light"] .ghost-glow-green :deep(input),
 [data-theme="light"] .ghost-glow-green :deep(textarea) {
-  color: #15803d !important;
+  color: var(--color-emerald-700) !important;
 }
 [data-theme="light"] .ghost-glow-green :deep(.v-label) {
-  color: #166534 !important;
+  color: var(--color-emerald-700) !important;
 }
 
 [data-theme="light"] .ghost-glow-blue :deep(.v-field) {
@@ -12645,78 +12648,102 @@ th.sticky-col {
 }
 [data-theme="light"] .ghost-glow-blue :deep(input),
 [data-theme="light"] .ghost-glow-blue :deep(textarea) {
-  color: #1d4ed8 !important;
+  color: var(--color-blue-700) !important;
 }
 [data-theme="light"] .ghost-glow-blue :deep(.v-label) {
-  color: #1e40af !important;
+  color: var(--color-blue-700) !important;
 }
 
 [data-theme="light"] .ghost-glow-orange :deep(.v-field) {
-  background: #fff7ed !important;
+  background: var(--brand-accent-bg) !important;
   border: 1px solid #fdba74 !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.15) !important;
+  box-shadow: 0 0 10px var(--brand-accent-glow) !important;
 }
 [data-theme="light"] .ghost-glow-orange :deep(input),
 [data-theme="light"] .ghost-glow-orange :deep(textarea) {
-  color: #c2410c !important;
+  color: var(--brand-accent) !important;
 }
 [data-theme="light"] .ghost-glow-orange :deep(.v-label) {
-  color: #9a3412 !important;
+  color: var(--brand-accent) !important;
 }
 
 [data-theme="light"] .week-log-card {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  background: var(--card-bg-glass) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .week-active-border {
-  border: 2px solid #ea580c !important;
-  background-color: #fff7ed !important;
+  border: 2px solid var(--brand-accent) !important;
+  background-color: var(--brand-accent-bg) !important;
 }
 
 [data-theme="light"] .rmt-premium-card {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  background: var(--card-bg-glass) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .text-red {
-  color: #dc2626 !important;
+  color: var(--color-red-700) !important;
 }
 
 [data-theme="light"] .header-cell {
-  background: #f1f5f9 !important;
-  color: #ea580c !important;
-  border-bottom: 1.5px solid #cbd5e1 !important;
+  background: var(--card-bg-soft) !important;
+  color: var(--brand-accent) !important;
+  border-bottom: 1.5px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .body-cell {
-  color: #334155 !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  color: var(--text-slate) !important;
+  border-bottom: 1px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .sticky-col {
-  background: #ffffff !important;
-  border-right: 1.5px solid #e2e8f0 !important;
+  background: var(--card-bg-glass) !important;
+  border-right: 1.5px solid var(--card-border) !important;
 }
 
 [data-theme="light"] th.sticky-col {
-  background: #f1f5f9 !important;
+  background: var(--card-bg-soft) !important;
 }
 
 /* --- LIGHT THEME OVERRIDES FOR CRONOLOGIA & PROPOSTA CARICO MODAL --- */
 [data-theme="light"] .card-glass-dark {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  background: var(--card-bg-glass) !important;
+  border-color: var(--card-border) !important;
+  box-shadow: var(--card-shadow) !important;
 }
 
 [data-theme="light"] .v-card-title.bg-slate-900,
 [data-theme="light"] .bg-slate-900,
 [data-theme="light"] .bg-slate-950,
 [data-theme="light"] .bg-black {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--card-border) !important;
+}
+
+[data-theme="light"] .record-hero-pr-assoluto {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%) !important;
+  border-color: #38bdf8 !important;
+}
+
+[data-theme="light"] .record-hero-reps {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffbe6 100%) !important;
+  border-color: #f59e0b !important;
+}
+
+[data-theme="light"] .record-hero-target {
+  background: linear-gradient(135deg, #ffedd5 0%, #fff7ed 100%) !important;
+  border-color: #fb923c !important;
+}
+
+[data-theme="light"] .red-scheda-header {
+  background-color: #fee2e2 !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+[data-theme="light"] .red-scheda-header .text-slate-dark {
+  color: #991b1b !important;
 }
 
 [data-theme="light"] .dialog-header-title,
@@ -12725,81 +12752,90 @@ th.sticky-col {
 [data-theme="light"] .opzione-peso-text,
 [data-theme="light"] .banner-record-text,
 [data-theme="light"] .dialog-text-primary {
-  color: #0f172a !important;
+  color: var(--text-dark) !important;
 }
 
 [data-theme="light"] .table-header-title {
-  color: #c2410c !important;
+  color: var(--brand-accent) !important;
 }
 
 [data-theme="light"] .table-prescription-text {
-  color: #475569 !important;
+  color: var(--text-slate) !important;
 }
 
 [data-theme="light"] .text-slate-light {
-  color: #334155 !important;
+  color: var(--text-slate) !important;
 }
 
 [data-theme="light"] .text-muted {
-  color: #64748b !important;
+  color: var(--text-slate) !important;
 }
 
 [data-theme="light"] .text-cyan-lighten-2,
 [data-theme="light"] .text-cyan-lighten-3 {
-  color: #0891b2 !important;
+  color: var(--color-cyan-700) !important;
 }
 
 [data-theme="light"] .text-amber-lighten-1,
 [data-theme="light"] .text-amber-lighten-2 {
-  color: #b45309 !important;
+  color: var(--color-amber-700) !important;
 }
 
 [data-theme="light"] .text-orange-lighten-2 {
-  color: #c2410c !important;
+  color: var(--color-orange-700) !important;
 }
 
 [data-theme="light"] .text-green-accent-3 {
-  color: #047857 !important;
+  color: var(--color-emerald-700) !important;
 }
 
 [data-theme="light"] .text-purple-lighten-2 {
-  color: #7e22ce !important;
+  color: var(--color-purple-700) !important;
 }
 
 [data-theme="light"] .text-blue-lighten-3 {
-  color: #1d4ed8 !important;
+  color: var(--color-blue-700) !important;
 }
 
 /* Tabella Cronologia */
 [data-theme="light"] .premium-storico-table {
-  background-color: #ffffff !important;
+  background-color: var(--card-bg-glass) !important;
 }
 
 [data-theme="light"] .premium-storico-table th.header-cell {
-  background-color: #f1f5f9 !important;
-  color: #334155 !important;
-  border-bottom: 2px solid #cbd5e1 !important;
+  background-color: var(--card-bg-soft) !important;
+  color: var(--text-slate) !important;
+  border-bottom: 2px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .premium-storico-table th.header-cell.bg-orange-darken-4 {
-  background-color: #ffedd5 !important;
-  color: #c2410c !important;
+  background-color: var(--brand-accent-bg) !important;
+  color: var(--brand-accent) !important;
 }
 
 [data-theme="light"] .premium-storico-table td.body-cell {
-  background-color: #ffffff !important;
-  color: #1e293b !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  background-color: var(--card-bg-glass) !important;
+  color: var(--text-dark) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .premium-storico-table td.body-cell.red-scheda-cell {
+  background-color: #fef2f2 !important;
+  color: #991b1b !important;
 }
 
 [data-theme="light"] .premium-storico-table tr.table-row:hover td.body-cell {
-  background-color: #f8fafc !important;
+  background-color: var(--bg-main) !important;
 }
 
 [data-theme="light"] .red-cell,
 [data-theme="light"] .timeline-red-cell {
   background-color: #fef2f2 !important;
   border: 1.5px solid #fca5a5 !important;
+}
+
+[data-theme="light"] .timeline-red-cell .table-prescription-text {
+  color: #b91c1c !important;
 }
 
 /* --- STILI DEDICATI PER PULSANTI FEELING & SUPERSERIE (TEMA CHIARO & SCURO) --- */
@@ -12818,16 +12854,16 @@ th.sticky-col {
 }
 
 [data-theme="light"] .btn-feeling-item {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-  border: 1.5px solid #cbd5e1 !important;
+  background-color: var(--card-bg-soft) !important;
+  color: var(--text-dark) !important;
+  border: 1.5px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .btn-feeling-item.btn-feeling-selected {
-  background-color: #ea580c !important;
+  background-color: var(--brand-accent) !important;
   color: #ffffff !important;
-  border-color: #c2410c !important;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3) !important;
+  border-color: var(--brand-accent) !important;
+  box-shadow: 0 4px 12px var(--brand-accent-glow) !important;
 }
 
 .superset-header-title {
@@ -12849,30 +12885,62 @@ th.sticky-col {
 }
 
 [data-theme="light"] .superset-header-title {
-  color: #5b21b6 !important;
+  color: var(--color-purple-700) !important;
 }
 
 [data-theme="light"] .superset-linked-item {
-  background-color: #f3e8ff !important; /* Sfondo violaceo elegante */
-  border: 1.5px solid #c084fc !important; /* Bordo viola definito */
+  background-color: #f3e8ff !important;
+  border: 1.5px solid #c084fc !important;
   box-shadow: 0 4px 14px rgba(124, 58, 237, 0.12) !important;
 }
 
 [data-theme="light"] .superset-ex-name {
-  color: #3b0764 !important; /* Viola scuro intenso ad altissimo contrasto per il nome dell'esercizio */
+  color: #3b0764 !important;
 }
 
 [data-theme="light"] .superset-ex-sub {
-  color: #6b21a8 !important; /* Viola 800 per la prescrizione */
+  color: #6b21a8 !important;
 }
 
 [data-theme="light"] .prescription-chip-box {
-  background-color: #f8fafc !important;
-  border: 1.5px solid #cbd5e1 !important;
+  background-color: var(--card-bg-soft) !important;
+  border: 1.5px solid var(--card-border) !important;
 }
 
 [data-theme="light"] .prescription-chip-box .text-slate-dark {
-  color: #0f172a !important;
+  color: var(--text-dark) !important;
+}
+
+.custom-prev-ins-field {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .custom-prev-ins-field {
+  background: var(--card-bg-soft) !important;
+  border: 1.5px solid var(--card-border) !important;
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .custom-prev-ins-field:focus {
+  border-color: var(--brand-accent) !important;
+  box-shadow: 0 0 8px var(--brand-accent-glow) !important;
+}
+
+[data-theme="light"] .stepper-input-box {
+  background: var(--card-bg-soft) !important;
+  border: 1.5px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .stepper-input-box input {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .fatica-btn:not(.fatica-btn-active-media):not(.fatica-btn-active-pesante):not(.fatica-btn-active-devastante) {
+  background: var(--card-bg-soft) !important;
+  color: var(--text-dark) !important;
+  border: 1.5px solid var(--card-border) !important;
 }
 
 </style>

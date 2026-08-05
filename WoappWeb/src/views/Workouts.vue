@@ -1822,7 +1822,7 @@
 
         <v-card-text class="pa-4 pt-3" style="max-height: 60vh;">
           <!-- 1. Consistenza Generale -->
-          <div class="metric-pill pa-4 rounded-xl mb-4 text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important;">
+          <div class="metric-pill metric-pill-box pa-4 rounded-xl mb-4 text-center border-soft">
             <div class="d-flex align-center justify-space-between mb-2">
               <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Consistenza Allenamenti</span>
               <span class="text-caption font-weight-black text-green-accent-4">{{ reportProgressioni.percentualeConsistenza }}%</span>
@@ -1837,7 +1837,7 @@
             ></v-progress-linear>
             <div class="d-flex align-center justify-space-around flex-wrap gap-2 text-super-caption text-muted font-weight-bold" style="font-size: 0.62rem;">
               <span v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="px-2 py-0.5 rounded bg-slate-900 border-soft">
-                W{{ w }}: <strong class="text-white">{{ reportProgressioni.consistenzaGiorni[w] }}</strong> giorni
+                W{{ w }}: <strong class="text-slate-dark">{{ reportProgressioni.consistenzaGiorni[w] }}</strong> giorni
               </span>
             </div>
           </div>
@@ -1845,7 +1845,7 @@
           <!-- 2. Feeling e Performance -->
           <v-row dense class="mb-4">
             <v-col cols="6">
-              <div class="metric-pill pa-3 rounded-xl text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important; height: 100%;">
+              <div class="metric-pill metric-pill-box pa-3 rounded-xl text-center border-soft" style="height: 100%;">
                 <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Sensazione Media</span>
                 <span class="text-h6 font-weight-black text-orange-lighten-2 mt-1 d-block">
                   ⭐ {{ reportProgressioni.mediaFeeling || '-' }} <span class="text-caption text-muted">/ 5</span>
@@ -1854,7 +1854,7 @@
               </div>
             </v-col>
             <v-col cols="6">
-              <div class="metric-pill pa-3 rounded-xl text-center border-soft" style="background: rgba(30, 41, 59, 0.3) !important; height: 100%;">
+              <div class="metric-pill metric-pill-box pa-3 rounded-xl text-center border-soft" style="height: 100%;">
                 <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.55rem;">Progressioni Carico</span>
                 <span class="text-h6 font-weight-black text-green-accent-4 mt-1 d-block">
                   📈 {{ reportProgressioni.progressioniCarichi.length }}
@@ -1869,7 +1869,7 @@
             <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Incrementi di Carico Rilevati</span>
           </div>
 
-          <div v-if="reportProgressioni.progressioniCarichi.length === 0" class="text-center py-6 card-glass rounded-xl border-soft" style="background: rgba(30, 41, 59, 0.15) !important;">
+          <div v-if="reportProgressioni.progressioniCarichi.length === 0" class="text-center py-6 card-glass rounded-xl border-soft">
             <v-icon color="grey" size="32">mdi-chart-line-stacked</v-icon>
             <p class="text-caption text-muted mt-2 mb-0">Nessuna progressione registrata tra Week 1 e successive.</p>
           </div>
@@ -1878,8 +1878,7 @@
             <v-card
               v-for="(p, idx) in reportProgressioni.progressioniCarichi"
               :key="idx"
-              class="pa-3 rounded-xl border-soft text-left cursor-pointer clickable-progression-card"
-              style="background: rgba(30, 41, 59, 0.25) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important;"
+              class="progression-card-item pa-3 rounded-xl border-soft text-left cursor-pointer clickable-progression-card"
               flat
               @click="vibraTattile(10); vaiAlDettaglio(p.id); dialogProgressioni = false"
             >
@@ -4293,11 +4292,60 @@ const scaricaReportPDF = () => {
   y = drawTableHeader(y);
 
   // Costruisci lista ordinata: prima le progressioni positive (dal più alto %), poi stabili, poi negativi
-  const parsePeso = (val) => {
+  const isPercVExercise = (ex) => {
+    if (!ex) return false;
+    const flg = String(ex.flg_perc || '');
+    if (flg.includes('V%') || flg.includes('%V') || flg.includes('%')) return true;
+    const desConcat = [ex.des_week1, ex.des_week2, ex.des_week3, ex.des_week4, ex.des_week5, ex.des_week6].join(' ');
+    return desConcat.includes('%') || /\bRPE\b/i.test(desConcat);
+  };
+
+  const parsePeso = (val, ex = null, weekNum = null) => {
+    // 1. Se è specificato un valore numerico diretto nel campo num_insX (es: num_ins6 = 102.5), lo usiamo con massima priorità
+    if (ex && weekNum) {
+      const explicitNumVal = ex['num_ins' + weekNum];
+      if (explicitNumVal !== undefined && explicitNumVal !== null && String(explicitNumVal).trim() !== '') {
+        const num = parseFloat(String(explicitNumVal).replace(',', '.'));
+        if (!isNaN(num) && num > 0) {
+          return num;
+        }
+      }
+    }
+
     if (!val) return 0;
     const clean = String(val).replace(/,/g, '.').trim();
+    
+    // Non consideriamo reps isolate (es: 10r) come peso in kg
     const isRepVal = /^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean);
     if (isRepVal) return 0;
+
+    // Se l'esercizio è a percentuale %V o RPE, oppure la stringa contiene "%" o "RPE", e NON c'è "kg", NON è un peso in kg!
+    const isPercString = /%/i.test(clean) || /\bRPE\b/i.test(clean);
+    const hasExplicitKg = /kg\b/i.test(clean);
+
+    if ((isPercString || (ex && isPercVExercise(ex))) && !hasExplicitKg) {
+      return 0;
+    }
+
+    // Se ci sono più righe nel testo di note (es: "100 x4r\n102,5\n102,5\nTrazioni 30kg x3r"),
+    // analizziamo le righe e filtriamo eventuali commenti/note su altri esercizi
+    const lines = clean.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    for (const line of lines) {
+      if (/\b(?:trazioni|dip|note|massimale|avambraccio|problema|mezze|forse)\b/i.test(line)) {
+        continue;
+      }
+      const matchLineKg = line.match(/^(\d+(?:\.\d+)?)\s*kg\b/i);
+      if (matchLineKg) return parseFloat(matchLineKg[1]);
+
+      const pureNum = parseFloat(line);
+      if (!isNaN(pureNum) && pureNum > 0) return pureNum;
+    }
+
+    const matchKg = clean.match(/(\d+(?:\.\d+)?)\s*kg\b/i);
+    if (matchKg) {
+      return parseFloat(matchKg[1]);
+    }
+
     const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
     const parts = cleanNum.split(/\s+/);
     const num = parseFloat(parts[0]);
@@ -4319,11 +4367,13 @@ const scaricaReportPDF = () => {
     if (!hasAny) return;
     
     const isRep = isRepProgression(ex);
-    const w1Val = isRep ? (estraiRepsDaInput(weekVals[0]) || 0) : parsePeso(weekVals[0]);
+    const isPercV = isPercVExercise(ex);
+
+    const w1Val = isRep ? (estraiRepsDaInput(weekVals[0]) || 0) : parsePeso(weekVals[0], ex, 1);
     let latestVal = 0;
     let latestW = 1;
     for (let w = 6; w >= 1; w--) {
-      const wVal = isRep ? (estraiRepsDaInput(ex['ins_week' + w]) || 0) : parsePeso(ex['ins_week' + w]);
+      const wVal = isRep ? (estraiRepsDaInput(ex['ins_week' + w]) || 0) : parsePeso(ex['ins_week' + w], ex, w);
       if (wVal > 0) {
         latestVal = wVal;
         latestW = w;
@@ -4350,18 +4400,27 @@ const scaricaReportPDF = () => {
       pctText = `${pct}%`;
       progText = `${deltaText} (${pctText})`;
       colorType = 'negative';
+    } else if (isPercV) {
+      // Per gli esercizi %V dove non è inserito un peso diretto in kg
+      deltaText = 'Note %V';
+      pctText = 'In Target';
+      colorType = 'neutral';
     } else if (w1Val === 0 && latestVal > 0) {
       deltaText = `W${latestW}: ${fmtVal(latestVal)}${unit}`;
       pctText = 'N/A';
       colorType = 'neutral';
     }
     
+    const rigaNum = ex.num_riga_giorno || ex.num_ordine || '';
+    const coordStr = `${ex.des_giorno || ''}${rigaNum}`;
+
     righe.push({
       nome: ex.des_esercizio || 'Esercizio',
-      giorno: ex.des_giorno || '-',
-      w1Val, latestVal, latestW, delta, pct, isRep, unit,
+      giorno: coordStr || ex.des_giorno || '-',
+      w1Val, latestVal, latestW, delta, pct, isRep, unit, isPercV,
       deltaText, pctText, colorType,
-      settore: ex.des_settore || ''
+      settore: ex.des_settore || '',
+      exOriginal: ex
     });
   });
   
@@ -4423,13 +4482,33 @@ const scaricaReportPDF = () => {
     doc.setTextColor(100, 116, 139);
     doc.text(String(r.giorno), colX.giorno + 1, textY);
     
-    // W1
-    doc.setTextColor(51, 65, 85);
-    const w1Str = r.w1Val > 0 ? `${fmtVal(r.w1Val)}${r.unit}` : '-';
+    // W1: Priorità a quello che ha scritto l'atleta (ins_week1)
+    let w1Str = '-';
+    const insW1Clean = String(r.exOriginal?.ins_week1 || '').trim();
+    if (insW1Clean) {
+      const firstLineW1 = insW1Clean.split(/\r?\n/)[0];
+      w1Str = firstLineW1.slice(0, 16);
+    } else if (r.w1Val > 0) {
+      w1Str = `${fmtVal(r.w1Val)}${r.unit}`;
+    } else if (r.exOriginal?.des_week1) {
+      w1Str = String(r.exOriginal.des_week1).slice(0, 16);
+    }
     doc.text(w1Str, colX.w1 + 1, textY);
     
-    // Ultimo valore
-    const lastStr = r.latestVal > 0 ? `${fmtVal(r.latestVal)}${r.unit} (W${r.latestW})` : '-';
+    // Ultimo valore: Priorità a quello che ha scritto l'atleta (ins_weekX)
+    let lastStr = '-';
+    const lastWNum = r.latestW || 6;
+    const insLastClean = String(r.exOriginal?.['ins_week' + lastWNum] || r.exOriginal?.ins_week6 || '').trim();
+    
+    if (insLastClean) {
+      const firstLineLast = insLastClean.split(/\r?\n/)[0];
+      lastStr = `${firstLineLast.slice(0, 14)} (W${lastWNum})`;
+    } else if (r.latestVal > 0) {
+      lastStr = `${fmtVal(r.latestVal)}${r.unit} (W${lastWNum})`;
+    } else if (r.exOriginal?.['des_week' + lastWNum] || r.exOriginal?.des_week6) {
+      const desVal = r.exOriginal?.['des_week' + lastWNum] || r.exOriginal?.des_week6;
+      lastStr = `${String(desVal).slice(0, 14)} (W${lastWNum})`;
+    }
     doc.text(lastStr, colX.ultimo + 1, textY);
     
     // Delta e %
@@ -4479,80 +4558,106 @@ const scaricaReportPDF = () => {
   
   // ── A. Valutazione globale ──
   if (percProgressioni >= 70) {
-    consigli.push({ icon: '🟢', title: 'Progressione eccellente', text: `Il ${percProgressioni}% degli esercizi ha registrato un aumento di carico. Il mesociclo è stato altamente produttivo. Nel prossimo mesociclo si può spingere ulteriormente con un leggero aumento di volume o intensità.` });
+    consigli.push({ type: 'positive', title: 'Progressione eccellente', text: `Il ${percProgressioni}% degli esercizi ha registrato un aumento di carico. Il mesociclo e' stato altamente produttivo. Nel prossimo mesociclo si puo' spingere ulteriormente con un leggero aumento di volume o intensita'.` });
   } else if (percProgressioni >= 40) {
-    consigli.push({ icon: '🟡', title: 'Progressione nella media', text: `Il ${percProgressioni}% degli esercizi ha progredito. È un risultato solido ma con margine di miglioramento. Valutare se gli esercizi rimasti stabili necessitano di varianti tecniche o progressione di volume (più serie o più reps).` });
+    consigli.push({ type: 'warning', title: 'Progressione nella media', text: `Il ${percProgressioni}% degli esercizi ha progredito. E' un risultato solido ma con margine di miglioramento. Valutare se gli esercizi rimasti stabili necessitano di varianti tecniche o progressione di volume.` });
   } else if (percProgressioni > 0) {
-    consigli.push({ icon: '🟠', title: 'Progressione limitata', text: `Solo il ${percProgressioni}% degli esercizi ha progredito. Verificare se il volume di allenamento è adeguato, se ci sono problemi di recupero, o se gli esercizi scelti sono diventati inefficienti e vanno sostituiti.` });
+    consigli.push({ type: 'moderate', title: 'Progressione limitata', text: `Solo il ${percProgressioni}% degli esercizi ha progredito. Verificare se il volume di allenamento e' adeguato o se gli esercizi scelti sono diventati inefficienti e vanno sostituiti.` });
   } else {
-    consigli.push({ icon: '🔴', title: 'Nessuna progressione rilevata', text: `Nessun esercizio ha registrato progressioni significative. È necessario rivedere la programmazione: considerare un cambio di stimolo, una riduzione del volume totale per favorire il recupero, o un riallineamento della selezione degli esercizi.` });
+    consigli.push({ type: 'negative', title: 'Nessuna progressione rilevata', text: `Nessun esercizio ha registrato progressioni significative. E' necessario rivedere la programmazione: considerare un cambio di stimolo o una riduzione del volume per favorire il recupero.` });
   }
   
-  // ── B. Consistenza ──
+  // ── B. Analisi Esercizi a Percentuale / %V (Massimale Teorico & Scostamento Sforzo) ──
+  items.forEach(ex => {
+    if (isPercVExercise(ex)) {
+      const w6Weight = parsePeso(ex.ins_week6, ex);
+      const w6Reps = estraiRepsDaInput(ex.ins_week6) || 8;
+      const w1Weight = parsePeso(ex.ins_week1, ex);
+      const w1Reps = estraiRepsDaInput(ex.ins_week1) || 8;
+
+      if (w6Weight > 0 && w1Weight > 0) {
+        const rm1_W1 = Math.round(w1Weight * (1 + w1Reps / 30));
+        const rm1_W6 = Math.round(w6Weight * (1 + w6Reps / 30));
+        if (rm1_W6 > rm1_W1) {
+          consigli.push({
+            type: 'positive',
+            title: `Massimale teorico superato (${ex.des_esercizio || 'Esercizio %V'})`,
+            text: `1RM stimato W1: ${rm1_W1} kg -> 1RM effettivo raggiunto in W6: ${rm1_W6} kg (+${rm1_W6 - rm1_W1} kg). Il massimale teorico target e' stato felicemente superato.`
+          });
+        }
+      }
+      
+      if (ex.num_faticaw6 === 'Devastante') {
+        consigli.push({
+          type: 'warning',
+          title: `Scostamento sforzo target (${ex.des_esercizio || 'Esercizio %V'})`,
+          text: `In W6 la percezione dello sforzo per ${ex.des_esercizio} e' risultata "Devastante". E' presente uno scostamento di carico rispetto all'intensita' target prevista dal coach.`
+        });
+      }
+    }
+  });
+
+  // ── C. Consistenza ──
   if (consistenza < 60) {
-    consigli.push({ icon: '⚠️', title: 'Bassa consistenza di allenamento', text: `Con una consistenza del ${consistenza}%, la frequenza di allenamento è stata insufficiente. Nessuna programmazione è efficace senza aderenza. Nel prossimo mesociclo: ridurre il numero di giorni se necessario, o rivedere la gestione del tempo dell'atleta.` });
+    consigli.push({ type: 'negative', title: 'Bassa consistenza di allenamento', text: `Con una consistenza del ${consistenza}%, la frequenza di allenamento e' stata insufficiente. Nessuna programmazione e' efficace senza aderenza. Ridurre i giorni di allenamento o riorganizzare i tempi.` });
   } else if (consistenza < 85) {
-    consigli.push({ icon: '💡', title: 'Consistenza migliorabile', text: `Consistenza al ${consistenza}%. Alcune settimane sono state incomplete. Verificare se ci sono stati impedimenti logistici o se il carico di lavoro è eccessivo rispetto agli impegni dell'atleta.` });
+    consigli.push({ type: 'warning', title: 'Consistenza migliorabile', text: `Consistenza al ${consistenza}%. Alcune settimane sono state incomplete. Verificare se il carico di lavoro e' eccessivo rispetto agli impegni dell'atleta.` });
   }
   
-  // ── C. Feeling ──
+  // ── D. Feeling ──
   if (feeling > 0 && feeling <= 2.5) {
-    consigli.push({ icon: '😓', title: 'Feeling basso', text: `Il feeling medio di ${feeling}/5 indica che l'atleta non si è trovato bene con gli esercizi. Valutare sostituzioni o adattamenti tecnici. Un feeling negativo prolungato limita la motivazione e la performance.` });
+    consigli.push({ type: 'negative', title: 'Feeling basso', text: `Il feeling medio di ${feeling}/5 indica che l'atleta non si e' trovato bene con gli esercizi. Valutare sostituzioni o adattamenti tecnici per ripristinare la motivazione.` });
   } else if (feeling > 4) {
-    consigli.push({ icon: '🔥', title: 'Feeling ottimo', text: `Il feeling medio di ${feeling}/5 indica grande confidenza e piacevolezza. Questi esercizi funzionano bene e vanno mantenuti nella prossima scheda dove possibile.` });
+    consigli.push({ type: 'positive', title: 'Feeling ottimo', text: `Il feeling medio di ${feeling}/5 indica grande confidenza e piacevolezza. Questi esercizi funzionano bene e vanno mantenuti nella prossima scheda dove possibile.` });
   }
   
-  // ── D. Esercizi top (da mantenere) ──
+  // ── E. Esercizi top (da mantenere) ──
   if (positivi.length > 0) {
     const topN = positivi.slice(0, 3);
     const topNames = topN.map(r => `${r.nome} (${r.deltaText})`).join(', ');
-    consigli.push({ icon: '⭐', title: 'Esercizi da mantenere', text: `I migliori progressi: ${topNames}. Questi esercizi stanno rispondendo bene e andrebbero confermati nel prossimo mesociclo, eventualmente con un incremento graduale.` });
+    consigli.push({ type: 'positive', title: 'Esercizi da mantenere', text: `I migliori progressi: ${topNames}. Questi esercizi stanno rispondendo bene e andrebbero confermati nel prossimo mesociclo.` });
   }
   
-  // ── E. Esercizi in stallo (da variare) ──
+  // ── F. Esercizi in stallo (da variare) ──
   if (stabili.length > 0) {
     const stallNames = stabili.slice(0, 3).map(r => r.nome).join(', ');
-    consigli.push({ icon: '🔄', title: 'Esercizi in stallo', text: `Esercizi senza variazioni: ${stallNames}. Valutare: cambio variante (angolo, impugnatura), incremento di volume (serie aggiuntiva), o sostituzione con un esercizio simile per fornire un nuovo stimolo.` });
+    consigli.push({ type: 'warning', title: 'Esercizi in stallo', text: `Esercizi senza variazioni: ${stallNames}. Valutare: cambio variante, incremento di volume (serie o reps aggiuntive), o sostituzione con un esercizio simile.` });
   }
   
-  // ── F. Esercizi in calo (attenzione) ──
+  // ── G. Esercizi in calo (attenzione) ──
   if (negativi.length > 0) {
     const negNames = negativi.slice(0, 3).map(r => `${r.nome} (${r.deltaText})`).join(', ');
-    consigli.push({ icon: '📉', title: 'Esercizi in calo', text: `Attenzione ai seguenti esercizi in regressione: ${negNames}. Possibili cause: volume eccessivo, fatica accumulata, o tecnica inadeguata. Considerare un deload più lungo, ridurre il volume, o sostituire la variante.` });
+    consigli.push({ type: 'negative', title: 'Esercizi in calo', text: `Attenzione ai seguenti esercizi in regressione: ${negNames}. Possibili cause: volume eccessivo, fatica accumulata, o tecnica inadeguata. Considerare un deload piu' lungo o sostituire la variante.` });
   }
   
-  // ── G. Sforzo W6 ──
-  const totFatiche = fatiche.Media + fatiche.Pesante + fatiche.Devastante;
-  if (totFatiche > 0) {
-    const pctDevastante = Math.round((fatiche.Devastante / totFatiche) * 100);
-    if (pctDevastante > 50) {
-      consigli.push({ icon: '🏋️', title: 'Troppo sforzo in W6', text: `Il ${pctDevastante}% degli esercizi in W6 è stato valutato "Devastante". L'atleta potrebbe aver raggiunto livelli di fatica troppo elevati. Nel prossimo mesociclo: partire con volumi leggermente inferiori per consentire una progressione più graduale.` });
-    } else if (fatiche.Devastante === 0 && fatiche.Pesante <= fatiche.Media) {
-      consigli.push({ icon: '📊', title: 'Intensità gestibile', text: `L'atleta non ha riportato sforzi devastanti e la maggior parte sono stati "Media". Nel prossimo mesociclo si può incrementare il volume o l'intensità per spingere verso un adattamento superiore.` });
-    }
-  }
-  
-  // Disegna i consigli
+  // Disegna i consigli con bullet vettoriali colorati (senza caratteri emoji corrotti)
   doc.setFontSize(8.5);
   consigli.forEach(c => {
     y = checkPageBreak(y, 18);
     
-    // Titolo consiglio
+    let dotColor = [37, 99, 235];
+    if (c.type === 'positive') dotColor = [16, 185, 129];
+    else if (c.type === 'negative') dotColor = [239, 68, 68];
+    else if (c.type === 'warning') dotColor = [245, 158, 11];
+    else if (c.type === 'moderate') dotColor = [217, 119, 6];
+
+    doc.setFillColor(dotColor[0], dotColor[1], dotColor[2]);
+    doc.circle(marginL + 2, y - 1, 1.2, 'F');
+
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 41, 59);
-    doc.text(`${c.icon}  ${c.title}`, marginL, y);
+    doc.text(c.title, marginL + 5, y);
     y += 4;
     
-    // Testo consiglio (con wrap)
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(71, 85, 105);
-    const lines = doc.splitTextToSize(c.text, contentW - 4);
+    const lines = doc.splitTextToSize(c.text, contentW - 5);
     lines.forEach(line => {
-      y = checkPageBreak(y, 5);
-      doc.text(line, marginL + 2, y);
-      y += 3.5;
+      y = checkPageBreak(y, 4);
+      doc.text(line, marginL + 5, y);
+      y += 3.8;
     });
-    y += 3;
+    y += 2.5;
   });
   
   // ═══════════════════════════════════════

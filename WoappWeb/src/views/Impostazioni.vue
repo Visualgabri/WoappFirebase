@@ -97,8 +97,44 @@
             <v-icon class="mr-1.5" size="18">mdi-white-balance-sunny</v-icon> Tema Chiaro Arctic
           </v-btn>
         </v-btn-toggle>
-        <div class="text-super-caption text-muted font-italic leading-tight">
+        <div class="text-super-caption text-muted font-italic leading-tight mb-3">
           * {{ selectedTheme === 'light' ? 'Tema Chiaro Arctic: interfaccia ad alta visibilità con superfici chiare, bagliori soffici e testo scuro nitido.' : 'Tema Scuro OLED: interfaccia scura con contrasto OLED, sfumature neon e vetro satinato.' }}
+        </div>
+
+        <!-- Selettore Variante Tema Chiaro -->
+        <div v-if="selectedTheme === 'light'" class="mt-3 pt-2 border-top-soft">
+          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">✨ Variante Stile Tema Chiaro</span>
+          <v-btn-toggle
+            v-model="selectedLightStyle"
+            mandatory
+            selected-class="bg-orange-darken-3 text-white"
+            density="comfortable"
+            rounded="xl"
+            class="w-100 card-glass border mb-2"
+            style="height: 38px;"
+            @update:model-value="cambiaStileChiaroDaImpostazioni"
+          >
+            <v-btn value="slate" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
+              1. Slate Amber
+            </v-btn>
+            <v-btn value="chalk" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
+              2. Chalk Cobalt
+            </v-btn>
+            <v-btn value="sand" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
+              3. Warm Sand
+            </v-btn>
+          </v-btn-toggle>
+          <div class="text-super-caption text-muted font-italic leading-tight">
+            <template v-if="selectedLightStyle === 'slate'">
+              * Slate & Amber (Opzione 1): Grafite freddo, superfici Slate 50/100 ed accenti ambrati bilanciati.
+            </template>
+            <template v-else-if="selectedLightStyle === 'chalk'">
+              * Chalk & Cobalt (Opzione 2): Bianco gesso iper-definito con accenti cobalto ed arancio elettrico.
+            </template>
+            <template v-else>
+              * Warm Sand & Ochre (Opzione 3): Sfondo sabbia calda con tonalità rame e sensazione luxury.
+            </template>
+          </div>
         </div>
       </div>
     </v-card>
@@ -860,19 +896,30 @@ import {
   inviaNotificaDeploy,
   ORDINE_ORIGINALE_ATLETI,
   currentTheme,
-  setTheme
+  setTheme,
+  currentLightStyle,
+  setLightStyle
 } from '../authStore.js';
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
 const selectedTheme = ref(currentTheme.value);
+const selectedLightStyle = ref(currentLightStyle.value);
 
 watch(currentTheme, (val) => {
   selectedTheme.value = val;
 });
 
+watch(currentLightStyle, (val) => {
+  selectedLightStyle.value = val;
+});
+
 const cambiaTemaDaImpostazioni = (newVal) => {
   setTheme(newVal, vuetifyTheme);
+};
+
+const cambiaStileChiaroDaImpostazioni = (newVal) => {
+  setLightStyle(newVal);
 };
 
 // Modulo Coach Deploy Notifica
@@ -1321,17 +1368,17 @@ const formattaDataEsportazione = (isoString) => {
 
 :deep([data-theme="light"]) .text-slate-dark,
 [data-theme="light"] .text-slate-dark {
-  color: #0f172a !important;
+  color: var(--text-dark) !important;
 }
 
 :deep([data-theme="light"]) .text-slate,
 [data-theme="light"] .text-slate {
-  color: #334155 !important;
+  color: var(--text-slate) !important;
 }
 
 :deep([data-theme="light"]) .text-muted,
 [data-theme="light"] .text-muted {
-  color: #475569 !important;
+  color: var(--text-muted) !important;
 }
 
 .text-super-caption {

@@ -39,7 +39,7 @@
             <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.82rem !important;">
               Attenzione: Esercizi Mancanti!
             </h4>
-            <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: #e2e8f0 !important;">
+            <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: var(--text-slate) !important;">
               C'è un buco nell'ordine degli esercizi per il <strong>Giorno {{ workout.des_giorno }}</strong>.
               Manca{{ eserciziMancantiSessione.length === 1 ? ' l\'esercizio alla posizione' : 'no gli esercizi alle posizioni' }}:
               <span class="text-red-lighten-2 font-weight-black">{{ eserciziMancantiSessione.join(', ') }}</span>.
@@ -1349,15 +1349,15 @@ watch(() => route.params.id, (nuovoId) => {
 }
 
 .text-slate-dark {
-  color: #f8fafc !important;
+  color: var(--text-dark) !important;
 }
 
 .text-slate {
-  color: #cbd5e1 !important;
+  color: var(--text-slate) !important;
 }
 
 .text-muted {
-  color: #94a3b8 !important;
+  color: var(--text-muted) !important;
 }
 
 .uppercase {
@@ -1365,25 +1365,111 @@ watch(() => route.params.id, (nuovoId) => {
 }
 
 .border-top-soft {
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-top: 1px solid var(--card-border) !important;
 }
 
 .border-bottom-soft {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid var(--card-border) !important;
 }
 
 .border-left-soft {
-  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-left: 1px solid var(--card-border) !important;
+}
+
+/* Light Mode Specific Overrides per Sessione.vue */
+[data-theme="light"] .text-slate-dark {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .text-slate {
+  color: var(--text-slate) !important;
+}
+
+[data-theme="light"] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .week-expandable-card {
+  background: var(--card-bg-glass) !important;
+  border-color: var(--card-border) !important;
+}
+
+[data-theme="light"] .week-expandable-card.card-expanded {
+  background: var(--card-bg-glass) !important;
+  border-color: var(--brand-accent) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+[data-theme="light"] .btn-quick-log {
+  background: var(--card-bg-soft) !important;
+  border: 1.5px solid var(--brand-accent) !important;
+  color: var(--brand-accent) !important;
+}
+
+[data-theme="light"] .btn-quick-log:hover {
+  background: var(--brand-accent-bg) !important;
+}
+
+[data-theme="light"] .btn-quick-log:disabled,
+[data-theme="light"] .btn-quick-log.v-btn--disabled {
+  background: var(--card-bg-soft) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-muted) !important;
+  opacity: 0.6 !important;
+}
+
+[data-theme="light"] .btn-logged-success {
+  background: #f0fdf4 !important;
+  border: 1.5px solid #86efac !important;
+  color: #15803d !important;
+}
+
+[data-theme="light"] .notes-field-spacious :deep(.v-field) {
+  background: var(--card-bg-glass) !important;
+  border: 1.5px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .notes-field-spacious :deep(.v-field--focused) {
+  border-color: var(--brand-accent) !important;
+  box-shadow: 0 0 8px var(--brand-accent-glow) !important;
+}
+
+[data-theme="light"] .notes-field-spacious :deep(textarea),
+[data-theme="light"] .notes-field-spacious :deep(input),
+[data-theme="light"] .notes-field-spacious :deep(.v-label) {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .manual-toggle {
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .manual-toggle:hover {
+  background: var(--card-border) !important;
+}
+
+[data-theme="light"] .manual-toggle span {
+  color: var(--text-slate) !important;
+}
+
+[data-theme="light"] .manual-datetime-field :deep(.v-field) {
+  background: var(--card-bg-glass) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .manual-datetime-field :deep(input) {
+  color: var(--text-dark) !important;
 }
 
 .premium-card {
   background: var(--card-bg-glass) !important;
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
 }
 
 .compact-header-card {
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 .card-glass {
@@ -1396,7 +1482,6 @@ watch(() => route.params.id, (nuovoId) => {
 }
 
 /* Focused Week Card */
-
 
 .btn-quick-log {
   height: 44px !important;
@@ -1424,21 +1509,21 @@ watch(() => route.params.id, (nuovoId) => {
 }
 
 .notes-field-spacious {
-  background: rgba(0, 0, 0, 0.2) !important;
+  background: var(--card-bg-soft) !important;
 }
 
 .manual-toggle {
-  background: rgba(30, 41, 59, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-soft);
+  border: 1px solid var(--card-border);
   transition: background 0.2s ease;
 }
 
 .manual-toggle:hover {
-  background: rgba(30, 41, 59, 0.5);
+  background: var(--card-bg-soft);
 }
 
 .border-soft {
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--card-border) !important;
 }
 
 .bg-slate-900-op {

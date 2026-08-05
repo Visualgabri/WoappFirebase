@@ -536,7 +536,7 @@
     <!-- HERO SHEET / BANNER DEPLOY & MESSAGGI REAL-TIME (Glassmorphism Premium UX) -->
     <v-dialog v-model="showDeployBanner" max-width="520" rounded="2xl" persistent>
       <v-card
-        class="pa-5 rounded-2xl border text-left overflow-hidden position-relative animate-fade-in"
+        class="pa-5 rounded-2xl border text-left overflow-hidden position-relative animate-fade-in update-modal-card"
         :style="{
           background: deployVersionInfo?.tipo === 'messaggio' 
             ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.98) 100%) !important'
@@ -557,7 +557,7 @@
               {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch' }}
             </v-icon>
           </v-avatar>
-          <h2 class="text-subtitle-2 font-weight-bold text-slate-light mb-0" style="font-size: 0.95rem; line-height: 1.2; opacity: 0.9;">
+          <h2 class="text-subtitle-2 font-weight-bold text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; opacity: 0.9; color: #ffffff !important;">
             {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento Disponibile!') }}
           </h2>
         </div>

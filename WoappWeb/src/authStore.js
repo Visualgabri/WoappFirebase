@@ -20,6 +20,18 @@ export const loadingAuth = ref(false); // Immediatamente pronto nel sistema pass
 
 // Stato del tema utente (scuro di default, 'light' o 'dark')
 export const currentTheme = ref(localStorage.getItem('userTheme') || 'dark');
+export const currentLightStyle = ref(localStorage.getItem('userLightStyle') || 'slate');
+
+export const setLightStyle = (styleName) => {
+  const targetStyle = (styleName === 'chalk' || styleName === 'sand') ? styleName : 'slate';
+  currentLightStyle.value = targetStyle;
+  localStorage.setItem('userLightStyle', targetStyle);
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-light-style', targetStyle);
+    document.body.setAttribute('data-light-style', targetStyle);
+  }
+};
 
 export const setTheme = (themeName, vuetifyInstance = null) => {
   const targetTheme = (themeName === 'light') ? 'light' : 'dark';
@@ -29,12 +41,24 @@ export const setTheme = (themeName, vuetifyInstance = null) => {
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme', targetTheme);
     document.body.setAttribute('data-theme', targetTheme);
+    document.documentElement.setAttribute('data-light-style', currentLightStyle.value);
+    document.body.setAttribute('data-light-style', currentLightStyle.value);
   }
 
   if (vuetifyInstance && vuetifyInstance.theme && vuetifyInstance.theme.global) {
     vuetifyInstance.theme.global.name.value = targetTheme;
   }
 };
+
+// Inizializza data-theme e data-light-style al caricamento dello script
+if (typeof document !== 'undefined') {
+  const initTheme = localStorage.getItem('userTheme') || 'dark';
+  const initStyle = localStorage.getItem('userLightStyle') || 'slate';
+  document.documentElement.setAttribute('data-theme', initTheme);
+  document.body.setAttribute('data-theme', initTheme);
+  document.documentElement.setAttribute('data-light-style', initStyle);
+  document.body.setAttribute('data-light-style', initStyle);
+}
 
 // Stato di selezione globale Atleta e Scheda (in stile AppSheet)
 export const selectedAthlete = ref(localStorage.getItem('selectedAthlete') || '');

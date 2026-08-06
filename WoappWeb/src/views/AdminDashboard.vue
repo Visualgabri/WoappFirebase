@@ -1492,7 +1492,9 @@ import {
   deallenamentoPct3Global,
   deallenamentoPct4Global,
   penalitaMaxInstabiliPctGlobal,
-  penalitaMaxStabiliPctGlobal
+  penalitaMaxStabiliPctGlobal,
+  impostaNomeAtletaDinamico,
+  caricaNomiAtletiDinamici
 } from '../authStore.js';
 
 // Local mappings for global settings
@@ -1639,6 +1641,7 @@ onMounted(async () => {
     if (docSnap.exists()) {
       listaAtleti.value = docSnap.data().lista || [];
     }
+    await caricaNomiAtletiDinamici();
   } catch (err) {
     console.error("Errore lettura METADATA clienti:", err);
   }
@@ -1652,13 +1655,13 @@ onMounted(async () => {
 
 // Watcher per allineare l'atleta e la scheda selezionati localmente con lo stato globale
 watch(atletaSelezionato, (newVal) => {
-  if (newVal && newVal !== selectedAthlete.value) {
+  if (newVal) {
     setSelectedAthlete(newVal);
   }
 });
 
 watch(schedaSelezionata, (newVal) => {
-  if (newVal && newVal !== selectedSheet.value) {
+  if (newVal) {
     setSelectedSheet(newVal);
   }
 });
@@ -1727,13 +1730,17 @@ const caricaWorkoutT = async () => {
     let localIdCounter = 1;
     
     snap.forEach(doc => {
+      const data = doc.data();
+      if (data.NomeCognomeTM) {
+        impostaNomeAtletaDinamico(atletaSelezionato.value, data.NomeCognomeTM);
+      }
       temp.push({
         dbId: doc.id,
         localId: localIdCounter++,
         isDirty: false,
         isNew: false,
         isDeleted: false,
-        ...doc.data()
+        ...data
       });
     });
     

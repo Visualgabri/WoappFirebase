@@ -1043,7 +1043,10 @@ import {
   loadingStoryboard, 
   layoutEserciziGlobal,
   ORDINE_ORIGINALE_ATLETI,
-  getStoryboardBackup
+  getStoryboardBackup,
+  MAPPA_CLIENTI_DINAMICI,
+  impostaNomeAtletaDinamico,
+  caricaNomiAtletiDinamici
 } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
@@ -1213,13 +1216,22 @@ const reportProgressioni = computed(() => {
 });
 
 // Dati dinamici scheda
-const nomeAtleta = ref(getNomeAtleta(selectedAthlete.value).toUpperCase() || '');
+const nomeAtleta = ref('');
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
 const giornoAttivo = ref(localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'C');
 const dataInizio = ref('18 mag 26');
 const dataFine = ref('28 giu 26');
 const descrizioneMesociclo = ref('');
 const workoutTData = ref(null);
+
+watch([selectedAthlete, MAPPA_CLIENTI_DINAMICI], () => {
+  const n = getNomeAtleta(selectedAthlete.value);
+  if (n) {
+    nomeAtleta.value = n.toUpperCase();
+  } else if (selectedAthlete.value) {
+    nomeAtleta.value = `ATLETA ID: ${selectedAthlete.value}`;
+  }
+}, { immediate: true });
 
 // Funzione per rimappare gli URL delle GIF dal dominio vecchio a GitHub Pages
 const getGifUrl = (url) => {
@@ -2363,6 +2375,7 @@ const caricaDatiAtleti = async () => {
     if (docSnap.exists()) {
       listaAtleti.value = docSnap.data().lista || [];
     }
+    await caricaNomiAtletiDinamici();
   } catch (error) {
     console.error("Errore caricamento lista atleti in Home:", error);
   }
@@ -2380,11 +2393,20 @@ const caricaWorkouts = async () => {
     const athleteIdNum = Number(athleteIdStr);
 
     let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr)));
-    let tempDocs = snap.docs.map(d => d.data());
+    let tempDocs = snap.docs.map(d => {
+      const data = d.data();
+      if (data.NomeCognomeTM) {
+        impostaNomeAtletaDinamico(athleteIdStr, data.NomeCognomeTM);
+      }
+      return data;
+    });
 
     let snapNum = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
     snapNum.forEach(d => {
       const data = d.data();
+      if (data.NomeCognomeTM) {
+        impostaNomeAtletaDinamico(athleteIdStr, data.NomeCognomeTM);
+      }
       if (!tempDocs.some(x => String(x.num_scheda) === String(data.num_scheda))) {
         tempDocs.push(data);
       }

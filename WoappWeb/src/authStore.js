@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue';
-import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from './firebase.js';
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
@@ -542,14 +542,65 @@ export const MAPPA_CLIENTI = {
   '314': { nome: 'Matteo', cognome: 'Delle Fate', email: 'matteodellefate@gmail.com', scheda: 1, vista: false, obsoleto: false }
 };
 
+// Mappa dinamica per i nuovi clienti caricati su Firestore che non sono in MAPPA_CLIENTI statica
+export const MAPPA_CLIENTI_DINAMICI = ref(JSON.parse(localStorage.getItem('mappa_clienti_dinamici') || '{}'));
+
+export const impostaNomeAtletaDinamico = (id, nome) => {
+  const cleanId = String(id || '').trim();
+  const cleanNome = String(nome || '').trim();
+  if (!cleanId || !cleanNome) return;
+  
+  if (MAPPA_CLIENTI_DINAMICI.value[cleanId] !== cleanNome) {
+    const nuovaMappa = { ...MAPPA_CLIENTI_DINAMICI.value, [cleanId]: cleanNome };
+    MAPPA_CLIENTI_DINAMICI.value = nuovaMappa;
+    localStorage.setItem('mappa_clienti_dinamici', JSON.stringify(nuovaMappa));
+  }
+};
+
 export const getNomeAtleta = (id) => {
   const cleanId = String(id || '').trim();
+  if (!cleanId) return '';
+  
   const c = MAPPA_CLIENTI[cleanId];
-  if (c) {
-    return `${c.nome} ${c.cognome}`;
+  if (c && c.nome) {
+    return `${c.nome} ${c.cognome || ''}`.trim();
   }
+  
+  if (MAPPA_CLIENTI_DINAMICI.value[cleanId]) {
+    return MAPPA_CLIENTI_DINAMICI.value[cleanId];
+  }
+
   return '';
 };
+
+export const caricaNomiAtletiDinamici = async () => {
+  try {
+    const q = query(collection(db, 'WORKOUT_T'));
+    const snap = await getDocs(q);
+    const mappa = { ...MAPPA_CLIENTI_DINAMICI.value };
+    let haCambiamenti = false;
+
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = String(data.ID_cliente || '').trim();
+      const nome = (data.NomeCognomeTM || data.des_nome_cognome || data.des_atleta || '').trim();
+      if (id && nome && mappa[id] !== nome) {
+        mappa[id] = nome;
+        haCambiamenti = true;
+      }
+    });
+
+    if (haCambiamenti) {
+      MAPPA_CLIENTI_DINAMICI.value = mappa;
+      localStorage.setItem('mappa_clienti_dinamici', JSON.stringify(mappa));
+    }
+  } catch (err) {
+    console.error("Errore caricamento nomi atleti dinamici:", err);
+  }
+};
+
+// Avvia subito il caricamento dei nomi atleti da WORKOUT_T in background
+caricaNomiAtletiDinamici();
 
 export const getEmailAtleta = (id) => {
   const cleanId = String(id || '').trim();

@@ -192,16 +192,13 @@
             class="py-3 px-4 mb-4 text-left border card-glass animate-pulse"
             style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)) !important; border: 1.5px solid rgba(239, 68, 68, 0.4) !important; border-radius: 16px !important;"
           >
-            <div class="d-flex align-center">
-              <v-icon color="red-lighten-2" class="mr-3 flex-shrink-0" size="28">mdi-alert-decagram</v-icon>
-              <div>
-                <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.85rem !important;">
-                  Programma in elaborazione
-                </h4>
-                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: var(--text-slate) !important;">
-                  Questo programma di allenamento <strong>non è ancora definitivo</strong>. Il coach sta lavorando per ultimare la scheda.
-                </p>
-              </div>
+            <div>
+              <h4 class="text-subtitle-2 font-weight-black text-red-lighten-2 mb-0.5" style="font-size: 0.85rem !important;">
+                Programma in elaborazione
+              </h4>
+              <p class="text-slate font-weight-medium mb-0" style="font-size: 0.72rem; line-height: 1.35; color: var(--text-slate) !important;">
+                Questo programma di allenamento <strong>non è ancora definitivo</strong>. Il coach sta lavorando per ultimare la scheda.
+              </p>
             </div>
           </v-card>
 
@@ -211,26 +208,23 @@
             class="pa-4 mb-4 text-left border rounded-2xl elevation-3 card-glass"
             style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; border: 1.5px solid rgba(249, 115, 22, 0.4) !important; border-radius: 16px !important;"
           >
-            <div class="d-flex align-start">
-              <v-icon color="orange-lighten-1" class="mr-3 mt-0.5 flex-shrink-0 animate-pulse" size="24">mdi-message-alert</v-icon>
-              <div class="flex-grow-1">
-                <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important; line-height: 1.25;">
-                  ⚠️ Tempo di preparare il prossimo programma!
-                </h4>
-                <p class="text-slate font-weight-medium mb-0" style="font-size: 0.75rem; line-height: 1.45; color: var(--text-slate) !important;">
-                  Hai superato la metà della 5° settimana di allenamento. Contatta il Coach Gabriele per fargli sapere come sta andando e permettergli di preparare la tua prossima scheda in tempo!
-                </p>
-                <v-btn
-                  color="orange-darken-3"
-                  size="small"
-                  class="font-weight-black text-none text-white rounded-lg px-3"
-                  prepend-icon="mdi-whatsapp"
-                  @click="contattaCoachWhatsApp"
-                  style="height: 32px; font-size: 0.75rem;"
-                >
-                  Avvisa il Coach
-                </v-btn>
-              </div>
+            <div>
+              <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important; line-height: 1.25;">
+                Tempo di preparare il prossimo programma!
+              </h4>
+              <p class="text-slate font-weight-medium mb-2" style="font-size: 0.75rem; line-height: 1.45; color: var(--text-slate) !important;">
+                Hai superato la metà della 5° settimana di allenamento. Contatta il Coach Gabriele per fargli sapere come sta andando e permettergli di preparare la tua prossima scheda in tempo!
+              </p>
+              <v-btn
+                color="orange-darken-3"
+                size="small"
+                class="font-weight-black text-none text-white rounded-lg px-3"
+                prepend-icon="mdi-whatsapp"
+                @click="contattaCoachWhatsApp"
+                style="height: 32px; font-size: 0.75rem;"
+              >
+                Avvisa il Coach
+              </v-btn>
             </div>
           </v-card>
 
@@ -241,20 +235,10 @@
           >
             <div class="glowing-accent"></div>
             
-            <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-2">
+            <div class="mb-4">
               <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase tracking-widest" style="font-size: 0.6rem;">
                 Riepilogo Scheda Attiva
               </span>
-              <v-chip
-                v-if="workoutTData"
-                color="orange-darken-3"
-                size="x-small"
-                variant="flat"
-                class="font-weight-black px-2 py-0.5 text-white"
-                style="height: 18px; font-size: 0.55rem;"
-              >
-                {{ workoutTData.cod_tipo_avanz_scheda || 'STANDARD' }}
-              </v-chip>
             </div>
 
             <!-- Calendario & Allineamento Tempi -->
@@ -281,7 +265,7 @@
               </v-row>
 
               <!-- Giorni alla Scadenza -->
-              <div v-if="giorniAllaScadenza !== null" class="mt-2.5 pt-2.5 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
+              <div v-if="giorniAllaScadenza !== null" class="mt-3.5 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
                 <span class="text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.65rem;">Tempo alla scadenza:</span>
                 <v-chip
                   :color="giorniAllaScadenza < 0 ? 'red-darken-3' : (giorniAllaScadenza <= 7 ? 'orange-darken-3' : 'green-darken-3')"
@@ -298,7 +282,7 @@
               </div>
               
               <!-- Allineamento Programma -->
-              <div v-if="allineamentoProgramma" class="mt-2.5 pt-2.5 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2 mb-1">
+              <div v-if="allineamentoProgramma" class="mt-3.5 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2 mb-1">
                 <span class="text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.65rem;">Stato Programma:</span>
                 <v-chip
                   :color="allineamentoProgramma.status === 'in-linea' ? 'green-darken-3' : (allineamentoProgramma.status === 'ritardo' ? 'red-darken-3' : 'blue-darken-3')"
@@ -3569,16 +3553,17 @@ const apriTest = () => {
 .workout-item-card {
   transition: all 0.2s ease-in-out;
   background: var(--card-bg-soft) !important;
+  border-color: var(--card-border) !important;
 }
 .workout-item-card:hover {
   transform: translateY(-1px);
-  background: rgba(30, 41, 59, 0.5) !important;
+  background: var(--card-bg-glass) !important;
 }
 .active-workout-border {
   border: 1.5px solid #f97316 !important;
-  background: rgba(249, 115, 22, 0.08) !important;
+  background: rgba(249, 115, 22, 0.12) !important;
 }
 .inactive-workout-border {
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--card-border) !important;
 }
 </style>

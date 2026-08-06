@@ -621,7 +621,7 @@
             <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important;">
               ⚠️ Coach Warning: Nessuna Progressione nel Mesociclo Precedente
             </h4>
-            <p class="text-slate-light font-weight-medium mb-2" style="font-size: 0.72rem; line-height: 1.4; color: #ffedd5 !important;">
+            <p class="text-slate font-weight-medium mb-2" style="font-size: 0.72rem; line-height: 1.4;">
               Su questo esercizio non sono state registrate progressioni tra W1 e W6 dello scorso mesociclo. 
               In questa Week 1 prova a segnare anche solo <strong>+1 rep o +0.5/1 kg</strong>!
             </p>
@@ -644,44 +644,44 @@
       <!-- 3. Note Coach, Setup Attrezzo e Tecnica (Unificati e Compatti) -->
       <v-card
         v-if="workout && ((workout.des_note && String(workout.des_note).trim()) || (workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()) || (workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()) || (workout.des_estesa_start && String(workout.des_estesa_start).trim()))"
-        class="text-left border d-flex flex-column card-glass mb-3"
+        class="text-left border d-flex flex-column card-glass mb-3 coaching-notes-box"
         :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"
         :style="{
-          background: 'rgba(249, 115, 22, 0.05) !important',
-          border: '1px solid rgba(249, 115, 22, 0.2) !important',
-          borderLeft: '3px solid #f97316 !important',
+          background: 'var(--card-bg-soft) !important',
+          border: '1px solid var(--card-border) !important',
+          borderLeft: '3px solid var(--brand-accent, #f97316) !important',
           borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '10px !important')
         }"
       >
         <!-- Note Coach -->
         <div v-if="workout.des_note && String(workout.des_note).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_note_attrezzo || workout.des_note_gen_attr || workout.des_estesa_start}">
-          <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-information-outline</v-icon>
-          <span class="text-orange-lighten-4 font-weight-medium" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.72rem', lineHeight: 1.35, color: '#ffedd5 !important' }">
+          <v-icon color="orange-darken-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-information-outline</v-icon>
+          <span class="text-slate-dark font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.72rem', lineHeight: 1.35 }">
             {{ String(workout.des_note).trim() }}
           </span>
         </div>
 
         <!-- Note Attrezzo -->
         <div v-if="workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_note_gen_attr || workout.des_estesa_start, 'mt-1.5 pt-1.5 border-top-soft': workout.des_note}">
-           <v-icon color="grey-lighten-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-wrench-outline</v-icon>
-           <div class="text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
-             <strong class="text-orange-lighten-3 uppercase" style="font-size: 0.60rem;">Setup:</strong> {{ String(workout.des_note_attrezzo).trim() }}
+           <v-icon color="grey-darken-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-wrench-outline</v-icon>
+           <div class="text-slate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
+             <strong class="text-orange-darken-2 uppercase" style="font-size: 0.60rem;">Setup:</strong> {{ String(workout.des_note_attrezzo).trim() }}
            </div>
         </div>
 
         <!-- Note Generali Macchinario -->
         <div v-if="workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_estesa_start, 'mt-1.5 pt-1.5 border-top-soft': workout.des_note || workout.des_note_attrezzo}">
-           <v-icon color="grey-lighten-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cogs</v-icon>
-           <div class="text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
-             <strong class="text-orange-lighten-3 uppercase" style="font-size: 0.60rem;">Macchina:</strong> {{ String(workout.des_note_gen_attr).trim() }}
+           <v-icon color="grey-darken-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cogs</v-icon>
+           <div class="text-slate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
+             <strong class="text-orange-darken-2 uppercase" style="font-size: 0.60rem;">Macchina:</strong> {{ String(workout.des_note_gen_attr).trim() }}
            </div>
         </div>
 
         <!-- Esecuzione / ROM -->
         <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="d-flex align-start" :class="{'mt-1.5 pt-1.5 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr}">
-          <v-icon color="orange-lighten-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cog-play-outline</v-icon>
-          <div class="text-slate-light" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
-            <strong class="text-orange-lighten-3 uppercase" style="font-size: 0.60rem;">Tecnica/ROM:</strong> {{ getDescrizioneBreve(workout.des_estesa_start) }}
+          <v-icon color="orange-darken-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cog-play-outline</v-icon>
+          <div class="text-slate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
+            <strong class="text-orange-darken-2 uppercase" style="font-size: 0.60rem;">Tecnica/ROM:</strong> {{ getDescrizioneBreve(workout.des_estesa_start) }}
           </div>
         </div>
       </v-card>
@@ -1704,10 +1704,10 @@
           style="line-height: 1.45;"
         >
           <template v-if="analisiRipetizioniCiclo.isContinuitato">
-            Questo esercizio era presente nella <strong>scheda precedente</strong> (Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>).<br>
+            Questo esercizio era presente nella <strong>scheda precedente</strong> (Wo <span class="text-slate-dark font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>).<br>
           </template>
           <template v-else>
-            Eseguito l'ultima volta <strong class="text-orange-lighten-2">{{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</strong> (il <span class="text-white">{{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>) su Wo <span class="text-white font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>.<br>
+            Eseguito l'ultima volta <strong class="text-orange-lighten-2">{{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</strong> (il <span class="text-slate-dark">{{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>) su Wo <span class="text-slate-dark font-weight-black">{{ previousWorkout.num_scheda }} {{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }}</span>.<br>
           </template>
           
           Prosegue il ciclo con <strong :class="'text-' + analisiRipetizioniCiclo.color">{{ analisiRipetizioniCiclo.testo }}</strong>
@@ -1719,7 +1719,7 @@
           :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '' }"
         >
           <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" color="grey" class="mr-1">mdi-gesture-tap</v-icon>
-          <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }} <span class="text-white ml-1 font-weight-black">({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})</span> - Clicca per i dettagli</span>
+          <span v-if="analisiRipetizioniCiclo.isContinuitato">Ultima esecuzione il {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }} <span class="text-slate-dark ml-1 font-weight-black">({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})</span> - Clicca per i dettagli</span>
           <span v-else>Clicca per vedere pesi e note di questa esecuzione</span>
         </div>
       </v-card>
@@ -1742,8 +1742,8 @@
           :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
           style="line-height: 1.4;"
         >
-          Eseguito l'ultima volta su Wo <span class="text-white font-weight-black">{{ workout.num_scheda_ult_ex || '?' }} {{ workout.num_coord_ex_wo_prec || '' }}</span> il: <span class="text-orange-lighten-2">{{ formattaDataStorico(workout.dat_scheda_ult_ex || workout.timestamp) }}</span> 
-          <span class="text-white ml-1 font-weight-black">({{ tempoTrascorso(workout.dat_scheda_ult_ex || workout.timestamp) }})</span>
+          Eseguito l'ultima volta su Wo <span class="text-slate-dark font-weight-black">{{ workout.num_scheda_ult_ex || '?' }} {{ workout.num_coord_ex_wo_prec || '' }}</span> il: <span class="text-orange-lighten-2">{{ formattaDataStorico(workout.dat_scheda_ult_ex || workout.timestamp) }}</span> 
+          <span class="text-slate-dark ml-1 font-weight-black">({{ tempoTrascorso(workout.dat_scheda_ult_ex || workout.timestamp) }})</span>
         </div>
       </v-card>
 
@@ -2802,23 +2802,28 @@
                   </div>
                   
                   <div class="d-flex align-center justify-space-between my-1">
-                    <div class="text-h4 font-weight-black text-green-accent-3" style="line-height: 1.1; font-size: 1.6rem;">
-                      {{ aiutoWeek === 1 ? (propostaWeek1?.pesoConsigliato || propostaWeek1?.peso || 0) : caricoConsigliatoViaDiMezzo }} 
-                      <span class="text-caption text-muted" style="font-size: 0.72rem;">KG</span>
+                    <div>
+                      <div class="text-h4 font-weight-black text-green-accent-3" style="line-height: 1.1; font-size: 1.6rem;">
+                        {{ (parsedPrescription(workout?.['des_week' + aiutoWeek])?.total) ? parsedPrescription(workout?.['des_week' + aiutoWeek]).total : (aiutoWeek === 1 ? (propostaWeek1?.pesoConsigliato || propostaWeek1?.peso || 0) : caricoConsigliatoViaDiMezzo) }} 
+                        <span class="text-caption text-muted" style="font-size: 0.72rem;">KG</span>
+                      </div>
+                      <div v-if="parsedPrescription(workout?.['des_week' + aiutoWeek])?.side" class="text-caption font-weight-black text-blue-lighten-2 mt-0.5" style="font-size: 0.78rem;">
+                        LATO: {{ parsedPrescription(workout?.['des_week' + aiutoWeek])?.side }} KG
+                      </div>
                     </div>
                     <v-btn
                       color="green-darken-2"
                       size="small"
                       class="font-weight-black text-white px-3 text-none rounded-lg"
                       style="font-size: 0.72rem; height: 30px;"
-                      @click="applicaPropostaCaricoStorico(aiutoWeek === 1 ? (propostaWeek1?.pesoConsigliato || propostaWeek1?.peso || 0) : caricoConsigliatoViaDiMezzo)"
+                      @click="applicaPropostaCaricoStorico((parsedPrescription(workout?.['des_week' + aiutoWeek])?.total) ? parsedPrescription(workout?.['des_week' + aiutoWeek]).total : (aiutoWeek === 1 ? (propostaWeek1?.pesoConsigliato || propostaWeek1?.peso || 0) : caricoConsigliatoViaDiMezzo))"
                     >
                       Applica Consigliato
                     </v-btn>
                   </div>
                   
                   <div class="text-super-caption text-slate-light font-weight-medium mt-1" style="font-size: 0.6rem; line-height: 1.3;">
-                    {{ aiutoWeek === 1 ? 'Stima di partenza basata su scheda precedente con fatica e recupero integrati.' : (spiegazioneDinamicaConsigliata.length > 90 ? spiegazioneDinamicaConsigliata.substring(0, 87) + '...' : spiegazioneDinamicaConsigliata) }}
+                    {{ (parsedPrescription(workout?.['des_week' + aiutoWeek])?.total) ? spiegazioneDinamicaConsigliata : (aiutoWeek === 1 ? 'Stima di partenza basata su scheda precedente con fatica e recupero integrati.' : (spiegazioneDinamicaConsigliata.length > 90 ? spiegazioneDinamicaConsigliata.substring(0, 87) + '...' : spiegazioneDinamicaConsigliata)) }}
                   </div>
                 </div>
 
@@ -5046,6 +5051,17 @@ const getVolumeProgressionInfoForWeek = (sett) => {
 };
 
 const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
+  if (!workout.value) return null;
+
+  // 0. Se la settimana ha un carico prescritto dal coach (es. progressione di forza preimpostata)
+  const presc = parsedPrescription(workout.value['des_week' + sett]);
+  if (presc && presc.total) {
+    const pNum = parseFloat(String(presc.total).replace(',', '.'));
+    if (!isNaN(pNum) && pNum > 0) {
+      return pNum;
+    }
+  }
+
   if (sett === 1) {
     return propostaWeek1.value?.peso || null;
   }
@@ -5666,6 +5682,20 @@ const opzioniStradeProgressione = computed(() => {
 });
 
 const spiegazioneDinamicaConsigliata = computed(() => {
+  if (!workout.value) return '';
+  const sett = aiutoWeek.value;
+
+  const presc = parsedPrescription(workout.value['des_week' + sett]);
+  if (presc && presc.total) {
+    const pNum = parseFloat(String(presc.total).replace(',', '.'));
+    if (!isNaN(pNum) && pNum > 0) {
+      if (presc.side) {
+        return `🎯 Carico di forza prescritto dal coach per la Week ${sett}: ${presc.total} kg totali (${presc.side} kg per lato).`;
+      }
+      return `🎯 Carico di forza prescritto dal coach per la Week ${sett}: ${presc.total} kg.`;
+    }
+  }
+
   const infoBaseCurrent = getBaseWeekInfo(aiutoWeek.value);
   if (infoBaseCurrent && infoBaseCurrent.baseInsText && isInputIndicaLimiteOStallo(infoBaseCurrent.baseInsText, infoBaseCurrent.noteText, infoBaseCurrent.faticaText)) {
     return `⚡ Sforzo al limite / difficile registrato nella sessione precedente (${infoBaseCurrent.pesoBase} kg). Il sistema ti consiglia di mantenere lo stesso peso per completare una progressione di ripetizioni prima di incrementare il carico.`;
@@ -10035,7 +10065,7 @@ const formattaIstruzioneFine = (testo, sett) => {
   if (isAmrapOrMaxReps) {
     const peso = getTestWeight(sett);
     if (peso) {
-      return `Dopo il riscaldamento fai una serie con le <strong>massime ripetizioni possibili</strong> con il carico reale di <strong class="text-white">${peso}</strong>. Scrivi quante ripetizioni sei riuscito a fare!`;
+      return `Dopo il riscaldamento fai una serie con le <strong>massime ripetizioni possibili</strong> con il carico reale di <strong class="text-slate-dark font-weight-black">${peso}</strong>. Scrivi quante ripetizioni sei riuscito a fare!`;
     } else {
       return `Dopo il riscaldamento fai una serie con le <strong>massime ripetizioni possibili</strong> con l'ultimo carico allenante. Scrivi quante ripetizioni sei riuscito a fare!`;
     }
@@ -10045,8 +10075,8 @@ const formattaIstruzioneFine = (testo, sett) => {
   const prescrizione = parsedPrescription(workout.value?.['des_week' + sett]);
   if (prescrizione && prescrizione.total) {
     const peso = prescrizione.total.trim();
-    formatta = formatta.replace(/\(con x% del carico massimale\)/gi, `(con il carico reale di <strong class="text-white">${peso} KG</strong>)`);
-    formatta = formatta.replace(/con x% del carico massimale/gi, `con il carico reale di <strong class="text-white">${peso} KG</strong>`);
+    formatta = formatta.replace(/\(con x% del carico massimale\)/gi, `(con il carico reale di <strong class="text-slate-dark font-weight-black">${peso} KG</strong>)`);
+    formatta = formatta.replace(/con x% del carico massimale/gi, `con il carico reale di <strong class="text-slate-dark font-weight-black">${peso} KG</strong>`);
   }
   return formatta;
 };
@@ -12656,15 +12686,17 @@ th.sticky-col {
 
 [data-theme="light"] .ghost-glow-orange :deep(.v-field) {
   background: var(--brand-accent-bg) !important;
-  border: 1px solid #fdba74 !important;
+  border: 1.5px solid #fdba74 !important;
   box-shadow: 0 0 10px var(--brand-accent-glow) !important;
 }
 [data-theme="light"] .ghost-glow-orange :deep(input),
 [data-theme="light"] .ghost-glow-orange :deep(textarea) {
-  color: var(--brand-accent) !important;
+  color: var(--text-dark) !important;
+  font-weight: 700 !important;
 }
 [data-theme="light"] .ghost-glow-orange :deep(.v-label) {
   color: var(--brand-accent) !important;
+  font-weight: 700 !important;
 }
 
 [data-theme="light"] .week-log-card {

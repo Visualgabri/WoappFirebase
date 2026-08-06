@@ -618,29 +618,59 @@
     </v-dialog>
 
     <!-- dialog TEST -->
-    <v-dialog v-model="mostraTest" max-width="500" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border">
-        <v-card-title class="font-weight-black text-slate-dark d-flex align-center px-0">
-          <v-icon color="blue-darken-3" class="mr-2">mdi-dumbbell</v-icon>
-          Esercizi da Testare 🏋️
-        </v-card-title>
-        <v-card-text class="px-0 py-4">
-          <div v-if="testList.length === 0" class="text-center py-4 text-muted text-body-2">
-            Nessun test o AMRAP specifico richiesto in questa scheda.
+    <v-dialog v-model="mostraTest" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <v-icon color="orange-darken-3" size="18">mdi-dumbbell</v-icon>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              Esercizi da Testare 🏋️
+            </span>
           </div>
-          <v-list v-else density="comfortable" class="bg-transparent py-0">
-            <v-list-item
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="mostraTest = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
+          <div v-if="testList.length === 0" class="text-center py-6">
+            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessun test o AMRAP specifico richiesto in questa scheda.</p>
+          </div>
+          <div v-else class="d-flex flex-column gap-2.5">
+            <div
               v-for="ex in testList"
               :key="ex.id"
-              class="px-0 py-2 border-bottom-soft"
+              class="connected-exercise-item d-flex align-center py-2 px-3 clickable-item border rounded-xl border-soft bg-slate-950"
+              @click="vibraTattile(12); mostraTest = false; router.push({ name: 'DettaglioWorkout', params: { id: ex.id } })"
+              style="cursor: pointer; transition: all 0.2s ease;"
             >
-              <v-list-item-title class="font-weight-bold text-slate-dark text-left">{{ ex.des_esercizio }}</v-list-item-title>
-              <v-list-item-subtitle class="text-caption text-blue-darken-3 text-left">Giorno {{ ex.des_giorno }} • Test: {{ ex.des_qta_report }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
+              <div class="connected-thumb mr-3 rounded overflow-hidden" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <v-img
+                  :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                  width="48"
+                  height="48"
+                  cover
+                ></v-img>
+              </div>
+              <div class="flex-grow-1 min-width-0 text-left">
+                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                  {{ ex.des_esercizio }}
+                  <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
+                </div>
+                <div class="text-super-caption text-muted font-weight-bold mt-0.5" style="font-size: 0.65rem;">
+                  Giorno <span class="text-orange-lighten-2 font-weight-black">{{ ex.des_giorno }}<template v-if="ex.num_riga_giorno">{{ ex.num_riga_giorno }}</template></span>
+                  <span v-if="ex.des_settore" class="text-orange-lighten-2 font-weight-black"> ({{ ex.des_settore }})</span>
+                </div>
+                <div v-if="ex.des_qta_report" class="text-super-caption font-weight-black text-orange-lighten-2 mt-1" style="font-size: 0.72rem;">
+                  Test: {{ ex.des_qta_report }}
+                </div>
+              </div>
+              <v-icon size="18" color="orange">mdi-chevron-right</v-icon>
+            </div>
+          </div>
         </v-card-text>
-        <v-card-actions class="px-0 pb-0">
-          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraTest = false" class="text-white font-weight-bold">Chiudi</v-btn>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="mostraTest = false">Chiudi</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -663,112 +693,175 @@
     </v-dialog>
 
     <!-- dialog TEST WEEK 6 (Interactive List) -->
-    <v-dialog v-model="mostraTestWeek6" max-width="500" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border">
-        <v-card-title class="font-weight-black text-slate-dark d-flex align-center px-0">
-          <v-icon color="blue-darken-3" class="mr-2">mdi-dumbbell</v-icon>
-          Test alla Week 6 🏋️
-        </v-card-title>
-        <v-card-text class="px-0 py-4">
-          <div v-if="testWeek6List.length === 0" class="text-center py-4 text-muted text-body-2">
-            Nessun test previsto per la Week 6 in questa scheda.
+    <v-dialog v-model="mostraTestWeek6" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <v-icon color="orange-darken-3" size="18">mdi-dumbbell</v-icon>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              Test alla Week 6 🏋️
+            </span>
           </div>
-          <v-list v-else density="comfortable" class="bg-transparent py-0">
-            <v-list-item
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="mostraTestWeek6 = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
+          <div v-if="testWeek6List.length === 0" class="text-center py-6">
+            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessun test previsto per la Week 6 in questa scheda.</p>
+          </div>
+          <div v-else class="d-flex flex-column gap-2.5">
+            <div
               v-for="ex in testWeek6List"
               :key="ex.id"
-              class="px-0 py-2 border-bottom-soft cursor-pointer"
+              class="connected-exercise-item d-flex align-center py-2 px-3 clickable-item border rounded-xl border-soft bg-slate-950"
               @click="vibraTattile(12); mostraTestWeek6 = false; router.push({ name: 'DettaglioWorkout', params: { id: ex.id } })"
+              style="cursor: pointer; transition: all 0.2s ease;"
             >
-              <div class="d-flex align-center w-100 justify-space-between text-left">
-                <div>
-                  <div class="font-weight-bold text-slate-dark text-body-2">{{ ex.des_esercizio }}</div>
-                  <div class="text-caption text-blue-lighten-2 mt-0.5">
-                    Giorno {{ ex.des_giorno }} • Riga {{ ex.num_riga_giorno }} • {{ ex.des_settore }}
-                  </div>
-                  <div class="text-super-caption text-orange-lighten-2 mt-0.5 font-weight-black">
-                    Test W6: {{ ex.des_week6 }}
-                  </div>
-                </div>
-                <v-icon color="orange" size="18">mdi-chevron-right</v-icon>
+              <div class="connected-thumb mr-3 rounded overflow-hidden" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <v-img
+                  :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                  width="48"
+                  height="48"
+                  cover
+                ></v-img>
               </div>
-            </v-list-item>
-          </v-list>
+              <div class="flex-grow-1 min-width-0 text-left">
+                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                  {{ ex.des_esercizio }}
+                  <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
+                </div>
+                <div class="text-super-caption text-muted font-weight-bold mt-0.5" style="font-size: 0.65rem;">
+                  Giorno <span class="text-orange-lighten-2 font-weight-black">{{ ex.des_giorno }}<template v-if="ex.num_riga_giorno">{{ ex.num_riga_giorno }}</template></span>
+                  <span v-if="ex.des_settore" class="text-orange-lighten-2 font-weight-black"> ({{ ex.des_settore }})</span>
+                </div>
+                <div v-if="ex.des_week6" class="text-super-caption font-weight-black text-orange-lighten-2 mt-1" style="font-size: 0.72rem;">
+                  Test W6: {{ ex.des_week6 }}
+                </div>
+              </div>
+              <v-icon size="18" color="orange">mdi-chevron-right</v-icon>
+            </div>
+          </div>
         </v-card-text>
-        <v-card-actions class="px-0 pb-0">
-          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraTestWeek6 = false" class="text-white font-weight-bold">Chiudi</v-btn>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="mostraTestWeek6 = false">Chiudi</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- dialog ESERCIZI NUOVI (Interactive List) -->
-    <v-dialog v-model="mostraEserciziNuovi" max-width="500" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border">
-        <v-card-title class="font-weight-black text-slate-dark d-flex align-center px-0">
-          <v-icon color="orange-darken-3" class="mr-2">mdi-star-outline</v-icon>
-          Nuovi Esercizi ✨
-        </v-card-title>
-        <v-card-text class="px-0 py-4">
-          <div v-if="eserciziNuoviList.length === 0" class="text-center py-4 text-muted text-body-2">
-            Nessun nuovo esercizio introdotto in questo mesociclo.
+    <v-dialog v-model="mostraEserciziNuovi" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <v-icon color="orange-darken-3" size="18">mdi-star-outline</v-icon>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              Nuovi Esercizi ✨
+            </span>
           </div>
-          <v-list v-else density="comfortable" class="bg-transparent py-0">
-            <v-list-item
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="mostraEserciziNuovi = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
+          <div v-if="eserciziNuoviList.length === 0" class="text-center py-6">
+            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessun nuovo esercizio introdotto in questo mesociclo.</p>
+          </div>
+          <div v-else class="d-flex flex-column gap-2.5">
+            <div
               v-for="ex in eserciziNuoviList"
               :key="ex.id"
-              class="px-0 py-2 border-bottom-soft cursor-pointer"
+              class="connected-exercise-item d-flex align-center py-2 px-3 clickable-item border rounded-xl border-soft bg-slate-950"
               @click="vibraTattile(12); mostraEserciziNuovi = false; router.push({ name: 'DettaglioWorkout', params: { id: ex.id } })"
+              style="cursor: pointer; transition: all 0.2s ease;"
             >
-              <div class="d-flex align-center w-100 justify-space-between text-left">
-                <div>
-                  <div class="font-weight-bold text-slate-dark text-body-2">{{ ex.des_esercizio }}</div>
-                  <div class="text-caption text-orange-lighten-2 mt-0.5">
-                    Giorno {{ ex.des_giorno }} • Riga {{ ex.num_riga_giorno }} • {{ ex.des_settore }}
-                  </div>
-                </div>
-                <v-icon color="orange" size="18">mdi-chevron-right</v-icon>
+              <div class="connected-thumb mr-3 rounded overflow-hidden" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <v-img
+                  :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                  width="48"
+                  height="48"
+                  cover
+                ></v-img>
               </div>
-            </v-list-item>
-          </v-list>
+              <div class="flex-grow-1 min-width-0 text-left">
+                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                  {{ ex.des_esercizio }}
+                  <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
+                </div>
+                <div class="text-super-caption text-muted font-weight-bold mt-0.5" style="font-size: 0.65rem;">
+                  Giorno <span class="text-orange-lighten-2 font-weight-black">{{ ex.des_giorno }}<template v-if="ex.num_riga_giorno">{{ ex.num_riga_giorno }}</template></span>
+                  <span v-if="ex.des_settore" class="text-orange-lighten-2 font-weight-black"> ({{ ex.des_settore }})</span>
+                </div>
+                <div v-if="ex['des_week' + settimanaAttiva] || ex.des_qta_report" class="text-super-caption font-weight-black text-orange-lighten-2 mt-1" style="font-size: 0.72rem;">
+                  {{ ex['des_week' + settimanaAttiva] || ex.des_qta_report }}
+                </div>
+              </div>
+              <v-icon size="18" color="orange">mdi-chevron-right</v-icon>
+            </div>
+          </div>
         </v-card-text>
-        <v-card-actions class="px-0 pb-0">
-          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraEserciziNuovi = false" class="text-white font-weight-bold">Chiudi</v-btn>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="mostraEserciziNuovi = false">Chiudi</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- dialog ESERCIZI VIDEO (Interactive List) -->
-    <v-dialog v-model="mostraEserciziVideo" max-width="500" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border">
-        <v-card-title class="font-weight-black text-slate-dark d-flex align-center px-0">
-          <v-icon color="red-darken-3" class="mr-2">mdi-video-outline</v-icon>
-          Esercizi con Video richiesto 📹
-        </v-card-title>
-        <v-card-text class="px-0 py-4">
-          <div v-if="videoExercisesList.length === 0" class="text-center py-4 text-muted text-body-2">
-            Nessun video richiesto per questa scheda dal coach.
+    <v-dialog v-model="mostraEserciziVideo" max-width="500" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <v-icon color="orange-darken-3" size="18">mdi-video-outline</v-icon>
+            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              Esercizi con Video richiesto 📹
+            </span>
           </div>
-          <v-list v-else density="comfortable" class="bg-transparent py-0">
-            <v-list-item
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="mostraEserciziVideo = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 60vh;">
+          <div v-if="videoExercisesList.length === 0" class="text-center py-6">
+            <v-icon size="40" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessun video richiesto per questa scheda dal coach.</p>
+          </div>
+          <div v-else class="d-flex flex-column gap-2.5">
+            <div
               v-for="ex in videoExercisesList"
               :key="ex.id"
-              class="px-0 py-2 border-bottom-soft cursor-pointer"
+              class="connected-exercise-item d-flex align-center py-2 px-3 clickable-item border rounded-xl border-soft bg-slate-950"
               @click="vibraTattile(12); mostraEserciziVideo = false; router.push({ name: 'DettaglioWorkout', params: { id: ex.id } })"
+              style="cursor: pointer; transition: all 0.2s ease;"
             >
-              <div class="d-flex align-center w-100 justify-space-between text-left">
-                <div>
-                  <div class="font-weight-bold text-slate-dark text-body-2">{{ ex.des_esercizio }}</div>
-                  <div class="text-caption text-red-lighten-2 mt-0.5">
-                    Giorno {{ ex.des_giorno }} • Riga {{ ex.num_riga_giorno }} • {{ ex.des_settore }}
-                  </div>
-                </div>
-                <v-icon color="orange" size="18">mdi-chevron-right</v-icon>
+              <div class="connected-thumb mr-3 rounded overflow-hidden" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <v-img
+                  :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                  width="48"
+                  height="48"
+                  cover
+                ></v-img>
               </div>
-            </v-list-item>
-          </v-list>
+              <div class="flex-grow-1 min-width-0 text-left">
+                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                  {{ ex.des_esercizio }}
+                  <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
+                </div>
+                <div class="text-super-caption text-muted font-weight-bold mt-0.5" style="font-size: 0.65rem;">
+                  Giorno <span class="text-orange-lighten-2 font-weight-black">{{ ex.des_giorno }}<template v-if="ex.num_riga_giorno">{{ ex.num_riga_giorno }}</template></span>
+                  <span v-if="ex.des_settore" class="text-orange-lighten-2 font-weight-black"> ({{ ex.des_settore }})</span>
+                </div>
+                <div v-if="ex['des_week' + settimanaAttiva] || ex.des_qta_report" class="text-super-caption font-weight-black text-orange-lighten-2 mt-1" style="font-size: 0.72rem;">
+                  {{ ex['des_week' + settimanaAttiva] || ex.des_qta_report }}
+                </div>
+              </div>
+              <v-icon size="18" color="orange">mdi-chevron-right</v-icon>
+            </div>
+          </div>
         </v-card-text>
-        <v-card-actions class="px-0 pb-0">
-          <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="mostraEserciziVideo = false" class="text-white font-weight-bold">Chiudi</v-btn>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="mostraEserciziVideo = false">Chiudi</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1127,6 +1220,40 @@ const dataInizio = ref('18 mag 26');
 const dataFine = ref('28 giu 26');
 const descrizioneMesociclo = ref('');
 const workoutTData = ref(null);
+
+// Funzione per rimappare gli URL delle GIF dal dominio vecchio a GitHub Pages
+const getGifUrl = (url) => {
+  if (!url) return '';
+  let mapped = url;
+  if (url.includes('definizionemuscolareestrema.com')) {
+    mapped = url.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
+  }
+  if (mapped.includes('visualgabri.github.io')) {
+    const mappings = {
+      'PectoralSternal_file': 'PettoBasso',
+      'BackGeneral_file': 'DorsaliBack',
+      'Obliques_file': 'Obliqui',
+      'Ischiocrurali_file': 'Femorali',
+      'PectoralClavicular_file': 'PettoAlto',
+      'DeltoidPosterior_file': 'DeltoidiPosteriori',
+      'Triceps_file': 'Tricipiti',
+      'Biceps_file': 'Bicipiti',
+      'Quadriceps_file': 'Quadricipiti',
+      'Calves_file': 'Gastrocnemio',
+      'Abs_file': 'Addome',
+      'Glutes_file': 'Glutei',
+      'DeltoidAnterior_file': 'DeltoidiAnteriori',
+      'DeltoidLateral_file': 'DeltoidiLaterali',
+      'Trapezius_file': 'Trapezio'
+    };
+    for (const [key, val] of Object.entries(mappings)) {
+      if (mapped.includes(key)) {
+        mapped = mapped.replace(key, val);
+      }
+    }
+  }
+  return mapped;
+};
 
 const mostraTestWeek6 = ref(false);
 const mostraEserciziNuovi = ref(false);

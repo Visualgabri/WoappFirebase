@@ -4255,23 +4255,23 @@ const scaricaReportPDF = () => {
   
   y += 8;
 
-  // Colonne: Esercizio | G | TARGET | W1 | ULTIMO | PROGR | %
+  // Colonne: Esercizio | G | REPS | W1 | ULTIMO | PROGR | %
   const colX = {
     nome: marginL + 1,
-    giorno: marginL + 59,
-    target: marginL + 71,
-    w1: marginL + 96,
-    ultimo: marginL + 121,
-    delta: marginL + 149,
+    giorno: marginL + 56,
+    reps: marginL + 67,
+    w1: marginL + 90,
+    ultimo: marginL + 113,
+    delta: marginL + 139,
     pct: marginL + 172
   };
   const colW = {
-    nome: 57,
-    giorno: 11,
-    target: 24,
-    w1: 24,
-    ultimo: 27,
-    delta: 22,
+    nome: 54,
+    giorno: 10,
+    reps: 22,
+    w1: 22,
+    ultimo: 25,
+    delta: 32,
     pct: 14
   };
   
@@ -4284,7 +4284,7 @@ const scaricaReportPDF = () => {
     doc.setFontSize(7);
     doc.text('ESERCIZIO', colX.nome + 1, yPos + 5);
     doc.text('G', colX.giorno + 1, yPos + 5);
-    doc.text('TARGET', colX.target + 1, yPos + 5);
+    doc.text('REPS', colX.reps + 1, yPos + 5);
     doc.text('W1', colX.w1 + 1, yPos + 5);
     doc.text('ULTIMO', colX.ultimo + 1, yPos + 5);
     doc.text('PROGR.', colX.delta + 1, yPos + 5);
@@ -4304,7 +4304,6 @@ const scaricaReportPDF = () => {
   };
 
   const parsePeso = (val, ex = null, weekNum = null) => {
-    // 1. Se è specificato un valore numerico diretto nel campo num_insX (es: num_ins6 = 102.5), lo usiamo con massima priorità
     if (ex && weekNum) {
       const explicitNumVal = ex['num_ins' + weekNum];
       if (explicitNumVal !== undefined && explicitNumVal !== null && String(explicitNumVal).trim() !== '') {
@@ -4318,11 +4317,9 @@ const scaricaReportPDF = () => {
     if (!val) return 0;
     const clean = String(val).replace(/,/g, '.').trim();
     
-    // Non consideriamo reps isolate (es: 10r) come peso in kg
     const isRepVal = /^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean);
     if (isRepVal) return 0;
 
-    // Se l'esercizio è a percentuale %V o RPE, oppure la stringa contiene "%" o "RPE", e NON c'è "kg", NON è un peso in kg!
     const isPercString = /%/i.test(clean) || /\bRPE\b/i.test(clean);
     const hasExplicitKg = /kg\b/i.test(clean);
 
@@ -4330,8 +4327,6 @@ const scaricaReportPDF = () => {
       return 0;
     }
 
-    // Se ci sono più righe nel testo di note (es: "100 x4r\n102,5\n102,5\nTrazioni 30kg x3r"),
-    // analizziamo le righe e filtriamo eventuali commenti/note su altri esercizi
     const lines = clean.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     for (const line of lines) {
       if (/\b(?:trazioni|dip|note|massimale|avambraccio|problema|mezze|forse)\b/i.test(line)) {
@@ -4355,56 +4350,115 @@ const scaricaReportPDF = () => {
     return isNaN(num) ? 0 : num;
   };
 
+  const estraiRepsEsercizio = (strVal, desVal = '') => {
+    if (!strVal && !desVal) return 0;
+    const cleanStr = String(strVal || '').trim();
+    
+    const matchRepsIns = cleanStr.match(/(\d+)\s*[rR]\b/) || 
+                         cleanStr.match(/(\d+)\s*(?:rep|rip)/i) || 
+                         cleanStr.match(/(\d+)\s*@\d+/);
+    if (matchRepsIns) {
+      return parseInt(matchRepsIns[1]);
+    }
+    
+    const cleanDes = String(desVal || '').trim();
+    const matchRepsDes = cleanDes.match(/[xX]\s*(\d+)/) || cleanDes.match(/(\d+)\s*[rR]\b/);
+    if (matchRepsDes) {
+      return parseInt(matchRepsDes[1]);
+    }
+
+    const pureNum = parseInt(cleanStr);
+    if (!isNaN(pureNum) && pureNum > 0 && pureNum <= 100) {
+      return pureNum;
+    }
+
+    return 0;
+  };
+
   const righe = [];
   const items = listaAllenamenti.value || [];
   
   items.forEach(ex => {
     if (parseInt(ex.num_riga_giorno) === 0) return;
     
-    const weekVals = [];
+    const weekData = {};
     let hasAny = false;
     for (let w = 1; w <= 6; w++) {
-      weekVals.push(ex['ins_week' + w] || '');
-      if (ex['ins_week' + w]) hasAny = true;
+      const rawIns = ex['ins_week' + w] || '';
+      const rawDes = ex['des_week' + w] || '';
+      if (rawIns) hasAny = true;
+      const weight = parsePeso(rawIns, ex, w);
+      const reps = estraiRepsEsercizio(rawIns, rawDes);
+      weekData[w] = { weight, reps, rawIns, rawDes };
     }
     if (!hasAny) return;
     
     const isRep = isRepProgression(ex);
     const isPercV = isPercVExercise(ex);
 
-    const w1Val = isRep ? (estraiRepsDaInput(weekVals[0]) || 0) : parsePeso(weekVals[0], ex, 1);
-    let latestVal = 0;
+    const w1Info = weekData[1];
     let latestW = 1;
     for (let w = 6; w >= 1; w--) {
-      const wVal = isRep ? (estraiRepsDaInput(ex['ins_week' + w]) || 0) : parsePeso(ex['ins_week' + w], ex, w);
-      if (wVal > 0) {
-        latestVal = wVal;
+      if (weekData[w].weight > 0 || weekData[w].rawIns) {
         latestW = w;
         break;
       }
     }
-    
+    const latestInfo = weekData[latestW];
+
+    // 1. Costruisci Reps Column (SOLO ripetizioni, senza numero di serie)
+    let targetRange = '-';
+    if (w1Info.reps > 0 && latestInfo.reps > 0 && w1Info.reps !== latestInfo.reps) {
+      targetRange = `${w1Info.reps}r -> ${latestInfo.reps}r`;
+    } else if (latestInfo.reps > 0) {
+      targetRange = `${latestInfo.reps}r`;
+    } else if (w1Info.reps > 0) {
+      targetRange = `${w1Info.reps}r`;
+    } else if (ex.des_qta_report) {
+      let cleanQ = String(ex.des_qta_report).replace(/^\d+\s*[xX]\s*/, '').trim();
+      targetRange = cleanQ.endsWith('r') || cleanQ.includes('%') ? cleanQ : `${cleanQ}r`;
+    }
+
+    // 2. Analisi incremento a parità di ripetizioni (es: W1=10r @80, W3=8r @90, W6=8r @100)
+    let wSameReps = null;
+    if (latestInfo.reps > 0 && w1Info.reps > 0 && w1Info.reps !== latestInfo.reps) {
+      for (let w = 2; w < latestW; w++) {
+        if (weekData[w].reps === latestInfo.reps && weekData[w].weight > 0) {
+          wSameReps = w;
+          break;
+        }
+      }
+    }
+
+    const w1Val = w1Info.weight;
+    const latestVal = latestInfo.weight;
     const delta = latestVal - w1Val;
     const pct = w1Val > 0 ? Math.round((delta / w1Val) * 100) : 0;
     const unit = isRep ? 'r' : ' kg';
     
-    let progText = 'Stabile';
     let deltaText = '-';
     let pctText = '-';
-    let colorType = 'neutral'; // 'positive', 'negative', 'neutral'
+    let colorType = 'neutral';
     
     if (delta > 0 && w1Val > 0) {
-      deltaText = `+${isRep ? delta : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
-      pctText = `+${pct}%`;
-      progText = `${deltaText} (${pctText})`;
       colorType = 'positive';
+      pctText = `+${pct}%`;
+
+      if (wSameReps && weekData[wSameReps].weight > 0) {
+        const deltaSame = latestVal - weekData[wSameReps].weight;
+        if (deltaSame > 0) {
+          deltaText = `+${fmtVal(parseFloat(delta.toFixed(1)))}${unit} (+${fmtVal(parseFloat(deltaSame.toFixed(1)))} vs W${wSameReps})`;
+        } else {
+          deltaText = `+${fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
+        }
+      } else {
+        deltaText = `+${isRep ? delta : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
+      }
     } else if (delta < 0 && w1Val > 0) {
       deltaText = `${isRep ? '-' + Math.abs(delta) : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
       pctText = `${pct}%`;
-      progText = `${deltaText} (${pctText})`;
       colorType = 'negative';
     } else if (isPercV) {
-      // Per gli esercizi %V dove non è inserito un peso diretto in kg
       deltaText = 'Note %V';
       pctText = 'In Target';
       colorType = 'neutral';
@@ -4416,7 +4470,6 @@ const scaricaReportPDF = () => {
     
     const rigaNum = ex.num_riga_giorno || ex.num_ordine || '';
     const coordStr = `${ex.des_giorno || ''}${rigaNum}`;
-    const targetRange = ex.des_qta_report || ex.des_week1 || '-';
 
     righe.push({
       nome: ex.des_esercizio || 'Esercizio',
@@ -4424,6 +4477,9 @@ const scaricaReportPDF = () => {
       targetRange,
       w1Val, latestVal, latestW, delta, pct, isRep, unit, isPercV,
       deltaText, pctText, colorType,
+      wSameReps,
+      sameRepsWeight: wSameReps ? weekData[wSameReps].weight : 0,
+      sameRepsCount: latestInfo.reps,
       settore: ex.des_settore || '',
       exOriginal: ex
     });
@@ -4444,11 +4500,9 @@ const scaricaReportPDF = () => {
   let rowIdx = 0;
   
   righe.forEach(r => {
-    // Calcola altezza riga in base al nome (wrap)
     const nomeLines = doc.splitTextToSize(r.nome, colW.nome);
     const rowH = Math.max(6, nomeLines.length * 3.5 + 2);
     
-    // Check page break
     if (y + rowH > 275) {
       doc.addPage();
       y = 15;
@@ -4456,13 +4510,11 @@ const scaricaReportPDF = () => {
       rowIdx = 0;
     }
     
-    // Sfondo alternato
     if (rowIdx % 2 === 1) {
       doc.setFillColor(248, 250, 252);
       doc.rect(marginL, y, contentW, rowH, 'F');
     }
     
-    // Barra laterale colorata
     if (r.colorType === 'positive') {
       doc.setFillColor(16, 185, 129);
       doc.rect(marginL, y, 1.5, rowH, 'F');
@@ -4487,10 +4539,10 @@ const scaricaReportPDF = () => {
     doc.setTextColor(100, 116, 139);
     doc.text(String(r.giorno), colX.giorno + 1, textY);
     
-    // Target / Range Reps
+    // Target / Range Reps (Solo ripetizioni)
     doc.setTextColor(100, 116, 139);
-    const targetStr = String(r.targetRange || '-').slice(0, 14);
-    doc.text(targetStr, colX.target + 1, textY);
+    const targetStr = String(r.targetRange || '-').slice(0, 12);
+    doc.text(targetStr, colX.reps + 1, textY);
     
     // W1: Priorità a quello che ha scritto l'atleta (ins_week1)
     doc.setTextColor(51, 65, 85);
@@ -4582,9 +4634,9 @@ const scaricaReportPDF = () => {
   items.forEach(ex => {
     if (isPercVExercise(ex)) {
       const w6Weight = parsePeso(ex.ins_week6, ex);
-      const w6Reps = estraiRepsDaInput(ex.ins_week6) || 8;
+      const w6Reps = estraiRepsEsercizio(ex.ins_week6) || 8;
       const w1Weight = parsePeso(ex.ins_week1, ex);
-      const w1Reps = estraiRepsDaInput(ex.ins_week1) || 8;
+      const w1Reps = estraiRepsEsercizio(ex.ins_week1) || 8;
 
       if (w6Weight > 0 && w1Weight > 0) {
         const rm1_W1 = Math.round(w1Weight * (1 + w1Reps / 30));
@@ -4605,6 +4657,18 @@ const scaricaReportPDF = () => {
           text: `In W6 la percezione dello sforzo per ${ex.des_esercizio} e' risultata "Devastante". E' presente uno scostamento di carico rispetto all'intensita' target prevista dal coach.`
         });
       }
+    }
+  });
+
+  // ── B2. Analisi Progressione a Parità di Ripetizioni ──
+  righe.forEach(r => {
+    if (r.wSameReps && r.sameRepsWeight > 0 && r.latestVal > r.sameRepsWeight) {
+      const diffSame = parseFloat((r.latestVal - r.sameRepsWeight).toFixed(1));
+      consigli.push({
+        type: 'positive',
+        title: `Progressione a parita' di ripetizioni (${r.nome})`,
+        text: `Da W${r.wSameReps} (${r.sameRepsWeight} kg @${r.sameRepsCount}r) a W${r.latestW} (${r.latestVal} kg @${r.sameRepsCount}r) e' stato registrato un incremento effettivo di +${diffSame} kg a parita' di ripetizioni target.`
+      });
     }
   });
 

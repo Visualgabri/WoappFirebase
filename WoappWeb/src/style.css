@@ -22,109 +22,41 @@
 }
 
 [data-theme="light"],
-[data-theme="light"][data-light-style="slate"] {
-  color-scheme: light;
-  --card-bg-glass: #ffffff;
-  --card-bg-dark: #ffffff;
-  --card-bg-soft: #f1f5f9;
-  --card-border: #cbd5e1;
-  --bg-main: #f8fafc;
-  --text-dark: #0f172a;
-  --text-slate: #334155;
-  --text-muted: #64748b;
-  --variation-green-color: #047857;
-  --variation-red-color: #dc2626;
-  --v-field-bg: #f8fafc;
-  --v-field-border: #cbd5e1;
-  --nav-bg: rgba(255, 255, 255, 0.95);
-  --nav-border: #cbd5e1;
-  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-  --scheda-btn-bg: #f1f5f9;
-  --scheda-btn-border: #cbd5e1;
-  --scheda-btn-color: #0f172a;
-  --glow-opacity: 0;
-
-  --brand-accent: #ea580c;
-  --brand-accent-glow: rgba(234, 88, 12, 0.25);
-  --brand-accent-bg: #fff7ed;
-
-  --color-emerald-700: #047857;
-  --color-cyan-700: #0e7490;
-  --color-amber-700: #b45309;
-  --color-orange-700: #c2410c;
-  --color-red-700: #dc2626;
-  --color-purple-700: #7e22ce;
-  --color-blue-700: #1d4ed8;
-}
-
-[data-theme="light"][data-light-style="chalk"] {
-  color-scheme: light;
-  --card-bg-glass: #ffffff;
-  --card-bg-dark: #ffffff;
-  --card-bg-soft: #f0f7ff;
-  --card-border: #bfdbfe;
-  --bg-main: #f8fafc;
-  --text-dark: #0f172a;
-  --text-slate: #1e293b;
-  --text-muted: #64748b;
-  --variation-green-color: #15803d;
-  --variation-red-color: #dc2626;
-  --v-field-bg: #ffffff;
-  --v-field-border: #93c5fd;
-  --nav-bg: rgba(255, 255, 255, 0.96);
-  --nav-border: #bfdbfe;
-  --card-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.08), 0 2px 6px -1px rgba(37, 99, 235, 0.04);
-  --scheda-btn-bg: #f0f7ff;
-  --scheda-btn-border: #93c5fd;
-  --scheda-btn-color: #1e3a8a;
-  --glow-opacity: 0;
-
-  --brand-accent: #2563eb;
-  --brand-accent-glow: rgba(37, 99, 235, 0.25);
-  --brand-accent-bg: #eff6ff;
-
-  --color-emerald-700: #15803d;
-  --color-cyan-700: #0284c7;
-  --color-amber-700: #d97706;
-  --color-orange-700: #ea580c;
-  --color-red-700: #dc2626;
-  --color-purple-700: #6d28d9;
-  --color-blue-700: #2563eb;
-}
-
+[data-theme="light"][data-light-style="slate"],
+[data-theme="light"][data-light-style="chalk"],
 [data-theme="light"][data-light-style="sand"] {
   color-scheme: light;
   --card-bg-glass: #ffffff;
   --card-bg-dark: #ffffff;
-  --card-bg-soft: #f4efe6;
-  --card-border: #e6dfd3;
-  --bg-main: #faf7f2;
-  --text-dark: #292524;
-  --text-slate: #44403c;
-  --text-muted: #78716c;
-  --variation-green-color: #15803d;
-  --variation-red-color: #dc2626;
+  --card-bg-soft: #f5f3ef;
+  --card-border: #e6e4df;
+  --bg-main: #f9f8f5;
+  --text-dark: #1e293b;
+  --text-slate: #57657a;
+  --text-muted: #8a96a6;
+  --variation-green-color: #4d7c0f;
+  --variation-red-color: #a51d1d;
   --v-field-bg: #ffffff;
-  --v-field-border: #e6dfd3;
-  --nav-bg: rgba(250, 247, 242, 0.96);
-  --nav-border: #e6dfd3;
-  --card-shadow: 0 8px 24px -4px rgba(41, 37, 36, 0.06), 0 2px 6px -1px rgba(41, 37, 36, 0.03);
-  --scheda-btn-bg: #f4efe6;
-  --scheda-btn-border: #e6dfd3;
-  --scheda-btn-color: #292524;
+  --v-field-border: #e6e4df;
+  --nav-bg: rgba(249, 248, 245, 0.96);
+  --nav-border: #e6e4df;
+  --card-shadow: 0 2px 12px rgba(30, 41, 59, 0.04);
+  --scheda-btn-bg: #f5f3ef;
+  --scheda-btn-border: #e6e4df;
+  --scheda-btn-color: #1e293b;
   --glow-opacity: 0;
 
-  --brand-accent: #d97706;
-  --brand-accent-glow: rgba(217, 119, 6, 0.25);
-  --brand-accent-bg: #fef3c7;
+  --brand-accent: #c85a17;
+  --brand-accent-glow: rgba(200, 90, 23, 0.18);
+  --brand-accent-bg: #faf2ec;
 
-  --color-emerald-700: #15803d;
+  --color-emerald-700: #4d7c0f;
   --color-cyan-700: #0f766e;
   --color-amber-700: #b45309;
-  --color-orange-700: #c2410c;
-  --color-red-700: #dc2626;
-  --color-purple-700: #7c3aed;
-  --color-blue-700: #1e40af;
+  --color-orange-700: #c85a17;
+  --color-red-700: #a51d1d;
+  --color-purple-700: #7e22ce;
+  --color-blue-700: #1d4ed8;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1164,11 +1096,56 @@ body::after {
 
 [data-theme="light"] .sticky-tabs-container .v-tab--selected,
 [data-theme="light"] .v-tab--selected {
-  background: var(--brand-accent) !important;
-  border: 1.5px solid var(--brand-accent) !important;
-  color: #ffffff !important;
+  background: var(--brand-accent-bg, #faf2ec) !important;
+  border: 1.5px solid var(--brand-accent, #c85a17) !important;
+  color: var(--brand-accent, #c85a17) !important;
   box-shadow: 0 2px 8px var(--brand-accent-glow) !important;
   border-radius: 12px !important;
+}
+
+:root:not([data-theme="light"]) .sticky-tabs-container .v-tab--selected,
+[data-theme="dark"] .sticky-tabs-container .v-tab--selected,
+[data-theme="dark"] .v-tab--selected {
+  background: linear-gradient(135deg, #e65100, #ff8f00) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(230, 81, 0, 0.4) !important;
+  border-radius: 12px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RECOVERY TIMER CHIP STYLING (WARM TERRACOTTA ELEGANT)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.clickable-timer-chip {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme="light"] .clickable-timer-chip {
+  background: #faf2ec !important;
+  border: 1px solid rgba(200, 90, 23, 0.25) !important;
+  color: #c85a17 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .clickable-timer-chip .v-icon,
+[data-theme="light"] .clickable-timer-chip i {
+  color: #c85a17 !important;
+}
+
+[data-theme="light"] .clickable-timer-chip:hover {
+  background: #f5e4d7 !important;
+  border-color: #c85a17 !important;
+  color: #c85a17 !important;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 2px 8px rgba(200, 90, 23, 0.15) !important;
+}
+
+[data-theme="dark"] .clickable-timer-chip {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  color: #fbbf24 !important;
 }
 
 /* Stili per Stepper e Bottoni Sforzo Percepito (W6) */

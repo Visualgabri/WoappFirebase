@@ -55,6 +55,19 @@
           color="orange-darken-3"
           variant="tonal"
           size="small"
+          class="rounded-lg mr-1"
+          style="width: 32px; height: 32px;"
+          @click="apriGuidaInterattiva(0)"
+          id="btn-guida-app"
+          title="Guida Interattiva FlexCoach"
+        >
+          <v-icon size="16">mdi-book-open-variant</v-icon>
+        </v-btn>
+        <v-btn
+          icon
+          color="orange-darken-3"
+          variant="tonal"
+          size="small"
           class="rounded-lg"
           style="width: 32px; height: 32px;"
           @click="caricaDatiScheda"
@@ -1013,6 +1026,313 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- MODALE GUIDA INTERATTIVA & FEATURE SHOWCASE -->
+    <v-dialog v-model="mostraGuidaInterattiva" max-width="650" scrollable transition="dialog-bottom-transition">
+      <v-card class="card-glass-dark rounded-2xl border overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <!-- Header della Modale con Titolo e Pulsante Tour -->
+        <v-card-title class="pa-3.5 py-3 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 80%;">
+            <v-icon color="orange-darken-3" size="22">mdi-book-open-variant</v-icon>
+            <span class="font-weight-black dialog-text-primary text-truncate" style="font-size: 0.95rem; letter-spacing: 0.02em;">
+              Guida Interattiva FlexCoach 🏋️
+            </span>
+          </div>
+          <div class="d-flex align-center gap-1">
+            <v-btn
+              color="orange-darken-3"
+              variant="flat"
+              size="x-small"
+              class="font-weight-black text-white px-2 py-1 rounded-lg text-none"
+              style="font-size: 0.65rem; height: 26px;"
+              @click="avviaTourGuidato"
+            >
+              🚀 Avvia Tour
+            </v-btn>
+            <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="mostraGuidaInterattiva = false"></v-btn>
+          </div>
+        </v-card-title>
+
+        <!-- Searchbar interna & Navigazione Tab -->
+        <div class="px-3 pt-3 pb-1 border-bottom bg-slate-950">
+          <v-text-field
+            v-model="searchGuida"
+            placeholder="🔍 Cerca argomento (es. e1RM, scarico, RPE, timer...)"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            class="mb-2 custom-weight-input"
+            style="font-size: 0.78rem;"
+          ></v-text-field>
+
+          <v-tabs v-model="tabGuida" color="orange-darken-3" density="compact" align-tabs="center" grow>
+            <v-tab :value="0" class="font-weight-black text-caption text-none" style="font-size: 0.72rem;">🧠 Strategia</v-tab>
+            <v-tab :value="1" class="font-weight-black text-caption text-none" style="font-size: 0.72rem;">📊 Carico & 1RM</v-tab>
+            <v-tab :value="2" class="font-weight-black text-caption text-none" style="font-size: 0.72rem;">🏋️ Esercizi</v-tab>
+            <v-tab :value="3" class="font-weight-black text-caption text-none" style="font-size: 0.72rem;">🎨 Temi & UX</v-tab>
+          </v-tabs>
+        </div>
+
+        <v-card-text class="pa-4 scrollbar-custom text-left" style="max-height: 65vh;">
+          <v-window v-model="tabGuida">
+            <!-- TAB 0: STRATEGIA COACH & 6 SETTIMANE -->
+            <v-window-item :value="0">
+              <div class="mb-4">
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
+                  🧠 Cos'è la Strategia Coach?
+                </h4>
+                <p class="text-caption text-slate mb-3">
+                  L'algoritmo di **Strategia Coach** calcola dinamicamente lo stato prestazionale dell'atleta confrontando il massimale stimato (**e1RM**) corrente con il record storico della scheda.
+                </p>
+
+                <!-- Calcolatore Interattivo e1RM per la Guida -->
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-4">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.62rem;">⚡ Simulatore Massimale Stimato (e1RM)</span>
+                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.55rem; height: 16px;">INTERATTIVO</v-chip>
+                  </div>
+                  <div class="d-flex align-center gap-2 mb-2">
+                    <v-text-field
+                      v-model.number="simPeso"
+                      label="Peso (kg)"
+                      type="number"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      class="flex-grow-1 custom-weight-input"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model.number="simReps"
+                      label="Reps"
+                      type="number"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      class="flex-grow-1 custom-weight-input"
+                    ></v-text-field>
+                  </div>
+                  <div class="pa-2 rounded-lg bg-slate-950 text-center border-soft">
+                    <span class="text-super-caption text-muted font-weight-bold d-block" style="font-size: 0.6rem;">Massimale Stimato Calcolato (e1RM):</span>
+                    <span class="text-h6 font-weight-black text-orange-lighten-1" style="font-size: 1.1rem;">
+                      {{ calcolaSimE1RM }} kg
+                    </span>
+                  </div>
+                </div>
+
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2">
+                  MAPPA ROADMAP 6 SETTIMANE (W1 - W6)
+                </h4>
+                <div class="d-flex flex-column gap-2 mb-3">
+                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">W1 - Accumulo & Tecnica</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Volume sicuro, controllo del ritmo esecutivo</span>
+                    </div>
+                    <v-chip color="cyan-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 7-8</v-chip>
+                  </div>
+                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">W2 - Progressione Carico</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Incremento sostenibile del peso</span>
+                    </div>
+                    <v-chip color="amber-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 8</v-chip>
+                  </div>
+                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">W3 - Pareggio PR Storico</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Test di pareggio del record passato</span>
+                    </div>
+                    <v-chip color="orange-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 8.5-9</v-chip>
+                  </div>
+                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">W4 - Scarico Rigenerativo</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Riduzione carico per recupero neurale</span>
+                    </div>
+                    <v-chip color="blue-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 6-7</v-chip>
+                  </div>
+                  <div class="pa-2.5 rounded-xl border-2 bg-amber-lighten-5 d-flex align-center justify-space-between" style="border-color: #d97706 !important;">
+                    <div>
+                      <div class="d-flex align-center gap-1.5 mb-0.5">
+                        <span class="font-weight-black text-caption dialog-text-primary">W5 - Picco Intensità</span>
+                        <v-chip color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white animate-pulse px-1.5" style="font-size: 0.52rem; height: 16px;">⚡ ATTIVA ORA</v-chip>
+                      </div>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Rottura dello stallo per superare il tetto storico</span>
+                    </div>
+                    <v-chip color="purple-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 9-9.5</v-chip>
+                  </div>
+                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">W6 - Test Nuovo Record Assoluto</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Test finale AMRAP/3-6 reps per stabilire il nuovo PR</span>
+                    </div>
+                    <v-chip color="green-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 10</v-chip>
+                  </div>
+                </div>
+              </div>
+            </v-window-item>
+
+            <!-- TAB 1: PROPOSTA CARICO & GRAFICI -->
+            <v-window-item :value="1">
+              <div class="mb-4">
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
+                  💡 Proposta Carico Automatica
+                </h4>
+                <p class="text-caption text-slate mb-3">
+                  Nessun dubbio su quanti kg caricare! L'algoritmo FlexCoach legge il tuo storico, applica i fattori di deallenamento per i giorni di pausa e genera la **Stima del Carico Ideale**. Tocca *"Applica Consigliato"* per compilare la serie al volo.
+                </p>
+
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2">
+                  📈 Grafico Interattivo a 3 Modalità (Chart.js)
+                </h4>
+                <div class="d-flex flex-column gap-2.5 mb-3">
+                  <div class="pa-3 rounded-xl border border-soft bg-slate-900">
+                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1">Modalità A: Curve per Range Reps + Linea 1RM</span>
+                    <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
+                      Visualizza le linee di tendenza dei carichi sollevati raggruppate per ripetizioni (6-8r vs 10-12r) con in sovrimpressione il valore tratteggiato del Massimale Stimato.
+                    </span>
+                  </div>
+                  <div class="pa-3 rounded-xl border border-soft bg-slate-900">
+                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1">Modalità B: Fascia di Rendimento</span>
+                    <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
+                      Mostra la distribuzione dell'area di lavoro dei carichi e la fascia di varianza della forza.
+                    </span>
+                  </div>
+                  <div class="pa-3 rounded-xl border border-soft bg-slate-900">
+                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1">Modalità C: Progressione Cronologica</span>
+                    <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
+                      Punti temporali individuali di ogni singola serie effettuata nel tempo. Tocca un punto qualsiasi per aprire la card **🔍 Dettaglio Sessione**!
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </v-window-item>
+
+            <!-- TAB 2: ESERCIZI SPECIALI, VIDEO & TEST -->
+            <v-window-item :value="2">
+              <div class="mb-4">
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
+                  🏋️ Navigazione Rapida Esercizi
+                </h4>
+                <p class="text-caption text-slate mb-3">
+                  Dalla dashboard principale puoi accedere istantaneamente alle modali con la lista degli esercizi target:
+                </p>
+
+                <div class="d-flex flex-column gap-2.5 mb-3">
+                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
+                    <v-icon color="orange-darken-3" size="24">mdi-dumbbell</v-icon>
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">Test alla Week 6 🏋️</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
+                        Tutti gli esercizi del mesociclo che richiedono un test AMRAP o di massimale nella settimana 6.
+                      </span>
+                    </div>
+                  </div>
+                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
+                    <v-icon color="orange-darken-3" size="24">mdi-video-outline</v-icon>
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">Esercizi con Video Richiesto 📹</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
+                        Esercizi in cui il Coach ha attivato la spunta video per verificare la tecnica esecutiva.
+                      </span>
+                    </div>
+                  </div>
+                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
+                    <v-icon color="orange-darken-3" size="24">mdi-star-outline</v-icon>
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">Nuovi Esercizi ✨</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
+                        Esercizi introdotti per la prima volta nella scheda attiva.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </v-window-item>
+
+            <!-- TAB 3: TEMI & PERSONALIZZAZIONE UX -->
+            <v-window-item :value="3">
+              <div class="mb-4">
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
+                  🎨 Stili & Temi Personalizzati
+                </h4>
+                <p class="text-caption text-slate mb-3">
+                  FlexCoach offre stili visivi curati per adattarsi ad ogni ambiente di luce. Provali dal vivo direttamente da qui!
+                </p>
+
+                <div class="d-flex flex-column gap-2 mb-4">
+                  <div class="pa-3 rounded-xl border bg-slate-900 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('dark', 'slate')">
+                    <div>
+                      <span class="font-weight-black text-caption text-white d-block">🌙 Dark Glassmorphism</span>
+                      <span class="text-super-caption text-muted" style="font-size: 0.63rem;">Sfondi traslucidi effetto vetro scuro</span>
+                    </div>
+                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white">Applica</v-chip>
+                  </div>
+                  <div class="pa-3 rounded-xl border bg-slate-100 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('light', 'slate')">
+                    <div>
+                      <span class="font-weight-black text-caption text-slate-dark d-block">☀️ Light Slate</span>
+                      <span class="text-super-caption text-muted" style="font-size: 0.63rem;">Ardesia pulito con accenti arancioni</span>
+                    </div>
+                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white">Applica</v-chip>
+                  </div>
+                  <div class="pa-3 rounded-xl border bg-blue-lighten-5 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('light', 'chalk')">
+                    <div>
+                      <span class="font-weight-black text-caption text-blue-darken-4 d-block">✏️ Light Chalk</span>
+                      <span class="text-super-caption text-muted" style="font-size: 0.63rem;">Stile lavagna con toni azzurri e blu</span>
+                    </div>
+                    <v-chip color="blue-darken-2" size="x-small" variant="flat" class="font-weight-black text-white">Applica</v-chip>
+                  </div>
+                  <div class="pa-3 rounded-xl border bg-amber-lighten-5 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('light', 'sand')">
+                    <div>
+                      <span class="font-weight-black text-caption text-amber-darken-4 d-block">🏖️ Light Sand</span>
+                      <span class="text-super-caption text-muted" style="font-size: 0.63rem;">Toni sabbia morbidi con accenti miele</span>
+                    </div>
+                    <v-chip color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white">Applica</v-chip>
+                  </div>
+                </div>
+
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
+                  ⏱️ Timer & Feedback Tattile
+                </h4>
+                <p class="text-caption text-slate">
+                  Il timer di recupero parte automaticamente al completamento della serie ed avvisa con tono acustico e vibrazione.
+                </p>
+              </div>
+            </v-window-item>
+          </v-window>
+        </v-card-text>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="mostraGuidaInterattiva = false">Chiudi Guida</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- OVERLAY SPOTLIGHT TOUR GUIDATO -->
+    <v-overlay v-model="mostraSpotlightTour" class="align-center justify-center" persistent style="z-index: 9999;">
+      <v-card class="pa-5 rounded-2xl text-left border card-glass-dark" max-width="360" style="background: rgba(15, 23, 42, 0.95) !important; backdrop-filter: blur(20px);">
+        <div class="d-flex align-center justify-space-between mb-2">
+          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">
+            PASSO {{ tourStep + 1 }} DI {{ tourSteps.length }}
+          </v-chip>
+          <v-btn icon="mdi-close" variant="text" size="x-small" color="grey" @click="chiudiTour"></v-btn>
+        </div>
+        <h3 class="text-subtitle-1 font-weight-black text-orange-lighten-2 mb-1">
+          {{ tourSteps[tourStep]?.titolo }}
+        </h3>
+        <p class="text-caption text-slate mb-4">
+          {{ tourSteps[tourStep]?.descrizione }}
+        </p>
+        <div class="d-flex align-center justify-space-between gap-2">
+          <v-btn v-if="tourStep > 0" variant="outlined" color="grey" size="small" rounded="lg" class="font-weight-bold text-none" @click="tourStep--">Indietro</v-btn>
+          <div class="flex-grow-1"></div>
+          <v-btn color="orange-darken-3" variant="flat" size="small" rounded="lg" class="font-weight-bold text-white text-none" @click="avantiTour">
+            {{ tourStep < tourSteps.length - 1 ? 'Avanti ›' : 'Ho Capito! 🚀' }}
+          </v-btn>
+        </div>
+      </v-card>
+    </v-overlay>
   </v-container>
 </template>
 
@@ -1270,6 +1590,79 @@ const getGifUrl = (url) => {
 const mostraTestWeek6 = ref(false);
 const mostraEserciziNuovi = ref(false);
 const mostraEserciziVideo = ref(false);
+
+// Guida Interattiva & Feature Tour
+const mostraGuidaInterattiva = ref(false);
+const tabGuida = ref(0);
+const searchGuida = ref('');
+const simPeso = ref(80);
+const simReps = ref(8);
+
+const calcolaSimE1RM = computed(() => {
+  if (!simPeso.value || !simReps.value) return 0;
+  return Math.round(simPeso.value * (1 + simReps.value / 30) * 10) / 10;
+});
+
+const apriGuidaInterattiva = (tabIndex = 0) => {
+  tabGuida.value = tabIndex;
+  mostraGuidaInterattiva.value = true;
+};
+
+const cambiaTemaInterattivo = (theme, style) => {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.setAttribute('data-light-style', style);
+  localStorage.setItem('woapp_theme', theme);
+  localStorage.setItem('woapp_light_style', style);
+};
+
+// Tour Guidato Spotlight
+const mostraSpotlightTour = ref(false);
+const tourStep = ref(0);
+const tourSteps = [
+  {
+    titolo: '👋 Benvenuto in FlexCoach!',
+    descrizione: 'Questa è la tua piattaforma avanzata per la forza. Vediamo insieme le funzionalità principali in pochissimi secondi.'
+  },
+  {
+    titolo: '📖 Guida Sempre a Portata di Mano',
+    descrizione: 'Tocca l’icona del libro in alto a destra per aprire la Guida Interattiva, calcolare l’e1RM o provare i temi.'
+  },
+  {
+    titolo: '🧠 Strategia Coach & 6 Settimane',
+    descrizione: 'In ogni esercizio trovi la Roadmap delle 6 Settimane per conoscere esattamente l’RPE e il carico target consigliato.'
+  },
+  {
+    titolo: '📊 Grafici e Proposta Carico',
+    descrizione: 'L’algoritmo calcola in automatico i kg da caricare tenendo conto del tuo deallenamento e della fatica passata.'
+  }
+];
+
+const avviaTourGuidato = () => {
+  mostraGuidaInterattiva.value = false;
+  tourStep.value = 0;
+  mostraSpotlightTour.value = true;
+};
+
+const avantiTour = () => {
+  if (tourStep.value < tourSteps.length - 1) {
+    tourStep.value++;
+  } else {
+    chiudiTour();
+  }
+};
+
+const chiudiTour = () => {
+  mostraSpotlightTour.value = false;
+  localStorage.setItem('woapp_tour_completato', 'true');
+};
+
+onMounted(() => {
+  if (!localStorage.getItem('woapp_tour_completato')) {
+    setTimeout(() => {
+      mostraSpotlightTour.value = true;
+    }, 1500);
+  }
+});
 
 const allineamentoProgramma = computed(() => {
   const dateStr = workoutTData.value?.dat_data || dataInizio.value;

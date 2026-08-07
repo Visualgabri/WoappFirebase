@@ -1083,7 +1083,7 @@
                   🧠 Cos'è la Strategia Coach?
                 </h4>
                 <p class="text-caption text-slate mb-3">
-                  L'algoritmo di **Strategia Coach** calcola dinamicamente lo stato prestazionale dell'atleta confrontando il massimale stimato (**e1RM**) corrente con il record storico della scheda.
+                  Il sistema intelligente <strong>FlexCoach</strong> valuta lo stato di forza dell'atleta confrontando il massimale stimato (<strong>e1RM</strong>) corrente con il record storico dell'esercizio.
                 </p>
 
                 <!-- Calcolatore Interattivo e1RM per la Guida -->
@@ -1121,13 +1121,13 @@
                 </div>
 
                 <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2">
-                  MAPPA ROADMAP 6 SETTIMANE (W1 - W6)
+                  🗺️ ROADMAP 6 SETTIMANE (W1 - W6)
                 </h4>
                 <div class="d-flex flex-column gap-2 mb-3">
                   <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block">W1 - Accumulo & Tecnica</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Volume sicuro, controllo del ritmo esecutivo</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Volume sicuro e controllo esecutivo</span>
                     </div>
                     <v-chip color="cyan-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 7-8</v-chip>
                   </div>
@@ -1148,7 +1148,7 @@
                   <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block">W4 - Scarico Rigenerativo</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Riduzione carico per recupero neurale</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Riduzione carico per recupero attivo</span>
                     </div>
                     <v-chip color="blue-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 6-7</v-chip>
                   </div>
@@ -1165,85 +1165,125 @@
                   <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block">W6 - Test Nuovo Record Assoluto</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Test finale AMRAP/3-6 reps per stabilire il nuovo PR</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Test finale AMRAP o ripetizioni per il nuovo PR</span>
                     </div>
                     <v-chip color="green-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">RPE 10</v-chip>
                   </div>
                 </div>
+
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
+                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1">⚡ Pulsanti Fatica alla Settimana 6</h5>
+                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem;">
+                    Al completamento della Settimana 6 selezioni la fatica provata (<strong>Leggero</strong>, <strong>Medio</strong>, <strong>Pesante</strong>, <strong>Devastante</strong>). Questo dato permette al sistema di calcolare automaticamente la partenza perfetta per la Settimana 1 del mesociclo successivo!
+                  </p>
+                </div>
+
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900">
+                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1">💡 Suggerimenti per Assenza di Progressione</h5>
+                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem;">
+                    Se il sistema rileva che non stai aumentando la forza o che sei in fase di stallo, ti vengono fornite automaticamente opzioni tattiche di ricalcolo o suggerimenti strategici per il Coach.
+                  </p>
+                </div>
               </div>
             </v-window-item>
 
-            <!-- TAB 1: PROPOSTA CARICO & GRAFICI -->
+            <!-- TAB 1: PROPOSTA CARICO & REPS 'r' -->
             <v-window-item :value="1">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
-                  💡 Proposta Carico Automatica
+                  💡 Proposta Carico & Sintassi Reps con "r"
                 </h4>
-                <p class="text-caption text-slate mb-3">
-                  Nessun dubbio su quanti kg caricare! L'algoritmo FlexCoach legge il tuo storico, applica i fattori di deallenamento per i giorni di pausa e genera la **Stima del Carico Ideale**. Tocca *"Applica Consigliato"* per compilare la serie al volo.
+                <p class="text-caption text-slate mb-2">
+                  Il sistema calcola il peso consigliato in base ai giorni di pausa ed al tuo storico. Tocca <strong>"Applica Consigliato"</strong> per inserire subito il carico.
                 </p>
 
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
+                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1">📝 Inserimento Reps con la "r" (es. 50 12r)</h5>
+                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem;">
+                    Se non riesci ad aumentare i kg o decidi di mantenere lo stesso peso aumentando le ripetizioni, digita la cifra delle reps aggiungendo la <strong>"r"</strong> accanto (esempio: <code>50 12r</code> oppure <code>50 12r 12r 10r</code> per più serie). In questo modo il sistema riconosce il tuo incremento di volume e calcola la progressione anche senza aumentare il peso sollevato!
+                  </p>
+                </div>
+
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
+                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1">📜 Pulsante Storico (Tabella Cronologia)</h5>
+                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem;">
+                    Toccando l'icona dello storico/orologio si apre la <strong>Tabella della Cronologia</strong>: la panoramica di tutte le sessioni svolte nei mesocicli passati per quel movimento, completa di pesi sollevati, ripetizioni, note personali ed indicatore di fatica.
+                  </p>
+                </div>
+
                 <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2">
-                  📈 Grafico Interattivo a 3 Modalità (Chart.js)
+                  📈 Grafici di Forza a 3 Modalità
                 </h4>
                 <div class="d-flex flex-column gap-2.5 mb-3">
                   <div class="pa-3 rounded-xl border border-soft bg-slate-900">
-                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1">Modalità A: Curve per Range Reps + Linea 1RM</span>
+                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1">Modalità A: Curve per Range Reps</span>
                     <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
-                      Visualizza le linee di tendenza dei carichi sollevati raggruppate per ripetizioni (6-8r vs 10-12r) con in sovrimpressione il valore tratteggiato del Massimale Stimato.
+                      Visualizza le linee di tendenza dei pesi raggruppate per ripetizioni con la linea tratteggiata del Massimale Stimato.
                     </span>
                   </div>
                   <div class="pa-3 rounded-xl border border-soft bg-slate-900">
                     <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1">Modalità B: Fascia di Rendimento</span>
                     <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
-                      Mostra la distribuzione dell'area di lavoro dei carichi e la fascia di varianza della forza.
+                      Mostra il canale di varianza della tua forza e l'area dei carichi.
                     </span>
                   </div>
                   <div class="pa-3 rounded-xl border border-soft bg-slate-900">
                     <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1">Modalità C: Progressione Cronologica</span>
                     <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
-                      Punti temporali individuali di ogni singola serie effettuata nel tempo. Tocca un punto qualsiasi per aprire la card **🔍 Dettaglio Sessione**!
+                      Punti temporali di ogni singola serie effettuata. Tocca un punto per aprire la card <strong>🔍 Dettaglio Sessione</strong>!
                     </span>
                   </div>
                 </div>
               </div>
             </v-window-item>
 
-            <!-- TAB 2: ESERCIZI SPECIALI, VIDEO & TEST -->
+            <!-- TAB 2: ESERCIZI, TIMER & PULSANTI DI CONTROLLO -->
             <v-window-item :value="2">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
-                  🏋️ Navigazione Rapida Esercizi
+                  ⏱️ Avvio del Timer di Recupero
                 </h4>
                 <p class="text-caption text-slate mb-3">
-                  Dalla dashboard principale puoi accedere istantaneamente alle modali con la lista degli esercizi target:
+                  Il timer di recupero <strong>non parte da solo</strong>: per avviarlo è sufficiente toccare il chip arancione del tempo di recupero (es. <code>⏱️ 1'30"-1'45"</code>) situato vicino all'esercizio. Parte un conto alla rovescia con suono e vibrazione al termine!
                 </p>
 
-                <div class="d-flex flex-column gap-2.5 mb-3">
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2">
+                  🛠️ Pulsanti di Navigazione & Controllo
+                </h4>
+                <div class="d-flex flex-column gap-2 mb-3">
                   <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
-                    <v-icon color="orange-darken-3" size="24">mdi-dumbbell</v-icon>
+                    <v-icon color="orange-darken-3" size="22">mdi-arrow-left</v-icon>
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block">Test alla Week 6 🏋️</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">⬅️ Pulsante Precedente</span>
                       <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
-                        Tutti gli esercizi del mesociclo che richiedono un test AMRAP o di massimale nella settimana 6.
+                        Posizionato in alto a sinistra nel dettaglio esercizio, ti permette di tornare velocemente all'esercizio o al giorno svolto in precedenza.
                       </span>
                     </div>
                   </div>
                   <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
-                    <v-icon color="orange-darken-3" size="24">mdi-video-outline</v-icon>
+                    <v-icon color="amber-darken-2" size="22">mdi-star-outline</v-icon>
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block">Esercizi con Video Richiesto 📹</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">⭐ Pulsanti di Gradimento Esercizio</span>
                       <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
-                        Esercizi in cui il Coach ha attivato la spunta video per verificare la tecnica esecutiva.
+                        Ti permettono di valutare l'esercizio con le stelle di gradimento per comunicare al Coach le tue preferenze sui movimenti.
                       </span>
                     </div>
                   </div>
                   <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
-                    <v-icon color="orange-darken-3" size="24">mdi-star-outline</v-icon>
+                    <v-icon color="orange-darken-3" size="22">mdi-dumbbell</v-icon>
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block">Nuovi Esercizi ✨</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">🏋️ Lista Test Week 6</span>
                       <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
-                        Esercizi introdotti per la prima volta nella scheda attiva.
+                        Elenco rapido di tutti gli esercizi della scheda con test di massimale o AMRAP nella settimana 6.
+                      </span>
+                    </div>
+                  </div>
+                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
+                    <v-icon color="orange-darken-3" size="22">mdi-video-outline</v-icon>
+                    <div>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block">📹 Esercizi con Video Richiesto</span>
+                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem;">
+                        Esercizi in cui il Coach richiede il video dell'esecuzione per verificare la tecnica.
                       </span>
                     </div>
                   </div>
@@ -1293,10 +1333,10 @@
                 </div>
 
                 <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1">
-                  ⏱️ Timer & Feedback Tattile
+                  ⚡ Feedback Tattile (Vibrazione)
                 </h4>
                 <p class="text-caption text-slate">
-                  Il timer di recupero parte automaticamente al completamento della serie ed avvisa con tono acustico e vibrazione.
+                  L'applicazione risponde con una micro-vibrazione ad ogni interazione chiave per un'esperienza d'uso naturale e fluida.
                 </p>
               </div>
             </v-window-item>

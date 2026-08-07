@@ -998,7 +998,7 @@
               v-if="block.type === 'superset'"
               class="superset-group-card border-superset elevation-2 text-left"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-3' : 'rounded-3xl pa-4 mb-4'),
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-3.5' : 'rounded-3xl pa-4 mb-4'),
                 { 'completed': block.exercises.every(ex => ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim() !== '') }
               ]"
             >
@@ -1134,7 +1134,7 @@
                   <!-- VISUALIZZAZIONE COMPATTA -->
                   <template v-else-if="layoutEsercizi === 'compatto'">
                     <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                    <div class="d-flex flex-column align-center mr-2.5 mt-1.5" style="width: 66px; min-width: 66px;">
+                    <div class="d-flex flex-column align-center mr-3.5 mt-1.5" style="width: 66px; min-width: 66px;">
                       <div class="position-relative" style="width: 66px; height: 66px;">
                         <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                         <div
@@ -1207,7 +1207,7 @@
                         </div>
 
                         <!-- Timer Recupero e Bottone Azione Rapida allineati insieme a Destra con Spaziatura Vert. -->
-                        <div class="flex-shrink-0 ml-auto d-flex align-center gap-1.5 mt-1.5">
+                        <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-2 mt-1.5" style="row-gap: 6px;">
                           <v-chip
                             v-if="ex.des_rec_report"
                             variant="flat"
@@ -1394,7 +1394,7 @@
               :id="'esercizio-' + block.exercise.id"
               class="exercise-item-card elevation-1 d-flex align-center"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-2.5 mb-3' : 'rounded-3xl pa-3 mb-4'),
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg px-3.5 py-3 mb-3.5' : 'rounded-3xl pa-3 mb-4'),
                 { 'completed': block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() !== '' }
               ]"
               @click="vaiAlDettaglio(block.exercise.id)"
@@ -1498,7 +1498,7 @@
               <!-- VISUALIZZAZIONE COMPATTA -->
               <template v-else-if="layoutEsercizi === 'compatto'">
                 <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                <div class="d-flex flex-column align-center mr-2.5 mt-1.5" style="width: 66px; min-width: 66px;">
+                <div class="d-flex flex-column align-center mr-3.5 mt-1.5" style="width: 66px; min-width: 66px;">
                   <div class="position-relative" style="width: 66px; height: 66px;">
                     <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                     <div
@@ -1571,7 +1571,7 @@
                     </div>
 
                     <!-- Timer Recupero e Bottone Azione Rapida allineati insieme a Destra con Spaziatura Vert. -->
-                    <div class="flex-shrink-0 ml-auto d-flex align-center gap-1.5 mt-1.5">
+                    <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-2 mt-1.5" style="row-gap: 6px;">
                       <v-chip
                         v-if="block.exercise.des_rec_report"
                         variant="flat"

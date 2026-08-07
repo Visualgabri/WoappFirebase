@@ -998,7 +998,7 @@
               v-if="block.type === 'superset'"
               class="superset-group-card border-superset elevation-2 text-left"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-4' : 'rounded-3xl pa-4 mb-4.5'),
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-2.5' : 'rounded-3xl pa-4 mb-4.5'),
                 { 'completed': block.exercises.every(ex => ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim() !== '') }
               ]"
             >
@@ -1134,7 +1134,7 @@
                   <!-- VISUALIZZAZIONE COMPATTA -->
                   <template v-else-if="layoutEsercizi === 'compatto'">
                     <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                    <div class="d-flex flex-column align-center mr-4 mt-1.5" style="width: 66px; min-width: 66px;">
+                    <div class="d-flex flex-column align-center mr-3.5 mt-1" style="width: 66px; min-width: 66px;">
                       <div class="position-relative" style="width: 66px; height: 66px;">
                         <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                         <div
@@ -1185,7 +1185,7 @@
                       </div>
 
                       <!-- Riga Inferiore: Cronologia Carichi (W1-W6) a Sinistra & Bottone Azione a Destra con Linea Superiore -->
-                      <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1.5 pt-1.5 border-top-soft w-100 pr-1">
+                      <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100 pr-1">
                         <div class="d-flex align-center gap-1 flex-wrap">
                           <div
                             v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -1207,7 +1207,7 @@
                         </div>
 
                         <!-- Timer Recupero e Bottone Azione Rapida allineati insieme a Destra con Spaziatura Vert. -->
-                        <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-3 mt-2" style="row-gap: 8px;">
+                        <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-2 mt-1" style="row-gap: 4px;">
                           <v-chip
                             v-if="ex.des_rec_report"
                             variant="flat"
@@ -1394,7 +1394,7 @@
               :id="'esercizio-' + block.exercise.id"
               class="exercise-item-card elevation-1 d-flex align-center"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg px-4 py-3.5 mb-4' : 'rounded-3xl pa-4 mb-4.5'),
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg px-3.5 py-2.5 mb-2.5' : 'rounded-3xl pa-4 mb-4.5'),
                 { 'completed': block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() !== '' }
               ]"
               @click="vaiAlDettaglio(block.exercise.id)"
@@ -1498,7 +1498,7 @@
               <!-- VISUALIZZAZIONE COMPATTA -->
               <template v-else-if="layoutEsercizi === 'compatto'">
                 <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                <div class="d-flex flex-column align-center mr-4 mt-1.5" style="width: 66px; min-width: 66px;">
+                <div class="d-flex flex-column align-center mr-3.5 mt-1" style="width: 66px; min-width: 66px;">
                   <div class="position-relative" style="width: 66px; height: 66px;">
                     <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                     <div
@@ -1549,7 +1549,7 @@
                   </div>
 
                   <!-- Riga Inferiore: Cronologia Carichi (W1-W6) a Sinistra & Bottone Azione a Destra con Linea Superiore -->
-                  <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1.5 pt-1.5 border-top-soft w-100 pr-1">
+                  <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100 pr-1">
                     <div class="d-flex align-center gap-1 flex-wrap">
                       <div
                         v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -1571,7 +1571,7 @@
                     </div>
 
                     <!-- Timer Recupero e Bottone Azione Rapida allineati insieme a Destra con Spaziatura Vert. -->
-                    <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-3 mt-2" style="row-gap: 8px;">
+                    <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-2 mt-1" style="row-gap: 4px;">
                       <v-chip
                         v-if="block.exercise.des_rec_report"
                         variant="flat"

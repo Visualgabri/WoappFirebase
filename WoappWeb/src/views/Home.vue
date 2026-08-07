@@ -55,19 +55,6 @@
           color="orange-darken-3"
           variant="tonal"
           size="small"
-          class="rounded-lg mr-1"
-          style="width: 32px; height: 32px;"
-          @click="apriGuidaInterattiva(0)"
-          id="btn-guida-app"
-          title="Guida Interattiva FlexCoach"
-        >
-          <v-icon size="16">mdi-book-open-variant</v-icon>
-        </v-btn>
-        <v-btn
-          icon
-          color="orange-darken-3"
-          variant="tonal"
-          size="small"
           class="rounded-lg"
           style="width: 32px; height: 32px;"
           @click="caricaDatiScheda"
@@ -1053,11 +1040,11 @@
           </div>
         </v-card-title>
 
-        <!-- Searchbar interna & Navigazione Tab a Pillole Senza Frecce -->
+        <!-- Searchbar interna & Navigazione Tab a Pillole Alta Visibilità -->
         <div class="px-3 pt-3 pb-2 border-bottom bg-slate-950">
           <v-text-field
             v-model="searchGuida"
-            placeholder="🔍 Cerca (es. e1RM, r, timer, fatica...)"
+            placeholder="🔍 Cerca (es. e1RM, r, infortuni, timer, fatica...)"
             density="compact"
             variant="outlined"
             hide-details
@@ -1066,17 +1053,16 @@
             style="font-size: 0.75rem;"
           ></v-text-field>
 
-          <!-- Segmented Tab Pills Container -->
+          <!-- Segmented Tab Pills Container High-Contrast Dark Theme -->
           <div class="d-flex align-center justify-space-between gap-1 pa-1 rounded-xl bg-slate-900 border">
             <v-btn
-              v-for="(tab, i) in ['🧠 Strategia', '📊 Carichi', '🏋️ Esercizi', '🎨 Temi']"
+              v-for="(tab, i) in ['🧠 Strategia', '📊 Carichi', '🏋️ Esercizi', '🩹 Infortuni', '🎨 Temi']"
               :key="i"
-              :color="tabGuida === i ? 'orange-darken-3' : 'transparent'"
-              :variant="tabGuida === i ? 'flat' : 'text'"
               size="x-small"
               class="flex-grow-1 font-weight-bold text-none rounded-lg text-truncate px-1"
-              :class="tabGuida === i ? 'text-white' : 'text-slate-light'"
-              style="font-size: 0.68rem; height: 30px; min-width: 0;"
+              :style="tabGuida === i 
+                ? 'font-size: 0.63rem; height: 30px; min-width: 0; color: #ffffff !important; background: #ea580c !important; font-weight: 900;' 
+                : 'font-size: 0.63rem; height: 30px; min-width: 0; color: #e2e8f0 !important; background: rgba(255, 255, 255, 0.08) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;'"
               @click="tabGuida = i"
             >
               {{ tab }}
@@ -1301,8 +1287,41 @@
               </div>
             </v-window-item>
 
-            <!-- TAB 3: TEMI & PERSONALIZZAZIONE UX -->
+            <!-- TAB 3: GESTIONE INFORTUNI & SOSTITUZIONI -->
             <v-window-item :value="3">
+              <div class="mb-4">
+                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1.5" style="font-size: 0.84rem;">
+                  🩹 Gestione Infortuni & Sostituzioni
+                </h4>
+                <p class="text-caption text-slate mb-3" style="font-size: 0.75rem; line-height: 1.45;">
+                  FlexCoach ti guida nella gestione attiva di fastidi o dolori articolari senza dover interrompere il tuo allenamento.
+                </p>
+
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
+                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">🏥 Segnalazione Fastidio / Dolore</h5>
+                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                    Dalla barra di navigazione inferiore accedi alla sezione <strong>Infortuni</strong>. Seleziona la zona anatomica interessata per monitorare la situazione ed informare il Coach.
+                  </p>
+                </div>
+
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
+                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">🔄 Sostituzione Esercizio in Sicurezza</h5>
+                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                    Il sistema propone automaticamente alternative sicure che mantengono lo stesso stimolo muscolare preservando l'articolazione o il muscolo dolente.
+                  </p>
+                </div>
+
+                <div class="pa-3 rounded-xl border border-soft bg-slate-900">
+                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">📲 Avviso Diretto al Coach</h5>
+                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                    Invii la notifica automatica WhatsApp al Coach Gabriele per ricevere l'adeguamento immediato della scheda per la seduta successiva!
+                  </p>
+                </div>
+              </div>
+            </v-window-item>
+
+            <!-- TAB 4: TEMI & PERSONALIZZAZIONE UX -->
+            <v-window-item :value="4">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1.5" style="font-size: 0.84rem;">
                   🎨 Stili & Temi Personalizzati

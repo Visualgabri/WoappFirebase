@@ -623,7 +623,7 @@
         <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
             <v-icon color="orange-darken-3" size="18">mdi-dumbbell</v-icon>
-            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+            <span class="font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
               Esercizi da Testare 🏋️
             </span>
           </div>
@@ -652,7 +652,7 @@
                 ></v-img>
               </div>
               <div class="flex-grow-1 min-width-0 text-left">
-                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                <div class="text-caption font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
                   {{ ex.des_esercizio }}
                   <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
                 </div>
@@ -698,7 +698,7 @@
         <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
             <v-icon color="orange-darken-3" size="18">mdi-dumbbell</v-icon>
-            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+            <span class="font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
               Test alla Week 6 🏋️
             </span>
           </div>
@@ -727,7 +727,7 @@
                 ></v-img>
               </div>
               <div class="flex-grow-1 min-width-0 text-left">
-                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                <div class="text-caption font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
                   {{ ex.des_esercizio }}
                   <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
                 </div>
@@ -756,7 +756,7 @@
         <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
             <v-icon color="orange-darken-3" size="18">mdi-star-outline</v-icon>
-            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+            <span class="font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
               Nuovi Esercizi ✨
             </span>
           </div>
@@ -785,7 +785,7 @@
                 ></v-img>
               </div>
               <div class="flex-grow-1 min-width-0 text-left">
-                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                <div class="text-caption font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
                   {{ ex.des_esercizio }}
                   <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
                 </div>
@@ -814,7 +814,7 @@
         <v-card-title class="pa-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
             <v-icon color="orange-darken-3" size="18">mdi-video-outline</v-icon>
-            <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+            <span class="font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
               Esercizi con Video richiesto 📹
             </span>
           </div>
@@ -843,7 +843,7 @@
                 ></v-img>
               </div>
               <div class="flex-grow-1 min-width-0 text-left">
-                <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
+                <div class="text-caption font-weight-black dialog-text-primary text-truncate" style="font-size: 0.82rem !important; line-height: 1.2;">
                   {{ ex.des_esercizio }}
                   <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="14" class="ml-1" title="Video richiesto">mdi-video</v-icon>
                 </div>

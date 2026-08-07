@@ -2264,7 +2264,7 @@
                 {{ meStatoTitolo(strategiaCoachData.stato) }}
               </span>
             </div>
-            <p class="text-caption text-slate-light mb-0" style="font-size: 0.72rem; line-height: 1.4; color: #cbd5e1 !important;">
+            <p class="text-caption text-slate-light mb-0" style="font-size: 0.72rem; line-height: 1.4;">
               {{ meStatoDescrizione(strategiaCoachData) }}
             </p>
           </div>
@@ -2278,9 +2278,9 @@
             <v-row dense class="mb-2">
               <!-- SINISTRI: PRESTAZIONE ATTUALE -->
               <v-col cols="6">
-                <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(249, 115, 22, 0.3) !important;">
+                <div class="pa-2 rounded-lg card-attuale-box border text-center">
                   <span class="text-super-caption text-orange-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Attuale</span>
-                  <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
+                  <span class="text-subtitle-2 font-weight-black dialog-text-primary" style="font-size: 0.95rem;">
                     <template v-if="strategiaCoachData.isCorpoLiberoPuro">
                       {{ (strategiaCoachData.bestCurrentReps > 0 && meFormatNum(strategiaCoachData.bestCurrentReps) !== '0') ? formatRepsDisplay(strategiaCoachData.bestCurrentReps) : '--' }}
                     </template>
@@ -2297,9 +2297,9 @@
 
               <!-- DESTRI: RECORD STORICO (ALLINEATO CON COLONNA TARGET TEORICO SOTTO) -->
               <v-col cols="6">
-                <div class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(6, 182, 212, 0.3) !important;">
+                <div class="pa-2 rounded-lg card-record-box border text-center">
                   <span class="text-super-caption text-cyan-lighten-2 font-weight-bold d-block" style="font-size: 0.58rem;">Record Storico</span>
-                  <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.95rem;">
+                  <span class="text-subtitle-2 font-weight-black dialog-text-primary" style="font-size: 0.95rem;">
                     <template v-if="strategiaCoachData.isCorpoLiberoPuro">
                       {{ (strategiaCoachData.prReps > 0 && meFormatNum(strategiaCoachData.prReps) !== '0') ? formatRepsDisplay(strategiaCoachData.prReps) : '--' }}
                     </template>
@@ -2318,7 +2318,7 @@
           <!-- ROADMAP PROGETTATA A 6 SETTIMANE -->
           <div class="mb-3">
             <div class="d-flex align-center justify-space-between mb-2 gap-2">
-              <span class="text-super-caption font-weight-black text-white uppercase text-truncate" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+              <span class="text-super-caption font-weight-black dialog-text-primary uppercase text-truncate" style="font-size: 0.65rem; letter-spacing: 0.05em;">
                 🗺️ Roadmap di Progressione (W1 - W6)
               </span>
               <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white px-2 flex-shrink-0" style="font-size: 0.55rem; height: 20px; white-space: nowrap;">
@@ -2331,10 +2331,7 @@
                 v-for="step in strategiaCoachData.roadmap" 
                 :key="step.week"
                 class="pa-2.5 rounded-xl border text-left position-relative"
-                :style="{
-                  background: step.week === settimanaAttiva ? 'rgba(245, 158, 11, 0.12)' : 'rgba(15, 23, 42, 0.6)',
-                  borderColor: step.week === settimanaAttiva ? 'rgba(245, 158, 11, 0.6)' : 'rgba(255, 255, 255, 0.08)'
-                }"
+                :style="getStepCardStyle(step)"
               >
                 <!-- Intestazione Settimana & Fase -->
                 <div class="d-flex align-center justify-space-between mb-1.5">
@@ -2348,35 +2345,36 @@
                     >
                       W{{ step.week }}
                     </v-chip>
-                    <span class="font-weight-black text-white text-caption" style="font-size: 0.75rem;">
+                    <span class="font-weight-black dialog-text-primary text-caption" style="font-size: 0.75rem;">
                       {{ step.fase }}
                     </span>
                   </div>
                   <div class="d-flex align-center gap-1">
                     <v-chip 
                       v-if="step.isLogged" 
-                      color="green-darken-3" 
+                      color="green-darken-2" 
                       size="x-small" 
                       variant="flat"
-                      class="font-weight-black text-green-lighten-3 px-1.5" 
+                      class="font-weight-black text-white px-1.5" 
                       style="font-size: 0.50rem; height: 16px;"
                     >
                       ✓ ESEGUITO
                     </v-chip>
                     <v-chip 
                       v-if="step.week === settimanaAttiva" 
-                      color="amber-accent-3" 
+                      color="amber-darken-3" 
                       size="x-small" 
-                      class="font-weight-black text-black animate-pulse" 
-                      style="font-size: 0.50rem; height: 16px;"
+                      variant="flat"
+                      class="font-weight-black text-white animate-pulse px-2" 
+                      style="font-size: 0.55rem; height: 18px; letter-spacing: 0.03em;"
                     >
-                      ATTIVA ORA
+                      ⚡ ATTIVA ORA
                     </v-chip>
                   </div>
                 </div>
 
                 <!-- BOX A DOPPIO INDICATORE (REALE / RICALIBRATO + TARGET TEORICO PR) -->
-                <div class="pa-2 rounded-lg d-flex align-center justify-space-between gap-1" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);">
+                <div class="pa-2 rounded-lg d-flex align-center justify-space-between gap-1 inner-indicator-box">
                   <!-- Indicatore 1: Dato Reale Sollevato o Proiezione Reale -->
                   <div>
                     <span class="text-super-caption font-weight-black uppercase d-block" :class="step.isLogged ? 'text-green-lighten-2' : 'text-amber-lighten-2'" style="font-size: 0.53rem; letter-spacing: 0.03em;">
@@ -2393,7 +2391,7 @@
                   </div>
 
                   <!-- Indicatore 2: Target Teorico PR Storico -->
-                  <div class="text-right pl-2" style="border-left: 1px solid rgba(255, 255, 255, 0.1);">
+                  <div class="text-right pl-2" style="border-left: 1px solid var(--card-border);">
                     <span class="text-super-caption font-weight-bold text-cyan-lighten-3 uppercase d-block" style="font-size: 0.52rem; letter-spacing: 0.02em; white-space: nowrap;">
                       🎯 Target PR
                     </span>
@@ -2410,7 +2408,7 @@
 
                 <!-- Note & RPE (Senza text-truncate per mostrare tutto il testo senza puntini) -->
                 <div class="d-flex align-start justify-space-between mt-1.5 px-0.5 gap-2">
-                  <p class="text-super-caption text-slate-light mb-0" style="font-size: 0.60rem; line-height: 1.35; color: #cbd5e1 !important; white-space: normal; word-break: break-word; flex: 1;">
+                  <p class="text-super-caption text-slate-light mb-0" style="font-size: 0.60rem; line-height: 1.35; white-space: normal; word-break: break-word; flex: 1;">
                     {{ step.note }}
                   </p>
                   <span class="text-super-caption font-weight-black text-purple-lighten-3 flex-shrink-0 mt-0.5" style="font-size: 0.60rem;">
@@ -2422,14 +2420,14 @@
           </div>
 
           <!-- TACTICAL TIPS -->
-          <div class="pa-2.5 rounded-xl border bg-slate-950" style="border-color: rgba(245, 158, 11, 0.2) !important;">
+          <div class="pa-2.5 rounded-xl border card-tactical-box">
             <div class="d-flex align-center gap-1.5 mb-1">
               <v-icon color="amber-lighten-2" size="14">mdi-lightbulb-on</v-icon>
               <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.60rem;">
                 Consigli Tattici FlexCoach
               </span>
             </div>
-            <ul class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35; color: #cbd5e1 !important;">
+            <ul class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35;">
               <li v-if="!strategiaCoachData.isCorpoLiberoPuro">Non forzare carichi elevati nella settimana 4 di scarico.</li>
               <li v-else>Nella settimana 4 di scarico, mantieni le ripetizioni senza cercare l'esaurimento.</li>
               <li>Se in W2 completi le {{ getRepsPerWeek(2) }} ripetizioni con RPE &lt; 8, {{ strategiaCoachData.isCorpoLiberoPuro ? 'incrementa le ripetizioni o aggiungi peso' : (strategiaCoachData.isManubri ? 'incrementa di 1 kg' : 'incrementa di 2.5 kg') }} in W3.</li>
@@ -3019,7 +3017,7 @@
                                 • W{{ prop.week }} ({{ prop.tempoPassato }})
                               </span>
                             </div>
-                            <div class="text-caption font-weight-bold text-white mt-0.5" style="font-size: 0.68rem;">
+                            <div class="text-caption font-weight-bold dialog-text-primary mt-0.5" style="font-size: 0.68rem;">
                               {{ prop.pesoOriginale }} kg x {{ formatRepsDisplay(prop.repsOriginali) }}
                             </div>
                           </div>
@@ -3151,7 +3149,7 @@
                       </div>
                     </td>
                     
-                    <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="prevEx.num_faticaw6 ? getColoreFaticaStyle(prevEx.num_faticaw6) : { color: '#ffca28' }">
+                    <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
                       {{ prevEx.num_ins6 ? prevEx.num_ins6 + ' kg' : '-' }}
                     </td>
                     <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.peso_corporeo || '-' }}</td>
@@ -3263,7 +3261,7 @@
                     style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important; border-color: rgba(249, 115, 22, 0.3) !important; border-radius: 12px !important;"
                   >
                     <div class="d-flex align-center justify-space-between px-3 py-2 bg-slate-900 border-bottom">
-                      <span class="text-caption font-weight-black text-white uppercase" style="font-size: 0.72rem !important; letter-spacing: 0.02em;">
+                      <span class="text-caption font-weight-black dialog-text-primary uppercase" style="font-size: 0.72rem !important; letter-spacing: 0.02em;">
                         🔍 Dettaglio Sessione: {{ selectedPointDetails.label }}
                       </span>
                       <v-btn icon="mdi-close" variant="text" width="20" height="20" size="x-small" color="grey" @click="selectedPointDetails = null"></v-btn>
@@ -3279,7 +3277,7 @@
                         </v-col>
                         <v-col cols="4" class="border-right px-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
                           <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Reps</span>
-                          <span class="font-weight-black text-white" style="font-size: 0.85rem;">
+                          <span class="font-weight-black dialog-text-primary" style="font-size: 0.85rem;">
                             {{ selectedPointDetails.reps }} r
                           </span>
                         </v-col>
@@ -3293,10 +3291,10 @@
                       
                       <div class="mt-2 text-super-caption d-flex align-center gap-1.5 flex-wrap font-weight-bold" style="font-size: 0.65rem;">
                         <span v-if="selectedPointDetails.date">
-                          📅 Data: <span class="text-white">{{ formattaDataStorico(selectedPointDetails.date) }} ({{ tempoTrascorso(selectedPointDetails.date) }})</span>
+                          📅 Data: <span class="dialog-text-primary">{{ formattaDataStorico(selectedPointDetails.date) }} ({{ tempoTrascorso(selectedPointDetails.date) }})</span>
                         </span>
                         <span v-if="selectedPointDetails.giorno">
-                          • Giorno: <span class="text-white">{{ selectedPointDetails.giorno }}</span>
+                          • Giorno: <span class="dialog-text-primary">{{ selectedPointDetails.giorno }}</span>
                         </span>
                       </div>
                       
@@ -11136,6 +11134,50 @@ const meStatoBg = (s) => {
   return 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.03) 100%)';
 };
 
+const getStepCardStyle = (step) => {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const isActive = step.week === settimanaAttiva.value;
+  
+  if (!isLight) {
+    if (isActive) {
+      return {
+        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(30, 41, 59, 0.95) 100%)',
+        borderColor: '#f59e0b',
+        borderWidth: '2px',
+        boxShadow: '0 0 14px rgba(245, 158, 11, 0.35)'
+      };
+    }
+    return {
+      background: 'rgba(15, 23, 42, 0.6)',
+      borderColor: 'rgba(255, 255, 255, 0.08)'
+    };
+  }
+  
+  if (isActive) {
+    return {
+      background: 'linear-gradient(135deg, #fef3c7 0%, #fffbe6 100%)',
+      borderColor: '#d97706',
+      borderWidth: '2px',
+      boxShadow: '0 4px 14px rgba(217, 119, 6, 0.25), 0 1px 3px rgba(0,0,0,0.05)'
+    };
+  }
+  
+  const colorMap = {
+    cyan: { bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(6, 182, 212, 0.22)' },
+    amber: { bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(245, 158, 11, 0.22)' },
+    orange: { bg: 'linear-gradient(135deg, rgba(249, 115, 22, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(249, 115, 22, 0.22)' },
+    blue: { bg: 'linear-gradient(135deg, rgba(59, 130, 246, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(59, 130, 246, 0.22)' },
+    purple: { bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(168, 85, 247, 0.22)' },
+    green: { bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(16, 185, 129, 0.22)' }
+  };
+  
+  const config = colorMap[step.color] || { bg: 'rgba(248, 250, 252, 0.95)', border: 'var(--card-border)' };
+  return {
+    background: config.bg,
+    borderColor: config.border
+  };
+};
+
 const meStatoBorder = (s) => {
   if (s === 'CALO') return 'rgba(239, 68, 68, 0.35) !important';
   if (s === 'PROGRESSIONE') return 'rgba(34, 197, 94, 0.35) !important';
@@ -11211,6 +11253,14 @@ const getColoreFaticaStyle = (fatica) => {
   return {};
 };
 
+const getW6BestColorStyle = (prevEx) => {
+  if (prevEx && prevEx.num_faticaw6) {
+    return getColoreFaticaStyle(prevEx.num_faticaw6);
+  }
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return { color: isLight ? '#b45309 !important' : '#ffca28' };
+};
+
 const getInsWeekTextStyle = (prevEx, w) => {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   if (isMatchingReps(prevEx, w)) {
@@ -11219,7 +11269,7 @@ const getInsWeekTextStyle = (prevEx, w) => {
   if (prevEx['ins_week' + w]) {
     return { color: isLight ? '#c2410c !important' : '#fb923c' };
   }
-  return { color: isLight ? '#94a3b8 !important' : '#475569' };
+  return { color: isLight ? '#475569 !important' : '#475569' };
 };
 
 // Funzione unificata per caricamento dati storico e proposta
@@ -11294,6 +11344,7 @@ const rigeneraGraficoStorico = () => {
     return;
   }
   
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const dataPoints = [];
   
   storicoFiltrato.value.forEach(prevEx => {
@@ -11356,10 +11407,11 @@ const rigeneraGraficoStorico = () => {
   
   const labels = [...new Set(dataPoints.map(p => p.label))];
   const datasets = [];
+  const colors = isLight 
+    ? ['#ea580c', '#0284c7', '#7e22ce', '#059669', '#db2777', '#b45309'] 
+    : ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
   
   if (modeGraficoStorico.value === 'A') {
-    const colors = ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
-    
     uniqueBuckets.forEach((b, idx) => {
       // Skip if bucket is not selected in filters
       if (!selectedBuckets.value.includes(b)) return;
@@ -11378,7 +11430,7 @@ const rigeneraGraficoStorico = () => {
         backgroundColor: color + '15',
         borderWidth: 2.5,
         pointBackgroundColor: color,
-        pointBorderColor: '#ffffff',
+        pointBorderColor: isLight ? '#0f172a' : '#ffffff',
         pointRadius: 4,
         pointHoverRadius: 6,
         fill: false,
@@ -11397,11 +11449,11 @@ const rigeneraGraficoStorico = () => {
     datasets.push({
       label: 'Massimale stimato (1RM)',
       data: data1RM,
-      borderColor: 'rgba(255, 255, 255, 0.4)',
+      borderColor: isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.4)',
       backgroundColor: 'transparent',
       borderWidth: 1.5,
       borderDash: [5, 5],
-      pointBackgroundColor: 'rgba(255, 255, 255, 0.6)',
+      pointBackgroundColor: isLight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.6)',
       pointBorderColor: 'transparent',
       pointRadius: 2,
       pointHoverRadius: 4,
@@ -11409,8 +11461,6 @@ const rigeneraGraficoStorico = () => {
       spanGaps: true
     });
   } else if (modeGraficoStorico.value === 'B') {
-    const colors = ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
-    
     uniqueBuckets.forEach((b, idx) => {
       // Skip if bucket is not selected in filters
       if (!selectedBuckets.value.includes(b)) return;
@@ -11428,7 +11478,7 @@ const rigeneraGraficoStorico = () => {
         backgroundColor: color,
         borderWidth: 0,
         pointBackgroundColor: color,
-        pointBorderColor: '#ffffff',
+        pointBorderColor: isLight ? '#0f172a' : '#ffffff',
         pointRadius: 5,
         pointHoverRadius: 7,
         fill: false,
@@ -11446,11 +11496,11 @@ const rigeneraGraficoStorico = () => {
     datasets.push({
       label: 'Massimale stimato (1RM)',
       data: data1RM,
-      borderColor: '#22c55e',
-      backgroundColor: 'rgba(34, 197, 94, 0.05)',
+      borderColor: isLight ? '#047857' : '#22c55e',
+      backgroundColor: isLight ? 'rgba(4, 120, 87, 0.08)' : 'rgba(34, 197, 94, 0.05)',
       borderWidth: 2,
-      pointBackgroundColor: '#16a34a',
-      pointBorderColor: '#ffffff',
+      pointBackgroundColor: isLight ? '#047857' : '#16a34a',
+      pointBorderColor: isLight ? '#ffffff' : '#ffffff',
       pointRadius: 3,
       pointHoverRadius: 5,
       fill: true,
@@ -11465,10 +11515,10 @@ const rigeneraGraficoStorico = () => {
     datasets.push({
       label: 'Carico sollevato',
       data: dataCarico,
-      borderColor: '#f97316',
-      backgroundColor: 'rgba(249, 115, 22, 0.1)',
+      borderColor: isLight ? '#ea580c' : '#f97316',
+      backgroundColor: isLight ? 'rgba(234, 88, 12, 0.15)' : 'rgba(249, 115, 22, 0.1)',
       borderWidth: 3,
-      pointBackgroundColor: '#ea580c',
+      pointBackgroundColor: isLight ? '#c2410c' : '#ea580c',
       pointBorderColor: '#ffffff',
       pointRadius: 5,
       pointHoverRadius: 7,
@@ -11480,6 +11530,7 @@ const rigeneraGraficoStorico = () => {
       labels: labelsWithReps,
       datasets: datasets
     };
+    storicoChartOptions.value = getChartOptions(isLight);
     storicoChartReady.value = true;
     return;
   }
@@ -11488,10 +11539,11 @@ const rigeneraGraficoStorico = () => {
     labels: labels,
     datasets: datasets
   };
+  storicoChartOptions.value = getChartOptions(isLight);
   storicoChartReady.value = true;
 };
 
-const storicoChartOptions = ref({
+const getChartOptions = (isLight) => ({
   responsive: true,
   maintainAspectRatio: false,
   onClick: (event, elements, chart) => {
@@ -11506,7 +11558,7 @@ const storicoChartOptions = ref({
     legend: {
       position: 'top',
       labels: {
-        color: '#cbd5e1',
+        color: isLight ? '#0f172a' : '#cbd5e1',
         boxWidth: 8,
         font: { size: 9, weight: 'bold' }
       }
@@ -11556,14 +11608,14 @@ const storicoChartOptions = ref({
     x: {
       grid: { display: false },
       ticks: {
-        color: '#94a3b8',
+        color: isLight ? '#334155' : '#94a3b8',
         font: { weight: 'bold', size: 8 }
       }
     },
     y: {
-      grid: { color: 'rgba(255, 255, 255, 0.08)' },
+      grid: { color: isLight ? 'rgba(15, 23, 42, 0.1)' : 'rgba(255, 255, 255, 0.08)' },
       ticks: {
-        color: '#94a3b8',
+        color: isLight ? '#334155' : '#94a3b8',
         callback: function(value) {
           return value + ' kg';
         }
@@ -11571,6 +11623,8 @@ const storicoChartOptions = ref({
     }
   }
 });
+
+const storicoChartOptions = ref(getChartOptions(document.documentElement.getAttribute('data-theme') === 'light'));
 
 const gestisciClickGrafico = (datasetIndex, index) => {
   let pt = null;
@@ -12739,6 +12793,47 @@ th.sticky-col {
 }
 
 /* --- LIGHT THEME OVERRIDES FOR CRONOLOGIA & PROPOSTA CARICO MODAL --- */
+.inner-indicator-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .inner-indicator-box {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  backdrop-filter: blur(4px);
+}
+
+.card-attuale-box {
+  background-color: #0f172a;
+  border-color: rgba(249, 115, 22, 0.3) !important;
+}
+
+[data-theme="light"] .card-attuale-box {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(255, 255, 255, 0.9) 100%) !important;
+  border-color: rgba(249, 115, 22, 0.35) !important;
+}
+
+.card-record-box {
+  background-color: #0f172a;
+  border-color: rgba(6, 182, 212, 0.3) !important;
+}
+
+[data-theme="light"] .card-record-box {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(255, 255, 255, 0.9) 100%) !important;
+  border-color: rgba(6, 182, 212, 0.35) !important;
+}
+
+.card-tactical-box {
+  background-color: #020617;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+[data-theme="light"] .card-tactical-box {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(255, 255, 255, 0.9) 100%) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
 [data-theme="light"] .card-glass-dark {
   background: var(--card-bg-glass) !important;
   border-color: var(--card-border) !important;
@@ -12752,6 +12847,31 @@ th.sticky-col {
   background-color: var(--bg-main) !important;
   color: var(--text-dark) !important;
   border-color: var(--card-border) !important;
+}
+
+[data-theme="light"] .card-glass-dark .text-white:not(.v-btn *):not(.v-chip *):not(.v-btn):not(.v-chip) {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .card-glass-dark .text-slate-light,
+[data-theme="light"] .card-glass-dark .text-slate-300,
+[data-theme="light"] .card-glass-dark .text-slate-400 {
+  color: var(--text-slate) !important;
+}
+
+[data-theme="light"] .card-glass-dark [style*="cbd5e1"],
+[data-theme="light"] .card-glass-dark [style*="f8fafc"] {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .card-glass-dark .v-chip.v-chip--variant-tonal {
+  color: var(--text-dark) !important;
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .card-glass-dark .v-tab:not(.v-tab--selected) {
+  color: var(--text-slate) !important;
 }
 
 [data-theme="light"] .record-hero-pr-assoluto {
@@ -12783,7 +12903,8 @@ th.sticky-col {
 [data-theme="light"] .record-hero-num,
 [data-theme="light"] .opzione-peso-text,
 [data-theme="light"] .banner-record-text,
-[data-theme="light"] .dialog-text-primary {
+[data-theme="light"] .dialog-text-primary,
+[data-theme="light"] .text-slate-dark {
   color: var(--text-dark) !important;
 }
 
@@ -12804,27 +12925,34 @@ th.sticky-col {
 }
 
 [data-theme="light"] .text-cyan-lighten-2,
-[data-theme="light"] .text-cyan-lighten-3 {
+[data-theme="light"] .text-cyan-lighten-3,
+[data-theme="light"] .text-cyan-lighten-4 {
   color: var(--color-cyan-700) !important;
 }
 
 [data-theme="light"] .text-amber-lighten-1,
-[data-theme="light"] .text-amber-lighten-2 {
+[data-theme="light"] .text-amber-lighten-2,
+[data-theme="light"] .text-amber-lighten-3 {
   color: var(--color-amber-700) !important;
 }
 
-[data-theme="light"] .text-orange-lighten-2 {
+[data-theme="light"] .text-orange-lighten-2,
+[data-theme="light"] .text-orange-lighten-3 {
   color: var(--color-orange-700) !important;
 }
 
-[data-theme="light"] .text-green-accent-3 {
+[data-theme="light"] .text-green-accent-3,
+[data-theme="light"] .text-green-lighten-2,
+[data-theme="light"] .text-green-lighten-3 {
   color: var(--color-emerald-700) !important;
 }
 
-[data-theme="light"] .text-purple-lighten-2 {
+[data-theme="light"] .text-purple-lighten-2,
+[data-theme="light"] .text-purple-lighten-3 {
   color: var(--color-purple-700) !important;
 }
 
+[data-theme="light"] .text-blue-lighten-2,
 [data-theme="light"] .text-blue-lighten-3 {
   color: var(--color-blue-700) !important;
 }

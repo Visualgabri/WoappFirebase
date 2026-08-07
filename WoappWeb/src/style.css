@@ -286,6 +286,47 @@
   border-color: var(--card-border) !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL LIGHT THEME MODAL & CONNECTED EXERCISE ITEMS OVERRIDES
+   ═══════════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] .card-glass-dark .v-card-title,
+[data-theme="light"] .card-glass-dark .dialog-header-title,
+[data-theme="light"] .dialog-text-primary {
+  color: var(--text-dark) !important;
+}
+
+/* Ensure text-white inside card-glass-dark becomes dark UNLESS inside a button or chip */
+[data-theme="light"] .card-glass-dark .text-white:not(.v-btn *):not(.v-chip *):not(.v-btn):not(.v-chip) {
+  color: var(--text-dark) !important;
+}
+
+/* Preserve white text inside filled v-btn and v-chip */
+[data-theme="light"] .v-btn.v-btn--variant-flat .text-white,
+[data-theme="light"] .v-btn.v-btn--variant-elevated .text-white,
+[data-theme="light"] .v-chip.v-chip--variant-flat .text-white,
+[data-theme="light"] .v-chip.v-chip--variant-elevated .text-white {
+  color: #ffffff !important;
+}
+
+/* Connected exercise items inside dialogs (Home.vue, Dettaglio.vue) */
+[data-theme="light"] .connected-exercise-item,
+[data-theme="light"] .clickable-item.bg-slate-950,
+[data-theme="light"] .connected-exercise-item.bg-slate-950 {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(248, 250, 252, 0.95) 100%) !important;
+  border-color: var(--card-border) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .connected-exercise-item .text-white,
+[data-theme="light"] .clickable-item .text-white {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="light"] .connected-thumb {
+  border-color: var(--card-border) !important;
+}
+
 /* Modal notifica aggiornamento e messaggi real-time scuri */
 .update-modal-card,
 [data-theme="light"] .update-modal-card,

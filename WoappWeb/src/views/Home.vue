@@ -116,14 +116,14 @@
           <v-text-field
             v-model="searchQuery"
             prepend-inner-icon="mdi-magnify"
-            label="Cerca scheda, focus, note o data..."
+            placeholder="Cerca scheda, focus, note o data..."
             variant="outlined"
             density="compact"
             rounded="lg"
             color="orange-darken-3"
             clearable
             hide-details
-            class="mb-3"
+            class="mb-3 custom-compact-field"
           ></v-text-field>
 
           <!-- Lista schede/workout trovati -->
@@ -142,9 +142,9 @@
               :class="String(schedaSelezionata) === String(w.num_scheda) ? 'active-workout-border' : 'inactive-workout-border'"
               @click="gestisciSelezioneScheda(w.num_scheda)"
             >
-              <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-center gap-2">
-                  <span class="font-weight-black text-slate-dark text-subtitle-2" style="font-size: 0.85rem !important;">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-1.5 mb-1.5">
+                <div class="d-flex align-center gap-2" style="white-space: nowrap;">
+                  <span class="font-weight-black text-slate-dark text-subtitle-2" style="font-size: 0.88rem !important; white-space: nowrap;">
                     Scheda {{ w.num_scheda }}
                   </span>
                   <v-chip
@@ -152,21 +152,23 @@
                     color="orange-darken-3"
                     size="x-small"
                     variant="flat"
-                    class="font-weight-black text-white"
-                    style="height: 16px; font-size: 0.55rem;"
+                    class="font-weight-black text-white px-2"
+                    style="height: 18px; font-size: 0.58rem;"
                   >
                     ATTIVA
                   </v-chip>
                 </div>
-                <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.6rem;">
-                  📅 {{ w.dat_data }} - {{ w.dat_scadenza }}
-                </span>
+                <div class="d-flex align-center text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.64rem;">
+                  <v-icon size="13" color="orange-darken-3" class="mr-1">mdi-calendar-range</v-icon>
+                  <span>{{ w.dat_data }} - {{ w.dat_scadenza }}</span>
+                </div>
               </div>
-              <div class="text-caption text-truncate text-slate font-weight-medium" style="font-size: 0.75rem !important;">
+              <div class="text-caption text-truncate text-slate-dark font-weight-medium" style="font-size: 0.75rem !important;">
                 {{ w.des_descrizione || 'Nessuna descrizione' }}
               </div>
-              <div v-if="w.des_note" class="text-super-caption text-muted text-truncate mt-0.5" style="font-size: 0.65rem !important; opacity: 0.85;">
-                📝 {{ w.des_note }}
+              <div v-if="w.des_note" class="text-super-caption text-muted text-truncate mt-1 d-flex align-center" style="font-size: 0.65rem !important;">
+                <v-icon size="12" class="mr-1">mdi-note-text-outline</v-icon>
+                <span>{{ w.des_note }}</span>
               </div>
             </v-card>
           </div>
@@ -4165,6 +4167,12 @@ const apriTest = () => {
 .active-workout-border {
   border: 1.5px solid #f97316 !important;
   background: rgba(249, 115, 22, 0.12) !important;
+}
+:deep([data-theme="light"]) .active-workout-border,
+[data-theme="light"] .active-workout-border {
+  border: 1.5px solid #ea580c !important;
+  background: #fff7ed !important;
+  box-shadow: 0 2px 10px rgba(234, 88, 12, 0.12) !important;
 }
 .inactive-workout-border {
   border: 1px solid var(--card-border) !important;

@@ -1,64 +1,62 @@
 <template>
   <v-container 
-    class="px-4 max-width-container min-height-screen pb-12"
-    :class="layoutEserciziGlobal === 'super_compatto' ? 'py-2' : (layoutEserciziGlobal === 'compatto' ? 'py-4' : 'py-6')"
+    class="px-3 max-width-container min-height-screen pb-8"
+    :class="layoutEserciziGlobal === 'super_compatto' ? 'py-2' : 'py-3.5'"
   >
     <!-- Header Premium -->
     <div 
-      class="premium-header card-glass rounded-2xl d-flex align-center justify-space-between elevation-2 border-bottom-soft animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-2.5 mb-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-3 mb-4' : 'pa-4 mb-5')"
+      class="premium-header card-glass rounded-xl d-flex align-center justify-space-between elevation-1 border-bottom-soft animate-slide-down pa-3.5 mb-4"
     >
       <div class="d-flex align-center">
-        <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1 profile-avatar">
+        <v-avatar size="38" class="mr-3 bg-transparent border-orange elevation-1 profile-avatar">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
         <div class="text-left">
-          <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight leading-tight">Impostazioni</h1>
-          <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.62rem; letter-spacing: 0.05em;">Profilo, Layout & Configurazione</span>
+          <h1 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight leading-tight mb-0.5">Impostazioni</h1>
+          <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.60rem; letter-spacing: 0.04em;">Profilo & Configurazione</span>
         </div>
       </div>
     </div>
 
     <!-- SEZIONE 1: PROFILO ATLETA -->
     <v-card 
-      class="premium-card rounded-2xl text-left border position-relative overflow-hidden mb-5 animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-      elevation="2"
+      class="premium-card rounded-xl text-left border position-relative overflow-hidden mb-4 animate-slide-down pa-4"
+      elevation="1"
     >
       <div class="glowing-accent"></div>
       
       <div class="d-flex align-center mb-3">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-account-circle-outline</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Profilo Utente</span>
+        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-account-circle-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.70rem;">Profilo Utente</span>
       </div>
 
-      <div class="d-flex align-center mb-4">
-        <v-avatar size="44" color="orange-darken-4" class="mr-3 border-orange text-white font-weight-black elevation-2">
+      <div class="d-flex align-center mb-3.5">
+        <v-avatar size="40" color="orange-darken-4" class="mr-3 border-orange text-white font-weight-black elevation-1">
           {{ getNomeAtleta(idCliente) ? getNomeAtleta(idCliente).charAt(0).toUpperCase() : (ruolo === 'coach' ? 'C' : 'A') }}
         </v-avatar>
         <div class="text-left">
-          <div class="text-body-1 font-weight-black text-slate-dark leading-none">
+          <div class="text-body-2 font-weight-black text-slate-dark leading-snug">
             {{ ruolo === 'coach' ? 'Coach' : (getNomeAtleta(idCliente) || 'Atleta') }}
           </div>
-          <div class="text-caption text-muted mt-1.5 d-flex align-center gap-1">
-            <v-icon size="12" class="mr-1">mdi-email-outline</v-icon>
+          <div class="text-caption text-muted mt-1 d-flex align-center gap-1" style="font-size: 0.74rem;">
+            <v-icon size="13" class="mr-1">mdi-email-outline</v-icon>
             {{ utente?.email || 'Non disponibile' }}
           </div>
         </div>
       </div>
 
-      <v-row dense class="border-top-soft pt-3">
+      <v-row dense class="border-top-soft pt-2.5">
         <v-col cols="6" class="border-right-soft">
           <div class="text-center py-1">
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.6rem;">Ruolo</span>
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.60rem;">Ruolo</span>
             <v-chip color="orange-darken-3" size="x-small" class="font-weight-black mt-1 text-white" variant="flat">
-              {{ ruolo === 'coach' ? 'Coach 📋' : 'Atleta 🏋️' }}
+              {{ ruolo === 'coach' ? 'Coach' : 'Atleta' }}
             </v-chip>
           </div>
         </v-col>
         <v-col cols="6">
           <div class="text-center py-1">
-            <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.6rem;">ID Cliente</span>
+            <span class="text-super-caption text-muted uppercase font-weight-black d-block" style="font-size: 0.60rem;">ID Cliente</span>
             <span class="text-body-2 font-weight-black text-slate-dark mt-1 d-inline-block">
               {{ idCliente || 'N/D' }}
             </span>
@@ -69,253 +67,189 @@
 
     <!-- SEZIONE TEMA & ASPETTO -->
     <v-card 
-      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-      elevation="2"
+      class="premium-card rounded-xl text-left border mb-4 animate-slide-down pa-4"
+      elevation="1"
     >
-      <div class="d-flex align-center mb-4">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-palette-outline</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Aspetto & Tema Grafico</span>
+      <div class="d-flex align-center mb-3">
+        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-palette-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.70rem;">Aspetto & Tema</span>
       </div>
 
-      <div class="mb-2">
-        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">🎨 Tema Grafico Applicazione</span>
+      <div>
+        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.70rem;">Tema Grafico</span>
         <v-btn-toggle
           v-model="selectedTheme"
           mandatory
           selected-class="bg-orange-darken-3 text-white"
-          density="comfortable"
-          rounded="xl"
+          density="compact"
+          rounded="lg"
           class="w-100 card-glass border mb-2"
-          style="height: 42px;"
+          style="height: 36px;"
           @update:model-value="cambiaTemaDaImpostazioni"
         >
-          <v-btn value="dark" class="font-weight-bold flex-grow-1" style="font-size: 0.75rem; min-width: 50%;">
-            <v-icon class="mr-1.5" size="18">mdi-weather-night</v-icon> Tema Scuro OLED
+          <v-btn value="dark" class="font-weight-bold flex-grow-1" style="font-size: 0.70rem; min-width: 50%;">
+            <v-icon class="mr-1" size="16">mdi-weather-night</v-icon> Tema Scuro
           </v-btn>
-          <v-btn value="light" class="font-weight-bold flex-grow-1" style="font-size: 0.75rem; min-width: 50%;">
-            <v-icon class="mr-1.5" size="18">mdi-white-balance-sunny</v-icon> Tema Chiaro Arctic
+          <v-btn value="light" class="font-weight-bold flex-grow-1" style="font-size: 0.70rem; min-width: 50%;">
+            <v-icon class="mr-1" size="16">mdi-white-balance-sunny</v-icon> Tema Chiaro
           </v-btn>
         </v-btn-toggle>
-        <div class="text-super-caption text-muted font-italic leading-tight mb-3">
-          * {{ selectedTheme === 'light' ? 'Tema Chiaro Arctic: interfaccia ad alta visibilità con superfici chiare, bagliori soffici e testo scuro nitido.' : 'Tema Scuro OLED: interfaccia scura con contrasto OLED, sfumature neon e vetro satinato.' }}
-        </div>
 
         <!-- Selettore Variante Tema Chiaro -->
-        <div v-if="selectedTheme === 'light'" class="mt-3 pt-2 border-top-soft">
-          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">✨ Variante Stile Tema Chiaro</span>
+        <div v-if="selectedTheme === 'light'" class="mt-3 pt-2.5 border-top-soft">
+          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.70rem;">Variante Tema Chiaro</span>
           <v-btn-toggle
             v-model="selectedLightStyle"
             mandatory
             selected-class="bg-orange-darken-3 text-white"
-            density="comfortable"
-            rounded="xl"
-            class="w-100 card-glass border mb-2"
-            style="height: 38px;"
+            density="compact"
+            rounded="lg"
+            class="w-100 card-glass border mb-1"
+            style="height: 34px;"
             @update:model-value="cambiaStileChiaroDaImpostazioni"
           >
-            <v-btn value="slate" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
-              1. Slate Amber
+            <v-btn value="slate" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
+              Slate Amber
             </v-btn>
-            <v-btn value="chalk" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
-              2. Chalk Cobalt
+            <v-btn value="chalk" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
+              Chalk Cobalt
             </v-btn>
-            <v-btn value="sand" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 33%;">
-              3. Warm Sand
+            <v-btn value="sand" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
+              Warm Sand
             </v-btn>
           </v-btn-toggle>
-          <div class="text-super-caption text-muted font-italic leading-tight">
-            <template v-if="selectedLightStyle === 'slate'">
-              * Slate & Amber (Opzione 1): Grafite freddo, superfici Slate 50/100 ed accenti ambrati bilanciati.
-            </template>
-            <template v-else-if="selectedLightStyle === 'chalk'">
-              * Chalk & Cobalt (Opzione 2): Bianco gesso iper-definito con accenti cobalto ed arancio elettrico.
-            </template>
-            <template v-else>
-              * Warm Sand & Ochre (Opzione 3): Sfondo sabbia calda con tonalità rame e sensazione luxury.
-            </template>
-          </div>
         </div>
       </div>
     </v-card>
 
     <!-- SEZIONE 2: LAYOUT & VISUALIZZAZIONE -->
     <v-card 
-      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-      elevation="2"
+      class="premium-card rounded-xl text-left border mb-4 animate-slide-down pa-4"
+      elevation="1"
     >
-      <div class="d-flex align-center mb-4">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-view-dashboard-outline</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Layout & Visualizzazione</span>
+      <div class="d-flex align-center mb-3.5">
+        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-view-dashboard-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.70rem;">Layout & Visualizzazione</span>
       </div>
 
       <!-- Densità Layout Lista -->
-      <div class="mb-5">
-        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">📐 Densità del Layout Lista</span>
+      <div class="mb-3.5">
+        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.70rem;">Densità Layout Lista</span>
         <v-btn-toggle
           v-model="layoutEsercizi"
           mandatory
           selected-class="bg-orange-darken-3 text-white"
-          density="comfortable"
-          rounded="xl"
-          class="w-100 card-glass border mb-2"
-          style="height: 38px;"
+          density="compact"
+          rounded="lg"
+          class="w-100 card-glass border"
+          style="height: 34px;"
         >
-          <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+          <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
             Super Compatto
           </v-btn>
-          <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+          <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
             Compatto
           </v-btn>
-          <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+          <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
             Standard
           </v-btn>
         </v-btn-toggle>
-        <div class="text-super-caption text-muted font-italic leading-tight">
-          <template v-if="layoutEsercizi === 'super_compatto'">
-            * Super Compatto: Rimuove miniature (immagini/GIF) e capsule W1-W6 della cronologia per la massima densità (card da 50px).
-          </template>
-          <template v-else-if="layoutEsercizi === 'compatto'">
-            * Compatto: Miniature ridotte (48px), layout in linea e capsule W1-W6 compresse (card da 80px).
-          </template>
-          <template v-else>
-            * Standard: Layout esteso classico con miniature da 84px e capsule W1-W6 carichi complete.
-          </template>
-        </div>
       </div>
 
       <!-- Densità Layout Dettaglio -->
-      <div class="mb-5">
-        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">📐 Densità del Layout Dettaglio</span>
+      <div class="mb-3.5">
+        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.70rem;">Densità Layout Dettaglio</span>
         <v-btn-toggle
           v-model="layoutDettaglio"
           mandatory
           selected-class="bg-orange-darken-3 text-white"
-          density="comfortable"
-          rounded="xl"
-          class="w-100 card-glass border mb-2"
-          style="height: 38px;"
+          density="compact"
+          rounded="lg"
+          class="w-100 card-glass border"
+          style="height: 34px;"
         >
-          <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+          <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 25%;">
             Auto
           </v-btn>
-          <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+          <v-btn value="super_compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 25%;">
             Super Comp
           </v-btn>
-          <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+          <v-btn value="compatto" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 25%;">
             Compatto
           </v-btn>
-          <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 25%;">
+          <v-btn value="standard" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 25%;">
             Standard
           </v-btn>
         </v-btn-toggle>
-        <div class="text-super-caption text-muted font-italic leading-tight">
-          <template v-if="layoutDettaglio === 'auto'">
-            * Auto: Segue la modalità scelta per la lista principale ({{ layoutEsercizi }}).
-          </template>
-          <template v-else-if="layoutDettaglio === 'super_compatto'">
-            * Super Compatto: Nasconde la GIF e riduce al minimo gli spazi/scritte nel dettaglio.
-          </template>
-          <template v-else-if="layoutDettaglio === 'compatto'">
-            * Compatto: Layout ridotto nel dettaglio con spaziature minori.
-          </template>
-          <template v-else>
-            * Standard: Layout esteso classico con GIF completa e spaziature originali.
-          </template>
-        </div>
       </div>
 
       <!-- Comportamento Tasto Play -->
-      <div>
-        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">▶️ Comportamento Tasto Play</span>
+      <div class="mb-3.5">
+        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.70rem;">Comportamento Tasto Play</span>
         <v-btn-toggle
           v-model="comportamentoPlay"
           mandatory
           selected-class="bg-orange-darken-3 text-white"
-          density="comfortable"
-          rounded="xl"
-          class="w-100 card-glass border mb-2"
-          style="height: 38px;"
+          density="compact"
+          rounded="lg"
+          class="w-100 card-glass border"
+          style="height: 34px;"
         >
-          <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+          <v-btn value="auto" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
             Auto
           </v-btn>
-          <v-btn value="dettaglio" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+          <v-btn value="dettaglio" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
             Dettaglio
           </v-btn>
-          <v-btn value="evidenzia" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
+          <v-btn value="evidenzia" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
             Evidenzia
           </v-btn>
         </v-btn-toggle>
-        <div class="text-super-caption text-muted font-italic leading-tight">
-          <template v-if="comportamentoPlay === 'auto'">
-            * Auto: Dettaglio in vista Compatta/Super e scorrimento in lista in vista Standard.
-          </template>
-          <template v-else-if="comportamentoPlay === 'dettaglio'">
-            * Dettaglio: Naviga sempre direttamente al dettaglio dell'esercizio.
-          </template>
-          <template v-else>
-            * Evidenzia: Scorre ed evidenzia sempre l'esercizio nella lista principale.
-          </template>
-        </div>
       </div>
 
-      <v-divider class="my-4 border-soft" style="opacity: 0.15;"></v-divider>
+      <v-divider class="my-3.5 border-soft" style="opacity: 0.15;"></v-divider>
 
       <!-- Tema Card Giorno Workout -->
-      <div class="mb-2">
-        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.72rem;">🎨 Tema Card Giorno Workout</span>
+      <div>
+        <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.70rem;">Tema Card Giorno Workout</span>
         <v-btn-toggle
           v-model="temaHeaderGiorno"
           mandatory
           selected-class="bg-orange-darken-3 text-white"
-          density="comfortable"
-          rounded="xl"
-          class="w-100 card-glass border mb-2"
-          style="height: 38px;"
+          density="compact"
+          rounded="lg"
+          class="w-100 card-glass border"
+          style="height: 34px;"
         >
-          <v-btn value="arancio" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-            Arancio 🔥
+          <v-btn value="arancio" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
+            Arancio
           </v-btn>
-          <v-btn value="blu" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-            Blu Cobalto 💎
+          <v-btn value="blu" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
+            Blu Cobalto
           </v-btn>
-          <v-btn value="verde" class="font-weight-bold flex-grow-1" style="font-size: 0.7rem; min-width: 33%;">
-            Verde Smeraldo 🌿
+          <v-btn value="verde" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 33%;">
+            Verde Smeraldo
           </v-btn>
         </v-btn-toggle>
-        <div class="text-super-caption text-muted font-italic leading-tight">
-          <template v-if="temaHeaderGiorno === 'arancio'">
-            * Arancio: Gradiente ambrato arancione in linea con i colori storici del brand WoApp.
-          </template>
-          <template v-else-if="temaHeaderGiorno === 'blu'">
-            * Blu Cobalto: Stile tecnologico e pulito con sfumature blu neon e notte.
-          </template>
-          <template v-else>
-            * Verde Smeraldo: Look fresco basato sulle tonalità smeraldo e menta.
-          </template>
-        </div>
       </div>
     </v-card>
 
     <!-- SEZIONE 3: PARAMETRI ALLENAMENTO -->
     <v-card 
-      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-      elevation="2"
+      class="premium-card rounded-xl text-left border mb-4 animate-slide-down pa-4"
+      elevation="1"
     >
-      <div class="d-flex align-center mb-4">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-dumbbell</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Parametri Allenamento</span>
+      <div class="d-flex align-center mb-3.5">
+        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-dumbbell</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.70rem;">Parametri Allenamento</span>
       </div>
 
       <div class="d-flex flex-column gap-3.5">
         <!-- Peso Bilanciere Default -->
         <div class="d-flex align-center justify-space-between">
           <div>
-            <span class="text-body-2 font-weight-bold text-white d-block">Peso Bilanciere Default</span>
-            <span class="text-super-caption text-muted">Usato nel calcolatore dischi</span>
+            <span class="text-body-2 font-weight-bold text-slate-dark d-block" style="font-size: 0.78rem;">Peso Bilanciere Default</span>
+            <span class="text-super-caption text-muted mt-0.5 d-block">Usato nel calcolatore dischi</span>
           </div>
           <div style="width: 130px;">
             <v-select
@@ -332,7 +266,7 @@
               hide-details
               rounded="lg"
               color="orange-darken-3"
-              style="font-size: 0.8rem;"
+              style="font-size: 0.75rem;"
             ></v-select>
           </div>
         </div>
@@ -340,8 +274,8 @@
         <!-- Feedback Tattile (Vibrazione) -->
         <div class="d-flex align-center justify-space-between">
           <div>
-            <span class="text-body-2 font-weight-bold text-white d-block">Vibrazione Tattile</span>
-            <span class="text-super-caption text-muted">Micro-feedback sui tasti ed inserimenti</span>
+            <span class="text-body-2 font-weight-bold text-slate-dark d-block" style="font-size: 0.78rem;">Vibrazione Tattile</span>
+            <span class="text-super-caption text-muted mt-0.5 d-block">Micro-feedback sui tasti ed inserimenti</span>
           </div>
           <div>
             <v-switch
@@ -356,8 +290,8 @@
         <!-- Tempo Default Recupero -->
         <div class="d-flex align-center justify-space-between">
           <div>
-            <span class="text-body-2 font-weight-bold text-white d-block">Durata Recupero Default</span>
-            <span class="text-super-caption text-muted">Se non specificato dall'esercizio</span>
+            <span class="text-body-2 font-weight-bold text-slate-dark d-block" style="font-size: 0.78rem;">Durata Recupero Default</span>
+            <span class="text-super-caption text-muted mt-0.5 d-block">Se non specificato dall'esercizio</span>
           </div>
           <div style="width: 130px;">
             <v-select
@@ -375,7 +309,7 @@
               hide-details
               rounded="lg"
               color="orange-darken-3"
-              style="font-size: 0.8rem;"
+              style="font-size: 0.75rem;"
             ></v-select>
           </div>
         </div>
@@ -383,10 +317,10 @@
         <!-- Tema Grafico Timer -->
         <div class="d-flex align-center justify-space-between">
           <div>
-            <span class="text-body-2 font-weight-bold text-white d-block">Tema Grafico Timer</span>
-            <span class="text-super-caption text-muted">Stile visivo del widget di recupero</span>
+            <span class="text-body-2 font-weight-bold text-slate-dark d-block" style="font-size: 0.78rem;">Tema Grafico Timer</span>
+            <span class="text-super-caption text-muted mt-0.5 d-block">Stile visivo del widget di recupero</span>
           </div>
-          <div style="width: 175px;">
+          <div style="width: 150px;">
             <v-select
               v-model="timerTheme"
               :items="[
@@ -399,39 +333,39 @@
               hide-details
               rounded="lg"
               color="orange-darken-3"
-              style="font-size: 0.8rem;"
+              style="font-size: 0.75rem;"
             ></v-select>
           </div>
         </div>
 
-        <v-divider class="my-4 border-soft" style="opacity: 0.15;"></v-divider>
+        <v-divider class="my-3.5 border-soft" style="opacity: 0.15;"></v-divider>
 
         <!-- Configurazione Algoritmo Ghost -->
-        <div class="text-left mt-2">
-          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2.5" style="font-size: 0.72rem;">🧬 Visualizzazione Suggerimento Ghost</span>
+        <div class="text-left mt-1">
+          <span class="text-caption font-weight-black text-slate-dark uppercase d-block mb-2" style="font-size: 0.70rem;">Visualizzazione Suggerimento Ghost</span>
           <v-btn-toggle
             v-model="stileVisualizzazioneGhost"
             mandatory
             selected-class="bg-orange-darken-3 text-white"
-            density="comfortable"
-            rounded="xl"
+            density="compact"
+            rounded="lg"
             class="w-100 card-glass border mb-3"
-            style="height: 38px;"
+            style="height: 34px;"
           >
-            <v-btn value="range" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 50%;">
-              📊 Solo Range
+            <v-btn value="range" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
+              Solo Range
             </v-btn>
-            <v-btn value="forma" class="font-weight-bold flex-grow-1" style="font-size: 0.68rem; min-width: 50%;">
-              🔋 Stato Forma
+            <v-btn value="forma" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
+              Stato Forma
             </v-btn>
           </v-btn-toggle>
           
-          <div class="d-flex flex-column gap-2 bg-slate-900 border rounded-xl pa-3" style="border-color: var(--card-border) !important; background: var(--card-bg-soft) !important;">
+          <div class="d-flex flex-column gap-2.5 rounded-xl pa-3 inner-setting-box border-soft">
             <!-- Switch PR Attack -->
             <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
               <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
-                <span class="text-caption font-weight-bold text-amber-lighten-2 d-block" style="font-size: 0.72rem;">🏆 Attacco al Record (PR)</span>
-                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Arrotonda in eccesso se sei vicino al tuo PR di sempre</span>
+                <span class="text-caption font-weight-bold text-amber-lighten-2 d-block" style="font-size: 0.72rem;">Attacco al Record (PR)</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.3;">Arrotonda in eccesso vicino al tuo PR</span>
               </div>
               <v-switch
                 v-model="ghostPRAttackAttivo"
@@ -442,13 +376,13 @@
               ></v-switch>
             </div>
             
-            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+            <v-divider class="border-soft" style="opacity: 0.3;"></v-divider>
             
             <!-- Switch Autoregolazione Reps -->
             <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
               <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
-                <span class="text-caption font-weight-bold text-green-accent-3 d-block" style="font-size: 0.72rem;">⚡ Autoregolazione Reps</span>
-                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Accelera se esegui reps in più, rallenta se in meno</span>
+                <span class="text-caption font-weight-bold text-green-accent-3 d-block" style="font-size: 0.72rem;">Autoregolazione Reps</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.3;">Adatta la proposta in base alle reps eseguite</span>
               </div>
               <v-switch
                 v-model="ghostAutoregolazioneRepsAttiva"
@@ -459,13 +393,13 @@
               ></v-switch>
             </div>
 
-            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+            <v-divider class="border-soft" style="opacity: 0.3;"></v-divider>
             
             <!-- Switch Sfida Record Week 1 -->
             <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
               <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
-                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">🏆 Sfida Record in Week 1</span>
-                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Mostra range e opzioni per superare i tuoi record già dalla prima settimana</span>
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">Sfida Record in Week 1</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.3;">Mostra opzioni per superare record in Week 1</span>
               </div>
               <v-switch
                 v-model="sfidaRecordWeek1"
@@ -476,13 +410,13 @@
               ></v-switch>
             </div>
 
-            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+            <v-divider class="border-soft" style="opacity: 0.3;"></v-divider>
             
             <!-- Switch Ottimizza Digitazione Note -->
             <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
               <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
-                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">✍️ Ottimizza Digitazione Note</span>
-                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Evita rallentamenti e lag aggiornando i calcoli grafici solo dopo aver finito di scrivere (consigliato su cellulari datati)</span>
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">Ottimizza Digitazione Note</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.3;">Evita lag aggiornando i calcoli dopo la scrittura</span>
               </div>
               <v-switch
                 v-model="ottimizzaDigitazione"
@@ -493,13 +427,13 @@
               ></v-switch>
             </div>
 
-            <v-divider class="border-soft" style="opacity: 0.5;"></v-divider>
+            <v-divider class="border-soft" style="opacity: 0.3;"></v-divider>
 
             <!-- Regola Progressione Week 2 -->
-            <div class="d-flex align-center justify-space-between" style="min-height: 40px;">
+            <div class="d-flex align-center justify-space-between" style="min-height: 36px;">
               <div class="text-left" style="min-width: 0; flex-grow: 1; padding-right: 8px;">
-                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">⚙️ Progressione Week 2</span>
-                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.25;">Regola di calcolo per le proposte della seconda settimana</span>
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">Progressione Week 2</span>
+                <span class="text-super-caption text-muted d-block mt-0.5" style="font-size: 0.62rem; text-transform: none; line-height: 1.3;">Regola di calcolo per le proposte della W2</span>
               </div>
               <v-select
                 v-model="regolaProgressioneW2"
@@ -512,7 +446,7 @@
                 hide-details
                 rounded="lg"
                 color="orange-darken-3"
-                style="font-size: 0.72rem; max-width: 175px; min-width: 150px;"
+                style="font-size: 0.70rem; max-width: 150px; min-width: 130px;"
               ></v-select>
             </div>
           </div>
@@ -523,9 +457,8 @@
     <!-- SEZIONE 3: INVIA NOTIFICA DEPLOY REAL-TIME (SOLO COACH) -->
     <v-card 
       v-if="ruolo === 'coach'"
-      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-      elevation="2"
+      class="premium-card rounded-xl text-left border mb-4 animate-slide-down pa-4"
+      elevation="1"
       :style="{ borderColor: tipoNotificaForm === 'deploy' ? 'rgba(249, 115, 22, 0.45) !important' : 'rgba(168, 85, 247, 0.5) !important' }"
     >
       <div class="d-flex align-center justify-space-between mb-3">
@@ -533,65 +466,64 @@
           <v-icon :color="tipoNotificaForm === 'deploy' ? 'orange-darken-3' : 'purple-darken-1'" size="18">
             {{ tipoNotificaForm === 'deploy' ? 'mdi-rocket-launch-outline' : 'mdi-comment-text-outline' }}
           </v-icon>
-          <span class="font-weight-black uppercase" :class="tipoNotificaForm === 'deploy' ? 'text-orange-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.68rem; letter-spacing: 0.03em;">
+          <span class="font-weight-black uppercase" :class="tipoNotificaForm === 'deploy' ? 'text-orange-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.70rem; letter-spacing: 0.03em;">
             {{ tipoNotificaForm === 'deploy' ? 'Invia Notifica Deploy' : 'Invia Messaggio Privato' }}
           </span>
         </div>
         <v-chip :color="tipoNotificaForm === 'deploy' ? 'orange-darken-3' : 'purple-darken-2'" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.55rem; height: 18px;">
-          COACH ONLY 📋
+          COACH ONLY
         </v-chip>
       </div>
 
       <div class="pa-3 rounded-xl inner-setting-box border-soft">
         <!-- Selettore Tab Notifica (1. Deploy vs 2. Messaggio Privato) -->
         <div class="mb-3">
-          <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">Seleziona Tipo Notifica:</span>
+          <span class="text-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.68rem;">Seleziona Tipo Notifica:</span>
           <v-btn-toggle
             v-model="tipoNotificaForm"
             mandatory
             density="compact"
-            rounded="xl"
+            rounded="lg"
             class="w-100 card-glass border overflow-hidden"
             style="height: 34px;"
           >
             <v-btn 
               value="deploy" 
               class="font-weight-black flex-grow-1 text-none"
-              :class="tipoNotificaForm === 'deploy' ? 'bg-orange-darken-3 text-white' : 'text-slate-300'"
-              style="font-size: 0.64rem; padding: 0 6px;"
+              :class="tipoNotificaForm === 'deploy' ? 'bg-orange-darken-3 text-white' : 'text-slate-dark'"
+              style="font-size: 0.65rem; padding: 0 6px;"
             >
-              🚀 Deploy (Tutti)
+              Deploy (Tutti)
             </v-btn>
             <v-btn 
               value="messaggio" 
               class="font-weight-black flex-grow-1 text-none"
-              :class="tipoNotificaForm === 'messaggio' ? 'bg-purple-darken-2 text-white' : 'text-slate-300'"
-              style="font-size: 0.64rem; padding: 0 6px;"
+              :class="tipoNotificaForm === 'messaggio' ? 'bg-purple-darken-2 text-white' : 'text-slate-dark'"
+              style="font-size: 0.65rem; padding: 0 6px;"
             >
-              💬 Messaggio Privato
+              Messaggio Privato
             </v-btn>
           </v-btn-toggle>
         </div>
 
-        <!-- AMBIENTE 1: DEPLOY GLOBALE (DESTINATARIO BLOCCATO SU TUTTI) -->
+        <!-- AMBIENTE 1: DEPLOY GLOBALE -->
         <template v-if="tipoNotificaForm === 'deploy'">
-          <!-- Banner esplicativo Destinatario fittizio fisse -->
-          <div class="pa-2 rounded-lg border border-orange-500/30 bg-orange-500/10 d-flex align-center gap-2 mb-3">
-            <v-icon color="orange-darken-2" size="16">mdi-earth</v-icon>
+          <div class="pa-2.5 rounded-lg border border-orange-500/30 bg-orange-500/10 d-flex align-center gap-2 mb-3">
+            <v-icon color="orange-darken-2" size="18">mdi-earth</v-icon>
             <div class="text-left">
-              <div class="font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.60rem; letter-spacing: 0.02em;">
+              <div class="font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.62rem;">
                 Destinatari: Tutti gli utenti
               </div>
-              <div class="text-slate-light" style="font-size: 0.58rem; line-height: 1.2;">
+              <div class="text-slate mt-0.5" style="font-size: 0.60rem; line-height: 1.25;">
                 Notifica di aggiornamento inviata a tutti gli atleti attivi.
               </div>
             </div>
           </div>
 
           <!-- Titolo Notifica -->
-          <div class="mb-3 text-left">
-            <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">
-              📌 Titolo Notifica:
+          <div class="mb-2.5 text-left">
+            <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.68rem;">
+              Titolo Notifica:
             </span>
             <v-text-field
               v-model="titoloDeployForm"
@@ -605,9 +537,9 @@
           </div>
 
           <!-- Note Generali -->
-          <div class="mb-3 text-left">
-            <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.65rem;">
-              📝 Note di Rilascio:
+          <div class="mb-2.5 text-left">
+            <span class="text-caption font-weight-black text-slate-dark d-block mb-1" style="font-size: 0.68rem;">
+              Note di Rilascio:
             </span>
             <v-textarea
               v-model="messaggioDeployGeneraleForm"
@@ -628,20 +560,19 @@
             variant="flat"
             rounded="lg"
             class="font-weight-black text-none text-white mt-3"
-            style="height: 38px; font-size: 0.76rem; letter-spacing: 0.02em;"
+            style="height: 36px; font-size: 0.76rem;"
             @click="eseguiInvioNotificaDeploy"
             :loading="inviandoDeployNotifica"
           >
-            🚀 INVIA NOTIFICA DEPLOY
+            INVIA NOTIFICA DEPLOY
           </v-btn>
         </template>
 
-        <!-- AMBIENTE 2: MESSAGGIO PRIVATO PER SINGOLO ATLETA -->
+        <!-- AMBIENTE 2: MESSAGGIO PRIVATO -->
         <template v-else>
-          <!-- Selettore Obbligatorio Atleta Singolo -->
-          <div class="mb-3 text-left">
-            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
-              👤 Seleziona Atleta Destinatario:
+          <div class="mb-2.5 text-left">
+            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.68rem;">
+              Seleziona Atleta Destinatario:
             </span>
             <v-select
               v-model="atletaDeployTargetForm"
@@ -655,10 +586,9 @@
             ></v-select>
           </div>
 
-          <!-- Titolo Messaggio -->
-          <div class="mb-3 text-left">
-            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
-              💬 Oggetto del Messaggio:
+          <div class="mb-2.5 text-left">
+            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.68rem;">
+              Oggetto del Messaggio:
             </span>
             <v-text-field
               v-model="titoloDeployForm"
@@ -671,10 +601,9 @@
             ></v-text-field>
           </div>
 
-          <!-- Testo del Messaggio Privato -->
-          <div class="mb-3 text-left">
-            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
-              ✉️ Testo del Messaggio Riservato:
+          <div class="mb-2.5 text-left">
+            <span class="text-caption font-weight-black text-purple-lighten-2 d-block mb-1" style="font-size: 0.68rem;">
+              Testo del Messaggio Riservato:
             </span>
             <v-textarea
               v-model="messaggioDeployGeneraleForm"
@@ -695,17 +624,16 @@
             variant="flat"
             rounded="lg"
             class="font-weight-black text-none text-white mt-3"
-            style="height: 38px; font-size: 0.76rem; letter-spacing: 0.02em;"
+            style="height: 36px; font-size: 0.76rem;"
             :disabled="!atletaDeployTargetForm || atletaDeployTargetForm === 'tutti'"
             @click="eseguiInvioNotificaDeploy"
             :loading="inviandoDeployNotifica"
           >
-            ✉️ Invia Messaggio Privato
+            Invia Messaggio Privato
           </v-btn>
         </template>
       </div>
 
-      <!-- Snackbar Feedback Invio Deploy -->
       <v-snackbar v-model="snackbarDeployShow" :color="snackbarDeployColor" timeout="4000" rounded="lg">
         {{ snackbarDeployMessage }}
       </v-snackbar>
@@ -714,23 +642,22 @@
     <!-- SEZIONE 4: BACKUP & RIPRISTINO DATI -->
     <v-card 
       v-if="atletaSelezionato && schedaSelezionata"
-      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-      elevation="2"
+      class="premium-card rounded-xl text-left border mb-4 animate-slide-down pa-4"
+      elevation="1"
     >
-      <div class="d-flex align-center mb-4">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-database-outline</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Backup & Ripristino Scheda</span>
+      <div class="d-flex align-center mb-3">
+        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-database-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-widest" style="font-size: 0.70rem;">Backup & Ripristino Scheda</span>
       </div>
 
-      <div class="pa-4 rounded-xl inner-setting-box border-soft">
+      <div class="pa-3 rounded-xl inner-setting-box border-soft">
         <div class="text-left mb-3">
           <span class="text-caption font-weight-black text-slate-dark d-block">Esporta / Importa Dati Scheda</span>
-          <span class="text-super-caption text-muted d-block mt-1" style="font-size: 0.65rem; line-height: 1.3; text-transform: none;">
-            Esporta tutti i carichi, ripetizioni, note e completamenti registrati per la scheda attiva (n.{{ schedaSelezionata }}) in un file JSON locale, oppure importa un file salvato in precedenza.
+          <span class="text-super-caption text-muted d-block mt-1" style="font-size: 0.64rem; line-height: 1.3; text-transform: none;">
+            Esporta o importa carichi, note e completamenti per la scheda attiva (n.{{ schedaSelezionata }}).
           </span>
         </div>
-        <div class="d-flex gap-3 flex-wrap">
+        <div class="d-flex gap-2.5 flex-wrap">
           <v-btn
             color="orange-darken-3"
             variant="flat"
@@ -739,6 +666,7 @@
             prepend-icon="mdi-download"
             @click="esportaSchedaJSON"
             :loading="esportandoJSON"
+            style="height: 36px; font-size: 0.74rem;"
           >
             Esporta JSON
           </v-btn>
@@ -751,6 +679,7 @@
             prepend-icon="mdi-upload"
             @click="triggerInputFile"
             :loading="importandoJSON"
+            style="height: 36px; font-size: 0.74rem;"
           >
             Importa JSON
           </v-btn>
@@ -765,52 +694,48 @@
       </div>
     </v-card>
 
-    <!-- SEZIONE 5: ZONA PERICOLOSA (Reset) -->
+    <!-- SEZIONE 5: RESET DATI DI CARICO (SOLO COACH) -->
     <v-card 
-      v-if="atletaSelezionato && schedaSelezionata"
-      class="premium-card rounded-2xl text-left border mb-5 animate-slide-down"
-      :class="layoutEserciziGlobal === 'super_compatto' ? 'pa-3' : (layoutEserciziGlobal === 'compatto' ? 'pa-4' : 'pa-5')"
-      elevation="2"
-      style="border-color: rgba(239, 68, 68, 0.2) !important;"
+      v-if="ruolo === 'coach' && atletaSelezionato && schedaSelezionata"
+      class="premium-card rounded-xl text-left border mb-4 animate-slide-down pa-4"
+      elevation="1"
+      style="border-color: rgba(239, 68, 68, 0.3) !important;"
     >
-      <div class="d-flex align-center mb-4">
-        <v-icon color="red-darken-2" class="mr-2" size="20">mdi-alert-outline</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-red-lighten-2 uppercase tracking-widest" style="font-size: 0.72rem;">Zona Pericolosa</span>
+      <div class="d-flex align-center gap-2 mb-2.5">
+        <v-icon color="red-darken-1" size="22">mdi-alert-octagon-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black text-red-lighten-2 uppercase tracking-wide" style="font-size: 0.76rem;">
+          Reset Dati di Carico
+        </span>
       </div>
 
-      <div class="caution-panel pa-4 rounded-xl">
-        <div class="d-flex align-start">
-          <v-icon color="red-darken-2" class="mr-3 mt-1" size="24">mdi-alert-outline</v-icon>
-          <div class="text-left">
-            <h4 class="text-caption font-weight-black text-red-lighten-2">Reset Dati di Carico</h4>
-            <p class="text-super-caption text-muted mt-1" style="font-size: 0.65rem; line-height: 1.3; opacity: 0.9;">
-              Questa operazione cancellerà in modo irreversibile tutti i carichi, i pesi e i commenti registrati per la scheda attiva (n.{{ schedaSelezionata }}).
-            </p>
-            <v-btn
-              color="red-darken-3"
-              variant="flat"
-              size="small"
-              class="font-weight-black text-none mt-3 rounded-lg text-white"
-              @click="apriReset"
-            >
-              Resetta Master Workout
-            </v-btn>
-          </div>
-        </div>
-      </div>
+      <p class="text-caption text-muted mb-3.5" style="font-size: 0.70rem; line-height: 1.45;">
+        Cancella irreversibilmente tutti i carichi, pesi e commenti registrati per la scheda attiva (n.{{ schedaSelezionata }}).
+      </p>
+
+      <v-btn
+        color="red-darken-3"
+        variant="flat"
+        size="small"
+        class="font-weight-black text-none rounded-lg text-white"
+        style="height: 36px; font-size: 0.76rem;"
+        @click="apriReset"
+      >
+        Resetta Master Workout
+      </v-btn>
     </v-card>
 
-    <!-- SEZIONE 5: LOGOUT -->
+    <!-- SEZIONE 6: LOGOUT -->
     <v-btn
       color="red-darken-2"
       variant="outlined"
       block
-      size="large"
-      rounded="xl"
-      class="font-weight-black text-none py-3 mb-6 animate-slide-down"
+      size="medium"
+      rounded="lg"
+      class="font-weight-black text-none py-2 mb-6 animate-slide-down"
+      style="height: 42px; font-size: 0.82rem;"
       @click="disconnettiAccount"
     >
-      <v-icon left class="mr-2">mdi-logout</v-icon>
+      <v-icon left class="mr-2" size="18">mdi-logout</v-icon>
       Disconnetti Account
     </v-btn>
 
@@ -819,9 +744,9 @@
       <v-card class="pa-5 rounded-2xl card-glass border" style="background: var(--card-bg-dark) !important; border-color: rgba(239, 68, 68, 0.3) !important;">
         <v-card-title class="font-weight-black text-red-lighten-2 d-flex align-center px-0">
           <v-icon color="red-lighten-2" class="mr-2">mdi-alert-circle-outline</v-icon>
-          Conferma Reset ⚠️
+          Conferma Reset
         </v-card-title>
-        <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+        <v-card-text class="px-0 py-4 text-body-2" style="color: var(--text-slate) !important; line-height: 1.5;">
           Sei sicuro di voler resettare <strong>tutti i dati di carico</strong> della scheda n.{{ schedaSelezionata }}?
           <br><br>
           Questa operazione è <strong class="text-red-lighten-2">irreversibile</strong>.
@@ -842,9 +767,9 @@
       <v-card class="pa-5 rounded-2xl card-glass border" style="background: var(--card-bg-dark) !important; border-color: rgba(30, 144, 255, 0.3) !important;">
         <v-card-title class="font-weight-black text-blue-lighten-2 d-flex align-center px-0">
           <v-icon color="blue-lighten-2" class="mr-2">mdi-database-import</v-icon>
-          Conferma Ripristino Dati ⚠️
+          Conferma Ripristino Dati
         </v-card-title>
-        <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+        <v-card-text class="px-0 py-4 text-body-2" style="color: var(--text-slate) !important; line-height: 1.5;">
           Stai per sovrascrivere i dati correnti con il backup caricato.
           <br><br>
           Dati nel file di backup:
@@ -854,7 +779,7 @@
             <li>Data backup: <strong>{{ formattaDataEsportazione(importedMetadata.timestamp) }}</strong></li>
           </ul>
           <span v-if="discrepanzaDati" class="text-red-lighten-2 font-weight-black d-block mb-3">
-            ⚠️ ATTENZIONE: Il backup caricato non corrisponde all'atleta o alla scheda attualmente attivi (Atleta: {{ getNomeAtleta(atletaSelezionato) }}, Scheda: {{ schedaSelezionata }}).
+            ATTENZIONE: Il backup caricato non corrisponde all'atleta o alla scheda attualmente attivi (Atleta: {{ getNomeAtleta(atletaSelezionato) }}, Scheda: {{ schedaSelezionata }}).
           </span>
           Questa operazione sovrascriverà tutti i carichi, note e completamenti di questa scheda. Vuoi procedere?
         </v-card-text>
@@ -1445,6 +1370,21 @@ const formattaDataEsportazione = (isoString) => {
 
 .animate-slide-down {
   animation: slideDown 0.4s ease-out;
+}
+
+.inner-setting-box {
+  background: var(--card-bg-soft) !important;
+}
+
+:deep([data-theme="light"]) .inner-setting-box,
+[data-theme="light"] .inner-setting-box {
+  background: var(--card-bg-soft) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+:deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--selected),
+[data-theme="light"] .v-btn-toggle .v-btn:not(.v-btn--selected) {
+  color: var(--text-dark) !important;
 }
 
 .custom-compact-field :deep(.v-field__input),

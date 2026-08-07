@@ -1,48 +1,52 @@
 <template>
-  <v-container class="px-4 py-6 max-width-admin min-height-screen pb-12">
+  <v-container class="px-2.5 py-3 max-width-admin min-height-screen pb-12">
     <!-- Header Premium -->
-    <div class="premium-header card-glass rounded-2xl d-flex flex-wrap align-center justify-space-between elevation-2 border-bottom-soft pa-4 mb-6">
-      <div class="d-flex align-center">
-        <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1 profile-avatar">
+    <div class="premium-header card-glass rounded-xl d-flex align-center justify-space-between elevation-1 border-bottom-soft pa-3 mb-3">
+      <div class="d-flex align-center min-width-0">
+        <v-avatar size="34" class="mr-2.5 bg-transparent border-orange elevation-1 profile-avatar flex-shrink-0">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
-        <div class="text-left">
-          <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight leading-tight">Pannello Controllo Coach 📋</h1>
-          <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.62rem; letter-spacing: 0.05em;">Gestione Database & Excel Editor</span>
+        <div class="text-left min-width-0">
+          <h1 class="text-subtitle-2 font-weight-black text-slate-dark tracking-tight leading-tight mb-0 text-truncate" style="font-size: 0.90rem !important;">
+            Pannello Controllo Coach
+          </h1>
+          <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase d-block text-truncate" style="font-size: 0.58rem; letter-spacing: 0.03em;">
+            Gestione Database & Excel Editor
+          </span>
         </div>
       </div>
-      <div class="d-flex align-center gap-2 mt-2 mt-sm-0">
-        <v-btn to="/" color="slate" variant="outlined" rounded="lg" size="small" class="mr-2">
-          <v-icon size="16" class="mr-1">mdi-arrow-left</v-icon>
-          Torna all'App
+      <div class="d-flex align-center gap-1.5 flex-shrink-0 ml-2">
+        <v-btn to="/" color="orange-darken-3" variant="tonal" rounded="lg" size="x-small" class="font-weight-bold text-none px-2" style="height: 28px; font-size: 0.70rem;">
+          <v-icon size="13" class="mr-1">mdi-arrow-left</v-icon>
+          App
         </v-btn>
-        <v-btn icon color="orange-darken-3" variant="text" @click="caricaDati" size="small" :disabled="loadingData">
-          <v-icon :class="{ 'animate-spin': loadingData }">mdi-refresh</v-icon>
+        <v-btn icon color="orange-darken-3" variant="text" @click="caricaDati" size="x-small" style="width: 28px; height: 28px;" :disabled="loadingData">
+          <v-icon size="16" :class="{ 'animate-spin': loadingData }">mdi-refresh</v-icon>
         </v-btn>
       </div>
     </div>
 
     <!-- SELETTORE CLIENTE & SCHEDA -->
-    <v-card class="premium-card rounded-2xl text-left border pa-5 mb-5" elevation="2">
-      <v-row>
+    <v-card class="premium-card rounded-xl text-left border pa-3 mb-3.5" elevation="1">
+      <v-row dense class="align-center">
         <!-- Tipo di Dati da Caricare -->
         <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 3 : 4">
-          <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Tipo Dati</span>
+          <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-1" style="font-size: 0.60rem;">Tipo Dati</span>
           <v-btn-toggle
             v-model="tipoDatiCaricare"
             mandatory
             color="orange-darken-3"
             variant="outlined"
-            class="d-flex w-100 mt-1"
-            style="height: 56px; border-radius: 8px;"
+            class="d-flex w-100"
+            style="height: 34px; border-radius: 8px;"
             @update:model-value="gestisciCambioTipoDati"
           >
-            <v-btn value="storyboard" class="flex-grow-1 font-weight-bold text-caption text-slate" style="height: 100%;">
-              <v-icon start size="18">mdi-format-list-bulleted</v-icon>
+            <v-btn value="storyboard" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 100%; font-size: 0.70rem !important;">
+              <v-icon start size="14" class="mr-1">mdi-format-list-bulleted</v-icon>
               Storyboard
             </v-btn>
-            <v-btn value="workout_t" class="flex-grow-1 font-weight-bold text-caption text-slate" style="height: 100%;">
-              <v-icon start size="18">mdi-calendar-month</v-icon>
+            <v-btn value="workout_t" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 100%; font-size: 0.70rem !important;">
+              <v-icon start size="14" class="mr-1">mdi-calendar-month</v-icon>
               Workout T
             </v-btn>
           </v-btn-toggle>
@@ -50,53 +54,53 @@
 
         <!-- Atleta -->
         <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 4 : 5">
-          <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Atleta</span>
+          <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-1" style="font-size: 0.60rem;">Atleta</span>
           <v-autocomplete
             v-model="atletaSelezionato"
             :items="itemsAtleti"
             item-title="title"
             item-value="value"
-            label="Seleziona Atleta..."
+            placeholder="Seleziona Atleta..."
             variant="outlined"
+            density="compact"
             rounded="lg"
             color="orange-darken-3"
             prepend-inner-icon="mdi-account"
             hide-details
-            class="mt-1"
             @update:model-value="gestisciCambioAtleta"
           ></v-autocomplete>
         </v-col>
 
         <!-- Scheda (Mesociclo) - Solo per Storyboard -->
         <v-col v-if="tipoDatiCaricare === 'storyboard'" cols="12" sm="6" md="3">
-          <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Scheda (Mesociclo)</span>
+          <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-1" style="font-size: 0.60rem;">Scheda (Mesociclo)</span>
           <v-select
             v-model="schedaSelezionata"
             :items="listaSchede"
-            label="Scegli Scheda..."
+            placeholder="Scegli Scheda..."
             variant="outlined"
+            density="compact"
             rounded="lg"
             color="orange-darken-3"
             prepend-inner-icon="mdi-clipboard-text-outline"
             hide-details
-            class="mt-1"
             :disabled="!atletaSelezionato || loadingSchede"
             @update:model-value="caricaEsercizi"
           ></v-select>
         </v-col>
 
         <!-- Pulsante Caricamento Dati -->
-        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 2 : 3" class="d-flex align-end">
+        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 2 : 3" class="d-flex align-end mt-1.5 mt-sm-0">
           <v-btn
             color="orange-darken-3"
             block
             rounded="lg"
-            class="text-white font-weight-bold"
-            style="height: 56px;"
+            class="text-white font-weight-bold text-none px-3"
+            style="height: 36px; font-size: 0.76rem;"
             :disabled="!atletaSelezionato || (tipoDatiCaricare === 'storyboard' && !schedaSelezionata)"
             @click="caricaEsercizi"
           >
-            <v-icon class="mr-1">mdi-cloud-download</v-icon>
+            <v-icon class="mr-1" size="16">mdi-cloud-download</v-icon>
             CARICA DATI
           </v-btn>
         </v-col>
@@ -104,26 +108,31 @@
     </v-card>
 
     <!-- SEZIONE PARAMETRI ALGORITMO COACH (Mostrata sempre) -->
-    <v-card class="premium-card rounded-2xl text-left border pa-5 mb-5" elevation="2">
-      <div class="d-flex align-center mb-4">
-        <v-icon color="orange-darken-3" class="mr-2.5" size="26">mdi-cog-outline</v-icon>
+    <v-card class="premium-card rounded-xl text-left border pa-3 mb-3.5" elevation="1">
+      <div class="d-flex align-center mb-2.5">
+        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-tune-variant</v-icon>
         <div>
-          <h3 class="text-h6 font-weight-black text-slate-dark">Configurazione Algoritmo Progressioni ⚙️</h3>
-          <span class="text-caption text-muted">Personalizza le regole di proposta carico e le riduzioni per sforzo/fatica (comuni a tutti gli atleti).</span>
+          <h3 class="text-subtitle-2 font-weight-black text-slate-dark leading-tight mb-0.5" style="font-size: 0.88rem !important;">
+            Configurazione Algoritmo Progressioni
+          </h3>
+          <span class="text-caption text-slate-dark opacity-80 d-block" style="font-size: 0.70rem; line-height: 1.2;">
+            Personalizza le regole di proposta carico e le riduzioni per sforzo/fatica.
+          </span>
         </div>
       </div>
 
-      <v-row>
+      <v-row dense>
         <!-- Colonna sinistra: Parametri Proposta Carico -->
         <v-col cols="12" md="6" class="border-right-md">
-          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
-            🎯 Regole & Settimane di Riferimento
+          <div class="text-subtitle-2 font-weight-black text-orange-darken-3 mb-2 d-flex align-center" style="font-size: 0.80rem;">
+            <v-icon size="15" class="mr-1">mdi-target</v-icon>
+            Regole & Settimane di Riferimento
           </div>
           
           <v-row dense>
             <!-- W2 -->
-            <v-col cols="12" sm="4">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Rif. Proposta W2</span>
+            <v-col cols="4" sm="4">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Rif. W2</span>
               <v-select
                 v-model="propostaBaseWeek2"
                 :items="['W1', 'W2']"
@@ -132,13 +141,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-select>
             </v-col>
             
             <!-- W5 -->
-            <v-col cols="12" sm="4">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Rif. Proposta W5</span>
+            <v-col cols="4" sm="4">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Rif. W5</span>
               <v-select
                 v-model="propostaBaseWeek5"
                 :items="['W3', 'W4', 'W5']"
@@ -147,13 +155,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-select>
             </v-col>
 
             <!-- W6 -->
-            <v-col cols="12" sm="4">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Rif. Proposta W6</span>
+            <v-col cols="4" sm="4">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Rif. W6</span>
               <v-select
                 v-model="propostaBaseWeek6"
                 :items="['W5', 'W6']"
@@ -162,13 +169,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-select>
             </v-col>
 
             <!-- Regola Progressione W2 & Ottimizzazione Note -->
-            <v-col cols="12" sm="6" class="mt-2">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Progressione Week 2</span>
+            <v-col cols="12" sm="6" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Progressione Week 2</span>
               <v-select
                 v-model="regolaProgressioneW2"
                 :items="[
@@ -180,35 +186,35 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-select>
             </v-col>
 
-            <v-col cols="12" sm="6" class="d-flex align-center mt-4">
+            <v-col cols="12" sm="6" class="d-flex align-center mt-2">
               <v-switch
                 v-model="ottimizzaDigitazione"
                 color="orange-darken-3"
                 hide-details
                 density="compact"
-                class="mr-2"
+                class="mr-2 flex-shrink-0"
               ></v-switch>
               <div class="text-left">
-                <span class="text-caption font-weight-bold text-white d-block" style="font-size: 0.72rem; line-height: 1.1;">Ottimizza Note (.lazy)</span>
-                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; text-transform: none; line-height: 1.2;">Evita rallentamenti durante la digitazione</span>
+                <span class="text-caption font-weight-bold text-slate-dark d-block" style="font-size: 0.70rem; line-height: 1.1;">Ottimizza Note (.lazy)</span>
+                <span class="text-super-caption text-slate-dark opacity-75 d-block" style="font-size: 0.56rem; text-transform: none; line-height: 1.2;">Evita rallentamenti</span>
               </div>
             </v-col>
           </v-row>
 
-          <v-divider class="my-4 border-soft"></v-divider>
+          <v-divider class="my-2.5 border-soft"></v-divider>
 
-          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
-            ⚖️ Incrementi Post-Scarico & Manubri
+          <div class="text-subtitle-2 font-weight-black text-orange-darken-3 mb-2 d-flex align-center" style="font-size: 0.80rem;">
+            <v-icon size="15" class="mr-1">mdi-scale-balance</v-icon>
+            Incrementi Post-Scarico & Manubri
           </div>
           
           <v-row dense>
             <!-- Inc. Post Scarico -->
-            <v-col cols="12" sm="6">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Post Scarico %</span>
+            <v-col cols="6" sm="6">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Post Scarico %</span>
               <v-text-field
                 v-model.number="INCREMENTO_PESO_POST_SCARICO_PCT"
                 type="number"
@@ -220,13 +226,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
 
             <!-- Soglia Manubri Forte -->
-            <v-col cols="12" sm="6">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia Manubri Forte</span>
+            <v-col cols="6" sm="6">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Soglia Manubri Forte</span>
               <v-text-field
                 v-model.number="SOGLIA_FORZA_MANUBRI"
                 type="number"
@@ -238,13 +243,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
 
             <!-- Inc. Manubri Leggero -->
-            <v-col cols="12" sm="6" class="mt-2">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Inc. Manubri Leggero</span>
+            <v-col cols="6" sm="6" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Inc. Manubri Leggero</span>
               <v-text-field
                 v-model.number="INCREMENTO_MANUBRI_LEGGERO"
                 type="number"
@@ -256,13 +260,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
 
             <!-- Inc. Manubri Forte -->
-            <v-col cols="12" sm="6" class="mt-2">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Inc. Manubri Forte</span>
+            <v-col cols="6" sm="6" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Inc. Manubri Forte</span>
               <v-text-field
                 v-model.number="INCREMENTO_MANUBRI_FORTE"
                 type="number"
@@ -274,22 +277,22 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
           </v-row>
         </v-col>
 
         <!-- Colonna destra: Regolazione Sforzo/Fatica -->
-        <v-col cols="12" md="6">
-          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
-            📉 Riduzioni Fatica Muscolare Week 1 (W1)
+        <v-col cols="12" md="6" class="mt-2 mt-md-0">
+          <div class="text-subtitle-2 font-weight-black text-orange-darken-3 mb-2 d-flex align-center" style="font-size: 0.80rem;">
+            <v-icon size="15" class="mr-1">mdi-trending-down</v-icon>
+            Riduzioni Fatica Muscolare Week 1 (W1)
           </div>
           
           <v-row dense>
             <!-- Pesante W1 -->
-            <v-col cols="12" sm="6">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Pesante W1 %</span>
+            <v-col cols="6" sm="6">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Fatica Pesante W1 %</span>
               <v-text-field
                 v-model.number="FATICA_PESANTE_W1_PCT"
                 type="number"
@@ -301,13 +304,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
 
             <!-- Devastante W1 -->
-            <v-col cols="12" sm="6">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Devastante W1 %</span>
+            <v-col cols="6" sm="6">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Fatica Devastante W1 %</span>
               <v-text-field
                 v-model.number="FATICA_DEVASTANTE_W1_PCT"
                 type="number"
@@ -319,21 +321,21 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
           </v-row>
 
-          <v-divider class="my-4 border-soft"></v-divider>
+          <v-divider class="my-2.5 border-soft"></v-divider>
 
-          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
-            📚 Riduzioni Fatica da Storico (Deallenamento)
+          <div class="text-subtitle-2 font-weight-black text-orange-darken-3 mb-2 d-flex align-center" style="font-size: 0.80rem;">
+            <v-icon size="15" class="mr-1">mdi-history</v-icon>
+            Riduzioni Fatica da Storico (Deallenamento)
           </div>
 
           <v-row dense>
             <!-- Pesante Storico -->
-            <v-col cols="12" sm="6">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Pesante Storico %</span>
+            <v-col cols="6" sm="6">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Fatica Pesante Storico %</span>
               <v-text-field
                 v-model.number="FATICA_PESANTE_STORICO_PCT"
                 type="number"
@@ -345,13 +347,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
 
             <!-- Devastante Storico -->
-            <v-col cols="12" sm="6">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Fatica Devastante Storico %</span>
+            <v-col cols="6" sm="6">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Fatica Devastante Storico %</span>
               <v-text-field
                 v-model.number="FATICA_DEVASTANTE_STORICO_PCT"
                 type="number"
@@ -363,21 +364,21 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
           </v-row>
 
-          <v-divider class="my-4 border-soft"></v-divider>
+          <v-divider class="my-2.5 border-soft"></v-divider>
 
-          <div class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-3">
-            ⏱️ Deallenamento & Sbalzi di Reps
+          <div class="text-subtitle-2 font-weight-black text-orange-darken-3 mb-2 d-flex align-center" style="font-size: 0.80rem;">
+            <v-icon size="15" class="mr-1">mdi-clock-alert-outline</v-icon>
+            Deallenamento & Sbalzi di Reps
           </div>
 
           <v-row dense>
             <!-- Soglia 1 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 1 (gg)</span>
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Soglia 1 (gg)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_SOGLIA1"
                 type="number"
@@ -389,12 +390,11 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
             <!-- Pct 1 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 1 (%)</span>
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Riduzione 1 (%)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_PCT1"
                 type="number"
@@ -406,13 +406,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
 
             <!-- Soglia 2 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 2 (gg)</span>
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Soglia 2 (gg)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_SOGLIA2"
                 type="number"
@@ -424,12 +423,11 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
             <!-- Pct 2 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 2 (%)</span>
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Riduzione 2 (%)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_PCT2"
                 type="number"
@@ -441,15 +439,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
-          </v-row>
 
-          <v-row dense class="mt-2">
             <!-- Soglia 3 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 3 (gg)</span>
+            <v-col cols="6" sm="3" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Soglia 3 (gg)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_SOGLIA3"
                 type="number"
@@ -461,12 +456,11 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
             <!-- Pct 3 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 3 (%)</span>
+            <v-col cols="6" sm="3" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Riduzione 3 (%)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_PCT3"
                 type="number"
@@ -478,13 +472,12 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
 
             <!-- Soglia 4 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Soglia 4 (gg)</span>
+            <v-col cols="6" sm="3" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Soglia 4 (gg)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_SOGLIA4"
                 type="number"
@@ -496,12 +489,11 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
             <!-- Pct 4 -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione 4 (%)</span>
+            <v-col cols="6" sm="3" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Riduzione 4 (%)</span>
               <v-text-field
                 v-model.number="DEALLENAMENTO_PCT4"
                 type="number"
@@ -513,12 +505,11 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
             <!-- Riduzione Max Instabili -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione Max Instabili (%)</span>
+            <v-col cols="6" sm="3" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Riduzione Instabili %</span>
               <v-text-field
                 v-model.number="PENALITA_MAX_INSTABILI_PCT"
                 type="number"
@@ -531,12 +522,11 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
             <!-- Riduzione Max Stabili -->
-            <v-col cols="12" sm="6" md="3">
-              <span class="text-super-caption text-muted font-weight-black uppercase tracking-wider" style="font-size: 0.58rem;">Riduzione Max Stabili (%)</span>
+            <v-col cols="6" sm="3" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Riduzione Stabili %</span>
               <v-text-field
                 v-model.number="PENALITA_MAX_STABILI_PCT"
                 type="number"
@@ -549,7 +539,6 @@
                 color="orange-darken-3"
                 rounded="lg"
                 hide-details
-                class="mt-1"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -568,35 +557,35 @@
       <div class="d-flex flex-wrap align-center justify-space-between mb-2 border-bottom-soft pb-3">
         <div>
           <h3 class="text-h6 font-weight-black text-slate-dark">Gestione Database Atleta</h3>
-          <span class="text-caption text-muted d-block mt-0.5">
+          <span class="text-caption text-slate-dark font-weight-bold d-block mt-0.5" style="font-size: 0.75rem;">
             Client ID: <strong>{{ atletaSelezionato }}</strong>
           </span>
         </div>
-        <div class="d-flex align-center gap-2 mt-2 mt-sm-0">
-          <v-btn color="orange-darken-4" size="small" variant="outlined" rounded="lg" @click="mostraIstruzioni = true" class="mr-2">
-            <v-icon size="16" class="mr-1">mdi-help-circle-outline</v-icon>
+        <div class="d-flex align-center gap-1.5 mt-2 mt-sm-0">
+          <v-btn color="orange-darken-3" size="x-small" variant="tonal" rounded="lg" @click="mostraIstruzioni = true" class="mr-1 font-weight-bold text-none px-2" style="height: 28px; font-size: 0.70rem;">
+            <v-icon size="14" class="mr-1">mdi-help-circle-outline</v-icon>
             Scorciatoie Excel
           </v-btn>
-          <v-btn v-if="activeTab === 'storyboard' && schedaSelezionata" color="blue-darken-3" size="small" variant="flat" rounded="lg" @click="esportaCSVLocale" class="text-white">
-            <v-icon size="16" class="mr-1">mdi-download</v-icon>
+          <v-btn v-if="activeTab === 'storyboard' && schedaSelezionata" color="blue-darken-3" size="x-small" variant="flat" rounded="lg" @click="esportaCSVLocale" class="text-white font-weight-bold text-none px-2" style="height: 28px; font-size: 0.70rem;">
+            <v-icon size="14" class="mr-1">mdi-download</v-icon>
             Download CSV
           </v-btn>
         </div>
       </div>
 
       <!-- TABS PER SWITCHARE TRA STORYBOARD E WORKOUT_T -->
-      <v-tabs v-model="activeTab" color="orange-darken-3" class="mb-4">
-        <v-tab value="storyboard" class="font-weight-black">
-          <v-icon start>mdi-format-list-bulleted</v-icon>
-          Storyboard (Esercizi)
-          <v-chip size="x-small" class="ml-2 font-weight-bold" color="orange" variant="flat" v-if="records.length > 0">
+      <v-tabs v-model="activeTab" color="orange-darken-3" density="compact" grow class="mb-3 border-bottom-soft">
+        <v-tab value="storyboard" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
+          <v-icon start size="16" class="mr-1">mdi-format-list-bulleted</v-icon>
+          Storyboard
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="orange-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="records.length > 0">
             {{ records.length }}
           </v-chip>
         </v-tab>
-        <v-tab value="workout_t" class="font-weight-black">
-          <v-icon start>mdi-calendar-month</v-icon>
-          Workout T (Mesocicli)
-          <v-chip size="x-small" class="ml-2 font-weight-bold" color="blue" variant="flat" v-if="workoutTRecords.length > 0">
+        <v-tab value="workout_t" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
+          <v-icon start size="16" class="mr-1">mdi-calendar-month</v-icon>
+          Workout T
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="blue-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="workoutTRecords.length > 0">
             {{ workoutTRecords.length }}
           </v-chip>
         </v-tab>
@@ -2518,4 +2507,68 @@ const esportaCSVLocale = () => {
 .col-wt-giorno { width: 80px; min-width: 80px; }
 .col-wt-url { min-width: 180px; width: 220px; }
 .col-wt-nome { min-width: 150px; width: 180px; }
+
+:deep([data-theme="light"]) .text-slate-dark,
+[data-theme="light"] .text-slate-dark {
+  color: #0f172a !important;
+}
+
+:deep([data-theme="light"]) .text-slate,
+[data-theme="light"] .text-slate {
+  color: #334155 !important;
+}
+
+:deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--selected) {
+  color: #0f172a !important;
+  background-color: #f8fafc !important;
+}
+
+/* Light Theme Overrides for Spreadsheet Table */
+:deep([data-theme="light"]) .excel-table,
+[data-theme="light"] .excel-table {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+:deep([data-theme="light"]) .excel-table th {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+:deep([data-theme="light"]) .excel-table td {
+  border-color: #e2e8f0 !important;
+}
+
+:deep([data-theme="light"]) .excel-input {
+  color: #0f172a !important;
+}
+
+:deep([data-theme="light"]) .sticky-col {
+  background-color: #f8fafc !important;
+}
+
+:deep([data-theme="light"]) .excel-table th.sticky-col {
+  background-color: #f1f5f9 !important;
+}
+
+/* Compact Form Inputs for Mobile */
+:deep(.v-field--density-compact) {
+  --v-field-padding-start: 8px !important;
+  --v-field-padding-end: 8px !important;
+  --v-field-padding-top: 2px !important;
+  --v-field-padding-bottom: 2px !important;
+  min-height: 34px !important;
+}
+
+:deep(.v-field__input) {
+  min-height: 34px !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  font-size: 0.78rem !important;
+}
+
+:deep(.v-input__details) {
+  display: none !important;
+}
 </style>

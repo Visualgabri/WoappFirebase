@@ -3351,6 +3351,8 @@ const caricaAllenamenti = async () => {
   atletaSelezionato.value = selectedAthlete.value;
   schedaSelezionata.value = selectedSheet.value;
   
+  caricaDataMesociclo();
+  
   // Ottieni il giorno attivo configurato
   const salvatoGiorno = localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'A';
   giornoSelezionato.value = salvatoGiorno;
@@ -4078,15 +4080,49 @@ const mesocicloCompletato = computed(() => {
 
 const dialogProgressioni = ref(false);
 
+const dataMesociclo = ref('');
+
+const caricaDataMesociclo = async () => {
+  if (!selectedAthlete.value || !selectedSheet.value) {
+    dataMesociclo.value = '';
+    return;
+  }
+  try {
+    const athleteIdStr = String(selectedAthlete.value);
+    const athleteIdNum = Number(selectedAthlete.value);
+    const sheetStr = String(selectedSheet.value);
+    const sheetNum = Number(selectedSheet.value);
+
+    let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr), where('num_scheda', '==', sheetStr)));
+    if (snap.empty) {
+      snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum), where('num_scheda', '==', sheetNum)));
+    }
+    if (!snap.empty) {
+      const d = snap.docs[0].data();
+      dataMesociclo.value = d.dat_data || '';
+    } else {
+      dataMesociclo.value = '';
+    }
+  } catch (err) {
+    console.warn("Errore caricamento data WORKOUT_T in Workouts.vue:", err);
+    dataMesociclo.value = '';
+  }
+};
+
 const allineamentoProgramma = computed(() => {
-  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return null;
-  
-  const header = listaAllenamenti.value.find(
-    item => parseInt(item.num_riga_giorno) === 0 && item.start_wo
-  );
-  
-  if (!header || !header.start_wo) return null;
-  
+  let dateStr = dataMesociclo.value;
+
+  if (!dateStr && listaAllenamenti.value && listaAllenamenti.value.length > 0) {
+    const header = listaAllenamenti.value.find(
+      item => parseInt(item.num_riga_giorno) === 0 && (item.dat_data || item.start_wo)
+    );
+    if (header) {
+      dateStr = header.dat_data || header.start_wo;
+    }
+  }
+
+  if (!dateStr) return null;
+
   const parseDateString = (str) => {
     if (!str) return null;
     const s = String(str).trim();
@@ -4103,7 +4139,7 @@ const allineamentoProgramma = computed(() => {
     return null;
   };
 
-  const startDate = parseDateString(header.start_wo);
+  const startDate = parseDateString(dateStr);
   if (!startDate) return null;
 
   const today = new Date();

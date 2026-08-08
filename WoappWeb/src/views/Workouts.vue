@@ -1174,9 +1174,9 @@
                       </div>
                     </div>
 
-                    <!-- Dettagli Centrali Estesi -->
-                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2 pb-1" style="z-index: 2;">
-                      <!-- Titolo Esercizio (Monoriga con Puntini se troppo lungo) -->
+                    <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
+                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
+                      <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
                       <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         <span v-if="(ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
@@ -1184,8 +1184,8 @@
                         <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
-                      <!-- Settore, Emoji Sforzo e Prescrizione Lavoro Troncata con Puntini -->
-                      <div class="d-flex align-center min-width-0 text-truncate mb-1" style="gap: 6px;">
+                      <!-- Settore, Emoji Sforzo e Prescrizione Lavoro (con margine riservato al pulsante centrale) -->
+                      <div class="d-flex align-center min-width-0 text-truncate mb-1" style="gap: 6px; padding-right: 72px;">
                         <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0">
                           <span style="font-size: 0.64rem !important;">{{ ex.des_settore || 'Corpo Libero' }}</span>
                           <v-icon size="12" color="orange-darken-3" class="ml-0.5">mdi-fire</v-icon>
@@ -1195,7 +1195,7 @@
                         </div>
                       </div>
 
-                      <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga con Chip più Piccoli -->
+                      <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
                       <div class="d-flex align-center flex-nowrap overflow-x-auto gap-1 mt-1 pt-1 border-top-soft w-100 hide-scrollbar" style="row-gap: 0;">
                         <div
                           v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -1217,13 +1217,13 @@
                       </div>
                     </div>
 
-                    <!-- Colonna Azione (Allineata a Destra e PERFETTAMENTE CENTRATA IN VERTICALE) -->
-                    <div class="flex-shrink-0 ml-auto d-flex align-center justify-center pl-1" style="align-self: center; z-index: 2;">
+                    <!-- Pulsante Azione in Posizionamento Assoluto (Fluttuante a Centro Destra) -->
+                    <div class="position-absolute d-flex align-center justify-end" style="right: 6px; top: 50%; transform: translateY(-50%); z-index: 10;">
                       <v-chip 
                         v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="small" 
                         :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
-                        class="font-weight-black text-white px-1.5 py-0" 
+                        class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                         variant="flat" 
                         style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
@@ -1234,7 +1234,7 @@
                         v-else-if="ex['ins_week' + settimanaAttivaGiorno] === '-'" 
                         size="small" 
                         color="green-darken-3" 
-                        class="font-weight-black text-white px-1.5 py-0" 
+                        class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                         variant="flat" 
                         style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
@@ -1246,8 +1246,8 @@
                         size="small" 
                         variant="outlined" 
                         color="orange-darken-3" 
-                        class="font-weight-black px-1.5 py-0 text-none"
-                        style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
+                        class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4"
+                        style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.5) !important; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         + Registra
@@ -1519,9 +1519,9 @@
                   </div>
                 </div>
 
-                <!-- Dettagli Centrali Estesi -->
-                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2 pb-1" style="z-index: 2;">
-                  <!-- Titolo Esercizio (Monoriga con Puntini se troppo lungo) -->
+                <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
+                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
+                  <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
                   <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     <span v-if="(block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
@@ -1529,8 +1529,8 @@
                     <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                   </h4>
 
-                  <!-- Settore, Emoji Sforzo e Prescrizione Lavoro Troncata con Puntini -->
-                  <div class="d-flex align-center min-width-0 text-truncate mb-1" style="gap: 6px;">
+                  <!-- Settore, Emoji Sforzo e Prescrizione Lavoro (con margine riservato al pulsante centrale) -->
+                  <div class="d-flex align-center min-width-0 text-truncate mb-1" style="gap: 6px; padding-right: 72px;">
                     <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0">
                       <span style="font-size: 0.64rem !important;">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
                       <v-icon size="12" color="orange-darken-3" class="ml-0.5">mdi-fire</v-icon>
@@ -1540,7 +1540,7 @@
                     </div>
                   </div>
 
-                  <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga con Chip più Piccoli -->
+                  <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
                   <div class="d-flex align-center flex-nowrap overflow-x-auto gap-1 mt-1 pt-1 border-top-soft w-100 hide-scrollbar" style="row-gap: 0;">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -1562,13 +1562,13 @@
                   </div>
                 </div>
 
-                <!-- Colonna Azione (Allineata a Destra e PERFETTAMENTE CENTRATA IN VERTICALE) -->
-                <div class="flex-shrink-0 ml-auto d-flex align-center justify-center pl-1" style="align-self: center; z-index: 2;">
+                <!-- Pulsante Azione in Posizionamento Assoluto (Fluttuante a Centro Destra) -->
+                <div class="position-absolute d-flex align-center justify-end" style="right: 6px; top: 50%; transform: translateY(-50%); z-index: 10;">
                   <v-chip 
                     v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                     size="small" 
                     :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
-                    class="font-weight-black text-white px-1.5 py-0" 
+                    class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                     variant="flat" 
                     style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
@@ -1579,7 +1579,7 @@
                     v-else-if="block.exercise['ins_week' + settimanaAttivaGiorno] === '-'" 
                     size="small" 
                     color="green-darken-3" 
-                    class="font-weight-black text-white px-1.5 py-0" 
+                    class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                     variant="flat" 
                     style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
@@ -1591,8 +1591,8 @@
                     size="small" 
                     variant="outlined" 
                     color="orange-darken-3" 
-                    class="font-weight-black px-1.5 py-0 text-none"
-                    style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
+                    class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4"
+                    style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.5) !important; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     + Registra

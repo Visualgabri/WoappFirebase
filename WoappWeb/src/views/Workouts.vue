@@ -1,7 +1,8 @@
 <template>
   <v-container 
     class="px-3 max-width-container min-height-screen"
-    :class="layoutEsercizi === 'super_compatto' ? 'pt-0 pb-3' : (layoutEsercizi === 'compatto' ? 'pt-0.5 pb-3.5' : 'pt-1 pb-4')"
+    :class="layoutEsercizi === 'super_compatto' ? 'pb-3' : (layoutEsercizi === 'compatto' ? 'pb-3.5' : 'pb-4')"
+    style="padding-top: 0px !important; margin-top: -6px !important;"
   >
     <!-- Header Premium -->
     <div 

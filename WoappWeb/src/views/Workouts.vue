@@ -1133,7 +1133,7 @@
 
                   <!-- VISUALIZZAZIONE COMPATTA -->
                   <template v-else-if="layoutEsercizi === 'compatto'">
-                    <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
+                    <!-- Miniatura GIF/Immagine sulla Sinistra con Badge Numero ed Overlay Timer Recupero in Basso -->
                     <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" style="width: 62px; min-width: 62px;">
                       <div class="position-relative" style="width: 62px; height: 62px;">
                         <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
@@ -1144,7 +1144,7 @@
                           {{ ex.num_riga_giorno }}
                         </div>
 
-                        <div class="rounded-xl overflow-hidden shadow-sm" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
+                        <div class="rounded-xl overflow-hidden shadow-sm position-relative" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
                           <v-img
                             :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
                             width="62px"
@@ -1159,6 +1159,17 @@
                               </div>
                             </template>
                           </v-img>
+
+                          <!-- Badge Timer Recupero: Overlay Elegante in Basso alla GIF -->
+                          <div
+                            v-if="ex.des_rec_report"
+                            class="position-absolute w-100 text-center font-weight-black text-amber-lighten-3 clickable-timer-chip"
+                            style="bottom: 0; left: 0; background: rgba(15, 23, 42, 0.85); font-size: 0.52rem; padding: 1.5px 0; z-index: 10; line-height: 1.1; backdrop-filter: blur(2px);"
+                            title="Tocca per avviare timer recupero"
+                            @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
+                          >
+                            ⏱️ {{ ex.des_rec_report }}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1203,18 +1214,6 @@
                             {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
                           </span>
                         </div>
-
-                        <!-- Timer Recupero posizionato nella stessa fila flex wrap (in fondo alla seconda riga se va a capo) -->
-                        <v-chip
-                          v-if="ex.des_rec_report"
-                          variant="flat"
-                          size="x-small"
-                          class="font-weight-black clickable-timer-chip ml-auto"
-                          style="font-size: 0.58rem !important; height: 18px; padding-left: 5px; padding-right: 5px;"
-                          @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
-                        >
-                          ⏱️ {{ ex.des_rec_report }}
-                        </v-chip>
                       </div>
                     </div>
 
@@ -1490,7 +1489,7 @@
                       {{ block.exercise.num_riga_giorno }}
                     </div>
 
-                    <div class="rounded-xl overflow-hidden shadow-sm" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
+                    <div class="rounded-xl overflow-hidden shadow-sm position-relative" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
                       <v-img
                         :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
                         width="62px"
@@ -1505,6 +1504,17 @@
                           </div>
                         </template>
                       </v-img>
+
+                      <!-- Badge Timer Recupero: Overlay Elegante in Basso alla GIF -->
+                      <div
+                        v-if="block.exercise.des_rec_report"
+                        class="position-absolute w-100 text-center font-weight-black text-amber-lighten-3 clickable-timer-chip"
+                        style="bottom: 0; left: 0; background: rgba(15, 23, 42, 0.85); font-size: 0.52rem; padding: 1.5px 0; z-index: 10; line-height: 1.1; backdrop-filter: blur(2px);"
+                        title="Tocca per avviare timer recupero"
+                        @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
+                      >
+                        ⏱️ {{ block.exercise.des_rec_report }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1530,7 +1540,7 @@
                     </div>
                   </div>
 
-                  <!-- Cronologia Carichi (W1-W6) & Timer Recupero nella Stessa Fila Flex Wrap -->
+                  <!-- Cronologia Carichi (W1-W6) -->
                   <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
@@ -1549,18 +1559,6 @@
                         {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
                       </span>
                     </div>
-
-                    <!-- Timer Recupero posizionato nella stessa fila flex wrap (in fondo alla seconda riga se va a capo) -->
-                    <v-chip
-                      v-if="block.exercise.des_rec_report"
-                      variant="flat"
-                      size="x-small"
-                      class="font-weight-black clickable-timer-chip ml-auto"
-                      style="font-size: 0.58rem !important; height: 18px; padding-left: 5px; padding-right: 5px;"
-                      @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
-                    >
-                      ⏱️ {{ block.exercise.des_rec_report }}
-                    </v-chip>
                   </div>
                 </div>
 

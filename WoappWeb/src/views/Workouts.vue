@@ -154,7 +154,9 @@
               </div>
               <span 
                 v-if="layoutEsercizi !== 'super_compatto' && settimanaDaChiuderePerGiorno(giorno)" 
-                class="tab-week-indicator font-weight-black mt-0.5" 
+                class="text-super-caption font-weight-black" 
+                :class="settimanaDaChiuderePerGiorno(giorno) === 'FINE' ? 'text-green-accent-4' : 'text-orange-lighten-2'"
+                style="font-size: 0.58rem; margin-top: 1.5px; line-height: 1; opacity: 0.9;"
               >
                 {{ settimanaDaChiuderePerGiorno(giorno) }}
               </span>
@@ -5820,9 +5822,14 @@ const recuperiRaggruppati = computed(() => {
   border-bottom-right-radius: 0px !important;
 }
 
+.day-tabs-header-bar .v-tab:first-child {
+  margin-left: 0 !important;
+}
+
 .day-tabs-header-bar .v-tab:first-child.v-tab--selected {
   border-top-left-radius: 16px !important;
   border-bottom-left-radius: 0px !important;
+  margin-left: 0 !important;
 }
 
 .day-tabs-header-bar .v-tab:last-child.v-tab--selected {
@@ -5833,22 +5840,6 @@ const recuperiRaggruppati = computed(() => {
 .day-tabs-header-bar .v-tab--selected span,
 .day-tabs-header-bar .v-tab--selected .v-icon {
   color: #ffffff !important;
-}
-
-.tab-week-indicator {
-  font-size: 0.62rem;
-  line-height: 1;
-  padding-bottom: 2px;
-}
-
-.day-tabs-header-bar .v-tab--selected .tab-week-indicator {
-  color: #ffffff !important;
-  border-bottom: 2px solid #ffffff !important;
-}
-
-.day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-week-indicator {
-  color: #4ade80 !important;
-  border-bottom: 2px solid #22c55e !important;
 }
 
 .day-header-section {

@@ -608,9 +608,8 @@
                 <div class="text-left">
                   <div class="d-flex align-center flex-wrap gap-2">
                     <h3 
-                      class="font-weight-black header-title-text mb-0 text-white"
+                      class="font-weight-black header-title-text mb-0"
                       :class="layoutEsercizi === 'super_compatto' ? 'text-caption' : (layoutEsercizi === 'compatto' ? 'text-body-2' : 'text-subtitle-2')"
-                      style="color: #ffffff !important;"
                     >
                       Workout Giorno {{ giornoSelezionato }}
                     </h3>
@@ -657,8 +656,8 @@
                   <!-- Tempo e Calorie in formato testo semplice per Super Compatto -->
                   <div 
                     v-if="layoutEsercizi === 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-1 text-white"
-                    style="font-size: 0.65rem; color: #ffffff !important;"
+                    class="text-caption font-weight-bold d-flex align-center mt-1 header-info-text"
+                    style="font-size: 0.65rem;"
                   >
                     <span>⏱️ Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
                     <span class="mx-1" style="opacity: 0.5;">•</span>
@@ -666,16 +665,16 @@
                   </div>
                   <div 
                     v-if="layoutEsercizi !== 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-1 text-white" 
-                    style="font-size: 0.72rem; color: #ffffff !important;"
+                    class="text-caption font-weight-bold d-flex align-center mt-1 header-info-text" 
+                    style="font-size: 0.72rem;"
                   >
                     <span class="mr-1">🔥</span>
                     <span>Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate</span>
                   </div>
                   <div
                     v-if="layoutEsercizi !== 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-0.5 flex-wrap text-white"
-                    style="font-size: 0.72rem; color: #ffffff !important;"
+                    class="text-caption font-weight-bold d-flex align-center mt-0.5 flex-wrap header-info-text"
+                    style="font-size: 0.72rem;"
                   >
                     <span class="mr-1">⏱️</span>
                     <span>Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
@@ -955,26 +954,23 @@
 
           <!-- Progress Bar Session Energy (unificata visivamente) -->
           <div 
-            class="border-top-soft text-left" 
+            class="border-top-soft text-left header-progress-section" 
             :class="layoutEsercizi === 'super_compatto' ? 'mt-1.5 pt-1.5' : (layoutEsercizi === 'compatto' ? 'mt-2 pt-2' : 'mt-3 pt-2.5')"
-            style="border-top: 1px solid rgba(255, 255, 255, 0.2) !important;"
           >
             <div 
               v-if="layoutEsercizi !== 'super_compatto'"
-              class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-white mb-1.5" 
-              style="font-size: 0.68rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ffffff !important;"
+              class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase header-progress-text mb-1.5" 
+              style="font-size: 0.68rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
             >
-              <span class="text-white" style="color: #ffffff !important;"><span class="mr-1">🧃</span> Avanzamento</span>
-              <span class="text-white font-weight-bold" style="color: #ffffff !important;">{{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%</span>
+              <span><span class="mr-1">🧃</span> Avanzamento</span>
+              <span class="font-weight-bold">{{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%</span>
             </div>
-            <div class="session-progress-bar-container rounded-full overflow-hidden" :style="{ height: layoutEsercizi === 'super_compatto' ? '4px' : '6px', background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(255, 255, 255, 0.15)' }">
+            <div class="session-progress-bar-container rounded-full overflow-hidden" :style="{ height: layoutEsercizi === 'super_compatto' ? '4px' : '6px' }">
               <div
                 class="session-progress-bar-fill rounded-full"
                 :style="{
                   width: progressoSessione.percentuale + '%',
                   height: '100%',
-                  background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
-                  boxShadow: '0 0 10px rgba(251, 191, 36, 0.7)',
                   transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
                 }"
               ></div>
@@ -6081,9 +6077,22 @@ const recuperiRaggruppati = computed(() => {
   border-color: #a7f3d0 !important;
 }
 
-[data-theme="light"] .day-header-section .header-title-text {
+[data-theme="light"] .day-header-section .header-title-text,
+[data-theme="light"] .day-header-section h3.header-title-text {
   color: #7c2d12 !important;
   font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-header-section .header-info-text,
+[data-theme="light"] .day-header-section .header-info-text span {
+  color: #7c2d12 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .day-header-section .header-progress-text,
+[data-theme="light"] .day-header-section .header-progress-text span {
+  color: #7c2d12 !important;
+  font-weight: 800 !important;
 }
 
 [data-theme="light"] .day-header-section .giorno-big-letter {
@@ -6093,20 +6102,50 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25) !important;
 }
 
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed {
+  background: #ea580c !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 1px solid #f97316 !important;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.2) !important;
+}
+
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .capsule-num,
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .v-icon {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-active {
+  background: #c2410c !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border: 1.5px solid #7c2d12 !important;
+  box-shadow: 0 2px 8px rgba(124, 45, 18, 0.3) !important;
+}
+
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-active .capsule-num {
+  color: #ffffff !important;
+}
+
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending {
   background: #ffffff !important;
   color: #7c2d12 !important;
   border: 1px solid #fed7aa !important;
+  font-weight: 700 !important;
 }
 
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed {
-  background: #7c2d12 !important;
-  color: #ffffff !important;
-}
-
-[data-theme="light"] .day-header-section .text-caption,
-[data-theme="light"] .day-header-section span {
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending .capsule-num {
   color: #7c2d12 !important;
+}
+
+[data-theme="light"] .day-header-section .session-progress-bar-container {
+  background: #fed7aa !important;
+  border: 1px solid #fdba74 !important;
+}
+
+[data-theme="light"] .day-header-section .session-progress-bar-fill {
+  background: linear-gradient(90deg, #ea580c, #c2410c) !important;
+  box-shadow: 0 0 8px rgba(234, 88, 12, 0.4) !important;
 }
 
 [data-theme="light"] .workout-session-container {

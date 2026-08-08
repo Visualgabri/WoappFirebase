@@ -5381,22 +5381,22 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.12);
 }
 
-.capsule-active {
-  background: linear-gradient(135deg, #ea580c, #f97316) !important;
+:root:not([data-theme="light"]) .capsule-active {
+  background: var(--theme-btn-gradient) !important;
   color: white !important;
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+  box-shadow: 0 0 12px var(--theme-primary-glow) !important;
   transform: scale(1.15);
   margin: 0 2px;
   z-index: 1;
-  animation: pulse-orange-glow 2s infinite alternate;
+  animation: pulse-theme-glow 2s infinite alternate;
 }
 
-@keyframes pulse-orange-glow {
+@keyframes pulse-theme-glow {
   0% {
-    box-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+    box-shadow: 0 0 8px var(--theme-primary-glow);
   }
   100% {
-    box-shadow: 0 0 16px rgba(249, 115, 22, 0.8);
+    box-shadow: 0 0 16px var(--theme-primary-glow);
   }
 }
 
@@ -5413,8 +5413,8 @@ const recuperiRaggruppati = computed(() => {
   letter-spacing: -0.02em;
 }
 
-.capsule-active .capsule-num {
-  color: #fde047 !important; /* Giallo brillante su sfondo arancione */
+:root:not([data-theme="light"]) .capsule-active .capsule-num {
+  color: #ffffff !important;
   font-size: 0.56rem !important;
 }
 
@@ -5459,13 +5459,13 @@ const recuperiRaggruppati = computed(() => {
   left: 0;
   bottom: 0;
   width: 6px;
-  background: linear-gradient(to bottom, #ea580c 0%, #d946ef 50%, #7c3aed 100%) !important;
+  background: linear-gradient(to bottom, var(--theme-primary) 0%, #d946ef 50%, #7c3aed 100%) !important;
   z-index: 1;
 }
 
 /* Stili compatti per Superserie Unificata con banda a sinistra (Dimensioni 100% identiche alle card singole) */
 .compatto-superset-card {
-  border-left: 3px solid #f97316 !important; /* Banda arancione solida e fina */
+  border-left: 3px solid var(--theme-primary) !important; /* Banda tema solida e fina */
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -5481,9 +5481,9 @@ const recuperiRaggruppati = computed(() => {
   display: none !important;
 }
 
-/* Applica la banda arancione solida anche alle card arrotondate super_compatto */
+/* Applica la banda tema solida anche alle card arrotondate super_compatto */
 .superset-group-card.rounded-md {
-  border-left: 3px solid #f97316 !important;
+  border-left: 3px solid var(--theme-primary) !important;
 }
 
 /* Allineamento interno 100% omogeneo e identico alle card singole */
@@ -5531,8 +5531,8 @@ const recuperiRaggruppati = computed(() => {
   top: 40px;
   bottom: -40px;
   width: 2px;
-  border-left: 2px dashed #f97316;
-  filter: drop-shadow(0 0 3px #f97316);
+  border-left: 2px dashed var(--theme-primary);
+  filter: drop-shadow(0 0 3px var(--theme-primary));
   pointer-events: none;
   z-index: 1 !important;
   opacity: 0.85;
@@ -5660,33 +5660,33 @@ const recuperiRaggruppati = computed(() => {
 @keyframes pulse-glow-pseudo {
   0% {
     opacity: 0;
-    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
-    border-color: rgba(249, 115, 22, 0);
-    background-color: rgba(249, 115, 22, 0);
+    box-shadow: 0 0 0 transparent;
+    border-color: transparent;
+    background-color: transparent;
   }
   15% {
     opacity: 1;
-    box-shadow: 0 0 25px rgba(249, 115, 22, 0.7);
-    border-color: rgba(249, 115, 22, 0.9);
-    background-color: rgba(249, 115, 22, 0.15);
+    box-shadow: 0 0 25px var(--theme-primary-glow);
+    border-color: var(--theme-primary);
+    background-color: var(--theme-primary-bg-soft);
   }
   45% {
     opacity: 0.6;
-    box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
-    border-color: rgba(249, 115, 22, 0.6);
-    background-color: rgba(249, 115, 22, 0.08);
+    box-shadow: 0 0 15px var(--theme-primary-glow);
+    border-color: var(--theme-primary-border);
+    background-color: var(--theme-primary-bg-soft);
   }
   75% {
     opacity: 1;
-    box-shadow: 0 0 25px rgba(249, 115, 22, 0.7);
-    border-color: rgba(249, 115, 22, 0.9);
-    background-color: rgba(249, 115, 22, 0.15);
+    box-shadow: 0 0 25px var(--theme-primary-glow);
+    border-color: var(--theme-primary);
+    background-color: var(--theme-primary-bg-soft);
   }
   100% {
     opacity: 0;
-    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
-    border-color: rgba(249, 115, 22, 0);
-    background-color: rgba(249, 115, 22, 0);
+    box-shadow: 0 0 0 transparent;
+    border-color: transparent;
+    background-color: transparent;
   }
 }
 

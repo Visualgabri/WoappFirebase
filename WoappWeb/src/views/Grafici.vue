@@ -43,7 +43,13 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <v-tabs v-model="activeTab" color="orange-darken-3" class="mb-4" align-tabs="start" grow>
+      <v-tabs 
+        v-model="activeTab" 
+        density="compact" 
+        class="grafici-custom-tabs mb-4" 
+        align-tabs="center"
+        hide-slider
+      >
         <v-tab value="volume" class="font-weight-black text-none">Volume Mesocicli</v-tab>
         <v-tab value="esercizio" class="font-weight-black text-none">Storico Esercizio</v-tab>
         <v-tab value="scheda" class="font-weight-black text-none">Analisi Scheda</v-tab>
@@ -64,10 +70,10 @@
         <!-- TAB 1: VOLUME MESOCICLI (Grafici storici aggregati) -->
         <div v-if="activeTab === 'volume'" class="charts-stacked-layout">
           <v-card 
-            class="premium-chart-card rounded-2xl elevation-2 pa-4 mb-6" 
+            class="premium-chart-card rounded-xl elevation-2 pa-3.5 mb-4" 
             border="top"
           >
-            <div class="d-flex justify-space-between align-center mb-4">
+            <div class="d-flex justify-space-between align-center mb-3">
               <h3 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center">
                 <v-icon color="orange-darken-3" class="mr-2">mdi-hand-back-right-outline</v-icon>
                 Grafico mesocicli upper
@@ -75,7 +81,7 @@
               <span class="text-caption text-muted">Unità: kg volume index</span>
             </div>
 
-            <div class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
+            <div class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
               <Bar
                 v-if="chartDataReady"
                 :data="upperChartData"
@@ -85,10 +91,10 @@
           </v-card>
 
           <v-card 
-            class="premium-chart-card rounded-2xl elevation-2 pa-4 mb-6" 
+            class="premium-chart-card rounded-xl elevation-2 pa-3.5 mb-4" 
             border="top"
           >
-            <div class="d-flex justify-space-between align-center mb-4">
+            <div class="d-flex justify-space-between align-center mb-3">
               <h3 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center">
                 <v-icon color="orange-darken-3" class="mr-2">mdi-run</v-icon>
                 Grafico mesocicli lower
@@ -96,7 +102,7 @@
               <span class="text-caption text-muted">Unità: kg volume index</span>
             </div>
 
-            <div class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
+            <div class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
               <Bar
                 v-if="chartDataReady"
                 :data="lowerChartData"
@@ -109,7 +115,7 @@
         <!-- TAB 2: STORICO ESERCIZIO (Grafico a linee per singolo esercizio con filtri) -->
         <div v-if="activeTab === 'esercizio'">
           <!-- Pannello di controllo -->
-          <v-card class="premium-chart-card rounded-2xl elevation-2 pa-4 mb-6">
+          <v-card class="premium-chart-card rounded-xl elevation-2 pa-3.5 mb-4">
             <v-row dense>
               <v-col cols="12" md="6">
                 <span class="text-caption text-muted font-weight-bold d-block mb-1">Esercizio</span>
@@ -155,8 +161,8 @@
           </v-card>
 
           <!-- Grafico Linee Esercizio -->
-          <v-card class="premium-chart-card rounded-2xl elevation-2 pa-4 mb-6">
-            <div class="d-flex justify-space-between align-center mb-4">
+          <v-card class="premium-chart-card rounded-xl elevation-2 pa-3.5 mb-4">
+            <div class="d-flex justify-space-between align-center mb-3">
               <h3 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center">
                 <v-icon color="orange-darken-3" class="mr-2">mdi-chart-line</v-icon>
                 Progressione: {{ esercizioSelezionato }}
@@ -164,14 +170,14 @@
               <span class="text-caption text-muted">Unità: kg</span>
             </div>
 
-            <div v-if="esercizioChartReady && esercizioChartData.labels.length > 0" class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
+            <div v-if="esercizioChartReady && esercizioChartData.labels.length > 0" class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
               <Line
                 :data="esercizioChartData"
                 :options="esercizioChartOptions"
               />
             </div>
-            <div v-else class="text-center py-12 text-muted">
-              <v-icon size="40" color="grey-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <div v-else class="text-center py-8 text-muted">
+              <v-icon size="36" color="grey-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
               <p class="text-body-2">Nessun dato registrato per questo esercizio con la configurazione selezionata.</p>
             </div>
           </v-card>
@@ -180,7 +186,7 @@
         <!-- TAB 3: ANALISI SCHEDA (Bilanciamento e progressive overload del mesociclo) -->
         <div v-if="activeTab === 'scheda'">
           <!-- Pannello di controllo -->
-          <v-card class="premium-chart-card rounded-2xl elevation-2 pa-4 mb-6">
+          <v-card class="premium-chart-card rounded-xl elevation-2 pa-3.5 mb-4">
             <v-row dense>
               <v-col cols="12">
                 <span class="text-caption text-muted font-weight-bold d-block mb-1">Mesociclo da analizzare</span>
@@ -201,8 +207,8 @@
           </v-card>
 
           <!-- Grafico Distribuzione Volume (Doughnut) -->
-          <v-card class="premium-chart-card rounded-2xl elevation-2 pa-4 mb-6">
-            <div class="d-flex justify-space-between align-center mb-4">
+          <v-card class="premium-chart-card rounded-xl elevation-2 pa-3.5 mb-4">
+            <div class="d-flex justify-space-between align-center mb-3">
               <h3 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center">
                 <v-icon color="orange-darken-3" class="mr-2">mdi-chart-donut</v-icon>
                 Bilanciamento volume muscolare
@@ -210,21 +216,21 @@
               <span class="text-caption text-muted">In base a volume index W6</span>
             </div>
 
-            <div v-if="doughnutChartReady" class="chart-wrapper" style="position: relative; height: 300px; width: 100%;">
+            <div v-if="doughnutChartReady" class="chart-wrapper" style="position: relative; height: 230px; width: 100%;">
               <Doughnut
                 :data="doughnutChartData"
                 :options="doughnutChartOptions"
               />
             </div>
-            <div v-else class="text-center py-12 text-muted">
-              <v-icon size="40" color="grey-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <div v-else class="text-center py-8 text-muted">
+              <v-icon size="36" color="grey-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
               <p class="text-body-2">Nessun dato di volume rilevato in questo mesociclo.</p>
             </div>
           </v-card>
 
           <!-- Grafico Sovraccarico Progressivo Settimanale (Line) -->
-          <v-card class="premium-chart-card rounded-2xl elevation-2 pa-4 mb-6">
-            <div class="d-flex justify-space-between align-center mb-4">
+          <v-card class="premium-chart-card rounded-xl elevation-2 pa-3.5 mb-4">
+            <div class="d-flex justify-space-between align-center mb-3">
               <h3 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center">
                 <v-icon color="orange-darken-3" class="mr-2">mdi-trending-up</v-icon>
                 Andamento volume settimanale (Progressive Overload)
@@ -232,14 +238,14 @@
               <span class="text-caption text-muted">Unità: kg volume index cumulativo</span>
             </div>
 
-            <div v-if="progressioneSettimanaleChartReady" class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
+            <div v-if="progressioneSettimanaleChartReady" class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
               <Line
                 :data="progressioneSettimanaleChartData"
                 :options="progressioneSettimanaleChartOptions"
               />
             </div>
-            <div v-else class="text-center py-12 text-muted">
-              <v-icon size="40" color="grey-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <div v-else class="text-center py-8 text-muted">
+              <v-icon size="36" color="grey-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
               <p class="text-body-2">Nessun dato di progressione settimanale in questo mesociclo.</p>
             </div>
           </v-card>
@@ -1090,8 +1096,60 @@ const progressioneSettimanaleChartOptions = ref({
 }
 
 .appsheet-header {
-  border-bottom: 2px solid #f97316;
-  padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-border) !important;
+  padding-bottom: 8px !important;
+}
+
+/* Stili Custom Tab Grafici Compatti & Ad Alto Contrasto */
+.grafici-custom-tabs {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border-radius: 12px !important;
+  padding: 3px !important;
+  border: 1px solid var(--card-border) !important;
+  min-height: 36px !important;
+  height: 36px !important;
+}
+
+.grafici-custom-tabs :deep(.v-slide-group__content) {
+  justify-content: center !important;
+  display: flex !important;
+  gap: 4px !important;
+}
+
+.grafici-custom-tabs :deep(.v-tab) {
+  min-width: 0 !important;
+  padding: 0 10px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  border-radius: 8px !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.01em !important;
+  color: #94a3b8 !important;
+  text-transform: none !important;
+  transition: all 0.2s ease !important;
+  flex: 1 1 0 !important;
+}
+
+.grafici-custom-tabs :deep(.v-tab--selected) {
+  background: var(--theme-primary) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  box-shadow: 0 2px 8px var(--theme-primary-glow) !important;
+  opacity: 1 !important;
+}
+
+.grafici-custom-tabs :deep(.v-tab--selected .v-btn__content),
+.grafici-custom-tabs :deep(.v-tab--selected .v-tab__content),
+.grafici-custom-tabs :deep(.v-tab--selected span) {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 900 !important;
+}
+
+.grafici-custom-tabs :deep(.v-tab-slider),
+.grafici-custom-tabs :deep(.v-tabs-slider-wrapper),
+.grafici-custom-tabs :deep(.v-tab-slider-wrapper) {
+  display: none !important;
 }
 
 .text-slate-dark {

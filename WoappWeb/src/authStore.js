@@ -50,14 +50,17 @@ export const setTheme = (themeName, vuetifyInstance = null) => {
   }
 };
 
-// Inizializza data-theme e data-light-style al caricamento dello script
+// Inizializza data-theme, data-light-style e data-theme-color al caricamento dello script
 if (typeof document !== 'undefined') {
   const initTheme = localStorage.getItem('userTheme') || 'dark';
   const initStyle = localStorage.getItem('userLightStyle') || 'slate';
+  const initThemeColor = localStorage.getItem('woapp_tema_header_giorno') || 'arancio';
   document.documentElement.setAttribute('data-theme', initTheme);
   document.body.setAttribute('data-theme', initTheme);
   document.documentElement.setAttribute('data-light-style', initStyle);
   document.body.setAttribute('data-light-style', initStyle);
+  document.documentElement.setAttribute('data-theme-color', initThemeColor);
+  document.body.setAttribute('data-theme-color', initThemeColor);
 }
 
 // Stato di selezione globale Atleta e Scheda (in stile AppSheet)
@@ -1178,7 +1181,12 @@ watch(penalitaMaxStabiliPctGlobal, (newVal) => {
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {
-  localStorage.setItem('woapp_tema_header_giorno', newVal);
+  const targetColor = (newVal === 'blu' || newVal === 'verde') ? newVal : 'arancio';
+  localStorage.setItem('woapp_tema_header_giorno', targetColor);
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme-color', targetColor);
+    document.body.setAttribute('data-theme-color', targetColor);
+  }
 });
 
 // Caching globale per il backup dello storyboard da 22MB per evitare freeze e download duplicati

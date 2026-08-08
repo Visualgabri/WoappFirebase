@@ -1429,7 +1429,8 @@ import {
   getStoryboardBackup,
   MAPPA_CLIENTI_DINAMICI,
   impostaNomeAtletaDinamico,
-  caricaNomiAtletiDinamici
+  caricaNomiAtletiDinamici,
+  temaHeaderGiornoGlobal
 } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
@@ -2052,16 +2053,21 @@ const volumeMuscolare = computed(() => {
 const getMuscleColor = (sector) => {
   const v = volumeMuscolare.value[sector] || 0;
   if (v === 0) return 'rgba(255, 255, 255, 0.05)';
-  if (v <= 4) return 'rgba(249, 115, 22, 0.35)';
-  if (v <= 8) return 'rgba(249, 115, 22, 0.65)';
-  if (v <= 12) return 'rgba(249, 115, 22, 0.85)';
-  return '#f97316';
+  const themeColor = temaHeaderGiornoGlobal ? temaHeaderGiornoGlobal.value : 'arancio';
+  const rgb = themeColor === 'blu' ? '59, 130, 246' : (themeColor === 'verde' ? '16, 185, 129' : '249, 115, 22');
+  const hex = themeColor === 'blu' ? '#3b82f6' : (themeColor === 'verde' ? '#10b981' : '#f97316');
+  if (v <= 4) return `rgba(${rgb}, 0.35)`;
+  if (v <= 8) return `rgba(${rgb}, 0.65)`;
+  if (v <= 12) return `rgba(${rgb}, 0.85)`;
+  return hex;
 };
 
 const getMuscleStroke = (sector) => {
   const v = volumeMuscolare.value[sector] || 0;
   if (v === 0) return 'rgba(255, 255, 255, 0.12)';
-  return 'rgba(249, 115, 22, 0.9)';
+  const themeColor = temaHeaderGiornoGlobal ? temaHeaderGiornoGlobal.value : 'arancio';
+  const rgb = themeColor === 'blu' ? '59, 130, 246' : (themeColor === 'verde' ? '16, 185, 129' : '249, 115, 22');
+  return `rgba(${rgb}, 0.9)`;
 };
 
 
@@ -3737,7 +3743,7 @@ const apriTest = () => {
   top: calc(50% - 10px);
   left: 12px;
   height: 4px;
-  background: linear-gradient(90deg, #10b981 0%, #f97316 100%);
+  background: linear-gradient(90deg, #10b981 0%, var(--theme-primary) 100%) !important;
   border-radius: 2px;
   z-index: 1;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -3785,9 +3791,9 @@ const apriTest = () => {
 }
 
 .step-active .step-ring {
-  background: #ea580c;
-  border-color: #f97316;
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
+  background: var(--theme-primary-dark) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 15px var(--theme-primary-glow) !important;
   transform: scale(1.15);
 }
 
@@ -3797,7 +3803,7 @@ const apriTest = () => {
 }
 
 .step-active .step-label {
-  color: #f97316;
+  color: var(--theme-primary) !important;
   font-weight: 900;
 }
 
@@ -4165,8 +4171,9 @@ const apriTest = () => {
   background: var(--card-bg-glass) !important;
 }
 .active-workout-border {
-  border: 1.5px solid #f97316 !important;
-  background: rgba(249, 115, 22, 0.12) !important;
+  border: 1.5px solid var(--theme-primary) !important;
+  background: var(--theme-primary-bg-soft) !important;
+  box-shadow: 0 4px 14px var(--theme-primary-glow) !important;
 }
 :deep([data-theme="light"]) .active-workout-border,
 [data-theme="light"] .active-workout-border {

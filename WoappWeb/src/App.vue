@@ -897,7 +897,8 @@
     </v-overlay>
 
     <!-- HERO SHEET / BANNER DEPLOY & MESSAGGI REAL-TIME (Glassmorphism Premium UX) -->
-    <v-dialog v-model="showDeployBanner" max-width="520" rounded="2xl" persistent>
+    <!-- BANNER / DIALOG NOTIFICA NUOVO DEPLOY -->
+    <v-dialog v-model="showDeployBanner" max-width="480" rounded="2xl" persistent>
       <v-card
         class="pa-5 rounded-2xl border text-left overflow-hidden position-relative animate-fade-in update-modal-card"
         :style="{
@@ -906,29 +907,27 @@
             : 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%) !important',
           border: deployVersionInfo?.tipo === 'messaggio'
             ? '2px solid rgba(168, 85, 247, 0.5) !important'
-            : '2px solid rgba(249, 115, 22, 0.5) !important',
+            : '2px solid var(--theme-primary) !important',
           backdropFilter: 'blur(30px) !important',
           boxShadow: deployVersionInfo?.tipo === 'messaggio'
             ? '0 20px 50px rgba(168, 85, 247, 0.25) !important'
-            : '0 20px 50px rgba(249, 115, 22, 0.25) !important'
+            : '0 20px 50px var(--theme-primary-glow) !important'
         }"
       >
-        <!-- Header con Icona -->
-        <div class="d-flex align-center gap-3 mb-3 pb-2 border-bottom-soft">
-          <v-avatar size="36" :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-darken-3' : 'orange-darken-3'" class="elevation-4">
-            <v-icon color="white" size="20">
-              {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch' }}
-            </v-icon>
-          </v-avatar>
-          <h2 class="text-subtitle-2 font-weight-bold text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; opacity: 0.9; color: #ffffff !important;">
-            {{ deployVersionInfo?.titolo || (deployVersionInfo?.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento Disponibile!') }}
+        <!-- Header Pulito ed Elegante Senza Icona Colorata Circolare -->
+        <div class="d-flex align-center gap-2 mb-3 pb-2.5 border-bottom-soft">
+          <v-icon :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-lighten-2' : 'orange-lighten-2'" size="22" class="flex-shrink-0">
+            {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch-outline' }}
+          </v-icon>
+          <h2 class="text-subtitle-1 font-weight-black text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; color: #ffffff !important;">
+            {{ deployVersionInfo?.titolo ? deployVersionInfo.titolo.replace(/^🚀\s*/, '') : (deployVersionInfo?.tipo === 'messaggio' ? 'Messaggio dal Coach' : 'Nuovo Aggiornamento') }}
           </h2>
         </div>
 
-        <!-- Contenuto del Messaggio (Ingrandito e Leggibile) -->
+        <!-- Contenuto del Messaggio (Pulito e Leggibile) -->
         <div class="pa-4 rounded-xl mb-4 text-left border" style="background: rgba(15, 23, 42, 0.6) !important; border-color: rgba(255, 255, 255, 0.1) !important;">
-          <p class="text-body-1 text-white mb-0" style="font-size: 1.15rem; font-weight: 600; line-height: 1.5; color: #ffffff !important;">
-            {{ deployCustomNoteForMe || deployVersionInfo?.message_general || (deployVersionInfo?.tipo === 'messaggio' ? 'Hai una nuova comunicazione dal tuo Coach.' : 'È stata pubblicata una nuova versione dell\'applicazione.') }}
+          <p class="text-body-1 text-white mb-0" style="font-size: 1.05rem; font-weight: 600; line-height: 1.5; color: #ffffff !important;">
+            {{ deployCustomNoteForMe || deployVersionInfo?.message_general || (deployVersionInfo?.tipo === 'messaggio' ? 'Hai una nuova comunicazione dal tuo Coach.' : 'Nuova versione disponibile con miglioramenti e novità.') }}
           </p>
         </div>
 
@@ -942,10 +941,10 @@
             variant="flat"
             rounded="xl"
             class="font-weight-black text-none text-white elevation-6"
-            style="height: 48px; font-size: 0.92rem;"
+            style="height: 46px; font-size: 0.90rem;"
             @click="accettaEAggiornaDeploy"
           >
-            🚀 RICARICA ED AGGIORNA ORA
+            RICARICA ED AGGIORNA ORA
           </v-btn>
 
           <v-btn
@@ -956,10 +955,10 @@
             variant="flat"
             rounded="xl"
             class="font-weight-black text-none text-white elevation-6"
-            style="height: 48px; font-size: 0.92rem;"
+            style="height: 46px; font-size: 0.90rem;"
             @click="chiudiBannerNotifica"
           >
-            HO CAPITO 👍
+            HO CAPITO / CHIUDI
           </v-btn>
         </div>
       </v-card>
@@ -1562,45 +1561,45 @@ const elencoDischiGrafica = computed(() => {
 }
 
 .timer-theme-accent-dark {
-  border: 2px solid rgba(249, 115, 22, 0.5) !important;
+  border: 2px solid var(--theme-primary-border) !important;
   background: rgba(10, 15, 30, 0.94) !important;
   backdrop-filter: blur(16px) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(249, 115, 22, 0.25) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--theme-primary-glow) !important;
   animation: pulse-border-accent 2s infinite alternate;
 }
 
 @keyframes pulse-border-accent {
   0% {
-    border-color: rgba(249, 115, 22, 0.35) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 10px rgba(249, 115, 22, 0.15) !important;
+    border-color: var(--theme-primary-border) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 10px var(--theme-primary-glow) !important;
   }
   100% {
-    border-color: rgba(249, 115, 22, 0.7) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(249, 115, 22, 0.35) !important;
+    border-color: var(--theme-primary) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 22px var(--theme-primary-glow) !important;
   }
 }
 
 .timer-theme-orange-glow {
   border: 1px solid var(--card-border) !important;
-  background: linear-gradient(135deg, var(--card-bg-dark) 65%, rgba(249, 115, 22, 0.22) 100%) !important;
+  background: linear-gradient(135deg, var(--card-bg-dark) 65%, var(--theme-primary-bg-soft) 100%) !important;
   backdrop-filter: blur(16px) !important;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 30px rgba(249, 115, 22, 0.3) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 30px var(--theme-primary-glow) !important;
   animation: pulse-glow-orange 2.5s infinite alternate;
 }
 
 @keyframes pulse-glow-orange {
   0% {
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 15px rgba(249, 115, 22, 0.15) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 15px var(--theme-primary-glow) !important;
   }
   100% {
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 35px rgba(249, 115, 22, 0.4) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 35px var(--theme-primary-glow) !important;
   }
 }
 
 .timer-theme-solid-contrast {
   border: 2px solid rgba(255, 255, 255, 0.2) !important;
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-  box-shadow: 0 10px 25px rgba(234, 88, 12, 0.45) !important;
+  background: var(--theme-btn-gradient) !important;
+  box-shadow: 0 10px 25px var(--theme-primary-glow) !important;
 }
 
 .timer-theme-solid-contrast-success {

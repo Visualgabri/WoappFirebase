@@ -1,4 +1,4 @@
-:root, [data-theme="dark"] {
+:root, [data-theme="dark"], [data-theme-color="arancio"] {
   color-scheme: dark;
   --card-bg-glass: rgba(30, 41, 59, 0.65);  /* Slate 800 per card glass */
   --card-bg-dark: rgba(15, 23, 42, 0.88);   /* Slate 900 per dialogs/modals */
@@ -19,6 +19,56 @@
   --scheda-btn-border: rgba(255, 255, 255, 0.08);
   --scheda-btn-color: #cbd5e1;
   --glow-opacity: 0.18;
+
+  /* Theme Color Variables - Default Arancio */
+  --theme-primary: #f97316;
+  --theme-primary-dark: #ea580c;
+  --theme-primary-darker: #c2410c;
+  --theme-primary-light: #fb923c;
+  --theme-primary-lighter: #fdba74;
+  --theme-primary-glow: rgba(249, 115, 22, 0.25);
+  --theme-primary-bg-soft: rgba(249, 115, 22, 0.12);
+  --theme-primary-border: rgba(249, 115, 22, 0.35);
+  --theme-text-gradient: linear-gradient(90deg, #f97316, #fb923c);
+  --theme-btn-gradient: linear-gradient(135deg, #ea580c, #f97316);
+
+  --brand-accent: #ea580c;
+  --brand-accent-glow: rgba(249, 115, 22, 0.25);
+  --v-theme-primary: 249, 115, 22;
+}
+
+[data-theme-color="blu"] {
+  --theme-primary: #3b82f6;
+  --theme-primary-dark: #2563eb;
+  --theme-primary-darker: #1d4ed8;
+  --theme-primary-light: #60a5fa;
+  --theme-primary-lighter: #93c5fd;
+  --theme-primary-glow: rgba(59, 130, 246, 0.25);
+  --theme-primary-bg-soft: rgba(59, 130, 246, 0.12);
+  --theme-primary-border: rgba(59, 130, 246, 0.35);
+  --theme-text-gradient: linear-gradient(90deg, #3b82f6, #60a5fa);
+  --theme-btn-gradient: linear-gradient(135deg, #2563eb, #3b82f6);
+
+  --brand-accent: #2563eb;
+  --brand-accent-glow: rgba(59, 130, 246, 0.25);
+  --v-theme-primary: 59, 130, 246;
+}
+
+[data-theme-color="verde"] {
+  --theme-primary: #10b981;
+  --theme-primary-dark: #059669;
+  --theme-primary-darker: #047857;
+  --theme-primary-light: #34d399;
+  --theme-primary-lighter: #6ee7b7;
+  --theme-primary-glow: rgba(16, 185, 129, 0.25);
+  --theme-primary-bg-soft: rgba(16, 185, 129, 0.12);
+  --theme-primary-border: rgba(16, 185, 129, 0.35);
+  --theme-text-gradient: linear-gradient(90deg, #10b981, #34d399);
+  --theme-btn-gradient: linear-gradient(135deg, #059669, #10b981);
+
+  --brand-accent: #059669;
+  --brand-accent-glow: rgba(16, 185, 129, 0.25);
+  --v-theme-primary: 16, 185, 129;
 }
 
 [data-theme="light"],
@@ -801,13 +851,56 @@ body::after {
               box-shadow 0.25s ease !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   DYNAMIC DARK THEME UTILITY OVERRIDES (Arancio, Blu, Verde)
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root:not([data-theme="light"]) .text-orange-lighten-1,
+:root:not([data-theme="light"]) .text-orange-lighten-2,
+:root:not([data-theme="light"]) .text-orange-lighten-3,
+:root:not([data-theme="light"]) .text-orange-lighten-4,
+:root:not([data-theme="light"]) .text-orange-darken-1,
+:root:not([data-theme="light"]) .text-orange-darken-2,
+:root:not([data-theme="light"]) .text-orange-darken-3,
+:root:not([data-theme="light"]) .text-orange-darken-4,
+:root:not([data-theme="light"]) .text-orange {
+  color: var(--theme-primary-light) !important;
+}
+
+:root:not([data-theme="light"]) .bg-orange-darken-1,
+:root:not([data-theme="light"]) .bg-orange-darken-2,
+:root:not([data-theme="light"]) .bg-orange-darken-3,
+:root:not([data-theme="light"]) .bg-orange-darken-4,
+:root:not([data-theme="light"]) .bg-orange,
+:root:not([data-theme="light"]) .v-btn.bg-orange-darken-3,
+:root:not([data-theme="light"]) .v-chip.bg-orange-darken-3,
+:root:not([data-theme="light"]) .v-chip--selected.bg-orange-darken-3 {
+  background-color: var(--theme-primary-dark) !important;
+  color: #ffffff !important;
+}
+
+:root:not([data-theme="light"]) .bg-orange-darken-3-op {
+  background-color: var(--theme-primary-bg-soft) !important;
+}
+
+:root:not([data-theme="light"]) .border-orange,
+:root:not([data-theme="light"]) .border-orange-darken-3-op {
+  border-color: var(--theme-primary-border) !important;
+}
+
+:root:not([data-theme="light"]) .text-gradient {
+  background: var(--theme-text-gradient) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
 /* Hover elastici e bagliori colorati */
-.premium-card:hover,
-.week-premium-card:hover,
-.exercise-item-card:hover {
+:root:not([data-theme="light"]) .premium-card:hover,
+:root:not([data-theme="light"]) .week-premium-card:hover,
+:root:not([data-theme="light"]) .exercise-item-card:hover {
   transform: translateY(-4px) scale(1.01);
-  border-color: rgba(249, 115, 22, 0.3) !important; /* Orange glow border */
-  box-shadow: 0 12px 30px -10px rgba(249, 115, 22, 0.15) !important;
+  border-color: var(--theme-primary-border) !important;
+  box-shadow: 0 12px 30px -10px var(--theme-primary-glow) !important;
 }
 
 /* Effetto molla al tocco (Spring click micro-interaction) */
@@ -840,12 +933,6 @@ body::after {
   color: var(--text-muted) !important;
 }
 
-.text-gradient {
-  background: linear-gradient(90deg, #f97316, #fb923c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 /* Bottoni griglia numeri scheda AppSheet 2026 */
 .scheda-grid-btn {
   background: var(--scheda-btn-bg) !important;
@@ -855,26 +942,40 @@ body::after {
 }
 
 .scheda-grid-btn:hover {
-  border-color: rgba(249, 115, 22, 0.4) !important;
+  border-color: var(--theme-primary-border) !important;
   color: var(--text-dark) !important;
 }
 
 .scheda-grid-btn-active {
-  background: linear-gradient(135deg, #ea580c, #f97316) !important;
-  border-color: #f97316 !important;
+  background: var(--theme-btn-gradient) !important;
+  border-color: var(--theme-primary) !important;
   color: white !important;
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.4) !important;
+  box-shadow: 0 0 15px var(--theme-primary-glow) !important;
 }
 
 /* Day Header Card */
 .day-header-card {
-  border-left: 5px solid #f97316 !important;
+  border-left: 5px solid var(--theme-primary) !important;
 }
 
 /* Week Active Card */
 .week-active-border {
-  border: 2px solid #f97316 !important;
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.12) !important;
+  border: 2px solid var(--theme-primary) !important;
+  box-shadow: 0 0 15px var(--theme-primary-glow) !important;
+}
+
+/* Floating Play FAB e Bottom Nav attiva */
+:root:not([data-theme="light"]) #fab-play-da-fare,
+:root:not([data-theme="light"]) .fixed-play-fab,
+:root:not([data-theme="light"]) .fab-play-btn {
+  background-color: var(--theme-primary-dark) !important;
+  box-shadow: 0 0 20px var(--theme-primary-glow) !important;
+}
+
+:root:not([data-theme="light"]) .v-bottom-navigation .v-btn--active,
+:root:not([data-theme="light"]) .v-bottom-navigation .v-btn--active .v-icon,
+:root:not([data-theme="light"]) .v-bottom-navigation .v-btn--active span {
+  color: var(--theme-primary-light) !important;
 }
 
 /* Cartellino Note Coach Giallo Neon */
@@ -1119,10 +1220,10 @@ body::after {
 :root:not([data-theme="light"]) .sticky-tabs-container .v-tab--selected,
 [data-theme="dark"] .sticky-tabs-container .v-tab--selected,
 [data-theme="dark"] .v-tab--selected {
-  background: linear-gradient(135deg, #e65100, #ff8f00) !important;
+  background: var(--theme-btn-gradient) !important;
   border: none !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(230, 81, 0, 0.4) !important;
+  box-shadow: 0 4px 12px var(--theme-primary-glow) !important;
   border-radius: 12px !important;
 }
 

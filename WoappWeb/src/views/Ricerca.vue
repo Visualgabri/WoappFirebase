@@ -882,10 +882,10 @@ const parseVolumes = (str) => {
   transform: scale(0.95);
 }
 .scheda-scroll-btn-active {
-  background: linear-gradient(135deg, #ea580c, #f97316) !important;
-  border-color: #f97316 !important;
+  background: var(--theme-btn-gradient) !important;
+  border-color: var(--theme-primary) !important;
   color: white !important;
-  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35) !important;
+  box-shadow: 0 4px 10px var(--theme-primary-glow) !important;
 }
 .scheda-num {
   font-size: 1.15rem;

@@ -62,7 +62,7 @@
             <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto" style="vertical-align: middle;">mdi-video</v-icon>
             <v-chip
               v-if="workout?.des_rec_report"
-              color="amber-darken-3"
+              color="orange-darken-3"
               variant="flat"
               size="x-small"
               class="font-weight-black text-white ml-1.5 px-2 py-0.5"
@@ -437,13 +437,13 @@
           <div class="d-flex align-center justify-end mb-2">
             <v-chip
               size="x-small"
-              color="amber-darken-3"
+              color="orange-darken-3"
               variant="outlined"
-              class="font-weight-black cursor-pointer px-2 text-amber-lighten-2 flex-shrink-0"
-              style="font-size: 0.58rem; height: 20px; z-index: 2; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.4) !important;"
+              class="font-weight-black cursor-pointer px-2 text-orange-lighten-2 flex-shrink-0"
+              style="font-size: 0.58rem; height: 20px; z-index: 2; background: var(--theme-primary-bg-soft); border-color: var(--theme-primary-border) !important;"
               @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
             >
-              <v-icon icon="mdi-brain" size="12" class="mr-1" color="amber-lighten-2" />
+              <v-icon icon="mdi-brain" size="12" class="mr-1" color="orange-lighten-2" />
               Strategia
             </v-chip>
           </div>
@@ -12240,9 +12240,9 @@ const tornaIndietro = () => {
 }
 
 .week-active-border {
-  border: 2px solid #f97316 !important;
-  background-color: rgba(249, 115, 22, 0.03) !important;
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.15) !important;
+  border: 2px solid var(--theme-primary) !important;
+  background-color: var(--theme-primary-bg-soft) !important;
+  box-shadow: 0 0 15px var(--theme-primary-glow) !important;
 }
 
 .week-prescription-text {

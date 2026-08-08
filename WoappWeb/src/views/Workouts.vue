@@ -6030,20 +6030,75 @@ const recuperiRaggruppati = computed(() => {
   border-top: none !important;
 }
 
-[data-theme="light"] .tema-arancio .giorno-big-letter {
-  background: var(--brand-accent, #c85a17) !important;
+[data-theme="light"] .day-tabs-header-bar {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) {
+  color: #475569 !important;
+  opacity: 0.9 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-day-letter {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-lock-icon {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected,
+[data-theme="light"] .active-tab-theme-arancio .v-tab--selected {
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%) !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(200, 90, 23, 0.25) !important;
+}
+
+[data-theme="light"] .day-header-section.tema-arancio {
+  background: linear-gradient(180deg, #ea580c 0%, #9a3412 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu {
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .day-header-section.tema-verde {
+  background: linear-gradient(180deg, #047857 0%, #064e3b 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .day-header-section .header-title-text {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .day-header-section .giorno-big-letter {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending {
+  background: rgba(0, 0, 0, 0.25) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed {
+  background: rgba(15, 23, 42, 0.5) !important;
+  color: #ffffff !important;
 }
 
 [data-theme="light"] .workout-session-container {
   background: #ffffff !important;
-  border-color: #e6e4df !important;
-  box-shadow: 0 2px 12px rgba(30, 41, 59, 0.04) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(30, 41, 59, 0.06) !important;
 }
 
 [data-theme="light"] .day-exercises-section {
-  background: #f9f8f5 !important;
+  background: #f8fafc !important;
 }
 .tema-blu .giorno-big-letter {
   background: linear-gradient(135deg, #1e40af, #3b82f6) !important;

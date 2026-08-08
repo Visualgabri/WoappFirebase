@@ -1,26 +1,26 @@
 <template>
   <v-container 
     class="px-3 max-width-container min-height-screen"
-    :class="layoutEsercizi === 'super_compatto' ? 'pt-1.5 pb-4' : (layoutEsercizi === 'compatto' ? 'pt-3 pb-5' : 'pt-4 pb-6')"
+    :class="layoutEsercizi === 'super_compatto' ? 'pt-1 pb-3' : (layoutEsercizi === 'compatto' ? 'pt-1.5 pb-3.5' : 'pt-2 pb-4')"
   >
     <!-- Header Premium -->
     <div 
       class="appsheet-header d-flex align-center justify-space-between"
-      :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : (layoutEsercizi === 'compatto' ? 'mb-2.5' : 'mb-4')"
+      :class="layoutEsercizi === 'super_compatto' ? 'mb-1' : (layoutEsercizi === 'compatto' ? 'mb-1.5' : 'mb-2')"
     >
       <div class="d-flex align-center">
-        <v-avatar size="44" class="mr-3 bg-transparent border-orange elevation-1">
+        <v-avatar size="32" class="mr-2 bg-transparent border-orange elevation-1">
           <v-img src="/logo.png" alt="WoApp Logo"></v-img>
         </v-avatar>
-        <div class="text-left d-flex flex-column align-start" style="gap: 4px;">
-          <h1 class="text-h5 font-weight-black text-slate-dark tracking-tight mb-0" style="line-height: 1;">WORKOUTS</h1>
-          <div class="d-flex align-center flex-wrap gap-1.5 mt-0.5" v-if="atletaSelezionato && schedaSelezionata">
+        <div class="text-left d-flex flex-column align-start" style="gap: 2px;">
+          <h1 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight mb-0" style="line-height: 1; font-size: 1.12rem;">WORKOUTS</h1>
+          <div class="d-flex align-center flex-wrap gap-1 mt-0.5" v-if="atletaSelezionato && schedaSelezionata">
             <v-chip
               color="orange-darken-3"
               size="x-small"
-              class="font-weight-black uppercase px-2 py-0.5 text-white elevation-1"
+              class="font-weight-black uppercase px-1.5 py-0 text-white elevation-1"
               variant="flat"
-              style="font-size: 0.62rem; letter-spacing: 0.02em; height: 20px;"
+              style="font-size: 0.58rem; letter-spacing: 0.01em; height: 18px;"
             >
               👤 {{ getNomeAtleta(atletaSelezionato) }} • Scheda {{ schedaSelezionata }}
             </v-chip>
@@ -29,11 +29,11 @@
               v-if="allineamentoProgramma"
               :color="allineamentoProgramma.status === 'in-linea' ? 'green-darken-3' : (allineamentoProgramma.status === 'ritardo' ? 'red-darken-3' : 'blue-darken-3')"
               size="x-small"
-              class="font-weight-black px-2 py-0.5 text-white elevation-1"
+              class="font-weight-black px-1.5 py-0 text-white elevation-1"
               variant="flat"
-              style="font-size: 0.62rem; letter-spacing: 0.02em; height: 20px;"
+              style="font-size: 0.58rem; letter-spacing: 0.01em; height: 18px;"
             >
-              <v-icon size="11" class="mr-1">
+              <v-icon size="10" class="mr-1">
                 {{ allineamentoProgramma.status === 'in-linea' ? 'mdi-check-circle' : (allineamentoProgramma.status === 'ritardo' ? 'mdi-alert-circle' : 'mdi-trending-up') }}
               </v-icon>
               {{ allineamentoProgramma.status === 'in-linea' ? 'IN LINEA' : (allineamentoProgramma.status === 'ritardo' ? 'RITARDO W' + allineamentoProgramma.deltaAbs : 'ANTICIPO W' + allineamentoProgramma.deltaAbs) }}
@@ -42,10 +42,10 @@
         </div>
       </div>
       <div class="header-actions d-flex align-center gap-1">
-        <v-btn icon color="orange-darken-3" variant="tonal" size="small" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
-          <v-icon size="20">mdi-magnify</v-icon>
+        <v-btn icon color="orange-darken-3" variant="tonal" size="x-small" style="width: 28px; height: 28px;" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
+          <v-icon size="16">mdi-magnify</v-icon>
         </v-btn>
-        <v-btn icon color="slate-dark" variant="text" @click="caricaAllenamenti" title="Aggiorna"><v-icon>mdi-refresh</v-icon></v-btn>
+        <v-btn icon color="slate-dark" variant="text" size="x-small" style="width: 28px; height: 28px;" @click="caricaAllenamenti" title="Aggiorna"><v-icon size="18">mdi-refresh</v-icon></v-btn>
       </div>
     </div>
 
@@ -75,13 +75,13 @@
         <div 
           v-if="!caricamento && listaGiorniDisponibili.length > 0"
           class="card-glass rounded-xl text-center font-weight-black tracking-widest"
-          :class="layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-0.5' : 'mb-0.75')"
-          :style="settimanaAttiva === 6 ? 'font-size: 0.65rem; border: 1.5px solid var(--brand-accent); background: var(--brand-accent-bg) !important; padding: 6px 4px;' : 'font-size: 0.62rem; border: 1px solid var(--card-border); padding: 4px 4px;'"
+          :class="layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-0.5' : 'mb-1')"
+          :style="settimanaAttiva === 6 ? 'font-size: 0.60rem; border: 1.5px solid var(--brand-accent); background: var(--brand-accent-bg) !important; padding: 3px 4px;' : 'font-size: 0.58rem; border: 1px solid var(--card-border); padding: 2.5px 4px;'"
           style="color: var(--text-slate);"
         >
           <span class="text-orange-darken-3 font-weight-black">SETTIMANA CORRENTE:</span>
           <span class="text-slate-dark ml-1.5 font-weight-black">WEEK {{ settimanaAttiva }}</span>
-          <span v-if="settimanaAttiva === 6" class="ml-2 px-1.5 py-0.5 rounded bg-orange-darken-3 text-white font-weight-black animate-pulse" style="font-size: 0.58rem; letter-spacing: normal;">
+          <span v-if="settimanaAttiva === 6" class="ml-2 px-1.5 py-0.5 rounded bg-orange-darken-3 text-white font-weight-black animate-pulse" style="font-size: 0.55rem; letter-spacing: normal;">
             🔥 ULTIMA SETTIMANA!
           </span>
         </div>
@@ -91,7 +91,7 @@
           v-if="caricamento" 
           class="card-glass elevation-1 d-flex justify-space-around align-center" 
           :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
-          :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
+          :style="{ height: layoutEsercizi === 'super_compatto' ? '34px' : (layoutEsercizi === 'compatto' ? '38px' : '44px') }"
         >
           <div class="skeleton-tab-item"></div>
           <div class="skeleton-tab-item"></div>
@@ -111,28 +111,30 @@
             'active-tab-theme-' + temaHeaderGiorno
           ]"
           @update:model-value="salvaGiornoSelezionato"
-          :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px'), marginBottom: '0px' }"
+          :style="{ height: layoutEsercizi === 'super_compatto' ? '34px' : (layoutEsercizi === 'compatto' ? '38px' : '44px'), marginBottom: '0px' }"
         >
           <v-tab 
             v-for="giorno in listaGiorniDisponibili" 
             :key="giorno" 
             :value="giorno" 
             class="px-2 day-tab-item" 
-            :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
+            :style="{ height: layoutEsercizi === 'super_compatto' ? '34px' : (layoutEsercizi === 'compatto' ? '38px' : '44px') }"
           >
-            <div class="d-flex flex-column align-center justify-center py-1 w-100">
+            <div class="d-flex flex-column align-center justify-center py-0.5 w-100">
               <div class="d-flex align-center">
                 <span 
                   class="font-weight-black tab-day-letter" 
-                  :class="layoutEsercizi === 'super_compatto' ? 'text-body-1' : (layoutEsercizi === 'compatto' ? 'text-subtitle-1' : 'text-h6')" 
-                  style="line-height: 1.1;"
+                  :style="{
+                    fontSize: layoutEsercizi === 'super_compatto' ? '0.85rem' : (layoutEsercizi === 'compatto' ? '0.95rem' : '1.05rem'),
+                    lineHeight: '1'
+                  }"
                 >
                   {{ giorno }}
                 </span>
                 <v-icon
                   v-if="giornoHaBuchi(giorno)"
                   color="red-lighten-1"
-                  :size="layoutEsercizi === 'super_compatto' ? 10 : 12"
+                  :size="layoutEsercizi === 'super_compatto' ? 9 : 11"
                   class="ml-1"
                   title="Esercizi mancanti (buco nell'ordine)"
                 >
@@ -141,7 +143,7 @@
                 <v-icon
                   v-if="statoGiorni[giorno] === 'completed'"
                   color="green-accent-4"
-                  :size="layoutEsercizi === 'super_compatto' ? 10 : 12"
+                  :size="layoutEsercizi === 'super_compatto' ? 9 : 11"
                   class="ml-1"
                 >
                   mdi-check-bold
@@ -149,7 +151,7 @@
                 <v-icon
                   v-else-if="statoGiorni[giorno] === 'pending'"
                   color="white"
-                  :size="layoutEsercizi === 'super_compatto' ? 10 : 12"
+                  :size="layoutEsercizi === 'super_compatto' ? 9 : 11"
                   class="ml-1 tab-lock-icon"
                 >
                   mdi-lock-open-outline
@@ -159,17 +161,17 @@
                 v-if="layoutEsercizi !== 'super_compatto' && settimanaDaChiuderePerGiorno(giorno)" 
                 class="text-super-caption font-weight-black" 
                 :class="settimanaDaChiuderePerGiorno(giorno) === 'FINE' ? 'text-green-accent-4' : 'text-orange-lighten-2'"
-                style="font-size: 0.58rem; margin-top: 1.5px; line-height: 1; opacity: 0.9;"
+                style="font-size: 0.55rem; margin-top: 1px; line-height: 1; opacity: 0.9;"
               >
                 {{ settimanaDaChiuderePerGiorno(giorno) }}
               </span>
               <!-- Mini barra di avanzamento del giorno -->
               <div 
-                class="day-tab-progress-bg mt-1" 
+                class="day-tab-progress-bg mt-0.5" 
                 :style="{ 
-                  width: '75%', 
-                  height: layoutEsercizi === 'super_compatto' ? '2px' : '3px', 
-                  background: 'rgba(255, 255, 255, 0.12)', 
+                  width: '70%', 
+                  height: '2px', 
+                  background: 'rgba(255, 255, 255, 0.15)', 
                   borderRadius: '2px', 
                   overflow: 'hidden' 
                 }"
@@ -564,17 +566,17 @@
         <v-card
           v-if="headerGiorno"
           class="workout-session-container overflow-hidden border elevation-3 mb-6"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-b-md' : (layoutEsercizi === 'compatto' ? 'rounded-b-lg' : 'rounded-b-3xl')"
-          style="border-top: none !important; margin-top: -3px !important;"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-b-md' : (layoutEsercizi === 'compatto' ? 'rounded-b-lg' : 'rounded-b-2xl')"
+          style="border-top: none !important; margin-top: 0px !important;"
         >
           <!-- Intestazione Sessione (ex Day Header Card) -->
           <div
             class="day-header-section clickable-header position-relative"
             :class="[
               {
-                'pt-1 pb-1.5 px-2': layoutEsercizi === 'super_compatto',
-                'pt-1.5 pb-2.5 px-3': layoutEsercizi === 'compatto',
-                'pa-4': layoutEsercizi === 'standard',
+                'py-1 px-2': layoutEsercizi === 'super_compatto',
+                'py-1.5 px-2.5': layoutEsercizi === 'compatto',
+                'py-2.5 px-3': layoutEsercizi === 'standard',
                 'has-scroll-bottom-border': isScrolledPastDayHeader
               },
               'tema-' + temaHeaderGiorno
@@ -586,16 +588,16 @@
           <div v-if="parseDayHeader(headerGiorno.des_esercizio)" class="w-100">
             <div 
               class="d-flex align-start justify-space-between w-100 flex-wrap gap-2"
-              :class="layoutEsercizi === 'super_compatto' ? 'mb-1' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3')"
+              :class="layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-1' : 'mb-1.5')"
             >
               <div class="d-flex align-center">
                 <div 
-                  class="giorno-big-letter mr-3"
+                  class="giorno-big-letter mr-2.5"
                   :style="{ 
-                    width: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
-                    height: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
-                    fontSize: layoutEsercizi === 'super_compatto' ? '1rem' : (layoutEsercizi === 'compatto' ? '1.2rem' : '1.5rem'),
-                    borderRadius: layoutEsercizi === 'super_compatto' ? '8px' : '12px'
+                    width: layoutEsercizi === 'super_compatto' ? '26px' : (layoutEsercizi === 'compatto' ? '30px' : '36px'),
+                    height: layoutEsercizi === 'super_compatto' ? '26px' : (layoutEsercizi === 'compatto' ? '30px' : '36px'),
+                    fontSize: layoutEsercizi === 'super_compatto' ? '0.85rem' : (layoutEsercizi === 'compatto' ? '0.95rem' : '1.15rem'),
+                    borderRadius: layoutEsercizi === 'super_compatto' ? '6px' : '8px'
                   }"
                 >
                   {{ giornoSelezionato }}
@@ -604,7 +606,7 @@
                   <div class="d-flex align-center flex-wrap gap-2">
                     <h3 
                       class="font-weight-black header-title-text mb-0 text-white"
-                      :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
+                      :class="layoutEsercizi === 'super_compatto' ? 'text-caption' : (layoutEsercizi === 'compatto' ? 'text-body-2' : 'text-subtitle-2')"
                       style="color: #ffffff !important;"
                     >
                       Workout Giorno {{ giornoSelezionato }}
@@ -5612,17 +5614,17 @@ const recuperiRaggruppati = computed(() => {
 
 .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected,
 :root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected {
-  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%) !important;
 }
 
 .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected,
 :root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected {
-  background: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
 }
 
 .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-verde .v-tab--selected,
 :root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-verde .v-tab--selected {
-  background: linear-gradient(180deg, #065f46 0%, #047857 100%) !important;
+  background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
 }
 
 .sticky-tabs-container .v-tabs-slider,
@@ -5815,8 +5817,8 @@ const recuperiRaggruppati = computed(() => {
   color: #cbd5e1 !important;
   opacity: 0.85;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border-top-left-radius: 14px !important;
-  border-top-right-radius: 14px !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
   border-bottom-left-radius: 0px !important;
   border-bottom-right-radius: 0px !important;
   text-transform: none !important;
@@ -5839,28 +5841,28 @@ const recuperiRaggruppati = computed(() => {
 .day-tabs-header-bar .v-tab--selected {
   opacity: 1 !important;
   color: #ffffff !important;
-  border-top-left-radius: 14px !important;
-  border-top-right-radius: 14px !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
   border-bottom-left-radius: 0px !important;
   border-bottom-right-radius: 0px !important;
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25) !important;
+  box-shadow: none !important;
   position: relative !important;
   z-index: 10 !important;
-  margin-bottom: -8px !important;
-  padding-bottom: 8px !important;
+  margin-bottom: 0px !important;
+  padding-bottom: 0px !important;
 }
 
 /* Frequenza colore dinamica per tab attivo in continuità con il giorno */
 .active-tab-theme-arancio .v-tab--selected {
-  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%) !important;
 }
 
 .active-tab-theme-blu .v-tab--selected {
-  background: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
 }
 
 .active-tab-theme-verde .v-tab--selected {
-  background: linear-gradient(180deg, #065f46 0%, #047857 100%) !important;
+  background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
 }
 
 .day-tabs-header-bar .v-tab--selected,
@@ -5876,9 +5878,9 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .day-tabs-header-bar .v-tab:first-child.v-tab--selected {
-  border-top-left-radius: 16px !important;
+  border-top-left-radius: 14px !important;
   border-bottom-left-radius: 0px !important;
-  border-top-right-radius: 14px !important;
+  border-top-right-radius: 12px !important;
   border-bottom-right-radius: 0px !important;
   margin-left: 0 !important;
 }
@@ -5888,9 +5890,9 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .day-tabs-header-bar .v-tab:last-child.v-tab--selected {
-  border-top-right-radius: 16px !important;
+  border-top-right-radius: 14px !important;
   border-bottom-right-radius: 0px !important;
-  border-top-left-radius: 14px !important;
+  border-top-left-radius: 12px !important;
   border-bottom-left-radius: 0px !important;
   margin-right: 0 !important;
 }
@@ -5903,8 +5905,10 @@ const recuperiRaggruppati = computed(() => {
 .day-header-section {
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom-left-radius: 20px !important;
-  border-bottom-right-radius: 20px !important;
+  border-top-left-radius: 0px !important;
+  border-top-right-radius: 0px !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
   border-bottom: none !important;
 }
 
@@ -5915,15 +5919,33 @@ const recuperiRaggruppati = computed(() => {
 
 /* Tema Arancio (Default) - Continuità perfetta con il tab attivo */
 .day-header-section.tema-arancio {
-  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
+  background: linear-gradient(180deg, #ea580c 0%, #9a3412 100%) !important;
   border-left: none !important;
   color: #ffffff !important;
-  border-bottom-left-radius: 20px !important;
-  border-bottom-right-radius: 20px !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
 }
 
 .day-header-section.tema-arancio:hover {
   background: linear-gradient(180deg, #f97316 0%, #ea580c 100%) !important;
+}
+
+/* Tema Blu - Continuità perfetta */
+.day-header-section.tema-blu {
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+  border-left: none !important;
+  color: #ffffff !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
+}
+
+/* Tema Verde - Continuità perfetta */
+.day-header-section.tema-verde {
+  background: linear-gradient(180deg, #047857 0%, #064e3b 100%) !important;
+  border-left: none !important;
+  color: #ffffff !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
 }
 
 .tema-arancio .header-title-text {
@@ -5959,15 +5981,15 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .workout-session-container {
-  margin-top: -6px !important;
+  margin-top: 0px !important;
   position: relative !important;
   z-index: 1 !important;
   border-top-left-radius: 0px !important;
   border-top-right-radius: 0px !important;
-  border-bottom-left-radius: 24px !important;
-  border-bottom-right-radius: 24px !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
   overflow: hidden !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   border-top: none !important;
 }
 

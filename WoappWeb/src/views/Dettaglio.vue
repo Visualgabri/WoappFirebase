@@ -11007,12 +11007,17 @@ const strategiaCoachData = computed(() => {
 
   // Calcolo del picco reale eseguito prima dello scarico (W1-W3)
   let peakLoggedPreScarico = 0;
+  let lastLoggedRepsPreScarico = 0;
   for (let i = 1; i <= 3; i++) {
     const val = workout.value?.['ins_week' + i];
     if (val) {
       const p = parseFloat(estraiPesoDaInput(val));
       if (!isNaN(p) && p > peakLoggedPreScarico) {
         peakLoggedPreScarico = p;
+      }
+      const rIn = estraiRepsDaInput(val) || parseFloat(val);
+      if (!isNaN(rIn) && rIn > 0) {
+        lastLoggedRepsPreScarico = rIn;
       }
     }
   }
@@ -11047,7 +11052,16 @@ const strategiaCoachData = computed(() => {
       if (isLogged) {
         caricoRealeText = formatRepsDisplay(repsRealiVal);
       } else {
-        caricoRealeText = targetRepsStr;
+        if (w === 4 && lastLoggedRepsPreScarico > 0) {
+          const scaricoReps = Math.round(lastLoggedRepsPreScarico * 0.70);
+          caricoRealeText = `3x${scaricoReps} reps`;
+        } else if (w === 5 && lastLoggedRepsPreScarico > 0) {
+          const targetW6Reps = r6;
+          const piccoReps = Math.round(lastLoggedRepsPreScarico + (targetW6Reps - lastLoggedRepsPreScarico) * 0.5);
+          caricoRealeText = `3x${Math.max(piccoReps - 1, 1)}-${piccoReps + 1} reps`;
+        } else {
+          caricoRealeText = targetRepsStr;
+        }
       }
       return {
         week: w,

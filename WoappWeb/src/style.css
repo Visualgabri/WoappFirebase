@@ -918,6 +918,19 @@ body::after {
   border-top: 1px solid var(--nav-border) !important;
 }
 
+.v-bottom-navigation .v-btn {
+  min-width: 0 !important;
+  padding-left: 2px !important;
+  padding-right: 2px !important;
+}
+
+.v-bottom-navigation .v-btn span {
+  font-size: 0.62rem !important;
+  letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+  text-overflow: clip !important;
+}
+
 .bg-slate-50 {
   background-color: transparent !important;
 }

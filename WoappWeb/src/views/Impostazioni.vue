@@ -205,7 +205,7 @@
               hide-details
               rounded="lg"
               color="orange-darken-3"
-              style="font-size: 0.72rem;"
+              class="ultra-compact-select"
             ></v-select>
           </div>
         </div>
@@ -240,7 +240,7 @@
               hide-details
               rounded="lg"
               color="orange-darken-3"
-              style="font-size: 0.72rem;"
+              class="ultra-compact-select"
             ></v-select>
           </div>
         </div>
@@ -261,7 +261,7 @@
               hide-details
               rounded="lg"
               color="orange-darken-3"
-              style="font-size: 0.72rem;"
+              class="ultra-compact-select"
             ></v-select>
           </div>
         </div>
@@ -352,7 +352,7 @@
                   hide-details
                   rounded="lg"
                   color="orange-darken-3"
-                  style="font-size: 0.68rem;"
+                  class="ultra-compact-select"
                 ></v-select>
               </div>
             </div>
@@ -1246,15 +1246,106 @@ const formattaDataEsportazione = (isoString) => {
   background: var(--card-bg-soft) !important;
 }
 
+/* Ultra Compact Select Dropdowns for Settings */
+.ultra-compact-select {
+  height: 28px !important;
+}
+.ultra-compact-select :deep(.v-field) {
+  min-height: 28px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  padding-inline-start: 8px !important;
+  padding-inline-end: 4px !important;
+  box-shadow: none !important;
+}
+.ultra-compact-select :deep(.v-field__input) {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  font-size: 0.70rem !important;
+  align-items: center !important;
+  line-height: 28px !important;
+}
+.ultra-compact-select :deep(.v-field__append-inner) {
+  padding-top: 0 !important;
+  align-items: center !important;
+  height: 28px !important;
+}
+.ultra-compact-select :deep(.v-field__append-inner .v-icon) {
+  font-size: 14px !important;
+  opacity: 0.7;
+}
+
+/* Light Theme Overrides in Settings */
+:deep([data-theme="light"]) .premium-card,
+[data-theme="light"] .premium-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+}
+
 :deep([data-theme="light"]) .inner-setting-box,
 [data-theme="light"] .inner-setting-box {
-  background: var(--card-bg-soft) !important;
-  border: 1px solid var(--card-border) !important;
+  background: #fdfbf7 !important;
+  border: 1px solid #fed7aa !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+:deep([data-theme="light"]) .v-btn-toggle,
+[data-theme="light"] .v-btn-toggle {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 :deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--selected),
 [data-theme="light"] .v-btn-toggle .v-btn:not(.v-btn--selected) {
-  color: var(--text-dark) !important;
+  background: #ffffff !important;
+  color: #475569 !important;
+}
+
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--selected,
+[data-theme="light"] .v-btn-toggle .v-btn.v-btn--selected {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+:deep([data-theme="light"]) .ultra-compact-select .v-field,
+[data-theme="light"] .ultra-compact-select .v-field {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+:deep([data-theme="light"]) .ultra-compact-select .v-field__input,
+[data-theme="light"] .ultra-compact-select .v-field__input {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+:deep([data-theme="light"]) .text-orange-lighten-2,
+[data-theme="light"] .text-orange-lighten-2 {
+  color: #c2410c !important;
+}
+
+:deep([data-theme="light"]) .text-amber-lighten-2,
+[data-theme="light"] .text-amber-lighten-2 {
+  color: #b45309 !important;
+}
+
+:deep([data-theme="light"]) .text-green-accent-3,
+[data-theme="light"] .text-green-accent-3 {
+  color: #15803d !important;
+}
+
+:deep([data-theme="light"]) .text-purple-lighten-2,
+[data-theme="light"] .text-purple-lighten-2 {
+  color: #7e22ce !important;
+}
+
+:deep([data-theme="light"]) .text-slate-dark,
+[data-theme="light"] .text-slate-dark {
+  color: #0f172a !important;
 }
 
 .custom-compact-field :deep(.v-field__input),

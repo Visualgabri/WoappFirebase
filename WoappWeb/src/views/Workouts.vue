@@ -575,9 +575,9 @@
             class="day-header-section clickable-header position-relative"
             :class="[
               {
-                'py-1 px-2': layoutEsercizi === 'super_compatto',
-                'py-1.5 px-2.5': layoutEsercizi === 'compatto',
-                'py-2.5 px-3': layoutEsercizi === 'standard',
+                'py-1 px-3': layoutEsercizi === 'super_compatto',
+                'py-2 px-4': layoutEsercizi === 'compatto',
+                'py-3 px-6': layoutEsercizi === 'standard',
                 'has-scroll-bottom-border': isScrolledPastDayHeader
               },
               'tema-' + temaHeaderGiorno
@@ -593,12 +593,13 @@
             >
               <div class="d-flex align-center">
                 <div 
-                  class="giorno-big-letter mr-2.5"
+                  class="giorno-big-letter flex-shrink-0"
                   :style="{ 
-                    width: layoutEsercizi === 'super_compatto' ? '26px' : (layoutEsercizi === 'compatto' ? '30px' : '36px'),
-                    height: layoutEsercizi === 'super_compatto' ? '26px' : (layoutEsercizi === 'compatto' ? '30px' : '36px'),
-                    fontSize: layoutEsercizi === 'super_compatto' ? '0.85rem' : (layoutEsercizi === 'compatto' ? '0.95rem' : '1.15rem'),
-                    borderRadius: layoutEsercizi === 'super_compatto' ? '6px' : '8px'
+                    width: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '42px'),
+                    height: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '42px'),
+                    fontSize: layoutEsercizi === 'super_compatto' ? '0.85rem' : (layoutEsercizi === 'compatto' ? '1rem' : '1.25rem'),
+                    borderRadius: layoutEsercizi === 'super_compatto' ? '6px' : (layoutEsercizi === 'compatto' ? '8px' : '10px'),
+                    marginRight: layoutEsercizi === 'super_compatto' ? '12px' : (layoutEsercizi === 'compatto' ? '20px' : '32px')
                   }"
                 >
                   {{ giornoSelezionato }}
@@ -791,12 +792,13 @@
             >
               <div class="d-flex align-center">
                 <div 
-                  class="giorno-big-letter mr-3"
+                  class="giorno-big-letter flex-shrink-0"
                   :style="{ 
-                    width: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
-                    height: layoutEsercizi === 'super_compatto' ? '30px' : (layoutEsercizi === 'compatto' ? '36px' : '48px'),
-                    fontSize: layoutEsercizi === 'super_compatto' ? '1rem' : (layoutEsercizi === 'compatto' ? '1.2rem' : '1.5rem'),
-                    borderRadius: layoutEsercizi === 'super_compatto' ? '8px' : '12px'
+                    width: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '42px'),
+                    height: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '42px'),
+                    fontSize: layoutEsercizi === 'super_compatto' ? '0.85rem' : (layoutEsercizi === 'compatto' ? '1rem' : '1.25rem'),
+                    borderRadius: layoutEsercizi === 'super_compatto' ? '6px' : (layoutEsercizi === 'compatto' ? '8px' : '10px'),
+                    marginRight: layoutEsercizi === 'super_compatto' ? '12px' : (layoutEsercizi === 'compatto' ? '20px' : '32px')
                   }"
                 >
                   {{ giornoSelezionato }}

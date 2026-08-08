@@ -106,7 +106,10 @@
           grow
           hide-slider
           class="day-tabs-header-bar elevation-2"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-t-md' : (layoutEsercizi === 'compatto' ? 'rounded-t-lg' : 'rounded-t-xl')"
+          :class="[
+            layoutEsercizi === 'super_compatto' ? 'rounded-t-md' : (layoutEsercizi === 'compatto' ? 'rounded-t-lg' : 'rounded-t-xl'),
+            'active-tab-theme-' + temaHeaderGiorno
+          ]"
           @update:model-value="salvaGiornoSelezionato"
           :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px'), marginBottom: '0px' }"
         >
@@ -571,11 +574,12 @@
               {
                 'pt-1 pb-1.5 px-2': layoutEsercizi === 'super_compatto',
                 'pt-1.5 pb-2.5 px-3': layoutEsercizi === 'compatto',
-                'pa-4': layoutEsercizi === 'standard'
+                'pa-4': layoutEsercizi === 'standard',
+                'has-scroll-bottom-border': isScrolledPastDayHeader
               },
               'tema-' + temaHeaderGiorno
             ]"
-            style="border-bottom: 1px solid rgba(255, 255, 255, 0.15); transition: background 0.2s;"
+            style="transition: background 0.2s;"
             @click="vaiAlDettaglioSessione(headerGiorno.id)"
           >
           <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
@@ -2633,6 +2637,23 @@ const getGifUrl = (url) => {
 const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
 const giornoSelezionato = ref('A');
+
+// Stato scroll per mostrare la linea di separazione del header solo al momento dello scroll
+const isScrolledPastDayHeader = ref(false);
+
+const handleDayHeaderScroll = () => {
+  if (typeof window !== 'undefined') {
+    isScrolledPastDayHeader.value = window.scrollY > 130;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('scroll', handleDayHeaderScroll, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleDayHeaderScroll);
+});
 
 // Stato Impostazioni e Personalizzazione (Salvate in LocalStorage)
 const layoutEsercizi = layoutEserciziGlobal;
@@ -5809,7 +5830,6 @@ const recuperiRaggruppati = computed(() => {
 
 .day-tabs-header-bar .v-tab--selected {
   opacity: 1 !important;
-  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
   color: #ffffff !important;
   border-top-left-radius: 14px !important;
   border-top-right-radius: 14px !important;
@@ -5818,8 +5838,21 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25) !important;
   position: relative !important;
   z-index: 10 !important;
-  margin-bottom: -6px !important;
-  padding-bottom: 6px !important;
+  margin-bottom: -8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Frequenza colore dinamica per tab attivo in continuità con il giorno */
+.active-tab-theme-arancio .v-tab--selected {
+  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
+}
+
+.active-tab-theme-blu .v-tab--selected {
+  background: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%) !important;
+}
+
+.active-tab-theme-verde .v-tab--selected {
+  background: linear-gradient(180deg, #065f46 0%, #047857 100%) !important;
 }
 
 .day-tabs-header-bar .v-tab--selected,
@@ -5864,6 +5897,12 @@ const recuperiRaggruppati = computed(() => {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   border-bottom-left-radius: 20px !important;
   border-bottom-right-radius: 20px !important;
+  border-bottom: none !important;
+}
+
+.day-header-section.has-scroll-bottom-border {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Tema Arancio (Default) - Continuità perfetta con il tab attivo */
@@ -5912,7 +5951,7 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .workout-session-container {
-  margin-top: -3px !important;
+  margin-top: -6px !important;
   position: relative !important;
   z-index: 1 !important;
   border-top-left-radius: 0px !important;

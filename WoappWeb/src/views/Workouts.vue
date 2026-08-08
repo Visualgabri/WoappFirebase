@@ -118,6 +118,7 @@
             v-for="giorno in listaGiorniDisponibili" 
             :key="giorno" 
             :value="giorno" 
+            :ripple="false"
             class="px-2 day-tab-item" 
             :style="{ height: layoutEsercizi === 'super_compatto' ? '34px' : (layoutEsercizi === 'compatto' ? '38px' : '44px') }"
           >
@@ -5851,9 +5852,12 @@ const recuperiRaggruppati = computed(() => {
 
 .day-tabs-header-bar .v-tab :deep(.v-tab__overlay),
 .day-tabs-header-bar .v-tab:focus :deep(.v-tab__overlay),
-.day-tabs-header-bar .v-tab--selected :deep(.v-tab__overlay) {
+.day-tabs-header-bar .v-tab--selected :deep(.v-tab__overlay),
+.day-tabs-header-bar :deep(.v-ripple__container),
+.day-tabs-header-bar :deep(.v-ripple__animation) {
   opacity: 0 !important;
   display: none !important;
+  visibility: hidden !important;
 }
 
 .day-tabs-header-bar .v-tab,

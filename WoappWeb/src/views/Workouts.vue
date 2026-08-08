@@ -5829,12 +5829,21 @@ const recuperiRaggruppati = computed(() => {
 .day-tabs-header-bar .v-tab:first-child.v-tab--selected {
   border-top-left-radius: 16px !important;
   border-bottom-left-radius: 0px !important;
+  border-top-right-radius: 14px !important;
+  border-bottom-right-radius: 0px !important;
   margin-left: 0 !important;
+}
+
+.day-tabs-header-bar .v-tab:last-child {
+  margin-right: 0 !important;
 }
 
 .day-tabs-header-bar .v-tab:last-child.v-tab--selected {
   border-top-right-radius: 16px !important;
   border-bottom-right-radius: 0px !important;
+  border-top-left-radius: 14px !important;
+  border-bottom-left-radius: 0px !important;
+  margin-right: 0 !important;
 }
 
 .day-tabs-header-bar .v-tab--selected span,

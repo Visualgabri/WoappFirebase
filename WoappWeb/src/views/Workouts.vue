@@ -105,7 +105,7 @@
           align-tabs="center"
           grow
           hide-slider
-          class="day-tabs-header-bar elevation-2 overflow-hidden"
+          class="day-tabs-header-bar elevation-2"
           :class="layoutEsercizi === 'super_compatto' ? 'rounded-t-md' : (layoutEsercizi === 'compatto' ? 'rounded-t-lg' : 'rounded-t-xl')"
           @update:model-value="salvaGiornoSelezionato"
           :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px'), marginBottom: '0px' }"
@@ -5767,12 +5767,15 @@ const recuperiRaggruppati = computed(() => {
   margin-bottom: 0px !important;
   position: relative !important;
   z-index: 2 !important;
+  overflow: visible !important;
 }
 
+.day-tabs-header-bar :deep(.v-slide-group),
 .day-tabs-header-bar :deep(.v-slide-group__container),
 .day-tabs-header-bar :deep(.v-slide-group__content) {
   align-items: flex-end !important;
   height: 100% !important;
+  overflow: visible !important;
 }
 
 .day-tabs-header-bar .v-tab {
@@ -5799,9 +5802,9 @@ const recuperiRaggruppati = computed(() => {
   border-bottom-right-radius: 0 !important;
   box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25) !important;
   position: relative !important;
-  z-index: 5 !important;
-  margin-bottom: -3px !important;
-  padding-bottom: 3px !important;
+  z-index: 10 !important;
+  margin-bottom: -6px !important;
+  padding-bottom: 6px !important;
 }
 
 .day-tabs-header-bar .v-tab--selected span,

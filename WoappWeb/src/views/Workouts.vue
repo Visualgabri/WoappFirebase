@@ -5776,13 +5776,18 @@ const recuperiRaggruppati = computed(() => {
   align-items: flex-end !important;
   height: 100% !important;
   overflow: visible !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .day-tabs-header-bar .v-tab {
   color: #cbd5e1 !important;
   opacity: 0.85;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border-radius: 12px 12px 0 0 !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
   text-transform: none !important;
   height: 100% !important;
 }
@@ -5798,13 +5803,31 @@ const recuperiRaggruppati = computed(() => {
   color: #ffffff !important;
   border-top-left-radius: 14px !important;
   border-top-right-radius: 14px !important;
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
   box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25) !important;
   position: relative !important;
   z-index: 10 !important;
   margin-bottom: -6px !important;
   padding-bottom: 6px !important;
+}
+
+.day-tabs-header-bar .v-tab--selected,
+.day-tabs-header-bar .v-tab--selected :deep(*),
+.day-tabs-header-bar .v-tab--selected::before,
+.day-tabs-header-bar .v-tab--selected::after {
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+
+.day-tabs-header-bar .v-tab:first-child.v-tab--selected {
+  border-top-left-radius: 16px !important;
+  border-bottom-left-radius: 0px !important;
+}
+
+.day-tabs-header-bar .v-tab:last-child.v-tab--selected {
+  border-top-right-radius: 16px !important;
+  border-bottom-right-radius: 0px !important;
 }
 
 .day-tabs-header-bar .v-tab--selected span,

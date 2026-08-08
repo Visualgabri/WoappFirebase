@@ -5418,13 +5418,16 @@ const recuperiRaggruppati = computed(() => {
   z-index: 1;
 }
 
-/* Stili compatti per Superserie Unificata con banda a sinistra */
+/* Stili compatti per Superserie Unificata con banda a sinistra (Dimensioni 100% identiche alle card singole) */
 .compatto-superset-card {
-  border-left: 4px solid #ea580c !important; /* Ripristinata banda arancione solida */
-  border-right: none !important; /* Rimuove banda destra */
-  background: rgba(30, 41, 59, 0.12) !important; /* Sfondo scuro e discreto */
-  padding: 0 !important; /* Rimuove padding della card */
-  border-radius: 8px !important;
+  border-left: 3px solid #f97316 !important; /* Banda arancione solida e fina */
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: var(--card-bg-glass) !important; /* Stesso sfondo glassmorphic delle card singole */
+  padding: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
 }
 
 /* Rimuove l'effetto gradient ::before nella visualizzazione compatta e super compatta */
@@ -5435,14 +5438,15 @@ const recuperiRaggruppati = computed(() => {
 
 /* Applica la banda arancione solida anche alle card arrotondate super_compatto */
 .superset-group-card.rounded-md {
-  border-left: 4px solid #ea580c !important;
+  border-left: 3px solid #f97316 !important;
 }
 
-/* Allineamento a sinistra perfetto in visualizzazione compatta (con traslazione negativa per compensare lo spessore del bordo) */
+/* Allineamento interno 100% omogeneo e identico alle card singole */
 .compatto-superset-card .superset-exercise-item {
-  padding-left: 2px !important;
-  margin-left: -2px !important;
-  padding-right: 10px !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  padding-right: 0 !important;
+  border-radius: 0 !important;
 }
 
 /* Allineamento a sinistra perfetto in visualizzazione super compatta (allineamento millimetrico dei checkbox) */

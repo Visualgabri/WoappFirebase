@@ -1281,28 +1281,29 @@ const formattaDataEsportazione = (isoString) => {
 :deep([data-theme="light"]) .premium-card,
 [data-theme="light"] .premium-card {
   background: #ffffff !important;
-  border: 1.5px solid #fed7aa !important;
-  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.06) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
 }
 
 :deep([data-theme="light"]) .inner-setting-box,
 [data-theme="light"] .inner-setting-box {
-  background: #fff7ed !important;
-  border: 1.5px solid #fed7aa !important;
-  box-shadow: inset 0 1px 3px rgba(249, 115, 22, 0.03) !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02) !important;
 }
 
 :deep([data-theme="light"]) .v-btn-toggle,
 [data-theme="light"] .v-btn-toggle {
-  background: #fff7ed !important;
-  border: 1.5px solid #fed7aa !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 :deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--selected),
 [data-theme="light"] .v-btn-toggle .v-btn:not(.v-btn--selected) {
-  background: #fff7ed !important;
-  color: #9a3412 !important;
-  border-right: 1px solid #fed7aa !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  border-right: 1px solid #e2e8f0 !important;
 }
 
 :deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--selected,
@@ -1310,18 +1311,19 @@ const formattaDataEsportazione = (isoString) => {
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
   color: #ffffff !important;
   font-weight: 900 !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35) !important;
 }
 
 :deep([data-theme="light"]) .ultra-compact-select .v-field,
 [data-theme="light"] .ultra-compact-select .v-field {
   background: #ffffff !important;
-  border-color: #fed7aa !important;
+  border-color: #cbd5e1 !important;
 }
 
 :deep([data-theme="light"]) .ultra-compact-select .v-field__input,
 [data-theme="light"] .ultra-compact-select .v-field__input {
-  color: #7c2d12 !important;
-  font-weight: 800 !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
 }
 
 :deep([data-theme="light"]) .ultra-compact-select .v-icon,
@@ -1331,30 +1333,30 @@ const formattaDataEsportazione = (isoString) => {
 
 :deep([data-theme="light"]) .text-orange-lighten-2,
 [data-theme="light"] .text-orange-lighten-2 {
-  color: #c2410c !important;
+  color: #ea580c !important;
   font-weight: 800 !important;
 }
 
 :deep([data-theme="light"]) .text-amber-lighten-2,
 [data-theme="light"] .text-amber-lighten-2 {
-  color: #b45309 !important;
+  color: #d97706 !important;
   font-weight: 800 !important;
 }
 
 :deep([data-theme="light"]) .text-green-accent-3,
 [data-theme="light"] .text-green-accent-3 {
-  color: #15803d !important;
+  color: #16a34a !important;
   font-weight: 800 !important;
 }
 
 :deep([data-theme="light"]) .text-purple-lighten-2,
 [data-theme="light"] .text-purple-lighten-2 {
-  color: #7e22ce !important;
+  color: #9333ea !important;
 }
 
 :deep([data-theme="light"]) .text-slate-dark,
 [data-theme="light"] .text-slate-dark {
-  color: #7c2d12 !important;
+  color: #0f172a !important;
   font-weight: 800 !important;
 }
 

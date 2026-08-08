@@ -1134,7 +1134,7 @@
                   <!-- VISUALIZZAZIONE COMPATTA -->
                   <template v-else-if="layoutEsercizi === 'compatto'">
                     <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                    <div class="d-flex flex-column align-center ml-1 mr-2.5 mt-1" style="width: 62px; min-width: 62px;">
+                    <div class="d-flex flex-column align-center ml-1 mr-3.5 mt-1" style="width: 62px; min-width: 62px;">
                       <div class="position-relative" style="width: 62px; height: 62px;">
                         <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                         <div
@@ -1164,7 +1164,7 @@
                     </div>
 
                     <!-- Dettagli Centrali Estesi -->
-                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1" style="z-index: 2;">
+                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pl-1 pr-1" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
                       <h4 class="font-weight-black leading-tight mb-1 pr-1 text-slate-dark d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
@@ -1481,7 +1481,7 @@
               <!-- VISUALIZZAZIONE COMPATTA -->
               <template v-else-if="layoutEsercizi === 'compatto'">
                 <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                <div class="d-flex flex-column align-center ml-1 mr-2.5 mt-1" style="width: 62px; min-width: 62px;">
+                <div class="d-flex flex-column align-center ml-1 mr-3.5 mt-1" style="width: 62px; min-width: 62px;">
                   <div class="position-relative" style="width: 62px; height: 62px;">
                     <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                     <div
@@ -1511,7 +1511,7 @@
                 </div>
 
                 <!-- Dettagli Centrali Estesi -->
-                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1" style="z-index: 2;">
+                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pl-1 pr-1" style="z-index: 2;">
                   <!-- Titolo Esercizio -->
                   <h4 class="font-weight-black leading-tight mb-1 pr-1 text-slate-dark d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>

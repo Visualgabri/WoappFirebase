@@ -5765,6 +5765,14 @@ const recuperiRaggruppati = computed(() => {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-bottom: none !important;
   margin-bottom: 0px !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.day-tabs-header-bar :deep(.v-slide-group__container),
+.day-tabs-header-bar :deep(.v-slide-group__content) {
+  align-items: flex-end !important;
+  height: 100% !important;
 }
 
 .day-tabs-header-bar .v-tab {
@@ -5773,6 +5781,7 @@ const recuperiRaggruppati = computed(() => {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   border-radius: 12px 12px 0 0 !important;
   text-transform: none !important;
+  height: 100% !important;
 }
 
 .day-tabs-header-bar .v-tab:hover {
@@ -5789,6 +5798,10 @@ const recuperiRaggruppati = computed(() => {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25) !important;
+  position: relative !important;
+  z-index: 5 !important;
+  margin-bottom: -3px !important;
+  padding-bottom: 3px !important;
 }
 
 .day-tabs-header-bar .v-tab--selected span,
@@ -5861,7 +5874,9 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .workout-session-container {
-  margin-top: 0px !important;
+  margin-top: -2px !important;
+  position: relative !important;
+  z-index: 1 !important;
   border-top-left-radius: 0px !important;
   border-top-right-radius: 0px !important;
   border: 1.5px solid rgba(255, 255, 255, 0.15) !important;

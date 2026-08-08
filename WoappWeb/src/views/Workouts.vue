@@ -5475,29 +5475,29 @@ const recuperiRaggruppati = computed(() => {
 
 .superset-connector-line {
   position: absolute;
-  left: 45px; /* Centrato rispetto alla miniatura da 76px (8px padding + 38px metà larghezza) */
-  top: 72px; /* Inizia sotto la miniatura */
-  bottom: -22px; /* Si estende fino alla miniatura successiva */
+  left: 45px; /* Centrato rispetto alla miniatura */
+  top: 78px; /* Inizia sotto la miniatura */
+  bottom: 0px; /* Si ferma al bordo dell'item */
   width: 2px;
   border-left: 2px dashed #f97316;
-  filter: drop-shadow(0 0 3px #f97316) drop-shadow(0 0 6px #7c3aed);
+  filter: drop-shadow(0 0 3px #f97316);
   pointer-events: none;
   z-index: 1;
-  opacity: 0.95;
+  opacity: 0.85;
 }
 
 /* Eleva l'intera colonna sinistra (immagine + badge) sopra la linea tratteggiata sibling.
    In questo modo la linea passerà in secondo piano dietro a foto e chip */
-.superset-exercise-item > div.mr-3 {
+.superset-exercise-item > div {
   position: relative !important;
-  z-index: 2 !important;
+  z-index: 3 !important;
 }
 
-/* Allineamento specifico per la linea tratteggiata in modalità compatta */
+/* Allineamento e accorciamento specifico per la linea tratteggiata in modalità compatta */
 .compatto-superset-card .superset-connector-line {
-  left: 34px !important; /* Centrato rispetto alla miniatura da 48px + padding sinistro di 10px */
-  top: 54px !important;  /* Inizia sotto la miniatura compattata */
-  bottom: -18px !important;
+  left: 35px !important; /* Centrato rispetto alla miniatura da 62px */
+  top: 68px !important;  /* Inizia esattamente sotto la miniatura compattata (62px + offset) */
+  bottom: 4px !important; /* Si ferma prima della miniatura successiva */
 }
 
 .superset-exercises-wrapper {

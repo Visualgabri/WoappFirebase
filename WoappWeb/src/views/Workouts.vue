@@ -1177,7 +1177,7 @@
                             title="Tocca per avviare timer recupero"
                             @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
                           >
-                            ⏱️ {{ ex.des_rec_report }}
+                            {{ ex.des_rec_report }}
                           </div>
                         </div>
                       </div>
@@ -1375,7 +1375,7 @@
                             style="font-size: 0.70rem !important; height: 24px; padding-left: 8px; padding-right: 8px;"
                             @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
                           >
-                            ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
+                            {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati ora)' : '' }}
                           </v-chip>
                           <v-chip
                             v-else-if="ex.alf_superserie && ex.alf_superserie.trim()"
@@ -1522,7 +1522,7 @@
                         title="Tocca per avviare timer recupero"
                         @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                       >
-                        ⏱️ {{ block.exercise.des_rec_report }}
+                        {{ block.exercise.des_rec_report }}
                       </div>
                     </div>
                   </div>
@@ -1730,7 +1730,7 @@
                       style="font-size: 0.68rem !important; height: 22px; padding-left: 8px; padding-right: 8px;"
                       @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                     >
-                      ⏱️ {{ block.exercise.des_rec_report }}
+                      {{ block.exercise.des_rec_report }}
                     </v-chip>
                   </div>
                 </div>
@@ -6031,74 +6031,92 @@ const recuperiRaggruppati = computed(() => {
 }
 
 [data-theme="light"] .day-tabs-header-bar {
-  background: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) {
-  color: #475569 !important;
+  color: #64748b !important;
   opacity: 0.9 !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-day-letter {
-  color: #334155 !important;
+  color: #475569 !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-lock-icon {
-  color: #64748b !important;
+  color: #94a3b8 !important;
 }
 
+/* Light Theme Active Tab & Day Header Continuous Palette */
 [data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected,
 [data-theme="light"] .active-tab-theme-arancio .v-tab--selected {
-  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(180deg, #ffedd5 0%, #fff7ed 100%) !important;
+  color: #ea580c !important;
+  border: 1.5px solid #fed7aa !important;
+  border-bottom: none !important;
+}
+
+[data-theme="light"] .active-tab-theme-arancio .v-tab--selected .tab-day-letter,
+[data-theme="light"] .active-tab-theme-arancio .v-tab--selected span,
+[data-theme="light"] .active-tab-theme-arancio .v-tab--selected .v-icon {
+  color: #ea580c !important;
 }
 
 [data-theme="light"] .day-header-section.tema-arancio {
-  background: linear-gradient(180deg, #ea580c 0%, #9a3412 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%) !important;
+  color: #7c2d12 !important;
+  border-color: #fed7aa !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu {
-  background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
+  color: #1e40af !important;
+  border-color: #bfdbfe !important;
 }
 
 [data-theme="light"] .day-header-section.tema-verde {
-  background: linear-gradient(180deg, #047857 0%, #064e3b 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%) !important;
+  color: #065f46 !important;
+  border-color: #a7f3d0 !important;
 }
 
 [data-theme="light"] .day-header-section .header-title-text {
-  color: #ffffff !important;
+  color: #7c2d12 !important;
+  font-weight: 900 !important;
 }
 
 [data-theme="light"] .day-header-section .giorno-big-letter {
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
   color: #ffffff !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  border: 1.5px solid #fdba74 !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25) !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending {
-  background: rgba(0, 0, 0, 0.25) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: #ffffff !important;
+  color: #7c2d12 !important;
+  border: 1px solid #fed7aa !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: #7c2d12 !important;
   color: #ffffff !important;
+}
+
+[data-theme="light"] .day-header-section .text-caption,
+[data-theme="light"] .day-header-section span {
+  color: #7c2d12 !important;
 }
 
 [data-theme="light"] .workout-session-container {
   background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px rgba(30, 41, 59, 0.06) !important;
+  border-color: #fed7aa !important;
+  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.08) !important;
 }
 
 [data-theme="light"] .day-exercises-section {
-  background: #f8fafc !important;
+  background: #fdfbf7 !important;
 }
 .tema-blu .giorno-big-letter {
   background: linear-gradient(135deg, #1e40af, #3b82f6) !important;

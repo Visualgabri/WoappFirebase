@@ -5794,6 +5794,14 @@ const recuperiRaggruppati = computed(() => {
   height: 100% !important;
 }
 
+.day-tabs-header-bar .v-tab,
+.day-tabs-header-bar .v-tab :deep(*),
+.day-tabs-header-bar .v-tab::before,
+.day-tabs-header-bar .v-tab::after {
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+
 .day-tabs-header-bar .v-tab:hover {
   opacity: 1;
   background: rgba(255, 255, 255, 0.06) !important;

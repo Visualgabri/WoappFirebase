@@ -3782,7 +3782,7 @@ watch(mostraPromemoriaChiusura, (newVal) => {
   setGlobalSettimanaDaChiudere(newVal);
 }, { immediate: true });
 
-// Cerca il primo esercizio incompleto in una specifica settimana
+// Cerca il primo esercizio incompleto o da recuperare in una specifica settimana
 const trovaPrimoIncompletoInSettimana = (w) => {
   for (const g of listaGiorniDisponibili.value) {
     const eserciziDelGiorno = listaAllenamenti.value.filter(
@@ -3790,6 +3790,16 @@ const trovaPrimoIncompletoInSettimana = (w) => {
     );
     eserciziDelGiorno.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
     
+    // Priorità 1: Cerca se c'è un esercizio contrassegnato con RECUPERA
+    const primoRecupero = eserciziDelGiorno.find(ex => {
+      const val = ex['ins_week' + w];
+      return haRecupero(val);
+    });
+    if (primoRecupero) {
+      return { giorno: g, esercizioId: primoRecupero.id };
+    }
+
+    // Priorità 2: Cerca il primo esercizio non ancora compilato
     const primoIncompleto = eserciziDelGiorno.find(ex => {
       const val = ex['ins_week' + w];
       return !val || val.trim() === '';
@@ -3873,23 +3883,31 @@ const apriCalcolatoreDaPrescrizione = (prescrizioneStr, nomeEsercizio = '') => {
 
 const vaiAlPrimoEsercizioDaFare = () => {
   const w = settimanaAttivaGiorno.value;
-  const daFare = eserciziFiltrati.value.find(ex => {
+  // Priorità 1: Cerca esercizio contrassegnato con RECUPERA nel giorno corrente
+  const daRecuperare = eserciziFiltrati.value.find(ex => {
+    const val = ex['ins_week' + w];
+    return haRecupero(val);
+  });
+
+  // Priorità 2: Cerca esercizio non ancora compilato
+  const targetEx = daRecuperare || eserciziFiltrati.value.find(ex => {
     const val = ex['ins_week' + w];
     return !val || val.trim() === '';
   });
-  if (daFare) {
+
+  if (targetEx) {
     const navigaDettaglio = comportamentoPlay.value === 'dettaglio' || 
       (comportamentoPlay.value === 'auto' && (layoutEsercizi.value === 'super_compatto' || layoutEsercizi.value === 'compatto'));
     
     if (navigaDettaglio) {
-      vaiAlDettaglio(daFare.id);
+      vaiAlDettaglio(targetEx.id, w);
     } else {
       // Loop di retry robusto per attendere il rendering della scheda nel DOM ed eventuali cambi scheda
       let retries = 0;
       const tryScroll = () => {
-        const el = document.getElementById('esercizio-' + daFare.id);
+        const el = document.getElementById('esercizio-' + targetEx.id);
         if (el) {
-          console.log(`[Play - Evidenzia] Elemento esercizio-${daFare.id} trovato al tentativo ${retries}. Scorrimento in corso...`);
+          console.log(`[Play - Evidenzia] Elemento esercizio-${targetEx.id} trovato al tentativo ${retries}. Scorrimento in corso...`);
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           el.classList.add('highlight-exercise');
           setTimeout(() => {
@@ -3899,7 +3917,7 @@ const vaiAlPrimoEsercizioDaFare = () => {
           retries++;
           setTimeout(tryScroll, 80);
         } else {
-          console.warn(`[Play - Evidenzia] Impossibile trovare elemento esercizio-${daFare.id} dopo 15 tentativi.`);
+          console.warn(`[Play - Evidenzia] Impossibile trovare elemento esercizio-${targetEx.id} dopo 15 tentativi.`);
         }
       };
       tryScroll();

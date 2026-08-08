@@ -159,6 +159,29 @@ export const triggerPlayClick = () => {
   playClickTrigger.value++;
 };
 
+// Helper per verificare se un valore rappresenta un esercizio da recuperare
+export const haRecupero = (val) => {
+  if (!val) return false;
+  const str = String(val).toLowerCase().trim();
+  if (str.includes('[recuperato]') || str.includes('recuperato') || str.includes('recuperata') || str.includes('recuperati')) {
+    return false;
+  }
+  if (str.includes('[recupera]')) {
+    return true;
+  }
+  const keywords = [
+    'da finire', 'da fare', 'manca una serie', 'mancano serie', 'serie mancante',
+    'manca', 'mancano', 'saltato', 'saltata', 'saltati', 'incompleto',
+    'incompleta', 'incompleti', 'prossima volta', 'prox volta', 'altra serie',
+    'altre serie', 'da completare', 'recupera', 'recuperare', 'non fatto',
+    'non fatta', 'non fatti', 'fatto solo', 'fatta solo', 'fatte solo',
+    'rimandato', 'rimanda'
+  ];
+  return keywords.some(kw => str.includes(kw));
+};
+
+
+
 // Stato per il Calcolatore dei Dischi (Plate Calculator)
 export const mostraDialogCalcolatoreDischi = ref(false);
 export const targetPesoTotale = ref(0);

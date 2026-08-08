@@ -254,42 +254,112 @@
     </v-fade-transition>
 
     <!-- Dialog Avviso Chiusura Settimana -->
-    <v-dialog v-model="mostraDialogAvvisoChiusura" max-width="400" rounded="xl">
+    <v-dialog v-model="mostraDialogAvvisoChiusura" max-width="420" rounded="xl">
       <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
-        <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0">
-          <v-icon color="orange-darken-3" class="mr-2 animate-bounce">mdi-trophy-outline</v-icon>
-          Allenamento Completato! ⚡
-        </v-card-title>
-        <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
-          Ottimo lavoro! Hai completato tutti gli esercizi per l'allenamento di oggi (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>).
-          <br><br>
-          Scegli come vuoi procedere per registrare i tuoi progressi:
-        </v-card-text>
-        <v-card-actions class="d-flex flex-column gap-2 px-0 pb-0">
-          <v-btn 
-            color="green-darken-2" 
-            block 
-            variant="flat" 
-            rounded="lg" 
-            @click="chiudiRapido" 
-            class="text-white font-weight-black text-none w-100 mx-0"
-            height="44"
-            :loading="caricamentoChiusuraRapida"
-          >
-            <v-icon class="mr-1">mdi-flash</v-icon> Chiudi Sessione Ora ⚡
-          </v-btn>
-          <v-btn 
-            color="orange-darken-3" 
-            block 
-            variant="tonal" 
-            rounded="lg" 
-            @click="vaiADettaglioEChiudi" 
-            class="text-white font-weight-bold text-none w-100 mx-0"
-            height="44"
-          >
-            <v-icon class="mr-1">mdi-pencil-outline</v-icon> Aggiungi Note e Durata ⏱️
-          </v-btn>
-        </v-card-actions>
+        
+        <!-- Caso A: Presenti esercizi da recuperare in questa seduta -->
+        <template v-if="infoGiornoDaChiudere.eserciziRecupero && infoGiornoDaChiudere.eserciziRecupero.length > 0">
+          <v-card-title class="font-weight-black text-orange-lighten-2 d-flex align-center px-0 text-wrap mb-1">
+            <v-icon color="orange-darken-3" class="mr-2 animate-bounce flex-shrink-0" size="24">mdi-alert-circle-outline</v-icon>
+            Esercizio da Recuperare! ⚠️
+          </v-card-title>
+
+          <v-card-text class="px-0 py-3 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+            In questa seduta (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>) c'è un esercizio contrassegnato con <strong class="text-red-lighten-2">RECUPERA</strong>:
+            
+            <div class="my-3 pa-3 rounded-xl border" style="background: rgba(15, 23, 42, 0.7); border-color: rgba(249, 115, 22, 0.35) !important;">
+              <div 
+                v-for="ex in infoGiornoDaChiudere.eserciziRecupero" 
+                :key="ex.id" 
+                class="d-flex align-center gap-2 text-caption font-weight-black text-orange-lighten-2 py-0.5"
+              >
+                <v-icon size="16" color="orange-darken-3">mdi-dumbbell</v-icon>
+                <span class="text-truncate">{{ ex.des_esercizio || ex.des_settore || 'Esercizio incompleto' }}</span>
+              </div>
+            </div>
+
+            Vuoi recuperare prima questo esercizio oppure chiudere comunque la sessione?
+          </v-card-text>
+
+          <v-card-actions class="d-flex flex-column gap-2 px-0 pb-0">
+            <v-btn 
+              color="orange-darken-3" 
+              block 
+              variant="flat" 
+              rounded="lg" 
+              @click="vaiAlRecuperoDaDialog" 
+              class="text-white font-weight-black text-none w-100 mx-0 shadow-md"
+              height="44"
+            >
+              <v-icon class="mr-1.5">mdi-sync</v-icon> 
+              Recupera {{ infoGiornoDaChiudere.eserciziRecupero.length === 1 ? infoGiornoDaChiudere.eserciziRecupero[0].des_esercizio : 'Esercizio Ora' }} ⚠️
+            </v-btn>
+
+            <v-btn 
+              color="green-darken-2" 
+              block 
+              variant="tonal" 
+              rounded="lg" 
+              @click="chiudiRapido" 
+              class="text-white font-weight-black text-none w-100 mx-0"
+              height="44"
+              :loading="caricamentoChiusuraRapida"
+            >
+              <v-icon class="mr-1">mdi-flash</v-icon> Chiudi Comunque Sessione Ora ⚡
+            </v-btn>
+
+            <v-btn 
+              color="slate-dark" 
+              block 
+              variant="text" 
+              rounded="lg" 
+              @click="vaiADettaglioEChiudi" 
+              class="text-slate-light font-weight-bold text-none w-100 mx-0"
+              height="38"
+            >
+              <v-icon class="mr-1">mdi-pencil-outline</v-icon> Aggiungi Note e Chiudi ⏱️
+            </v-btn>
+          </v-card-actions>
+        </template>
+
+        <!-- Caso B: Standard - Nessun esercizio da recuperare -->
+        <template v-else>
+          <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0">
+            <v-icon color="orange-darken-3" class="mr-2 animate-bounce">mdi-trophy-outline</v-icon>
+            Allenamento Completato! ⚡
+          </v-card-title>
+          <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+            Ottimo lavoro! Hai completato tutti gli esercizi per l'allenamento di oggi (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>).
+            <br><br>
+            Scegli come vuoi procedere per registrare i tuoi progressi:
+          </v-card-text>
+          <v-card-actions class="d-flex flex-column gap-2 px-0 pb-0">
+            <v-btn 
+              color="green-darken-2" 
+              block 
+              variant="flat" 
+              rounded="lg" 
+              @click="chiudiRapido" 
+              class="text-white font-weight-black text-none w-100 mx-0"
+              height="44"
+              :loading="caricamentoChiusuraRapida"
+            >
+              <v-icon class="mr-1">mdi-flash</v-icon> Chiudi Sessione Ora ⚡
+            </v-btn>
+            <v-btn 
+              color="orange-darken-3" 
+              block 
+              variant="tonal" 
+              rounded="lg" 
+              @click="vaiADettaglioEChiudi" 
+              class="text-white font-weight-bold text-none w-100 mx-0"
+              height="44"
+            >
+              <v-icon class="mr-1">mdi-pencil-outline</v-icon> Aggiungi Note e Durata ⏱️
+            </v-btn>
+          </v-card-actions>
+        </template>
+
       </v-card>
     </v-dialog>
 
@@ -902,7 +972,7 @@
 import { onMounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero } from './authStore.js';
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
@@ -1140,7 +1210,7 @@ const eseguiLogout = async () => {
 const mostraDialogAvvisoChiusura = ref(false);
 const mostraCongratulazioni = ref(false);
 const caricamentoChiusuraRapida = ref(false);
-const infoGiornoDaChiudere = ref({ giorno: 'A', week: 1 });
+const infoGiornoDaChiudere = ref({ giorno: 'A', week: 1, eserciziRecupero: [] });
 
 const getGiornoDaChiudereGlobale = () => {
   const athlete = selectedAthlete.value;
@@ -1196,7 +1266,17 @@ const getGiornoDaChiudereGlobale = () => {
     });
 
     if (tuttiCompilati) {
-      return { giorno: day, week: activeW, headerId: header.id };
+      const eserciziConRecupero = eserciziDelGiorno.filter(ex => {
+        const val = ex['ins_week' + activeW];
+        return haRecupero(val);
+      });
+
+      return {
+        giorno: day,
+        week: activeW,
+        headerId: header.id,
+        eserciziRecupero: eserciziConRecupero
+      };
     }
   }
 
@@ -1223,7 +1303,9 @@ const cliccaPlayGlobale = () => {
     console.log('[Play - App.vue] Settimana da chiudere dialog shown:', daChiudere);
     infoGiornoDaChiudere.value = {
       giorno: daChiudere.giorno,
-      week: daChiudere.week
+      week: daChiudere.week,
+      headerId: daChiudere.headerId,
+      eserciziRecupero: daChiudere.eserciziRecupero || []
     };
     const athlete = selectedAthlete.value || 'default';
     localStorage.setItem('giornoDaChiudereTemporaneo_' + athlete, daChiudere.giorno);
@@ -1231,6 +1313,32 @@ const cliccaPlayGlobale = () => {
     mostraDialogAvvisoChiusura.value = true;
   } else {
     console.log('[Play - App.vue] Executing eseguiAzionePlay.');
+    eseguiAzionePlay();
+  }
+};
+
+const vaiAlRecuperoDaDialog = () => {
+  mostraDialogAvvisoChiusura.value = false;
+  const exRec = infoGiornoDaChiudere.value.eserciziRecupero && infoGiornoDaChiudere.value.eserciziRecupero[0];
+  const athlete = selectedAthlete.value || 'default';
+  
+  localStorage.removeItem('giornoDaChiudereTemporaneo_' + athlete);
+  localStorage.removeItem('settimanaDaChiudereTemporanea_' + athlete);
+
+  if (exRec && exRec.id) {
+    const week = infoGiornoDaChiudere.value.week;
+    if (typeof vibraTattile === 'function') vibraTattile(12);
+    
+    if (router.currentRoute.value.name === 'Workouts') {
+      triggerPlayClick();
+    } else {
+      router.push({
+        name: 'DettaglioWorkout',
+        params: { id: exRec.id },
+        query: { targetWeek: week }
+      });
+    }
+  } else {
     eseguiAzionePlay();
   }
 };

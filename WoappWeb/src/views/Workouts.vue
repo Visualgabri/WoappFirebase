@@ -5554,12 +5554,12 @@ const recuperiRaggruppati = computed(() => {
   z-index: 99 !important;
   background: var(--bg-main) !important; /* background dinamico per nascondere il contenuto che scorre sotto */
   padding-top: 6px !important;
-  padding-bottom: 4px !important;
+  padding-bottom: 0px !important;
   margin-top: -8px !important;
 }
 .sticky-tabs-container.compatto-tabs {
   padding-top: 4px !important;
-  padding-bottom: 2px !important;
+  padding-bottom: 0px !important;
 }
 .sticky-tabs-container.super-compatto-tabs {
   padding-top: 2px !important;
@@ -5585,38 +5585,46 @@ const recuperiRaggruppati = computed(() => {
 /* Day Selection Tabs Styling */
 .sticky-tabs-container .v-tab {
   transition: all 0.3s ease !important;
-  border-radius: 12px !important;
-  margin: 4px 6px !important;
-  height: calc(100% - 8px) !important;
   min-width: 0 !important;
 }
 
-.sticky-tabs-container.compatto-tabs .v-tab {
-  margin: 2px 4px !important;
-  height: calc(100% - 4px) !important;
-  border-radius: 8px !important;
+/* Override specifico per fusione perfetta dei day tabs header */
+.sticky-tabs-container .day-tabs-header-bar .v-tab {
+  margin: 0 !important;
+  height: 100% !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
 }
 
-.sticky-tabs-container.super-compatto-tabs .v-tab {
-  margin: 1px 3px !important;
-  height: calc(100% - 2px) !important;
-  border-radius: 6px !important;
+[data-theme="dark"] .sticky-tabs-container .day-tabs-header-bar .v-tab--selected,
+:root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar .v-tab--selected,
+.sticky-tabs-container .day-tabs-header-bar .v-tab--selected {
+  margin: 0 !important;
+  margin-bottom: 0px !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+  box-shadow: none !important;
 }
 
-[data-theme="light"] .sticky-tabs-container .v-tab--selected {
-  background: var(--brand-accent-bg, #faf2ec) !important;
-  border: 1.5px solid var(--brand-accent, #c85a17) !important;
-  color: var(--brand-accent, #c85a17) !important;
-  box-shadow: 0 2px 8px var(--brand-accent-glow) !important;
+.sticky-tabs-container .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected,
+:root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected {
+  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
 }
 
-[data-theme="dark"] .sticky-tabs-container .v-tab--selected,
-:root:not([data-theme="light"]) .sticky-tabs-container .v-tab--selected {
-  background: linear-gradient(135deg, #e65100, #ff8f00) !important;
-  border: none !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(230, 81, 0, 0.4) !important;
+.sticky-tabs-container .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected,
+:root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected {
+  background: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%) !important;
 }
+
+.sticky-tabs-container .day-tabs-header-bar.active-tab-theme-verde .v-tab--selected,
+:root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-verde .v-tab--selected {
+  background: linear-gradient(180deg, #065f46 0%, #047857 100%) !important;
+}
+
 .sticky-tabs-container .v-tabs-slider,
 .sticky-tabs-container .v-tabs-slider-wrapper,
 .sticky-tabs-container .v-tab-slider,

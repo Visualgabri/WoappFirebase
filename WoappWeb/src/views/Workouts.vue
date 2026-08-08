@@ -998,7 +998,7 @@
               v-if="block.type === 'superset'"
               class="superset-group-card border-superset elevation-2 text-left"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-2.5' : 'rounded-3xl pa-4 mb-4.5'),
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1 pl-0 mb-1.5' : (layoutEsercizi === 'compatto' ? 'rounded-lg pa-0 compatto-superset-card mb-2' : 'rounded-3xl pa-4 mb-3'),
                 { 'completed': block.exercises.every(ex => ex['ins_week' + settimanaAttivaGiorno] && String(ex['ins_week' + settimanaAttivaGiorno]).trim() !== '') }
               ]"
             >
@@ -1134,21 +1134,21 @@
                   <!-- VISUALIZZAZIONE COMPATTA -->
                   <template v-else-if="layoutEsercizi === 'compatto'">
                     <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                    <div class="d-flex flex-column align-center mr-3.5 mt-1" style="width: 66px; min-width: 66px;">
-                      <div class="position-relative" style="width: 66px; height: 66px;">
+                    <div class="d-flex flex-column align-center ml-1 mr-2.5 mt-1" style="width: 62px; min-width: 62px;">
+                      <div class="position-relative" style="width: 62px; height: 62px;">
                         <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                         <div
                           class="position-absolute d-flex align-center justify-center font-weight-black text-white"
-                          style="top: -6px; left: -6px; min-width: 24px; height: 24px; font-size: 0.74rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 7px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
+                          style="top: -6px; left: -6px; min-width: 22px; height: 22px; font-size: 0.68rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
                         >
                           {{ ex.num_riga_giorno }}
                         </div>
 
-                        <div class="rounded-xl overflow-hidden shadow-sm" style="width: 66px; height: 66px; border: 1px solid var(--card-border);">
+                        <div class="rounded-xl overflow-hidden shadow-sm" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
                           <v-img
                             :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                            width="66px"
-                            height="66px"
+                            width="62px"
+                            height="62px"
                             cover
                             alt="Esercizio"
                             class="bg-grey-lighten-4"
@@ -1164,9 +1164,9 @@
                     </div>
 
                     <!-- Dettagli Centrali Estesi -->
-                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5" style="z-index: 2;">
+                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1 pr-1 text-slate-dark d-flex align-center" style="font-size: 0.86rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
+                      <h4 class="font-weight-black leading-tight mb-1 pr-1 text-slate-dark d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
@@ -1176,10 +1176,10 @@
                       <!-- Settore, Emoji Sforzo e Prescrizione -->
                       <div class="d-flex flex-wrap align-center" style="gap: 2px 8px; margin-bottom: 4px;">
                         <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3">
-                          <span style="font-size: 0.70rem !important;">{{ ex.des_settore || 'Corpo Libero' }}</span>
+                          <span style="font-size: 0.64rem !important;">{{ ex.des_settore || 'Corpo Libero' }}</span>
                           <v-icon size="12" color="orange-darken-3" class="ml-0.5">mdi-fire</v-icon>
                         </div>
-                        <div class="text-caption font-weight-bold text-slate text-truncate pr-1" :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: '0.72rem !important' }]">
+                        <div class="text-caption font-weight-bold text-slate text-truncate pr-1" :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: '0.65rem !important' }]">
                           {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                         </div>
                       </div>
@@ -1196,7 +1196,7 @@
                               'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                               'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                             }"
-                            style="font-size: 0.60rem; padding: 1px 5px; height: 18px; min-width: 30px; cursor: pointer; border-radius: 6px;"
+                            style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
                             @click.stop="vaiAlDettaglio(ex.id)"
                           >
                             <span class="capsule-num font-weight-black">W{{ w }}</span>
@@ -1207,13 +1207,13 @@
                         </div>
 
                         <!-- Timer Recupero e Bottone Azione Rapida allineati insieme a Destra con Spaziatura Vert. -->
-                        <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-2 mt-1" style="row-gap: 4px;">
+                        <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-1.5 mt-0.5" style="row-gap: 3px;">
                           <v-chip
                             v-if="ex.des_rec_report"
                             variant="flat"
                             size="x-small"
                             class="font-weight-black clickable-timer-chip"
-                            style="font-size: 0.65rem !important; height: 22px; padding-left: 6px; padding-right: 6px;"
+                            style="font-size: 0.60rem !important; height: 20px; padding-left: 5px; padding-right: 5px;"
                             @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
                           >
                             ⏱️ {{ ex.des_rec_report }}{{ (ex.alf_superserie && ex.alf_superserie.trim()) ? ' (Riposati)' : '' }}
@@ -1223,9 +1223,9 @@
                             v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                             size="small" 
                             :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
-                            class="font-weight-black text-white px-2 py-0" 
+                            class="font-weight-black text-white px-1.5 py-0" 
                             variant="flat" 
-                            style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                            style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
                             @click.stop="vaiAlDettaglio(ex.id)"
                           >
                             {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
@@ -1234,9 +1234,9 @@
                             v-else-if="ex['ins_week' + settimanaAttivaGiorno] === '-'" 
                             size="small" 
                             color="green-darken-3" 
-                            class="font-weight-black text-white px-2 py-0" 
+                            class="font-weight-black text-white px-1.5 py-0" 
                             variant="flat" 
-                            style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                            style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
                             @click.stop="vaiAlDettaglio(ex.id)"
                           >
                             ✔️ Fatto
@@ -1246,8 +1246,8 @@
                             size="small" 
                             variant="outlined" 
                             color="orange-darken-3" 
-                            class="font-weight-black px-2 py-0 text-none"
-                            style="height: 22px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
+                            class="font-weight-black px-1.5 py-0 text-none"
+                            style="height: 20px; font-size: 0.60rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
                             @click.stop="vaiAlDettaglio(ex.id)"
                           >
                             + Registra
@@ -1394,7 +1394,7 @@
               :id="'esercizio-' + block.exercise.id"
               class="exercise-item-card elevation-1 d-flex align-center"
               :class="[
-                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-2' : (layoutEsercizi === 'compatto' ? 'rounded-lg px-3.5 py-2.5 mb-2.5' : 'rounded-3xl pa-4 mb-4.5'),
+                layoutEsercizi === 'super_compatto' ? 'rounded-md pa-1.5 mb-1.5' : (layoutEsercizi === 'compatto' ? 'rounded-lg px-3 py-2.5 mb-2' : 'rounded-3xl pa-4 mb-3'),
                 { 'completed': block.exercise['ins_week' + settimanaAttivaGiorno] && String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() !== '' }
               ]"
               @click="vaiAlDettaglio(block.exercise.id)"
@@ -1478,41 +1478,24 @@
                 </div>
               </template>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
               <!-- VISUALIZZAZIONE COMPATTA -->
               <template v-else-if="layoutEsercizi === 'compatto'">
                 <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                <div class="d-flex flex-column align-center mr-3.5 mt-1" style="width: 66px; min-width: 66px;">
-                  <div class="position-relative" style="width: 66px; height: 66px;">
+                <div class="d-flex flex-column align-center ml-1 mr-2.5 mt-1" style="width: 62px; min-width: 62px;">
+                  <div class="position-relative" style="width: 62px; height: 62px;">
                     <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                     <div
                       class="position-absolute d-flex align-center justify-center font-weight-black text-white"
-                      style="top: -6px; left: -6px; min-width: 24px; height: 24px; font-size: 0.74rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 7px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
+                      style="top: -6px; left: -6px; min-width: 22px; height: 22px; font-size: 0.68rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
                     >
                       {{ block.exercise.num_riga_giorno }}
                     </div>
 
-                    <div class="rounded-xl overflow-hidden shadow-sm" style="width: 66px; height: 66px; border: 1px solid var(--card-border);">
+                    <div class="rounded-xl overflow-hidden shadow-sm" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
                       <v-img
                         :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                        width="66px"
-                        height="66px"
+                        width="62px"
+                        height="62px"
                         cover
                         alt="Esercizio"
                         class="bg-grey-lighten-4"
@@ -1528,9 +1511,9 @@
                 </div>
 
                 <!-- Dettagli Centrali Estesi -->
-                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5" style="z-index: 2;">
+                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1" style="z-index: 2;">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1 pr-1 text-slate-dark d-flex align-center" style="font-size: 0.86rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
+                  <h4 class="font-weight-black leading-tight mb-1 pr-1 text-slate-dark d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
@@ -1540,10 +1523,10 @@
                   <!-- Settore, Emoji Sforzo e Prescrizione -->
                   <div class="d-flex flex-wrap align-center" style="gap: 2px 8px; margin-bottom: 4px;">
                     <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3">
-                      <span style="font-size: 0.70rem !important;">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                      <span style="font-size: 0.64rem !important;">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
                       <v-icon size="12" color="orange-darken-3" class="ml-0.5">mdi-fire</v-icon>
                     </div>
-                    <div class="text-caption font-weight-bold text-slate text-truncate pr-1" :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: '0.72rem !important' }]">
+                    <div class="text-caption font-weight-bold text-slate text-truncate pr-1" :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: '0.65rem !important' }]">
                       {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                     </div>
                   </div>
@@ -1560,7 +1543,7 @@
                           'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                           'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                         }"
-                        style="font-size: 0.60rem; padding: 1px 5px; height: 18px; min-width: 30px; cursor: pointer; border-radius: 6px;"
+                        style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(block.exercise.id)"
                       >
                         <span class="capsule-num font-weight-black">W{{ w }}</span>
@@ -1571,13 +1554,13 @@
                     </div>
 
                     <!-- Timer Recupero e Bottone Azione Rapida allineati insieme a Destra con Spaziatura Vert. -->
-                    <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-2 mt-1" style="row-gap: 4px;">
+                    <div class="flex-shrink-0 ml-auto d-flex align-center flex-wrap gap-1.5 mt-0.5" style="row-gap: 3px;">
                       <v-chip
                         v-if="block.exercise.des_rec_report"
                         variant="flat"
                         size="x-small"
                         class="font-weight-black clickable-timer-chip"
-                        style="font-size: 0.65rem !important; height: 22px; padding-left: 6px; padding-right: 6px;"
+                        style="font-size: 0.60rem !important; height: 20px; padding-left: 5px; padding-right: 5px;"
                         @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                       >
                         ⏱️ {{ block.exercise.des_rec_report }}
@@ -1587,9 +1570,9 @@
                         v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="small" 
                         :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
-                        class="font-weight-black text-white px-2 py-0" 
+                        class="font-weight-black text-white px-1.5 py-0" 
                         variant="flat" 
-                        style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                        style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(block.exercise.id)"
                       >
                         {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
@@ -1598,9 +1581,9 @@
                         v-else-if="block.exercise['ins_week' + settimanaAttivaGiorno] === '-'" 
                         size="small" 
                         color="green-darken-3" 
-                        class="font-weight-black text-white px-2 py-0" 
+                        class="font-weight-black text-white px-1.5 py-0" 
                         variant="flat" 
-                        style="height: 22px; font-size: 0.65rem; border-radius: 6px;"
+                        style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(block.exercise.id)"
                       >
                         ✔️ Fatto
@@ -1610,8 +1593,8 @@
                         size="small" 
                         variant="outlined" 
                         color="orange-darken-3" 
-                        class="font-weight-black px-2 py-0 text-none"
-                        style="height: 22px; font-size: 0.65rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 6px;"
+                        class="font-weight-black px-1.5 py-0 text-none"
+                        style="height: 20px; font-size: 0.60rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(block.exercise.id)"
                       >
                         + Registra
@@ -5331,15 +5314,15 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .mini-week-capsule {
-  font-size: 0.62rem;
+  font-size: 0.54rem;
   font-weight: 800;
-  padding: 1px 5px;
-  border-radius: 5px;
+  padding: 1px 4px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-  min-width: 25px;
+  min-width: 24px;
   height: 15px;
 }
 
@@ -5354,8 +5337,8 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(135deg, #ea580c, #f97316) !important;
   color: white !important;
   box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
-  transform: scale(1.18);
-  margin: 0 3px;
+  transform: scale(1.15);
+  margin: 0 2px;
   z-index: 1;
   animation: pulse-orange-glow 2s infinite alternate;
 }
@@ -5377,14 +5360,14 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .capsule-num {
-  font-size: 0.55rem;
+  font-size: 0.50rem;
   font-weight: 900;
   letter-spacing: -0.02em;
 }
 
 .capsule-active .capsule-num {
   color: #fde047 !important; /* Giallo brillante su sfondo arancione */
-  font-size: 0.62rem !important;
+  font-size: 0.56rem !important;
 }
 
 .capsule-completed .capsule-num {

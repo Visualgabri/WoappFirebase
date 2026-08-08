@@ -64,15 +64,12 @@
     <!-- Contenuto Principale -->
     <div v-else>
       
-      <div
-        class="sticky-tabs-container"
-        :class="[
-          layoutEsercizi === 'super_compatto' ? 'mb-0' : (layoutEsercizi === 'compatto' ? 'mb-0.5' : 'mb-1'),
-          { 
-            'super-compatto-tabs': layoutEsercizi === 'super_compatto',
-            'compatto-tabs': layoutEsercizi === 'compatto'
-          }
-        ]"
+      <div 
+        class="sticky-tabs-container mb-0" 
+        :class="{ 
+          'super-compatto-tabs': layoutEsercizi === 'super_compatto',
+          'compatto-tabs': layoutEsercizi === 'compatto'
+        }"
         :style="{ top: utente ? '48px' : '0px' }"
       >
         <div 
@@ -111,7 +108,7 @@
           class="day-tabs-header-bar elevation-2 overflow-hidden"
           :class="layoutEsercizi === 'super_compatto' ? 'rounded-t-md' : (layoutEsercizi === 'compatto' ? 'rounded-t-lg' : 'rounded-t-xl')"
           @update:model-value="salvaGiornoSelezionato"
-          :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
+          :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px'), marginBottom: '0px' }"
         >
           <v-tab 
             v-for="giorno in listaGiorniDisponibili" 
@@ -177,7 +174,7 @@
                   :style="{ 
                     width: getProgressoGiorno(giorno).percentuale + '%', 
                     height: '100%', 
-                    background: statoGiorni[giorno] === 'completed' ? '#22c55e' : '#ffffff',
+                    background: statoGiorni[giorno] === 'completed' ? 'var(--color-emerald-700, #4d7c0f)' : 'var(--brand-accent, #c85a17)',
                     transition: 'width 0.3s ease'
                   }"
                 ></div>

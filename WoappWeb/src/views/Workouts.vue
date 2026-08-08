@@ -1176,12 +1176,12 @@
 
                     <!-- Dettagli Centrali Estesi -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2" style="z-index: 2;">
-                      <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
-                        <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
+                      <!-- Titolo Esercizio (Mostrato per intero) -->
+                      <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
+                        <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
-                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
+                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" style="vertical-align: middle;" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
                       <!-- Settore, Emoji Sforzo e Prescrizione Lavoro Troncata con Puntini -->
@@ -1521,12 +1521,12 @@
 
                 <!-- Dettagli Centrali Estesi -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2" style="z-index: 2;">
-                  <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
-                    <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
+                  <!-- Titolo Esercizio (Mostrato per intero) -->
+                  <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
+                    <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
-                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
+                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" style="vertical-align: middle;" title="Video richiesto">mdi-video</v-icon>
                   </h4>
 
                   <!-- Settore, Emoji Sforzo e Prescrizione Lavoro Troncata con Puntini -->

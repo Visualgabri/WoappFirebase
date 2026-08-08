@@ -12161,7 +12161,7 @@ const tornaIndietro = () => {
 }
 
 .appsheet-top-bar {
-  border-bottom: 2px solid #ef6c00;
+  border-bottom: 2px solid var(--theme-primary) !important;
   padding-bottom: 4px; /* Was 8px, reduced to tighten header height */
 }
 
@@ -12375,7 +12375,7 @@ const tornaIndietro = () => {
 }
 
 .border-left-orange {
-  border-left: 2px solid #ef6c00 !important;
+  border-left: 2px solid var(--theme-primary) !important;
 }
 
 .card-glass-dark {

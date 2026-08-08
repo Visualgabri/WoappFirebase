@@ -1130,20 +1130,29 @@ const progressioneSettimanaleChartOptions = ref({
   flex: 1 1 0 !important;
 }
 
+.grafici-custom-tabs :deep(.v-tab__overlay),
+.grafici-custom-tabs :deep(.v-btn__overlay) {
+  display: none !important;
+  opacity: 0 !important;
+}
+
 .grafici-custom-tabs :deep(.v-tab--selected) {
+  background-color: var(--theme-primary) !important;
   background: var(--theme-primary) !important;
   color: #ffffff !important;
   font-weight: 900 !important;
-  box-shadow: 0 2px 8px var(--theme-primary-glow) !important;
+  box-shadow: 0 2px 10px var(--theme-primary-glow) !important;
   opacity: 1 !important;
 }
 
 .grafici-custom-tabs :deep(.v-tab--selected .v-btn__content),
 .grafici-custom-tabs :deep(.v-tab--selected .v-tab__content),
-.grafici-custom-tabs :deep(.v-tab--selected span) {
+.grafici-custom-tabs :deep(.v-tab--selected span),
+.grafici-custom-tabs :deep(.v-tab--selected div) {
   color: #ffffff !important;
   opacity: 1 !important;
   font-weight: 900 !important;
+  z-index: 2 !important;
 }
 
 .grafici-custom-tabs :deep(.v-tab-slider),

@@ -104,12 +104,12 @@
         <v-tabs
           v-else
           v-model="giornoSelezionato"
-          color="orange-darken-3"
+          color="white"
           align-tabs="center"
           grow
           hide-slider
-          class="card-glass elevation-1"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
+          class="day-tabs-header-bar elevation-2 overflow-hidden"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-t-md' : (layoutEsercizi === 'compatto' ? 'rounded-t-lg' : 'rounded-t-xl')"
           @update:model-value="salvaGiornoSelezionato"
           :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
         >
@@ -117,13 +117,13 @@
             v-for="giorno in listaGiorniDisponibili" 
             :key="giorno" 
             :value="giorno" 
-            class="px-2" 
+            class="px-2 day-tab-item" 
             :style="{ height: layoutEsercizi === 'super_compatto' ? '38px' : (layoutEsercizi === 'compatto' ? '48px' : '62px') }"
           >
             <div class="d-flex flex-column align-center justify-center py-1 w-100">
               <div class="d-flex align-center">
                 <span 
-                  class="font-weight-black" 
+                  class="font-weight-black tab-day-letter" 
                   :class="layoutEsercizi === 'super_compatto' ? 'text-body-1' : (layoutEsercizi === 'compatto' ? 'text-subtitle-1' : 'text-h6')" 
                   style="line-height: 1.1;"
                 >
@@ -148,18 +148,16 @@
                 </v-icon>
                 <v-icon
                   v-else-if="statoGiorni[giorno] === 'pending'"
-                  color="orange-darken-3"
+                  color="white"
                   :size="layoutEsercizi === 'super_compatto' ? 10 : 12"
-                  class="ml-1 pulse-active-tab-icon"
+                  class="ml-1 tab-lock-icon"
                 >
                   mdi-lock-open-outline
                 </v-icon>
               </div>
               <span 
                 v-if="layoutEsercizi !== 'super_compatto' && settimanaDaChiuderePerGiorno(giorno)" 
-                class="text-super-caption font-weight-black" 
-                :class="settimanaDaChiuderePerGiorno(giorno) === 'FINE' ? 'text-green-accent-4' : 'text-orange-lighten-2'"
-                style="font-size: 0.58rem; margin-top: 1.5px; line-height: 1; opacity: 0.9;"
+                class="tab-week-indicator font-weight-black mt-0.5" 
               >
                 {{ settimanaDaChiuderePerGiorno(giorno) }}
               </span>
@@ -169,7 +167,7 @@
                 :style="{ 
                   width: '75%', 
                   height: layoutEsercizi === 'super_compatto' ? '2px' : '3px', 
-                  background: 'rgba(255, 255, 255, 0.08)', 
+                  background: 'rgba(255, 255, 255, 0.12)', 
                   borderRadius: '2px', 
                   overflow: 'hidden' 
                 }"
@@ -179,7 +177,7 @@
                   :style="{ 
                     width: getProgressoGiorno(giorno).percentuale + '%', 
                     height: '100%', 
-                    background: statoGiorni[giorno] === 'completed' ? 'var(--color-emerald-700, #4d7c0f)' : 'var(--brand-accent, #c85a17)',
+                    background: statoGiorni[giorno] === 'completed' ? '#22c55e' : '#ffffff',
                     transition: 'width 0.3s ease'
                   }"
                 ></div>
@@ -563,13 +561,9 @@
         <!-- Container Unico Sessione Giorno -->
         <v-card
           v-if="headerGiorno"
-          class="workout-session-container overflow-hidden border elevation-2 mb-6"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-md' : (layoutEsercizi === 'compatto' ? 'rounded-lg' : 'rounded-3xl')"
-          :style="{
-            background: 'linear-gradient(135deg, var(--card-bg-soft), var(--card-bg-glass)) !important',
-            border: '1.5px solid var(--card-border) !important',
-            marginTop: layoutEsercizi === 'super_compatto' ? '-12px' : (layoutEsercizi === 'compatto' ? '-6px' : '0px')
-          }"
+          class="workout-session-container overflow-hidden border elevation-3 mb-6"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-b-md' : (layoutEsercizi === 'compatto' ? 'rounded-b-lg' : 'rounded-b-2xl')"
+          style="border-top: none !important; margin-top: 0px !important;"
         >
           <!-- Intestazione Sessione (ex Day Header Card) -->
           <div
@@ -582,7 +576,7 @@
               },
               'tema-' + temaHeaderGiorno
             ]"
-            style="border-bottom: 1.5px solid rgba(255, 255, 255, 0.08); transition: background 0.2s;"
+            style="border-bottom: 1px solid rgba(255, 255, 255, 0.15); transition: background 0.2s;"
             @click="vaiAlDettaglioSessione(headerGiorno.id)"
           >
           <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
@@ -606,8 +600,9 @@
                 <div class="text-left">
                   <div class="d-flex align-center flex-wrap gap-2">
                     <h3 
-                      class="font-weight-black header-title-text mb-0"
+                      class="font-weight-black header-title-text mb-0 text-white"
                       :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
+                      style="color: #ffffff !important;"
                     >
                       Workout Giorno {{ giornoSelezionato }}
                     </h3>
@@ -654,33 +649,37 @@
                   <!-- Tempo e Calorie in formato testo semplice per Super Compatto -->
                   <div 
                     v-if="layoutEsercizi === 'super_compatto'"
-                    class="text-caption text-muted font-weight-bold d-flex align-center mt-1"
-                    style="font-size: 0.65rem;"
+                    class="text-caption font-weight-bold d-flex align-center mt-1 text-white"
+                    style="font-size: 0.65rem; color: #ffffff !important;"
                   >
                     <span>⏱️ Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
                     <span class="mx-1" style="opacity: 0.5;">•</span>
                     <span>🔥 Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
                   </div>
-<div 
+                  <div 
                     v-if="layoutEsercizi !== 'super_compatto'"
-                    class="text-caption text-muted font-weight-bold d-flex align-center mt-1" 
-                    style="font-size: 0.7rem;"
+                    class="text-caption font-weight-bold d-flex align-center mt-1 text-white" 
+                    style="font-size: 0.72rem; color: #ffffff !important;"
                   >
-                    <v-icon size="13" color="orange" class="mr-1">mdi-fire</v-icon>
-                    Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate
+                    <span class="mr-1">🔥</span>
+                    <span>Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate</span>
                   </div>
                   <div
                     v-if="layoutEsercizi !== 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-0.5 flex-wrap"
-                    style="font-size: 0.68rem; color: var(--text-slate);"
+                    class="text-caption font-weight-bold d-flex align-center mt-0.5 flex-wrap text-white"
+                    style="font-size: 0.72rem; color: #ffffff !important;"
                   >
-                    <v-icon size="13" color="grey" class="mr-1">mdi-clock-outline</v-icon>
+                    <span class="mr-1">⏱️</span>
                     <span>Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
-                    <span class="mx-1.5" style="opacity: 0.5;"> </span>
-                    <span :class="getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).textClass" class="d-inline-flex align-center">
+                    <span class="mx-1.5" style="opacity: 0.7;"> </span>
+                    <span class="d-inline-flex align-center">
                       <span class="mr-0.5">{{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }}</span>
-                      {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
-                      <span class="ml-1" style="font-weight: 500;">({{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label.replace(/Focus\s*/gi, '') }})</span>
+                      <span class="px-1.5 py-0.5 rounded-pill text-white font-weight-black mx-1" style="font-size: 0.65rem; background: rgba(0,0,0,0.3) !important;">
+                        {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
+                      </span>
+                      <span class="ml-0.5 font-weight-black" style="color: #fde047 !important;">
+                        ({{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label.replace(/Focus\s*/gi, '') }})
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -949,23 +948,24 @@
           <div 
             class="border-top-soft text-left" 
             :class="layoutEsercizi === 'super_compatto' ? 'mt-1.5 pt-1.5' : (layoutEsercizi === 'compatto' ? 'mt-2 pt-2' : 'mt-3 pt-2.5')"
+            style="border-top: 1px solid rgba(255, 255, 255, 0.2) !important;"
           >
             <div 
               v-if="layoutEsercizi !== 'super_compatto'"
-              class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-grey-lighten-1 mb-1.5" 
-              style="font-size: 0.6rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+              class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase text-white mb-1.5" 
+              style="font-size: 0.68rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ffffff !important;"
             >
-              <span>🔋 Avanzamento</span>
-              <span class="text-orange-lighten-2">{{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%</span>
+              <span class="text-white" style="color: #ffffff !important;"><span class="mr-1">🧃</span> Avanzamento</span>
+              <span class="text-white font-weight-bold" style="color: #ffffff !important;">{{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%</span>
             </div>
-            <div class="session-progress-bar-container rounded-full overflow-hidden" :style="{ height: layoutEsercizi === 'super_compatto' ? '3px' : '5px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.03)' }">
+            <div class="session-progress-bar-container rounded-full overflow-hidden" :style="{ height: layoutEsercizi === 'super_compatto' ? '4px' : '6px', background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(255, 255, 255, 0.15)' }">
               <div
                 class="session-progress-bar-fill rounded-full"
                 :style="{
                   width: progressoSessione.percentuale + '%',
                   height: '100%',
-                  background: 'linear-gradient(90deg, #f97316, #ff8f00)',
-                  boxShadow: '0 0 10px rgba(249, 115, 22, 0.6)',
+                  background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                  boxShadow: '0 0 10px rgba(251, 191, 36, 0.7)',
                   transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
                 }"
               ></div>
@@ -5763,74 +5763,112 @@ const recuperiRaggruppati = computed(() => {
   line-height: 26px !important;
 }
 
+.day-tabs-header-bar {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: none !important;
+  margin-bottom: 0px !important;
+}
+
+.day-tabs-header-bar .v-tab {
+  color: #cbd5e1 !important;
+  opacity: 0.85;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 12px 12px 0 0 !important;
+  text-transform: none !important;
+}
+
+.day-tabs-header-bar .v-tab:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.day-tabs-header-bar .v-tab--selected {
+  opacity: 1 !important;
+  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
+  color: #ffffff !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25) !important;
+}
+
+.day-tabs-header-bar .v-tab--selected span,
+.day-tabs-header-bar .v-tab--selected .v-icon {
+  color: #ffffff !important;
+}
+
+.tab-week-indicator {
+  font-size: 0.62rem;
+  line-height: 1;
+  padding-bottom: 2px;
+}
+
+.day-tabs-header-bar .v-tab--selected .tab-week-indicator {
+  color: #ffffff !important;
+  border-bottom: 2px solid #ffffff !important;
+}
+
+.day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-week-indicator {
+  color: #4ade80 !important;
+  border-bottom: 2px solid #22c55e !important;
+}
+
 .day-header-section {
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Tema Arancio (Default) */
+/* Tema Arancio (Default) - Continuità perfetta con il tab attivo */
 .day-header-section.tema-arancio {
-  background: linear-gradient(135deg, rgba(234, 88, 12, 0.12) 0%, rgba(249, 115, 22, 0.04) 100%) !important;
-  border-left: 4px solid #ea580c !important;
+  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
+  border-left: none !important;
+  color: #ffffff !important;
 }
+
 .day-header-section.tema-arancio:hover {
-  background: linear-gradient(135deg, rgba(234, 88, 12, 0.2) 0%, rgba(249, 115, 22, 0.08) 100%) !important;
-  border-left-color: #f97316 !important;
-  box-shadow: inset 0 0 12px rgba(249, 115, 22, 0.1);
-}
-.day-header-section.tema-arancio:active {
-  background: linear-gradient(135deg, rgba(234, 88, 12, 0.25) 0%, rgba(249, 115, 22, 0.12) 100%) !important;
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%) !important;
 }
 
-/* Tema Blu (Cobalto) */
-.day-header-section.tema-blu {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.18) 0%, rgba(15, 23, 42, 0.4) 100%) !important;
-  border-left: 4px solid #3b82f6 !important;
-}
-.day-header-section.tema-blu:hover {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.28) 0%, rgba(15, 23, 42, 0.5) 100%) !important;
-  border-left-color: #60a5fa !important;
-  box-shadow: inset 0 0 12px rgba(59, 130, 246, 0.15);
-}
-.day-header-section.tema-blu:active {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
-}
-
-/* Tema Verde (Smeraldo) */
-.day-header-section.tema-verde {
-  background: linear-gradient(135deg, rgba(6, 95, 70, 0.15) 0%, rgba(15, 23, 42, 0.4) 100%) !important;
-  border-left: 4px solid #10b981 !important;
-}
-.day-header-section.tema-verde:hover {
-  background: linear-gradient(135deg, rgba(6, 95, 70, 0.25) 0%, rgba(15, 23, 42, 0.5) 100%) !important;
-  border-left-color: #34d399 !important;
-  box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.15);
-}
-.day-header-section.tema-verde:active {
-  background: linear-gradient(135deg, rgba(6, 95, 70, 0.32) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
-}
-
-/* Header Title Text Theme Overrides */
 .tema-arancio .header-title-text {
-  color: #fb923c !important;
-}
-.tema-blu .header-title-text {
-  color: #60a5fa !important;
-}
-.tema-verde .header-title-text {
-  color: #34d399 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
 }
 
-[data-theme="light"] .tema-arancio .header-title-text,
-[data-theme="light"] .tema-blu .header-title-text,
-[data-theme="light"] .tema-verde .header-title-text {
-  color: var(--text-dark, #1e293b) !important;
-}
-
-/* Giorno Big Letter Theme Overrides */
 .tema-arancio .giorno-big-letter {
-  background: linear-gradient(135deg, #e65100, #ff8f00) !important;
-  box-shadow: 0 4px 10px rgba(230, 81, 0, 0.3) !important;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.tema-arancio .mini-week-capsule.capsule-completed {
+  background: rgba(15, 23, 42, 0.65) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.tema-arancio .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.tema-arancio .mini-week-capsule.capsule-pending {
+  background: rgba(15, 23, 42, 0.35) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.workout-session-container {
+  margin-top: 0px !important;
+  border-top-left-radius: 0px !important;
+  border-top-right-radius: 0px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  border-top: none !important;
 }
 
 [data-theme="light"] .tema-arancio .giorno-big-letter {

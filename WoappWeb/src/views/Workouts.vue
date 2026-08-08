@@ -1184,48 +1184,51 @@
                         </div>
                       </div>
 
-                      <!-- Cronologia Carichi (W1-W6) -->
-                      <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
-                        <div
-                          v-for="w in [1, 2, 3, 4, 5, 6]"
-                          :key="w"
-                          class="mini-week-capsule d-inline-flex align-center"
-                          :class="{
-                            'capsule-active': w === settimanaAttivaGiorno,
-                            'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                            'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
-                          }"
-                          style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
-                          @click.stop="vaiAlDettaglio(ex.id)"
-                        >
-                          <span class="capsule-num font-weight-black">W{{ w }}</span>
-                          <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
-                            {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
-                          </span>
+                      <!-- Cronologia Carichi (W1-W6) & Timer Recupero in Basso a Destra -->
+                      <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                        <div class="d-flex align-center gap-1 flex-wrap">
+                          <div
+                            v-for="w in [1, 2, 3, 4, 5, 6]"
+                            :key="w"
+                            class="mini-week-capsule d-inline-flex align-center"
+                            :class="{
+                              'capsule-active': w === settimanaAttivaGiorno,
+                              'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                              'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                            }"
+                            style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
+                            @click.stop="vaiAlDettaglio(ex.id)"
+                          >
+                            <span class="capsule-num font-weight-black">W{{ w }}</span>
+                            <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
+                              {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
+                            </span>
+                          </div>
                         </div>
+
+                        <!-- Timer Recupero posizionato in Basso a Destra -->
+                        <v-chip
+                          v-if="ex.des_rec_report"
+                          variant="flat"
+                          size="x-small"
+                          class="font-weight-black clickable-timer-chip ml-auto"
+                          style="font-size: 0.58rem !important; height: 18px; padding-left: 5px; padding-right: 5px;"
+                          @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
+                        >
+                          ⏱️ {{ ex.des_rec_report }}
+                        </v-chip>
                       </div>
                     </div>
 
-                    <!-- Colonna Azione e Timer (Allineata a Destra e PERFETTAMENTE CENTRATA IN VERTICALE) -->
-                    <div class="flex-shrink-0 ml-auto d-flex flex-column align-end justify-center py-1 pl-1 gap-1" style="align-self: center; z-index: 2;">
-                      <v-chip
-                        v-if="ex.des_rec_report"
-                        variant="flat"
-                        size="x-small"
-                        class="font-weight-black clickable-timer-chip"
-                        style="font-size: 0.60rem !important; height: 20px; padding-left: 5px; padding-right: 5px;"
-                        @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
-                      >
-                        ⏱️ {{ ex.des_rec_report }}
-                      </v-chip>
-
+                    <!-- Colonna Azione (Allineata a Destra e PERFETTAMENTE CENTRATA IN VERTICALE) -->
+                    <div class="flex-shrink-0 ml-auto d-flex align-center justify-center pl-1" style="align-self: center; z-index: 2;">
                       <v-chip 
                         v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="small" 
                         :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                         class="font-weight-black text-white px-1.5 py-0" 
                         variant="flat" 
-                        style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
+                        style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
@@ -1236,7 +1239,7 @@
                         color="green-darken-3" 
                         class="font-weight-black text-white px-1.5 py-0" 
                         variant="flat" 
-                        style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
+                        style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         ✔️ Fatto
@@ -1247,7 +1250,7 @@
                         variant="outlined" 
                         color="orange-darken-3" 
                         class="font-weight-black px-1.5 py-0 text-none"
-                        style="height: 20px; font-size: 0.60rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
+                        style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         + Registra
@@ -1529,48 +1532,51 @@
                     </div>
                   </div>
 
-                  <!-- Cronologia Carichi (W1-W6) -->
-                  <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
-                    <div
-                      v-for="w in [1, 2, 3, 4, 5, 6]"
-                      :key="w"
-                      class="mini-week-capsule d-inline-flex align-center"
-                      :class="{
-                        'capsule-active': w === settimanaAttivaGiorno,
-                        'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                        'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
-                      }"
-                      style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
-                      @click.stop="vaiAlDettaglio(block.exercise.id)"
-                    >
-                      <span class="capsule-num font-weight-black">W{{ w }}</span>
-                      <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
-                        {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
-                      </span>
+                  <!-- Cronologia Carichi (W1-W6) & Timer Recupero in Basso a Destra -->
+                  <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                    <div class="d-flex align-center gap-1 flex-wrap">
+                      <div
+                        v-for="w in [1, 2, 3, 4, 5, 6]"
+                        :key="w"
+                        class="mini-week-capsule d-inline-flex align-center"
+                        :class="{
+                          'capsule-active': w === settimanaAttivaGiorno,
+                          'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                          'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                        }"
+                        style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
+                        @click.stop="vaiAlDettaglio(block.exercise.id)"
+                      >
+                        <span class="capsule-num font-weight-black">W{{ w }}</span>
+                        <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
+                          {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
+                        </span>
+                      </div>
                     </div>
+
+                    <!-- Timer Recupero posizionato in Basso a Destra -->
+                    <v-chip
+                      v-if="block.exercise.des_rec_report"
+                      variant="flat"
+                      size="x-small"
+                      class="font-weight-black clickable-timer-chip ml-auto"
+                      style="font-size: 0.58rem !important; height: 18px; padding-left: 5px; padding-right: 5px;"
+                      @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
+                    >
+                      ⏱️ {{ block.exercise.des_rec_report }}
+                    </v-chip>
                   </div>
                 </div>
 
-                <!-- Colonna Azione e Timer (Allineata a Destra e PERFETTAMENTE CENTRATA IN VERTICALE) -->
-                <div class="flex-shrink-0 ml-auto d-flex flex-column align-end justify-center py-1 pl-1 gap-1" style="align-self: center; z-index: 2;">
-                  <v-chip
-                    v-if="block.exercise.des_rec_report"
-                    variant="flat"
-                    size="x-small"
-                    class="font-weight-black clickable-timer-chip"
-                    style="font-size: 0.60rem !important; height: 20px; padding-left: 5px; padding-right: 5px;"
-                    @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
-                  >
-                    ⏱️ {{ block.exercise.des_rec_report }}
-                  </v-chip>
-
+                <!-- Colonna Azione (Allineata a Destra e PERFETTAMENTE CENTRATA IN VERTICALE) -->
+                <div class="flex-shrink-0 ml-auto d-flex align-center justify-center pl-1" style="align-self: center; z-index: 2;">
                   <v-chip 
                     v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                     size="small" 
                     :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                     class="font-weight-black text-white px-1.5 py-0" 
                     variant="flat" 
-                    style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
+                    style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
@@ -1581,7 +1587,7 @@
                     color="green-darken-3" 
                     class="font-weight-black text-white px-1.5 py-0" 
                     variant="flat" 
-                    style="height: 20px; font-size: 0.60rem; border-radius: 5px;"
+                    style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     ✔️ Fatto
@@ -1592,7 +1598,7 @@
                     variant="outlined" 
                     color="orange-darken-3" 
                     class="font-weight-black px-1.5 py-0 text-none"
-                    style="height: 20px; font-size: 0.60rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
+                    style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     + Registra

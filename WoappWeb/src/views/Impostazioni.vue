@@ -1,19 +1,19 @@
 <template>
   <v-container 
-    class="px-3 max-width-container min-height-screen pb-8"
-    :class="layoutEserciziGlobal === 'super_compatto' ? 'py-1.5' : 'py-3'"
+    class="px-3 max-width-container min-height-screen pb-6 pt-1"
+    :class="layoutEserciziGlobal === 'super_compatto' ? 'py-1' : 'py-1.5'"
   >
     <!-- Header Compatto -->
-    <div class="d-flex align-center justify-space-between px-1 mb-3 animate-slide-down">
+    <div class="d-flex align-center justify-space-between px-0.5 mb-2 animate-slide-down">
       <div class="d-flex align-center">
-        <v-icon color="orange-darken-3" class="mr-2" size="20">mdi-cog</v-icon>
-        <h1 class="text-h6 font-weight-black text-slate-dark tracking-tight leading-none">Impostazioni</h1>
+        <v-icon color="orange-darken-3" class="mr-1.5" size="17">mdi-cog</v-icon>
+        <h1 class="text-subtitle-2 font-weight-black text-slate-dark tracking-tight leading-none" style="font-size: 0.88rem; letter-spacing: -0.01em;">Impostazioni</h1>
       </div>
     </div>
 
     <!-- SEZIONE 1: PROFILO UTENTE (COMPATTO 1 RIGA) -->
     <v-card 
-      class="premium-card rounded-xl text-left border position-relative overflow-hidden mb-3 animate-slide-down pa-3"
+      class="premium-card rounded-xl text-left border position-relative overflow-hidden mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
       <div class="glowing-accent"></div>
@@ -46,11 +46,11 @@
 
     <!-- SEZIONE 2: TEMA & ASPETTO -->
     <v-card 
-      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
       <div class="d-flex align-center mb-2.5">
-        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-palette-outline</v-icon>
+        <v-icon color="orange-darken-3" class="mr-2" size="17">mdi-palette-outline</v-icon>
         <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Tema & Aspetto</span>
       </div>
 
@@ -61,20 +61,20 @@
         density="compact"
         rounded="lg"
         class="w-100 card-glass border mb-1"
-        style="height: 34px;"
+        style="height: 32px;"
         @update:model-value="cambiaTemaDaImpostazioni"
       >
-        <v-btn value="dark" class="font-weight-bold flex-grow-1" style="font-size: 0.72rem; min-width: 50%;">
-          <v-icon class="mr-1" size="15">mdi-weather-night</v-icon> Scuro
+        <v-btn value="dark" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
+          <v-icon class="mr-1" size="14">mdi-weather-night</v-icon> Scuro
         </v-btn>
-        <v-btn value="light" class="font-weight-bold flex-grow-1" style="font-size: 0.72rem; min-width: 50%;">
-          <v-icon class="mr-1" size="15">mdi-white-balance-sunny</v-icon> Chiaro
+        <v-btn value="light" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
+          <v-icon class="mr-1" size="14">mdi-white-balance-sunny</v-icon> Chiaro
         </v-btn>
       </v-btn-toggle>
 
       <!-- Variante Tema Chiaro -->
       <div v-if="selectedTheme === 'light'" class="mt-2.5 pt-2 border-top-soft">
-        <span class="text-caption font-weight-bold text-muted uppercase d-block mb-1.5" style="font-size: 0.65rem;">Stile Chiaro</span>
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Stile Chiaro</span>
         <v-btn-toggle
           v-model="selectedLightStyle"
           mandatory
@@ -94,17 +94,17 @@
 
     <!-- SEZIONE 3: LAYOUT & INTERFACCIA -->
     <v-card 
-      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
       <div class="d-flex align-center mb-2.5">
-        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-view-dashboard-outline</v-icon>
+        <v-icon color="orange-darken-3" class="mr-2" size="17">mdi-view-dashboard-outline</v-icon>
         <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Layout & Interfaccia</span>
       </div>
 
       <!-- Layout Lista -->
       <div class="mb-2.5">
-        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.66rem;">Layout Lista</span>
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Layout Lista</span>
         <v-btn-toggle
           v-model="layoutEsercizi"
           mandatory
@@ -122,7 +122,7 @@
 
       <!-- Layout Dettaglio -->
       <div class="mb-2.5">
-        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.66rem;">Layout Dettaglio</span>
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Layout Dettaglio</span>
         <v-btn-toggle
           v-model="layoutDettaglio"
           mandatory
@@ -141,7 +141,7 @@
 
       <!-- Tasto Play -->
       <div class="mb-2.5">
-        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.66rem;">Tasto Play</span>
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Tasto Play</span>
         <v-btn-toggle
           v-model="comportamentoPlay"
           mandatory
@@ -159,7 +159,7 @@
 
       <!-- Colore Giorni Workout -->
       <div>
-        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.66rem;">Colore Giorni</span>
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Colore Giorni</span>
         <v-btn-toggle
           v-model="temaHeaderGiorno"
           mandatory
@@ -178,19 +178,19 @@
 
     <!-- SEZIONE 4: PARAMETRI ALLENAMENTO -->
     <v-card 
-      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3.5"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
-      <div class="d-flex align-center mb-3">
-        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-dumbbell</v-icon>
+      <div class="d-flex align-center mb-2.5">
+        <v-icon color="orange-darken-3" class="mr-2" size="17">mdi-dumbbell</v-icon>
         <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Parametri Allenamento</span>
       </div>
 
-      <div class="d-flex flex-column gap-2.5">
+      <div class="d-flex flex-column gap-1.5">
         <!-- Bilanciere Default -->
-        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
-          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.74rem;">Bilanciere Default</span>
-          <div style="max-width: 135px; width: 45%;">
+        <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.72rem;">Bilanciere Default</span>
+          <div style="width: 140px; flex-shrink: 0;">
             <v-select
               v-model="defaultBilanciere"
               :items="[
@@ -211,20 +211,22 @@
         </div>
 
         <!-- Vibrazione Tattile -->
-        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
-          <span class="text-caption font-weight-bold text-slate-dark" style="font-size: 0.74rem;">Vibrazione Tattile</span>
-          <v-switch
-            v-model="vibrazioneAttiva"
-            color="orange-darken-3"
-            hide-details
-            density="compact"
-          ></v-switch>
+        <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+          <span class="text-caption font-weight-bold text-slate-dark" style="font-size: 0.72rem;">Vibrazione Tattile</span>
+          <div class="compact-switch">
+            <v-switch
+              v-model="vibrazioneAttiva"
+              color="orange-darken-3"
+              hide-details
+              density="compact"
+            ></v-switch>
+          </div>
         </div>
 
         <!-- Recupero Default -->
-        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
-          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.74rem;">Recupero Default</span>
-          <div style="max-width: 135px; width: 45%;">
+        <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.72rem;">Recupero Default</span>
+          <div style="width: 140px; flex-shrink: 0;">
             <v-select
               v-model="defaultTimerRec"
               :items="[
@@ -246,9 +248,9 @@
         </div>
 
         <!-- Tema Timer -->
-        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
-          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.74rem;">Tema Timer</span>
-          <div style="max-width: 135px; width: 45%;">
+        <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.72rem;">Tema Timer</span>
+          <div style="width: 140px; flex-shrink: 0;">
             <v-select
               v-model="timerTheme"
               :items="[
@@ -266,81 +268,89 @@
           </div>
         </div>
 
-        <v-divider class="my-2.5 border-soft" style="opacity: 0.2;"></v-divider>
+        <v-divider class="my-2 border-soft" style="opacity: 0.2;"></v-divider>
 
         <!-- Suggerimenti Ghost -->
         <div>
-          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-2" style="font-size: 0.66rem;">Suggerimenti Ghost</span>
+          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Suggerimenti Ghost</span>
           <v-btn-toggle
             v-model="stileVisualizzazioneGhost"
             mandatory
             selected-class="bg-orange-darken-3 text-white"
             density="compact"
             rounded="lg"
-            class="w-100 card-glass border mb-2.5"
-            style="height: 34px;"
+            class="w-100 card-glass border mb-2"
+            style="height: 32px;"
           >
             <v-btn value="range" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Solo Range</v-btn>
             <v-btn value="forma" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Stato Forma</v-btn>
           </v-btn-toggle>
           
-          <div class="d-flex flex-column gap-2.5 rounded-xl pa-3.5 inner-setting-box border-soft">
+          <div class="d-flex flex-column gap-1.5 rounded-xl pa-2.5 inner-setting-box border-soft">
             <!-- Attacco al Record (PR) -->
-            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <span class="text-caption font-weight-bold text-amber-lighten-2" style="font-size: 0.72rem;">Attacco Record (PR)</span>
-              <v-switch
-                v-model="ghostPRAttackAttivo"
-                color="amber-darken-2"
-                hide-details
-                density="compact"
-              ></v-switch>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="ghostPRAttackAttivo"
+                  color="amber-darken-2"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
             </div>
             
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Autoregolazione Reps -->
-            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <span class="text-caption font-weight-bold text-green-accent-3" style="font-size: 0.72rem;">Autoregolazione Reps</span>
-              <v-switch
-                v-model="ghostAutoregolazioneRepsAttiva"
-                color="green-darken-2"
-                hide-details
-                density="compact"
-              ></v-switch>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="ghostAutoregolazioneRepsAttiva"
+                  color="green-darken-2"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
             </div>
 
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Sfida Record Week 1 -->
-            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.72rem;">Sfida Record in W1</span>
-              <v-switch
-                v-model="sfidaRecordWeek1"
-                color="orange-darken-3"
-                hide-details
-                density="compact"
-              ></v-switch>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="sfidaRecordWeek1"
+                  color="orange-darken-3"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
             </div>
 
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Ottimizza Digitazione Note -->
-            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.72rem;">Ottimizza Note</span>
-              <v-switch
-                v-model="ottimizzaDigitazione"
-                color="orange-darken-3"
-                hide-details
-                density="compact"
-              ></v-switch>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="ottimizzaDigitazione"
+                  color="orange-darken-3"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
             </div>
 
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
 
             <!-- Regola Progressione Week 2 -->
-            <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <span class="text-caption font-weight-bold text-orange-lighten-2 pr-2" style="font-size: 0.72rem;">Progressione W2</span>
-              <div style="max-width: 135px; width: 45%;">
+              <div style="width: 140px; flex-shrink: 0;">
                 <v-select
                   v-model="regolaProgressioneW2"
                   :items="[
@@ -364,16 +374,16 @@
     <!-- SEZIONE 5: NOTIFICA DEPLOY / MESSAGGIO (SOLO COACH) -->
     <v-card 
       v-if="ruolo === 'coach'"
-      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
       :style="{ borderColor: tipoNotificaForm === 'deploy' ? 'rgba(249, 115, 22, 0.45) !important' : 'rgba(168, 85, 247, 0.5) !important' }"
     >
       <div class="d-flex align-center justify-space-between mb-2.5">
         <div class="d-flex align-center gap-1.5">
-          <v-icon :color="tipoNotificaForm === 'deploy' ? 'orange-darken-3' : 'purple-darken-1'" size="18">
+          <v-icon :color="tipoNotificaForm === 'deploy' ? 'orange-darken-3' : 'purple-darken-1'" size="17">
             {{ tipoNotificaForm === 'deploy' ? 'mdi-rocket-launch-outline' : 'mdi-comment-text-outline' }}
           </v-icon>
-          <span class="font-weight-black uppercase" :class="tipoNotificaForm === 'deploy' ? 'text-orange-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.70rem; letter-spacing: 0.03em;">
+          <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :class="tipoNotificaForm === 'deploy' ? 'text-orange-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.72rem;">
             {{ tipoNotificaForm === 'deploy' ? 'Notifica Deploy' : 'Messaggio Privato' }}
           </span>
         </div>
@@ -414,7 +424,7 @@
         <!-- AMBIENTE 1: DEPLOY GLOBALE -->
         <template v-if="tipoNotificaForm === 'deploy'">
           <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-slate-dark d-block mb-1" style="font-size: 0.66rem;">Titolo Notifica</span>
+            <span class="text-caption font-weight-bold text-slate-dark d-block mb-1" style="font-size: 0.65rem;">Titolo Notifica</span>
             <v-text-field
               v-model="titoloDeployForm"
               placeholder="Titolo..."
@@ -427,7 +437,7 @@
           </div>
 
           <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-slate-dark d-block mb-1" style="font-size: 0.66rem;">Note Rilascio</span>
+            <span class="text-caption font-weight-bold text-slate-dark d-block mb-1" style="font-size: 0.65rem;">Note Rilascio</span>
             <v-textarea
               v-model="messaggioDeployGeneraleForm"
               placeholder="Descrizione..."
@@ -447,7 +457,7 @@
             variant="flat"
             rounded="lg"
             class="font-weight-black text-none text-white mt-2"
-            style="height: 34px; font-size: 0.74rem;"
+            style="height: 32px; font-size: 0.72rem;"
             @click="eseguiInvioNotificaDeploy"
             :loading="inviandoDeployNotifica"
           >
@@ -458,7 +468,7 @@
         <!-- AMBIENTE 2: MESSAGGIO PRIVATO -->
         <template v-else>
           <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.66rem;">Atleta Destinatario</span>
+            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Atleta Destinatario</span>
             <v-select
               v-model="atletaDeployTargetForm"
               :items="listaAtletiSoloSingoli"
@@ -472,7 +482,7 @@
           </div>
 
           <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.66rem;">Oggetto</span>
+            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Oggetto</span>
             <v-text-field
               v-model="titoloDeployForm"
               placeholder="Oggetto..."
@@ -485,7 +495,7 @@
           </div>
 
           <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.66rem;">Testo Messaggio</span>
+            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Testo Messaggio</span>
             <v-textarea
               v-model="messaggioDeployGeneraleForm"
               placeholder="Scrivi messaggio..."
@@ -505,7 +515,7 @@
             variant="flat"
             rounded="lg"
             class="font-weight-black text-none text-white mt-2"
-            style="height: 34px; font-size: 0.74rem;"
+            style="height: 32px; font-size: 0.72rem;"
             :disabled="!atletaDeployTargetForm || atletaDeployTargetForm === 'tutti'"
             @click="eseguiInvioNotificaDeploy"
             :loading="inviandoDeployNotifica"
@@ -523,11 +533,11 @@
     <!-- SEZIONE 6: BACKUP & RIPRISTINO DATI -->
     <v-card 
       v-if="atletaSelezionato && schedaSelezionata"
-      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
       <div class="d-flex align-center mb-2.5">
-        <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-database-outline</v-icon>
+        <v-icon color="orange-darken-3" class="mr-2" size="17">mdi-database-outline</v-icon>
         <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Backup & Ripristino (Scheda {{ schedaSelezionata }})</span>
       </div>
 
@@ -540,7 +550,7 @@
           prepend-icon="mdi-download"
           @click="esportaSchedaJSON"
           :loading="esportandoJSON"
-          style="height: 34px; font-size: 0.72rem;"
+          style="height: 32px; font-size: 0.72rem;"
         >
           Esporta JSON
         </v-btn>
@@ -553,7 +563,7 @@
           prepend-icon="mdi-upload"
           @click="triggerInputFile"
           :loading="importandoJSON"
-          style="height: 34px; font-size: 0.72rem;"
+          style="height: 32px; font-size: 0.72rem;"
         >
           Importa JSON
         </v-btn>
@@ -570,13 +580,13 @@
     <!-- SEZIONE 7: RESET DATI CARICO (SOLO COACH) -->
     <v-card 
       v-if="ruolo === 'coach' && atletaSelezionato && schedaSelezionata"
-      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
       style="border-color: rgba(239, 68, 68, 0.3) !important;"
     >
       <div class="d-flex align-center justify-space-between">
         <div class="d-flex align-center gap-1.5">
-          <v-icon color="red-darken-1" size="18">mdi-alert-octagon-outline</v-icon>
+          <v-icon color="red-darken-1" size="17">mdi-alert-octagon-outline</v-icon>
           <span class="text-subtitle-2 font-weight-black text-red-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">
             Reset Carichi (Scheda {{ schedaSelezionata }})
           </span>
@@ -601,8 +611,8 @@
       block
       size="small"
       rounded="lg"
-      class="font-weight-black text-none py-1 mb-5 animate-slide-down"
-      style="height: 38px; font-size: 0.78rem;"
+      class="font-weight-black text-none py-1 mb-4 animate-slide-down"
+      style="height: 36px; font-size: 0.76rem;"
       @click="disconnettiAccount"
     >
       <v-icon left class="mr-1.5" size="16">mdi-logout</v-icon>
@@ -1275,6 +1285,22 @@ const formattaDataEsportazione = (isoString) => {
 .ultra-compact-select :deep(.v-field__append-inner .v-icon) {
   font-size: 14px !important;
   opacity: 0.7;
+}
+
+/* Compact Switch Alignment */
+.compact-switch {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  height: 28px !important;
+}
+.compact-switch :deep(.v-selection-control) {
+  min-height: 28px !important;
+  height: 28px !important;
+  margin-inline-end: -6px !important;
+}
+.compact-switch :deep(.v-selection-control__wrapper) {
+  height: 24px !important;
 }
 
 /* Light Theme Overrides in Settings */

@@ -1184,29 +1184,27 @@
                         </div>
                       </div>
 
-                      <!-- Cronologia Carichi (W1-W6) & Timer Recupero in Basso a Destra -->
-                      <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
-                        <div class="d-flex align-center gap-1 flex-wrap">
-                          <div
-                            v-for="w in [1, 2, 3, 4, 5, 6]"
-                            :key="w"
-                            class="mini-week-capsule d-inline-flex align-center"
-                            :class="{
-                              'capsule-active': w === settimanaAttivaGiorno,
-                              'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                              'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
-                            }"
-                            style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
-                            @click.stop="vaiAlDettaglio(ex.id)"
-                          >
-                            <span class="capsule-num font-weight-black">W{{ w }}</span>
-                            <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
-                              {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
-                            </span>
-                          </div>
+                      <!-- Cronologia Carichi (W1-W6) & Timer Recupero nella Stessa Fila Flex Wrap -->
+                      <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                        <div
+                          v-for="w in [1, 2, 3, 4, 5, 6]"
+                          :key="w"
+                          class="mini-week-capsule d-inline-flex align-center"
+                          :class="{
+                            'capsule-active': w === settimanaAttivaGiorno,
+                            'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                            'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                          }"
+                          style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
+                          @click.stop="vaiAlDettaglio(ex.id)"
+                        >
+                          <span class="capsule-num font-weight-black">W{{ w }}</span>
+                          <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
+                            {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
+                          </span>
                         </div>
 
-                        <!-- Timer Recupero posizionato in Basso a Destra -->
+                        <!-- Timer Recupero posizionato nella stessa fila flex wrap (in fondo alla seconda riga se va a capo) -->
                         <v-chip
                           v-if="ex.des_rec_report"
                           variant="flat"
@@ -1532,29 +1530,27 @@
                     </div>
                   </div>
 
-                  <!-- Cronologia Carichi (W1-W6) & Timer Recupero in Basso a Destra -->
-                  <div class="d-flex align-center justify-space-between flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
-                    <div class="d-flex align-center gap-1 flex-wrap">
-                      <div
-                        v-for="w in [1, 2, 3, 4, 5, 6]"
-                        :key="w"
-                        class="mini-week-capsule d-inline-flex align-center"
-                        :class="{
-                          'capsule-active': w === settimanaAttivaGiorno,
-                          'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                          'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
-                        }"
-                        style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
-                        @click.stop="vaiAlDettaglio(block.exercise.id)"
-                      >
-                        <span class="capsule-num font-weight-black">W{{ w }}</span>
-                        <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
-                          {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
-                        </span>
-                      </div>
+                  <!-- Cronologia Carichi (W1-W6) & Timer Recupero nella Stessa Fila Flex Wrap -->
+                  <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                    <div
+                      v-for="w in [1, 2, 3, 4, 5, 6]"
+                      :key="w"
+                      class="mini-week-capsule d-inline-flex align-center"
+                      :class="{
+                        'capsule-active': w === settimanaAttivaGiorno,
+                        'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
+                        'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                      }"
+                      style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
+                      @click.stop="vaiAlDettaglio(block.exercise.id)"
+                    >
+                      <span class="capsule-num font-weight-black">W{{ w }}</span>
+                      <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
+                        {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
+                      </span>
                     </div>
 
-                    <!-- Timer Recupero posizionato in Basso a Destra -->
+                    <!-- Timer Recupero posizionato nella stessa fila flex wrap (in fondo alla seconda riga se va a capo) -->
                     <v-chip
                       v-if="block.exercise.des_rec_report"
                       variant="flat"

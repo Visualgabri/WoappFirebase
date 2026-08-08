@@ -5831,6 +5831,29 @@ const recuperiRaggruppati = computed(() => {
   border-bottom-right-radius: 0px !important;
   text-transform: none !important;
   height: 100% !important;
+  outline: none !important;
+  outline-width: 0 !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.day-tabs-header-bar .v-tab:focus,
+.day-tabs-header-bar .v-tab:focus-visible,
+.day-tabs-header-bar .v-tab:active,
+.day-tabs-header-bar .v-tab--selected,
+.day-tabs-header-bar .v-tab--selected:focus,
+.day-tabs-header-bar .v-tab--selected:focus-visible {
+  outline: none !important;
+  outline-width: 0 !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.day-tabs-header-bar .v-tab :deep(.v-tab__overlay),
+.day-tabs-header-bar .v-tab:focus :deep(.v-tab__overlay),
+.day-tabs-header-bar .v-tab--selected :deep(.v-tab__overlay) {
+  opacity: 0 !important;
+  display: none !important;
 }
 
 .day-tabs-header-bar .v-tab,
@@ -5839,6 +5862,8 @@ const recuperiRaggruppati = computed(() => {
 .day-tabs-header-bar .v-tab::after {
   border-bottom-left-radius: 0px !important;
   border-bottom-right-radius: 0px !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .day-tabs-header-bar .v-tab:hover {

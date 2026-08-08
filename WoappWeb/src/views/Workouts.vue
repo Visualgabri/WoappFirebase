@@ -559,8 +559,8 @@
         <v-card
           v-if="headerGiorno"
           class="workout-session-container overflow-hidden border elevation-3 mb-6"
-          :class="layoutEsercizi === 'super_compatto' ? 'rounded-b-md' : (layoutEsercizi === 'compatto' ? 'rounded-b-lg' : 'rounded-b-2xl')"
-          style="border-top: none !important; margin-top: 0px !important;"
+          :class="layoutEsercizi === 'super_compatto' ? 'rounded-b-md' : (layoutEsercizi === 'compatto' ? 'rounded-b-lg' : 'rounded-b-3xl')"
+          style="border-top: none !important; margin-top: -3px !important;"
         >
           <!-- Intestazione Sessione (ex Day Header Card) -->
           <div
@@ -5828,6 +5828,8 @@ const recuperiRaggruppati = computed(() => {
 .day-header-section {
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
 }
 
 /* Tema Arancio (Default) - Continuità perfetta con il tab attivo */
@@ -5835,6 +5837,8 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%) !important;
   border-left: none !important;
   color: #ffffff !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
 }
 
 .day-header-section.tema-arancio:hover {
@@ -5874,11 +5878,14 @@ const recuperiRaggruppati = computed(() => {
 }
 
 .workout-session-container {
-  margin-top: -2px !important;
+  margin-top: -3px !important;
   position: relative !important;
   z-index: 1 !important;
   border-top-left-radius: 0px !important;
   border-top-right-radius: 0px !important;
+  border-bottom-left-radius: 24px !important;
+  border-bottom-right-radius: 24px !important;
+  overflow: hidden !important;
   border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
   border-top: none !important;
 }

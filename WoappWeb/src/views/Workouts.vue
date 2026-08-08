@@ -1196,7 +1196,7 @@
                       </div>
 
                       <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
-                      <div class="d-flex align-center flex-nowrap overflow-x-auto gap-1 mt-1 pt-1 border-top-soft w-100 hide-scrollbar" style="row-gap: 0;">
+                      <div class="d-flex align-center flex-nowrap w-100 mt-1 pt-1 border-top-soft" style="row-gap: 0; overflow: hidden; gap: 2.5px;">
                         <div
                           v-for="w in [1, 2, 3, 4, 5, 6]"
                           :key="w"
@@ -1206,10 +1206,10 @@
                             'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                             'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                           }"
-                          style="font-size: 0.50rem; padding: 1px 3px; height: 15px; min-width: 22px; cursor: pointer; border-radius: 4px;"
+                          style="font-size: 0.48rem; padding: 1px 2.5px; height: 15px; min-width: 18px; cursor: pointer; border-radius: 4px;"
                           @click.stop="vaiAlDettaglio(ex.id)"
                         >
-                          <span class="capsule-num font-weight-black" style="font-size: 0.48rem;">W{{ w }}</span>
+                          <span class="capsule-num font-weight-black" style="font-size: 0.45rem;">W{{ w }}</span>
                           <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
                             {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
                           </span>
@@ -1541,7 +1541,7 @@
                   </div>
 
                   <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
-                  <div class="d-flex align-center flex-nowrap overflow-x-auto gap-1 mt-1 pt-1 border-top-soft w-100 hide-scrollbar" style="row-gap: 0;">
+                  <div class="d-flex align-center flex-nowrap w-100 mt-1 pt-1 border-top-soft" style="row-gap: 0; overflow: hidden; gap: 2.5px;">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
                       :key="w"
@@ -1551,10 +1551,10 @@
                         'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                         'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                       }"
-                      style="font-size: 0.50rem; padding: 1px 3px; height: 15px; min-width: 22px; cursor: pointer; border-radius: 4px;"
+                      style="font-size: 0.48rem; padding: 1px 2.5px; height: 15px; min-width: 18px; cursor: pointer; border-radius: 4px;"
                       @click.stop="vaiAlDettaglio(block.exercise.id)"
                     >
-                      <span class="capsule-num font-weight-black" style="font-size: 0.48rem;">W{{ w }}</span>
+                      <span class="capsule-num font-weight-black" style="font-size: 0.45rem;">W{{ w }}</span>
                       <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
                         {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
                       </span>
@@ -2304,7 +2304,14 @@ const formattaCaricoCompatto = (val) => {
   let clean = String(val).trim();
   // Rimuove 'kg' o 'KG' con spazi opzionali
   clean = clean.replace(/\s*kg/i, '');
-  // Tronca se troppo lungo per mantenere l'interfaccia compatta
+  
+  // Se la stringa è complessa (es: "16 10-8-6" oppure "87,5 @ 3x10"), estrai il numero principale
+  const matchMainVal = clean.match(/^(\d+(?:[.,]\d+)?)/);
+  if (matchMainVal && clean.length > 4) {
+    return matchMainVal[1];
+  }
+  
+  // Tronca se troppo lungo per mantenere l'interfaccia ultra-compatta
   if (clean.length > 5) {
     return clean.substring(0, 4) + '..';
   }

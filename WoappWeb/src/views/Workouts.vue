@@ -1175,13 +1175,13 @@
                     </div>
 
                     <!-- Dettagli Centrali Estesi -->
-                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2" style="z-index: 2;">
-                      <!-- Titolo Esercizio (Mostrato per intero) -->
-                      <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
-                        <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
-                        {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
-                        {{ ex.des_esercizio || 'Esercizio' }}
-                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" style="vertical-align: middle;" title="Video richiesto">mdi-video</v-icon>
+                    <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2 pb-1" style="z-index: 2;">
+                      <!-- Titolo Esercizio (Monoriga con Puntini se troppo lungo) -->
+                      <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                        <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
+                        <span v-if="(ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
+                        <span class="text-truncate">{{ ex.des_esercizio || 'Esercizio' }}</span>
+                        <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
                       <!-- Settore, Emoji Sforzo e Prescrizione Lavoro Troncata con Puntini -->
@@ -1195,21 +1195,21 @@
                         </div>
                       </div>
 
-                      <!-- Cronologia Carichi (W1-W6) & Timer Recupero nella Stessa Fila Flex Wrap -->
-                      <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                      <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga con Chip più Piccoli -->
+                      <div class="d-flex align-center flex-nowrap overflow-x-auto gap-1 mt-1 pt-1 border-top-soft w-100 hide-scrollbar" style="row-gap: 0;">
                         <div
                           v-for="w in [1, 2, 3, 4, 5, 6]"
                           :key="w"
-                          class="mini-week-capsule d-inline-flex align-center"
+                          class="mini-week-capsule d-inline-flex align-center flex-shrink-0"
                           :class="{
                             'capsule-active': w === settimanaAttivaGiorno,
                             'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                             'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                           }"
-                          style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
+                          style="font-size: 0.50rem; padding: 1px 3px; height: 15px; min-width: 22px; cursor: pointer; border-radius: 4px;"
                           @click.stop="vaiAlDettaglio(ex.id)"
                         >
-                          <span class="capsule-num font-weight-black">W{{ w }}</span>
+                          <span class="capsule-num font-weight-black" style="font-size: 0.48rem;">W{{ w }}</span>
                           <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
                             {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
                           </span>
@@ -1520,13 +1520,13 @@
                 </div>
 
                 <!-- Dettagli Centrali Estesi -->
-                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2" style="z-index: 2;">
-                  <!-- Titolo Esercizio (Mostrato per intero) -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark" style="font-size: 0.78rem !important; line-height: 1.25 !important; white-space: normal; word-break: break-word;">
-                    <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
-                    {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
-                    {{ block.exercise.des_esercizio || 'Esercizio' }}
-                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" style="vertical-align: middle;" title="Video richiesto">mdi-video</v-icon>
+                <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-2 pb-1" style="z-index: 2;">
+                  <!-- Titolo Esercizio (Monoriga con Puntini se troppo lungo) -->
+                  <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                    <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
+                    <span v-if="(block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
+                    <span class="text-truncate">{{ block.exercise.des_esercizio || 'Esercizio' }}</span>
+                    <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                   </h4>
 
                   <!-- Settore, Emoji Sforzo e Prescrizione Lavoro Troncata con Puntini -->
@@ -1540,21 +1540,21 @@
                     </div>
                   </div>
 
-                  <!-- Cronologia Carichi (W1-W6) -->
-                  <div class="d-flex align-center flex-wrap gap-1 mt-1 pt-1 border-top-soft w-100">
+                  <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga con Chip più Piccoli -->
+                  <div class="d-flex align-center flex-nowrap overflow-x-auto gap-1 mt-1 pt-1 border-top-soft w-100 hide-scrollbar" style="row-gap: 0;">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
                       :key="w"
-                      class="mini-week-capsule d-inline-flex align-center"
+                      class="mini-week-capsule d-inline-flex align-center flex-shrink-0"
                       :class="{
                         'capsule-active': w === settimanaAttivaGiorno,
                         'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
                         'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
                       }"
-                      style="font-size: 0.54rem; padding: 1px 4px; height: 16px; min-width: 26px; cursor: pointer; border-radius: 5px;"
+                      style="font-size: 0.50rem; padding: 1px 3px; height: 15px; min-width: 22px; cursor: pointer; border-radius: 4px;"
                       @click.stop="vaiAlDettaglio(block.exercise.id)"
                     >
-                      <span class="capsule-num font-weight-black">W{{ w }}</span>
+                      <span class="capsule-num font-weight-black" style="font-size: 0.48rem;">W{{ w }}</span>
                       <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
                         {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
                       </span>

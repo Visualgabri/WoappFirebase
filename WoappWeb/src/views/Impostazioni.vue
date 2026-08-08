@@ -178,19 +178,19 @@
 
     <!-- SEZIONE 4: PARAMETRI ALLENAMENTO -->
     <v-card 
-      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3"
+      class="premium-card rounded-xl text-left border mb-3 animate-slide-down pa-3.5"
       elevation="1"
     >
-      <div class="d-flex align-center mb-2.5">
+      <div class="d-flex align-center mb-3">
         <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-dumbbell</v-icon>
         <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Parametri Allenamento</span>
       </div>
 
-      <div class="d-flex flex-column gap-2">
+      <div class="d-flex flex-column gap-2.5">
         <!-- Bilanciere Default -->
-        <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
-          <span class="text-caption font-weight-bold text-slate-dark" style="font-size: 0.74rem;">Bilanciere Default</span>
-          <div style="width: 140px;">
+        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
+          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.74rem;">Bilanciere Default</span>
+          <div style="max-width: 135px; width: 45%;">
             <v-select
               v-model="defaultBilanciere"
               :items="[
@@ -211,7 +211,7 @@
         </div>
 
         <!-- Vibrazione Tattile -->
-        <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
+        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
           <span class="text-caption font-weight-bold text-slate-dark" style="font-size: 0.74rem;">Vibrazione Tattile</span>
           <v-switch
             v-model="vibrazioneAttiva"
@@ -222,9 +222,9 @@
         </div>
 
         <!-- Recupero Default -->
-        <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
-          <span class="text-caption font-weight-bold text-slate-dark" style="font-size: 0.74rem;">Recupero Default</span>
-          <div style="width: 140px;">
+        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
+          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.74rem;">Recupero Default</span>
+          <div style="max-width: 135px; width: 45%;">
             <v-select
               v-model="defaultTimerRec"
               :items="[
@@ -246,9 +246,9 @@
         </div>
 
         <!-- Tema Timer -->
-        <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
-          <span class="text-caption font-weight-bold text-slate-dark" style="font-size: 0.74rem;">Tema Timer</span>
-          <div style="width: 140px;">
+        <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
+          <span class="text-caption font-weight-bold text-slate-dark pr-2" style="font-size: 0.74rem;">Tema Timer</span>
+          <div style="max-width: 135px; width: 45%;">
             <v-select
               v-model="timerTheme"
               :items="[
@@ -266,28 +266,28 @@
           </div>
         </div>
 
-        <v-divider class="my-2 border-soft" style="opacity: 0.15;"></v-divider>
+        <v-divider class="my-2.5 border-soft" style="opacity: 0.2;"></v-divider>
 
         <!-- Suggerimenti Ghost -->
         <div>
-          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1.5" style="font-size: 0.66rem;">Suggerimenti Ghost</span>
+          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-2" style="font-size: 0.66rem;">Suggerimenti Ghost</span>
           <v-btn-toggle
             v-model="stileVisualizzazioneGhost"
             mandatory
             selected-class="bg-orange-darken-3 text-white"
             density="compact"
             rounded="lg"
-            class="w-100 card-glass border mb-2"
-            style="height: 32px;"
+            class="w-100 card-glass border mb-2.5"
+            style="height: 34px;"
           >
             <v-btn value="range" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Solo Range</v-btn>
             <v-btn value="forma" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Stato Forma</v-btn>
           </v-btn-toggle>
           
-          <div class="d-flex flex-column gap-2 rounded-xl pa-2.5 inner-setting-box border-soft">
+          <div class="d-flex flex-column gap-2.5 rounded-xl pa-3.5 inner-setting-box border-soft">
             <!-- Attacco al Record (PR) -->
-            <div class="d-flex align-center justify-space-between" style="min-height: 28px;">
-              <span class="text-caption font-weight-bold text-amber-lighten-2" style="font-size: 0.70rem;">Attacco Record (PR)</span>
+            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+              <span class="text-caption font-weight-bold text-amber-lighten-2" style="font-size: 0.72rem;">Attacco Record (PR)</span>
               <v-switch
                 v-model="ghostPRAttackAttivo"
                 color="amber-darken-2"
@@ -299,8 +299,8 @@
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Autoregolazione Reps -->
-            <div class="d-flex align-center justify-space-between" style="min-height: 28px;">
-              <span class="text-caption font-weight-bold text-green-accent-3" style="font-size: 0.70rem;">Autoregolazione Reps</span>
+            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+              <span class="text-caption font-weight-bold text-green-accent-3" style="font-size: 0.72rem;">Autoregolazione Reps</span>
               <v-switch
                 v-model="ghostAutoregolazioneRepsAttiva"
                 color="green-darken-2"
@@ -312,8 +312,8 @@
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Sfida Record Week 1 -->
-            <div class="d-flex align-center justify-space-between" style="min-height: 28px;">
-              <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.70rem;">Sfida Record in W1</span>
+            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+              <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.72rem;">Sfida Record in W1</span>
               <v-switch
                 v-model="sfidaRecordWeek1"
                 color="orange-darken-3"
@@ -325,8 +325,8 @@
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Ottimizza Digitazione Note -->
-            <div class="d-flex align-center justify-space-between" style="min-height: 28px;">
-              <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.70rem;">Ottimizza Note</span>
+            <div class="d-flex align-center justify-space-between py-1" style="min-height: 34px;">
+              <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.72rem;">Ottimizza Note</span>
               <v-switch
                 v-model="ottimizzaDigitazione"
                 color="orange-darken-3"
@@ -338,9 +338,9 @@
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
 
             <!-- Regola Progressione Week 2 -->
-            <div class="d-flex align-center justify-space-between" style="min-height: 32px;">
-              <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.70rem;">Progressione W2</span>
-              <div style="width: 130px;">
+            <div class="d-flex align-center justify-space-between py-1" style="min-height: 36px;">
+              <span class="text-caption font-weight-bold text-orange-lighten-2 pr-2" style="font-size: 0.72rem;">Progressione W2</span>
+              <div style="max-width: 135px; width: 45%;">
                 <v-select
                   v-model="regolaProgressioneW2"
                   :items="[
@@ -1281,32 +1281,33 @@ const formattaDataEsportazione = (isoString) => {
 :deep([data-theme="light"]) .premium-card,
 [data-theme="light"] .premium-card {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+  border: 1.5px solid #fed7aa !important;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.06) !important;
 }
 
 :deep([data-theme="light"]) .inner-setting-box,
 [data-theme="light"] .inner-setting-box {
-  background: #fdfbf7 !important;
-  border: 1px solid #fed7aa !important;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  background: #fff7ed !important;
+  border: 1.5px solid #fed7aa !important;
+  box-shadow: inset 0 1px 3px rgba(249, 115, 22, 0.03) !important;
 }
 
 :deep([data-theme="light"]) .v-btn-toggle,
 [data-theme="light"] .v-btn-toggle {
-  background: #f1f5f9 !important;
-  border: 1px solid #cbd5e1 !important;
+  background: #fff7ed !important;
+  border: 1.5px solid #fed7aa !important;
 }
 
 :deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--selected),
 [data-theme="light"] .v-btn-toggle .v-btn:not(.v-btn--selected) {
-  background: #ffffff !important;
-  color: #475569 !important;
+  background: #fff7ed !important;
+  color: #9a3412 !important;
+  border-right: 1px solid #fed7aa !important;
 }
 
 :deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--selected,
 [data-theme="light"] .v-btn-toggle .v-btn.v-btn--selected {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
   color: #ffffff !important;
   font-weight: 900 !important;
 }
@@ -1314,28 +1315,47 @@ const formattaDataEsportazione = (isoString) => {
 :deep([data-theme="light"]) .ultra-compact-select .v-field,
 [data-theme="light"] .ultra-compact-select .v-field {
   background: #ffffff !important;
-  border-color: #cbd5e1 !important;
+  border-color: #fed7aa !important;
 }
 
 :deep([data-theme="light"]) .ultra-compact-select .v-field__input,
 [data-theme="light"] .ultra-compact-select .v-field__input {
-  color: #0f172a !important;
-  font-weight: 700 !important;
+  color: #7c2d12 !important;
+  font-weight: 800 !important;
+}
+
+:deep([data-theme="light"]) .ultra-compact-select .v-icon,
+[data-theme="light"] .ultra-compact-select .v-icon {
+  color: #ea580c !important;
 }
 
 :deep([data-theme="light"]) .text-orange-lighten-2,
 [data-theme="light"] .text-orange-lighten-2 {
   color: #c2410c !important;
+  font-weight: 800 !important;
 }
 
 :deep([data-theme="light"]) .text-amber-lighten-2,
 [data-theme="light"] .text-amber-lighten-2 {
   color: #b45309 !important;
+  font-weight: 800 !important;
 }
 
 :deep([data-theme="light"]) .text-green-accent-3,
 [data-theme="light"] .text-green-accent-3 {
   color: #15803d !important;
+  font-weight: 800 !important;
+}
+
+:deep([data-theme="light"]) .text-purple-lighten-2,
+[data-theme="light"] .text-purple-lighten-2 {
+  color: #7e22ce !important;
+}
+
+:deep([data-theme="light"]) .text-slate-dark,
+[data-theme="light"] .text-slate-dark {
+  color: #7c2d12 !important;
+  font-weight: 800 !important;
 }
 
 :deep([data-theme="light"]) .text-purple-lighten-2,

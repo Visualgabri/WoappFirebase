@@ -617,8 +617,7 @@
                   <div v-if="mostraPromemoriaChiusura" class="mt-1">
                     <v-chip
                       size="x-small"
-                      color="amber-darken-3"
-                      class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
+                      class="font-weight-black px-1.5 animate-pulse promemoria-chiusura-chip elevation-1"
                       variant="flat"
                       :style="{
                         fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem',
@@ -683,7 +682,7 @@
                       <span class="px-1.5 py-0.5 rounded-pill text-white font-weight-black mx-1" style="font-size: 0.65rem; background: rgba(0,0,0,0.3) !important;">
                         {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
                       </span>
-                      <span class="ml-0.5 font-weight-black" style="color: #fde047 !important;">
+                      <span class="ml-0.5 font-weight-black density-label-text">
                         ({{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label.replace(/Focus\s*/gi, '') }})
                       </span>
                     </span>
@@ -815,8 +814,7 @@
                   <div v-if="mostraPromemoriaChiusura" class="mt-1">
                     <v-chip
                       size="x-small"
-                      color="amber-darken-3"
-                      class="font-weight-black px-1.5 animate-pulse text-white elevation-1"
+                      class="font-weight-black px-1.5 animate-pulse promemoria-chiusura-chip elevation-1"
                       variant="flat"
                       :style="{
                         fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem',
@@ -1206,9 +1204,10 @@
                           :key="w"
                           class="mini-week-capsule d-inline-flex align-center flex-shrink-0"
                           :class="{
-                            'capsule-active': w === settimanaAttivaGiorno,
-                            'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                            'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                            'capsule-recupero': haRecupero(ex['ins_week' + w]),
+                            'capsule-active': w === settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
+                            'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
+                            'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w])
                           }"
                           style="font-size: 0.48rem; padding: 1px 2.5px; height: 15px; min-width: 18px; cursor: pointer; border-radius: 4px;"
                           @click.stop="vaiAlDettaglio(ex.id)"
@@ -1345,9 +1344,10 @@
                             :key="w"
                             class="mini-week-capsule d-inline-flex align-center"
                             :class="{
-                              'capsule-active': w === settimanaAttivaGiorno,
-                              'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                              'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                              'capsule-recupero': haRecupero(ex['ins_week' + w]),
+                              'capsule-active': w === settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
+                              'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
+                              'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w])
                             }"
                             style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
                             @click.stop="selezionaSettimanaManuale(w)"
@@ -1551,9 +1551,10 @@
                       :key="w"
                       class="mini-week-capsule d-inline-flex align-center flex-shrink-0"
                       :class="{
-                        'capsule-active': w === settimanaAttivaGiorno,
-                        'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                        'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                        'capsule-recupero': haRecupero(block.exercise['ins_week' + w]),
+                        'capsule-active': w === settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
+                        'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
+                        'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w])
                       }"
                       style="font-size: 0.48rem; padding: 1px 2.5px; height: 15px; min-width: 18px; cursor: pointer; border-radius: 4px;"
                       @click.stop="vaiAlDettaglio(block.exercise.id)"
@@ -1701,9 +1702,10 @@
                         :key="w"
                         class="mini-week-capsule d-inline-flex align-center"
                         :class="{
-                          'capsule-active': w === settimanaAttivaGiorno,
-                          'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno,
-                          'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno
+                          'capsule-recupero': haRecupero(block.exercise['ins_week' + w]),
+                          'capsule-active': w === settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
+                          'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
+                          'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w])
                         }"
                         style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
                         @click.stop="selezionaSettimanaManuale(w)"
@@ -6025,7 +6027,58 @@ const recuperiRaggruppati = computed(() => {
   border-top: none !important;
 }
 
-[data-theme="light"] .day-tabs-header-bar {
+.density-label-text {
+  color: #fde047 !important;
+  font-weight: 900 !important;
+}
+
+.promemoria-chiusura-chip {
+  background: #f59e0b !important;
+  color: #ffffff !important;
+}
+
+.mini-week-capsule.capsule-recupero {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1.5px solid #f87171 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2) !important;
+}
+
+.mini-week-capsule.capsule-recupero .capsule-num,
+.mini-week-capsule.capsule-recupero span {
+  color: #dc2626 !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .density-label-text {
+  color: #047857 !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .density-label-text {
+  color: #1e3a8a !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .promemoria-chiusura-chip {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .promemoria-chiusura-chip {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1px solid #93c5fd !important;
+  font-weight: 900 !important;
+}
+
+/* Light Theme Active Tab & Day Header Menta & Salvia Soft Palette */
+[data-theme="light"] .day-tabs-header-bar,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-verde,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio {
   background: #f0fdf4 !important;
   border: 1px solid #a7f3d0 !important;
   border-bottom: none !important;
@@ -6034,15 +6087,40 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: none !important;
 }
 
-[data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) {
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu {
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  border-bottom: none !important;
+  border-top-left-radius: 16px !important;
+  border-top-right-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected),
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-verde .v-tab:not(.v-tab--selected),
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio .v-tab:not(.v-tab--selected) {
   background: #e6f4ea !important;
   color: #047857 !important;
   opacity: 0.85 !important;
   border-right: 1px solid #a7f3d0 !important;
 }
 
-[data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-day-letter {
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab:not(.v-tab--selected) {
+  background: #e0f2fe !important;
+  color: #1e40af !important;
+  opacity: 0.85 !important;
+  border-right: 1px solid #bfdbfe !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-day-letter,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-verde .v-tab:not(.v-tab--selected) .tab-day-letter,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio .v-tab:not(.v-tab--selected) .tab-day-letter {
   color: #065f46 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab:not(.v-tab--selected) .tab-day-letter {
+  color: #1e3a8a !important;
   font-weight: 800 !important;
 }
 
@@ -6050,7 +6128,10 @@ const recuperiRaggruppati = computed(() => {
   color: #059669 !important;
 }
 
-/* Light Theme Active Tab & Day Header Menta & Salvia Soft Palette */
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab:not(.v-tab--selected) .tab-lock-icon {
+  color: #2563eb !important;
+}
+
 [data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected,
 [data-theme="light"] .active-tab-theme-arancio .v-tab--selected,
 [data-theme="light"] .day-tabs-header-bar.active-tab-theme-verde .v-tab--selected,

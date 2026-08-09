@@ -1186,6 +1186,15 @@ watch(temaHeaderGiornoGlobal, (newVal) => {
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme-color', targetColor);
     document.body.setAttribute('data-theme-color', targetColor);
+
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.name = 'theme-color';
+      document.head.appendChild(metaThemeColor);
+    }
+    const themeHex = targetColor === 'blu' ? '#1d4ed8' : '#059669';
+    metaThemeColor.setAttribute('content', themeHex);
   }
 });
 

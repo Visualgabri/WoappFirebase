@@ -576,8 +576,8 @@
             :class="[
               {
                 'py-1 px-3': layoutEsercizi === 'super_compatto',
-                'py-2 px-4': layoutEsercizi === 'compatto',
-                'py-3 px-6': layoutEsercizi === 'standard',
+                'py-1.5 px-4': layoutEsercizi === 'compatto',
+                'py-2 px-4': layoutEsercizi === 'standard',
                 'has-scroll-bottom-border': isScrolledPastDayHeader
               },
               'tema-' + temaHeaderGiorno
@@ -588,18 +588,18 @@
           <!-- Se il header si può formattare, mostriamo un layout premium strutturato -->
           <div v-if="parseDayHeader(headerGiorno.des_esercizio)" class="w-100">
             <div 
-              class="d-flex align-start justify-space-between w-100 flex-wrap gap-2"
-              :class="layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-1' : 'mb-1.5')"
+              class="d-flex align-start justify-space-between w-100 flex-wrap gap-1"
+              :class="layoutEsercizi === 'super_compatto' ? 'mb-0.5' : (layoutEsercizi === 'compatto' ? 'mb-0.5' : 'mb-1')"
             >
               <div class="d-flex align-center">
                 <div 
                   class="giorno-big-letter flex-shrink-0"
                   :style="{ 
-                    width: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '42px'),
-                    height: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '42px'),
-                    fontSize: layoutEsercizi === 'super_compatto' ? '0.85rem' : (layoutEsercizi === 'compatto' ? '1rem' : '1.25rem'),
+                    width: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '38px'),
+                    height: layoutEsercizi === 'super_compatto' ? '28px' : (layoutEsercizi === 'compatto' ? '34px' : '38px'),
+                    fontSize: layoutEsercizi === 'super_compatto' ? '0.85rem' : (layoutEsercizi === 'compatto' ? '1rem' : '1.15rem'),
                     borderRadius: layoutEsercizi === 'super_compatto' ? '6px' : (layoutEsercizi === 'compatto' ? '8px' : '10px'),
-                    marginRight: layoutEsercizi === 'super_compatto' ? '12px' : (layoutEsercizi === 'compatto' ? '20px' : '32px')
+                    marginRight: layoutEsercizi === 'super_compatto' ? '10px' : (layoutEsercizi === 'compatto' ? '12px' : '16px')
                   }"
                 >
                   {{ giornoSelezionato }}
@@ -952,11 +952,11 @@
           <!-- Progress Bar Session Energy (unificata visivamente) -->
           <div 
             class="border-top-soft text-left header-progress-section" 
-            :class="layoutEsercizi === 'super_compatto' ? 'mt-1.5 pt-1.5' : (layoutEsercizi === 'compatto' ? 'mt-2 pt-2' : 'mt-3 pt-2.5')"
+            :class="layoutEsercizi === 'super_compatto' ? 'mt-1 pt-1' : (layoutEsercizi === 'compatto' ? 'mt-1 pt-1' : 'mt-1.5 pt-1.5')"
           >
             <div 
               v-if="layoutEsercizi !== 'super_compatto'"
-              class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase header-progress-text mb-1.5" 
+              class="d-flex align-center justify-space-between text-super-caption font-weight-black uppercase header-progress-text mb-1" 
               style="font-size: 0.68rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
             >
               <span><span class="mr-1">🧃</span> Avanzamento</span>
@@ -6283,6 +6283,27 @@ const recuperiRaggruppati = computed(() => {
 
 [data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-pending .capsule-num {
   color: #1d4ed8 !important;
+}
+
+.session-progress-bar-container {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.session-progress-bar-fill {
+  background: linear-gradient(90deg, #ff7700, #ff9900) !important;
+  box-shadow: 0 0 10px rgba(255, 119, 0, 0.7) !important;
+}
+
+.day-header-section.tema-verde .session-progress-bar-fill {
+  background: linear-gradient(90deg, #059669, #10b981) !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important;
+}
+
+.day-header-section.tema-blu .session-progress-bar-fill {
+  background: linear-gradient(90deg, #2563eb, #60a5fa) !important;
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.7) !important;
 }
 
 [data-theme="light"] .day-header-section .session-progress-bar-container {

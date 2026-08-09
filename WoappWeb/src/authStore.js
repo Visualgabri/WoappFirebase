@@ -61,6 +61,15 @@ if (typeof document !== 'undefined') {
   document.body.setAttribute('data-light-style', initStyle);
   document.documentElement.setAttribute('data-theme-color', initThemeColor);
   document.body.setAttribute('data-theme-color', initThemeColor);
+
+  let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (!metaThemeColor) {
+    metaThemeColor = document.createElement('meta');
+    metaThemeColor.name = 'theme-color';
+    document.head.appendChild(metaThemeColor);
+  }
+  const themeHex = initThemeColor === 'blu' ? '#1d4ed8' : (initThemeColor === 'verde' ? '#059669' : '#ea580c');
+  metaThemeColor.setAttribute('content', themeHex);
 }
 
 // Stato di selezione globale Atleta e Scheda (in stile AppSheet)
@@ -1193,7 +1202,7 @@ watch(temaHeaderGiornoGlobal, (newVal) => {
       metaThemeColor.name = 'theme-color';
       document.head.appendChild(metaThemeColor);
     }
-    const themeHex = targetColor === 'blu' ? '#1d4ed8' : '#059669';
+    const themeHex = targetColor === 'blu' ? '#1d4ed8' : (targetColor === 'verde' ? '#059669' : '#ea580c');
     metaThemeColor.setAttribute('content', themeHex);
   }
 });

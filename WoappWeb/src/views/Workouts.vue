@@ -6026,8 +6026,8 @@ const recuperiRaggruppati = computed(() => {
 }
 
 [data-theme="light"] .day-tabs-header-bar {
-  background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
+  background: #f0fdf4 !important;
+  border: 1px solid #a7f3d0 !important;
   border-bottom: none !important;
   border-top-left-radius: 16px !important;
   border-top-right-radius: 16px !important;
@@ -6035,156 +6035,200 @@ const recuperiRaggruppati = computed(() => {
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) {
-  background: #f1f5f9 !important;
-  color: #475569 !important;
-  opacity: 0.9 !important;
-  border-right: 1px solid #e2e8f0 !important;
+  background: #e6f4ea !important;
+  color: #047857 !important;
+  opacity: 0.85 !important;
+  border-right: 1px solid #a7f3d0 !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-day-letter {
-  color: #334155 !important;
+  color: #065f46 !important;
   font-weight: 800 !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-lock-icon {
-  color: #94a3b8 !important;
+  color: #059669 !important;
 }
 
-/* Light Theme Active Tab & Day Header Continuous Palette */
+/* Light Theme Active Tab & Day Header Menta & Salvia Soft Palette */
 [data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected,
 [data-theme="light"] .active-tab-theme-arancio .v-tab--selected,
 [data-theme="light"] .day-tabs-header-bar.active-tab-theme-verde .v-tab--selected,
 [data-theme="light"] .active-tab-theme-verde .v-tab--selected {
-  background: linear-gradient(180deg, #059669 0%, #047857 100%) !important;
-  color: #ffffff !important;
-  border: 1px solid #047857 !important;
+  background: linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%) !important;
+  color: #065f46 !important;
+  border: 1px solid #6ee7b7 !important;
   border-bottom: none !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected,
 [data-theme="light"] .active-tab-theme-blu .v-tab--selected {
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
-  color: #ffffff !important;
-  border: 1px solid #1d4ed8 !important;
+  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  color: #1e40af !important;
+  border: 1px solid #93c5fd !important;
   border-bottom: none !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab--selected .tab-day-letter,
 [data-theme="light"] .day-tabs-header-bar .v-tab--selected span,
 [data-theme="light"] .day-tabs-header-bar .v-tab--selected .v-icon {
-  color: #ffffff !important;
+  color: #065f46 !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected .tab-day-letter,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected span,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected .v-icon {
+  color: #1e40af !important;
   font-weight: 900 !important;
 }
 
 [data-theme="light"] .day-header-section.tema-arancio,
 [data-theme="light"] .day-header-section.tema-verde {
-  background: linear-gradient(180deg, #047857 0%, #064e3b 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(180deg, #a7f3d0 0%, #ecfdf5 100%) !important;
+  color: #065f46 !important;
   border: none !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu {
-  background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(180deg, #bfdbfe 0%, #eff6ff 100%) !important;
+  color: #1e40af !important;
   border: none !important;
 }
 
 [data-theme="light"] .day-header-section .header-title-text,
 [data-theme="light"] .day-header-section h3.header-title-text {
-  color: #ffffff !important;
+  color: #047857 !important;
   font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .header-title-text,
+[data-theme="light"] .day-header-section.tema-blu h3.header-title-text {
+  color: #1e40af !important;
 }
 
 [data-theme="light"] .day-header-section .header-info-text,
 [data-theme="light"] .day-header-section .header-info-text span {
-  color: #e2e8f0 !important;
+  color: #065f46 !important;
   font-weight: 700 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .header-info-text,
+[data-theme="light"] .day-header-section.tema-blu .header-info-text span {
+  color: #1e3a8a !important;
 }
 
 [data-theme="light"] .day-header-section .header-progress-text,
 [data-theme="light"] .day-header-section .header-progress-text span {
-  color: #ffffff !important;
+  color: #047857 !important;
   font-weight: 800 !important;
 }
 
 [data-theme="light"] .day-header-section .giorno-big-letter {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
   color: #ffffff !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border: 1.5px solid #a7f3d0 !important;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25) !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .giorno-big-letter {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #bfdbfe !important;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.25) !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: #047857 !important;
+  background: #059669 !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
-  border: 1px solid #ffffff !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid #047857 !important;
+  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.15) !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .capsule-num,
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .v-icon {
-  color: #047857 !important;
+  color: #ffffff !important;
 }
 
-[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed,
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed {
+  background: #2563eb !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
 [data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed .capsule-num,
 [data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed .v-icon {
-  color: #1d4ed8 !important;
+  color: #ffffff !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-active {
-  background: #ffffff !important;
-  color: #064e3b !important;
+  background: #047857 !important;
+  color: #ffffff !important;
   font-weight: 900 !important;
-  border: 1.5px solid #34d399 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  border: 1.5px solid #065f46 !important;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.3) !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-active .capsule-num {
-  color: #064e3b !important;
+  color: #ffffff !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-active {
-  color: #1e3a8a !important;
-  border-color: #60a5fa !important;
+  background: #1d4ed8 !important;
+  border-color: #1e3a8a !important;
+  color: #ffffff !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-active .capsule-num {
-  color: #1e3a8a !important;
+  color: #ffffff !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending {
-  background: rgba(255, 255, 255, 0.18) !important;
-  color: #cbd5e1 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: #ffffff !important;
+  color: #047857 !important;
+  border: 1px solid #a7f3d0 !important;
   font-weight: 700 !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending .capsule-num {
-  color: #e2e8f0 !important;
+  color: #047857 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-pending {
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-pending .capsule-num {
+  color: #1d4ed8 !important;
 }
 
 [data-theme="light"] .day-header-section .session-progress-bar-container {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: #a7f3d0 !important;
+  border: 1px solid #6ee7b7 !important;
 }
 
 [data-theme="light"] .day-header-section .session-progress-bar-fill {
-  background: #34d399 !important;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6) !important;
+  background: linear-gradient(90deg, #059669, #047857) !important;
+  box-shadow: 0 0 8px rgba(5, 150, 105, 0.4) !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .session-progress-bar-container {
+  background: #bfdbfe !important;
+  border-color: #93c5fd !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .session-progress-bar-fill {
-  background: #60a5fa !important;
-  box-shadow: 0 0 8px rgba(96, 165, 250, 0.6) !important;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8) !important;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4) !important;
 }
 
 [data-theme="light"] .workout-session-container {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #a7f3d0 !important;
   border-top: none !important;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08) !important;
 }
 
 [data-theme="light"] .day-exercises-section {

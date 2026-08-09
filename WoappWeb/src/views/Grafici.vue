@@ -122,10 +122,10 @@
                 <v-autocomplete
                   v-model="esercizioSelezionato"
                   :items="listaEsercizi"
-                  label="Cerca esercizio..."
+                  placeholder="Cerca esercizio..."
                   variant="outlined"
                   rounded="lg"
-                  color="orange-darken-3"
+                  color="primary"
                   hide-details
                   density="comfortable"
                 ></v-autocomplete>
@@ -135,7 +135,7 @@
                 <v-btn-toggle
                   v-model="tipoAnalisiEsercizio"
                   mandatory
-                  color="orange-darken-3"
+                  color="primary"
                   variant="outlined"
                   class="rounded-lg w-100 filter-btn-toggle"
                   density="comfortable"
@@ -149,10 +149,10 @@
                 <v-select
                   v-model="repSelezionata"
                   :items="repsDisponibili"
-                  label="Seleziona target reps..."
+                  placeholder="Seleziona target reps..."
                   variant="outlined"
                   rounded="lg"
-                  color="orange-darken-3"
+                  color="primary"
                   hide-details
                   density="comfortable"
                 ></v-select>

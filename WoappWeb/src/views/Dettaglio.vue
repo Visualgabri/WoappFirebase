@@ -12398,8 +12398,8 @@ const tornaIndietro = () => {
 }
 .custom-weight-input :deep(.v-field--focused) {
   background: rgba(255, 255, 255, 0.18) !important;
-  border-color: #f97316 !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 10px var(--theme-primary-glow) !important;
 }
 .custom-weight-input :deep(.v-field__outline) {
   display: none !important;
@@ -12448,15 +12448,15 @@ const tornaIndietro = () => {
 .ghost-glow-blue :deep(input), .ghost-glow-blue :deep(textarea) { color: #60a5fa !important; font-weight: 800 !important; }
 .ghost-glow-blue :deep(.v-label) { color: #60a5fa !important; opacity: 0.9 !important; }
 
-/* ARANCIONE (Testo generico senza Ghost o note) */
+/* THEME ACCENT (Testo generico senza Ghost o note) */
 .ghost-glow-orange :deep(.v-field) {
-  background: rgba(249, 115, 22, 0.1) !important;
-  border: 1px solid rgba(249, 115, 22, 0.45) !important;
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.25) !important;
+  background: var(--theme-primary-bg-soft) !important;
+  border: 1px solid var(--theme-primary-border) !important;
+  box-shadow: 0 0 16px var(--theme-primary-glow) !important;
 }
-.ghost-glow-orange :deep(.v-field--focused) { border-color: #f97316 !important; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4) !important; }
-.ghost-glow-orange :deep(input), .ghost-glow-orange :deep(textarea) { color: #fb923c !important; font-weight: 800 !important; }
-.ghost-glow-orange :deep(.v-label) { color: #fb923c !important; opacity: 0.9 !important; }
+.ghost-glow-orange :deep(.v-field--focused) { border-color: var(--theme-primary) !important; box-shadow: 0 0 20px var(--theme-primary-glow) !important; }
+.ghost-glow-orange :deep(input), .ghost-glow-orange :deep(textarea) { color: var(--theme-primary-light) !important; font-weight: 800 !important; }
+.ghost-glow-orange :deep(.v-label) { color: var(--theme-primary-light) !important; opacity: 0.9 !important; }
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-in-out;
@@ -12475,8 +12475,8 @@ const tornaIndietro = () => {
 }
 .custom-textarea-input :deep(.v-field--focused) {
   background: rgba(255, 255, 255, 0.18) !important;
-  border-color: #f97316 !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 10px var(--theme-primary-glow) !important;
 }
 .custom-textarea-input :deep(.v-field__outline) {
   display: none !important;
@@ -12754,7 +12754,7 @@ th.sticky-col {
 
 [data-theme="light"] .ghost-glow-orange :deep(.v-field) {
   background: var(--brand-accent-bg) !important;
-  border: 1.5px solid #fdba74 !important;
+  border: 1.5px solid var(--theme-primary-border) !important;
   box-shadow: 0 0 10px var(--brand-accent-glow) !important;
 }
 [data-theme="light"] .ghost-glow-orange :deep(input),

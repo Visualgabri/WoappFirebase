@@ -34,10 +34,13 @@
 
   --brand-accent: #ea580c;
   --brand-accent-glow: rgba(249, 115, 22, 0.25);
-  --v-theme-primary: 249, 115, 22;
+  --v-theme-primary: 249, 115, 22 !important;
+  --v-theme-primary-key: #f97316 !important;
 }
 
-[data-theme-color="blu"] {
+[data-theme-color="blu"],
+[data-theme-color="blu"] .v-application,
+[data-theme-color="blu"] .v-overlay-container {
   --theme-primary: #3b82f6;
   --theme-primary-dark: #2563eb;
   --theme-primary-darker: #1d4ed8;
@@ -51,10 +54,13 @@
 
   --brand-accent: #2563eb;
   --brand-accent-glow: rgba(59, 130, 246, 0.25);
-  --v-theme-primary: 59, 130, 246;
+  --v-theme-primary: 59, 130, 246 !important;
+  --v-theme-primary-key: #3b82f6 !important;
 }
 
-[data-theme-color="verde"] {
+[data-theme-color="verde"],
+[data-theme-color="verde"] .v-application,
+[data-theme-color="verde"] .v-overlay-container {
   --theme-primary: #10b981;
   --theme-primary-dark: #059669;
   --theme-primary-darker: #047857;
@@ -68,7 +74,16 @@
 
   --brand-accent: #059669;
   --brand-accent-glow: rgba(16, 185, 129, 0.25);
-  --v-theme-primary: 16, 185, 129;
+  --v-theme-primary: 16, 185, 129 !important;
+  --v-theme-primary-key: #10b981 !important;
+}
+
+/* Logo Theme Adaptation Filter */
+[data-theme-color="blu"] .logo-theme-adapt {
+  filter: hue-rotate(190deg) saturate(1.2);
+}
+[data-theme-color="verde"] .logo-theme-adapt {
+  filter: hue-rotate(130deg) saturate(1.2);
 }
 
 [data-theme="light"],
@@ -96,17 +111,35 @@
   --scheda-btn-color: #1e293b;
   --glow-opacity: 0;
 
-  --brand-accent: #c85a17;
-  --brand-accent-glow: rgba(200, 90, 23, 0.18);
-  --brand-accent-bg: #faf2ec;
+  --brand-accent: var(--theme-primary-dark, #ea580c);
+  --brand-accent-glow: var(--theme-primary-glow, rgba(249, 115, 22, 0.25));
+  --brand-accent-bg: var(--theme-primary-bg-soft, rgba(249, 115, 22, 0.12));
 
   --color-emerald-700: #4d7c0f;
   --color-cyan-700: #0f766e;
   --color-amber-700: #b45309;
-  --color-orange-700: #c85a17;
+  --color-orange-700: var(--theme-primary-dark, #ea580c);
   --color-red-700: #a51d1d;
   --color-purple-700: #7e22ce;
   --color-blue-700: #1d4ed8;
+}
+
+/* Theme Dynamic Utility Classes */
+.theme-dot {
+  color: var(--theme-primary) !important;
+}
+.text-theme-primary {
+  color: var(--theme-primary) !important;
+}
+.bg-theme-primary {
+  background-color: var(--theme-primary) !important;
+}
+.border-theme-primary {
+  border-color: var(--theme-primary-border) !important;
+}
+.theme-registra-chip {
+  border-color: var(--theme-primary-border) !important;
+  color: var(--theme-primary) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -855,37 +888,137 @@ body::after {
    DYNAMIC DARK THEME UTILITY OVERRIDES (Arancio, Blu, Verde)
    ═══════════════════════════════════════════════════════════════════ */
 
-:root:not([data-theme="light"]) .text-orange-lighten-1,
-:root:not([data-theme="light"]) .text-orange-lighten-2,
-:root:not([data-theme="light"]) .text-orange-lighten-3,
-:root:not([data-theme="light"]) .text-orange-lighten-4,
-:root:not([data-theme="light"]) .text-orange-darken-1,
-:root:not([data-theme="light"]) .text-orange-darken-2,
-:root:not([data-theme="light"]) .text-orange-darken-3,
-:root:not([data-theme="light"]) .text-orange-darken-4,
-:root:not([data-theme="light"]) .text-orange {
+.text-orange-lighten-1,
+.text-orange-lighten-2,
+.text-orange-lighten-3,
+.text-orange-lighten-4,
+.text-orange-darken-1,
+.text-orange-darken-2,
+.text-orange-darken-3,
+.text-orange-darken-4,
+.text-orange,
+.v-icon.text-orange-lighten-1,
+.v-icon.text-orange-lighten-2,
+.v-icon.text-orange-lighten-3,
+.v-icon.text-orange-darken-3,
+.v-icon.text-orange {
   color: var(--theme-primary-light) !important;
 }
 
-:root:not([data-theme="light"]) .bg-orange-darken-1,
-:root:not([data-theme="light"]) .bg-orange-darken-2,
-:root:not([data-theme="light"]) .bg-orange-darken-3,
-:root:not([data-theme="light"]) .bg-orange-darken-4,
-:root:not([data-theme="light"]) .bg-orange,
-:root:not([data-theme="light"]) .v-btn.bg-orange-darken-3,
-:root:not([data-theme="light"]) .v-chip.bg-orange-darken-3,
-:root:not([data-theme="light"]) .v-chip--selected.bg-orange-darken-3 {
+[data-theme="light"] .text-orange-lighten-1,
+[data-theme="light"] .text-orange-lighten-2,
+[data-theme="light"] .text-orange-lighten-3,
+[data-theme="light"] .text-orange-lighten-4,
+[data-theme="light"] .text-orange-darken-1,
+[data-theme="light"] .text-orange-darken-2,
+[data-theme="light"] .text-orange-darken-3,
+[data-theme="light"] .text-orange-darken-4,
+[data-theme="light"] .text-orange,
+[data-theme="light"] .v-icon.text-orange-lighten-1,
+[data-theme="light"] .v-icon.text-orange-lighten-2,
+[data-theme="light"] .v-icon.text-orange-lighten-3,
+[data-theme="light"] .v-icon.text-orange-darken-3,
+[data-theme="light"] .v-icon.text-orange {
+  color: var(--theme-primary-dark) !important;
+}
+
+.bg-orange-darken-1,
+.bg-orange-darken-2,
+.bg-orange-darken-3,
+.bg-orange-darken-4,
+.bg-orange,
+.v-btn.bg-orange-darken-3,
+.v-chip.bg-orange-darken-3,
+.v-chip--selected.bg-orange-darken-3 {
   background-color: var(--theme-primary-dark) !important;
   color: #ffffff !important;
 }
 
-:root:not([data-theme="light"]) .bg-orange-darken-3-op {
+.bg-orange-darken-3-op {
   background-color: var(--theme-primary-bg-soft) !important;
 }
 
-:root:not([data-theme="light"]) .border-orange,
-:root:not([data-theme="light"]) .border-orange-darken-3-op {
+.border-orange,
+.border-orange-darken-3-op {
   border-color: var(--theme-primary-border) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VUETIFY INPUT FIELDS & FOCUS RINGS THEME HARMONIZATION
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Vuetify Dropdown List & Overlay Selected Item Theme Binding */
+.v-list-item--selected,
+.v-list-item--active,
+.v-list-item--selected .v-list-item-title,
+.v-list-item--active .v-list-item-title,
+.v-list-item--selected .v-list-item__overlay,
+.v-list-item--selected .v-list-item__content,
+.v-list-item--active .v-list-item__content {
+  color: var(--theme-primary) !important;
+}
+
+.v-list-item--selected .v-list-item__overlay,
+.v-list-item--active .v-list-item__overlay {
+  background-color: var(--theme-primary-bg-soft) !important;
+  opacity: 0.15 !important;
+}
+
+/* Force Vuetify bg-primary and text-primary to respect active theme color */
+.bg-primary,
+.v-btn.bg-primary,
+.v-chip.bg-primary,
+.v-chip--selected.bg-primary,
+.v-chip--selected {
+  background-color: var(--theme-primary-dark) !important;
+  color: #ffffff !important;
+}
+
+.text-primary,
+.v-icon.text-primary,
+.v-btn.text-primary {
+  color: var(--theme-primary) !important;
+}
+
+/* Focus state border and outline colors for all Vuetify inputs */
+.v-field--focused,
+.v-field--active,
+.v-field--focused .v-field__outline,
+.v-field--active .v-field__outline,
+.v-field--focused .v-field__outline__start,
+.v-field--focused .v-field__outline__end,
+.v-field--focused .v-field__outline__notch {
+  border-color: var(--theme-primary) !important;
+  --v-field-border-color: var(--theme-primary) !important;
+}
+
+.v-field--focused {
+  box-shadow: 0 0 10px var(--theme-primary-glow) !important;
+}
+
+/* Prevent double inner orange outlines or native browser ring on focused inputs */
+.v-field input,
+.v-field select,
+.v-field .v-field__input,
+.v-field .v-field__outline {
+  outline: none !important;
+}
+
+/* Fix Vuetify fieldset notch line cutting through labels or rendering orphan vertical lines */
+.v-field--variant-outlined .v-field__outline__notch {
+  border-style: none !important;
+  border-top-style: none !important;
+  border-bottom-style: none !important;
+}
+
+.v-field--variant-outlined .v-label.v-field-label--floating {
+  background-color: var(--card-bg-dark, #0f172a);
+  padding: 0 4px !important;
+  border-radius: 4px;
+}
+
+[data-theme="light"] .v-field--variant-outlined .v-label.v-field-label--floating {
+  background-color: var(--bg-main, #f9f8f5);
 }
 
 :root:not([data-theme="light"]) .text-gradient {

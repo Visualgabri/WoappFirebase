@@ -11,7 +11,7 @@
       <v-app-bar-title class="text-slate-dark" style="line-height: 1.15;">
         <div class="d-flex flex-column text-left">
           <div class="font-weight-black d-flex align-center" style="font-size: 1.05rem !important; line-height: 1.1;">
-            <v-icon color="orange-darken-3" class="mr-1.5" size="18">mdi-dumbbell</v-icon>
+            <v-icon color="primary" class="mr-1.5 text-theme-primary" size="18">mdi-dumbbell</v-icon>
             FlexCoach<span class="orange-dot">.</span>
           </div>
           <div class="text-super-caption text-muted font-weight-medium" style="font-size: 0.62rem !important; margin-left: 24px; margin-top: 1px;">
@@ -25,7 +25,7 @@
       <!-- Profilo utente e Logout -->
       <div class="d-none d-sm-flex flex-column align-end mr-4">
         <span class="text-caption font-weight-bold text-slate-dark">{{ utente.email }}</span>
-        <span class="text-caption text-orange-darken-4 font-weight-bold">
+        <span class="text-caption text-theme-primary font-weight-bold">
           {{ ruolo === 'coach' ? 'Coach 📋' : 'Atleta #' + idCliente }}
         </span>
       </div>
@@ -34,9 +34,9 @@
       <v-btn
         v-if="ruolo === 'coach'"
         icon
-        color="orange-darken-3"
+        color="primary"
         variant="text"
-        class="rounded-lg mr-1.5 btn-header-compact"
+        class="rounded-lg mr-1.5 btn-header-compact text-theme-primary"
         to="/admin"
         title="Pannello di Controllo Coach"
         id="btn-admin-panel"
@@ -50,9 +50,9 @@
       <!-- Pulsante Toggle Tema Chiaro / Scuro -->
       <v-btn
         icon
-        color="orange-lighten-2"
+        color="primary"
         variant="text"
-        class="rounded-lg mr-1.5 btn-header-compact"
+        class="rounded-lg mr-1.5 btn-header-compact text-theme-primary"
         @click="toggleTema"
         :title="currentTheme === 'light' ? 'Passa al Tema Scuro OLED' : 'Passa al Tema Chiaro Arctic'"
         id="btn-toggle-theme"
@@ -63,9 +63,9 @@
       <!-- Pulsante Guida / Aiuto Progressione -->
       <v-btn
         icon
-        color="orange-lighten-2"
+        color="primary"
         variant="text"
-        class="rounded-lg mr-1.5 btn-header-compact"
+        class="rounded-lg mr-1.5 btn-header-compact text-theme-primary"
         @click="mostraDialogGuida = true"
         title="Guida all'Uso e Regole di Progressione"
         id="btn-guida-uso"
@@ -98,7 +98,7 @@
     <v-bottom-navigation
       v-if="utente"
       grow
-      color="orange-darken-3"
+      color="primary"
       fixed
       elevation="4"
       class="premium-nav"
@@ -1518,7 +1518,7 @@ const elencoDischiGrafica = computed(() => {
 }
 
 .orange-dot {
-  color: #f97316;
+  color: var(--theme-primary);
 }
 
 .border-bottom {

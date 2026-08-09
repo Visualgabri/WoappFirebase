@@ -11,15 +11,14 @@
     >
       <div class="d-flex align-center">
         <v-avatar size="32" class="mr-2 bg-transparent border-orange elevation-1">
-          <v-img src="/logo.png" alt="WoApp Logo"></v-img>
+          <v-img src="/logo.png" alt="WoApp Logo" class="logo-theme-adapt"></v-img>
         </v-avatar>
         <div class="text-left d-flex flex-column align-start" style="gap: 2px;">
           <h1 class="text-subtitle-1 font-weight-black text-slate-dark tracking-tight mb-0" style="line-height: 1; font-size: 1.12rem;">WORKOUTS</h1>
           <div class="d-flex align-center flex-wrap gap-1 mt-0.5" v-if="atletaSelezionato && schedaSelezionata">
             <v-chip
-              color="orange-darken-3"
               size="x-small"
-              class="font-weight-black uppercase px-1.5 py-0 text-white elevation-1"
+              class="font-weight-black uppercase px-1.5 py-0 text-white elevation-1 bg-theme-primary"
               variant="flat"
               style="font-size: 0.58rem; letter-spacing: 0.01em; height: 18px;"
             >
@@ -43,7 +42,7 @@
         </div>
       </div>
       <div class="header-actions d-flex align-center gap-1">
-        <v-btn icon color="orange-darken-3" variant="tonal" size="x-small" style="width: 28px; height: 28px;" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
+        <v-btn icon color="primary" variant="tonal" size="x-small" style="width: 28px; height: 28px;" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
           <v-icon size="16">mdi-magnify</v-icon>
         </v-btn>
         <v-btn icon color="slate-dark" variant="text" size="x-small" style="width: 28px; height: 28px;" @click="caricaAllenamenti" title="Aggiorna"><v-icon size="18">mdi-refresh</v-icon></v-btn>
@@ -272,18 +271,18 @@
               <div v-if="eserciziDaRecuperare.length > 0" class="mb-6">
                 <v-card
                   class="pa-4 rounded-3xl border"
-                  style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.1), rgba(249, 115, 22, 0.03)) !important; border: 1.5px solid rgba(249, 115, 22, 0.3) !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;"
+                  style="background: linear-gradient(135deg, var(--theme-primary-bg-soft), rgba(0, 0, 0, 0.03)) !important; border: 1.5px solid var(--theme-primary-border) !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;"
                 >
                   <!-- Header Globale -->
                   <div class="d-flex align-center justify-space-between mb-3">
                     <div class="d-flex align-center">
-                      <v-icon color="orange-darken-3" class="mr-1.5 animate-pulse" size="14">mdi-sync</v-icon>
-                      <span class="font-weight-black text-orange-lighten-2" style="letter-spacing: 0.03em; font-size: 0.72rem !important;">
+                      <v-icon color="primary" class="mr-1.5 animate-pulse" size="14">mdi-sync</v-icon>
+                      <span class="font-weight-black text-theme-primary" style="letter-spacing: 0.03em; font-size: 0.72rem !important;">
                         ESERCIZI DA RECUPERARE
                       </span>
                     </div>
                     <v-chip 
-                      color="orange-darken-3" 
+                      color="primary" 
                       size="x-small" 
                       class="font-weight-black text-white px-2" 
                       variant="flat" 
@@ -302,7 +301,7 @@
                       v-for="gruppo in recuperiRaggruppati"
                       :key="gruppo.giorno"
                       class="recupero-accordion-group rounded-xl overflow-hidden"
-                      style="border: 1px solid rgba(249, 115, 22, 0.15); background: rgba(0,0,0,0.15);"
+                      style="border: 1px solid var(--theme-primary-border); background: rgba(0,0,0,0.15);"
                     >
                       <!-- Accordion Header (sempre visibile) -->
                       <div
@@ -313,7 +312,7 @@
                         <div class="d-flex align-center">
                           <div
                             class="d-flex align-center justify-center rounded-lg mr-3 font-weight-black"
-                            style="width: 32px; height: 32px; background: rgba(249, 115, 22, 0.2); color: #fb923c; font-size: 0.95rem;"
+                            style="width: 32px; height: 32px; background: var(--theme-primary-bg-soft); color: var(--theme-primary); font-size: 0.95rem;"
                           >
                             {{ gruppo.giorno }}
                           </div>
@@ -328,7 +327,7 @@
                         </div>
                         <div class="d-flex align-center gap-2">
                           <v-chip 
-                            color="orange-darken-3" 
+                            color="primary" 
                             size="x-small" 
                             variant="flat" 
                             class="font-weight-black text-white px-2"
@@ -339,7 +338,7 @@
                           >
                             {{ gruppo.esercizi.length }}
                           </v-chip>
-                          <v-icon size="18" color="orange-lighten-2" :style="{ transform: recuperoAccordionAperto === gruppo.giorno ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
+                          <v-icon size="18" color="primary" :style="{ transform: recuperoAccordionAperto === gruppo.giorno ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
                             mdi-chevron-down
                           </v-icon>
                         </div>
@@ -1124,9 +1123,9 @@
                         v-else 
                         size="x-small" 
                         variant="outlined" 
-                        color="orange-darken-3" 
-                        class="font-weight-black px-2 py-0.5 text-none"
-                        style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 2px;"
+                        color="primary" 
+                        class="font-weight-black px-2 py-0.5 text-none theme-registra-chip"
+                        style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                       >
                         + Registra
                       </v-chip>
@@ -1250,9 +1249,9 @@
                         v-else 
                         size="small" 
                         variant="outlined" 
-                        color="orange-darken-3" 
-                        class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4"
-                        style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.5) !important; border-radius: 5px;"
+                        color="primary" 
+                        class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4 theme-registra-chip"
+                        style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         + Registra
@@ -1468,9 +1467,9 @@
                       v-else 
                       size="x-small" 
                       variant="outlined" 
-                      color="orange-darken-3" 
-                      class="font-weight-black px-2 py-0.5 text-none"
-                      style="height: 16px; font-size: 0.52rem; border-color: rgba(249, 115, 22, 0.4) !important; border-radius: 2px;"
+                      color="primary" 
+                      class="font-weight-black px-2 py-0.5 text-none theme-registra-chip"
+                      style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                     >
                       + Registra
                     </v-chip>
@@ -1595,9 +1594,9 @@
                     v-else 
                     size="small" 
                     variant="outlined" 
-                    color="orange-darken-3" 
-                    class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4"
-                    style="height: 22px; font-size: 0.62rem; border-color: rgba(249, 115, 22, 0.5) !important; border-radius: 5px;"
+                    color="primary" 
+                    class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4 theme-registra-chip"
+                    style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     + Registra
@@ -6214,8 +6213,8 @@ const recuperiRaggruppati = computed(() => {
 }
 .recovery-compact-input :deep(.v-field--focused) {
   background: var(--v-field-bg) !important;
-  border-color: #f97316 !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 10px var(--theme-primary-glow) !important;
 }
 .recovery-compact-input :deep(.v-field__outline) {
   display: none !important;
@@ -6231,8 +6230,8 @@ const recuperiRaggruppati = computed(() => {
 }
 .custom-compact-input :deep(.v-field--focused) {
   background: var(--v-field-bg) !important;
-  border-color: #f97316 !important;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 10px var(--theme-primary-glow) !important;
 }
 .custom-compact-input :deep(.v-field__outline) {
   display: none !important;

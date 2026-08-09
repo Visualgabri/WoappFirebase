@@ -204,7 +204,7 @@
               density="compact"
               hide-details
               rounded="lg"
-              color="orange-darken-3"
+              color="primary"
               class="ultra-compact-select"
             ></v-select>
           </div>
@@ -216,7 +216,7 @@
           <div class="compact-switch">
             <v-switch
               v-model="vibrazioneAttiva"
-              color="orange-darken-3"
+              color="primary"
               hide-details
               density="compact"
             ></v-switch>
@@ -241,7 +241,7 @@
               density="compact"
               hide-details
               rounded="lg"
-              color="orange-darken-3"
+              color="primary"
               class="ultra-compact-select"
             ></v-select>
           </div>
@@ -262,7 +262,7 @@
               density="compact"
               hide-details
               rounded="lg"
-              color="orange-darken-3"
+              color="primary"
               class="ultra-compact-select"
             ></v-select>
           </div>
@@ -376,18 +376,18 @@
       v-if="ruolo === 'coach'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
-      :style="{ borderColor: tipoNotificaForm === 'deploy' ? 'rgba(249, 115, 22, 0.45) !important' : 'rgba(168, 85, 247, 0.5) !important' }"
+      :style="{ borderColor: tipoNotificaForm === 'deploy' ? 'var(--theme-primary-border) !important' : 'rgba(168, 85, 247, 0.5) !important' }"
     >
       <div class="d-flex align-center justify-space-between mb-2.5">
         <div class="d-flex align-center gap-1.5">
-          <v-icon :color="tipoNotificaForm === 'deploy' ? 'orange-darken-3' : 'purple-darken-1'" size="17">
+          <v-icon :color="tipoNotificaForm === 'deploy' ? 'primary' : 'purple-darken-1'" size="17">
             {{ tipoNotificaForm === 'deploy' ? 'mdi-rocket-launch-outline' : 'mdi-comment-text-outline' }}
           </v-icon>
-          <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :class="tipoNotificaForm === 'deploy' ? 'text-orange-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.72rem;">
+          <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :class="tipoNotificaForm === 'deploy' ? 'text-theme-primary' : 'text-purple-lighten-2'" style="font-size: 0.72rem;">
             {{ tipoNotificaForm === 'deploy' ? 'Notifica Deploy' : 'Messaggio Privato' }}
           </span>
         </div>
-        <v-chip :color="tipoNotificaForm === 'deploy' ? 'orange-darken-3' : 'purple-darken-2'" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.55rem; height: 18px;">
+        <v-chip :color="tipoNotificaForm === 'deploy' ? 'primary' : 'purple-darken-2'" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.55rem; height: 18px;">
           COACH
         </v-chip>
       </div>
@@ -405,7 +405,7 @@
             <v-btn 
               value="deploy" 
               class="font-weight-black flex-grow-1 text-none"
-              :class="tipoNotificaForm === 'deploy' ? 'bg-orange-darken-3 text-white' : 'text-slate-dark'"
+              :class="tipoNotificaForm === 'deploy' ? 'bg-theme-primary text-white' : 'text-slate-dark'"
               style="font-size: 0.65rem; padding: 0 6px;"
             >
               Deploy (Tutti)
@@ -430,7 +430,7 @@
               placeholder="Titolo..."
               variant="outlined"
               density="compact"
-              color="orange-darken-3"
+              color="primary"
               class="custom-compact-field"
               hide-details
             ></v-text-field>
@@ -444,14 +444,14 @@
               variant="outlined"
               density="compact"
               rows="2"
-              color="orange-darken-3"
+              color="primary"
               class="custom-compact-field"
               hide-details
             ></v-textarea>
           </div>
 
           <v-btn
-            color="orange-darken-3"
+            color="primary"
             block
             size="small"
             variant="flat"

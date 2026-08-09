@@ -959,7 +959,7 @@ const parseVolumes = (str) => {
 
 .glowing-btn-giant:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 35px -2px rgba(249, 115, 22, 0.65) !important;
+  box-shadow: 0 12px 35px -2px var(--theme-primary-glow) !important;
 }
 
 .glowing-btn-giant:active {
@@ -977,7 +977,7 @@ const parseVolumes = (str) => {
 
 @keyframes pulse-slow {
   0% {
-    box-shadow: 0 8px 25px -5px rgba(249, 115, 22, 0.35) !important;
+    box-shadow: 0 8px 25px -5px var(--theme-primary-glow) !important;
   }
   100% {
     box-shadow: 0 8px 30px 2px rgba(249, 115, 22, 0.5) !important;

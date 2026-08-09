@@ -10,7 +10,7 @@
       :class="layoutEsercizi === 'super_compatto' ? 'mb-1' : (layoutEsercizi === 'compatto' ? 'mb-1.5' : 'mb-2')"
     >
       <div class="d-flex align-center">
-        <v-avatar size="32" class="mr-2 bg-transparent border-orange elevation-1">
+        <v-avatar size="32" class="mr-2 bg-transparent border-theme-primary elevation-1">
           <v-img src="/logo.png" alt="WoApp Logo" class="logo-theme-adapt"></v-img>
         </v-avatar>
         <div class="text-left d-flex flex-column align-start" style="gap: 2px;">
@@ -51,12 +51,12 @@
 
     <!-- Stato vuoto se non selezionati atleta e scheda -->
     <div v-if="!atletaSelezionato || !schedaSelezionata" class="empty-state text-center my-12 py-12 card-glass rounded-xl">
-      <v-icon size="80" color="orange-lighten-3" class="mb-4 animate-bounce">mdi-clipboard-text-search-outline</v-icon>
+      <v-icon size="80" color="primary" class="mb-4 animate-bounce">mdi-clipboard-text-search-outline</v-icon>
       <h3 class="text-h5 font-weight-bold text-slate-dark">Seleziona Atleta e Scheda</h3>
       <p class="text-body-1 text-muted mt-2">
         Scegli l'atleta e la scheda attiva nella sezione <strong>Home</strong> per sbloccare la lista allenamenti.
       </p>
-      <v-btn to="/home" color="orange-darken-3" class="font-weight-bold text-none mt-6" rounded="lg">
+      <v-btn to="/home" color="primary" class="font-weight-bold text-none mt-6" rounded="lg">
         Vai alla Home
       </v-btn>
     </div>
@@ -79,9 +79,9 @@
           :style="settimanaAttiva === 6 ? 'font-size: 0.60rem; border: 1.5px solid var(--brand-accent); background: var(--brand-accent-bg) !important; padding: 3px 4px;' : 'font-size: 0.58rem; border: 1px solid var(--card-border); padding: 2.5px 4px;'"
           style="color: var(--text-slate);"
         >
-          <span class="text-orange-darken-3 font-weight-black">SETTIMANA CORRENTE:</span>
+          <span class="text-theme-primary font-weight-black">SETTIMANA CORRENTE:</span>
           <span class="text-slate-dark ml-1.5 font-weight-black">WEEK {{ settimanaAttiva }}</span>
-          <span v-if="settimanaAttiva === 6" class="ml-2 px-1.5 py-0.5 rounded bg-orange-darken-3 text-white font-weight-black animate-pulse" style="font-size: 0.55rem; letter-spacing: normal;">
+          <span v-if="settimanaAttiva === 6" class="ml-2 px-1.5 py-0.5 rounded bg-theme-primary text-white font-weight-black animate-pulse" style="font-size: 0.55rem; letter-spacing: normal;">
             🔥 ULTIMA SETTIMANA!
           </span>
         </div>
@@ -194,7 +194,7 @@
 
       <!-- Indicatore di Caricamento -->
       <div v-if="caricamento" class="text-center my-10">
-        <v-progress-circular indeterminate color="orange" size="48"></v-progress-circular>
+        <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
         <p class="mt-2 text-caption text-muted">Caricamento esercizi giorno {{ giornoSelezionato }}...</p>
       </div>
 
@@ -348,9 +348,9 @@
                       <v-expand-transition>
                         <div v-show="recuperoAccordionAperto === gruppo.giorno" class="px-3 pb-3">
                           <!-- Coaching Tip -->
-                          <div class="d-flex align-center pa-2 mb-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border: 1px dashed rgba(249, 115, 22, 0.2);">
-                            <v-icon size="14" color="orange-lighten-1" class="mr-2 flex-shrink-0">mdi-lightbulb-outline</v-icon>
-                            <span class="text-super-caption text-orange-lighten-2" style="font-size: 0.62rem; line-height: 1.3;">
+                          <div class="d-flex align-center pa-2 mb-2 rounded-lg" style="background: var(--theme-primary-bg-soft); border: 1px dashed var(--theme-primary-border);">
+                            <v-icon size="14" color="primary" class="mr-2 flex-shrink-0">mdi-lightbulb-outline</v-icon>
+                            <span class="text-super-caption text-theme-primary" style="font-size: 0.62rem; line-height: 1.3;">
                               Ordine consigliato: inserisci prima i <strong>multiarticolari</strong> (dopo i tuoi esercizi principali), poi l'<strong>isolamento</strong>, infine il <strong>core</strong>.
                             </span>
                           </div>
@@ -368,7 +368,7 @@
                               <div class="d-flex flex-column align-center mr-3 flex-shrink-0" style="gap: 3px;">
                                 <div
                                   class="d-flex align-center justify-center rounded font-weight-black"
-                                  style="width: 20px; height: 20px; font-size: 0.6rem; background: rgba(249, 115, 22, 0.25); color: #fb923c;"
+                                  style="width: 20px; height: 20px; font-size: 0.6rem; background: var(--theme-primary-bg-soft); color: var(--theme-primary);"
                                 >
                                   {{ idx + 1 }}
                                 </div>
@@ -396,11 +396,11 @@
                                   </h4>
                                   <div class="d-flex align-center gap-1">
                                     <v-chip size="x-small" variant="flat" class="font-weight-bold px-1" style="font-size: 0.5rem; height: 15px;"
-                                      :color="recItem.complessita === 1 ? 'red-darken-3' : recItem.complessita === 2 ? 'orange-darken-3' : recItem.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
+                                      :color="recItem.complessita === 1 ? 'red-darken-3' : recItem.complessita === 2 ? 'amber-darken-3' : recItem.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
                                     >
                                       {{ labelComplessita(recItem.complessita) }}
                                     </v-chip>
-                                    <v-chip size="x-small" color="orange-darken-3" variant="outlined" class="font-weight-bold" style="font-size: 0.55rem; height: 15px;">
+                                    <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-bold" style="font-size: 0.55rem; height: 15px;">
                                       W{{ recItem.week }}
                                     </v-chip>
                                   </div>
@@ -411,7 +411,7 @@
                                   Target: {{ formattaPrescrizioneSemplice(recItem.prescrizione) }}
                                 </div>
                                 
-                                <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-super-caption text-orange-lighten-2 mt-0.5">
+                                <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-super-caption text-theme-primary mt-0.5">
                                   Log parziale: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
                                 </div>
 
@@ -443,20 +443,20 @@
               <div v-if="eserciziDaRecuperare.length > 0 && ordineEsecuzioneCompleto.length > 0" class="mb-6">
                 <v-card
                   class="pa-3 rounded-xl mb-4 border elevation-1"
-                  style="background: linear-gradient(135deg, var(--card-bg-soft), var(--card-bg-glass)) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important;"
+                  style="background: linear-gradient(135deg, var(--card-bg-soft), var(--card-bg-glass)) !important; border: 1px solid var(--theme-primary-border) !important;"
                 >
                   <div
                     class="d-flex align-center justify-space-between cursor-pointer select-none"
                     @click="ordineEsecuzioneAperto = !ordineEsecuzioneAperto"
                   >
                     <div class="d-flex align-center">
-                      <v-icon color="orange-darken-3" class="mr-2" size="18">mdi-format-list-numbered</v-icon>
+                      <v-icon color="primary" class="mr-2" size="18">mdi-format-list-numbered</v-icon>
                       <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.78rem !important; letter-spacing: 0.03em;">
                         ORDINE ESECUZIONE
                       </span>
                       <v-chip
                         v-if="eserciziDaRecuperare.length > 0"
-                        color="orange-darken-3"
+                        color="primary"
                         size="x-small"
                         class="ml-2 font-weight-black text-white px-1.5"
                         variant="flat"
@@ -475,7 +475,7 @@
                       >
                         {{ ordineEsecuzioneCompleto.length }} TOT
                       </v-chip>
-                      <v-icon size="16" color="orange-lighten-2" :style="{ transform: ordineEsecuzioneAperto ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
+                      <v-icon size="16" color="primary" :style="{ transform: ordineEsecuzioneAperto ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
                         mdi-chevron-down
                       </v-icon>
                     </div>
@@ -489,8 +489,8 @@
                             :key="'ord-' + idx"
                             class="d-flex align-center py-1.5 px-2 rounded-lg cursor-pointer"
                             :style="{
-                              background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                              border: item.tipo === 'recupero' ? '1px solid rgba(249, 115, 22, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)',
+                              background: item.tipo === 'recupero' ? 'var(--theme-primary-bg-soft)' : 'rgba(255, 255, 255, 0.02)',
+                              border: item.tipo === 'recupero' ? '1px solid var(--theme-primary-border)' : '1px solid rgba(255, 255, 255, 0.04)',
                             }"
                             @click="item.id ? (item.tipo === 'recupero' ? vaiAlDettaglio(item.id, item.weekRecupero) : vaiAlDettaglio(item.id)) : null"
                           >
@@ -501,8 +501,8 @@
                               width: '22px',
                               height: '22px',
                               fontSize: '0.62rem',
-                              background: item.tipo === 'recupero' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(255, 255, 255, 0.08)',
-                              color: item.tipo === 'recupero' ? '#fb923c' : '#94a3b8',
+                              background: item.tipo === 'recupero' ? 'var(--theme-primary-bg-soft)' : 'rgba(255, 255, 255, 0.08)',
+                              color: item.tipo === 'recupero' ? 'var(--theme-primary)' : '#94a3b8',
                             }"
                           >
                             {{ idx + 1 }}
@@ -511,7 +511,7 @@
                           <!-- Info Esercizio -->
                           <div class="flex-grow-1 min-width-0">
                             <div class="d-flex align-center gap-1">
-                              <span class="text-caption font-weight-bold text-truncate" :class="item.tipo === 'recupero' ? 'text-orange-lighten-2' : 'text-slate-dark'" style="font-size: 0.72rem !important;">
+                              <span class="text-caption font-weight-bold text-truncate" :class="item.tipo === 'recupero' ? 'text-theme-primary' : 'text-slate-dark'" style="font-size: 0.72rem !important;">
                                 {{ item.nome }}
                               </span>
                               <v-chip
@@ -6027,16 +6027,23 @@ const recuperiRaggruppati = computed(() => {
 
 [data-theme="light"] .day-tabs-header-bar {
   background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-bottom: none !important;
+  border-top-left-radius: 16px !important;
+  border-top-right-radius: 16px !important;
+  box-shadow: none !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) {
-  color: #64748b !important;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
   opacity: 0.9 !important;
+  border-right: 1px solid #e2e8f0 !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-day-letter {
-  color: #475569 !important;
+  color: #334155 !important;
+  font-weight: 800 !important;
 }
 
 [data-theme="light"] .day-tabs-header-bar .v-tab:not(.v-tab--selected) .tab-lock-icon {
@@ -6045,116 +6052,143 @@ const recuperiRaggruppati = computed(() => {
 
 /* Light Theme Active Tab & Day Header Continuous Palette */
 [data-theme="light"] .day-tabs-header-bar.active-tab-theme-arancio .v-tab--selected,
-[data-theme="light"] .active-tab-theme-arancio .v-tab--selected {
-  background: linear-gradient(180deg, #ffedd5 0%, #fff7ed 100%) !important;
-  color: #ea580c !important;
-  border: 1.5px solid #fed7aa !important;
+[data-theme="light"] .active-tab-theme-arancio .v-tab--selected,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-verde .v-tab--selected,
+[data-theme="light"] .active-tab-theme-verde .v-tab--selected {
+  background: linear-gradient(180deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #047857 !important;
   border-bottom: none !important;
 }
 
-[data-theme="light"] .active-tab-theme-arancio .v-tab--selected .tab-day-letter,
-[data-theme="light"] .active-tab-theme-arancio .v-tab--selected span,
-[data-theme="light"] .active-tab-theme-arancio .v-tab--selected .v-icon {
-  color: #ea580c !important;
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-blu .v-tab--selected,
+[data-theme="light"] .active-tab-theme-blu .v-tab--selected {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #1d4ed8 !important;
+  border-bottom: none !important;
 }
 
-[data-theme="light"] .day-header-section.tema-arancio {
-  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%) !important;
-  color: #7c2d12 !important;
-  border-color: #fed7aa !important;
+[data-theme="light"] .day-tabs-header-bar .v-tab--selected .tab-day-letter,
+[data-theme="light"] .day-tabs-header-bar .v-tab--selected span,
+[data-theme="light"] .day-tabs-header-bar .v-tab--selected .v-icon {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-arancio,
+[data-theme="light"] .day-header-section.tema-verde {
+  background: linear-gradient(180deg, #047857 0%, #064e3b 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu {
-  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
-  color: #1e40af !important;
-  border-color: #bfdbfe !important;
-}
-
-[data-theme="light"] .day-header-section.tema-verde {
-  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%) !important;
-  color: #065f46 !important;
-  border-color: #a7f3d0 !important;
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
 }
 
 [data-theme="light"] .day-header-section .header-title-text,
 [data-theme="light"] .day-header-section h3.header-title-text {
-  color: #7c2d12 !important;
+  color: #ffffff !important;
   font-weight: 900 !important;
 }
 
 [data-theme="light"] .day-header-section .header-info-text,
 [data-theme="light"] .day-header-section .header-info-text span {
-  color: #7c2d12 !important;
+  color: #e2e8f0 !important;
   font-weight: 700 !important;
 }
 
 [data-theme="light"] .day-header-section .header-progress-text,
 [data-theme="light"] .day-header-section .header-progress-text span {
-  color: #7c2d12 !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
 }
 
 [data-theme="light"] .day-header-section .giorno-big-letter {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
   color: #ffffff !important;
-  border: 1.5px solid #fdba74 !important;
-  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed {
-  background: #ea580c !important;
-  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #047857 !important;
   font-weight: 800 !important;
-  border: 1px solid #f97316 !important;
-  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.2) !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .capsule-num,
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .v-icon {
-  color: #ffffff !important;
+  color: #047857 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed,
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed .capsule-num,
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed .v-icon {
+  color: #1d4ed8 !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-active {
-  background: #c2410c !important;
-  color: #ffffff !important;
+  background: #ffffff !important;
+  color: #064e3b !important;
   font-weight: 900 !important;
-  border: 1.5px solid #7c2d12 !important;
-  box-shadow: 0 2px 8px rgba(124, 45, 18, 0.3) !important;
+  border: 1.5px solid #34d399 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-active .capsule-num {
-  color: #ffffff !important;
+  color: #064e3b !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-active {
+  color: #1e3a8a !important;
+  border-color: #60a5fa !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-active .capsule-num {
+  color: #1e3a8a !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending {
-  background: #ffffff !important;
-  color: #7c2d12 !important;
-  border: 1px solid #fed7aa !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   font-weight: 700 !important;
 }
 
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending .capsule-num {
-  color: #7c2d12 !important;
+  color: #e2e8f0 !important;
 }
 
 [data-theme="light"] .day-header-section .session-progress-bar-container {
-  background: #fed7aa !important;
-  border: 1px solid #fdba74 !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 [data-theme="light"] .day-header-section .session-progress-bar-fill {
-  background: linear-gradient(90deg, #ea580c, #c2410c) !important;
-  box-shadow: 0 0 8px rgba(234, 88, 12, 0.4) !important;
+  background: #34d399 !important;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6) !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .session-progress-bar-fill {
+  background: #60a5fa !important;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.6) !important;
 }
 
 [data-theme="light"] .workout-session-container {
   background: #ffffff !important;
-  border-color: #fed7aa !important;
-  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-top: none !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
 }
 
 [data-theme="light"] .day-exercises-section {
-  background: #fdfbf7 !important;
+  background: #ffffff !important;
 }
 .tema-blu .giorno-big-letter {
   background: linear-gradient(135deg, #1e40af, #3b82f6) !important;

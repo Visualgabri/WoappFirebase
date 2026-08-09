@@ -111,14 +111,14 @@
   --scheda-btn-color: #1e293b;
   --glow-opacity: 0;
 
-  --brand-accent: var(--theme-primary-dark, #ea580c);
-  --brand-accent-glow: var(--theme-primary-glow, rgba(249, 115, 22, 0.25));
-  --brand-accent-bg: var(--theme-primary-bg-soft, rgba(249, 115, 22, 0.12));
+  --brand-accent: var(--theme-primary-dark, #059669);
+  --brand-accent-glow: var(--theme-primary-glow, rgba(16, 185, 129, 0.25));
+  --brand-accent-bg: var(--theme-primary-bg-soft, rgba(16, 185, 129, 0.12));
 
-  --color-emerald-700: #4d7c0f;
+  --color-emerald-700: #047857;
   --color-cyan-700: #0f766e;
   --color-amber-700: #b45309;
-  --color-orange-700: var(--theme-primary-dark, #ea580c);
+  --color-orange-700: var(--theme-primary-dark, #059669);
   --color-red-700: #a51d1d;
   --color-purple-700: #7e22ce;
   --color-blue-700: #1d4ed8;

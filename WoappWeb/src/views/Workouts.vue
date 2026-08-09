@@ -5633,6 +5633,11 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
 }
 
+.sticky-tabs-container .day-tabs-header-bar.active-tab-theme-fucsia .v-tab--selected,
+:root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-fucsia .v-tab--selected {
+  background: linear-gradient(180deg, #ec4899 0%, #db2777 100%) !important;
+}
+
 .sticky-tabs-container .v-tabs-slider,
 .sticky-tabs-container .v-tabs-slider-wrapper,
 .sticky-tabs-container .v-tab-slider,
@@ -5861,6 +5866,7 @@ const recuperiRaggruppati = computed(() => {
 .day-tabs-header-bar .v-tab :deep(*),
 .day-tabs-header-bar .v-tab::before,
 .day-tabs-header-bar .v-tab::after {
+  overflow: hidden !important;
   border-bottom-left-radius: 0px !important;
   border-bottom-right-radius: 0px !important;
   outline: none !important;
@@ -5897,6 +5903,10 @@ const recuperiRaggruppati = computed(() => {
 
 .active-tab-theme-verde .v-tab--selected {
   background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
+}
+
+.active-tab-theme-fucsia .v-tab--selected {
+  background: linear-gradient(180deg, #ec4899 0%, #db2777 100%) !important;
 }
 
 .day-tabs-header-bar .v-tab--selected,
@@ -5973,6 +5983,10 @@ const recuperiRaggruppati = computed(() => {
   border-bottom-right-radius: 18px !important;
 }
 
+.day-header-section.tema-blu:hover {
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+}
+
 /* Tema Verde - Continuità perfetta */
 .day-header-section.tema-verde {
   background: linear-gradient(180deg, #047857 0%, #064e3b 100%) !important;
@@ -5982,7 +5996,27 @@ const recuperiRaggruppati = computed(() => {
   border-bottom-right-radius: 18px !important;
 }
 
-.tema-arancio .header-title-text {
+.day-header-section.tema-verde:hover {
+  background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
+}
+
+/* Tema Fucsia - Continuità perfetta */
+.day-header-section.tema-fucsia {
+  background: linear-gradient(180deg, #db2777 0%, #831843 100%) !important;
+  border-left: none !important;
+  color: #ffffff !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
+}
+
+.day-header-section.tema-fucsia:hover {
+  background: linear-gradient(180deg, #ec4899 0%, #db2777 100%) !important;
+}
+
+.tema-arancio .header-title-text,
+.tema-blu .header-title-text,
+.tema-verde .header-title-text,
+.tema-fucsia .header-title-text {
   color: #ffffff !important;
   font-weight: 900 !important;
 }
@@ -5994,10 +6028,49 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
-.tema-arancio .mini-week-capsule.capsule-completed {
-  background: rgba(15, 23, 42, 0.65) !important;
+.tema-blu .giorno-big-letter {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.35) !important;
+}
+
+.tema-verde .giorno-big-letter {
+  background: linear-gradient(135deg, #065f46 0%, #10b981 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 10px rgba(6, 95, 70, 0.35) !important;
+}
+
+.tema-fucsia .giorno-big-letter {
+  background: linear-gradient(135deg, #be185d 0%, #ec4899 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 10px rgba(190, 24, 93, 0.35) !important;
+}
+
+.tema-arancio .mini-week-capsule.capsule-completed {
+  background: rgba(249, 115, 22, 0.25) !important;
+  border: 1px solid rgba(249, 115, 22, 0.5) !important;
+  color: #fdba74 !important;
+}
+
+.tema-blu .mini-week-capsule.capsule-completed {
+  background: rgba(59, 130, 246, 0.25) !important;
+  border: 1px solid rgba(59, 130, 246, 0.5) !important;
+  color: #93c5fd !important;
+}
+
+.tema-verde .mini-week-capsule.capsule-completed {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+  color: #6ee7b7 !important;
+}
+
+.tema-fucsia .mini-week-capsule.capsule-completed {
+  background: rgba(236, 72, 153, 0.25) !important;
+  border: 1px solid rgba(236, 72, 153, 0.5) !important;
+  color: #fbcfe8 !important;
 }
 
 .tema-arancio .mini-week-capsule.capsule-active {
@@ -6008,7 +6081,42 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
-.tema-arancio .mini-week-capsule.capsule-pending {
+.tema-blu .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6) !important;
+  animation: pulse-blue-glow 2s infinite alternate !important;
+}
+
+.tema-verde .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #065f46 0%, #10b981 100%) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
+  animation: pulse-green-glow 2s infinite alternate !important;
+}
+
+.tema-fucsia .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #be185d 0%, #ec4899 100%) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.6) !important;
+  animation: pulse-fuchsia-glow 2s infinite alternate !important;
+}
+
+@keyframes pulse-fuchsia-glow {
+  0% { box-shadow: 0 0 8px rgba(236, 72, 153, 0.4); }
+  100% { box-shadow: 0 0 16px rgba(236, 72, 153, 0.8); }
+}
+
+.tema-arancio .mini-week-capsule.capsule-pending,
+.tema-blu .mini-week-capsule.capsule-pending,
+.tema-verde .mini-week-capsule.capsule-pending,
+.tema-fucsia .mini-week-capsule.capsule-pending {
   background: rgba(15, 23, 42, 0.35) !important;
   color: #cbd5e1 !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -6164,10 +6272,50 @@ const recuperiRaggruppati = computed(() => {
   font-weight: 900 !important;
 }
 
-[data-theme="light"] .day-header-section.tema-arancio,
-[data-theme="light"] .day-header-section.tema-verde {
-  background: linear-gradient(180deg, #a7f3d0 0%, #ecfdf5 100%) !important;
-  color: #065f46 !important;
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia {
+  background: #fdf2f8 !important;
+  border: 1px solid #fbcfe8 !important;
+  border-bottom: none !important;
+  border-top-left-radius: 16px !important;
+  border-top-right-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia .v-tab:not(.v-tab--selected) {
+  background: #fce7f3 !important;
+  color: #9d174d !important;
+  opacity: 0.85 !important;
+  border-right: 1px solid #fbcfe8 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia .v-tab:not(.v-tab--selected) .tab-day-letter {
+  color: #831843 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia .v-tab:not(.v-tab--selected) .tab-lock-icon {
+  color: #db2777 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia .v-tab--selected,
+[data-theme="light"] .active-tab-theme-fucsia .v-tab--selected {
+  background: linear-gradient(180deg, #fce7f3 0%, #fbcfe8 100%) !important;
+  color: #9d174d !important;
+  border: 1px solid #f472b6 !important;
+  border-bottom: none !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia .v-tab--selected .tab-day-letter,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia .v-tab--selected span,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-fucsia .v-tab--selected .v-icon {
+  color: #9d174d !important;
+  font-weight: 900 !important;
+}
+
+/* Light Theme Header Sections */
+[data-theme="light"] .day-header-section.tema-arancio {
+  background: linear-gradient(180deg, #ffedd5 0%, #fff7ed 100%) !important;
+  color: #9a3412 !important;
   border: none !important;
 }
 
@@ -6177,39 +6325,99 @@ const recuperiRaggruppati = computed(() => {
   border: none !important;
 }
 
-[data-theme="light"] .day-header-section .header-title-text,
-[data-theme="light"] .day-header-section h3.header-title-text {
-  color: #047857 !important;
+[data-theme="light"] .day-header-section.tema-verde {
+  background: linear-gradient(180deg, #a7f3d0 0%, #ecfdf5 100%) !important;
+  color: #065f46 !important;
+  border: none !important;
+}
+
+[data-theme="light"] .day-header-section.tema-fucsia {
+  background: linear-gradient(180deg, #fbcfe8 0%, #fdf2f8 100%) !important;
+  color: #831843 !important;
+  border: none !important;
+}
+
+/* Titles in Light Mode */
+[data-theme="light"] .day-header-section.tema-arancio .header-title-text,
+[data-theme="light"] .day-header-section.tema-arancio h3.header-title-text {
+  color: #c2410c !important;
   font-weight: 900 !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .header-title-text,
 [data-theme="light"] .day-header-section.tema-blu h3.header-title-text {
   color: #1e40af !important;
+  font-weight: 900 !important;
 }
 
-[data-theme="light"] .day-header-section .header-info-text,
-[data-theme="light"] .day-header-section .header-info-text span {
-  color: #065f46 !important;
+[data-theme="light"] .day-header-section.tema-verde .header-title-text,
+[data-theme="light"] .day-header-section.tema-verde h3.header-title-text {
+  color: #047857 !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-fucsia .header-title-text,
+[data-theme="light"] .day-header-section.tema-fucsia h3.header-title-text {
+  color: #be185d !important;
+  font-weight: 900 !important;
+}
+
+/* Info text in Light Mode */
+[data-theme="light"] .day-header-section.tema-arancio .header-info-text,
+[data-theme="light"] .day-header-section.tema-arancio .header-info-text span {
+  color: #9a3412 !important;
   font-weight: 700 !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .header-info-text,
 [data-theme="light"] .day-header-section.tema-blu .header-info-text span {
   color: #1e3a8a !important;
+  font-weight: 700 !important;
 }
 
-[data-theme="light"] .day-header-section .header-progress-text,
-[data-theme="light"] .day-header-section .header-progress-text span {
+[data-theme="light"] .day-header-section.tema-verde .header-info-text,
+[data-theme="light"] .day-header-section.tema-verde .header-info-text span {
+  color: #065f46 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-fucsia .header-info-text,
+[data-theme="light"] .day-header-section.tema-fucsia .header-info-text span {
+  color: #831843 !important;
+  font-weight: 700 !important;
+}
+
+/* Progress text in Light Mode */
+[data-theme="light"] .day-header-section.tema-arancio .header-progress-text,
+[data-theme="light"] .day-header-section.tema-arancio .header-progress-text span {
+  color: #c2410c !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-blu .header-progress-text,
+[data-theme="light"] .day-header-section.tema-blu .header-progress-text span {
+  color: #1d4ed8 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-verde .header-progress-text,
+[data-theme="light"] .day-header-section.tema-verde .header-progress-text span {
   color: #047857 !important;
   font-weight: 800 !important;
 }
 
-[data-theme="light"] .day-header-section .giorno-big-letter {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+[data-theme="light"] .day-header-section.tema-fucsia .header-progress-text,
+[data-theme="light"] .day-header-section.tema-fucsia .header-progress-text span {
+  color: #be185d !important;
+  font-weight: 800 !important;
+}
+
+/* Big Letter Badge in Light Mode */
+[data-theme="light"] .day-header-section.tema-arancio .giorno-big-letter {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
   color: #ffffff !important;
-  border: 1.5px solid #a7f3d0 !important;
-  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25) !important;
+  border: 1.5px solid #fdba74 !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25) !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .giorno-big-letter {
@@ -6219,16 +6427,24 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 2px 8px rgba(29, 78, 216, 0.25) !important;
 }
 
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed {
-  background: #059669 !important;
+[data-theme="light"] .day-header-section.tema-verde .giorno-big-letter {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
   color: #ffffff !important;
-  font-weight: 800 !important;
-  border: 1px solid #047857 !important;
-  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.15) !important;
+  border: 1.5px solid #a7f3d0 !important;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25) !important;
 }
 
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .capsule-num,
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .v-icon {
+[data-theme="light"] .day-header-section.tema-fucsia .giorno-big-letter {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #fbcfe8 !important;
+  box-shadow: 0 2px 8px rgba(219, 39, 119, 0.25) !important;
+}
+
+/* Completed Capsules in Light Mode */
+[data-theme="light"] .day-header-section.tema-arancio .mini-week-capsule.capsule-completed {
+  background: #ea580c !important;
+  border-color: #c2410c !important;
   color: #ffffff !important;
 }
 
@@ -6238,20 +6454,27 @@ const recuperiRaggruppati = computed(() => {
   color: #ffffff !important;
 }
 
-[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed .capsule-num,
-[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-completed .v-icon {
+[data-theme="light"] .day-header-section.tema-verde .mini-week-capsule.capsule-completed {
+  background: #059669 !important;
+  border-color: #047857 !important;
   color: #ffffff !important;
 }
 
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-active {
-  background: #047857 !important;
+[data-theme="light"] .day-header-section.tema-fucsia .mini-week-capsule.capsule-completed {
+  background: #db2777 !important;
+  border-color: #be185d !important;
   color: #ffffff !important;
-  font-weight: 900 !important;
-  border: 1.5px solid #065f46 !important;
-  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.3) !important;
 }
 
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-active .capsule-num {
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .capsule-num,
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-completed .v-icon {
+  color: #ffffff !important;
+}
+
+/* Active Capsules in Light Mode */
+[data-theme="light"] .day-header-section.tema-arancio .mini-week-capsule.capsule-active {
+  background: #c2410c !important;
+  border-color: #9a3412 !important;
   color: #ffffff !important;
 }
 
@@ -6261,39 +6484,70 @@ const recuperiRaggruppati = computed(() => {
   color: #ffffff !important;
 }
 
-[data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-active .capsule-num {
+[data-theme="light"] .day-header-section.tema-verde .mini-week-capsule.capsule-active {
+  background: #047857 !important;
+  border-color: #065f46 !important;
   color: #ffffff !important;
 }
 
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending {
-  background: #ffffff !important;
-  color: #047857 !important;
-  border: 1px solid #a7f3d0 !important;
-  font-weight: 700 !important;
+[data-theme="light"] .day-header-section.tema-fucsia .mini-week-capsule.capsule-active {
+  background: #be185d !important;
+  border-color: #831843 !important;
+  color: #ffffff !important;
 }
 
-[data-theme="light"] .day-header-section .mini-week-capsule.capsule-pending .capsule-num {
-  color: #047857 !important;
+[data-theme="light"] .day-header-section .mini-week-capsule.capsule-active .capsule-num {
+  color: #ffffff !important;
+}
+
+/* Pending Capsules in Light Mode */
+[data-theme="light"] .day-header-section.tema-arancio .mini-week-capsule.capsule-pending {
+  background: #ffffff !important;
+  color: #c2410c !important;
+  border: 1px solid #fed7aa !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-pending {
+  background: #ffffff !important;
   color: #1d4ed8 !important;
-  border-color: #bfdbfe !important;
+  border: 1px solid #bfdbfe !important;
 }
 
+[data-theme="light"] .day-header-section.tema-verde .mini-week-capsule.capsule-pending {
+  background: #ffffff !important;
+  color: #047857 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-fucsia .mini-week-capsule.capsule-pending {
+  background: #ffffff !important;
+  color: #be185d !important;
+  border: 1px solid #fbcfe8 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-arancio .mini-week-capsule.capsule-pending .capsule-num {
+  color: #c2410c !important;
+}
 [data-theme="light"] .day-header-section.tema-blu .mini-week-capsule.capsule-pending .capsule-num {
   color: #1d4ed8 !important;
 }
+[data-theme="light"] .day-header-section.tema-verde .mini-week-capsule.capsule-pending .capsule-num {
+  color: #047857 !important;
+}
+[data-theme="light"] .day-header-section.tema-fucsia .mini-week-capsule.capsule-pending .capsule-num {
+  color: #be185d !important;
+}
 
+/* Progress bar in Dark & Light Modes */
 .session-progress-bar-container {
   background: rgba(0, 0, 0, 0.4) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
-.session-progress-bar-fill {
-  background: linear-gradient(90deg, #ff7700, #ff9900) !important;
-  box-shadow: 0 0 10px rgba(255, 119, 0, 0.7) !important;
+.day-header-section.tema-arancio .session-progress-bar-fill {
+  background: linear-gradient(90deg, #ea580c, #f97316) !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.7) !important;
 }
 
 .day-header-section.tema-verde .session-progress-bar-fill {
@@ -6306,24 +6560,45 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 0 10px rgba(96, 165, 250, 0.7) !important;
 }
 
-[data-theme="light"] .day-header-section .session-progress-bar-container {
-  background: #a7f3d0 !important;
-  border: 1px solid #6ee7b7 !important;
+.day-header-section.tema-fucsia .session-progress-bar-fill {
+  background: linear-gradient(90deg, #db2777, #ec4899) !important;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.7) !important;
 }
 
-[data-theme="light"] .day-header-section .session-progress-bar-fill {
-  background: linear-gradient(90deg, #059669, #047857) !important;
-  box-shadow: 0 0 8px rgba(5, 150, 105, 0.4) !important;
+[data-theme="light"] .day-header-section.tema-arancio .session-progress-bar-container {
+  background: #fed7aa !important;
+  border: 1px solid #fdba74 !important;
+}
+[data-theme="light"] .day-header-section.tema-arancio .session-progress-bar-fill {
+  background: linear-gradient(90deg, #ea580c, #c2410c) !important;
+  box-shadow: 0 0 8px rgba(234, 88, 12, 0.4) !important;
 }
 
 [data-theme="light"] .day-header-section.tema-blu .session-progress-bar-container {
   background: #bfdbfe !important;
   border-color: #93c5fd !important;
 }
-
 [data-theme="light"] .day-header-section.tema-blu .session-progress-bar-fill {
   background: linear-gradient(90deg, #3b82f6, #1d4ed8) !important;
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.4) !important;
+}
+
+[data-theme="light"] .day-header-section.tema-verde .session-progress-bar-container {
+  background: #a7f3d0 !important;
+  border-color: #6ee7b7 !important;
+}
+[data-theme="light"] .day-header-section.tema-verde .session-progress-bar-fill {
+  background: linear-gradient(90deg, #059669, #047857) !important;
+  box-shadow: 0 0 8px rgba(5, 150, 105, 0.4) !important;
+}
+
+[data-theme="light"] .day-header-section.tema-fucsia .session-progress-bar-container {
+  background: #fbcfe8 !important;
+  border-color: #f472b6 !important;
+}
+[data-theme="light"] .day-header-section.tema-fucsia .session-progress-bar-fill {
+  background: linear-gradient(90deg, #ec4899, #db2777) !important;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.4) !important;
 }
 
 [data-theme="light"] .workout-session-container {

@@ -97,6 +97,9 @@
           <v-btn value="verde" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
             🟢 Verde
           </v-btn>
+          <v-btn value="fucsia" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+            🌸 Fucsia
+          </v-btn>
         </v-btn-toggle>
       </div>
     </v-card>

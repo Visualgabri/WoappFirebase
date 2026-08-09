@@ -1018,22 +1018,22 @@
 
     <!-- MODALE GUIDA INTERATTIVA & FEATURE SHOWCASE -->
     <v-dialog v-model="mostraGuidaInterattiva" max-width="600" scrollable transition="dialog-bottom-transition">
-      <v-card class="card-glass-dark rounded-2xl border overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+      <v-card class="card-glass-dark rounded-2xl border overflow-hidden" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important' }">
         <!-- Header della Modale con Titolo Compatto e Pulsante Tour -->
-        <v-card-title class="pa-3.5 py-3 border-bottom d-flex align-center justify-space-between bg-slate-900">
+        <v-card-title class="pa-3.5 py-3 border-bottom d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
           <div class="d-flex align-center gap-1.5 text-truncate" style="max-width: 70%;">
-            <v-icon color="orange-darken-3" size="20">mdi-book-open-variant</v-icon>
+            <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="20">mdi-book-open-variant</v-icon>
             <span class="font-weight-black dialog-text-primary text-truncate" style="font-size: 0.9rem; letter-spacing: 0.01em;">
               Guida FlexCoach 🏋️
             </span>
           </div>
           <div class="d-flex align-center gap-1.5">
             <v-btn
-              color="orange-darken-3"
               variant="flat"
               size="x-small"
               class="font-weight-black text-white px-2 py-0.5 rounded-lg text-none"
               style="font-size: 0.62rem; height: 26px;"
+              :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important' }"
               @click="avviaTourGuidato"
             >
               🚀 Tour
@@ -1043,7 +1043,7 @@
         </v-card-title>
 
         <!-- Searchbar interna & Navigazione Tab a Pillole Alta Visibilità -->
-        <div class="px-3 pt-3 pb-2 border-bottom bg-slate-950">
+        <div class="px-3 pt-3 pb-2 border-bottom" :style="{ background: 'var(--card-bg-soft, #020617)' }">
           <v-text-field
             v-model="searchGuida"
             placeholder="🔍 Cerca (es. e1RM, r, infortuni, timer, fatica...)"
@@ -1051,20 +1051,20 @@
             variant="outlined"
             hide-details
             clearable
-            class="mb-2.5 custom-weight-input"
+            class="mb-2.5"
             style="font-size: 0.75rem;"
           ></v-text-field>
 
-          <!-- Segmented Tab Pills Container High-Contrast Dark Theme -->
-          <div class="d-flex align-center justify-space-between gap-1 pa-1 rounded-xl bg-slate-900 border">
+          <!-- Segmented Tab Pills Container High-Contrast Dynamic Theme -->
+          <div class="d-flex align-center justify-space-between gap-1 pa-1 rounded-xl border" :style="{ background: 'var(--card-bg-glass, #0f172a)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.12))' }">
             <v-btn
               v-for="(tab, i) in ['🧠 Strategia', '📊 Carichi', '🏋️ Esercizi', '🩹 Infortuni', '🎨 Temi']"
               :key="i"
               size="x-small"
-              class="flex-grow-1 font-weight-bold text-none rounded-lg text-truncate px-1"
+              class="flex-grow-1 font-weight-bold text-none rounded-lg text-truncate px-1 transition-all"
               :style="tabGuida === i 
-                ? 'font-size: 0.63rem; height: 30px; min-width: 0; color: #ffffff !important; background: #ea580c !important; font-weight: 900;' 
-                : 'font-size: 0.63rem; height: 30px; min-width: 0; color: #e2e8f0 !important; background: rgba(255, 255, 255, 0.08) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;'"
+                ? 'font-size: 0.63rem; height: 30px; min-width: 0; color: #ffffff !important; background: var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important; font-weight: 900; border: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important; box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(249, 115, 22, 0.25));' 
+                : 'font-size: 0.63rem; height: 30px; min-width: 0; color: var(--text-dark, #1e293b) !important; background: var(--card-bg-soft, rgba(148, 163, 184, 0.12)) !important; border: 1px solid var(--card-border, rgba(148, 163, 184, 0.2)) !important;'"
               @click="tabGuida = i"
             >
               {{ tab }}
@@ -1077,18 +1077,18 @@
             <!-- TAB 0: STRATEGIA COACH & 6 SETTIMANE -->
             <v-window-item :value="0">
               <div class="mb-4">
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1.5" style="font-size: 0.84rem;">
+                <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   🧠 Cos'è la Strategia Coach?
                 </h4>
-                <p class="text-caption text-slate mb-3" style="font-size: 0.75rem; line-height: 1.45;">
+                <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
                   Il sistema intelligente <strong>FlexCoach</strong> valuta lo stato di forza dell'atleta confrontando il massimale stimato (<strong>e1RM</strong>) corrente con il record storico dell'esercizio.
                 </p>
 
                 <!-- Calcolatore Interattivo e1RM per la Guida -->
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3.5">
+                <div class="pa-3 rounded-xl border border-soft mb-3.5" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <div class="d-flex align-center justify-space-between mb-2">
-                    <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.62rem;">⚡ Simulatore Massimale Stimato (e1RM)</span>
-                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.54rem; height: 16px;">INTERATTIVO</v-chip>
+                    <span class="text-super-caption font-weight-black uppercase" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.62rem;">⚡ Simulatore Massimale Stimato (e1RM)</span>
+                    <v-chip size="x-small" variant="flat" class="font-weight-black text-white" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))' }" style="font-size: 0.54rem; height: 16px;">INTERATTIVO</v-chip>
                   </div>
                   <div class="d-flex align-center gap-2 mb-2">
                     <v-text-field
@@ -1098,7 +1098,7 @@
                       density="compact"
                       variant="outlined"
                       hide-details
-                      class="flex-grow-1 custom-weight-input"
+                      class="flex-grow-1"
                     ></v-text-field>
                     <v-text-field
                       v-model.number="simReps"
@@ -1107,78 +1107,78 @@
                       density="compact"
                       variant="outlined"
                       hide-details
-                      class="flex-grow-1 custom-weight-input"
+                      class="flex-grow-1"
                     ></v-text-field>
                   </div>
-                  <div class="pa-2 rounded-lg bg-slate-950 text-center border-soft">
-                    <span class="text-super-caption text-muted font-weight-bold d-block mb-0.5" style="font-size: 0.6rem;">Massimale Stimato Calcolato (e1RM):</span>
-                    <span class="text-subtitle-1 font-weight-black text-orange-lighten-1" style="font-size: 1.05rem;">
+                  <div class="pa-2 rounded-lg text-center border-soft" :style="{ background: 'var(--card-bg-glass, #020617)' }">
+                    <span class="text-super-caption font-weight-bold d-block mb-0.5" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.6rem;">Massimale Stimato Calcolato (e1RM):</span>
+                    <span class="text-subtitle-1 font-weight-black" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 1.05rem;">
                       {{ calcolaSimE1RM }} kg
                     </span>
                   </div>
                 </div>
 
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2" style="font-size: 0.84rem;">
+                <h4 class="font-weight-black text-subtitle-2 mb-2" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   🗺️ ROADMAP 6 SETTIMANE (W1 - W6)
                 </h4>
                 <div class="d-flex flex-column gap-2 mb-3.5">
-                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W1 - Accumulo & Tecnica</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Volume sicuro e controllo esecutivo</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Volume sicuro e controllo esecutivo</span>
                     </div>
                     <v-chip color="cyan-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 7-8</v-chip>
                   </div>
-                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W2 - Progressione Carico</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Incremento sostenibile del peso</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Incremento sostenibile del peso</span>
                     </div>
                     <v-chip color="amber-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 8</v-chip>
                   </div>
-                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W3 - Pareggio PR Storico</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Test di pareggio del record passato</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Test di pareggio del record passato</span>
                     </div>
                     <v-chip color="orange-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 8.5-9</v-chip>
                   </div>
-                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W4 - Scarico Rigenerativo</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Riduzione carico per recupero attivo</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Riduzione carico per recupero attivo</span>
                     </div>
                     <v-chip color="blue-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 6-7</v-chip>
                   </div>
-                  <div class="pa-2.5 rounded-xl border-2 bg-amber-lighten-5 d-flex align-center justify-space-between" style="border-color: #d97706 !important;">
+                  <div class="pa-2.5 rounded-xl border-2 d-flex align-center justify-space-between" :style="{ borderColor: 'var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important', background: 'var(--theme-primary-bg-soft, rgba(249, 115, 22, 0.12)) !important' }">
                     <div>
                       <div class="d-flex align-center gap-1.5 mb-0.5">
                         <span class="font-weight-black text-caption dialog-text-primary" style="font-size: 0.74rem;">W5 - Picco Intensità</span>
-                        <v-chip color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white animate-pulse px-1.5" style="font-size: 0.52rem; height: 15px;">⚡ ATTIVA</v-chip>
+                        <v-chip :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important' }" size="x-small" variant="flat" class="font-weight-black text-white animate-pulse px-1.5" style="font-size: 0.52rem; height: 15px;">⚡ ATTIVA</v-chip>
                       </div>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Rottura dello stallo per superare il record</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Rottura dello stallo per superare il record</span>
                     </div>
                     <v-chip color="purple-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 9-9.5</v-chip>
                   </div>
-                  <div class="pa-2.5 rounded-xl border border-soft bg-slate-900 d-flex align-center justify-space-between">
+                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W6 - Test Nuovo Record</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.63rem;">Test finale AMRAP per il nuovo PR</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Test finale AMRAP per il nuovo PR</span>
                     </div>
                     <v-chip color="green-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 10</v-chip>
                   </div>
                 </div>
 
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
-                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">⚡ Pulsanti Fatica a Settimana 6</h5>
-                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">⚡ Pulsanti Fatica a Settimana 6</h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
                     A fine Settimana 6 selezioni la fatica provata (<strong>Leggero</strong>, <strong>Medio</strong>, <strong>Pesante</strong>, <strong>Devastante</strong>). Questo dato calcola i pesi della Settimana 1 del nuovo programma!
                   </p>
                 </div>
 
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900">
-                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">💡 Suggerimenti per Assenza di Progressione</h5>
-                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">💡 Suggerimenti per Assenza di Progressione</h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
                     Se il sistema rileva che la forza è ferma o non c'è progressione, ti fornisce in automatico opzioni tattiche di ricalcolo o suggerimenti strategici per il Coach.
                   </p>
                 </div>
@@ -1188,46 +1188,46 @@
             <!-- TAB 1: PROPOSTA CARICO & REPS 'r' -->
             <v-window-item :value="1">
               <div class="mb-4">
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1.5" style="font-size: 0.84rem;">
+                <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   💡 Proposta Carico & Sintassi Reps con "r"
                 </h4>
-                <p class="text-caption text-slate mb-3" style="font-size: 0.75rem; line-height: 1.45;">
+                <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
                   Il sistema calcola il peso consigliato in base ai giorni di pausa ed al tuo storico. Tocca <strong>"Applica Consigliato"</strong> per inserire subito il carico.
                 </p>
 
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
-                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">📝 Inserimento Reps con la "r" (es. 50 12r)</h5>
-                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">📝 Inserimento Reps con la "r" (es. 50 12r)</h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
                     Se non riesci ad aumentare i kg o decidi di mantenere lo stesso peso aumentando le ripetizioni, digita la cifra delle reps aggiungendo la <strong>"r"</strong> accanto (es: <code>50 12r</code> o <code>50 12r 12r 10r</code>). Il sistema riconosce il tuo incremento di volume e calcola la progressione!
                   </p>
                 </div>
 
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
-                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">📜 Pulsante Storico (Tabella Cronologia)</h5>
-                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">📜 Pulsante Storico (Tabella Cronologia)</h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
                     Toccando l'icona dell'orologio si apre la <strong>Tabella della Cronologia</strong>: la panoramica di tutte le sessioni svolte nei mesocicli passati (pesi, ripetizioni, note ed indicatore di fatica).
                   </p>
                 </div>
 
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2" style="font-size: 0.84rem;">
+                <h4 class="font-weight-black text-subtitle-2 mb-2" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   📈 Grafici di Forza a 3 Modalità
                 </h4>
                 <div class="d-flex flex-column gap-2.5 mb-3">
-                  <div class="pa-3 rounded-xl border border-soft bg-slate-900">
-                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1" style="font-size: 0.75rem;">Modalità A: Curve per Range Reps</span>
-                    <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem; line-height: 1.35;">
+                  <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                    <span class="font-weight-black text-caption d-block mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.75rem;">Modalità A: Curve per Range Reps</span>
+                    <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
                       Linee di tendenza dei pesi raggruppate per ripetizioni con la linea tratteggiata del Massimale Stimato.
                     </span>
                   </div>
-                  <div class="pa-3 rounded-xl border border-soft bg-slate-900">
-                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1" style="font-size: 0.75rem;">Modalità B: Fascia di Rendimento</span>
-                    <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem; line-height: 1.35;">
+                  <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                    <span class="font-weight-black text-caption d-block mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.75rem;">Modalità B: Fascia di Rendimento</span>
+                    <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
                       Mostra il canale di varianza della tua forza e l'area dei carichi.
                     </span>
                   </div>
-                  <div class="pa-3 rounded-xl border border-soft bg-slate-900">
-                    <span class="font-weight-black text-caption text-orange-lighten-1 d-block mb-1" style="font-size: 0.75rem;">Modalità C: Progressione Cronologica</span>
-                    <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem; line-height: 1.35;">
+                  <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                    <span class="font-weight-black text-caption d-block mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.75rem;">Modalità C: Progressione Cronologica</span>
+                    <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
                       Punti temporali di ogni singola serie effettuata. Tocca un punto per aprire la card <strong>🔍 Dettaglio Sessione</strong>!
                     </span>
                   </div>
@@ -1238,49 +1238,49 @@
             <!-- TAB 2: ESERCIZI, TIMER & PULSANTI DI CONTROLLO -->
             <v-window-item :value="2">
               <div class="mb-4">
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1.5" style="font-size: 0.84rem;">
+                <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   ⏱️ Avvio del Timer di Recupero
                 </h4>
-                <p class="text-caption text-slate mb-3" style="font-size: 0.75rem; line-height: 1.45;">
+                <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
                   Il timer di recupero <strong>non parte da solo</strong>: per avviarlo è sufficiente toccare il chip arancione del tempo di recupero (es. <code>⏱️ 1'30"-1'45"</code>) situato vicino all'esercizio. Parte un conto alla rovescia con suono e vibrazione!
                 </p>
 
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-2" style="font-size: 0.84rem;">
+                <h4 class="font-weight-black text-subtitle-2 mb-2" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   🛠️ Pulsanti di Navigazione & Controllo
                 </h4>
                 <div class="d-flex flex-column gap-2.5 mb-3">
-                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
-                    <v-icon color="orange-darken-3" size="22">mdi-arrow-left</v-icon>
+                  <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                    <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="22">mdi-arrow-left</v-icon>
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">⬅️ Pulsante Precedente</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem; line-height: 1.35;">
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
                         In alto a sinistra nel dettaglio esercizio, ti permette di tornare velocemente all'esercizio o al giorno svolto in precedenza.
                       </span>
                     </div>
                   </div>
-                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
+                  <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <v-icon color="amber-darken-2" size="22">mdi-star-outline</v-icon>
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">⭐ Gradimento Esercizio</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem; line-height: 1.35;">
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
                         Valuta l'esercizio con le stelle di gradimento per comunicare al Coach le tue preferenze sui movimenti.
                       </span>
                     </div>
                   </div>
-                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
-                    <v-icon color="orange-darken-3" size="22">mdi-dumbbell</v-icon>
+                  <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                    <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="22">mdi-dumbbell</v-icon>
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">🏋️ Lista Test Week 6</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem; line-height: 1.35;">
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
                         Elenco rapido di tutti gli esercizi della scheda con test di massimale o AMRAP nella settimana 6.
                       </span>
                     </div>
                   </div>
-                  <div class="pa-3 rounded-xl border border-soft bg-slate-900 d-flex align-center gap-3">
-                    <v-icon color="orange-darken-3" size="22">mdi-video-outline</v-icon>
+                  <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                    <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="22">mdi-video-outline</v-icon>
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">📹 Esercizi con Video Richiesto</span>
-                      <span class="text-super-caption text-muted d-block" style="font-size: 0.68rem; line-height: 1.35;">
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
                         Esercizi in cui il Coach richiede il video dell'esecuzione per verificare la tecnica.
                       </span>
                     </div>
@@ -1292,30 +1292,30 @@
             <!-- TAB 3: GESTIONE INFORTUNI & SOSTITUZIONI -->
             <v-window-item :value="3">
               <div class="mb-4">
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1.5" style="font-size: 0.84rem;">
+                <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   🩹 Gestione Infortuni & Sostituzioni
                 </h4>
-                <p class="text-caption text-slate mb-3" style="font-size: 0.75rem; line-height: 1.45;">
+                <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
                   FlexCoach ti guida nella gestione attiva di fastidi o dolori articolari senza dover interrompere il tuo allenamento.
                 </p>
 
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
-                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">🏥 Segnalazione Fastidio / Dolore</h5>
-                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">🏥 Segnalazione Fastidio / Dolore</h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
                     Dalla barra di navigazione inferiore accedi alla sezione <strong>Infortuni</strong>. Seleziona la zona anatomica interessata per monitorare la situazione ed informare il Coach.
                   </p>
                 </div>
 
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900 mb-3">
-                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">🔄 Sostituzione Esercizio in Sicurezza</h5>
-                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">🔄 Sostituzione Esercizio in Sicurezza</h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
                     Il sistema propone automaticamente alternative sicure che mantengono lo stesso stimolo muscolare preservando l'articolazione o il muscolo dolente.
                   </p>
                 </div>
 
-                <div class="pa-3 rounded-xl border border-soft bg-slate-900">
-                  <h5 class="font-weight-black text-caption text-orange-lighten-1 mb-1" style="font-size: 0.76rem;">📲 Avviso Diretto al Coach</h5>
-                  <p class="text-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
+                <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">📲 Avviso Diretto al Coach</h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
                     Invii la notifica automatica WhatsApp al Coach Gabriele per ricevere l'adeguamento immediato della scheda per la seduta successiva!
                   </p>
                 </div>
@@ -1325,41 +1325,27 @@
             <!-- TAB 4: TEMI & PERSONALIZZAZIONE UX -->
             <v-window-item :value="4">
               <div class="mb-4">
-                <h4 class="font-weight-black text-subtitle-2 text-orange-lighten-2 mb-1.5" style="font-size: 0.84rem;">
-                  🎨 Stili & Temi Personalizzati
+                <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
+                  🎨 Stili & Palette Temi Personalizzate
                 </h4>
-                <p class="text-caption text-slate mb-3" style="font-size: 0.75rem; line-height: 1.45;">
-                  FlexCoach offre stili visivi curati per adattarsi ad ogni ambiente di luce. Provali dal vivo direttamente da qui!
+                <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
+                  FlexCoach offre la scelta tra modalità Scuro/Chiaro e palette di colore generali per personalizzare l'esperienza d'uso.
                 </p>
 
                 <div class="d-flex flex-column gap-2.5 mb-3">
-                  <div class="pa-3 rounded-xl border bg-slate-900 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('dark', 'slate')">
+                  <div class="pa-3 rounded-xl border d-flex align-center justify-space-between cursor-pointer" :style="{ background: 'var(--card-bg-soft, #0f172a)' }" @click="cambiaTemaInterattivo('dark', 'slate')">
                     <div>
-                      <span class="font-weight-black text-caption text-white d-block" style="font-size: 0.75rem;">🌙 Dark Glassmorphism</span>
-                      <span class="text-super-caption text-muted" style="font-size: 0.64rem;">Sfondi traslucidi effetto vetro scuro</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">🌙 Tema Scuro</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.64rem;">Interfaccia scura ad alto contrasto</span>
                     </div>
-                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">Applica</v-chip>
+                    <v-chip size="x-small" variant="flat" class="font-weight-black text-white px-2" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))' }">Seleziona</v-chip>
                   </div>
-                  <div class="pa-3 rounded-xl border bg-slate-100 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('light', 'slate')">
+                  <div class="pa-3 rounded-xl border d-flex align-center justify-space-between cursor-pointer" :style="{ background: 'var(--card-bg-soft, #f5f3ef)' }" @click="cambiaTemaInterattivo('light', 'slate')">
                     <div>
-                      <span class="font-weight-black text-caption text-slate-dark d-block" style="font-size: 0.75rem;">☀️ Light Slate</span>
-                      <span class="text-super-caption text-muted" style="font-size: 0.64rem;">Ardesia pulito con accenti arancioni</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">☀️ Tema Chiaro</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.64rem;">Interfaccia luminosa ad alta leggibilità</span>
                     </div>
-                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">Applica</v-chip>
-                  </div>
-                  <div class="pa-3 rounded-xl border bg-blue-lighten-5 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('light', 'chalk')">
-                    <div>
-                      <span class="font-weight-black text-caption text-blue-darken-4 d-block" style="font-size: 0.75rem;">✏️ Light Chalk</span>
-                      <span class="text-super-caption text-muted" style="font-size: 0.64rem;">Stile lavagna con toni azzurri e blu</span>
-                    </div>
-                    <v-chip color="blue-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">Applica</v-chip>
-                  </div>
-                  <div class="pa-3 rounded-xl border bg-amber-lighten-5 d-flex align-center justify-space-between cursor-pointer" @click="cambiaTemaInterattivo('light', 'sand')">
-                    <div>
-                      <span class="font-weight-black text-caption text-amber-darken-4 d-block" style="font-size: 0.75rem;">🏖️ Light Sand</span>
-                      <span class="text-super-caption text-muted" style="font-size: 0.64rem;">Toni sabbia morbidi con accenti miele</span>
-                    </div>
-                    <v-chip color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">Applica</v-chip>
+                    <v-chip size="x-small" variant="flat" class="font-weight-black text-white px-2" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))' }">Seleziona</v-chip>
                   </div>
                 </div>
               </div>
@@ -1367,8 +1353,8 @@
           </v-window>
         </v-card-text>
 
-        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
-          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white text-none" style="font-size: 0.8rem;" @click="mostraGuidaInterattiva = false">Chiudi Guida</v-btn>
+        <v-card-actions class="pa-3 border-top gap-2" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
+          <v-btn variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white text-none" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important', fontSize: '0.8rem' }" @click="mostraGuidaInterattiva = false">Chiudi Guida</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

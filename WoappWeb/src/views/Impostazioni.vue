@@ -50,44 +50,53 @@
       elevation="1"
     >
       <div class="d-flex align-center mb-2.5">
-        <v-icon color="orange-darken-3" class="mr-2" size="17">mdi-palette-outline</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Tema & Aspetto</span>
+        <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" class="mr-2" size="17">mdi-palette-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.72rem;">Tema & Aspetto</span>
       </div>
 
-      <v-btn-toggle
-        v-model="selectedTheme"
-        mandatory
-        selected-class="bg-orange-darken-3 text-white"
-        density="compact"
-        rounded="lg"
-        class="w-100 card-glass border mb-1"
-        style="height: 32px;"
-        @update:model-value="cambiaTemaDaImpostazioni"
-      >
-        <v-btn value="dark" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
-          <v-icon class="mr-1" size="14">mdi-weather-night</v-icon> Scuro
-        </v-btn>
-        <v-btn value="light" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
-          <v-icon class="mr-1" size="14">mdi-white-balance-sunny</v-icon> Chiaro
-        </v-btn>
-      </v-btn-toggle>
-
-      <!-- Variante Tema Chiaro -->
-      <div v-if="selectedTheme === 'light'" class="mt-2.5 pt-2 border-top-soft">
-        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Stile Chiaro</span>
+      <!-- Modalità Tema Scuro / Chiaro -->
+      <div class="mb-2.5">
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Modalità Tema</span>
         <v-btn-toggle
-          v-model="selectedLightStyle"
+          v-model="selectedTheme"
           mandatory
           selected-class="bg-orange-darken-3 text-white"
           density="compact"
           rounded="lg"
           class="w-100 card-glass border"
           style="height: 32px;"
-          @update:model-value="cambiaStileChiaroDaImpostazioni"
+          @update:model-value="cambiaTemaDaImpostazioni"
         >
-          <v-btn value="slate" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Slate</v-btn>
-          <v-btn value="chalk" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Chalk</v-btn>
-          <v-btn value="sand" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Sand</v-btn>
+          <v-btn value="dark" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
+            <v-icon class="mr-1" size="14">mdi-weather-night</v-icon> Scuro
+          </v-btn>
+          <v-btn value="light" class="font-weight-bold flex-grow-1" style="font-size: 0.65rem; min-width: 50%;">
+            <v-icon class="mr-1" size="14">mdi-white-balance-sunny</v-icon> Chiaro
+          </v-btn>
+        </v-btn-toggle>
+      </div>
+
+      <!-- Colore Tema Generale (Arancio / Blu / Verde) -->
+      <div>
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Colore Tema Generale</span>
+        <v-btn-toggle
+          v-model="temaHeaderGiorno"
+          mandatory
+          selected-class="bg-orange-darken-3 text-white"
+          density="compact"
+          rounded="lg"
+          class="w-100 card-glass border"
+          style="height: 32px;"
+        >
+          <v-btn value="arancio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+            🍊 Arancio
+          </v-btn>
+          <v-btn value="blu" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+            🔷 Blu
+          </v-btn>
+          <v-btn value="verde" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+            🟢 Verde
+          </v-btn>
         </v-btn-toggle>
       </div>
     </v-card>
@@ -98,8 +107,8 @@
       elevation="1"
     >
       <div class="d-flex align-center mb-2.5">
-        <v-icon color="orange-darken-3" class="mr-2" size="17">mdi-view-dashboard-outline</v-icon>
-        <span class="text-subtitle-2 font-weight-black text-orange-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Layout & Interfaccia</span>
+        <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" class="mr-2" size="17">mdi-view-dashboard-outline</v-icon>
+        <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.72rem;">Layout & Interfaccia</span>
       </div>
 
       <!-- Layout Lista -->
@@ -140,7 +149,7 @@
       </div>
 
       <!-- Tasto Play -->
-      <div class="mb-2.5">
+      <div>
         <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Tasto Play</span>
         <v-btn-toggle
           v-model="comportamentoPlay"
@@ -154,24 +163,6 @@
           <v-btn value="auto" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Auto</v-btn>
           <v-btn value="dettaglio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Dettaglio</v-btn>
           <v-btn value="evidenzia" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Evidenzia</v-btn>
-        </v-btn-toggle>
-      </div>
-
-      <!-- Colore Giorni Workout -->
-      <div>
-        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Colore Giorni</span>
-        <v-btn-toggle
-          v-model="temaHeaderGiorno"
-          mandatory
-          selected-class="bg-orange-darken-3 text-white"
-          density="compact"
-          rounded="lg"
-          class="w-100 card-glass border"
-          style="height: 32px;"
-        >
-          <v-btn value="arancio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Arancio</v-btn>
-          <v-btn value="blu" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Blu</v-btn>
-          <v-btn value="verde" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Verde</v-btn>
         </v-btn-toggle>
       </div>
     </v-card>

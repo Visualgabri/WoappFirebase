@@ -459,8 +459,8 @@
                     </template>
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-1.5" style="font-size: 0.62rem;">
-                        x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
+                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-2" style="font-size: 0.62rem;">
+                        &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                       </span>
                     </template>
                   </template>
@@ -486,8 +486,8 @@
                     </template>
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-1.5" style="font-size: 0.62rem;">
-                        x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
+                      <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-2" style="font-size: 0.62rem;">
+                        &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
                       </span>
                     </template>
                   </template>
@@ -2518,14 +2518,14 @@
                     {{ formatWeight(suggerimentoRecord.recordAbsolute) }} kg
                   </template>
                 </span>
-                <span v-if="suggerimentoRecord.recordAbsoluteReps !== null && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" class="text-caption font-weight-black ml-1.5" :style="{ color: 'var(--theme-primary-light, #38bdf8)' }" style="font-size: 0.72rem;">
-                  x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
+                <span v-if="suggerimentoRecord.recordAbsoluteReps !== null && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" class="text-caption font-weight-black ml-2" :style="{ color: 'var(--theme-primary-light, #38bdf8)' }" style="font-size: 0.72rem;">
+                  &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                 </span>
               </div>
 
               <div class="text-super-caption font-weight-bold mt-0.5 d-flex align-center gap-1 flex-wrap" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.53rem; line-height: 1.2;">
                 <span>📍 Sch. {{ suggerimentoRecord.recordAbsoluteSheet || '-' }}{{ suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '' }}{{ (suggerimentoRecord.recordAbsoluteRow !== null && suggerimentoRecord.recordAbsoluteRow !== undefined) ? suggerimentoRecord.recordAbsoluteRow : '' }}</span>
-                <span>🗓️ {{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}</span>
+                <span> 🗓️ {{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}</span>
                 <span v-if="tempoTrascorso(suggerimentoRecord.recordAbsoluteDate)" class="ml-1" :style="{ color: 'var(--theme-primary-light, #0284c7)' }">({{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) }})</span>
               </div>
             </div>
@@ -2557,8 +2557,8 @@
                       {{ formatWeight(suggerimentoRecord.record) }} kg
                     </template>
                   </span>
-                  <span v-if="suggerimentoRecord.recordRepsValue && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate ml-1.5" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
-                    x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
+                  <span v-if="suggerimentoRecord.recordRepsValue && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate ml-2" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
+                    &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
                   </span>
                 </div>
 

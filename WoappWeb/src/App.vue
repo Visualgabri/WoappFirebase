@@ -423,7 +423,7 @@
               variant="outlined"
               density="comfortable"
               rounded="lg"
-              color="orange-darken-3"
+              color="primary"
               bg-color="var(--card-bg-soft)"
               hide-details
             ></v-select>
@@ -435,10 +435,10 @@
             <v-btn-toggle
               v-model="caricoMonolaterale"
               mandatory
-              color="orange-darken-3"
+              color="primary"
               variant="outlined"
               class="w-100 premium-toggle-group rounded-lg"
-              selected-class="bg-orange-darken-3 text-white"
+              selected-class="bg-primary text-white"
               style="height: 38px; display: flex;"
             >
               <v-btn value="doppio" class="flex-grow-1 text-caption font-weight-bold py-1" style="height: 38px;">

@@ -1009,11 +1009,9 @@ body::after {
   color: var(--theme-primary) !important;
 }
 
-/* Focus state border and outline colors for all Vuetify inputs */
+/* Focus state border and outline colors for all Vuetify inputs & native fields */
 .v-field--focused,
-.v-field--active,
 .v-field--focused .v-field__outline,
-.v-field--active .v-field__outline,
 .v-field--focused .v-field__outline__start,
 .v-field--focused .v-field__outline__end,
 .v-field--focused .v-field__outline__notch {
@@ -1025,12 +1023,26 @@ body::after {
   box-shadow: 0 0 10px var(--theme-primary-glow) !important;
 }
 
-/* Prevent double inner orange outlines or native browser ring on focused inputs */
+/* Prevent double inner outlines or native browser ring on focused inputs and select boxes */
+*:focus,
+*:focus-visible,
+*:focus-within,
+input:focus,
+select:focus,
+textarea:focus,
 .v-field input,
 .v-field select,
+.v-field input:focus,
+.v-field select:focus,
 .v-field .v-field__input,
-.v-field .v-field__outline {
+.v-field .v-field__outline,
+.v-field .v-field__field {
   outline: none !important;
+  box-shadow: none !important;
+}
+
+.v-field--focused {
+  box-shadow: 0 0 10px var(--theme-primary-glow) !important;
 }
 
 /* Fix Vuetify fieldset notch line cutting through labels or rendering orphan vertical lines */

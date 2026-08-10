@@ -6,13 +6,13 @@
     transition="dialog-bottom-transition"
     class="julie-easter-egg-dialog"
   >
-    <v-card class="julie-card-content rounded-xl border-orange-glow overflow-hidden elevation-24">
-      <!-- HEADER DIALOG: SOLO ICONE FUOCO E DONNA CHE BALLA -->
+    <v-card class="julie-card-content rounded-xl overflow-hidden elevation-24">
+      <!-- HEADER DIALOG: SOLO ICONE FUOCO E DONNA CHE BALLA CON TEMA DINAMICO -->
       <div class="julie-header d-flex align-center justify-space-between px-4 py-3">
         <div class="d-flex align-center gap-2">
-          <v-icon color="orange-accent-3" class="animate-bounce-slow" size="24">mdi-fire</v-icon>
+          <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" class="animate-bounce-slow" size="24">mdi-fire</v-icon>
           <span style="font-size: 1.4rem; line-height: 1;">💃</span>
-          <v-icon color="orange-accent-3" class="animate-bounce-slow" size="24">mdi-fire</v-icon>
+          <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" class="animate-bounce-slow" size="24">mdi-fire</v-icon>
         </div>
         <v-btn
           icon
@@ -45,7 +45,7 @@
           <v-btn
             size="large"
             rounded="pill"
-            :color="isMuted ? 'orange-darken-3' : 'green-accent-4'"
+            :color="isMuted ? 'primary' : 'green-accent-4'"
             class="audio-toggle-btn elevation-12 font-weight-bold px-5"
             @click="toggleAudio"
           >
@@ -136,15 +136,15 @@ const chiudiModal = () => {
 
 <style scoped>
 .julie-card-content {
-  background: rgba(15, 23, 42, 0.96) !important;
+  background: var(--card-bg-dark, rgba(15, 23, 42, 0.96)) !important;
   backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(249, 115, 22, 0.4) !important;
-  box-shadow: 0 0 35px rgba(249, 115, 22, 0.25) !important;
+  border: 1.5px solid var(--theme-primary-border, var(--theme-primary, #f97316)) !important;
+  box-shadow: 0 0 35px var(--theme-primary-glow, rgba(249, 115, 22, 0.3)) !important;
 }
 
 .julie-header {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-  border-bottom: 1px solid rgba(249, 115, 22, 0.2);
+  background: var(--card-bg-soft, rgba(30, 41, 59, 0.9));
+  border-bottom: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.2));
 }
 
 .btn-close-hover:hover {

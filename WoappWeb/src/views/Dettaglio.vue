@@ -460,7 +460,7 @@
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                       <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.62rem;">
-                        ×{{ suggerimentoRecord.recordAbsoluteReps }}r
+                         x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                       </span>
                     </template>
                   </template>
@@ -487,7 +487,7 @@
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                       <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-1" style="font-size: 0.62rem;">
-                        ×{{ suggerimentoRecord.recordRepsValue }}r
+                         x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
                       </span>
                     </template>
                   </template>
@@ -2515,11 +2515,11 @@
                     {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute) }}
                   </template>
                   <template v-else>
-                    {{ suggerimentoRecord.recordAbsolute }} kg
+                    {{ formatWeight(suggerimentoRecord.recordAbsolute) }} kg
                   </template>
                 </span>
                 <span v-if="suggerimentoRecord.recordAbsoluteReps !== null && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" class="text-caption font-weight-black" :style="{ color: 'var(--theme-primary-light, #38bdf8)' }" style="font-size: 0.72rem;">
-                  × {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
+                   x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                 </span>
               </div>
 
@@ -2555,11 +2555,11 @@
                       {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record) }}
                     </template>
                     <template v-else>
-                      {{ suggerimentoRecord.record }} kg
+                      {{ formatWeight(suggerimentoRecord.record) }} kg
                     </template>
                   </span>
                   <span v-if="suggerimentoRecord.recordRepsValue && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
-                    × {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
+                     x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
                   </span>
                 </div>
 
@@ -9304,10 +9304,10 @@ function formatWeight(val) {
   return String(val).replace('.', ',');
 }
 
-// Helper to format repetitions with 'r' suffix
+// Helper to format repetitions with 'r' suffix (using comma for decimals)
 function formatRepsDisplay(val) {
   if (val === null || val === undefined) return '-';
-  const str = String(val).trim();
+  const str = String(val).replace('.', ',').trim();
   if (!str || str === '-') return '-';
   if (str.toLowerCase().endsWith('r')) return str;
   return str + 'r';
@@ -10715,8 +10715,8 @@ const suggerimentoRecord = computed(() => {
           pesoNum = parseFloat(estraiPesoDaInput(val)) || 0;
           let repsPrescr = prevEx['reps_week' + i] || estraiRepsDaPrescrizione(prevEx['des_week' + i]);
           const repsTargetWeek = repsPrescr ? parseInt(repsPrescr, 10) : targetReps;
-          const inputReps = estraiRepsDaInput(val);
-          repsNum = inputReps && inputReps > 0 ? inputReps : repsTargetWeek;
+          const explicitInputReps = (hasExplicitReps || /[rR]\b|reps|rip/i.test(String(val))) ? estraiRepsDaInput(val) : null;
+          repsNum = explicitInputReps && explicitInputReps > 0 ? explicitInputReps : repsTargetWeek;
         }
 
         if (pesoNum > 0 || (isCorpoLibero && repsNum > 0)) {

@@ -10,7 +10,7 @@
     >
       <v-app-bar-title class="text-slate-dark" style="line-height: 1.15;">
         <div class="d-flex flex-column text-left">
-          <div class="font-weight-black d-flex align-center" style="font-size: 1.05rem !important; line-height: 1.1;">
+          <div class="font-weight-black d-flex align-center cursor-pointer" style="font-size: 1.05rem !important; line-height: 1.1;" @click="gestisciClickLogo" title="FlexCoach">
             <v-icon color="primary" class="mr-1.5 text-theme-primary" size="18">mdi-dumbbell</v-icon>
             FlexCoach<span class="orange-dot">.</span>
           </div>
@@ -950,19 +950,62 @@
       </v-card>
     </v-dialog>
 
+    <!-- EASTER EGG VIDEO JULIE ("profiamma") -->
+    <JulieEasterEgg v-model="mostraJulieEasterEgg" />
+
   </v-app>
 </template>
 
 <script setup>
-import { onMounted, computed, ref, watch } from 'vue';
+import { onMounted, onUnmounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
+import JulieEasterEgg from './components/JulieEasterEgg.vue';
 import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero } from './authStore.js';
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
 const globalTransition = ref('fade');
 const mostraDialogGuida = ref(false);
+const mostraJulieEasterEgg = ref(false);
+
+// Gestione Easter Egg per parola chiave "profiamma" (Desktop + Smartphone)
+let typedKeysBuffer = '';
+const handleGlobalKeydown = (event) => {
+  if (event.ctrlKey || event.altKey || event.metaKey) return;
+  if (event.key && event.key.length === 1) {
+    typedKeysBuffer += event.key.toLowerCase();
+    if (typedKeysBuffer.length > 20) {
+      typedKeysBuffer = typedKeysBuffer.slice(-20);
+    }
+    if (typedKeysBuffer.endsWith('profiamma')) {
+      mostraJulieEasterEgg.value = true;
+      typedKeysBuffer = '';
+    }
+  }
+};
+
+const handleGlobalInput = (event) => {
+  const val = event?.target?.value;
+  if (val && typeof val === 'string' && val.toLowerCase().includes('profiamma')) {
+    mostraJulieEasterEgg.value = true;
+  }
+};
+
+let countLogoClick = 0;
+let timerLogoClick = null;
+const gestisciClickLogo = () => {
+  countLogoClick++;
+  if (timerLogoClick) clearTimeout(timerLogoClick);
+  if (countLogoClick >= 3) {
+    mostraJulieEasterEgg.value = true;
+    countLogoClick = 0;
+  } else {
+    timerLogoClick = setTimeout(() => {
+      countLogoClick = 0;
+    }, 1800);
+  }
+};
 
 const tabGuidaApp = ref(0);
 const searchGuidaApp = ref('');
@@ -1033,6 +1076,13 @@ const toggleTema = () => {
 
 onMounted(() => {
   setTheme(currentTheme.value, vuetifyTheme);
+  window.addEventListener('keydown', handleGlobalKeydown);
+  window.addEventListener('input', handleGlobalInput, true);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown);
+  window.removeEventListener('input', handleGlobalInput, true);
 });
 
 const controllaPrimoAccesso = () => {

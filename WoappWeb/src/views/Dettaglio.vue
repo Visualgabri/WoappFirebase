@@ -9914,7 +9914,8 @@ function estraiRepsDaInputSingle(str) {
   // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {
-    return parseFloat(matchRP[1]);
+    const val = parseFloat(matchRP[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
   }
 
   // Soluzione 1: Rimuove parentesi tonde (...) e quadre [...] per evitare che note personali interferiscano col calcolo
@@ -9928,18 +9929,26 @@ function estraiRepsDaInputSingle(str) {
   // Rileva formato tipo "12x14r" o "12x14"
   const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
   if (matchX) {
-    return parseFloat(matchX[2]);
+    const val = parseFloat(matchX[2]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
   }
   
   const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
   if (matchR) {
-    return parseFloat(matchR[1]);
+    const val = parseFloat(matchR[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
   }
   
   // Se è un numero puro (es. "12", "8") e NON ha un'unità esplicita di peso ("kg", "lbs")
+  // SOLUZIONE BUG: Un numero isolato con decimali (es. "57.5") è un peso in kg, MAI ripetizioni!
+  // Inoltre, per evitare che carichi elevati (es. "60", "75") vengano presi come ripetizioni,
+  // accettiamo numeri isolati come reps solo se sono interi e <= 40.
   const matchSingleNum = clean.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
   if (matchSingleNum && !/kg|lbs|libbre/i.test(clean)) {
-    return parseFloat(matchSingleNum[1]);
+    const val = parseFloat(matchSingleNum[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 40) {
+      return val;
+    }
   }
   
   return null;
@@ -9950,10 +9959,14 @@ function estraiRepsDaInput(str) {
   const strVal = String(str);
   const lines = strVal.split(/[\n;\r]+/);
   if (lines.length > 1) {
-    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v));
+    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v) && Number.isInteger(v) && v > 0 && v <= 50);
     if (repsList.length > 0) return Math.max(...repsList);
   }
-  return estraiRepsDaInputSingle(strVal);
+  const val = estraiRepsDaInputSingle(strVal);
+  if (val !== null && !isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) {
+    return val;
+  }
+  return null;
 }
 
 function estraiPesoDaInput(str) {

@@ -2933,7 +2933,8 @@ const estraiRepsDaInputSingle = (str) => {
   // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {
-    return parseFloat(matchRP[1]);
+    const val = parseFloat(matchRP[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
   }
 
   // Soluzione 1: Rimuove parentesi tonde (...) e quadre [...] per evitare che note personali interferiscano col calcolo
@@ -2944,17 +2945,16 @@ const estraiRepsDaInputSingle = (str) => {
   
   const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
   if (matchR) {
-    return parseFloat(matchR[1]);
+    const val = parseFloat(matchR[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
   }
   
-  const matchNum = clean.match(/^(\d+(?:\.\d+)?)/);
-  if (matchNum) {
-    return parseFloat(matchNum[1]);
-  }
-  
-  const matchAny = clean.match(/(\d+(?:\.\d+)?)/);
-  if (matchAny) {
-    return parseFloat(matchAny[1]);
+  const matchSingleNum = clean.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
+  if (matchSingleNum && !/kg|lbs|libbre/i.test(clean)) {
+    const val = parseFloat(matchSingleNum[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 40) {
+      return val;
+    }
   }
   
   return null;
@@ -2965,10 +2965,14 @@ const estraiRepsDaInput = (str) => {
   const strVal = String(str);
   const lines = strVal.split(/[\n;\r]+/);
   if (lines.length > 1) {
-    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v));
+    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v) && Number.isInteger(v) && v > 0 && v <= 50);
     if (repsList.length > 0) return Math.max(...repsList);
   }
-  return estraiRepsDaInputSingle(strVal);
+  const val = estraiRepsDaInputSingle(strVal);
+  if (val !== null && !isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) {
+    return val;
+  }
+  return null;
 };
 
 const getTrendFreccia = (ex) => {

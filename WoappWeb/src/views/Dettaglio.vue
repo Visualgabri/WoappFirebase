@@ -2949,7 +2949,7 @@
                     <v-expansion-panel-text class="px-0 pt-2 pb-0">
                       <!-- Rigo riassuntivo metadata di calcolo per W1 -->
                       <div v-if="aiutoWeek === 1 && propostaWeek1" class="d-flex align-center gap-1.5 flex-wrap mb-2.5 px-2 py-1.5 bg-slate-900 rounded-lg border text-super-caption text-slate-light" style="font-size: 0.58rem; border-color: rgba(255,255,255,0.05) !important;">
-                        <span>📍 Base: <strong>W{{ propostaWeek1.settimanaBase }} prec. ({{ propostaWeek1.prevPeso }}kg ×{{ formatRepsDisplay(propostaWeek1.prevReps) }})</strong></span>
+                        <span>📍 Base: <strong>W{{ propostaWeek1.settimanaBase }} prec. (<template v-if="!isCorpoLiberoEsercizio(workout) && propostaWeek1.prevPeso > 0">{{ propostaWeek1.prevPeso }}kg ×</template>{{ formatRepsDisplay(propostaWeek1.prevReps) }})</strong></span>
                         <span>• Fatica: <strong>{{ propostaWeek1.fatica }}</strong></span>
                         <span>• RIR: <strong>{{ propostaWeek1.rirTarget }}</strong></span>
                       </div>
@@ -3150,7 +3150,7 @@
                     </td>
                     
                     <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
-                      {{ prevEx.num_ins6 ? prevEx.num_ins6 + ' kg' : '-' }}
+                      {{ prevEx.num_ins6 ? ((isCorpoLiberoEsercizio(workout) || /[rR]\b|reps|rip/i.test(String(prevEx.ins_week6 || ''))) && !/kg|lbs/i.test(String(prevEx.ins_week6 || '')) ? prevEx.num_ins6 + 'r' : prevEx.num_ins6 + ' kg') : '-' }}
                     </td>
                     <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.peso_corporeo || '-' }}</td>
                     <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</td>
@@ -4223,7 +4223,7 @@ const isStalledInPreviousMesocycle = computed(() => {
     return estraiRepsDaInput(str);
   };
 
-  const useRep = previousWorkout.value.des_esercizio && String(previousWorkout.value.des_esercizio).toLowerCase().includes('corpo libero');
+  const useRep = isCorpoLiberoEsercizio(previousWorkout.value);
   const w1Val = useRep ? (estraiRepsInternal(previousWorkout.value.ins_week1) || 0) : parsePesoLocalInternal(previousWorkout.value.ins_week1);
   
   let latestVal = 0;
@@ -6620,17 +6620,31 @@ const isCorpoLiberoEsercizio = (ex) => {
   const name = String(ex.des_esercizio || '').toLowerCase();
   const note = String(ex.des_note_attrezzo || '').toLowerCase();
   const attr = String(ex.des_note_gen_attr || '').toLowerCase();
+  const desNote = String(ex.des_note || '').toLowerCase();
   const settore = String(ex.des_settore || '').toLowerCase();
   const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
   
   const keywords = [
-    'corpo libero', 'corpolibero', 'trazioni', 'dip', 'piegamenti', 
-    'push up', 'push-up', 'crunch', 'plank', 'sit up', 'sit-up', 
-    'addominali', 'addome', 'leg raise', 'hyperextension', 'corpo_libero',
-    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout'
+    'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
+    'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 
+    'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
+    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
+    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
+    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
+    'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
+    'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
+    'pino', 'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
+    'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
   ];
   
-  return keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || settore.includes(k) || settorePrinc.includes(k));
+  const hasKeyword = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k));
+  if (hasKeyword) return true;
+
+  if (note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno')) {
+    return true;
+  }
+
+  return false;
 };
 
 const estraiSerieDaPrescrizione = (prescrizioneStr) => {
@@ -9913,6 +9927,12 @@ function estraiRepsDaInputSingle(str) {
     return parseFloat(matchR[1]);
   }
   
+  // Se è un numero puro (es. "12", "8") e NON ha un'unità esplicita di peso ("kg", "lbs")
+  const matchSingleNum = clean.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
+  if (matchSingleNum && !/kg|lbs|libbre/i.test(clean)) {
+    return parseFloat(matchSingleNum[1]);
+  }
+  
   return null;
 }
 
@@ -10626,7 +10646,8 @@ const suggerimentoRecord = computed(() => {
       const hasKgW6 = /kg\b/i.test(String(rawInsW6));
       let pesoW6Num = 0;
       let repsW6Num = 0;
-      if (isCorpoLibero && !hasKgW6) {
+      const hasExplicitRepsW6 = /[rR]\b|reps|rip/i.test(String(rawInsW6)) && !hasKgW6;
+      if ((isCorpoLibero || hasExplicitRepsW6) && !hasKgW6) {
         pesoW6Num = 0;
         repsW6Num = estraiRepsDaInput(rawInsW6) || parseFloat(rawInsW6) || 0;
       } else {
@@ -10676,7 +10697,8 @@ const suggerimentoRecord = computed(() => {
         const hasKg = /kg\b/i.test(String(val));
         let pesoNum = 0;
         let repsNum = 0;
-        if (isCorpoLibero && !hasKg) {
+        const hasExplicitReps = /[rR]\b|reps|rip/i.test(String(val)) && !hasKg;
+        if ((isCorpoLibero || hasExplicitReps) && !hasKg) {
           pesoNum = 0;
           repsNum = estraiRepsDaInput(val) || parseFloat(val) || 0;
         } else {

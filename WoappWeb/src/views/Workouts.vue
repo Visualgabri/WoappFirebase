@@ -2802,15 +2802,24 @@ const isRepProgression = (ex) => {
   const name = String(ex.des_esercizio || '').toLowerCase();
   const note = String(ex.des_note_attrezzo || '').toLowerCase();
   const attr = String(ex.des_note_gen_attr || '').toLowerCase();
+  const desNote = String(ex.des_note || '').toLowerCase();
+  const settore = String(ex.des_settore || '').toLowerCase();
+  const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
   
   const keywords = [
-    'corpo libero', 'corpolibero', 'trazioni', 'dip', 'piegamenti', 
-    'push up', 'push-up', 'crunch', 'plank', 'sit up', 'sit-up', 
-    'addominali', 'addome', 'leg raise', 'hyperextension', 'corpo_libero',
-    'dragon'
+    'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
+    'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 
+    'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
+    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
+    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
+    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
+    'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
+    'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
+    'pino', 'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
+    'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
   ];
   
-  const isCorpoLibero = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k));
+  const isCorpoLibero = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k)) || note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno');
   if (!isCorpoLibero) return false;
 
   let prevReps = null;

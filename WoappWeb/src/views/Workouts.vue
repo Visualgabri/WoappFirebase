@@ -2866,6 +2866,15 @@ const isRepProgression = (ex) => {
   const settore = String(ex.des_settore || '').toLowerCase();
   const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
   
+  const weightKeywords = [
+    'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
+    'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
+    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
+    'con sovraccarico', 'con cavigliera', 'con cavigliere'
+  ];
+  const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
+  if (hasWeightKeyword) return false;
+
   const keywords = [
     'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
     'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 

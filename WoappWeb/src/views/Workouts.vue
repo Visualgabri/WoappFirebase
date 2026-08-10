@@ -651,48 +651,54 @@
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
-                  <!-- Tempo e Calorie in formato testo semplice per Super Compatto -->
+                  <!-- Micro-Capsule Informative Workout (Idea 1) -->
                   <div 
-                    v-if="layoutEsercizi === 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-1 header-info-text flex-wrap"
-                    style="font-size: 0.65rem;"
+                    class="d-flex align-center flex-wrap gap-1.5 mt-1.5 header-info-micro-capsules"
+                    :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.60rem' : '0.68rem' }"
                   >
-                    <span>⏱️ Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
-                    <span class="mx-1" style="opacity: 0.5;">•</span>
-                    <span>🔥 Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
-                    <template v-if="parseDayHeader(headerGiorno.des_esercizio).cardioText">
-                      <span class="mx-1" style="opacity: 0.5;">•</span>
-                      <span class="text-cyan-lighten-2">🏃 Cardio: {{ parseDayHeader(headerGiorno.des_esercizio).cardioText }}</span>
-                    </template>
-                  </div>
-                  <div 
-                    v-if="layoutEsercizi !== 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-1 header-info-text" 
-                    style="font-size: 0.72rem;"
-                  >
-                    <span class="mr-1">🔥</span>
-                    <span>Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal consumate</span>
-                  </div>
-                  <div
-                    v-if="layoutEsercizi !== 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-0.5 flex-wrap header-info-text"
-                    style="font-size: 0.72rem;"
-                  >
-                    <span class="mr-1">⏱️</span>
-                    <span>Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
-                    <span class="mx-1.5" style="opacity: 0.7;"> </span>
-                    <span class="d-inline-flex align-center mr-2">
-                      <span class="mr-0.5">{{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }}</span>
-                      <span class="px-1.5 py-0.5 rounded-pill text-white font-weight-black mx-1" style="font-size: 0.65rem; background: rgba(0,0,0,0.3) !important;">
-                        {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
-                      </span>
-                      <span class="ml-0.5 font-weight-black density-label-text">
-                        ({{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label.replace(/Focus\s*/gi, '') }})
-                      </span>
-                    </span>
-                    <span v-if="parseDayHeader(headerGiorno.des_esercizio).cardioText" class="d-inline-flex align-center font-weight-black text-cyan-lighten-2 ml-1">
-                      🏃 Cardio: {{ parseDayHeader(headerGiorno.des_esercizio).cardioText }}
-                    </span>
+                    <!-- Durata -->
+                    <div 
+                      v-if="getDinamicoTempo(headerGiorno, 'media')"
+                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
+                      style="background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1) !important; color: #e2e8f0;"
+                    >
+                      <span class="mr-1">⏱️</span>
+                      <span>{{ getDinamicoTempo(headerGiorno, 'media') }}</span>
+                    </div>
+
+                    <!-- Calorie -->
+                    <div 
+                      v-if="parseDayHeader(headerGiorno.des_esercizio)?.calorie"
+                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
+                      style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.25) !important; color: #fdba74;"
+                    >
+                      <span class="mr-1">🔥</span>
+                      <span>{{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
+                    </div>
+
+                    <!-- Densità / Fisiologia -->
+                    <div 
+                      v-if="parseDayHeader(headerGiorno.des_esercizio)"
+                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
+                      :style="{
+                        background: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).bgColor,
+                        borderColor: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).borderColor + ' !important',
+                        color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).color
+                      }"
+                    >
+                      <span class="mr-1">⚡</span>
+                      <span>{{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}% {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label }}</span>
+                    </div>
+
+                    <!-- Cardio -->
+                    <div 
+                      v-if="parseDayHeader(headerGiorno.des_esercizio)?.cardioText"
+                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
+                      style="background: rgba(45, 212, 191, 0.12); border-color: rgba(45, 212, 191, 0.3) !important; color: #2dd4bf;"
+                    >
+                      <span class="mr-1">🏃</span>
+                      <span>{{ parseDayHeader(headerGiorno.des_esercizio).cardioText }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2611,29 +2617,45 @@ const getDinamicoTempo = (header, type) => {
 
 const getDensityZoneInfo = (val) => {
   const d = parseInt(val) || 0;
-  if (d < 20) {
+  if (d < 25) {
     return {
-      color: '#38bdf8', // blue
+      color: '#38bdf8', // Azzurro Ciano
+      bgColor: 'rgba(56, 189, 248, 0.15)',
+      borderColor: 'rgba(56, 189, 248, 0.35)',
       colorClass: 'text-light-blue',
       emoji: '🔵',
-      label: 'Focus Forza / Neurale',
-      textClass: 'text-blue-lighten-2'
+      label: 'Forza',
+      textClass: 'text-cyan-lighten-2'
     };
-  } else if (d <= 35) {
+  } else if (d < 35) {
     return {
-      color: '#f97316', // orange
-      colorClass: 'text-orange',
-      emoji: '🟠',
-      label: 'Focus Ipertrofia',
-      textClass: 'text-orange-lighten-1'
+      color: '#34d399', // Verde Smeraldo
+      bgColor: 'rgba(52, 211, 153, 0.15)',
+      borderColor: 'rgba(52, 211, 153, 0.35)',
+      colorClass: 'text-emerald',
+      emoji: '🟢',
+      label: 'Ipertrofia',
+      textClass: 'text-green-accent-3'
+    };
+  } else if (d < 45) {
+    return {
+      color: '#fbbf24', // Ambra Warm
+      bgColor: 'rgba(251, 191, 36, 0.15)',
+      borderColor: 'rgba(251, 191, 36, 0.35)',
+      colorClass: 'text-amber',
+      emoji: '🟡',
+      label: 'Lattacido',
+      textClass: 'text-amber-lighten-1'
     };
   } else {
     return {
-      color: '#ef4444', // red
+      color: '#f87171', // Rosso Corallo
+      bgColor: 'rgba(248, 113, 113, 0.15)',
+      borderColor: 'rgba(248, 113, 113, 0.35)',
       colorClass: 'text-red',
       emoji: '🔴',
-      label: 'Focus Metabolico / Lattacido',
-      textClass: 'text-red-lighten-1'
+      label: 'Metabolico',
+      textClass: 'text-red-lighten-2'
     };
   }
 };

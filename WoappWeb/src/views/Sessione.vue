@@ -1141,30 +1141,46 @@ const parseVolumes = (str) => {
 
 // Density Focus Zone Helper
 const getDensityZoneInfo = (val) => {
-  const d = parseInt(val) || 60;
-  if (d < 20) {
+  const d = parseInt(val) || 0;
+  if (d < 25) {
     return {
-      color: '#38bdf8', // blue
+      color: '#38bdf8',
+      bgColor: 'rgba(56, 189, 248, 0.15)',
+      borderColor: 'rgba(56, 189, 248, 0.35)',
       colorClass: 'text-light-blue',
       emoji: '🔵',
-      label: 'Focus Forza / Neurale',
-      textClass: 'text-blue-lighten-2'
+      label: 'Forza',
+      textClass: 'text-cyan-lighten-2'
     };
-  } else if (d <= 35) {
+  } else if (d < 35) {
     return {
-      color: '#f97316', // orange
-      colorClass: 'text-orange',
-      emoji: '🟠',
-      label: 'Focus Ipertrofia',
-      textClass: 'text-orange-lighten-1'
+      color: '#34d399',
+      bgColor: 'rgba(52, 211, 153, 0.15)',
+      borderColor: 'rgba(52, 211, 153, 0.35)',
+      colorClass: 'text-emerald',
+      emoji: '🟢',
+      label: 'Ipertrofia',
+      textClass: 'text-green-accent-3'
+    };
+  } else if (d < 45) {
+    return {
+      color: '#fbbf24',
+      bgColor: 'rgba(251, 191, 36, 0.15)',
+      borderColor: 'rgba(251, 191, 36, 0.35)',
+      colorClass: 'text-amber',
+      emoji: '🟡',
+      label: 'Lattacido',
+      textClass: 'text-amber-lighten-1'
     };
   } else {
     return {
-      color: '#ef4444', // red
+      color: '#f87171',
+      bgColor: 'rgba(248, 113, 113, 0.15)',
+      borderColor: 'rgba(248, 113, 113, 0.35)',
       colorClass: 'text-red',
       emoji: '🔴',
-      label: 'Focus Metabolico / Lattacido',
-      textClass: 'text-red-lighten-1'
+      label: 'Metabolico',
+      textClass: 'text-red-lighten-2'
     };
   }
 };

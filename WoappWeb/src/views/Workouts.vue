@@ -651,7 +651,7 @@
                       <v-icon v-if="isCmpTrue(headerGiorno['cmp' + w])" size="8" class="ml-0.5" color="green-accent-4">mdi-check-bold</v-icon>
                     </div>
                   </div>
-                  <!-- Micro-Capsule Informative Workout (Idea 1) -->
+                  <!-- Micro-Capsule Informative Workout (Idea 1 - Adattive Tema Chiaro/Scuro) -->
                   <div 
                     class="d-flex align-center flex-wrap gap-1.5 mt-1.5 header-info-micro-capsules"
                     :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.60rem' : '0.68rem' }"
@@ -659,8 +659,7 @@
                     <!-- Durata -->
                     <div 
                       v-if="getDinamicoTempo(headerGiorno, 'media')"
-                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
-                      style="background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1) !important; color: #e2e8f0;"
+                      class="micro-capsule micro-capsule-time"
                     >
                       <span class="mr-1">⏱️</span>
                       <span>{{ getDinamicoTempo(headerGiorno, 'media') }}</span>
@@ -669,8 +668,7 @@
                     <!-- Calorie -->
                     <div 
                       v-if="parseDayHeader(headerGiorno.des_esercizio)?.calorie"
-                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
-                      style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.25) !important; color: #fdba74;"
+                      class="micro-capsule micro-capsule-kcal"
                     >
                       <span class="mr-1">🔥</span>
                       <span>{{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
@@ -679,12 +677,8 @@
                     <!-- Densità / Fisiologia -->
                     <div 
                       v-if="parseDayHeader(headerGiorno.des_esercizio)"
-                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
-                      :style="{
-                        background: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).bgColor,
-                        borderColor: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).borderColor + ' !important',
-                        color: getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).color
-                      }"
+                      class="micro-capsule micro-capsule-density"
+                      :class="'density-' + getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).type"
                     >
                       <span class="mr-1">⚡</span>
                       <span>{{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}% {{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label }}</span>
@@ -693,8 +687,7 @@
                     <!-- Cardio -->
                     <div 
                       v-if="parseDayHeader(headerGiorno.des_esercizio)?.cardioText"
-                      class="d-inline-flex align-center px-2 py-0.5 rounded-lg border font-weight-black"
-                      style="background: rgba(45, 212, 191, 0.12); border-color: rgba(45, 212, 191, 0.3) !important; color: #2dd4bf;"
+                      class="micro-capsule micro-capsule-cardio"
                     >
                       <span class="mr-1">🏃</span>
                       <span>{{ parseDayHeader(headerGiorno.des_esercizio).cardioText }}</span>
@@ -2619,43 +2612,31 @@ const getDensityZoneInfo = (val) => {
   const d = parseInt(val) || 0;
   if (d < 25) {
     return {
-      color: '#38bdf8', // Azzurro Ciano
-      bgColor: 'rgba(56, 189, 248, 0.15)',
-      borderColor: 'rgba(56, 189, 248, 0.35)',
-      colorClass: 'text-light-blue',
+      type: 'forza',
+      color: '#38bdf8',
       emoji: '🔵',
-      label: 'Forza',
-      textClass: 'text-cyan-lighten-2'
+      label: 'Forza'
     };
   } else if (d < 35) {
     return {
-      color: '#34d399', // Verde Smeraldo
-      bgColor: 'rgba(52, 211, 153, 0.15)',
-      borderColor: 'rgba(52, 211, 153, 0.35)',
-      colorClass: 'text-emerald',
+      type: 'ipertrofia',
+      color: '#34d399',
       emoji: '🟢',
-      label: 'Ipertrofia',
-      textClass: 'text-green-accent-3'
+      label: 'Ipertrofia'
     };
   } else if (d < 45) {
     return {
-      color: '#fbbf24', // Ambra Warm
-      bgColor: 'rgba(251, 191, 36, 0.15)',
-      borderColor: 'rgba(251, 191, 36, 0.35)',
-      colorClass: 'text-amber',
+      type: 'lattacido',
+      color: '#fbbf24',
       emoji: '🟡',
-      label: 'Lattacido',
-      textClass: 'text-amber-lighten-1'
+      label: 'Lattacido'
     };
   } else {
     return {
-      color: '#f87171', // Rosso Corallo
-      bgColor: 'rgba(248, 113, 113, 0.15)',
-      borderColor: 'rgba(248, 113, 113, 0.35)',
-      colorClass: 'text-red',
+      type: 'metabolico',
+      color: '#f87171',
       emoji: '🔴',
-      label: 'Metabolico',
-      textClass: 'text-red-lighten-2'
+      label: 'Metabolico'
     };
   }
 };
@@ -6807,6 +6788,98 @@ const recuperiRaggruppati = computed(() => {
 .superset-group-card.completed {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(30, 41, 59, 0.75) 100%) !important;
   border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+/* Stili adattivi per Micro-Capsule (Dark Mode e Light Mode) */
+.micro-capsule {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 900;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+/* 1. Durata (Time) */
+.micro-capsule-time {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f1f5f9;
+}
+[data-theme="light"] .micro-capsule-time {
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.22) !important;
+  color: #0f172a;
+}
+
+/* 2. Calorie (Kcal) */
+.micro-capsule-kcal {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35) !important;
+  color: #fdba74;
+}
+[data-theme="light"] .micro-capsule-kcal {
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(234, 88, 12, 0.40) !important;
+  color: #9a3412;
+}
+
+/* 3. Cardio */
+.micro-capsule-cardio {
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.35) !important;
+  color: #2dd4bf;
+}
+[data-theme="light"] .micro-capsule-cardio {
+  background: rgba(13, 148, 136, 0.14);
+  border-color: rgba(13, 148, 136, 0.40) !important;
+  color: #0f766e;
+}
+
+/* 4. Densità / Fisiologia */
+.micro-capsule-density.density-forza {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8;
+}
+[data-theme="light"] .micro-capsule-density.density-forza {
+  background: rgba(2, 132, 199, 0.14);
+  border-color: rgba(2, 132, 199, 0.40) !important;
+  color: #0369a1;
+}
+
+.micro-capsule-density.density-ipertrofia {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.35) !important;
+  color: #34d399;
+}
+[data-theme="light"] .micro-capsule-density.density-ipertrofia {
+  background: rgba(5, 150, 105, 0.14);
+  border-color: rgba(5, 150, 105, 0.40) !important;
+  color: #047857;
+}
+
+.micro-capsule-density.density-lattacido {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.35) !important;
+  color: #fbbf24;
+}
+[data-theme="light"] .micro-capsule-density.density-lattacido {
+  background: rgba(217, 119, 6, 0.16);
+  border-color: rgba(217, 119, 6, 0.45) !important;
+  color: #92400e;
+}
+
+.micro-capsule-density.density-metabolico {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.35) !important;
+  color: #f87171;
+}
+[data-theme="light"] .micro-capsule-density.density-metabolico {
+  background: rgba(220, 38, 38, 0.14);
+  border-color: rgba(220, 38, 38, 0.40) !important;
+  color: #b91c1c;
 }
 
 /* Singoli esercizi completati all'interno della superserie */

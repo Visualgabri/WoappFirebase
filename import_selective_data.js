@@ -48,6 +48,63 @@ async function commitBatchOperations(operations) {
   }
 }
 
+function parseTimestampToMs(tsVal) {
+  if (!tsVal) return 0;
+  if (typeof tsVal === 'object') {
+    if (typeof tsVal.toMillis === 'function') return tsVal.toMillis();
+    if (tsVal.seconds !== undefined) return tsVal.seconds * 1000;
+    if (tsVal._seconds !== undefined) return tsVal._seconds * 1000;
+    if (typeof tsVal.toDate === 'function') return tsVal.toDate().getTime();
+  }
+  if (typeof tsVal === 'number') return tsVal;
+  let str = String(tsVal).trim();
+  if (!str) return 0;
+  if (str.includes(' ') && !str.includes('T')) {
+    str = str.replace(' ', 'T');
+  }
+  const parsed = Date.parse(str);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+function getRecordLatestTimestamp(record) {
+  const candidateFields = [
+    'timestamp_ute', 'timestamp',
+    'end6_wo', 'end5_wo', 'end4_wo', 'end3_wo', 'end2_wo', 'end_wo',
+    'start6_wo', 'start5_wo', 'start4_wo', 'start3_wo', 'start2_wo', 'start_wo'
+  ];
+  let maxMs = 0;
+  for (const f of candidateFields) {
+    const ms = parseTimestampToMs(record[f]);
+    if (ms > maxMs) maxMs = ms;
+  }
+  return maxMs;
+}
+
+function shouldCsvOverrideFirestore(csvRec, fsData) {
+  const csvTs = getRecordLatestTimestamp(csvRec);
+  const fsTs = getRecordLatestTimestamp(fsData);
+
+  // 1. Se il timestamp nel CSV è strettamente più recente di quello su Firestore
+  if (csvTs > 0 && csvTs > fsTs) {
+    return true;
+  }
+
+  // 2. Se il CSV possiede dati di completamento (cmp1..6 = '1') che Firestore NON possiede
+  for (let w = 1; w <= 6; w++) {
+    const cmpField = `cmp${w}`;
+    const csvCmp = String(csvRec[cmpField] || '').trim();
+    const fsCmp = String(fsData[cmpField] || '').trim();
+    const isCsvCmpDone = csvCmp === '1' || csvCmp.toLowerCase() === 'true';
+    const isFsCmpDone = fsCmp === '1' || fsCmp.toLowerCase() === 'true';
+
+    if (isCsvCmpDone && !isFsCmpDone) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // Funzione helper per verificare se due record sono identici
 function areRecordsEqual(rec1, rec2) {
   const keys1 = Object.keys(rec1);
@@ -160,13 +217,16 @@ async function run() {
     if (existing) {
       // Record esistente: eseguiamo lo Smart Merge
       const mergedRecord = { ...record };
+      const csvIsNewerOrMoreComplete = shouldCsvOverrideFirestore(record, existing.data);
       
-      // Preserva i dati dell'atleta se già popolati su Firestore
-      fieldsToPreserve.forEach(field => {
-        if (existing.data[field] !== undefined && existing.data[field] !== '') {
-          mergedRecord[field] = existing.data[field];
-        }
-      });
+      // Preserva i dati dell'atleta se già popolati su Firestore solo se Firestore è più recente o più completo
+      if (!csvIsNewerOrMoreComplete) {
+        fieldsToPreserve.forEach(field => {
+          if (existing.data[field] !== undefined && existing.data[field] !== '') {
+            mergedRecord[field] = existing.data[field];
+          }
+        });
+      }
 
       // Confronto Delta: scriviamo solo se c'è una reale differenza
       if (!areRecordsEqual(mergedRecord, existing.data)) {

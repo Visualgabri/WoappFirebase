@@ -654,12 +654,16 @@
                   <!-- Tempo e Calorie in formato testo semplice per Super Compatto -->
                   <div 
                     v-if="layoutEsercizi === 'super_compatto'"
-                    class="text-caption font-weight-bold d-flex align-center mt-1 header-info-text"
+                    class="text-caption font-weight-bold d-flex align-center mt-1 header-info-text flex-wrap"
                     style="font-size: 0.65rem;"
                   >
                     <span>⏱️ Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
                     <span class="mx-1" style="opacity: 0.5;">•</span>
                     <span>🔥 Stima: {{ parseDayHeader(headerGiorno.des_esercizio).calorie }} kcal</span>
+                    <template v-if="parseDayHeader(headerGiorno.des_esercizio).cardioText">
+                      <span class="mx-1" style="opacity: 0.5;">•</span>
+                      <span class="text-cyan-lighten-2">🏃 Cardio: {{ parseDayHeader(headerGiorno.des_esercizio).cardioText }}</span>
+                    </template>
                   </div>
                   <div 
                     v-if="layoutEsercizi !== 'super_compatto'"
@@ -677,7 +681,7 @@
                     <span class="mr-1">⏱️</span>
                     <span>Media: {{ getDinamicoTempo(headerGiorno, 'media') }}</span>
                     <span class="mx-1.5" style="opacity: 0.7;"> </span>
-                    <span class="d-inline-flex align-center">
+                    <span class="d-inline-flex align-center mr-2">
                       <span class="mr-0.5">{{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).emoji }}</span>
                       <span class="px-1.5 py-0.5 rounded-pill text-white font-weight-black mx-1" style="font-size: 0.65rem; background: rgba(0,0,0,0.3) !important;">
                         {{ parseDayHeader(headerGiorno.des_esercizio).densitaMedia }}%
@@ -685,6 +689,9 @@
                       <span class="ml-0.5 font-weight-black density-label-text">
                         ({{ getDensityZoneInfo(parseDayHeader(headerGiorno.des_esercizio).densitaMedia).label.replace(/Focus\s*/gi, '') }})
                       </span>
+                    </span>
+                    <span v-if="parseDayHeader(headerGiorno.des_esercizio).cardioText" class="d-inline-flex align-center font-weight-black text-cyan-lighten-2 ml-1">
+                      🏃 Cardio: {{ parseDayHeader(headerGiorno.des_esercizio).cardioText }}
                     </span>
                   </div>
                 </div>
@@ -2384,56 +2391,106 @@ const formattaDurataLeggibile = (totalMins) => {
 const parseDayHeader = (str) => {
   if (!str) return null;
   const cleanStr = str.trim();
-  const regex = /WO\s+([A-D])\s*\[\s*([^%]+?)\s+(\d+)\s*%\s*\/\s*([^%]+?)\s+(\d+)\s*%\s*\]\s*K:\s*(\d+)/i;
+  
+  const regex = /(?:WO|WORKOUT)\s+([A-Z\d]+)\s*\[\s*([^/\]]+?)\s*\/\s*([^/\]]+?)\s*\](?:\s*K:\s*(\d+))?/i;
   const match = cleanStr.match(regex);
-  if (match) {
-    const giorno = match[1];
-    const t1 = match[2];
-    const d1 = parseInt(match[3]);
-    const t2 = match[4];
-    const d2 = parseInt(match[5]);
-    const calorie = parseInt(match[6]);
-    
-    const parseTimeToMins = (tStr) => {
-      if (!tStr) return 0;
-      let clean = tStr.toLowerCase().trim();
-      if (clean.includes('h')) {
-        const parts = clean.split('h');
-        const hours = parseInt(parts[0], 10) || 0;
-        const minsStr = parts[1] ? parts[1].replace('min', '').replace('m', '').trim() : '';
-        const mins = parseInt(minsStr, 10) || 0;
-        return hours * 60 + mins;
+  if (!match) return null;
+
+  const giorno = match[1].toUpperCase();
+  const part1 = match[2].trim();
+  const part2 = match[3].trim();
+  const calorie = match[4] ? parseInt(match[4], 10) : 0;
+
+  const extractTimeAndDensity = (part) => {
+    const matchTD = part.match(/^([^\s%]+(?:\s+[^\s%]+)*?)\s+(\d+)\s*%/i);
+    let tempoRaw = '';
+    let densita = 0;
+    if (matchTD) {
+      tempoRaw = matchTD[1].trim();
+      densita = parseInt(matchTD[2], 10);
+    } else {
+      const dMatch = part.match(/(\d+)\s*%/);
+      densita = dMatch ? parseInt(dMatch[1], 10) : 0;
+      tempoRaw = part.split(/%|\bcardio\b/i)[0].trim();
+    }
+
+    const cardioMatch = part.match(/\bcardio\b\s*:?\s*([\d'\-\smin]+)/i);
+    let cardioRaw = null;
+    let cardioMins = 0;
+    if (cardioMatch) {
+      cardioRaw = cardioMatch[1].trim();
+      const nums = cardioRaw.match(/\d+/g);
+      if (nums && nums.length > 0) {
+        const parsedNums = nums.map(n => parseInt(n, 10));
+        cardioMins = Math.round(parsedNums.reduce((a, b) => a + b, 0) / parsedNums.length);
       }
-      clean = clean.replace('min', '').replace('m', '').trim();
-      if (clean.includes(':')) {
-        const parts = clean.split(':');
-        if (parts.length === 2) {
-          return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
-        }
+    }
+
+    return { tempoRaw, densita, cardioRaw, cardioMins };
+  };
+
+  const p1 = extractTimeAndDensity(part1);
+  const p2 = extractTimeAndDensity(part2);
+
+  const parseTimeToMins = (tStr) => {
+    if (!tStr) return 0;
+    let clean = tStr.toLowerCase().trim();
+    if (clean.includes('h')) {
+      const parts = clean.split('h');
+      const hours = parseInt(parts[0], 10) || 0;
+      const minsStr = parts[1] ? parts[1].replace('min', '').replace('m', '').replace("'", '').trim() : '';
+      const mins = parseInt(minsStr, 10) || 0;
+      return hours * 60 + mins;
+    }
+    clean = clean.replace('min', '').replace('m', '').replace("'", '').trim();
+    if (clean.includes(':')) {
+      const parts = clean.split(':');
+      if (parts.length === 2) {
+        return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
       }
-      return parseInt(clean, 10) || 0;
-    };
-    
-    const m1 = parseTimeToMins(t1);
-    const m2 = parseTimeToMins(t2);
-    const mediaMins = Math.round((m1 + m2) / 2);
-    
-    const densitaMedia = Math.round((d1 + d2) / 2);
-    
-    return {
-      giorno,
-      tempo1Raw: t1.trim(),
-      tempo1Mins: m1,
-      densita1: d1,
-      tempo2Raw: t2.trim(),
-      tempo2Mins: m2,
-      densita2: d2,
-      tempoMediaMins: mediaMins,
-      densitaMedia,
-      calorie
-    };
+    }
+    return parseInt(clean, 10) || 0;
+  };
+
+  const m1 = parseTimeToMins(p1.tempoRaw);
+  const m2 = parseTimeToMins(p2.tempoRaw);
+  const mediaMins = Math.round((m1 + m2) / 2);
+  const densitaMedia = Math.round((p1.densita + p2.densita) / 2);
+
+  let cardioMinMins = null;
+  let cardioMaxMins = null;
+  let cardioText = null;
+
+  const validCardioMins = [p1.cardioMins, p2.cardioMins].filter(m => m > 0);
+  if (validCardioMins.length > 0) {
+    cardioMinMins = Math.min(...validCardioMins);
+    cardioMaxMins = Math.max(...validCardioMins);
+    if (cardioMinMins === cardioMaxMins) {
+      cardioText = `${cardioMinMins}'`;
+    } else {
+      cardioText = `${cardioMinMins}' - ${cardioMaxMins}'`;
+    }
+  } else if (p1.cardioRaw || p2.cardioRaw) {
+    cardioText = p1.cardioRaw || p2.cardioRaw;
   }
-  return null;
+
+  return {
+    giorno,
+    tempo1Raw: p1.tempoRaw,
+    tempo1Mins: m1,
+    densita1: p1.densita,
+    tempo2Raw: p2.tempoRaw,
+    tempo2Mins: m2,
+    densita2: p2.densita,
+    tempoMediaMins: mediaMins,
+    densitaMedia,
+    calorie,
+    cardio1: p1.cardioRaw,
+    cardio2: p2.cardioRaw,
+    cardioMinMins,
+    cardioMaxMins,
+    cardioText
+  };
 };
 
 const isVolumeString = (str) => {

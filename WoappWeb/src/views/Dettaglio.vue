@@ -495,7 +495,7 @@
                     🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
                   </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso + getWeightStep(isManubriEsercizio(workout), getRiferimentoSfidaRecord(settimanaAttiva).peso)) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                   </template>
                   <template v-else>
                     --
@@ -3153,7 +3153,7 @@
                     </td>
                     
                     <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
-                      {{ prevEx.num_ins6 ? ((isCorpoLiberoEsercizio(workout) || /[rR]\b|reps|rip/i.test(String(prevEx.ins_week6 || ''))) && !/kg|lbs/i.test(String(prevEx.ins_week6 || '')) ? prevEx.num_ins6 + 'r' : prevEx.num_ins6 + ' kg') : '-' }}
+                      {{ prevEx.num_ins6 ? ((isCorpoLiberoEsercizio(workout) || /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(prevEx.ins_week6 || ''))) && !/kg|lbs/i.test(String(prevEx.ins_week6 || '')) ? prevEx.num_ins6 + 'r' : prevEx.num_ins6 + ' kg') : '-' }}
                     </td>
                     <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.peso_corporeo || '-' }}</td>
                     <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</td>
@@ -4438,23 +4438,11 @@ const stimaRecordStoricoPerReps = (targetReps) => {
     for (let w = 1; w <= 6; w++) {
       const insVal = prevEx['ins_week' + w];
       if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-        const weightStr = estraiPesoDaInput(insVal);
-        if (weightStr) {
-          const weight = parseFloat(weightStr);
-          if (!isNaN(weight) && weight > 0) {
-            if (weight > maxWeightRealLogged) maxWeightRealLogged = weight;
-            const repsVal = prevEx['reps_week' + w];
-            let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
-            const inputReps = estraiRepsDaInput(insVal);
-            if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
-              repsNum = inputReps;
-            }
-            if (repsNum) {
-              const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
-              if (e1rm > best1RM) {
-                best1RM = e1rm;
-              }
-            }
+        const perf = estraiMigliorPrestazioneInput(insVal, getRepsForWeek(w, prevEx) || targetReps, isCavo);
+        if (perf) {
+          if (perf.peso > maxWeightRealLogged) maxWeightRealLogged = perf.peso;
+          if (perf.e1rm > best1RM) {
+            best1RM = perf.e1rm;
           }
         }
       }
@@ -4573,16 +4561,11 @@ const getRiferimentoSfidaRecord = (sett) => {
     for (let w = 1; w < sett; w++) {
       const insVal = inputSettimane.value[w]?.ins;
       if (insVal) {
-        const weightStr = estraiPesoDaInput(insVal);
-        if (weightStr) {
-          const weight = parseFloat(weightStr);
-          if (!isNaN(weight) && weight > 0) {
-            const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
-            const e1rm = calcolaE1RMSmorzato(weight, rExecuted, isCavo);
-            const estW = calcolaPesoDaE1RMSmorzato(e1rm, repsTarget, isCavo);
-            if (estW > stimaDaSchedaCorrente) {
-              stimaDaSchedaCorrente = estW;
-            }
+        const perf = estraiMigliorPrestazioneInput(insVal, getRepsPerWeek(w), isCavo);
+        if (perf) {
+          const estW = calcolaPesoDaE1RMSmorzato(perf.e1rm, repsTarget, isCavo);
+          if (estW > stimaDaSchedaCorrente) {
+            stimaDaSchedaCorrente = estW;
           }
         }
       }
@@ -5012,58 +4995,49 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
   for (let w = 1; w < targetW; w++) {
     const insVal = workout.value['ins_week' + w];
     if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-      const weightStr = estraiPesoDaInput(insVal);
-      if (weightStr) {
-        const weight = parseFloat(weightStr);
-        if (!isNaN(weight) && weight > 0) {
-          const repsVal = workout.value['reps_week' + w];
-          let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(workout.value['des_week' + w]);
-          const inputReps = estraiRepsDaInput(insVal);
-          if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
-            repsNum = inputReps;
-          }
-          if (repsNum && repsNum > 0) {
-            // Calcolo progressione diretta mesociclo attuale
-            const rirOriginale = estraiRIRDaPrescrizione(workout.value['des_week' + w]) !== null 
-              ? estraiRIRDaPrescrizione(workout.value['des_week' + w]) 
-              : getRIRDefault(w);
-            
-            const estimated1RM = weight * (1 + (repsNum + rirOriginale) / 30);
-            
-            const rirTarget = estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) !== null 
-              ? estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) 
-              : getRIRDefault(targetW);
-              
-            let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
-            
-            const isManubri = isManubriEsercizio(workout.value);
-            const step = getWeightStep(isManubri, weight);
-            const roundedProposed = Math.round(proposedWeight / step) * step;
-            
-            list.push({
-              id: workout.value.id || 'current',
-              week: w,
-              numScheda: currentNumScheda,
-              data: 'Mesociclo in corso',
-              giorniTrascorsi: 0,
-              tempoPassato: 'Attuale',
-              pesoOriginale: weight,
-              repsOriginali: repsNum,
-              massimaleStimato: Math.round(estimated1RM * 10) / 10,
-              pesoProposto: roundedProposed,
-              isSameWeek: false,
-              isPeakWeek: false,
-              isSameReps: repsNum === targetReps,
-              coeffFatica: 1.0,
-              coeffTempo: 1.0,
-              spiegazioneFatica: 'Sforzo: Mesociclo attuale',
-              spiegazioneTempo: 'Tempo: Mesociclo attuale',
-              rirOriginale,
-              rirTarget,
-              isCurrentMesocycle: true
-            });
-          }
-        }
+      const perf = estraiMigliorPrestazioneInput(insVal, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value));
+      if (perf) {
+        const weight = perf.peso;
+        const repsNum = perf.reps;
+        const estimated1RM = perf.e1rm;
+        
+        // Calcolo progressione diretta mesociclo attuale
+        const rirOriginale = estraiRIRDaPrescrizione(workout.value['des_week' + w]) !== null 
+          ? estraiRIRDaPrescrizione(workout.value['des_week' + w]) 
+          : getRIRDefault(w);
+        
+        const rirTarget = estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) !== null 
+          ? estraiRIRDaPrescrizione(workout.value['des_week' + targetW]) 
+          : getRIRDefault(targetW);
+          
+        let proposedWeight = estimated1RM / (1 + (targetReps + rirTarget) / 30);
+        
+        const isManubri = isManubriEsercizio(workout.value);
+        const step = getWeightStep(isManubri, weight);
+        const roundedProposed = Math.round(proposedWeight / step) * step;
+        
+        list.push({
+          id: workout.value.id || 'current',
+          week: w,
+          numScheda: currentNumScheda,
+          data: 'Mesociclo in corso',
+          giorniTrascorsi: 0,
+          tempoPassato: 'Attuale',
+          pesoOriginale: weight,
+          repsOriginali: repsNum,
+          massimaleStimato: Math.round(estimated1RM * 10) / 10,
+          pesoProposto: roundedProposed,
+          isSameWeek: false,
+          isPeakWeek: false,
+          isSameReps: repsNum === targetReps,
+          coeffFatica: 1.0,
+          coeffTempo: 1.0,
+          spiegazioneFatica: 'Sforzo: Mesociclo attuale',
+          spiegazioneTempo: 'Tempo: Mesociclo attuale',
+          rirOriginale,
+          rirTarget,
+          isCurrentMesocycle: true
+        });
       }
     }
   }
@@ -5426,24 +5400,24 @@ const getGhostWeightsRangeForWeek = (sett) => {
     pesoSfidante = arrotondaManubrioCommerciale(pesoSfidante);
   }
 
-  // Scenario Sforzo Elevato / Difficile / Limite: mantiene lo stesso peso e consiglia progressione su reps
+  // Scenario Sforzo Elevato / Difficile / Limite: mantiene lo stesso peso (senza forzare +1r nel consigliato)
   if (isDifficileOStallo && pesoBase > 0) {
     const repsVolume = Math.max(repsTarget, repsBaseVal + 1);
     return {
       prudenziale: {
         value: String(pesoBase),
         display: `${formatWeight(pesoBase)} kg`,
-        label: 'Prudenziale (Stesso peso)'
+        label: 'Prudenziale'
       },
       consigliato: {
-        value: `${pesoBase}x${repsVolume}r`,
-        display: `${formatWeight(pesoBase)}x${repsVolume}r`,
-        label: 'Consigliato (+1r stesso peso)'
+        value: String(pesoBase),
+        display: `${formatWeight(pesoBase)} kg`,
+        label: 'Consigliato (Stesso peso)'
       },
       sfidante: {
-        value: String(pesoConsigliato),
-        display: `${formatWeight(pesoConsigliato)} kg`,
-        label: 'Sfidante'
+        value: `${pesoBase}x${repsVolume}r`,
+        display: `${formatWeight(pesoBase)}x${repsVolume}r`,
+        label: 'Sfidante (+1r stesso peso)'
       }
     };
   }
@@ -10024,7 +9998,7 @@ function estraiRpeDaInput(str) {
   return Math.max(val1, val2);
 }
 
-function estraiRepsDaInputSingle(str) {
+function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
   
@@ -10042,8 +10016,24 @@ function estraiRepsDaInputSingle(str) {
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {
     const val = parseFloat(matchRP[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
   }
+
+  // Rileva formato esplicito "12x14r", "12x14", "8r", "8 reps", "8 rip" PRIMA di rimuovere le parentesi
+  const matchX = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?/);
+  if (matchX) {
+    const val = parseFloat(matchX[2]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+  }
+  
+  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?)/i);
+  if (matchR) {
+    const val = parseFloat(matchR[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+  }
+
+  // Controlla se la stringa originale prima di rimuovere le parentesi contiene testo extra (es. "34 (x1s)")
+  const rawClean = clean;
 
   // Soluzione 1: Rimuove parentesi tonde (...) e quadre [...] per evitare che note personali interferiscano col calcolo
   clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').trim();
@@ -10052,48 +10042,74 @@ function estraiRepsDaInputSingle(str) {
   const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.)\b\s*\d+(?:\.\d+)?/gi;
   clean = clean.replace(cleanSettingsRegex, '').trim();
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
-  
-  // Rileva formato tipo "12x14r" o "12x14"
-  const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
-  if (matchX) {
-    const val = parseFloat(matchX[2]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
-  }
-  
-  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
-  if (matchR) {
-    const val = parseFloat(matchR[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
-  }
-  
+
   // Se è un numero puro (es. "12", "8") e NON ha un'unità esplicita di peso ("kg", "lbs")
-  // SOLUZIONE BUG: Un numero isolato con decimali (es. "57.5") è un peso in kg, MAI ripetizioni!
-  // Inoltre, per evitare che carichi elevati (es. "60", "75") vengano presi come ripetizioni,
-  // accettiamo numeri isolati come reps solo se sono interi e <= 40.
   const matchSingleNum = clean.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
   if (matchSingleNum && !/kg|lbs|libbre/i.test(clean)) {
     const val = parseFloat(matchSingleNum[1]);
+    
+    // Se la stringa contiene note o testo extra oltre al solo numero (es. "34 (x1s)" o "34 (note)"),
+    // il numero isolato 34 è il carico (peso in kg), NON le ripetizioni!
+    const isJustSingleNumInRaw = /^\s*\d+(?:\.\d+)?\s*$/.test(rawClean);
+    if (!isJustSingleNumInRaw) {
+      return null;
+    }
+
     if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 40) {
-      return val;
+      return { val, explicit: false };
     }
   }
   
   return null;
 }
 
+function estraiRepsDaInputSingle(str) {
+  const res = estraiRepsDaInputExplicitSingle(str);
+  return res ? res.val : null;
+}
+
+function estraiMigliorPrestazioneInput(strVal, defaultReps = 10, isCavo = false) {
+  if (!strVal) return null;
+  const str = String(strVal).trim();
+  if (!str || str === '-') return null;
+
+  const lines = str.split(/[\n;\r]+/);
+  let bestPerf = null;
+  let maxE1RM = -1;
+
+  lines.forEach(line => {
+    const l = line.trim();
+    if (!l) return;
+    const pesoStr = estraiPesoDaInput(l);
+    if (pesoStr) {
+      const peso = parseFloat(pesoStr);
+      if (!isNaN(peso) && peso > 0) {
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
+        const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
+        const e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
+        if (e1rm > maxE1RM) {
+          maxE1RM = e1rm;
+          bestPerf = { peso, reps, e1rm };
+        }
+      }
+    }
+  });
+
+  return bestPerf;
+}
+
 function estraiRepsDaInput(str) {
   if (!str) return null;
   const strVal = String(str);
   const lines = strVal.split(/[\n;\r]+/);
-  if (lines.length > 1) {
-    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v) && Number.isInteger(v) && v > 0 && v <= 50);
-    if (repsList.length > 0) return Math.max(...repsList);
+  const results = lines.map(l => estraiRepsDaInputExplicitSingle(l)).filter(v => v !== null && !isNaN(v.val) && Number.isInteger(v.val) && v.val > 0 && v.val <= 50);
+  if (results.length === 0) return null;
+  const explicitResults = results.filter(v => v.explicit);
+  if (explicitResults.length > 0) {
+    return Math.max(...explicitResults.map(v => v.val));
   }
-  const val = estraiRepsDaInputSingle(strVal);
-  if (val !== null && !isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) {
-    return val;
-  }
-  return null;
+  return Math.max(...results.map(v => v.val));
 }
 
 function estraiPesoDaInput(str) {
@@ -10815,13 +10831,14 @@ const suggerimentoRecord = computed(() => {
       const hasKgW6 = /kg\b/i.test(String(rawInsW6));
       let pesoW6Num = 0;
       let repsW6Num = 0;
-      const hasExplicitRepsW6 = /[rR]\b|reps|rip/i.test(String(rawInsW6)) && !hasKgW6;
+      const hasExplicitRepsW6 = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(rawInsW6)) && !hasKgW6;
       if ((isCorpoLibero || hasExplicitRepsW6) && !hasKgW6) {
         pesoW6Num = 0;
         repsW6Num = estraiRepsDaInput(rawInsW6) || parseFloat(rawInsW6) || 0;
       } else {
         pesoW6Num = parseFloat(estraiPesoDaInput(rawInsW6)) || 0;
-        repsW6Num = estraiRepsDaInput(rawInsW6) || (parseInt(prevEx.reps_week6) || targetReps);
+        const explicitRepsW6 = hasExplicitRepsW6 ? estraiRepsDaInput(rawInsW6) : null;
+        repsW6Num = (explicitRepsW6 && explicitRepsW6 > 0) ? explicitRepsW6 : (parseInt(prevEx.reps_week6) || targetReps);
       }
 
       if (pesoW6Num > 0 || (isCorpoLibero && repsW6Num > 0)) {
@@ -10866,7 +10883,7 @@ const suggerimentoRecord = computed(() => {
         const hasKg = /kg\b/i.test(String(val));
         let pesoNum = 0;
         let repsNum = 0;
-        const hasExplicitReps = /[rR]\b|reps|rip/i.test(String(val)) && !hasKg;
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(val)) && !hasKg;
         if ((isCorpoLibero || hasExplicitReps) && !hasKg) {
           pesoNum = 0;
           repsNum = estraiRepsDaInput(val) || parseFloat(val) || 0;
@@ -10874,8 +10891,8 @@ const suggerimentoRecord = computed(() => {
           pesoNum = parseFloat(estraiPesoDaInput(val)) || 0;
           let repsPrescr = prevEx['reps_week' + i] || estraiRepsDaPrescrizione(prevEx['des_week' + i]);
           const repsTargetWeek = repsPrescr ? parseInt(repsPrescr, 10) : targetReps;
-          const explicitInputReps = (hasExplicitReps || /[rR]\b|reps|rip/i.test(String(val))) ? estraiRepsDaInput(val) : null;
-          repsNum = explicitInputReps && explicitInputReps > 0 ? explicitInputReps : repsTargetWeek;
+          const explicitInputReps = hasExplicitReps ? estraiRepsDaInput(val) : null;
+          repsNum = (explicitInputReps && explicitInputReps > 0) ? explicitInputReps : repsTargetWeek;
         }
 
         if (pesoNum > 0 || (isCorpoLibero && repsNum > 0)) {

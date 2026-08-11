@@ -2922,7 +2922,7 @@ const isRepProgression = (ex) => {
   return false;
 };
 
-const estraiRepsDaInputSingle = (str) => {
+const estraiRepsDaInputExplicitSingle = (str) => {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
 
@@ -2934,8 +2934,24 @@ const estraiRepsDaInputSingle = (str) => {
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {
     const val = parseFloat(matchRP[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
   }
+
+  // Rileva formato esplicito "12x14r", "12x14", "8r", "8 reps", "8 rip" PRIMA di rimuovere le parentesi
+  const matchX = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?/);
+  if (matchX) {
+    const val = parseFloat(matchX[2]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+  }
+
+  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?)/i);
+  if (matchR) {
+    const val = parseFloat(matchR[1]);
+    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+  }
+
+  // Controlla se la stringa originale prima di rimuovere le parentesi contiene testo extra (es. "34 (x1s)")
+  const rawClean = clean;
 
   // Soluzione 1: Rimuove parentesi tonde (...) e quadre [...] per evitare che note personali interferiscano col calcolo
   clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').trim();
@@ -2943,36 +2959,72 @@ const estraiRepsDaInputSingle = (str) => {
   const repsPrefixRegex = /^\s*\d+\s*[xX]\s*/g;
   clean = clean.replace(repsPrefixRegex, '').trim();
   
-  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*[rR]\b/);
-  if (matchR) {
-    const val = parseFloat(matchR[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return val;
-  }
-  
   const matchSingleNum = clean.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
   if (matchSingleNum && !/kg|lbs|libbre/i.test(clean)) {
     const val = parseFloat(matchSingleNum[1]);
+
+    // Se la stringa contiene note o testo extra oltre al solo numero (es. "34 (x1s)" o "34 (note)"),
+    // il numero isolato 34 è il carico (peso in kg), NON le ripetizioni!
+    const isJustSingleNumInRaw = /^\s*\d+(?:\.\d+)?\s*$/.test(rawClean);
+    if (!isJustSingleNumInRaw) {
+      return null;
+    }
+
     if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 40) {
-      return val;
+      return { val, explicit: false };
     }
   }
   
   return null;
 };
 
+const estraiRepsDaInputSingle = (str) => {
+  const res = estraiRepsDaInputExplicitSingle(str);
+  return res ? res.val : null;
+};
+
+const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo = false) => {
+  if (!strVal) return null;
+  const str = String(strVal).trim();
+  if (!str || str === '-') return null;
+
+  const lines = str.split(/[\n;\r]+/);
+  let bestPerf = null;
+  let maxE1RM = -1;
+
+  lines.forEach(line => {
+    const l = line.trim();
+    if (!l) return;
+    const pesoStr = parsePesoLocalInternal(l);
+    if (pesoStr) {
+      const peso = parseFloat(pesoStr);
+      if (!isNaN(peso) && peso > 0) {
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
+        const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
+        const e1rm = peso * (1 + reps / 30);
+        if (e1rm > maxE1RM) {
+          maxE1RM = e1rm;
+          bestPerf = { peso, reps, e1rm };
+        }
+      }
+    }
+  });
+
+  return bestPerf;
+};
+
 const estraiRepsDaInput = (str) => {
   if (!str) return null;
   const strVal = String(str);
   const lines = strVal.split(/[\n;\r]+/);
-  if (lines.length > 1) {
-    const repsList = lines.map(l => estraiRepsDaInputSingle(l)).filter(v => v !== null && !isNaN(v) && Number.isInteger(v) && v > 0 && v <= 50);
-    if (repsList.length > 0) return Math.max(...repsList);
+  const results = lines.map(l => estraiRepsDaInputExplicitSingle(l)).filter(v => v !== null && !isNaN(v.val) && Number.isInteger(v.val) && v.val > 0 && v.val <= 50);
+  if (results.length === 0) return null;
+  const explicitResults = results.filter(v => v.explicit);
+  if (explicitResults.length > 0) {
+    return Math.max(...explicitResults.map(v => v.val));
   }
-  const val = estraiRepsDaInputSingle(strVal);
-  if (val !== null && !isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) {
-    return val;
-  }
-  return null;
+  return Math.max(...results.map(v => v.val));
 };
 
 const getTrendFreccia = (ex) => {

@@ -5547,15 +5547,37 @@ const getGhostRenderInfo = (sett) => {
     label = `${ghost.mandatoryLabel}:`;
     valueText = ghost.text;
   } else if (ghost.isOverload) {
-    icon = ghost.peso > ghost.pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral';
+    const range = getGhostWeightsRangeForWeek(sett);
+    const valConsigliato = range?.consigliato?.display || ghost.text;
+    const isAumentoPeso = ghost.peso > ghost.pesoBaseOriginale;
+    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== ghost.text;
+
+    icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
-    label = ghost.peso > ghost.pesoBaseOriginale ? 'Consigliato (Aumento):' : 'Consigliato (Mantieni):';
-    valueText = ghost.text;
+    if (isAumentoPeso) {
+      label = 'Consigliato (Aumento):';
+    } else if (isAumentoReps) {
+      label = 'Consigliato (+1r):';
+    } else {
+      label = 'Consigliato (Mantieni):';
+    }
+    valueText = valConsigliato;
   } else if (ghost.isPostScarico) {
-    icon = ghost.pesoProposto > ghost.pesoBaseOriginale ? 'mdi-trending-up' : 'mdi-trending-neutral';
+    const range = getGhostWeightsRangeForWeek(sett);
+    const valConsigliato = range?.consigliato?.display || (ghost.pesoProposto > 0 ? `${formatWeight(ghost.pesoProposto)} kg` : ghost.text);
+    const isAumentoPeso = ghost.pesoProposto > ghost.pesoBaseOriginale;
+    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== ghost.text;
+
+    icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
-    label = ghost.pesoProposto > ghost.pesoBaseOriginale ? 'Consigliato (Aumento):' : 'Consigliato (Mantieni):';
-    valueText = ghost.text;
+    if (isAumentoPeso) {
+      label = 'Consigliato (Aumento):';
+    } else if (isAumentoReps) {
+      label = 'Consigliato (+1r):';
+    } else {
+      label = 'Consigliato (Mantieni):';
+    }
+    valueText = valConsigliato;
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
     color = isLight ? '#c2410c' : '#ffb74d';

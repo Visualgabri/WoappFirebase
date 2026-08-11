@@ -5576,7 +5576,7 @@ const getGhostRenderInfo = (sett) => {
     valueText = valConsigliato;
 
     if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      maxEffortNotice = `⚠️ Molto difficile chiudere ${getRepsPerWeek(6)} rep (RPE 10). Se cedi, usa Rest-Pause o Stripping e annotalo (es. ${formatWeight(numConsigliato)}x4+2r RP)`;
+      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
     }
   } else if (ghost.isPostScarico) {
     const baseInfo = getBaseWeekInfo(sett);
@@ -5602,7 +5602,7 @@ const getGhostRenderInfo = (sett) => {
     valueText = valConsigliato;
 
     if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      maxEffortNotice = `⚠️ Molto difficile chiudere ${getRepsPerWeek(6)} rep (RPE 10). Se cedi, usa Rest-Pause o Stripping e annotalo (es. ${formatWeight(numConsigliato)}x4+2r RP)`;
+      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
     }
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
@@ -5779,7 +5779,7 @@ const spiegazioneDinamicaConsigliata = computed(() => {
   if (sett === 6) {
     const consigliatoVal = caricoConsigliatoViaDiMezzo.value || 22;
     const repsW6 = getRepsPerWeek(6);
-    return `⚠️ Carico di picco al limite massimo (RPE 10). Sarà molto difficile chiudere le ${repsW6} rep di fila: in caso di cedimento, completa le rep mancanti con Rest-Pause o Stripping e indicalo nel campo (es. ${consigliatoVal}x4+2r RP o ${consigliatoVal}+18 kg).`;
+    return `⚠️ Con ${consigliatoVal}kg sarà difficile chiudere ${repsW6} rep di fila. In caso di cedimento, completa le rep mancanti in Rest-Pause (es. ${consigliatoVal}x4+2r RP) o Stripping e annotalo nel campo.`;
   }
 
   const presc = parsedPrescription(workout.value['des_week' + sett]);

@@ -10955,7 +10955,7 @@ const suggerimentoRecord = computed(() => {
   const isScarico = (w === 4 && isWeek4Scarico.value);
   const pesoW2 = workout.value?.ins_week2 || '';
 
-  const stimaRecord = stimaRecordStoricoPerReps(w);
+  const stimaRecord = stimaRecordStoricoPerReps(targetReps);
   const isManubri = isManubriEsercizio(workout.value);
   const step = getWeightStep(isManubri, absRepsWeight || absW6Weight || absGenWeight || 50);
 
@@ -10963,7 +10963,7 @@ const suggerimentoRecord = computed(() => {
   if (w === 6 && absW6Weight > baseRec) {
     baseRec = absW6Weight;
   }
-  if (stimaRecord && stimaRecord > baseRec && stimaRecord <= (absGenWeight > 0 ? absGenWeight * 1.15 : 999)) {
+  if (stimaRecord && stimaRecord > baseRec && baseRec > 0 && stimaRecord <= baseRec * 1.10) {
     baseRec = stimaRecord;
   }
 

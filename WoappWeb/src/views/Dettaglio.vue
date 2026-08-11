@@ -462,6 +462,9 @@
                       <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-2" style="font-size: 0.62rem;">
                         &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                       </span>
+                      <span v-if="suggerimentoRecord.recordAbsoluteDate && tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate)" class="text-super-caption text-cyan-lighten-4 font-weight-medium ml-1.5" style="font-size: 0.58rem; opacity: 0.9;">
+                        ({{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) }})
+                      </span>
                     </template>
                   </template>
                   <template v-else-if="isCorpoLiberoEsercizio(workout)">
@@ -488,6 +491,9 @@
                       {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                       <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-2" style="font-size: 0.62rem;">
                         &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
+                      </span>
+                      <span v-if="suggerimentoRecord.recordRepsDate && tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate)" class="text-super-caption text-amber-lighten-3 font-weight-medium ml-1.5" style="font-size: 0.58rem; opacity: 0.9;">
+                        ({{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) }})
                       </span>
                     </template>
                   </template>

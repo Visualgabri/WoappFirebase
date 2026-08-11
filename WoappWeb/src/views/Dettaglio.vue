@@ -10831,17 +10831,18 @@ const suggerimentoRecord = computed(() => {
     // Priorità 1: Miglior Carico W6 (num_ins6 / ins_week6) se presente per le stesse reps target
     const rawInsW6 = prevEx.ins_week6 || prevEx.num_ins6;
     if (rawInsW6) {
-      const hasKgW6 = /kg\b/i.test(String(rawInsW6));
+      const extractedW6 = parseFloat(estraiPesoDaInput(rawInsW6)) || 0;
       let pesoW6Num = 0;
       let repsW6Num = 0;
-      const hasExplicitRepsW6 = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(rawInsW6)) && !hasKgW6;
-      if ((isCorpoLibero || hasExplicitRepsW6) && !hasKgW6) {
+      if (!isCorpoLibero && extractedW6 > 0) {
+        pesoW6Num = extractedW6;
+        repsW6Num = parseInt(prevEx.reps_week6) || targetReps;
+      } else if (isCorpoLibero && extractedW6 === 0) {
         pesoW6Num = 0;
         repsW6Num = estraiRepsDaInput(rawInsW6) || parseFloat(rawInsW6) || 0;
       } else {
-        pesoW6Num = parseFloat(estraiPesoDaInput(rawInsW6)) || 0;
-        const explicitRepsW6 = hasExplicitRepsW6 ? estraiRepsDaInput(rawInsW6) : null;
-        repsW6Num = (explicitRepsW6 && explicitRepsW6 > 0) ? explicitRepsW6 : (parseInt(prevEx.reps_week6) || targetReps);
+        pesoW6Num = extractedW6;
+        repsW6Num = parseInt(prevEx.reps_week6) || targetReps;
       }
 
       if (pesoW6Num > 0 || (isCorpoLibero && repsW6Num > 0)) {
@@ -10883,19 +10884,21 @@ const suggerimentoRecord = computed(() => {
     for (let i = 1; i <= 6; i++) {
       const val = prevEx['ins_week' + i];
       if (val) {
-        const hasKg = /kg\b/i.test(String(val));
+        const extractedVal = parseFloat(estraiPesoDaInput(val)) || 0;
         let pesoNum = 0;
         let repsNum = 0;
-        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(val)) && !hasKg;
-        if ((isCorpoLibero || hasExplicitReps) && !hasKg) {
+        let repsPrescr = prevEx['reps_week' + i] || estraiRepsDaPrescrizione(prevEx['des_week' + i]);
+        const repsTargetWeek = repsPrescr ? parseInt(repsPrescr, 10) : targetReps;
+
+        if (!isCorpoLibero && extractedVal > 0) {
+          pesoNum = extractedVal;
+          repsNum = repsTargetWeek;
+        } else if (isCorpoLibero && extractedVal === 0) {
           pesoNum = 0;
           repsNum = estraiRepsDaInput(val) || parseFloat(val) || 0;
         } else {
-          pesoNum = parseFloat(estraiPesoDaInput(val)) || 0;
-          let repsPrescr = prevEx['reps_week' + i] || estraiRepsDaPrescrizione(prevEx['des_week' + i]);
-          const repsTargetWeek = repsPrescr ? parseInt(repsPrescr, 10) : targetReps;
-          const explicitInputReps = hasExplicitReps ? estraiRepsDaInput(val) : null;
-          repsNum = (explicitInputReps && explicitInputReps > 0) ? explicitInputReps : repsTargetWeek;
+          pesoNum = extractedVal;
+          repsNum = repsTargetWeek;
         }
 
         if (pesoNum > 0 || (isCorpoLibero && repsNum > 0)) {

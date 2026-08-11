@@ -1264,18 +1264,6 @@
                   </v-btn>
                 </v-col>
               </v-row>
-
-              <!-- Avviso invito selettore Sforzo Percepito W6 non selezionato -->
-              <div 
-                v-if="!numFaticaw6Val" 
-                class="mt-2 pa-2 rounded-xl text-left border animate-pulse" 
-                style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.03) 100%); border-color: rgba(251, 191, 36, 0.35) !important;"
-              >
-                <div class="d-flex align-center gap-1.5 font-weight-bold text-amber-lighten-2 text-super-caption" style="font-size: 0.62rem;">
-                  <v-icon color="amber-lighten-2" size="14">mdi-gesture-tap-button</v-icon>
-                  <span>👉 Seleziona la fatica provata (Media, Pesante, Devastante) per sbloccare la stima della nuova scheda!</span>
-                </div>
-              </div>
             </div>
           </div>
             <!-- Sezione Recupero (Fine Giro) per Superset inside orange active card -->
@@ -3978,6 +3966,71 @@
         </div>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog Avviso Sforzo Percepito (W6) Mancante -->
+    <v-dialog v-model="dialogAvvisoFaticaW6" max-width="420" rounded="xl">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden pa-4 text-center" style="background: rgba(15, 23, 42, 0.96) !important; backdrop-filter: blur(20px);">
+        <div class="d-flex justify-center mb-2">
+          <div class="pa-3 rounded-circle" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35);">
+            <v-icon color="amber-lighten-2" size="32">mdi-alert-decagram-outline</v-icon>
+          </div>
+        </div>
+
+        <h3 class="text-subtitle-1 font-weight-black text-amber-lighten-2 mb-1">
+          Sforzo Percepito (W6) Mancante
+        </h3>
+        
+        <p class="text-caption text-slate-300 mb-4" style="font-size: 0.75rem; line-height: 1.45;">
+          Hai inserito il carico per la <strong>Week 6</strong>. Seleziona lo sforzo provato per calcolare con precisione i carichi del prossimo mesociclo!
+        </p>
+
+        <div class="d-flex flex-column gap-2 mb-3">
+          <v-btn
+            block
+            color="light-blue-darken-3"
+            variant="flat"
+            class="font-weight-black text-none text-white py-2"
+            rounded="xl"
+            @click="salvaFatica('Media'); dialogAvvisoFaticaW6 = false;"
+          >
+            🙂 Media
+          </v-btn>
+          
+          <v-btn
+            block
+            color="orange-darken-3"
+            variant="flat"
+            class="font-weight-black text-none text-white py-2"
+            rounded="xl"
+            @click="salvaFatica('Pesante'); dialogAvvisoFaticaW6 = false;"
+          >
+            🔥 Pesante
+          </v-btn>
+
+          <v-btn
+            block
+            color="purple-darken-3"
+            variant="flat"
+            class="font-weight-black text-none text-white py-2"
+            rounded="xl"
+            @click="salvaFatica('Devastante'); dialogAvvisoFaticaW6 = false;"
+          >
+            💀 Devastante
+          </v-btn>
+        </div>
+
+        <v-btn
+          variant="text"
+          color="grey"
+          size="small"
+          class="font-weight-bold text-none"
+          style="font-size: 0.7rem;"
+          @click="dialogAvvisoFaticaW6 = false;"
+        >
+          Scegli più tardi
+        </v-btn>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -4037,6 +4090,7 @@ const inizializzaParametriProposta = (atletaId) => {
 
 // Help Dialog & Calcolo Carico Storico States
 const dialogAiutoCarico = ref(false);
+const dialogAvvisoFaticaW6 = ref(false);
 const activeTabAnalisi = ref(0);
 const caricandoAiutoCarico = ref(false);
 const aiutoWeek = ref(1);
@@ -5587,14 +5641,8 @@ const getGhostRenderInfo = (sett) => {
     }
     valueText = valConsigliato;
 
-    if (sett === 6) {
-      if (isAumentoPeso && numConsigliato > 0) {
-        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
-      }
-      if (!numFaticaw6Val.value) {
-        const faticaReminder = `👉 Seleziona lo Sforzo Percepito (W6) in basso per calcolare la nuova scheda!`;
-        maxEffortNotice = maxEffortNotice ? `${maxEffortNotice} | ${faticaReminder}` : faticaReminder;
-      }
+    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
+      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
     }
   } else if (ghost.isPostScarico) {
     const baseInfo = getBaseWeekInfo(sett);
@@ -5619,14 +5667,8 @@ const getGhostRenderInfo = (sett) => {
     }
     valueText = valConsigliato;
 
-    if (sett === 6) {
-      if (isAumentoPeso && numConsigliato > 0) {
-        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
-      }
-      if (!numFaticaw6Val.value) {
-        const faticaReminder = `👉 Seleziona lo Sforzo Percepito (W6) in basso per calcolare la nuova scheda!`;
-        maxEffortNotice = maxEffortNotice ? `${maxEffortNotice} | ${faticaReminder}` : faticaReminder;
-      }
+    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
+      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
     }
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
@@ -10404,14 +10446,27 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
     const updates = { [campo]: valoreNuovo };
     
     // Auto-estrazione per la week 6
-    if (settimana === 6 && tipo === 'ins' && valoreNuovo) {
-      const estratto = estraiNumeroMassimo(valoreNuovo);
-      if (estratto !== null) {
-        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
-        if (!numIns6Val.value || (vecchioEstratto !== null && parseFloat(numIns6Val.value) === vecchioEstratto)) {
-          numIns6Val.value = String(estratto);
-          updates.num_ins6 = String(estratto);
+    if (settimana === 6 && tipo === 'ins') {
+      const valStr = String(valoreNuovo || '').trim();
+      if (valStr) {
+        const estratto = estraiNumeroMassimo(valStr);
+        if (estratto !== null) {
+          const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
+          if (!numIns6Val.value || (vecchioEstratto !== null && parseFloat(numIns6Val.value) === vecchioEstratto)) {
+            numIns6Val.value = String(estratto);
+            updates.num_ins6 = String(estratto);
+          }
         }
+        // Se l'utente inserisce un peso ma non ha ancora scelto la fatica, mostra la modale
+        if (!numFaticaw6Val.value) {
+          dialogAvvisoFaticaW6.value = true;
+        }
+      } else {
+        // Se l'utente cancella il peso in W6, cancella anche miglior carico e sforzo percepito
+        numIns6Val.value = '';
+        updates.num_ins6 = '';
+        numFaticaw6Val.value = '';
+        updates.num_faticaw6 = '';
       }
     }
     
@@ -10459,7 +10514,14 @@ const decrementaKgUnico = () => {
 };
 
 const salvaKgUnico = async () => {
-  await salvaDatoGenerale('num_ins6', numIns6Val.value);
+  if (!numIns6Val.value || String(numIns6Val.value).trim() === '') {
+    await salvaDatoGenerale('num_ins6', '');
+  } else {
+    await salvaDatoGenerale('num_ins6', numIns6Val.value);
+    if (!numFaticaw6Val.value) {
+      dialogAvvisoFaticaW6.value = true;
+    }
+  }
 };
 
 const salvaFatica = async (fatica) => {

@@ -4602,8 +4602,10 @@ const analizzaRecordSettimana = (sett) => {
   if (!workout.value) return null;
   if (sett === 4 && isWeek4Scarico.value) return null;
   const targetReps = getRepsPerWeek(sett);
-  const recordVal = ottieniRecordStoricoPerReps(targetReps);
-  if (!recordVal) return null;
+  const recordPuntuale = ottieniRecordStoricoPerReps(targetReps);
+  const recordStimato = stimaRecordStoricoPerReps(targetReps);
+  const recordVal = Math.max(recordPuntuale || 0, recordStimato || 0);
+  if (!recordVal || recordVal <= 0) return null;
 
   // Vediamo se c'è un input inserito
   const currentInput = inputSettimane.value[sett]?.ins;
@@ -5383,9 +5385,10 @@ const getGhostWeightsRangeForWeek = (sett) => {
   }
 
   // Standard weeks (2, 3, 5, 6)
+  const repsBaseTarget = info ? (workout.value['reps_week' + info.baseWNum] ? parseInt(workout.value['reps_week' + info.baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + info.baseWNum]) || 10)) : 10;
   const isTargetCompletato = repsBaseVal >= repsTarget;
   const isEsuberoReps = repsBaseVal >= repsTarget + 2;
-  const isRepsIncomplete = repsBaseVal < repsTarget;
+  const isRepsIncomplete = repsBaseVal < repsBaseTarget;
 
   const isDifficileOStallo = info ? isInputIndicaLimiteOStallo(info.baseInsText, info.noteText, info.faticaText) : false;
 
@@ -5848,7 +5851,7 @@ const spiegazioneDinamicaConsigliata = computed(() => {
 
   if (volumeProgressionInfo.value.active) {
     const info = volumeProgressionInfo.value;
-    return `⚡ Progressione di volume attiva! Le ripetizioni richieste sono aumentate (da ${info.repsBase} a ${info.repsTarget} reps). Mantenere lo stesso peso di ${info.pesoBase} kg (usato in W${info.baseWNum}${info.isPreviousWorkoutW6 ? ' prec.' : ''}) è già a tutti gli effetti una progressione. Non occorre aumentare il carico!`;
+    return `⚡ Progressione di volume attiva! Le ripetizioni richieste sono aumentate (da ${info.repsBase} a ${info.repsTarget} reps). Mantenere lo stesso peso di ${info.pesoBase} kg (usato in W${info.baseWNum}${info.isPreviousWorkoutW6 ? ' prec.' : ''}) è già a tutti gli effetti una progressione per la modalità Safe. Se desideri aumentare anche il carico, seleziona le opzioni Consigliato o Sfidante!`;
   }
 
   const potenziale = caricoIdealeConsigliato.value ? caricoIdealeConsigliato.value.pesoProposto : null;

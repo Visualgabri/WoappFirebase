@@ -10823,6 +10823,9 @@ const suggerimentoRecord = computed(() => {
   let absRepsItem = null;
   let absRepsHasWeight = false;
 
+  // 3. Carico Massimo Registrato in Week 6
+  let absW6Weight = 0;
+
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
     if (!isNaN(sNum) && sNum >= currentNumScheda) return;
@@ -10848,6 +10851,10 @@ const suggerimentoRecord = computed(() => {
       if (pesoW6Num > 0 || (isCorpoLibero && repsW6Num > 0)) {
         const valToCompare = pesoW6Num > 0 ? pesoW6Num : repsW6Num;
         const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
+
+        if (pesoW6Num > absW6Weight) {
+          absW6Weight = pesoW6Num;
+        }
 
         if (valToCompare > currentGenVal) {
           absGenWeight = pesoW6Num;
@@ -10905,6 +10912,10 @@ const suggerimentoRecord = computed(() => {
           const valToCompare = pesoNum > 0 ? pesoNum : repsNum;
           const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
 
+          if (i === 6 && pesoNum > absW6Weight) {
+            absW6Weight = pesoNum;
+          }
+
           // Controllo PR Generale (All-Time)
           if (valToCompare > currentGenVal) {
             absGenWeight = pesoNum;
@@ -10944,13 +10955,27 @@ const suggerimentoRecord = computed(() => {
   const isScarico = (w === 4 && isWeek4Scarico.value);
   const pesoW2 = workout.value?.ins_week2 || '';
 
-  let increment = 1.25;
-  if (w <= 3) increment = 0.5;
-  else if (w === 4) increment = 1.0;
-  else increment = 2.0;
+  const stimaRecord = stimaRecordStoricoPerReps(w);
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = getWeightStep(isManubri, absRepsWeight || absW6Weight || absGenWeight || 50);
 
-  const baseRec = absRepsWeight > 0 ? absRepsWeight : absGenWeight;
-  const targetWeight = baseRec > 0 ? baseRec + increment : 0;
+  let baseRec = absRepsWeight > 0 ? absRepsWeight : absGenWeight;
+  if (w === 6 && absW6Weight > baseRec) {
+    baseRec = absW6Weight;
+  }
+  if (stimaRecord && stimaRecord > baseRec && stimaRecord <= (absGenWeight > 0 ? absGenWeight * 1.15 : 999)) {
+    baseRec = stimaRecord;
+  }
+
+  let increment = step;
+  if (w <= 3) increment = Math.min(step, 1.25);
+
+  let targetWeight = baseRec > 0 ? baseRec + increment : 0;
+  if (isManubri) {
+    targetWeight = arrotondaManubrioCommerciale(targetWeight);
+  } else if (step > 0) {
+    targetWeight = Math.round(targetWeight / step) * step;
+  }
 
   if (absGenWeight === 0 && absRepsWeight === 0 && !absGenReps && !absRepsReps && !isScarico) return null;
 

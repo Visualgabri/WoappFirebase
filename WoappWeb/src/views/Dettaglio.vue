@@ -5576,8 +5576,7 @@ const getGhostRenderInfo = (sett) => {
     valueText = valConsigliato;
 
     if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      const altPeso = prevPeso > 0 ? formatWeight(prevPeso) : '20';
-      maxEffortNotice = `⚠️ ${formatWeight(numConsigliato)}kg x${getRepsPerWeek(6)}r è uno sforzo massimo (RPE 9.5-10). In alternativa fai ${altPeso}kg x${getRepsPerWeek(6)+2}r.`;
+      maxEffortNotice = `⚠️ Molto difficile chiudere ${getRepsPerWeek(6)} rep (RPE 10). Se cedi, usa Rest-Pause o Stripping e annotalo (es. ${formatWeight(numConsigliato)}x4+2r RP)`;
     }
   } else if (ghost.isPostScarico) {
     const baseInfo = getBaseWeekInfo(sett);
@@ -5603,8 +5602,7 @@ const getGhostRenderInfo = (sett) => {
     valueText = valConsigliato;
 
     if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      const altPeso = prevPeso > 0 ? formatWeight(prevPeso) : '20';
-      maxEffortNotice = `⚠️ ${formatWeight(numConsigliato)}kg x${getRepsPerWeek(6)}r è uno sforzo massimo (RPE 9.5-10). In alternativa fai ${altPeso}kg x${getRepsPerWeek(6)+2}r.`;
+      maxEffortNotice = `⚠️ Molto difficile chiudere ${getRepsPerWeek(6)} rep (RPE 10). Se cedi, usa Rest-Pause o Stripping e annotalo (es. ${formatWeight(numConsigliato)}x4+2r RP)`;
     }
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
@@ -5760,7 +5758,7 @@ const opzioniStradeProgressione = computed(() => {
     {
       tipo: 'smart',
       titolo: '💡 Smart',
-      sottoTitolo: range.consigliato.label || 'Consigliato',
+      sottoTitolo: sett === 6 ? 'Picco Max (RP / Stripping)' : (range.consigliato.label || 'Consigliato'),
       valore: range.consigliato.display,
       peso: parseFloat(range.consigliato.value)
     },
@@ -5777,6 +5775,12 @@ const opzioniStradeProgressione = computed(() => {
 const spiegazioneDinamicaConsigliata = computed(() => {
   if (!workout.value) return '';
   const sett = aiutoWeek.value;
+
+  if (sett === 6) {
+    const consigliatoVal = caricoConsigliatoViaDiMezzo.value || 22;
+    const repsW6 = getRepsPerWeek(6);
+    return `⚠️ Carico di picco al limite massimo (RPE 10). Sarà molto difficile chiudere le ${repsW6} rep di fila: in caso di cedimento, completa le rep mancanti con Rest-Pause o Stripping e indicalo nel campo (es. ${consigliatoVal}x4+2r RP o ${consigliatoVal}+18 kg).`;
+  }
 
   const presc = parsedPrescription(workout.value['des_week' + sett]);
   if (presc && presc.total) {

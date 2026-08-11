@@ -4749,7 +4749,7 @@ const getBaseWeekInfo = (sett) => {
       pesoBase = pStr ? parseFloat(pStr) : null;
       
       const repsEseguite = estraiRepsDaInput(baseIns);
-      if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0) {
+      if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 15) {
         repsBase = repsEseguite;
       } else {
         const repsVal = workout.value['reps_week' + baseWNum];
@@ -5139,8 +5139,10 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     const val = potenziale !== null ? potenziale : prudenziale;
     result = val !== null ? Math.round(val / step) * step : null;
   } else {
-    // Modello Ibrido (Mix): via di mezzo (media) tra potenziale (storico) e programmato (prudenziale)
-    if (potenziale !== null && prudenziale !== null && !isNaN(potenziale) && !isNaN(prudenziale)) {
+    // Modello Ibrido (Mix): se c'è un potenziale stimato valido superiore al peso base, usiamo direttamente il potenziale (SMART)
+    if (potenziale !== null && !isNaN(potenziale) && potenziale > pesoBase) {
+      result = Math.round(potenziale / step) * step;
+    } else if (potenziale !== null && prudenziale !== null && !isNaN(potenziale) && !isNaN(prudenziale)) {
       const avg = (potenziale + prudenziale) / 2;
       result = Math.round(avg / step) * step;
     } else {
@@ -5442,11 +5444,16 @@ const getGhostWeightsRangeForWeek = (sett) => {
 
   // Scenario 3: Standard Success (repsBaseVal >= repsTarget, include il caso default con solo peso scritto)
   const repsVolume = repsTarget + 1;
+  const isIncrementoPeso = pesoConsigliato > pesoBase;
+  const prudenzialeValue = isIncrementoPeso ? String(pesoBase) : `${pesoBase}x${repsVolume}r`;
+  const prudenzialeDisplay = isIncrementoPeso ? `${formatWeight(pesoBase)} kg` : `${formatWeight(pesoBase)}x${repsVolume}r`;
+  const prudenzialeLabel = isIncrementoPeso ? 'Prudenziale' : 'Prudenziale (+1r)';
+
   return {
     prudenziale: {
-      value: `${pesoBase}x${repsVolume}r`,
-      display: `${formatWeight(pesoBase)}x${repsVolume}r`,
-      label: 'Prudenziale (+1r)'
+      value: prudenzialeValue,
+      display: prudenzialeDisplay,
+      label: prudenzialeLabel
     },
     consigliato: {
       value: String(pesoConsigliato),

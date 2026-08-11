@@ -915,6 +915,10 @@
               💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
+            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em' }">
+              {{ getGhostRenderInfo(sett).maxEffortNotice }}
+            </div>
+
             <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
             <div 
               v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'forma' || sett === 1)"
@@ -5515,6 +5519,8 @@ const getGhostRenderInfo = (sett) => {
   const isManubri = isManubriEsercizio(workout.value);
   const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
 
+  let maxEffortNotice = '';
+
   if (ghost.isWeek2Scritta) {
     icon = 'mdi-trending-up';
     color = isLight ? '#c2410c' : '#ffb74d';
@@ -5547,37 +5553,59 @@ const getGhostRenderInfo = (sett) => {
     label = `${ghost.mandatoryLabel}:`;
     valueText = ghost.text;
   } else if (ghost.isOverload) {
+    const baseInfo = getBaseWeekInfo(sett);
+    const prevPeso = baseInfo?.pesoBase || ghost.pesoBaseOriginale || 0;
+    const prevInsStr = String(baseInfo?.baseInsText || ghost.text || '').trim();
+
     const range = getGhostWeightsRangeForWeek(sett);
     const valConsigliato = range?.consigliato?.display || ghost.text;
-    const isAumentoPeso = ghost.peso > ghost.pesoBaseOriginale;
-    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== ghost.text;
+    const numConsigliato = parseFloat(valConsigliato ? valConsigliato.replace(',', '.') : 0);
+
+    const isAumentoPeso = (numConsigliato > 0 && prevPeso > 0) ? (numConsigliato > prevPeso) : (ghost.peso > ghost.pesoBaseOriginale);
+    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== prevInsStr;
 
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     if (isAumentoPeso) {
-      label = 'Consigliato (Aumento):';
+      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Aumento):';
     } else if (isAumentoReps) {
       label = 'Consigliato (+1r):';
     } else {
-      label = 'Consigliato (Mantieni):';
+      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Mantieni):';
     }
     valueText = valConsigliato;
+
+    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
+      const altPeso = prevPeso > 0 ? formatWeight(prevPeso) : '20';
+      maxEffortNotice = `⚠️ ${formatWeight(numConsigliato)}kg x${getRepsPerWeek(6)}r è uno sforzo massimo (RPE 9.5-10). In alternativa fai ${altPeso}kg x${getRepsPerWeek(6)+2}r.`;
+    }
   } else if (ghost.isPostScarico) {
+    const baseInfo = getBaseWeekInfo(sett);
+    const prevPeso = baseInfo?.pesoBase || ghost.pesoBaseOriginale || 0;
+    const prevInsStr = String(baseInfo?.baseInsText || ghost.text || '').trim();
+
     const range = getGhostWeightsRangeForWeek(sett);
     const valConsigliato = range?.consigliato?.display || (ghost.pesoProposto > 0 ? `${formatWeight(ghost.pesoProposto)} kg` : ghost.text);
-    const isAumentoPeso = ghost.pesoProposto > ghost.pesoBaseOriginale;
-    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== ghost.text;
+    const numConsigliato = parseFloat(valConsigliato ? valConsigliato.replace(',', '.') : 0);
+
+    const isAumentoPeso = (numConsigliato > 0 && prevPeso > 0) ? (numConsigliato > prevPeso) : (ghost.pesoProposto > ghost.pesoBaseOriginale);
+    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== prevInsStr;
 
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     if (isAumentoPeso) {
-      label = 'Consigliato (Aumento):';
+      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Aumento):';
     } else if (isAumentoReps) {
       label = 'Consigliato (+1r):';
     } else {
-      label = 'Consigliato (Mantieni):';
+      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Mantieni):';
     }
     valueText = valConsigliato;
+
+    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
+      const altPeso = prevPeso > 0 ? formatWeight(prevPeso) : '20';
+      maxEffortNotice = `⚠️ ${formatWeight(numConsigliato)}kg x${getRepsPerWeek(6)}r è uno sforzo massimo (RPE 9.5-10). In alternativa fai ${altPeso}kg x${getRepsPerWeek(6)+2}r.`;
+    }
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
     color = isLight ? '#c2410c' : '#ffb74d';
@@ -5632,7 +5660,7 @@ const getGhostRenderInfo = (sett) => {
     hasReference = true;
   }
 
-  return { icon, color, label, valueText, hasReference };
+  return { icon, color, label, valueText, hasReference, maxEffortNotice };
 };
 
 const applicaPropostaCaricoRapida = (sett, peso) => {

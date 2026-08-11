@@ -459,10 +459,10 @@
                     </template>
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-2" style="font-size: 0.62rem;">
-                        &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
+                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.62rem;">
+                        x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                       </span>
-                      <span v-if="suggerimentoRecord.recordAbsoluteDate && tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate)" class="text-super-caption text-cyan-lighten-4 font-weight-medium ml-1.5" style="font-size: 0.58rem; opacity: 0.9;">
+                      <span v-if="suggerimentoRecord.recordAbsoluteDate && tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate)" class="text-super-caption text-cyan-lighten-4 font-weight-medium ml-1" style="font-size: 0.58rem; opacity: 0.9;">
                         ({{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) }})
                       </span>
                     </template>
@@ -489,10 +489,10 @@
                     </template>
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-2" style="font-size: 0.62rem;">
-                        &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
+                      <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-1" style="font-size: 0.62rem;">
+                        x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
                       </span>
-                      <span v-if="suggerimentoRecord.recordRepsDate && tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate)" class="text-super-caption text-amber-lighten-3 font-weight-medium ml-1.5" style="font-size: 0.58rem; opacity: 0.9;">
+                      <span v-if="suggerimentoRecord.recordRepsDate && tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate)" class="text-super-caption text-amber-lighten-3 font-weight-medium ml-1" style="font-size: 0.58rem; opacity: 0.9;">
                         ({{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) }})
                       </span>
                     </template>
@@ -11075,7 +11075,7 @@ const valutazioneProgressione = computed(() => {
 
     if (!currentLogged || bestCurrentReps === 0) {
       return {
-        testo: `🎯 Obiettivo W${w}: ${getRepsPerWeek(w)}r (PR ${recReps}r)`,
+        testo: `Obiettivo W${w}: ${getRepsPerWeek(w)}r (PR ${recReps}r)`,
         colore: 'text-cyan-lighten-2',
         icona: 'mdi-target'
       };
@@ -11086,13 +11086,13 @@ const valutazioneProgressione = computed(() => {
       const perc = recReps > 0 ? Math.round((diffReps / recReps) * 100) : 0;
       const diffRepsDisplay = diffReps > 0 ? `+${diffReps} r` : `0 r`;
       return {
-        testo: `📈 In miglioramento (${diffRepsDisplay} / +${perc}%)`,
+        testo: `In miglioramento (${diffRepsDisplay} / +${perc}%)`,
         colore: 'text-green-lighten-2',
         icona: 'mdi-trending-up'
       };
     } else if (bestCurrentReps >= recReps - 1) {
       return {
-        testo: '🔵 Reps in linea col tuo PR storico',
+        testo: 'Reps in linea col tuo PR storico',
         colore: 'text-cyan-lighten-2',
         icona: 'mdi-minus-circle-outline'
       };
@@ -11100,7 +11100,7 @@ const valutazioneProgressione = computed(() => {
       const diffRepsAbs = Math.abs(diffReps);
       const percAbs = recReps > 0 ? Math.round((diffRepsAbs / recReps) * 100) : 0;
       return {
-        testo: `🟠 Sotto al picco storico (-${diffRepsAbs} r / -${percAbs}%)`,
+        testo: `Sotto al picco storico (-${diffRepsAbs} r / -${percAbs}%)`,
         colore: 'text-orange-lighten-2',
         icona: 'mdi-trending-down'
       };
@@ -11112,7 +11112,7 @@ const valutazioneProgressione = computed(() => {
 
   if (!recWeight || recWeight <= 0) {
     return {
-      testo: '✨ Primo ciclo di allenamento',
+      testo: 'Primo ciclo di allenamento',
       colore: 'text-amber-lighten-2',
       icona: 'mdi-sparkles'
     };
@@ -11147,7 +11147,7 @@ const valutazioneProgressione = computed(() => {
   if (!currentLogged || bestCurrentE1RM === 0) {
     const targetWeight = suggerimentoRecord.value.target;
     return {
-      testo: `🎯 Obiettivo W${w}: ${formatWeight(targetWeight)} kg (PR ${formatWeight(recWeight)}kg)`,
+      testo: `Obiettivo W${w}: ${formatWeight(targetWeight)} kg (PR ${formatWeight(recWeight)}kg)`,
       colore: 'text-cyan-lighten-2',
       icona: 'mdi-target'
     };
@@ -11162,13 +11162,13 @@ const valutazioneProgressione = computed(() => {
     const rawDiff = diffKg > 0 ? diffKg : Math.max(diffE1RM / 1.2, 0.5);
     const diffKgDisplay = formatWeight(Math.round(rawDiff * 10) / 10);
     return {
-      testo: `📈 In miglioramento (+${diffKgDisplay} kg / +${perc}%)`,
+      testo: `In miglioramento (+${diffKgDisplay} kg / +${perc}%)`,
       colore: 'text-green-lighten-2',
       icona: 'mdi-trending-up'
     };
   } else if (bestCurrentE1RM >= 0.95 * e1rmHistoric) {
     return {
-      testo: '🔵 Carico in linea col tuo PR storico',
+      testo: 'Carico in linea col tuo PR storico',
       colore: 'text-cyan-lighten-2',
       icona: 'mdi-minus-circle-outline'
     };
@@ -11176,7 +11176,7 @@ const valutazioneProgressione = computed(() => {
     const diffKgAbs = Math.abs(diffKg) > 0 ? Math.abs(diffKg) : Math.round((e1rmHistoric - bestCurrentE1RM) / 1.2);
     const percAbs = Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100);
     return {
-      testo: `🟠 Sotto al picco storico (-${formatWeight(diffKgAbs)} kg / -${percAbs}%)`,
+      testo: `Sotto al picco storico (-${formatWeight(diffKgAbs)} kg / -${percAbs}%)`,
       colore: 'text-orange-lighten-2',
       icona: 'mdi-trending-down'
     };

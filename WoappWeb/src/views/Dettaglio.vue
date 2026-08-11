@@ -10971,6 +10971,14 @@ const suggerimentoRecord = computed(() => {
   if (w <= 3) increment = Math.min(step, 1.25);
 
   let targetWeight = baseRec > 0 ? baseRec + increment : 0;
+  
+  // Sincronizzazione prioritaria con la raccomandazione Ghost per la settimana attiva (es. 67,5 kg per W6)
+  const ghostRange = getGhostWeightsRangeForWeek(w);
+  const ghostConsigliato = ghostRange?.consigliato?.value ? parseFloat(ghostRange.consigliato.value) : null;
+  if (ghostConsigliato && !isNaN(ghostConsigliato) && ghostConsigliato > 0) {
+    targetWeight = ghostConsigliato;
+  }
+
   if (isManubri) {
     targetWeight = arrotondaManubrioCommerciale(targetWeight);
   } else if (step > 0) {

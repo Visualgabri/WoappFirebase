@@ -3153,7 +3153,7 @@
                     </td>
                     
                     <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
-                      {{ prevEx.num_ins6 ? ((isCorpoLiberoEsercizio(workout) || /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(prevEx.ins_week6 || ''))) && !/kg|lbs/i.test(String(prevEx.ins_week6 || '')) ? prevEx.num_ins6 + 'r' : prevEx.num_ins6 + ' kg') : '-' }}
+                      {{ prevEx.num_ins6 ? (isCorpoLiberoEsercizio(workout) ? (String(prevEx.num_ins6).toLowerCase().endsWith('r') ? prevEx.num_ins6 : prevEx.num_ins6 + 'r') : (String(prevEx.num_ins6).toLowerCase().includes('kg') ? prevEx.num_ins6 : prevEx.num_ins6 + ' kg')) : '-' }}
                     </td>
                     <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.peso_corporeo || '-' }}</td>
                     <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</td>

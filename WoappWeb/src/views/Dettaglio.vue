@@ -1264,6 +1264,18 @@
                   </v-btn>
                 </v-col>
               </v-row>
+
+              <!-- Avviso invito selettore Sforzo Percepito W6 non selezionato -->
+              <div 
+                v-if="!numFaticaw6Val" 
+                class="mt-2 pa-2 rounded-xl text-left border animate-pulse" 
+                style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.03) 100%); border-color: rgba(251, 191, 36, 0.35) !important;"
+              >
+                <div class="d-flex align-center gap-1.5 font-weight-bold text-amber-lighten-2 text-super-caption" style="font-size: 0.62rem;">
+                  <v-icon color="amber-lighten-2" size="14">mdi-gesture-tap-button</v-icon>
+                  <span>👉 Seleziona la fatica provata (Media, Pesante, Devastante) per sbloccare la stima della nuova scheda!</span>
+                </div>
+              </div>
             </div>
           </div>
             <!-- Sezione Recupero (Fine Giro) per Superset inside orange active card -->
@@ -5575,8 +5587,14 @@ const getGhostRenderInfo = (sett) => {
     }
     valueText = valConsigliato;
 
-    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+    if (sett === 6) {
+      if (isAumentoPeso && numConsigliato > 0) {
+        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+      }
+      if (!numFaticaw6Val.value) {
+        const faticaReminder = `👉 Seleziona lo Sforzo Percepito (W6) in basso per calcolare la nuova scheda!`;
+        maxEffortNotice = maxEffortNotice ? `${maxEffortNotice} | ${faticaReminder}` : faticaReminder;
+      }
     }
   } else if (ghost.isPostScarico) {
     const baseInfo = getBaseWeekInfo(sett);
@@ -5601,8 +5619,14 @@ const getGhostRenderInfo = (sett) => {
     }
     valueText = valConsigliato;
 
-    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+    if (sett === 6) {
+      if (isAumentoPeso && numConsigliato > 0) {
+        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+      }
+      if (!numFaticaw6Val.value) {
+        const faticaReminder = `👉 Seleziona lo Sforzo Percepito (W6) in basso per calcolare la nuova scheda!`;
+        maxEffortNotice = maxEffortNotice ? `${maxEffortNotice} | ${faticaReminder}` : faticaReminder;
+      }
     }
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';

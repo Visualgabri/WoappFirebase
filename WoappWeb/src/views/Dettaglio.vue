@@ -10852,7 +10852,7 @@ const suggerimentoRecord = computed(() => {
         const valToCompare = pesoW6Num > 0 ? pesoW6Num : repsW6Num;
         const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
 
-        if (pesoW6Num > absW6Weight) {
+        if (pesoW6Num > absW6Weight && (repsW6Num >= targetReps - 2 || isMatchingReps(prevEx, 6))) {
           absW6Weight = pesoW6Num;
         }
 
@@ -10912,7 +10912,7 @@ const suggerimentoRecord = computed(() => {
           const valToCompare = pesoNum > 0 ? pesoNum : repsNum;
           const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
 
-          if (i === 6 && pesoNum > absW6Weight) {
+          if (i === 6 && pesoNum > absW6Weight && (repsNum >= targetReps - 2 || isMatchingReps(prevEx, 6))) {
             absW6Weight = pesoNum;
           }
 
@@ -10957,13 +10957,13 @@ const suggerimentoRecord = computed(() => {
 
   const stimaRecord = stimaRecordStoricoPerReps(targetReps);
   const isManubri = isManubriEsercizio(workout.value);
-  const step = getWeightStep(isManubri, absRepsWeight || absW6Weight || absGenWeight || 50);
+  const step = getWeightStep(isManubri, absRepsWeight || absW6Weight || 50);
 
-  let baseRec = absRepsWeight > 0 ? absRepsWeight : absGenWeight;
+  let baseRec = absRepsWeight > 0 ? absRepsWeight : 0;
   if (w === 6 && absW6Weight > baseRec) {
     baseRec = absW6Weight;
   }
-  if (stimaRecord && stimaRecord > baseRec && baseRec > 0 && stimaRecord <= baseRec * 1.10) {
+  if (baseRec === 0 && stimaRecord && stimaRecord > 0) {
     baseRec = stimaRecord;
   }
 

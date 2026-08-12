@@ -925,11 +925,43 @@
               {{ getGhostRenderInfo(sett).maxEffortNotice }}
             </div>
 
+            <!-- BANNER AVVISO SALTO CARICO RIR & PR -->
+            <div 
+              v-if="sett === settimanaAttiva && avvisoSaltoCaricoRIR" 
+              class="mb-2 pa-2.5 rounded-xl border text-left animate-fade-in" 
+              style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%) !important; border: 1.5px solid rgba(245, 158, 11, 0.4) !important;"
+            >
+              <div class="d-flex align-center gap-1.5 mb-1">
+                <v-icon size="16" color="amber-lighten-2">mdi-alert-outline</v-icon>
+                <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.60rem; letter-spacing: 0.04em;">
+                  Aumento Carico Riconosciuto (+{{ formatWeight(avvisoSaltoCaricoRIR.diff) }} kg)
+                </span>
+              </div>
+              <p class="text-super-caption text-slate-light mb-1.5" style="font-size: 0.65rem; line-height: 1.35; color: #cbd5e1 !important;">
+                Il salto da {{ formatWeight(avvisoSaltoCaricoRIR.pesoBase) }}kg a {{ formatWeight(avvisoSaltoCaricoRIR.pesoConsigliato) }}kg considera il tuo record storico ({{ formatWeight(avvisoSaltoCaricoRIR.prWeight) }}kg) e la riduzione del buffer RIR (da RIR {{ avvisoSaltoCaricoRIR.rirW1 }} a RIR {{ avvisoSaltoCaricoRIR.rirCurr }}). Se cerchi un rientro graduale puoi usare l'opzione <strong>Graduale ({{ formatWeight(avvisoSaltoCaricoRIR.pesoGraduale) }} kg)</strong>.
+              </p>
+            </div>
+
             <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
             <div 
               v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'forma' || sett === 1)"
               class="d-flex flex-wrap gap-1.5 mt-1.5 mb-2.5 w-100 align-center justify-space-between animate-fade-in"
             >
+              <!-- BOTTONE EXTRA: GRADUALE / RIENTRO SOFT (Mostrato solo quando c'è un salto di carico) -->
+              <v-btn
+                v-if="avvisoSaltoCaricoRIR"
+                variant="flat"
+                color="teal-darken-2"
+                size="x-small"
+                class="flex-grow-1 text-none px-2 rounded-lg text-white font-weight-black"
+                style="height: 32px; font-size: 0.72rem; min-width: 22%;"
+                @click="applicaPropostaCaricoRapida(sett, avvisoSaltoCaricoRIR.pesoGraduale)"
+              >
+                <div class="d-flex flex-column align-center line-height-tight">
+                  <span class="font-weight-black">{{ formatWeight(avvisoSaltoCaricoRIR.pesoGraduale) }} kg</span>
+                  <span style="font-size: 0.52rem; opacity: 0.9;" class="text-truncate">🟢 Graduale</span>
+                </div>
+              </v-btn>
               <div class="w-100 text-super-caption text-left text-muted mb-1" style="font-size: 0.58rem !important; letter-spacing: 0.05em;">
                 {{ (sett === 1 && getGhostLiftSmart(sett).recordVal) ? '🏆 SFIDA IL RECORD IN WEEK 1:' : (sett === 1 ? '💡 RANGE PROPOSTO IN WEEK 1:' : (stileVisualizzazioneGhost === 'forma' ? '💡 COME TI SENTI OGGI?' : (stileVisualizzazioneGhost === 'marce' ? '⚙️ SELEZIONA LA MARCIA:' : '💡 TOCCA PER APPLICARE:'))) }}
               </div>
@@ -5789,14 +5821,68 @@ const caricoConsigliatoViaDiMezzo = computed(() => {
   return getCaricoConsigliatoViaDiMezzoForWeek(aiutoWeek.value);
 });
 
+const avvisoSaltoCaricoRIR = computed(() => {
+  if (!workout.value) return null;
+  const sett = settimanaAttiva.value;
+  const infoBase = getBaseWeekInfo(sett);
+  if (!infoBase || infoBase.pesoBase === null || isNaN(infoBase.pesoBase) || infoBase.pesoBase <= 0) return null;
+
+  const pesoBase = infoBase.pesoBase;
+  const range = getGhostWeightsRangeForWeek(sett);
+  if (!range) return null;
+
+  const pesoConsigliato = parseFloat(range.consigliato.value) || parseFloat(range.prudenziale.value) || 0;
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = getWeightStep(isManubri, pesoBase);
+
+  // Rileva salto significativo di carico (>= 2 step o >= 25%)
+  if (pesoConsigliato >= pesoBase + (2 * step)) {
+    const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
+    const rirW1 = estraiRIRDaPrescrizione(workout.value['des_week' + (infoBase.baseWNum || 1)]) ?? getRIRDefault(infoBase.baseWNum || 1);
+    const rirCurr = estraiRIRDaPrescrizione(workout.value['des_week' + sett]) ?? getRIRDefault(sett);
+    const pesoGraduale = pesoBase + step;
+
+    return {
+      pesoBase,
+      pesoConsigliato,
+      diff: Math.round((pesoConsigliato - pesoBase) * 10) / 10,
+      prWeight,
+      rirW1,
+      rirCurr,
+      pesoGraduale
+    };
+  }
+  return null;
+});
+
 const opzioniStradeProgressione = computed(() => {
   if (!workout.value) return [];
   const sett = aiutoWeek.value;
   
   const range = getGhostWeightsRangeForWeek(sett);
   if (!range) return [];
+
+  const res = [];
+  const infoBase = getBaseWeekInfo(sett);
+  const pesoBase = infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) ? infoBase.pesoBase : 0;
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = getWeightStep(isManubri, pesoBase);
+
+  const prudenzialeVal = parseFloat(range.prudenziale.value) || 0;
   
-  return [
+  // Se c'è un salto importante dal peso precedente, aggiungiamo l'opzione "Graduale" (+1 step)
+  if (pesoBase > 0 && prudenzialeVal >= pesoBase + (2 * step)) {
+    const pesoGraduale = pesoBase + step;
+    res.push({
+      tipo: 'graduale',
+      titolo: '🟢 Graduale',
+      sottoTitolo: `Rientro Soft (+${formatWeight(step)}kg)`,
+      valore: `${formatWeight(pesoGraduale)} kg`,
+      peso: pesoGraduale
+    });
+  }
+
+  res.push(
     {
       tipo: 'safe',
       titolo: '🛡️ Safe',
@@ -5818,7 +5904,9 @@ const opzioniStradeProgressione = computed(() => {
       valore: range.sfidante.display,
       peso: parseFloat(range.sfidante.value)
     }
-  ];
+  );
+
+  return res;
 });
 
 const spiegazioneDinamicaConsigliata = computed(() => {
@@ -6738,7 +6826,8 @@ const isCorpoLiberoEsercizio = (ex) => {
     'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
     'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
     'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
-    'con sovraccarico', 'con cavigliera', 'con cavigliere'
+    'con sovraccarico', 'con cavigliera', 'con cavigliere',
+    'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley'
   ];
   const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
   if (hasWeightKeyword) return false;
@@ -6904,10 +6993,24 @@ const isCavoOMacchinaEsercizio = (ex) => {
   );
 };
 
+// ✅ NUOVA LOGICA CON STEP 1,25 KG PER CAVI E PICCOLI CARICHI:
 const getWeightStep = (isManubri, baseWeight) => {
-  if (!isManubri) return 2.5;
   const p = parseFloat(baseWeight) || 0;
-  return p >= 10 ? 2.0 : 1.0;
+
+  // 1. Manubri (Step 1kg sotto i 10kg, Step 2kg sopra)
+  if (isManubri) {
+    return p >= 10 ? 2.0 : 1.0;
+  }
+
+  // 2. Cavi / Macchine / Isolamento piccoli muscoli
+  const isCavo = workout.value ? isCavoOMacchinaEsercizio(workout.value) : false;
+  if (isCavo || p < 15) {
+    // Per carichi bassi o esercizi ai cavi usiamo micro-incrementi da 1,25 kg
+    return 1.25;
+  }
+
+  // 3. Bilancieri e carichi grandi
+  return 2.5;
 };
 
 const getDumbbellSequenceWeight = (currentWeight, direction) => {
@@ -10011,64 +10114,35 @@ function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
   
-  // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
+  // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
-
-  // Rimuove espressioni di RPE prima dell'estrazione reps (es. "Rpe: 93 - 99", "RPE 8.5")
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
-  
-  // Rimuove indicazioni di tempo di recupero (es. "20sec", "20s", "20 sec", "20secondi", "20rec", "20recupero", "3min", "3 min")
   clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
-  clean = clean.replace(/\d+(?:\.\d+)?\s*(?:["']|min|sec)\b/gi, ' ').trim();
+  clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, '').trim();
 
-  // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
+  // 2. Rileva Rest-Pause / Tecniche (+ RP 14, RP 12)
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {
     const val = parseFloat(matchRP[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // Rileva formato esplicito "12x14r", "12x14", "8r", "8 reps", "8 rip" PRIMA di rimuovere le parentesi
+  // 3. Rileva formato esplicito "5x12" o "5x12r" -> la seconda parte (12) sono le REPS
   const matchX = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?/);
   if (matchX) {
     const val = parseFloat(matchX[2]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
   
+  // 4. Rileva ripetizioni esplicite con suffissi "r", "reps", "rip" (es. "12r", "12 reps")
   const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?)/i);
   if (matchR) {
     const val = parseFloat(matchR[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // Controlla se la stringa originale prima di rimuovere le parentesi contiene testo extra (es. "34 (x1s)")
-  const rawClean = clean;
-
-  // Soluzione 1: Rimuove parentesi tonde (...) e quadre [...] per evitare che note personali interferiscano col calcolo
-  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').trim();
-
-  // Rimuove espressioni di impostazioni/metadati per evitare interferenze
-  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.)\b\s*\d+(?:\.\d+)?/gi;
-  clean = clean.replace(cleanSettingsRegex, '').trim();
-  clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
-
-  // Se è un numero puro (es. "12", "8") e NON ha un'unità esplicita di peso ("kg", "lbs")
-  const matchSingleNum = clean.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
-  if (matchSingleNum && !/kg|lbs|libbre/i.test(clean)) {
-    const val = parseFloat(matchSingleNum[1]);
-    
-    // Se la stringa contiene note o testo extra oltre al solo numero (es. "34 (x1s)" o "34 (note)"),
-    // il numero isolato 34 è il carico (peso in kg), NON le ripetizioni!
-    const isJustSingleNumInRaw = /^\s*\d+(?:\.\d+)?\s*$/.test(rawClean);
-    if (!isJustSingleNumInRaw) {
-      return null;
-    }
-
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 40) {
-      return { val, explicit: false };
-    }
-  }
-  
+  // 5. UN NUMERO SINGOLO SENZA "r" O "reps" (es. "2", "3", "5", "12") È IL CARICO IN KG!
+  // Non deve MAI restituire un valore di ripetizioni esplicito qui.
   return null;
 }
 

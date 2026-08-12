@@ -2870,7 +2870,8 @@ const isRepProgression = (ex) => {
     'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
     'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
     'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
-    'con sovraccarico', 'con cavigliera', 'con cavigliere'
+    'con sovraccarico', 'con cavigliera', 'con cavigliere',
+    'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley'
   ];
   const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
   if (hasWeightKeyword) return false;
@@ -2922,61 +2923,41 @@ const isRepProgression = (ex) => {
   return false;
 };
 
-const estraiRepsDaInputExplicitSingle = (str) => {
+function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
-
-  // Rimuove indicazioni di tempo di recupero (es. "20sec", "20s", "20 sec", "20secondi", "20rec", "20recupero", "3min", "3 min")
+  
+  // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
+  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
   clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
-  clean = clean.replace(/\d+(?:\.\d+)?\s*(?:["']|min|sec)\b/gi, ' ').trim();
+  clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, '').trim();
 
-  // Soluzione 2: Rileva tecniche d'intensità / Rest-Pause prima della pulizia (es. "+ RP fino a 14" o "RP 14")
+  // 2. Rileva Rest-Pause / Tecniche (+ RP 14, RP 12)
   const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
   if (matchRP) {
     const val = parseFloat(matchRP[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // Rileva formato esplicito "12x14r", "12x14", "8r", "8 reps", "8 rip" PRIMA di rimuovere le parentesi
+  // 3. Rileva formato esplicito "5x12" o "5x12r" -> la seconda parte (12) sono le REPS
   const matchX = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?/);
   if (matchX) {
     const val = parseFloat(matchX[2]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
-
+  
+  // 4. Rileva ripetizioni esplicite con suffissi "r", "reps", "rip" (es. "12r", "12 reps")
   const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?)/i);
   if (matchR) {
     const val = parseFloat(matchR[1]);
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 50) return { val, explicit: true };
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // Controlla se la stringa originale prima di rimuovere le parentesi contiene testo extra (es. "34 (x1s)")
-  const rawClean = clean;
-
-  // Soluzione 1: Rimuove parentesi tonde (...) e quadre [...] per evitare che note personali interferiscano col calcolo
-  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').trim();
-
-  const repsPrefixRegex = /^\s*\d+\s*[xX]\s*/g;
-  clean = clean.replace(repsPrefixRegex, '').trim();
-  
-  const matchSingleNum = clean.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
-  if (matchSingleNum && !/kg|lbs|libbre/i.test(clean)) {
-    const val = parseFloat(matchSingleNum[1]);
-
-    // Se la stringa contiene note o testo extra oltre al solo numero (es. "34 (x1s)" o "34 (note)"),
-    // il numero isolato 34 è il carico (peso in kg), NON le ripetizioni!
-    const isJustSingleNumInRaw = /^\s*\d+(?:\.\d+)?\s*$/.test(rawClean);
-    if (!isJustSingleNumInRaw) {
-      return null;
-    }
-
-    if (!isNaN(val) && Number.isInteger(val) && val > 0 && val <= 40) {
-      return { val, explicit: false };
-    }
-  }
-  
+  // 5. UN NUMERO SINGOLO SENZA "r" O "reps" (es. "2", "3", "5", "12") È IL CARICO IN KG!
+  // Non deve MAI restituire un valore di ripetizioni esplicito qui.
   return null;
-};
+}
 
 const estraiRepsDaInputSingle = (str) => {
   const res = estraiRepsDaInputExplicitSingle(str);

@@ -897,7 +897,7 @@
                   
                   <!-- Caso Scarico -->
                   <template v-else-if="getGhostLiftSmart(sett).isScarico">
-                    <template v-if="isCorpoLiberoEsercizio(workout)">
+                    <template v-if="getGhostLiftSmart(sett).isRepExercise">
                       Usa <span class="text-green-accent-3 font-weight-bold">{{ scaricoWeek4Weights.textW2 || (formatRepsDisplay(getGhostLiftSmart(sett).peso) || 'W2') }}</span> (W2)
                       <span v-if="scaricoWeek4Weights.textW3">
                         • prec. W3: <strong class="text-slate-light">{{ scaricoWeek4Weights.textW3 }}</strong>
@@ -5594,8 +5594,8 @@ const getGhostRenderInfo = (sett) => {
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
 
-  // Se l'esercizio è a corpo libero / ripetizioni, NON mostriamo il banner CONSIGLIATO del Ghost
-  if (ghost.isRepExercise || isCorpoLiberoEsercizio(workout.value)) {
+  // Se l'esercizio è a corpo libero / ripetizioni puro SENZA peso inserito, NON mostriamo il banner CONSIGLIATO del Ghost
+  if (ghost.isRepExercise || (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value)) {
     return null;
   }
 
@@ -7200,8 +7200,8 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
     }
   }
   
-  // Limita il peso se a corpo libero e le reps salgono
-  if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
+  // Limita il peso solo se è a corpo libero SENZA peso e le reps salgono
+  if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value && repsTarget > repsBase) {
     if (proposedWeight > pesoBase) {
       proposedWeight = pesoBase;
     }
@@ -7397,7 +7397,7 @@ const propostaWeek1 = computed(() => {
   let fatica = '';
   let baseWeekNum = null;
   
-  const isRepEx = isCorpoLiberoEsercizio(workout.value);
+  const isRepEx = isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value;
   
   // 1. Controlla prima la Week 6 (Miglior Carico num_ins6)
   const prevW6Weight = previousWorkout.value.num_ins6;
@@ -7470,7 +7470,7 @@ const propostaWeek1 = computed(() => {
     if (proposta > basePeso) {
       proposta = basePeso;
     }
-  } else if (isCorpoLiberoEsercizio(workout.value) && currW1Reps && baseReps && currW1Reps > baseReps) {
+  } else if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value && currW1Reps && baseReps && currW1Reps > baseReps) {
     if (proposta > basePeso) {
       proposta = basePeso;
     }
@@ -7577,6 +7577,53 @@ const propostaWeek1 = computed(() => {
     sfidanteLabel: sfidanteLabel,
     sfidaRecordWeek1: sfidaRecordWeek1.value
   };
+});
+
+const haPesoEsplicitoInInput = (str) => {
+  if (!str) return false;
+  const s = String(str).trim();
+  if (!s || s === '-') return false;
+  
+  // Riconosce indicativo esplicito di peso: kg, kgb, lbs, libbre, zavorra, sovraccarico, +, con X kg
+  if (/kg|kgs|kgb|lbs|libbre|zavorr|sovraccarico|\+|\bcon\s+\d+/i.test(s)) {
+    return true;
+  }
+  
+  return false;
+};
+
+const haPesoEsercizio = computed(() => {
+  if (!workout.value) return false;
+  
+  // 1. Se staticamente NON è corpo libero (es. Panca, Lat Machine, Squat), ha sempre peso
+  if (!isCorpoLiberoEsercizio(workout.value)) {
+    return true;
+  }
+  
+  // 2. Se è un esercizio a corpo libero, controlla se l'utente ha inserito peso esplicito in una qualsiasi delle settimane (W1..W6)
+  for (let w = 1; w <= 6; w++) {
+    const insVal = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
+    if (insVal && haPesoEsplicitoInInput(insVal)) {
+      return true;
+    }
+  }
+  
+  // 3. Controlla se nel mesociclo precedente o nella proposta W1 c'era peso esplicito
+  if (propostaWeek1.value && propostaWeek1.value.prevPeso && propostaWeek1.value.prevPeso > 0) {
+    if (previousWorkout.value) {
+      const prevW6Text = previousWorkout.value.num_ins6 || previousWorkout.value.ins_week6;
+      if (prevW6Text && haPesoEsplicitoInInput(prevW6Text)) {
+        return true;
+      }
+      for (let w = 1; w <= 6; w++) {
+        if (haPesoEsplicitoInInput(previousWorkout.value['ins_week' + w])) {
+          return true;
+        }
+      }
+    }
+  }
+  
+  return false;
 });
 
 const caricaEsercizioPrecedente = async () => {
@@ -9539,8 +9586,8 @@ function formatRepsDisplay(val) {
 const getGhostLift = (sett) => {
   if (!workout.value) return null;
 
-  // Se è un esercizio a corpo libero con reps in aumento, senza onda e senza scarico in W4, il Ghost non consiglia nulla
-  if (isCorpoLiberoEsercizio(workout.value)) {
+  // Se è un esercizio a corpo libero con reps in aumento, senza onda e senza scarico in W4, ed è SENZA PESO, il Ghost non consiglia nulla
+  if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
     const r1 = getRepsForWeek(1);
     const r2 = getRepsForWeek(2);
     const r3 = getRepsForWeek(3);
@@ -9621,8 +9668,8 @@ const getGhostLiftStandard = (sett) => {
     };
   }
 
-  // Rileva se è un esercizio a corpo libero (reps, non kg) o incentrato sul volume
-  const isRepEx = isCorpoLiberoEsercizio(workout.value);
+  // Rileva se è un esercizio a corpo libero (reps, non kg) o incentrato sul volume SENZA peso inserito
+  const isRepEx = isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value;
 
   // Per la Week 1, proponiamo in base al miglior carico del mesociclo precedente (num_ins6) o fallback
   if (sett === 1) {
@@ -9811,7 +9858,7 @@ const getGhostLiftStandard = (sett) => {
       
       const repsBase = workout.value['reps_week2'] ? parseInt(workout.value['reps_week2'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week2']) || 10);
       const repsTarget = workout.value['reps_week4'] ? parseInt(workout.value['reps_week4'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week4']) || 10);
-      const isCorpoLiberoRepsSalgono = isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase;
+      const isCorpoLiberoRepsSalgono = (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) && repsTarget > repsBase;
       
       return { 
         text: w2Ins, 

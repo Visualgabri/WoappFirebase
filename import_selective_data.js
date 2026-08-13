@@ -165,6 +165,15 @@ async function run() {
   const lines = content.split('\n');
   const headers = lines[0].replace(/"/g, '').split(';').map(h => h.replace(/^\uFEFF/, '').trim());
 
+  // Rilevamento di tutte le colonne UrlNormal
+  const urlNormalIndices = [];
+  headers.forEach((h, idx) => {
+    if (h === 'UrlNormal') {
+      urlNormalIndices.push(idx);
+    }
+  });
+  console.log(`Indici trovati per la colonna UrlNormal:`, urlNormalIndices);
+
   let totalCsvRows = 0;
   let skippedExcludedCount = 0;
   let skippedAlignedCount = 0;
@@ -184,6 +193,21 @@ async function run() {
 
     headers.forEach((header, idx) => {
       let cellVal = cells[idx] ? cells[idx].replace(/^"/, '').replace(/"$/, '').trim() : '';
+
+      // GESTIONE SPECIALE DUPLICATO UrlNormal
+      if (header === 'UrlNormal' && urlNormalIndices.length > 0) {
+        const firstUrlVal = cells[urlNormalIndices[0]] ? cells[urlNormalIndices[0]].replace(/^"/, '').replace(/"$/, '').trim() : '';
+        const secondUrlVal = urlNormalIndices[1] && cells[urlNormalIndices[1]] ? cells[urlNormalIndices[1]].replace(/^"/, '').replace(/"$/, '').trim() : '';
+
+        if (firstUrlVal.startsWith('http')) {
+          cellVal = firstUrlVal;
+        } else if (secondUrlVal.startsWith('http')) {
+          cellVal = secondUrlVal;
+        } else {
+          cellVal = firstUrlVal || secondUrlVal || '';
+        }
+      }
+
       if (header) {
         record[header] = cellVal;
       }
@@ -226,6 +250,11 @@ async function run() {
             mergedRecord[field] = existing.data[field];
           }
         });
+      }
+
+      // Protezione ulteriore: Se l'UrlNormal estratto dal CSV è vuoto ma Firestore ne possiede già uno valido, manteniamo quello di Firestore
+      if (!mergedRecord.UrlNormal && existing.data.UrlNormal && existing.data.UrlNormal.startsWith('http')) {
+        mergedRecord.UrlNormal = existing.data.UrlNormal;
       }
 
       // Confronto Delta: scriviamo solo se c'è una reale differenza

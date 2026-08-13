@@ -279,6 +279,42 @@
             <v-btn value="range" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Solo Range</v-btn>
             <v-btn value="forma" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Stato Forma</v-btn>
           </v-btn-toggle>
+
+          <!-- Motore Progressione Ghost -->
+          <div class="mb-2.5">
+            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Motore Progressione Ghost</span>
+            <v-btn-toggle
+              v-model="modalitaIncrementoGhost"
+              mandatory
+              selected-class="bg-orange-darken-3 text-white"
+              density="compact"
+              rounded="lg"
+              class="w-100 card-glass border"
+              style="height: 32px;"
+            >
+              <v-btn value="ibrida" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">🧠 Ibrida SMART</v-btn>
+              <v-btn value="fissa" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">📐 Fissa Scheda</v-btn>
+              <v-btn value="dinamica" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">⚡ Dinamica</v-btn>
+            </v-btn-toggle>
+          </div>
+
+          <!-- Sensibilità Sforzo / Fatica -->
+          <div class="mb-2">
+            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Sensibilità Fatica Ghost</span>
+            <v-btn-toggle
+              v-model="sensibilitaFaticaGhost"
+              mandatory
+              selected-class="bg-orange-darken-3 text-white"
+              density="compact"
+              rounded="lg"
+              class="w-100 card-glass border"
+              style="height: 32px;"
+            >
+              <v-btn value="conservativa" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">🛡️ Prudente</v-btn>
+              <v-btn value="bilanciata" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">⚖️ Bilanciata</v-btn>
+              <v-btn value="aggressiva" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">🔥 Spinta</v-btn>
+            </v-btn-toggle>
+          </div>
           
           <div class="d-flex flex-column gap-1.5 rounded-xl pa-2.5 inner-setting-box border-soft">
             <!-- Attacco al Record (PR) -->
@@ -693,11 +729,19 @@ import {
   ottimizzaDigitazioneGlobal,
   regolaProgressioneW2Global,
   inviaNotificaDeploy,
-  ORDINE_ORIGINALE_ATLETI,
   currentTheme,
   setTheme,
   currentLightStyle,
-  setLightStyle
+  setLightStyle,
+  stileVisualizzazioneGhost,
+  modalitaIncrementoGhost,
+  ghostPRAttackAttivo,
+  ghostAutoregolazioneRepsAttiva,
+  sfidaRecordWeek1,
+  sensibilitaFaticaGhost,
+  defaultBilanciereGlobal,
+  vibrazioneAttivaGlobal,
+  defaultTimerRecGlobal
 } from '../authStore.js';
 
 const router = useRouter();
@@ -810,69 +854,18 @@ const layoutDettaglio = layoutDettaglioGlobal;
 const timerTheme = timerThemeGlobal;
 const temaHeaderGiorno = temaHeaderGiornoGlobal;
 
-// Refs salvati in localStorage
-const defaultBilanciere = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
-const vibrazioneAttiva = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
+// Refs collegati allo store centralizzato
+const defaultBilanciere = defaultBilanciereGlobal;
+const vibrazioneAttiva = vibrazioneAttivaGlobal;
 const comportamentoPlay = comportamentoPlayGlobal;
-const defaultTimerRec = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
+const defaultTimerRec = defaultTimerRecGlobal;
 
 const getActiveAtletaId = () => {
   return selectedAthlete.value || idCliente.value || '';
 };
 
-const modalitaIncrementoGhost = ref('ibrida');
-const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualizzazioneGhost_' + getActiveAtletaId()) || 'range');
-const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + getActiveAtletaId()) !== 'false');
-const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId()) !== 'false');
-const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + getActiveAtletaId()) === 'true');
 const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
 const regolaProgressioneW2 = regolaProgressioneW2Global;
-
-// Salvataggio automatico al cambio
-watch(layoutEsercizi, (newVal) => {
-  localStorage.setItem('woapp_layout_esercizi', newVal);
-});
-watch(layoutDettaglio, (newVal) => {
-  localStorage.setItem('woapp_layout_dettaglio', newVal);
-});
-watch(defaultBilanciere, (newVal) => {
-  localStorage.setItem('woapp_default_bilanciere', String(newVal));
-});
-watch(vibrazioneAttiva, (newVal) => {
-  localStorage.setItem('woapp_vibrazione_attiva', String(newVal));
-});
-watch(comportamentoPlay, (newVal) => {
-  localStorage.setItem('woapp_comportamento_play', newVal);
-});
-watch(defaultTimerRec, (newVal) => {
-  localStorage.setItem('woapp_default_timer_rec', String(newVal));
-});
-watch(timerTheme, (newVal) => {
-  localStorage.setItem('woapp_timer_theme', newVal);
-});
-
-// Sincronizzazione Ghost Settings
-watch([selectedAthlete, idCliente], () => {
-  const atletaId = getActiveAtletaId();
-  modalitaIncrementoGhost.value = 'ibrida';
-  stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
-  ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
-  ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
-  sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
-});
-
-watch(stileVisualizzazioneGhost, (newVal) => {
-  localStorage.setItem('stileVisualizzazioneGhost_' + getActiveAtletaId(), newVal);
-});
-watch(ghostPRAttackAttivo, (newVal) => {
-  localStorage.setItem('ghostPRAttackAttivo_' + getActiveAtletaId(), String(newVal));
-});
-watch(ghostAutoregolazioneRepsAttiva, (newVal) => {
-  localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + getActiveAtletaId(), String(newVal));
-});
-watch(sfidaRecordWeek1, (newVal) => {
-  localStorage.setItem('sfidaRecordWeek1_' + getActiveAtletaId(), String(newVal));
-});
 
 const vibraTattile = (ms = 12) => {
   if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;

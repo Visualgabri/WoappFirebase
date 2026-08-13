@@ -82,6 +82,7 @@ export const setSelectedAthlete = (val) => {
   localStorage.setItem('selectedAthlete', val);
   syncStoryboardListener();
   syncInfortuniListener();
+  syncClienteConfigListener();
 };
 
 // Aggiorna Scheda selezionata globally
@@ -1216,6 +1217,209 @@ watch(temaHeaderGiornoGlobal, (newVal) => {
     const themeHex = targetColor === 'blu' ? '#1d4ed8' : (targetColor === 'verde' ? '#059669' : (targetColor === 'fucsia' ? '#db2777' : '#ea580c'));
     metaThemeColor.setAttribute('content', themeHex);
   }
+});
+
+// --- CONFIGURAZIONE PERSONALE CLIENTE CENTRALIZZATA (Firestore: UTENTI_CONFIG/{atletaId}) ---
+export const getActiveAtletaId = () => {
+  return selectedAthlete.value || idCliente.value || '1';
+};
+
+const curAtletaId = getActiveAtletaId();
+
+export const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualizzazioneGhost_' + curAtletaId) || 'range');
+export const modalitaIncrementoGhost = ref(localStorage.getItem('modalitaIncrementoGhost_' + curAtletaId) || 'ibrida');
+export const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + curAtletaId) !== 'false');
+export const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + curAtletaId) !== 'false');
+export const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + curAtletaId) === 'true');
+export const sensibilitaFaticaGhost = ref(localStorage.getItem('sensibilitaFaticaGhost_' + curAtletaId) || 'bilanciata');
+
+export const defaultBilanciereGlobal = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
+export const vibrazioneAttivaGlobal = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
+export const defaultTimerRecGlobal = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
+
+let isSyncingClienteConfigFromFirestore = false;
+let clienteConfigDebounceTimeout = null;
+let clienteConfigUnsubscribe = null;
+
+export const salvaClienteConfigFirestore = () => {
+  if (isSyncingClienteConfigFromFirestore) return;
+  const atletaId = getActiveAtletaId();
+  if (!atletaId) return;
+
+  if (clienteConfigDebounceTimeout) {
+    clearTimeout(clienteConfigDebounceTimeout);
+  }
+
+  clienteConfigDebounceTimeout = setTimeout(async () => {
+    try {
+      const docRef = doc(db, 'UTENTI_CONFIG', String(atletaId));
+      const payload = {
+        atletaId: String(atletaId),
+        updatedAt: new Date().toISOString(),
+        ghostSettings: {
+          stileVisualizzazione: stileVisualizzazioneGhost.value,
+          modalitaIncremento: modalitaIncrementoGhost.value,
+          prAttackAttivo: ghostPRAttackAttivo.value,
+          autoregolazioneRepsAttiva: ghostAutoregolazioneRepsAttiva.value,
+          sfidaRecordWeek1: sfidaRecordWeek1.value,
+          sensibilitaFatica: sensibilitaFaticaGhost.value
+        },
+        uiSettings: {
+          userTheme: currentTheme.value,
+          userLightStyle: currentLightStyle.value,
+          temaHeaderGiorno: temaHeaderGiornoGlobal.value,
+          layoutEsercizi: layoutEserciziGlobal.value,
+          layoutDettaglio: layoutDettaglioGlobal.value,
+          timerTheme: timerThemeGlobal.value
+        },
+        workoutSettings: {
+          defaultBilanciere: defaultBilanciereGlobal.value,
+          vibrazioneAttiva: vibrazioneAttivaGlobal.value,
+          comportamentoPlay: comportamentoPlayGlobal.value,
+          defaultTimerRec: defaultTimerRecGlobal.value
+        }
+      };
+
+      await setDoc(docRef, payload, { merge: true });
+      console.log(`[Firestore Sync] Impostazioni cliente #${atletaId} sincronizzate su Cloud!`);
+    } catch (err) {
+      console.error("[Firestore Sync] Errore salvataggio impostazioni cliente:", err);
+    }
+  }, 800);
+};
+
+export const syncClienteConfigListener = () => {
+  if (clienteConfigUnsubscribe) {
+    clienteConfigUnsubscribe();
+    clienteConfigUnsubscribe = null;
+  }
+
+  const atletaId = getActiveAtletaId();
+  if (!atletaId) return;
+
+  // Pre-carica cache locale per l'atleta attivo prima dell'arrivo del doc Firestore
+  stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
+  modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
+  ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
+  ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
+  sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
+  sensibilitaFaticaGhost.value = localStorage.getItem('sensibilitaFaticaGhost_' + atletaId) || 'bilanciata';
+
+  const docRef = doc(db, 'UTENTI_CONFIG', String(atletaId));
+
+  clienteConfigUnsubscribe = onSnapshot(docRef, (docSnap) => {
+    isSyncingClienteConfigFromFirestore = true;
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const ghost = data.ghostSettings || {};
+      const ui = data.uiSettings || {};
+      const wo = data.workoutSettings || {};
+
+      if (ghost.stileVisualizzazione !== undefined) {
+        stileVisualizzazioneGhost.value = ghost.stileVisualizzazione;
+        localStorage.setItem('stileVisualizzazioneGhost_' + atletaId, ghost.stileVisualizzazione);
+      }
+      if (ghost.modalitaIncremento !== undefined) {
+        modalitaIncrementoGhost.value = ghost.modalitaIncremento;
+        localStorage.setItem('modalitaIncrementoGhost_' + atletaId, ghost.modalitaIncremento);
+      }
+      if (ghost.prAttackAttivo !== undefined) {
+        ghostPRAttackAttivo.value = ghost.prAttackAttivo === true;
+        localStorage.setItem('ghostPRAttackAttivo_' + atletaId, String(ghost.prAttackAttivo));
+      }
+      if (ghost.autoregolazioneRepsAttiva !== undefined) {
+        ghostAutoregolazioneRepsAttiva.value = ghost.autoregolazioneRepsAttiva === true;
+        localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + atletaId, String(ghost.autoregolazioneRepsAttiva));
+      }
+      if (ghost.sfidaRecordWeek1 !== undefined) {
+        sfidaRecordWeek1.value = ghost.sfidaRecordWeek1 === true;
+        localStorage.setItem('sfidaRecordWeek1_' + atletaId, String(ghost.sfidaRecordWeek1));
+      }
+      if (ghost.sensibilitaFatica !== undefined) {
+        sensibilitaFaticaGhost.value = ghost.sensibilitaFatica;
+        localStorage.setItem('sensibilitaFaticaGhost_' + atletaId, ghost.sensibilitaFatica);
+      }
+
+      if (ui.userTheme !== undefined && ui.userTheme !== currentTheme.value) {
+        setTheme(ui.userTheme);
+      }
+      if (ui.userLightStyle !== undefined && ui.userLightStyle !== currentLightStyle.value) {
+        setLightStyle(ui.userLightStyle);
+      }
+      if (ui.temaHeaderGiorno !== undefined) {
+        temaHeaderGiornoGlobal.value = ui.temaHeaderGiorno;
+        localStorage.setItem('woapp_tema_header_giorno', ui.temaHeaderGiorno);
+      }
+      if (ui.layoutEsercizi !== undefined) {
+        layoutEserciziGlobal.value = ui.layoutEsercizi;
+        localStorage.setItem('woapp_layout_esercizi', ui.layoutEsercizi);
+      }
+      if (ui.layoutDettaglio !== undefined) {
+        layoutDettaglioGlobal.value = ui.layoutDettaglio;
+        localStorage.setItem('woapp_layout_dettaglio', ui.layoutDettaglio);
+      }
+      if (ui.timerTheme !== undefined) {
+        timerThemeGlobal.value = ui.timerTheme;
+        localStorage.setItem('woapp_timer_theme', ui.timerTheme);
+      }
+
+      if (wo.defaultBilanciere !== undefined) {
+        defaultBilanciereGlobal.value = parseFloat(wo.defaultBilanciere);
+        localStorage.setItem('woapp_default_bilanciere', String(wo.defaultBilanciere));
+      }
+      if (wo.vibrazioneAttiva !== undefined) {
+        vibrazioneAttivaGlobal.value = wo.vibrazioneAttiva === true;
+        localStorage.setItem('woapp_vibrazione_attiva', String(wo.vibrazioneAttiva));
+      }
+      if (wo.comportamentoPlay !== undefined) {
+        comportamentoPlayGlobal.value = wo.comportamentoPlay;
+        localStorage.setItem('woapp_comportamento_play', wo.comportamentoPlay);
+      }
+      if (wo.defaultTimerRec !== undefined) {
+        defaultTimerRecGlobal.value = parseInt(wo.defaultTimerRec, 10);
+        localStorage.setItem('woapp_default_timer_rec', String(wo.defaultTimerRec));
+      }
+    } else {
+      salvaClienteConfigFirestore();
+    }
+
+    setTimeout(() => {
+      isSyncingClienteConfigFromFirestore = false;
+    }, 100);
+  }, (err) => {
+    console.error(`[Firestore Sync] Errore listener impostazioni cliente #${atletaId}:`, err);
+    isSyncingClienteConfigFromFirestore = false;
+  });
+};
+
+// Avvia il listener al caricamento iniziale
+syncClienteConfigListener();
+
+// Watchers per salvare le configurazioni dell'atleta in Firestore e LocalStorage
+watch([
+  stileVisualizzazioneGhost,
+  modalitaIncrementoGhost,
+  ghostPRAttackAttivo,
+  ghostAutoregolazioneRepsAttiva,
+  sfidaRecordWeek1,
+  sensibilitaFaticaGhost,
+  defaultBilanciereGlobal,
+  vibrazioneAttivaGlobal,
+  defaultTimerRecGlobal
+], () => {
+  const atletaId = getActiveAtletaId();
+  if (atletaId) {
+    localStorage.setItem('stileVisualizzazioneGhost_' + atletaId, stileVisualizzazioneGhost.value);
+    localStorage.setItem('modalitaIncrementoGhost_' + atletaId, modalitaIncrementoGhost.value);
+    localStorage.setItem('ghostPRAttackAttivo_' + atletaId, String(ghostPRAttackAttivo.value));
+    localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + atletaId, String(ghostAutoregolazioneRepsAttiva.value));
+    localStorage.setItem('sfidaRecordWeek1_' + atletaId, String(sfidaRecordWeek1.value));
+    localStorage.setItem('sensibilitaFaticaGhost_' + atletaId, sensibilitaFaticaGhost.value);
+    localStorage.setItem('woapp_default_bilanciere', String(defaultBilanciereGlobal.value));
+    localStorage.setItem('woapp_vibrazione_attiva', String(vibrazioneAttivaGlobal.value));
+    localStorage.setItem('woapp_default_timer_rec', String(defaultTimerRecGlobal.value));
+  }
+  salvaClienteConfigFirestore();
 });
 
 // Caching globale per il backup dello storyboard da 22MB per evitare freeze e download duplicati

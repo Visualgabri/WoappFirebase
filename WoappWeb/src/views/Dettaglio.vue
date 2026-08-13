@@ -12404,7 +12404,17 @@ const parseVolumeString = (str) => {
 // Helper per tracciare il recupero tramite tag [RECUPERA]
 const haRecupero = (val) => {
   if (!val) return false;
-  const str = String(val).toLowerCase();
+  
+  // 1. Rimuove QUALSIASI contenuto tra parentesi tonde (...) in modo che note o commenti tra parentesi non attivino mai il recupero
+  const clean = String(val).replace(/\([^)]*\)/g, ' ').trim();
+  if (!clean) return false;
+
+  const str = clean.toLowerCase();
+
+  // Se la frase contiene una negazione esplicita, NON è un recupero!
+  if (str.includes('non è più da fare') || str.includes('non piu da fare') || str.includes('non è da fare') || str.includes('non da fare') || str.includes('da non fare')) {
+    return false;
+  }
   
   if (str.includes('[recuperato]') || str.includes('recuperato') || str.includes('recuperata') || str.includes('recuperati')) {
     return false;
@@ -12446,7 +12456,9 @@ const haRecupero = (val) => {
     'solo 3',
     'solo una',
     'solo due',
-    'solo tre'
+    'solo tre',
+    'rimandato',
+    'rimanda'
   ];
   
   return keywords.some(kw => str.includes(kw));

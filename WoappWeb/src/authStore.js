@@ -175,6 +175,12 @@ export const triggerPlayClick = () => {
 export const haRecupero = (val) => {
   if (!val) return false;
   const str = String(val).toLowerCase().trim();
+
+  // Se la frase contiene una negazione esplicita (es. "non è più da fare", "non da fare"), NON è un recupero!
+  if (str.includes('non è più da fare') || str.includes('non piu da fare') || str.includes('non è da fare') || str.includes('non da fare') || str.includes('da non fare')) {
+    return false;
+  }
+
   if (str.includes('[recuperato]') || str.includes('recuperato') || str.includes('recuperata') || str.includes('recuperati')) {
     return false;
   }

@@ -56,30 +56,49 @@ function estraiRepsDaInput(str) {
 
 function estraiPesoDaInput(str) {
   if (!str) return null;
-  let clean = str.replace(/,/g, '.').trim();
-  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo)\b\s*\d+(?:\.\d+)?/gi;
+  let clean = String(str).replace(/,/g, '.').trim();
+  clean = clean.replace(/\([^)]*\)/g, ' ').trim();
+  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
+  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.|sedile|schienale|poggiapiede|poggiapiedi|schiena|rullo|perno|distanza|ampiezza|impugnatura|presa|busto|manubrio|cavo|puleggia|tacchetta|tacchette)\b\s*(?:a\s*)?\d+(?:\.\d+)?/gi;
   clean = clean.replace(cleanSettingsRegex, '').trim();
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
-  const matchX = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?\s*$/);
-  if (matchX) return matchX[1];
+  const matchSxR = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*([rR])?\b)?\s*$/);
+  if (matchSxR) {
+    const num1 = parseFloat(matchSxR[1]);
+    const hasExplicitReps = !!matchSxR[3];
+    if (hasExplicitReps || num1 > 5) {
+      return String(num1);
+    }
+    return null;
+  }
   const repsPrefixRegex = /^\s*\d+\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g;
   clean = clean.replace(repsPrefixRegex, '').trim();
   const numberRegex = /\d+(?:\.\d+)?/g;
   let match;
   const validWeights = [];
   const settingKeywords = [
-    'panca', 'inclinazione', 'inclinata', 'inclinato', 'buco', 'buca', 'buchi', 
-    'foro', 'fori', 'tacca', 'tacche', 'tacchetta', 'tacchette', 'posizione', 'pos', 'altezza', 
-    'inc', 'gradi', 'grado', '°', 'seduto', 'seduta', 'step', 'pin', 'livello', 'liv', 
-    'regolazione', 'tacc', 'tassello', 'tavoletta', 'board', 'catena', 'catene', 'elastico', 
-    'elastici', 'blocco', 'blocchi', 'box', 'serie', 'set', 'sets', 'reps', 'rep', 
-    'ripetizioni', 'rip', 'colpi', 'colpo', 'giro', 'giri', 'circuiti', 'circuito', 
-    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo'
+    'panca', 'inclinazione', 'inclinata', 'inclinato', 'buco', 'buca', 'buchi',
+    'foro', 'fori', 'tacca', 'tacche', 'tacchetta', 'tacchette', 'posizione', 'pos', 'altezza',
+    'inc', 'gradi', 'grado', '°', 'seduto', 'seduta', 'step', 'pin', 'livello', 'liv',
+    'regolazione', 'tacc', 'tassello', 'tavoletta', 'board', 'catena', 'catene', 'elastico',
+    'elastici', 'blocco', 'blocchi', 'box', 'serie', 'set', 'sets', 'reps', 'rep',
+    'ripetizioni', 'rip', 'colpi', 'colpo', 'giro', 'giri', 'circuiti', 'circuito',
+    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo', 'tut', 't.u.t.',
+    'sedile', 'schienale', 'poggiapiede', 'poggiapiedi', 'schiena', 'rullo', 'perno',
+    'distanza', 'ampiezza', 'impugnatura', 'presa', 'busto', 'manubrio', 'cavo', 'puleggia',
+    'sopra', 'sotto'
   ];
   const stopWords = [
-    'a', 'di', 'su', 'in', 'da', 'alla', 'al', 'del', 'della', 'n', 'n.', 'num', 
+    'a', 'di', 'su', 'in', 'da', 'alla', 'al', 'del', 'della', 'n', 'n.', 'num',
     'num.', 'n°', 'pos', 'pos.', '#', ':', '::', '@', 'at', 'con', 'e', 'o', 'per'
   ];
+  const isInsideParentheses = (fullStr, index) => {
+    const openIdx = fullStr.lastIndexOf('(', index);
+    if (openIdx === -1) return false;
+    const closeIdx = fullStr.indexOf(')', openIdx);
+    return closeIdx > index;
+  };
   while ((match = numberRegex.exec(clean)) !== null) {
     const numStr = match[0];
     const numVal = parseFloat(numStr);
@@ -88,13 +107,15 @@ function estraiPesoDaInput(str) {
     if (isNaN(numVal)) continue;
     const suffixStr = clean.substring(endIdx);
     const suffixClean = suffixStr.trim();
-    if (suffixClean.toLowerCase().startsWith('k')) {
-      validWeights.push(numVal);
+    const isExplicitKg = suffixClean.toLowerCase().startsWith('k');
+    const insideParens = isInsideParentheses(clean, startIdx);
+    if (isExplicitKg) {
+      validWeights.push({ val: numVal, hasKg: true, isOutside: !insideParens, idx: startIdx });
       continue;
     }
-    if (suffixClean.toLowerCase().match(/^r(?![a-z])/i) || 
-        suffixClean.toLowerCase().startsWith('rep') || 
-        suffixClean.toLowerCase().startsWith('rip')) {
+    if (suffixClean.toLowerCase().match(/^r(?![a-z])/i) ||
+      suffixClean.toLowerCase().startsWith('rep') ||
+      suffixClean.toLowerCase().startsWith('rip')) {
       continue;
     }
     const suffixTokens = suffixClean.split(/[\s\-+:=@]+/);
@@ -123,9 +144,19 @@ function estraiPesoDaInput(str) {
         continue;
       }
     }
-    validWeights.push(numVal);
+    validWeights.push({ val: numVal, hasKg: false, isOutside: !insideParens, idx: startIdx });
   }
-  if (validWeights.length > 0) return String(Math.max(...validWeights));
+  if (validWeights.length > 0) {
+    const withKg = validWeights.filter(w => w.hasKg);
+    if (withKg.length > 0) {
+      return String(Math.max(...withKg.map(w => w.val)));
+    }
+    const outside = validWeights.filter(w => w.isOutside);
+    if (outside.length > 0) {
+      return String(Math.max(...outside.map(w => w.val)));
+    }
+    return String(Math.max(...validWeights.map(w => w.val)));
+  }
   return null;
 }
 
@@ -136,10 +167,10 @@ const isCorpoLiberoEsercizio = (ex) => {
   const attr = String(ex.des_note_gen_attr || '').toLowerCase();
   const settore = String(ex.des_settore || '').toLowerCase();
   const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
-  
+
   const keywords = [
-    'corpo libero', 'corpolibero', 'trazioni', 'dip', 'piegamenti', 
-    'push up', 'push-up', 'crunch', 'plank', 'sit up', 'sit-up', 
+    'corpo libero', 'corpolibero', 'trazioni', 'dip', 'piegamenti',
+    'push up', 'push-up', 'crunch', 'plank', 'sit up', 'sit-up',
     'addominali', 'addome', 'leg raise', 'hyperextension', 'corpo_libero',
     'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout'
   ];
@@ -150,7 +181,7 @@ const estraiSerieDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return null;
   const part = String(prescrizioneStr).split('|')[0].trim();
   const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
-  
+
   const matchX = cleanPart.match(/^(\d+)\s*[xX]/);
   if (matchX) {
     return parseInt(matchX[1], 10);
@@ -178,24 +209,24 @@ const isVolumeProgressionOrCompensation = (ex, w) => {
   const repsPrev = getPrescriptionReps(ex, w - 1);
   const setsCurr = getPrescriptionSets(ex, w);
   const setsPrev = getPrescriptionSets(ex, w - 1);
-  
+
   if (repsCurr === null || repsPrev === null) return false;
-  
+
   if (repsCurr > repsPrev || (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev)) {
     return true;
   }
-  
+
   if (repsCurr < repsPrev && (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev)) {
     return true;
   }
-  
+
   return false;
 };
 
 const isCorpoLiberoOVolumeEsercizio = (ex) => {
   if (!ex) return false;
   if (isCorpoLiberoEsercizio(ex)) return true;
-  
+
   for (let w = 2; w <= 6; w++) {
     if (isVolumeProgressionOrCompensation(ex, w)) {
       return true;
@@ -208,20 +239,20 @@ const consenteProgressioneIntensita = (ex, targetWeek) => {
   if (!ex) return false;
   if (isCorpoLiberoOVolumeEsercizio(ex)) return false;
   if (targetWeek === 1) return true;
-  
+
   const repsCurr = getPrescriptionReps(ex, targetWeek);
   const repsPrev = getPrescriptionReps(ex, targetWeek - 1);
-  
+
   if (repsCurr === null || repsPrev === null) return false;
   if (repsCurr >= repsPrev) return false;
-  
+
   const setsCurr = getPrescriptionSets(ex, targetWeek);
   const setsPrev = getPrescriptionSets(ex, targetWeek - 1);
-  
+
   if (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev) {
     return false;
   }
-  
+
   return true;
 };
 
@@ -231,16 +262,30 @@ const isManubriEsercizio = (ex) => {
   const noteAttr = String(ex.des_note_attrezzo || '').toLowerCase();
   const noteGen = String(ex.des_note_gen_attr || '').toLowerCase();
   const noteCoach = String(ex.des_note || '').toLowerCase();
-  return name.includes('manubri') || name.includes('manubrio') || 
-         noteAttr.includes('manubri') || noteAttr.includes('manubrio') ||
-         noteGen.includes('manubri') || noteGen.includes('manubrio') ||
-         noteCoach.includes('manubri') || noteCoach.includes('manubrio');
+  return name.includes('manubri') || name.includes('manubrio') ||
+    noteAttr.includes('manubri') || noteAttr.includes('manubrio') ||
+    noteGen.includes('manubri') || noteGen.includes('manubrio') ||
+    noteCoach.includes('manubri') || noteCoach.includes('manubrio');
 };
 
+// ✅ NUOVA LOGICA CON STEP 1,25 KG PER CAVI E PICCOLI CARICHI:
 const getWeightStep = (isManubri, baseWeight) => {
-  if (!isManubri) return 2.5;
   const p = parseFloat(baseWeight) || 0;
-  return p >= 10 ? 2.0 : 1.0;
+
+  // 1. Manubri (Step 1kg sotto i 10kg, Step 2kg sopra)
+  if (isManubri) {
+    return p >= 10 ? 2.0 : 1.0;
+  }
+
+  // 2. Cavi / Macchine / Isolamento piccoli muscoli
+  const isCavo = workout.value ? isCavoOMacchinaEsercizio(workout.value) : false;
+  if (isCavo || p < 15) {
+    // Per carichi bassi o esercizi ai cavi usiamo micro-incrementi da 1,25 kg
+    return 1.25;
+  }
+
+  // 3. Bilancieri e carichi grandi
+  return 2.5;
 };
 
 const getDumbbellSequenceWeight = (currentWeight, direction) => {
@@ -365,7 +410,7 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
       weightCalc = estimated1RM * getNSCAPercentage(repsW1Totali);
     }
     weightCalc = weightCalc * dateFactor;
-    
+
     if (isManubri) {
       if (weightCalc <= 10.0) {
         return Math.round(weightCalc);
@@ -411,15 +456,15 @@ const propostaWeek1 = {
     let baseRIR = null;
     let fatica = '';
     let baseWeekNum = null;
-    
+
     const isRepEx = isCorpoLiberoEsercizio(workout.value);
-    
+
     const prevW6Weight = previousWorkout.value.num_ins6;
     if (prevW6Weight && !isNaN(parseFloat(String(prevW6Weight).replace(',', '.')))) {
       const w6Val = parseFloat(String(prevW6Weight).replace(',', '.'));
       const w6InsText = previousWorkout.value.ins_week6 || '';
       const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(w6InsText);
-      
+
       basePeso = isRepEx && !haPesoEsplicito ? 0 : w6Val;
       baseReps = parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10;
       baseRIR = estraiRIRDaPrescrizione(previousWorkout.value.des_week6) !== null ? estraiRIRDaPrescrizione(previousWorkout.value.des_week6) : 0;
@@ -431,7 +476,7 @@ const propostaWeek1 = {
         if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
           const pesoStr = estraiPesoDaInput(val);
           const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(val);
-          
+
           if (pesoStr && (!isRepEx || haPesoEsplicito)) {
             basePeso = parseFloat(pesoStr);
             baseReps = parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
@@ -448,7 +493,7 @@ const propostaWeek1 = {
         }
       }
     }
-    
+
     if (isRepEx && baseWeekNum === null) {
       for (let w = 6; w >= 1; w--) {
         const val = previousWorkout.value['ins_week' + w];
@@ -461,7 +506,7 @@ const propostaWeek1 = {
         }
       }
     }
-    
+
     if (!isRepEx && (basePeso === null || isNaN(basePeso) || basePeso <= 0)) return { erroreCarichi: true };
     if (isRepEx && baseWeekNum === null) return { erroreCarichi: true };
     const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 10;
@@ -504,7 +549,7 @@ const calcolaIncrementoDinamicoMedio = (targetWeek) => {
   let conteggio = 0;
   for (let i = 0; i < pesiSettimanali.length - 1; i++) {
     const p1 = pesiSettimanali[i].peso;
-    const p2 = pesiSettimanali[i+1].peso;
+    const p2 = pesiSettimanali[i + 1].peso;
     if (p2 > p1) {
       sommaPercentuali += (p2 - p1) / p1;
       conteggio++;
@@ -530,7 +575,7 @@ const calcolaIncrementoDinamicoMedio = (targetWeek) => {
       }
       for (let i = 0; i < pesiEx.length - 1; i++) {
         const p1 = pesiEx[i];
-        const p2 = pesiEx[i+1];
+        const p2 = pesiEx[i + 1];
         if (p2 > p1) {
           storicoSommaPct += (p2 - p1) / p1;
           storicoConteggio++;
@@ -601,40 +646,40 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   if (!pesoStr) return null;
   const pesoBase = parseFloat(pesoStr);
   if (isNaN(pesoBase) || pesoBase <= 0) return null;
-  
+
   if (!consenteProgressioneIntensita(workout.value, targetWeek)) {
     return pesoBase;
   }
-  
+
   let repsBase = estraiRepsDaInput(baseInsText);
   if (repsBase === null || isNaN(repsBase) || repsBase <= 0) {
     repsBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
   }
   const repsTarget = workout.value['reps_week' + targetWeek] ? parseInt(workout.value['reps_week' + targetWeek], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10);
-  
+
   const rirBaseStr = estraiRIRDaPrescrizione(workout.value['des_week' + baseWeekNum]);
   const rirBase = rirBaseStr !== null ? rirBaseStr : getRIRDefault(baseWeekNum);
-  
+
   const rirTargetStr = estraiRIRDaPrescrizione(workout.value['des_week' + targetWeek]);
   const rirTarget = rirTargetStr !== null ? rirTargetStr : getRIRDefault(targetWeek);
-  
+
   const estimated1RM_fisso = pesoBase * (1 + (repsBase + rirBase) / 30);
   const pesoFisso = estimated1RM_fisso / (1 + (repsTarget + rirTarget) / 30);
-  
+
   const pctIncremento = calcolaIncrementoDinamicoMedio(targetWeek);
   const fattoreBase = 1 + (repsBase + rirBase) / 30;
   const fattoreTarget = 1 + (repsTarget + rirTarget) / 30;
   const pesoDinamico = pesoBase * (1 + pctIncremento) * (fattoreBase / fattoreTarget);
-  
+
   let proposedWeight;
   let ratioDinamico = 0.5;
   const repsTargetPrescritteBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
-  
+
   if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTargetPrescritteBase) {
     if (repsBase > repsTargetPrescritteBase) ratioDinamico = 0.8;
     else ratioDinamico = 0.2;
   }
-  
+
   if (modalitaIncrementoGhost.value === 'ibrida') {
     proposedWeight = (ratioDinamico * pesoDinamico) + ((1 - ratioDinamico) * pesoFisso);
   } else if (modalitaIncrementoGhost.value === 'dinamica') {
@@ -642,7 +687,7 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   } else {
     proposedWeight = pesoFisso;
   }
-  
+
   if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTargetPrescritteBase) {
     if (repsBase > repsTargetPrescritteBase) {
       const diffReps = repsBase - repsTargetPrescritteBase;
@@ -655,16 +700,16 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
       if (proposedWeight > pesoBase) proposedWeight = pesoBase;
     }
   }
-  
+
   if (isCorpoLiberoEsercizio(workout.value) && repsTarget > repsBase) {
     if (proposedWeight > pesoBase) proposedWeight = pesoBase;
   }
-  
+
   const isManubri = isManubriEsercizio(workout.value);
   const step = getWeightStep(isManubri, pesoBase);
-  
+
   proposedWeight = Math.round(proposedWeight / step) * step;
-  
+
   if (ghostPRAttackAttivo.value) {
     const recordVal = ottieniRecordStoricoPerReps(repsTarget);
     if (recordVal && recordVal > 0) {
@@ -673,7 +718,7 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
       }
     }
   }
-  
+
   return proposedWeight;
 };
 
@@ -707,9 +752,9 @@ const getGhostLiftStandard = (sett) => {
 
     const recordVal = sfidaRecordWeek1.value ? ottieniRecordStoricoPerReps(p.currReps) : null;
 
-    return { 
-      text: String(p.prevPeso), 
-      peso: p.prevPeso, 
+    return {
+      text: String(p.prevPeso),
+      peso: p.prevPeso,
       label: p.settimanaBase === 6 ? 'W6 Prec.' : `W${p.settimanaBase} Prec.`,
       isWeek1: true,
       isRepExercise: isRepEx,
@@ -837,7 +882,7 @@ const getGhostLiftStandard = (sett) => {
       const pesoStrBase = estraiPesoDaInput(baseIns);
       if (!pesoStrBase) return null;
       const pesoBase = parseFloat(pesoStrBase);
-      
+
       if (isWeek4Scarico.value) {
         const isManubri = isManubriEsercizio(workout.value);
         const step = getWeightStep(isManubri, pesoBase);
@@ -866,12 +911,12 @@ const getGhostLiftStandard = (sett) => {
             pesoProposto = pesoBase + incremento;
           }
         }
-        
+
         pesoProposto = Math.round(pesoProposto / step) * step;
         if (pesoProposto <= pesoBase) {
           pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
         }
-        
+
         if (ghostPRAttackAttivo.value) {
           const repsTarget = workout.value['reps_week5'] ? parseInt(workout.value['reps_week5'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week5']) || 10);
           const recordVal = ottieniRecordStoricoPerReps(repsTarget);
@@ -885,17 +930,17 @@ const getGhostLiftStandard = (sett) => {
         if (!consenteProgressioneIntensita(workout.value, 5)) {
           pesoProposto = pesoBase;
         }
-        
+
         const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
         const repsTarget = workout.value['reps_week' + 5] ? parseInt(workout.value['reps_week' + 5], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 5]) || 10);
-        
+
         if (isRepEx && repsTarget > repsBase) {
           return { text: baseIns, peso: pesoBase, label: baseW, isPostScarico: false, isRepExercise: true };
         }
-        
+
         return { text: baseIns, peso: pesoBase, label: baseW, isPostScarico: true, pesoProposto: pesoProposto, isRepExercise: isRepEx };
       }
-      
+
       if (isRepEx) return { text: baseIns, peso: 0, label: baseW, isRepExercise: true };
       const proposedVal = proponiProgressioneCaricoRIR(5, baseWNum, baseIns);
       return { text: baseIns, peso: proposedVal !== null ? proposedVal : pesoBase, label: baseW, isRepExercise: false };
@@ -910,10 +955,10 @@ const getGhostLiftStandard = (sett) => {
       const pesoStrBase = estraiPesoDaInput(baseIns);
       if (!pesoStrBase) return null;
       const pesoBase = parseFloat(pesoStrBase);
-      
+
       const isManubri = isManubriEsercizio(workout.value);
       const step = getWeightStep(isManubri, pesoBase);
-      
+
       let pesoProposto;
       if (modalitaIncrementoGhost.value === 'ibrida') {
         const pct = calcolaIncrementoDinamicoMedio(6);
@@ -939,7 +984,7 @@ const getGhostLiftStandard = (sett) => {
           pesoProposto = pesoBase + incremento;
         }
       }
-      
+
       pesoProposto = Math.round(pesoProposto / step) * step;
       if (pesoProposto <= pesoBase) {
         pesoProposto = pesoBase + (isManubri ? (pesoBase >= SOGLIA_FORZA_MANUBRI.value ? INCREMENTO_MANUBRI_FORTE.value : INCREMENTO_MANUBRI_LEGGERO.value) : 1.25);
@@ -958,14 +1003,14 @@ const getGhostLiftStandard = (sett) => {
       if (!consenteProgressioneIntensita(workout.value, 6)) {
         pesoProposto = pesoBase;
       }
-      
+
       const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
       const repsTarget = workout.value['reps_week' + 6] ? parseInt(workout.value['reps_week' + 6], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 6]) || 10);
-      
+
       if (isRepEx && repsTarget > repsBase) {
         return { text: baseIns, peso: pesoBase, label: baseW, isPostScarico: false, isRepExercise: true };
       }
-      
+
       return { text: baseIns, peso: pesoBase, label: baseW, isPostScarico: true, pesoProposto: pesoProposto, isRepExercise: isRepEx };
     }
 
@@ -998,13 +1043,13 @@ const getGhostLiftSmart = (sett) => {
 const getVolumeProgressionInfoForWeek = (sett) => {
   if (!workout.value) return { active: false };
   if (modalitaIncrementoGhost.value !== 'ibrida') return { active: false };
-  
+
   const info = getBaseWeekInfo(sett);
   if (!info || info.pesoBase === null) return { active: false };
-  
+
   const potenziale = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
   const prudenziale = getPesoPropostoDettaglioForWeek(sett);
-  
+
   if (potenziale !== null && prudenziale !== null && potenziale < prudenziale) {
     if (info.repsTarget > info.repsBase) {
       return {
@@ -1024,14 +1069,14 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   if (sett === 1) return propostaWeek1.value?.peso || null;
   const volInfo = getVolumeProgressionInfoForWeek(sett);
   if (volInfo.active) return volInfo.pesoBase;
-  
+
   const potenziale = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
   const prudenziale = getPesoPropostoDettaglioForWeek(sett);
   const isManubri = isManubriEsercizio(workout.value);
   const infoBase = getBaseWeekInfo(sett);
   const pesoBase = infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) ? infoBase.pesoBase : 0;
   const step = getWeightStep(isManubri, pesoBase);
-  
+
   let result;
   if (modalitaIncrementoGhost.value === 'fissa') {
     result = prudenziale !== null ? Math.round(prudenziale / step) * step : null;
@@ -1248,19 +1293,19 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
 
 async function run() {
   const collectionRef = db.collection('STORYBOARD');
-  
+
   console.log("--- GETTING ALL B5 HISTORY DOCUMENTS ---");
   const snap = await collectionRef
     .where('ID_cliente', '==', '1')
     .where('des_esercizio', '==', 'Push down con triangolo gomiti larghi')
     .get();
-    
+
   console.log(`Found ${snap.size} documents in B5 history:`);
   snap.forEach(doc => {
     const d = doc.data();
     console.log(`Sheet: ${d.num_scheda} | W1:${d.reps_week1} | W2:${d.reps_week2} | W3:${d.reps_week3} | W4:${d.reps_week4} | W5:${d.reps_week5} | W6:${d.reps_week6}`);
   });
-  
+
   process.exit(0);
 }
 

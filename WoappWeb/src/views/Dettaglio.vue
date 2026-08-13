@@ -481,7 +481,14 @@
             </v-col>
             <v-col cols="6">
               <div class="text-center">
-                <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">Max {{ getRepsPerWeek(settimanaAttiva) }} Reps</span>
+                <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
+  <template v-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
+    Max {{ getRepsPerWeek(settimanaAttiva) }} Reps
+  </template>
+  <template v-else>
+    Target {{ getRepsPerWeek(settimanaAttiva) }} Reps
+  </template>
+</span>
                 <span class="font-weight-black text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
                   <template v-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
                     <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
@@ -4438,25 +4445,29 @@ const ottieniRecordStoricoPerReps = (targetReps) => {
 };
 
 const calcolaE1RMSmorzato = (peso, reps, isCavoOMacchina) => {
+  if (!peso || peso <= 0) return 0;
   let repsEffettive = reps;
   if (reps > 10) {
-    repsEffettive = 10 + (reps - 10) * 0.5;
+    // Decadimento marcato oltre le 10 reps per riflettere la fatica lattacida reale
+    repsEffettive = 10 + (reps - 10) * 1.8; 
   }
   let e1rm = peso * (1 + repsEffettive / 30);
   if (isCavoOMacchina && reps > 8) {
-    e1rm *= 0.88;
+    e1rm *= 0.82; // Riduzione del 18% per macchine e cavi ad alte reps
   }
   return e1rm;
 };
 
 const calcolaPesoDaE1RMSmorzato = (e1rm, targetReps, isCavoOMacchina) => {
+  if (!e1rm || targetReps <= 0) return 0;
   let repsTargetEffettive = targetReps;
   if (targetReps > 10) {
-    repsTargetEffettive = 10 + (targetReps - 10) * 0.5;
+    // Aumenta la penalità di conversione quando si calcola un target per molte reps (es. 17 reps)
+    repsTargetEffettive = 10 + (targetReps - 10) * 1.8;
   }
   let pesoStimato = e1rm / (1 + repsTargetEffettive / 30);
   if (isCavoOMacchina && targetReps > 8) {
-    pesoStimato *= 0.92;
+    pesoStimato *= 0.82;
   }
   return pesoStimato;
 };
@@ -10114,6 +10125,9 @@ function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
   
+  // Rimuove QUALSIASI contenuto tra parentesi tonde (...) per evitare che note o impostazioni influenzino i calcoli
+  clean = clean.replace(/\([^)]*\)/g, ' ').trim();
+
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
@@ -10200,6 +10214,9 @@ function estraiPesoDaInput(str) {
   
   let clean = String(str).replace(/,/g, '.').trim();
   
+  // Rimuove QUALSIASI contenuto tra parentesi tonde (...) per escludere note ed impostazioni dai calcoli
+  clean = clean.replace(/\([^)]*\)/g, ' ').trim();
+  
   // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
 
@@ -10207,8 +10224,8 @@ function estraiPesoDaInput(str) {
   // per evitare che la scala di sforzo percepito interferisca con l'estrazione del carico in KG
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
   
-  // Rimuove espressioni di impostazioni/metadati (es. "PIN 12", "buco 3") per evitare che interferiscano
-  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.)\b\s*\d+(?:\.\d+)?/gi;
+  // Rimuove espressioni di impostazioni/metadati (es. "PIN 12", "buco 3", "sedile 15", "sedile a 15")
+  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.|sedile|schienale|poggiapiede|poggiapiedi|schiena|rullo|perno|distanza|ampiezza|impugnatura|presa|busto|manubrio|cavo|puleggia|tacchetta|tacchette)\b\s*(?:a\s*)?\d+(?:\.\d+)?/gi;
   clean = clean.replace(cleanSettingsRegex, '').trim();
   
   // Rimuove gradi (es. "30°")
@@ -10243,7 +10260,10 @@ function estraiPesoDaInput(str) {
     'regolazione', 'tacc', 'tassello', 'tavoletta', 'board', 'catena', 'catene', 'elastico', 
     'elastici', 'blocco', 'blocchi', 'box', 'serie', 'set', 'sets', 'reps', 'rep', 
     'ripetizioni', 'rip', 'colpi', 'colpo', 'giro', 'giri', 'circuiti', 'circuito', 
-    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo', 'tut', 't.u.t.'
+    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo', 'tut', 't.u.t.',
+    'sedile', 'schienale', 'poggiapiede', 'poggiapiedi', 'schiena', 'rullo', 'perno', 
+    'distanza', 'ampiezza', 'impugnatura', 'presa', 'busto', 'manubrio', 'cavo', 'puleggia',
+    'sopra', 'sotto'
   ];
   
   // Stopwords da ignorare prima del numero per trovare il prefisso reale
@@ -10251,6 +10271,14 @@ function estraiPesoDaInput(str) {
     'a', 'di', 'su', 'in', 'da', 'alla', 'al', 'del', 'della', 'n', 'n.', 'num', 
     'num.', 'n°', 'pos', 'pos.', '#', ':', '::', '@', 'at', 'con', 'e', 'o', 'per'
   ];
+
+  // Helper per verificare se l'indice cade all'interno di parentesi tonde (...)
+  const isInsideParentheses = (fullStr, index) => {
+    const openIdx = fullStr.lastIndexOf('(', index);
+    if (openIdx === -1) return false;
+    const closeIdx = fullStr.indexOf(')', openIdx);
+    return closeIdx > index;
+  };
   
   while ((match = numberRegex.exec(clean)) !== null) {
     const numStr = match[0];
@@ -10263,10 +10291,12 @@ function estraiPesoDaInput(str) {
     // 1. Analisi del Suffisso (quello che segue il numero)
     const suffixStr = clean.substring(endIdx);
     const suffixClean = suffixStr.trim();
+    const isExplicitKg = suffixClean.toLowerCase().startsWith('k');
+    const insideParens = isInsideParentheses(clean, startIdx);
     
     // Se c'è esplicitamente "kg" dopo il numero (es. "10kg", "10 kg", "10 k"), lo accettiamo sempre come peso
-    if (suffixClean.toLowerCase().startsWith('k')) {
-      validWeights.push(numVal);
+    if (isExplicitKg) {
+      validWeights.push({ val: numVal, hasKg: true, isOutside: !insideParens, idx: startIdx });
       continue;
     }
     
@@ -10286,7 +10316,6 @@ function estraiPesoDaInput(str) {
     }
     
     // Esclusioni standard per il suffisso (es. "/", "%", "rpe", "sec", "min", ecc.)
-    // NOTA: NON usare startsWith('s') o startsWith('m') perché cattura parole come "molto", "su", "si", ecc.
     if (suffixToken) {
       const suffixExclusions = ['/', '%', 'rpe', 'sec', 'secondi', 'secondo', 'min', 'minuti', 'minuto', 'metri', 'metro'];
       if (suffixToken.startsWith('/') || suffixExclusions.includes(suffixToken) || (suffixToken === 's' || suffixToken === 'm')) {
@@ -10316,11 +10345,24 @@ function estraiPesoDaInput(str) {
       }
     }
     
-    validWeights.push(numVal);
+    validWeights.push({ val: numVal, hasKg: false, isOutside: !insideParens, idx: startIdx });
   }
   
   if (validWeights.length > 0) {
-    return String(Math.max(...validWeights));
+    // 1. Se ci sono pesi con 'kg' esplicito, usiamo il massimo tra essi
+    const withKg = validWeights.filter(w => w.hasKg);
+    if (withKg.length > 0) {
+      return String(Math.max(...withKg.map(w => w.val)));
+    }
+
+    // 2. Se ci sono pesi fuori dalle parentesi, ignoriamo quelli dentro le parentesi
+    const outside = validWeights.filter(w => w.isOutside);
+    if (outside.length > 0) {
+      return String(Math.max(...outside.map(w => w.val)));
+    }
+
+    // 3. Fallback: massimo di tutti i pesi validi trovati
+    return String(Math.max(...validWeights.map(w => w.val)));
   }
   
   return null;

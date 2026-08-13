@@ -945,7 +945,7 @@
                 </span>
               </div>
               <p class="text-super-caption text-slate-light mb-1.5" style="font-size: 0.65rem; line-height: 1.35; color: #cbd5e1 !important;">
-                Il salto da {{ formatWeight(avvisoSaltoCaricoRIR.pesoBase) }}kg a {{ formatWeight(avvisoSaltoCaricoRIR.pesoConsigliato) }}kg considera il tuo record storico ({{ formatWeight(avvisoSaltoCaricoRIR.prWeight) }}kg) e la riduzione del buffer RIR (da RIR {{ avvisoSaltoCaricoRIR.rirW1 }} a RIR {{ avvisoSaltoCaricoRIR.rirCurr }}). Se cerchi un rientro graduale puoi usare l'opzione <strong>Graduale ({{ formatWeight(avvisoSaltoCaricoRIR.pesoGraduale) }} kg)</strong>.
+                Il salto da {{ formatWeight(avvisoSaltoCaricoRIR.pesoBase) }}kg a {{ formatWeight(avvisoSaltoCaricoRIR.pesoConsigliato) }}kg considera il tuo{{ avvisoSaltoCaricoRIR.prText }} la riduzione del buffer RIR (da RIR {{ avvisoSaltoCaricoRIR.rirW1 }} a RIR {{ avvisoSaltoCaricoRIR.rirCurr }}). Se cerchi un rientro graduale puoi usare l'opzione <strong>Graduale ({{ formatWeight(avvisoSaltoCaricoRIR.pesoGraduale) }} kg)</strong>.
               </p>
             </div>
 
@@ -5353,7 +5353,7 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     }
   }
 
-  // Salvaguardia Incremento Massimo: Previene salti di carico irrealistici da storici remoti (es. 58kg -> 70kg)
+  // Salvaguardia Incremento Massimo: Previene salti di carico irrealistici da storici remoti (es. 58kg -> 72.5kg)
   if (pesoBase > 0 && result !== null) {
     const repsTarget = infoBase ? infoBase.repsTarget : getRepsPerWeek(sett);
     const repsBase = infoBase ? infoBase.repsBase : 10;
@@ -5368,8 +5368,11 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
       }
     }
 
-    const maxIncrementoPct = isManubri ? 0.10 : (isCavoOMacchinaEsercizio(workout.value) ? 0.08 : 0.10);
-    const maxPesoAccettabile = Math.max(pesoRiferimentoEffettivo + step, Math.round((pesoRiferimentoEffettivo * (1 + maxIncrementoPct)) / step) * step);
+    const maxIncrementoPct = isManubri ? 0.08 : (isCavoOMacchinaEsercizio(workout.value) ? 0.05 : 0.08);
+    const maxPesoAccettabile = Math.max(
+      pesoRiferimentoEffettivo + step, 
+      Math.floor((pesoRiferimentoEffettivo * (1 + maxIncrementoPct)) / step) * step
+    );
     if (result > maxPesoAccettabile) {
       result = maxPesoAccettabile;
     }
@@ -5987,6 +5990,7 @@ const avvisoSaltoCaricoRIR = computed(() => {
   // Rileva salto significativo di carico (>= 2 step o >= 25%)
   if (pesoConsigliato >= pesoBase + (2 * step)) {
     const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
+    const prText = (prWeight > pesoBase) ? ` record storico (${formatWeight(prWeight)}kg) e` : '';
     const rirW1 = estraiRIRDaPrescrizione(workout.value['des_week' + (infoBase.baseWNum || 1)]) ?? getRIRDefault(infoBase.baseWNum || 1);
     const rirCurr = estraiRIRDaPrescrizione(workout.value['des_week' + sett]) ?? getRIRDefault(sett);
     const pesoGraduale = pesoBase + step;
@@ -5996,6 +6000,7 @@ const avvisoSaltoCaricoRIR = computed(() => {
       pesoConsigliato,
       diff: Math.round((pesoConsigliato - pesoBase) * 10) / 10,
       prWeight,
+      prText,
       rirW1,
       rirCurr,
       pesoGraduale

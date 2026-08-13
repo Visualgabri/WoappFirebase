@@ -873,8 +873,18 @@
               <div class="d-flex flex-column text-left">
                 <!-- RIGA 1: Carico Consigliato + Badge / Icone -->
                 <div class="d-flex align-center justify-space-between w-100">
-                  <div class="d-flex align-center gap-1.5 min-width-0">
-                    <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" :color="getGhostRenderInfo(sett).color">
+                  <div 
+                    class="d-flex align-center gap-1.5 min-width-0 cursor-pointer"
+                    style="user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;"
+                    @pointerdown="startGhostLongPress(sett, $event)"
+                    @pointerup="cancelGhostLongPress"
+                    @pointerleave="cancelGhostLongPress"
+                    @pointercancel="cancelGhostLongPress"
+                    @contextmenu.prevent
+                    @click="handleGhostClick(sett)"
+                    :title="getGhostRenderInfo(sett).deltaW1 ? 'Tieni premuto per vedere l’incremento vs W1' : ''"
+                  >
+                    <v-icon :size="layoutCorrente === 'super_compatto' ? 12 : 14" :color="getGhostRenderInfo(sett).color" class="flex-shrink-0">
                       {{ getGhostRenderInfo(sett).icon }}
                     </v-icon>
                     
@@ -882,14 +892,8 @@
                       {{ getGhostRenderInfo(sett).label }}
                     </span>
                     
-                    <span class="text-green-accent-3 font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.85rem' }">
+                    <span class="text-green-accent-3 font-weight-black text-no-wrap flex-shrink-0" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.85rem' }">
                       {{ getGhostRenderInfo(sett).valueText }}
-                    </span>
-
-                    <span v-if="getGhostRenderInfo(sett).deltaW1" 
-                          class="rounded px-1 py-0.2 ml-1 font-weight-black text-no-wrap flex-shrink-0"
-                          :style="getGhostRenderInfo(sett).deltaW1.style + (layoutCorrente === 'super_compatto' ? 'font-size: 0.50rem; line-height: 1.1;' : 'font-size: 0.58rem; line-height: 1.15;')">
-                      {{ getGhostRenderInfo(sett).deltaW1.text }}
                     </span>
                   </div>
                   
@@ -1816,6 +1820,22 @@
       <div class="d-flex align-center justify-center font-weight-black py-0 px-0.5" style="font-size: 0.65rem; gap: 4px;">
         <v-icon size="11">mdi-check-circle</v-icon>
         <span>{{ snackbarMessaggio || 'Salvato' }}</span>
+      </div>
+    </v-snackbar>
+
+    <!-- Snackbar Info Ghost Long-Press / Progression -->
+    <v-snackbar
+      v-model="snackbarGhostShow"
+      :color="snackbarGhostColor"
+      timeout="3500"
+      rounded="xl"
+      elevation="4"
+      location="top"
+      style="margin: 12px auto 0;"
+    >
+      <div class="d-flex align-center justify-center font-weight-black py-0.5 px-1" style="font-size: 0.72rem; gap: 6px;">
+        <v-icon size="14">mdi-trending-up</v-icon>
+        <span>{{ snackbarGhostMessaggio }}</span>
       </div>
     </v-snackbar>
 
@@ -2837,9 +2857,17 @@
                 <div class="pa-3 rounded-xl text-left border position-relative overflow-hidden" 
                      style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.35) !important;">
                   <div class="d-flex align-center justify-space-between mb-1">
-                    <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
-                      💡 CARICO CONSIGLIATO
-                    </span>
+                    <div class="d-flex align-center gap-1.5 flex-wrap">
+                      <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
+                        💡 CARICO CONSIGLIATO
+                      </span>
+                      <span v-if="getGhostRenderInfo(aiutoWeek)?.deltaW1" 
+                            class="rounded px-1.5 py-0.2 font-weight-black text-no-wrap"
+                            :style="getGhostRenderInfo(aiutoWeek).deltaW1.style"
+                            style="font-size: 0.58rem; line-height: 1.15;">
+                        {{ getGhostRenderInfo(aiutoWeek).deltaW1.text }}
+                      </span>
+                    </div>
                     <v-chip v-if="analizzaRecordSettimana(aiutoWeek)?.stato === 'record'" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.5rem; height: 16px;">
                       🏆 RECORD
                     </v-chip>
@@ -6063,6 +6091,54 @@ const getGhostRenderInfo = (sett) => {
   }
 
   return { icon, color, label, valueText, hasReference, maxEffortNotice, deltaW1 };
+};
+
+// Long-press Ghost & Progression Info
+let ghostLongPressTimer = null;
+let isGhostLongPressTriggered = false;
+const snackbarGhostShow = ref(false);
+const snackbarGhostMessaggio = ref('');
+const snackbarGhostColor = ref('success');
+
+const triggerGhostInfo = (sett) => {
+  vibraTattile(20);
+  const info = getGhostRenderInfo(sett);
+  if (!info) return;
+
+  if (info.deltaW1) {
+    const d = info.deltaW1;
+    const diffKgStr = (d.kg !== undefined && d.kg !== null) ? `${d.kg > 0 ? '+' : ''}${d.kg} kg` : '';
+    snackbarGhostMessaggio.value = `📈 Progressione W${sett}: ${d.text} (${diffKgStr} vs W1)`;
+    snackbarGhostColor.value = d.pct > 0 ? '#15803d' : (d.pct === 0 ? '#475569' : '#b45309');
+  } else {
+    snackbarGhostMessaggio.value = `🎯 Target W${sett}: ${info.valueText || ''} (${info.label || ''})`;
+    snackbarGhostColor.value = '#0284c7';
+  }
+  snackbarGhostShow.value = true;
+};
+
+const startGhostLongPress = (sett, event) => {
+  isGhostLongPressTriggered = false;
+  cancelGhostLongPress();
+  ghostLongPressTimer = setTimeout(() => {
+    isGhostLongPressTriggered = true;
+    triggerGhostInfo(sett);
+  }, 350);
+};
+
+const cancelGhostLongPress = () => {
+  if (ghostLongPressTimer) {
+    clearTimeout(ghostLongPressTimer);
+    ghostLongPressTimer = null;
+  }
+};
+
+const handleGhostClick = (sett) => {
+  if (isGhostLongPressTriggered) {
+    isGhostLongPressTriggered = false;
+    return;
+  }
+  triggerGhostInfo(sett);
 };
 
 const applicaPropostaCaricoRapida = (sett, peso) => {

@@ -4540,7 +4540,6 @@ const stimaRecordStoricoPerReps = (targetReps) => {
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
   
   let best1RM = 0;
-  let maxWeightRealLogged = 0;
 
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
@@ -4551,7 +4550,6 @@ const stimaRecordStoricoPerReps = (targetReps) => {
       if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
         const perf = estraiMigliorPrestazioneInput(insVal, getRepsForWeek(w, prevEx) || targetReps, isCavo);
         if (perf) {
-          if (perf.peso > maxWeightRealLogged) maxWeightRealLogged = perf.peso;
           if (perf.e1rm > best1RM) {
             best1RM = perf.e1rm;
           }
@@ -4562,8 +4560,9 @@ const stimaRecordStoricoPerReps = (targetReps) => {
 
   if (best1RM > 0) {
     let estimatedWeight = calcolaPesoDaE1RMSmorzato(best1RM, targetReps, isCavo);
-    if (maxWeightRealLogged > 0 && estimatedWeight > maxWeightRealLogged * 1.25) {
-      estimatedWeight = maxWeightRealLogged * 1.25;
+    // Per alte ripetizioni (> 10 reps), il peso stimato non deve mai superare il 65% dell'e1RM di riferimento
+    if (targetReps > 10 && estimatedWeight > best1RM * 0.65) {
+      estimatedWeight = best1RM * 0.60;
     }
     return Math.round(estimatedWeight * 10) / 10;
   }
@@ -4689,10 +4688,19 @@ const getRiferimentoSfidaRecord = (sett) => {
   const massimaleRaw = massimaleInfo ? massimaleInfo.best1RM : 0;
   const massimale1RM = massimaleRaw > 0 ? arrotondaAStep125(massimaleRaw) : null;
 
-  const pesoMassimo = Math.max(
+  let pesoMassimo = Math.max(
     recordEsatto || 0,
     recordStimato || 0
   );
+
+  // Se la ricerca per reps elevate (>10) non ha un record esatto a quelle reps,
+  // limita il peso massimo stimato al 65% dell'1RM assoluto per evitare target esagerati
+  if (!recordEsatto && massimaleRaw > 0 && repsTarget > 10) {
+    const capAlteReps = massimaleRaw * 0.65;
+    if (pesoMassimo > capAlteReps) {
+      pesoMassimo = capAlteReps;
+    }
+  }
 
   if (pesoMassimo <= 0) return null;
 

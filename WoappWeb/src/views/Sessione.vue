@@ -8,7 +8,18 @@
       <h3 class="text-subtitle-2 font-weight-black text-slate-dark text-truncate">
         Dettaglio Sessione
       </h3>
-      <v-btn icon color="slate-dark" variant="text" @click="caricaDati" size="small"><v-icon size="18">mdi-refresh</v-icon></v-btn>
+      <v-btn
+        icon
+        color="orange-darken-3"
+        variant="text"
+        @click="vaiAdEsercizioSuccessivo"
+        id="btn-sessione-avanti"
+        size="small"
+        :disabled="eserciziDelGiorno.length === 0"
+        title="Vai al primo esercizio"
+      >
+        <v-icon size="26">mdi-arrow-right</v-icon>
+      </v-btn>
     </div>
 
     <transition :name="transitionName" mode="out-in">

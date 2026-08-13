@@ -482,14 +482,17 @@
             <v-col cols="6">
               <div class="text-center">
                 <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem' }">
-  <template v-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
-    Max {{ getRepsPerWeek(settimanaAttiva) }} Reps
-  </template>
-  <template v-else>
-    Target {{ getRepsPerWeek(settimanaAttiva) }} Reps
-  </template>
-</span>
-                <span class="font-weight-black text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                  <template v-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
+                    Max {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                  </template>
+                  <template v-else-if="currentWeekLoggedWeight">
+                    Record {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                  </template>
+                  <template v-else>
+                    Target {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                  </template>
+                </span>
+                <span class="font-weight-black" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), currentWeekLoggedWeight ? 'text-green-accent-3' : 'text-amber-lighten-1']">
                   <template v-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
                     <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
                       {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record) }}
@@ -503,6 +506,10 @@
                         ({{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) }})
                       </span>
                     </template>
+                  </template>
+                  <template v-else-if="currentWeekLoggedWeight">
+                    {{ formatWeight(currentWeekLoggedWeight) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                    <span class="text-super-caption text-green-lighten-3 ml-1" style="font-size: 0.58rem;">(questa scheda)</span>
                   </template>
                   <template v-else-if="isCorpoLiberoEsercizio(workout) && (!suggerimentoRecord || !suggerimentoRecord.recordHasWeight)">
                     🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
@@ -654,63 +661,7 @@
         </div>
       </v-card>
 
-      <!-- 3. Note Coach, Setup Attrezzo e Tecnica (Unificati e Compatti) -->
-      <v-card
-        v-if="workout && ((workout.des_note && String(workout.des_note).trim()) || (workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()) || (workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()) || (workout.des_estesa_start && String(workout.des_estesa_start).trim()))"
-        class="text-left border d-flex flex-column card-glass mb-3 coaching-notes-box"
-        :class="layoutCorrente === 'super_compatto' ? 'pa-2' : (layoutCorrente === 'compatto' ? 'pa-2.5' : 'pa-3')"
-        :style="{
-          background: 'var(--card-bg-soft) !important',
-          border: '1px solid var(--card-border) !important',
-          borderLeft: '3px solid var(--brand-accent, #f97316) !important',
-          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '10px !important')
-        }"
-      >
-        <!-- Note Coach -->
-        <div v-if="workout.des_note && String(workout.des_note).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_note_attrezzo || workout.des_note_gen_attr || workout.des_estesa_start}">
-          <v-icon color="orange-darken-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-information-outline</v-icon>
-          <span class="text-slate-dark font-weight-bold" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.68rem' : '0.72rem', lineHeight: 1.35 }">
-            {{ String(workout.des_note).trim() }}
-          </span>
-        </div>
-
-        <!-- Note Attrezzo -->
-        <div v-if="workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_note_gen_attr || workout.des_estesa_start, 'mt-1.5 pt-1.5 border-top-soft': workout.des_note}">
-           <v-icon color="grey-darken-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-wrench-outline</v-icon>
-           <div class="text-slate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
-             <strong class="text-orange-darken-2 uppercase" style="font-size: 0.60rem;">Setup:</strong> {{ String(workout.des_note_attrezzo).trim() }}
-           </div>
-        </div>
-
-        <!-- Note Generali Macchinario -->
-        <div v-if="workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()" class="d-flex align-start" :class="{'mb-1.5': workout.des_estesa_start, 'mt-1.5 pt-1.5 border-top-soft': workout.des_note || workout.des_note_attrezzo}">
-           <v-icon color="grey-darken-1" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cogs</v-icon>
-           <div class="text-slate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
-             <strong class="text-orange-darken-2 uppercase" style="font-size: 0.60rem;">Macchina:</strong> {{ String(workout.des_note_gen_attr).trim() }}
-           </div>
-        </div>
-
-        <!-- Esecuzione / ROM -->
-        <div v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()" class="d-flex align-start" :class="{'mt-1.5 pt-1.5 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr}">
-          <v-icon color="orange-darken-2" class="mr-2 flex-shrink-0 mt-0.5" size="14">mdi-cog-play-outline</v-icon>
-          <div class="text-slate" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.70rem', lineHeight: 1.35 }">
-            <strong class="text-orange-darken-2 uppercase" style="font-size: 0.60rem;">Tecnica/ROM:</strong> {{ getDescrizioneBreve(workout.des_estesa_start) }}
-          </div>
-        </div>
-      </v-card>
-
       <div class="weeks-stacked-list mb-4">
-        <!-- Nota Esponenti (Ripetizioni di Riserva RIR) Super Compatta -->
-         <div
-          v-if="haEsponenti"
-          class="d-flex align-center text-left mb-2 px-2"
-        >
-          <v-icon color="orange-lighten-2" class="mr-1.5 flex-shrink-0" size="14">mdi-information-outline</v-icon>
-          <div class="text-slate-light font-weight-medium" style="font-size: 0.65rem; line-height: 1.2;">
-            <strong class="text-orange-lighten-2">RIR:</strong> Il numero ad esponente (es. 8²) indica le ripetizioni di margine da tenere prima del cedimento.
-          </div>
-        </div>
-
         <template v-for="sett in settimaneVisualizzate" :key="sett">
         <v-card
           class="week-log-card border transition-all"
@@ -726,6 +677,77 @@
           ]"
           elevation="1"
         >
+          <!-- Header Integrato Note Coach, Setup Attrezzo, Macchina e RIR (solo sulla settimana attiva) -->
+          <div
+            v-if="sett === settimanaAttiva && ((workout.des_note && String(workout.des_note).trim()) || (workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()) || (workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()) || (workout.des_estesa_start && String(workout.des_estesa_start).trim()) || haEsponenti)"
+            class="coaching-integrated-header mb-2.5 pa-2 rounded-lg"
+            :style="{
+              background: 'rgba(249, 115, 22, 0.07)',
+              border: '1px solid rgba(249, 115, 22, 0.25)',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2)'
+            }"
+          >
+            <!-- 1. Setup Attrezzo (evidente e ingrandito) -->
+            <div v-if="workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()" class="d-flex align-center gap-1.5 py-0.5">
+              <v-icon color="orange-darken-1" size="16" class="flex-shrink-0">mdi-wrench</v-icon>
+              <div class="text-slate-100 font-weight-bold" style="font-size: 0.76rem; line-height: 1.3;">
+                <span class="text-orange-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.66rem; letter-spacing: 0.04em;">SETUP:</span>
+                <span class="text-white font-weight-black">{{ String(workout.des_note_attrezzo).trim() }}</span>
+              </div>
+            </div>
+
+            <!-- 2. Note Coach -->
+            <div
+              v-if="workout.des_note && String(workout.des_note).trim()"
+              class="d-flex align-start gap-1.5 py-0.5"
+              :class="{'mt-1 pt-1 border-top-soft': workout.des_note_attrezzo}"
+            >
+              <v-icon color="orange-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-information-outline</v-icon>
+              <div class="text-slate-100 font-weight-medium" style="font-size: 0.74rem; line-height: 1.35;">
+                <span class="text-orange-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">COACH:</span>
+                <span>{{ String(workout.des_note).trim() }}</span>
+              </div>
+            </div>
+
+            <!-- 3. Note Macchina -->
+            <div
+              v-if="workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()"
+              class="d-flex align-start gap-1.5 py-0.5"
+              :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo}"
+            >
+              <v-icon color="cyan-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-cogs</v-icon>
+              <div class="text-slate-200 font-weight-medium" style="font-size: 0.72rem; line-height: 1.3;">
+                <span class="text-cyan-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">MACCHINA:</span>
+                <span>{{ String(workout.des_note_gen_attr).trim() }}</span>
+              </div>
+            </div>
+
+            <!-- 4. Tecnica / ROM -->
+            <div
+              v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()"
+              class="d-flex align-start gap-1.5 py-0.5"
+              :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr}"
+            >
+              <v-icon color="amber-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-cog-play-outline</v-icon>
+              <div class="text-slate-200 font-weight-medium" style="font-size: 0.72rem; line-height: 1.35;">
+                <span class="text-amber-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">TECNICA/ROM:</span>
+                <span>{{ getDescrizioneBreve(workout.des_estesa_start) }}</span>
+              </div>
+            </div>
+
+            <!-- 5. RIR (se presenti esponenti) -->
+            <div
+              v-if="haEsponenti"
+              class="d-flex align-start gap-1.5 py-0.5"
+              :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr || workout.des_estesa_start}"
+            >
+              <v-icon color="blue-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-information-outline</v-icon>
+              <div class="text-slate-200 font-weight-medium" style="font-size: 0.70rem; line-height: 1.3;">
+                <span class="text-blue-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">RIR:</span>
+                <span>Il numero ad esponente (es. 8²) indica le ripetizioni di margine da tenere prima del cedimento.</span>
+              </div>
+            </div>
+          </div>
           <!-- Intestazione della Settimana -->
           <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
             <div class="d-flex align-center">
@@ -4589,11 +4611,11 @@ const calcolaDettaglioMassimale1RMPuro = () => {
   let bestSource = null;
 
   if (storicoEsercizio.value && storicoEsercizio.value.length) {
+    // 1. Priorità: miglior carico numerico registrato nella week 6 (num_ins6 / ins_week6)
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
       if (!isNaN(sNum) && sNum >= currentNumScheda) return;
 
-      // REQUIREMENT 3: Massimale calcolato esclusivamente utilizzando il miglior carico numerico registrato nella week 6 (num_ins6 / ins_week6)
       const pesoW6Str = (prevEx.ins_week6 ? estraiPesoDaInput(prevEx.ins_week6) : null) || (prevEx.num_ins6 ? estraiPesoDaInput(prevEx.num_ins6) : null);
       if (pesoW6Str) {
         const weight = parseFloat(pesoW6Str);
@@ -4623,6 +4645,47 @@ const calcolaDettaglioMassimale1RMPuro = () => {
         }
       }
     });
+
+    // 2. Fallback: se in Week 6 non c'è nulla, cerca il miglior 1RM tra tutte le settimane W1-W6 delle schede precedenti
+    if (best1RM === 0) {
+      storicoEsercizio.value.forEach(prevEx => {
+        const sNum = parseInt(prevEx.num_scheda);
+        if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+        for (let w = 1; w <= 6; w++) {
+          const val = prevEx['ins_week' + w];
+          if (val) {
+            const pesoStr = estraiPesoDaInput(val);
+            if (pesoStr) {
+              const weight = parseFloat(pesoStr);
+              if (!isNaN(weight) && weight > 0) {
+                const repsVal = prevEx['reps_week' + w];
+                let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+                const inputReps = estraiRepsDaInput(val);
+                if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
+                  repsNum = inputReps;
+                }
+                if (!repsNum) repsNum = 6;
+
+                const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
+                if (e1rm > best1RM) {
+                  best1RM = e1rm;
+                  const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+                  bestSource = {
+                    id: prevEx.id || prevEx.num_riga,
+                    peso: weight,
+                    reps: repsNum,
+                    fatica: prevEx['num_faticaw' + w] || null,
+                    numScheda: prevEx.num_scheda,
+                    date: dEx,
+                    tempoTrascorso: tempoTrascorsoBreve(dEx)
+                  };
+                }
+              }
+            }
+          }
+        }
+      });
+    }
   }
 
   // Se la scheda corrente ha un caricamento registrato in week 6
@@ -4678,7 +4741,10 @@ const getRiferimentoSfidaRecord = (sett) => {
       if (insVal) {
         const perf = estraiMigliorPrestazioneInput(insVal, getRepsPerWeek(w), isCavo);
         if (perf) {
-          const estW = calcolaPesoDaE1RMSmorzato(perf.e1rm, repsTarget, isCavo);
+          let estW = calcolaPesoDaE1RMSmorzato(perf.e1rm, repsTarget, isCavo);
+          if (repsTarget > 10 && estW > perf.e1rm * 0.65) {
+            estW = perf.e1rm * 0.60;
+          }
           if (estW > stimaDaSchedaCorrente) {
             stimaDaSchedaCorrente = estW;
           }
@@ -4698,10 +4764,35 @@ const getRiferimentoSfidaRecord = (sett) => {
     recordStimato || 0
   );
 
-  // Se la ricerca per reps elevate (>10) non ha un record esatto a quelle reps,
-  // limita il peso massimo stimato al 65% dell'1RM assoluto per evitare target esagerati
-  if (!recordEsatto && massimaleRaw > 0 && repsTarget > 10) {
-    const capAlteReps = massimaleRaw * 0.65;
+  // SANITY CHECK IMPERATIVO CONTRO IL MASSIMALE ASSOLUTO:
+  const absGenWeight = (suggerimentoRecord.value && suggerimentoRecord.value.recordAbsolute > 0)
+    ? suggerimentoRecord.value.recordAbsolute
+    : (massimaleInfo?.bestSource?.peso || 0);
+  const absGenReps = (suggerimentoRecord.value && suggerimentoRecord.value.recordAbsoluteReps > 0)
+    ? suggerimentoRecord.value.recordAbsoluteReps
+    : (massimaleInfo?.bestSource?.reps || 0);
+
+  if (absGenWeight > 0) {
+    // 1. Se il target richiede un numero di ripetizioni >= alle ripetizioni del record assoluto,
+    // il carico target stimato non può MAI essere maggiore o uguale al carico del Max Assoluto
+    if (repsTarget >= absGenReps && pesoMassimo >= absGenWeight) {
+      const e1rmAbs = calcolaE1RMSmorzato(absGenWeight, absGenReps, isCavo);
+      const estDaAbs = calcolaPesoDaE1RMSmorzato(e1rmAbs, repsTarget, isCavo);
+      pesoMassimo = Math.min(pesoMassimo, estDaAbs > 0 ? estDaAbs : absGenWeight - getWeightStep(false, absGenWeight));
+    }
+    // 2. In ogni caso, il carico stimato non deve eccedere la curva teorica 1RM del Max Assoluto
+    const e1rmAbs = calcolaE1RMSmorzato(absGenWeight, absGenReps || 6, isCavo);
+    const maxConsentito = calcolaPesoDaE1RMSmorzato(e1rmAbs, repsTarget, isCavo);
+    if (maxConsentito > 0 && pesoMassimo > maxConsentito) {
+      pesoMassimo = maxConsentito;
+    }
+  }
+
+  // 3. Se la ricerca per reps elevate (>10) non ha un record esatto a quelle reps,
+  // limita il peso massimo stimato al 65% dell'1RM assoluto/di riferimento per evitare target esagerati
+  const bestRef1RM = Math.max(massimaleRaw || 0, absGenWeight > 0 ? calcolaE1RMSmorzato(absGenWeight, absGenReps || 6, isCavo) : 0);
+  if (!recordEsatto && bestRef1RM > 0 && repsTarget > 10) {
+    const capAlteReps = bestRef1RM * 0.65;
     if (pesoMassimo > capAlteReps) {
       pesoMassimo = capAlteReps;
     }
@@ -4762,7 +4853,7 @@ const analizzaRecordSettimana = (sett) => {
       tipo: tipoValutato,
       peso: pesoDaValutare,
       record: recordVal,
-      diff: pesoDaValutare - recordVal,
+      diff: Math.round((pesoDaValutare - recordVal) * 10) / 10,
       targetReps
     };
   } else if (pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5) {
@@ -4771,7 +4862,7 @@ const analizzaRecordSettimana = (sett) => {
       tipo: tipoValutato,
       peso: pesoDaValutare,
       record: recordVal,
-      diff: recordVal - pesoDaValutare,
+      diff: Math.round((recordVal - pesoDaValutare) * 10) / 10,
       targetReps
     };
   }
@@ -7273,7 +7364,14 @@ const isCavoOMacchinaEsercizio = (ex) => {
   const noteCoach = String(ex.des_note || '').toLowerCase();
   const insEsercizio = String(ex.ins_esercizio || '').toLowerCase();
 
-  const keywords = ['cavo', 'cavi', 'cable', 'pulley', 'ercolina', 'pushdown', 'pulldown', 'lat machine', 'macchina', 'leg extension', 'leg curl', 'pressa', 'guided'];
+  const keywords = [
+    'cavo', 'cavi', 'cable', 'pulley', 'ercolina', 
+    'pushdown', 'push down', 'push-down', 
+    'pulldown', 'pull down', 'pull-down', 
+    'lat machine', 'macchina', 'leg extension', 'leg curl', 
+    'pressa', 'guided', 'croci', 'croce ai cavi', 'alzate ai cavi', 
+    'pectoral', 'chest press', 'shoulder press', 'hack squat'
+  ];
   return keywords.some(k => 
     name.includes(k) || 
     noteAttr.includes(k) || 
@@ -9834,8 +9932,12 @@ const METODI_ALLENAMENTO = {
 
 // Helper to format numbers with comma as decimal separator (Italian locale)
 function formatWeight(val) {
-  if (val === null || val === undefined) return '';
-  return String(val).replace('.', ',');
+  if (val === null || val === undefined || val === '') return '';
+  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(',', '.'));
+  if (isNaN(num)) return String(val).replace('.', ',');
+  // Arrotonda fino a max 2 decimali evitando artefatti a virgola mobile (es. 0.8999999999999986 -> 0.9)
+  const rounded = Math.round(num * 100) / 100;
+  return String(rounded).replace('.', ',');
 }
 
 // Helper to format repetitions with 'r' suffix (using comma for decimals)
@@ -11464,13 +11566,30 @@ const calcE1RM = (weight, reps) => {
   return w * (1 + r / 30);
 };
 
+const currentWeekLoggedWeight = computed(() => {
+  const w = settimanaAttiva.value;
+  const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
+  if (!ins) return null;
+  const pStr = estraiPesoDaInput(ins);
+  const p = pStr ? parseFloat(pStr) : null;
+  return (p && !isNaN(p) && p > 0) ? p : null;
+});
+
+const currentWeekLoggedReps = computed(() => {
+  const w = settimanaAttiva.value;
+  const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
+  if (!ins) return null;
+  const r = estraiRepsDaInput(ins);
+  return (r && !isNaN(r) && r > 0) ? r : getRepsPerWeek(w);
+});
+
 const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
 
   if (!suggerimentoRecord.value) {
     return {
-      testo: '✨ Primo ciclo di allenamento',
+      testo: 'Primo ciclo di allenamento',
       colore: 'text-amber-lighten-2',
       icona: 'mdi-sparkles'
     };
@@ -11483,7 +11602,7 @@ const valutazioneProgressione = computed(() => {
 
     if (!recReps || recReps <= 0) {
       return {
-        testo: '✨ Primo ciclo di allenamento',
+        testo: 'Primo ciclo di allenamento',
         colore: 'text-amber-lighten-2',
         icona: 'mdi-sparkles'
       };
@@ -11541,6 +11660,8 @@ const valutazioneProgressione = computed(() => {
 
   const recWeight = suggerimentoRecord.value.record || suggerimentoRecord.value.recordAbsolute;
   const recReps = suggerimentoRecord.value.recordRepsValue || suggerimentoRecord.value.recordAbsoluteReps || getRepsPerWeek(w);
+  const isExactRepsRecord = (suggerimentoRecord.value.record > 0 || suggerimentoRecord.value.recordRepsValue > 0);
+  const targetRepsWeek = getRepsPerWeek(w);
 
   if (!recWeight || recWeight <= 0) {
     return {
@@ -11550,7 +11671,8 @@ const valutazioneProgressione = computed(() => {
     };
   }
 
-  const e1rmHistoric = calcE1RM(recWeight, recReps);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const e1rmHistoric = calcolaE1RMSmorzato(recWeight, recReps, isCavo);
 
   // Trova il miglior carico inserito nel mesociclo ATTUALE (W1-W6 del workout corrente)
   let bestCurrentWeight = 0;
@@ -11565,7 +11687,7 @@ const valutazioneProgressione = computed(() => {
       if (!isNaN(pesoNum) && pesoNum > 0) {
         currentLogged = true;
         const repsInput = estraiRepsDaInput(val) || getRepsPerWeek(i);
-        const e1rm = calcE1RM(pesoNum, repsInput);
+        const e1rm = calcolaE1RMSmorzato(pesoNum, repsInput, isCavo);
         if (e1rm > bestCurrentE1RM) {
           bestCurrentE1RM = e1rm;
           bestCurrentWeight = pesoNum;
@@ -11575,7 +11697,63 @@ const valutazioneProgressione = computed(() => {
     }
   }
 
-  // Se l'atleta non ha ancora inserito alcun dato nel mesociclo attuale
+  // 1. CASO: Non esiste un record storico alle stesse ripetizioni esatte (es. 17 reps vs 4 reps del max)
+  if (!isExactRepsRecord) {
+    const targetWeight = suggerimentoRecord.value.target;
+    
+    // Se non ha ancora inserito carichi nella scheda corrente
+    if (!currentLogged || bestCurrentWeight === 0) {
+      const recInfo = (recWeight > 0 && recReps > 0) ? ` • Calibrato su ${formatWeight(recWeight)}kg×${recReps}r` : '';
+      return {
+        testo: `Target ${targetRepsWeek} reps: ${formatWeight(targetWeight)} kg${recInfo}`,
+        colore: 'text-cyan-lighten-2',
+        icona: 'mdi-target'
+      };
+    }
+
+    // L'atleta ha registrato un carico (es. 57.5 kg a 17 reps)
+    // Cerchiamo l'incremento rispetto alle settimane precedenti del mesociclo (W1, W2, W3...)
+    let w1Weight = 0;
+    let prevWeekWeight = 0;
+    for (let i = 1; i < w; i++) {
+      const prevVal = workout.value?.['ins_week' + i];
+      if (prevVal) {
+        const pNum = parseFloat(estraiPesoDaInput(prevVal));
+        if (!isNaN(pNum) && pNum > 0) {
+          if (w1Weight === 0) w1Weight = pNum;
+          prevWeekWeight = pNum;
+        }
+      }
+    }
+
+    const baseCompare = prevWeekWeight > 0 ? prevWeekWeight : w1Weight;
+    const deltaMeso = (bestCurrentWeight > 0 && baseCompare > 0) ? Math.round((bestCurrentWeight - baseCompare) * 10) / 10 : 0;
+
+    if (deltaMeso > 0) {
+      return {
+        testo: `Nuovo PR ${bestCurrentReps} reps (${formatWeight(bestCurrentWeight)} kg) • +${formatWeight(deltaMeso)} kg nel mesociclo`,
+        colore: 'text-green-lighten-2',
+        icona: 'mdi-trophy'
+      };
+    } else if (bestCurrentWeight >= targetWeight && targetWeight > 0) {
+      const extraTarget = Math.round((bestCurrentWeight - targetWeight) * 10) / 10;
+      const extraTxt = extraTarget > 0 ? ` (+${formatWeight(extraTarget)} kg sul target)` : '';
+      return {
+        testo: `Record ${bestCurrentReps} reps stabilito (${formatWeight(bestCurrentWeight)} kg)${extraTxt}`,
+        colore: 'text-green-lighten-2',
+        icona: 'mdi-trophy'
+      };
+    } else {
+      const recInfo = (recWeight > 0 && recReps > 0) ? ` • Calibrato su ${formatWeight(recWeight)}kg×${recReps}r` : '';
+      return {
+        testo: `Record ${bestCurrentReps} reps stabilito (${formatWeight(bestCurrentWeight)} kg)${recInfo}`,
+        colore: 'text-cyan-lighten-2',
+        icona: 'mdi-trophy'
+      };
+    }
+  }
+
+  // 2. CASO: Esiste un record storico alle stesse ripetizioni esatte (isExactRepsRecord = true)
   if (!currentLogged || bestCurrentE1RM === 0) {
     const targetWeight = suggerimentoRecord.value.target;
     return {
@@ -11585,12 +11763,12 @@ const valutazioneProgressione = computed(() => {
     };
   }
 
-  // Confronta e1RM attuale con e1RM storico
+  // Confronta a parità di reps
   const diffE1RM = bestCurrentE1RM - e1rmHistoric;
-  const diffKg = bestCurrentWeight - recWeight;
+  const diffKg = Math.round((bestCurrentWeight - recWeight) * 10) / 10;
 
-  if (bestCurrentE1RM >= e1rmHistoric) {
-    const perc = Math.round((diffE1RM / e1rmHistoric) * 100);
+  if (bestCurrentWeight >= recWeight) {
+    const perc = e1rmHistoric > 0 ? Math.round((diffE1RM / e1rmHistoric) * 100) : 0;
     const rawDiff = diffKg > 0 ? diffKg : Math.max(diffE1RM / 1.2, 0.5);
     const diffKgDisplay = formatWeight(Math.round(rawDiff * 10) / 10);
     return {
@@ -11598,17 +11776,17 @@ const valutazioneProgressione = computed(() => {
       colore: 'text-green-lighten-2',
       icona: 'mdi-trending-up'
     };
-  } else if (bestCurrentE1RM >= 0.95 * e1rmHistoric) {
+  } else if (bestCurrentWeight >= 0.95 * recWeight || bestCurrentE1RM >= 0.95 * e1rmHistoric) {
     return {
-      testo: 'Carico in linea col tuo PR storico',
+      testo: `Carico in linea col tuo PR storico a ${recReps}r`,
       colore: 'text-cyan-lighten-2',
       icona: 'mdi-minus-circle-outline'
     };
   } else {
-    const diffKgAbs = Math.abs(diffKg) > 0 ? Math.abs(diffKg) : Math.round((e1rmHistoric - bestCurrentE1RM) / 1.2);
-    const percAbs = Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100);
+    const diffKgAbs = Math.abs(diffKg);
+    const percAbs = e1rmHistoric > 0 ? Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100) : 0;
     return {
-      testo: `Sotto al picco storico (-${formatWeight(diffKgAbs)} kg / -${percAbs}%)`,
+      testo: `Sotto al PR a ${recReps}r (-${formatWeight(diffKgAbs)} kg / -${percAbs}%)`,
       colore: 'text-orange-lighten-2',
       icona: 'mdi-trending-down'
     };
@@ -11624,6 +11802,7 @@ const strategiaCoachData = computed(() => {
   const wActive = settimanaAttiva.value;
   const exName = workout.value?.des_esercizio || 'Esercizio';
   const isManubri = isManubriEsercizio(workout.value);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const hasWeight = !isCorpoLibero || (suggerimentoRecord.value?.recordHasWeight || suggerimentoRecord.value?.recordAbsoluteHasWeight);
   const isCorpoLiberoPuro = isCorpoLibero && !hasWeight;
@@ -11631,7 +11810,7 @@ const strategiaCoachData = computed(() => {
   // PR Storico
   const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
   const prReps = suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || getRepsPerWeek(wActive) || 8;
-  const e1rmStorico = isCorpoLiberoPuro ? 0 : calcE1RM(prWeight, prReps);
+  const e1rmStorico = isCorpoLiberoPuro ? 0 : calcolaE1RMSmorzato(prWeight, prReps, isCavo);
 
   // Prestazione Attuale (Miglior e1RM nel mesociclo corrente)
   let bestCurrentWeight = 0;
@@ -11652,7 +11831,7 @@ const strategiaCoachData = computed(() => {
         const pesoNum = parseFloat(estraiPesoDaInput(val));
         if (!isNaN(pesoNum) && pesoNum > 0) {
           const repsInput = estraiRepsDaInput(val) || getRepsPerWeek(i);
-          const e1rm = calcE1RM(pesoNum, repsInput);
+          const e1rm = calcolaE1RMSmorzato(pesoNum, repsInput, isCavo);
           if (e1rm > bestCurrentE1RM) {
             bestCurrentE1RM = e1rm;
             bestCurrentWeight = pesoNum;

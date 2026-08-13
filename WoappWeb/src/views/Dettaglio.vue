@@ -5137,7 +5137,7 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
   
   // 2. Aggiungi la progressione del mesociclo attuale (settimane precedenti a targetW)
   for (let w = 1; w < targetW; w++) {
-    const insVal = workout.value['ins_week' + w];
+    const insVal = inputSettimane.value[w]?.ins || workout.value['ins_week' + w];
     if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
       const perf = estraiMigliorPrestazioneInput(insVal, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value));
       if (perf) {

@@ -556,13 +556,13 @@
           <!-- Segmented Tab Pills Container High-Contrast Dynamic Theme -->
           <div class="d-flex align-center justify-space-between gap-1 pa-1 rounded-xl border" :style="{ background: 'var(--card-bg-glass, #0f172a)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.12))' }">
             <v-btn
-              v-for="(tab, i) in ['🧠 Strategia', '📊 Carichi', '🏋️ Esercizi', '🩹 Infortuni', '🎨 Temi']"
+              v-for="(tab, i) in ['Strategia', 'Carichi & Ghost', 'Esercizi & Timer', 'Infortuni', 'Temi']"
               :key="i"
               size="x-small"
               class="flex-grow-1 font-weight-bold text-none rounded-lg text-truncate px-1 transition-all"
               :style="tabGuidaApp === i 
-                ? 'font-size: 0.63rem; height: 30px; min-width: 0; color: #ffffff !important; background: var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important; font-weight: 900; border: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important; box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(249, 115, 22, 0.25));' 
-                : 'font-size: 0.63rem; height: 30px; min-width: 0; color: var(--text-dark, #1e293b) !important; background: var(--card-bg-soft, rgba(148, 163, 184, 0.12)) !important; border: 1px solid var(--card-border, rgba(148, 163, 184, 0.2)) !important;'"
+                ? 'font-size: 0.65rem; height: 30px; min-width: 0; color: #ffffff !important; background: var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important; font-weight: 900; border: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important; box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(249, 115, 22, 0.25));' 
+                : 'font-size: 0.65rem; height: 30px; min-width: 0; color: var(--text-dark, #1e293b) !important; background: var(--card-bg-soft, rgba(148, 163, 184, 0.12)) !important; border: 1px solid var(--card-border, rgba(148, 163, 184, 0.2)) !important;'"
               @click="tabGuidaApp = i"
             >
               {{ tab }}
@@ -576,16 +576,16 @@
             <v-window-item :value="0">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  🧠 Cos'è la Strategia Coach?
+                  Strategia Coach & Massimale Stimato
                 </h4>
                 <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
-                  Il sistema intelligente <strong>FlexCoach</strong> valuta lo stato di forza dell'atleta confrontando il massimale stimato (<strong>e1RM</strong>) corrente con il record storico dell'esercizio.
+                  Il motore <strong>FlexCoach</strong> confronta il massimale stimato corrente (<strong>e1RM</strong>) con il record storico dell'esercizio per calcolare i carichi ideali.
                 </p>
 
                 <!-- Calcolatore Interattivo e1RM per la Guida -->
                 <div class="pa-3 rounded-xl border border-soft mb-3.5" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <div class="d-flex align-center justify-space-between mb-2">
-                    <span class="text-super-caption font-weight-black uppercase" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.62rem;">⚡ Simulatore Massimale Stimato (e1RM)</span>
+                    <span class="text-super-caption font-weight-black uppercase" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.62rem;">Simulatore e1RM</span>
                     <v-chip size="x-small" variant="flat" class="font-weight-black text-white" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))' }" style="font-size: 0.54rem; height: 16px;">INTERATTIVO</v-chip>
                   </div>
                   <div class="d-flex align-center gap-2 mb-2">
@@ -609,7 +609,7 @@
                     ></v-text-field>
                   </div>
                   <div class="pa-2 rounded-lg text-center border-soft" :style="{ background: 'var(--card-bg-glass, #020617)' }">
-                    <span class="text-super-caption font-weight-bold d-block mb-0.5" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.6rem;">Massimale Stimato Calcolato (e1RM):</span>
+                    <span class="text-super-caption font-weight-bold d-block mb-0.5" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.6rem;">Massimale Stimato (e1RM):</span>
                     <span class="text-subtitle-1 font-weight-black" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 1.05rem;">
                       {{ calcolaSimE1RMApp }} kg
                     </span>
@@ -617,7 +617,7 @@
                 </div>
 
                 <h4 class="font-weight-black text-subtitle-2 mb-2" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  🗺️ ROADMAP 6 SETTIMANE (W1 - W6)
+                  Roadmap 6 Settimane (W1 - W6)
                 </h4>
                 <div class="d-flex flex-column gap-2 mb-3.5">
                   <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
@@ -637,7 +637,7 @@
                   <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <div>
                       <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W3 - Pareggio PR Storico</span>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Test di pareggio del record passato</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Avvicinamento o pareggio del record</span>
                     </div>
                     <v-chip color="orange-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 8.5-9</v-chip>
                   </div>
@@ -652,9 +652,9 @@
                     <div>
                       <div class="d-flex align-center gap-1.5 mb-0.5">
                         <span class="font-weight-black text-caption dialog-text-primary" style="font-size: 0.74rem;">W5 - Picco Intensità</span>
-                        <v-chip :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important' }" size="x-small" variant="flat" class="font-weight-black text-white animate-pulse px-1.5" style="font-size: 0.52rem; height: 15px;">⚡ ATTIVA</v-chip>
+                        <v-chip :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important' }" size="x-small" variant="flat" class="font-weight-black text-white animate-pulse px-1.5" style="font-size: 0.52rem; height: 15px;">ATTIVA</v-chip>
                       </div>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Rottura dello stallo per superare il record</span>
+                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Superamento del record</span>
                     </div>
                     <v-chip color="purple-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 9-9.5</v-chip>
                   </div>
@@ -668,119 +668,88 @@
                 </div>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">⚡ Pulsanti Fatica a Settimana 6</h5>
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Indicatori di Fatica a Settimana 6</h5>
                   <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    A fine Settimana 6 selezioni la fatica provata (<strong>Leggero</strong>, <strong>Medio</strong>, <strong>Pesante</strong>, <strong>Devastante</strong>). Questo dato calcola i pesi della Settimana 1 del nuovo programma!
-                  </p>
-                </div>
-
-                <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">💡 Suggerimenti per Assenza di Progressione</h5>
-                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    Se il sistema rileva che la forza è ferma o non c'è progressione, ti fornisce in automatico opzioni tattiche di ricalcolo o suggerimenti strategici per il Coach.
+                    A fine Settimana 6 seleziona la fatica provata (<strong>Leggero</strong>, <strong>Medio</strong>, <strong>Pesante</strong>, <strong>Devastante</strong>) per calibrare i pesi di partenza del programma successivo.
                   </p>
                 </div>
               </div>
             </v-window-item>
 
-            <!-- TAB 1: PROPOSTA CARICO & REPS 'r' -->
+            <!-- TAB 1: PROPOSTA CARICO, REPS 'r' & GHOST -->
             <v-window-item :value="1">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  💡 Proposta Carico & Sintassi Reps con "r"
+                  Proposta Carico & Sintassi Repetizioni ("r")
                 </h4>
                 <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
-                  Il sistema calcola il peso consigliato in base ai giorni di pausa ed al tuo storico. Tocca <strong>"Applica Consigliato"</strong> per inserire subito il carico.
+                  Il sistema calcola il peso consigliato in base ai tempi di recupero e allo storico.
                 </p>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">📝 Inserimento Reps con la "r" (es. 50 12r)</h5>
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Inserimento Reps con "r" (es. 50 12r)</h5>
                   <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    Se non riesci ad aumentare i kg o decidi di mantenere lo stesso peso aumentando le ripetizioni, digita la cifra delle reps aggiungendo la <strong>"r"</strong> accanto (es: <code>50 12r</code> o <code>50 12r 12r 10r</code>). Il sistema riconosce il tuo incremento di volume e calcola la progressione!
+                    Se mantieni lo stesso peso aumentando le ripetizioni, inserisci il numero seguito da <strong>"r"</strong> (es. <code>50 12r</code>). Il sistema registra l'aumento di volume e adegua la progressione.
                   </p>
                 </div>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">📜 Pulsante Storico (Tabella Cronologia)</h5>
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Cronologia Sessioni & Storico</h5>
                   <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    Toccando l'icona dell'orologio si apre la <strong>Tabella della Cronologia</strong>: la panoramica di tutte le sessioni svolte nei mesocicli passati (pesi, ripetizioni, note ed indicatore di fatica).
+                    L'icona dell'orologio apre la panoramica delle sessioni svolte nei mesocicli precedenti con carichi, ripetizioni, note e livello di fatica.
                   </p>
-                </div>
-
-                <h4 class="font-weight-black text-subtitle-2 mb-2" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  📈 Grafici di Forza a 3 Modalità
-                </h4>
-                <div class="d-flex flex-column gap-2.5 mb-3">
-                  <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <span class="font-weight-black text-caption d-block mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.75rem;">Modalità A: Curve per Range Reps</span>
-                    <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
-                      Linee di tendenza dei pesi raggruppate per ripetizioni con la linea tratteggiata del Massimale Stimato.
-                    </span>
-                  </div>
-                  <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <span class="font-weight-black text-caption d-block mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.75rem;">Modalità B: Fascia di Rendimento</span>
-                    <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
-                      Mostra il canale di varianza della tua forza e l'area dei carichi.
-                    </span>
-                  </div>
-                  <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <span class="font-weight-black text-caption d-block mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.75rem;">Modalità C: Progressione Cronologica</span>
-                    <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
-                      Punti temporali di ogni singola serie effettuata. Tocca un punto per aprire la card <strong>🔍 Dettaglio Sessione</strong>!
-                    </span>
-                  </div>
                 </div>
 
                 <h4 class="font-weight-black text-subtitle-2 mb-2 mt-4" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  👻 Guida Impostazioni Ghost: Come Settare i Parametri in base a chi sei
+                  Parametri Ghost & Profilazione Atleta
                 </h4>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <h5 class="font-weight-black text-caption mb-1.5" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.78rem;">
-                    🧠 Motore Progressione Ghost
+                    Motore di Progressione
                   </h5>
                   <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.4;">
                     <div class="pa-2 rounded-lg" style="background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6;">
-                      <strong class="text-blue-lighten-2">🧠 Ibrida SMART (Consigliata):</strong>
-                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleta intermedio/avanzato che desidera un supporto algoritmico intelligente. Bilancia la progressione prescritta dalla scheda con il potenziale stimato dal tuo storico reale.</div>
+                      <strong class="text-blue-lighten-2">Ibrida SMART (Consigliata):</strong>
+                      <div class="text-muted mt-0.5">Sintesi intelligente tra la scheda e il potenziale stimato reale. Ideale per atleti intermedi e avanzati.</div>
                     </div>
                     <div class="pa-2 rounded-lg" style="background: rgba(148, 163, 184, 0.08); border-left: 3px solid #94a3b8;">
-                      <strong class="text-slate-light">📐 Fissa Scheda:</strong>
-                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleta metodico o principiante che vuole seguire rigidamente i target della scheda senza ricalcoli dinamici dai massimali stimati storici.</div>
+                      <strong class="text-slate-light">Fissa Scheda:</strong>
+                      <div class="text-muted mt-0.5">Progressione lineare a step nominali. Ideale per principianti o atleti metodici che seguono target rigidi.</div>
                     </div>
                     <div class="pa-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border-left: 3px solid #f97316;">
-                      <strong class="text-orange-lighten-2">⚡ Dinamica:</strong>
-                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleta esperto, reattivo o che alterna periodi di stop/ripresa rapida. Preferisce che il sistema adatti subito i carichi alle ultime prestazioni registrate.</div>
+                      <strong class="text-orange-lighten-2">Dinamica:</strong>
+                      <div class="text-muted mt-0.5">Reattività immediata alle ultime prestazioni e agli esuberi di reps. Ideale per atleti esperti.</div>
                     </div>
                   </div>
                 </div>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <h5 class="font-weight-black text-caption mb-1.5" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.78rem;">
-                    🛡️ Sensibilità Fatica Ghost
+                    Sensibilità Fatica
                   </h5>
                   <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.4;">
                     <div class="pa-2 rounded-lg" style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8;">
-                      <strong class="text-cyan-lighten-2">🛡️ Prudente:</strong>
-                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleti master, chi recupera più lentamente, atleti in deficit calorico/definizione o soggetti a fastidi articolari. In presenza di sforzo o stallo, privilegia il consolidamento del carico e l'accumulo di ripetizioni prima di salire di kg.</div>
+                      <strong class="text-cyan-lighten-2">Prudente:</strong>
+                      <div class="text-muted mt-0.5">Privilegia l'accumulo di ripetizioni e il consolidamento prima di salire di kg. Ideale in cut, atleti master o recupero articolare.</div>
                     </div>
                     <div class="pa-2 rounded-lg" style="background: rgba(34, 197, 94, 0.08); border-left: 3px solid #22c55e;">
-                      <strong class="text-green-accent-3">⚖️ Bilanciata (Default):</strong>
-                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> La stragrande maggioranza degli atleti. Mantiene una progressione graduale, sicura e costante, frenando solo su fatica elevata documentata.</div>
+                      <strong class="text-green-accent-3">Bilanciata (Default):</strong>
+                      <div class="text-muted mt-0.5">Progressione costante e bilanciata, con frenata solo su fatica elevata documentata. Per la maggioranza degli atleti.</div>
                     </div>
                     <div class="pa-2 rounded-lg" style="background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444;">
-                      <strong class="text-red-lighten-2">🔥 Spinta:</strong>
-                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Powerlifter, atleti di forza agonisti o in fase di massa (surplus calorico). Punta costantemente al sovraccarico di carico ad ogni settimana superando i limiti.</div>
+                      <strong class="text-red-lighten-2">Spinta:</strong>
+                      <div class="text-muted mt-0.5">Massimizza il sovraccarico progressivo puntando subito al carico superiore e al PR. Per atleti di forza o in surplus calorico.</div>
                     </div>
                   </div>
                 </div>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">
-                    📝 Analisi Sforzo da Note (Opzionale)
+                    Analisi Sforzo da Note (Opzionale)
                   </h5>
                   <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    Di default è <strong>Disattivata</strong> per lasciare priorità assoluta ai kg inseriti. Se attivata nelle Impostazioni, il sistema legge parole chiave come <em>"difficile"</em>, <em>"duro"</em>, <em>"limite"</em> per bloccare automaticamente l'aumento dei kg e suggerire il consolidamento.
+                    Disattivata di default. Se abilitata nelle Impostazioni, intercetta parole chiave come <em>"difficile"</em> o <em>"limite"</em> per suggerire il consolidamento a pari carico.
                   </p>
                 </div>
               </div>
@@ -790,49 +759,49 @@
             <v-window-item :value="2">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  ⏱️ Avvio del Timer di Recupero
+                  Timer di Recupero
                 </h4>
                 <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
-                  Il timer di recupero <strong>non parte da solo</strong>: per avviarlo è sufficiente toccare il chip arancione del tempo di recupero (es. <code>⏱️ 1'30"-1'45"</code>) situato vicino all'esercizio. Parte un conto alla rovescia con suono e vibrazione!
+                  Tocca il chip arancione del tempo di recupero (es. <code>1'30"-1'45"</code>) vicino all'esercizio per avviare il conto alla rovescia con suono e vibrazione.
                 </p>
 
                 <h4 class="font-weight-black text-subtitle-2 mb-2" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  🛠️ Pulsanti di Navigazione & Controllo
+                  Controlli Rapidi Esercizio
                 </h4>
                 <div class="d-flex flex-column gap-2.5 mb-3">
                   <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="22">mdi-arrow-left</v-icon>
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">⬅️ Pulsante Precedente</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">Pulsante Precedente</span>
                       <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
-                        In alto a sinistra nel dettaglio esercizio, ti permette di tornare velocemente all'esercizio o al giorno svolto in precedenza.
+                        Torna rapidamente all'esercizio o al giorno svolto in precedenza.
                       </span>
                     </div>
                   </div>
                   <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <v-icon color="amber-darken-2" size="22">mdi-star-outline</v-icon>
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">⭐ Gradimento Esercizio</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">Gradimento Esercizio</span>
                       <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
-                        Valuta l'esercizio con le stelle di gradimento per comunicare al Coach le tue preferenze sui movimenti.
+                        Valuta l'esercizio con le stelle per comunicare al Coach le tue preferenze.
                       </span>
                     </div>
                   </div>
                   <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="22">mdi-dumbbell</v-icon>
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">🏋️ Lista Test Week 6</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">Lista Test Week 6</span>
                       <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
-                        Elenco rapido di tutti gli esercizi della scheda con test di massimale o AMRAP nella settimana 6.
+                        Panoramica rapida degli esercizi con test massimale o AMRAP a Week 6.
                       </span>
                     </div>
                   </div>
                   <div class="pa-3 rounded-xl border border-soft d-flex align-center gap-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                     <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="22">mdi-video-outline</v-icon>
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">📹 Esercizi con Video Richiesto</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">Video Richiesto</span>
                       <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.68rem; line-height: 1.35;">
-                        Esercizi in cui il Coach richiede il video dell'esecuzione per verificare la tecnica.
+                        Esercizi in cui il Coach richiede il video per verificare la corretta esecuzione.
                       </span>
                     </div>
                   </div>
@@ -844,30 +813,30 @@
             <v-window-item :value="3">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  🩹 Gestione Infortuni & Sostituzioni
+                  Gestione Infortuni & Sostituzioni
                 </h4>
                 <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
-                  FlexCoach ti guida nella gestione attiva di fastidi o dolori articolari senza dover interrompere il tuo allenamento.
+                  Gestione attiva di fastidi o dolori articolari senza interrompere l'allenamento.
                 </p>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">🏥 Segnalazione Fastidio / Dolore</h5>
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Segnalazione Fastidio / Dolore</h5>
                   <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    Dalla barra di navigazione inferiore accedi alla sezione <strong>Infortuni</strong>. Seleziona la zona anatomica interessata per monitorare la situazione ed informare il Coach.
+                    Accedi alla sezione <strong>Infortuni</strong> dalla barra inferiore per monitorare la zona anatomica interessata e informare il Coach.
                   </p>
                 </div>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">🔄 Sostituzione Esercizio in Sicurezza</h5>
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Sostituzione Esercizio in Sicurezza</h5>
                   <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    Il sistema propone automaticamente alternative sicure che mantengono lo stesso stimolo muscolare preservando l'articolazione o il muscolo dolente.
+                    Alternative automatiche per mantenere lo stimolo muscolare preservando l'articolazione dolente.
                   </p>
                 </div>
 
                 <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">📲 Avviso Diretto al Coach</h5>
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Notifica Diretta al Coach</h5>
                   <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    Invii la notifica automatica WhatsApp al Coach Gabriele per ricevere l'adeguamento immediato della scheda per la seduta successiva!
+                    Invia un avviso diretto al Coach per ricevere l'adeguamento immediato della scheda.
                   </p>
                 </div>
               </div>
@@ -877,23 +846,23 @@
             <v-window-item :value="4">
               <div class="mb-4">
                 <h4 class="font-weight-black text-subtitle-2 mb-1.5" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  🎨 Stili & Palette Temi Personalizzate
+                  Stili & Temi Visivi
                 </h4>
                 <p class="text-caption mb-3" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.75rem; line-height: 1.45;">
-                  FlexCoach offre la scelta tra modalità Scuro/Chiaro e palette di colore generali per personalizzare l'esperienza d'uso.
+                  Scegli tra modalità Scuro e Chiaro per personalizzare l'esperienza d'uso.
                 </p>
 
                 <div class="d-flex flex-column gap-2.5 mb-3">
                   <div class="pa-3 rounded-xl border d-flex align-center justify-space-between cursor-pointer" :style="{ background: 'var(--card-bg-soft, #0f172a)' }" @click="cambiaTemaInterattivoApp('dark', 'slate')">
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">🌙 Tema Scuro</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">Tema Scuro</span>
                       <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.64rem;">Interfaccia scura ad alto contrasto</span>
                     </div>
                     <v-chip size="x-small" variant="flat" class="font-weight-black text-white px-2" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))' }">Seleziona</v-chip>
                   </div>
                   <div class="pa-3 rounded-xl border d-flex align-center justify-space-between cursor-pointer" :style="{ background: 'var(--card-bg-soft, #f5f3ef)' }" @click="cambiaTemaInterattivoApp('light', 'slate')">
                     <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">☀️ Tema Chiaro</span>
+                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.75rem;">Tema Chiaro</span>
                       <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.64rem;">Interfaccia luminosa ad alta leggibilità</span>
                     </div>
                     <v-chip size="x-small" variant="flat" class="font-weight-black text-white px-2" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))' }">Seleziona</v-chip>
@@ -1006,6 +975,9 @@
     <!-- EASTER EGG VIDEO JULIE ("profiamma") -->
     <JulieEasterEgg v-model="mostraJulieEasterEgg" />
 
+    <!-- EASTER EGG VIDEO CHRIS PANNEMEN ("pannemen") -->
+    <PannemenEasterEgg v-model="mostraPannemenEasterEgg" />
+
   </v-app>
 </template>
 
@@ -1014,6 +986,7 @@ import { onMounted, onUnmounted, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
 import JulieEasterEgg from './components/JulieEasterEgg.vue';
+import PannemenEasterEgg from './components/PannemenEasterEgg.vue';
 import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero } from './authStore.js';
 
 const router = useRouter();
@@ -1021,8 +994,9 @@ const vuetifyTheme = useTheme();
 const globalTransition = ref('fade');
 const mostraDialogGuida = ref(false);
 const mostraJulieEasterEgg = ref(false);
+const mostraPannemenEasterEgg = ref(false);
 
-// Gestione Easter Egg per parola chiave "profiamma" (Desktop + Smartphone)
+// Gestione Easter Egg per parole chiave "profiamma" e "pannemen" (Desktop + Smartphone)
 let typedKeysBuffer = '';
 const handleGlobalKeydown = (event) => {
   if (event.ctrlKey || event.altKey || event.metaKey) return;
@@ -1034,14 +1008,23 @@ const handleGlobalKeydown = (event) => {
     if (typedKeysBuffer.endsWith('profiamma')) {
       mostraJulieEasterEgg.value = true;
       typedKeysBuffer = '';
+    } else if (typedKeysBuffer.endsWith('pannemen')) {
+      mostraPannemenEasterEgg.value = true;
+      typedKeysBuffer = '';
     }
   }
 };
 
 const handleGlobalInput = (event) => {
   const val = event?.target?.value;
-  if (val && typeof val === 'string' && val.toLowerCase().includes('profiamma')) {
-    mostraJulieEasterEgg.value = true;
+  if (val && typeof val === 'string') {
+    const lower = val.toLowerCase();
+    if (lower.includes('profiamma')) {
+      mostraJulieEasterEgg.value = true;
+    }
+    if (lower.includes('pannemen')) {
+      mostraPannemenEasterEgg.value = true;
+    }
   }
 };
 

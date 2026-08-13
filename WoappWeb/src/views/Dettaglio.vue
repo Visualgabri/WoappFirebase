@@ -5592,12 +5592,16 @@ const getGhostWeightsRangeForWeek = (sett) => {
     };
   }
 
-  // Scenario 0: Intensificazione (repsTarget < repsBaseVal, es. W5 target 11r ma in W3 eseguito 16r)
+  // Scenario 0: Intensificazione (repsTarget < repsBaseVal, es. W5 target 11r ma in W3/W5 eseguito 16r)
   if (repsTarget < repsBaseVal) {
-    const isIncrementoCarico = pesoConsigliato > pesoBase;
+    const e1rmBase = pesoBase * (1 + repsBaseVal / 30);
+    const e1rmConsigliato = pesoConsigliato * (1 + repsTarget / 30);
+    // Un peso senza reps per le repsTarget è valido solo se pareggia o supera l'1RM base (entro il 95%)
+    const isValidoTargetReps = e1rmConsigliato >= (e1rmBase * 0.95);
+
     const prudenzialeValStr = `${pesoBase}x${repsBaseVal}r`;
-    const consigliatoValStr = isIncrementoCarico ? String(pesoConsigliato) : `${pesoBase}x${repsBaseVal + 1}r`;
-    const sfidanteValStr = isIncrementoCarico ? String(pesoSfidante) : `${pesoBase}x${repsBaseVal + 2}r`;
+    const consigliatoValStr = isValidoTargetReps ? String(pesoConsigliato) : `${pesoBase}x${repsBaseVal + 1}r`;
+    const sfidanteValStr = isValidoTargetReps ? String(pesoSfidante) : `${pesoBase}x${repsBaseVal + 2}r`;
 
     return {
       prudenziale: {
@@ -5607,13 +5611,13 @@ const getGhostWeightsRangeForWeek = (sett) => {
       },
       consigliato: {
         value: consigliatoValStr,
-        display: isIncrementoCarico ? `${formatWeight(pesoConsigliato)} kg` : `${formatWeight(pesoBase)}x${repsBaseVal + 1}r`,
-        label: isIncrementoCarico ? 'Consigliato (+Kg)' : 'Consigliato (+1r)'
+        display: isValidoTargetReps ? `${formatWeight(pesoConsigliato)} kg` : `${formatWeight(pesoBase)}x${repsBaseVal + 1}r`,
+        label: isValidoTargetReps ? (sett === 6 ? 'Consigliato (Picco W6)' : 'Consigliato (Aumento)') : 'Consigliato (+1r)'
       },
       sfidante: {
         value: sfidanteValStr,
-        display: isIncrementoCarico ? `${formatWeight(pesoSfidante)} kg` : `${formatWeight(pesoBase)}x${repsBaseVal + 2}r`,
-        label: isIncrementoCarico ? 'Sfidante (+Kg)' : 'Sfidante (+2r)'
+        display: isValidoTargetReps ? `${formatWeight(pesoSfidante)} kg` : `${formatWeight(pesoBase)}x${repsBaseVal + 2}r`,
+        label: isValidoTargetReps ? (sett === 6 ? 'Sfidante (Picco W6)' : 'Sfidante (+Kg)') : 'Sfidante (+2r)'
       }
     };
   }

@@ -11278,7 +11278,12 @@ const suggerimentoRecord = computed(() => {
           // Controllo PR a Stesse Reps (isMatchingReps)
           if (isMatchingReps(prevEx, i)) {
             const currentRepsVal = absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0);
-            if (valToCompare > currentRepsVal) {
+            // Sanity check: L'e1RM di un record a stesse reps non può essere >15% superiore all'e1RM del Max Assoluto (evita anomalie/refusi da vecchie schede)
+            const e1rmRecord = calcE1RM(pesoNum, repsNum);
+            const e1rmMaxGen = absGenWeight > 0 ? calcE1RM(absGenWeight, absGenReps || 1) : 0;
+            const isAnomalo = e1rmMaxGen > 0 && e1rmRecord > e1rmMaxGen * 1.15;
+
+            if (valToCompare > currentRepsVal && !isAnomalo) {
               absRepsWeight = pesoNum;
               absRepsReps = repsNum;
               absRepsHasWeight = pesoNum > 0;

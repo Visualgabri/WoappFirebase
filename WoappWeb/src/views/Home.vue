@@ -1232,6 +1232,59 @@
                     </span>
                   </div>
                 </div>
+
+                <h4 class="font-weight-black text-subtitle-2 mb-2 mt-4" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
+                  👻 Guida Impostazioni Ghost: Come Settare i Parametri in base a chi sei
+                </h4>
+
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1.5" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.78rem;">
+                    🧠 Motore Progressione Ghost
+                  </h5>
+                  <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.4;">
+                    <div class="pa-2 rounded-lg" style="background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6;">
+                      <strong class="text-blue-lighten-2">🧠 Ibrida SMART (Consigliata):</strong>
+                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleta intermedio/avanzato che desidera un supporto algoritmico intelligente. Bilancia la progressione prescritta dalla scheda con il potenziale stimato dal tuo storico reale.</div>
+                    </div>
+                    <div class="pa-2 rounded-lg" style="background: rgba(148, 163, 184, 0.08); border-left: 3px solid #94a3b8;">
+                      <strong class="text-slate-light">📐 Fissa Scheda:</strong>
+                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleta metodico o principiante che vuole seguire rigidamente i target della scheda senza ricalcoli dinamici dai massimali stimati storici.</div>
+                    </div>
+                    <div class="pa-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border-left: 3px solid #f97316;">
+                      <strong class="text-orange-lighten-2">⚡ Dinamica:</strong>
+                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleta esperto, reattivo o che alterna periodi di stop/ripresa rapida. Preferisce che il sistema adatti subito i carichi alle ultime prestazioni registrate.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1.5" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.78rem;">
+                    🛡️ Sensibilità Fatica Ghost
+                  </h5>
+                  <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.4;">
+                    <div class="pa-2 rounded-lg" style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8;">
+                      <strong class="text-cyan-lighten-2">🛡️ Prudente:</strong>
+                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Atleti master, chi recupera più lentamente, atleti in deficit calorico/definizione o soggetti a fastidi articolari. In presenza di sforzo o stallo, privilegia il consolidamento del carico e l'accumulo di ripetizioni prima di salire di kg.</div>
+                    </div>
+                    <div class="pa-2 rounded-lg" style="background: rgba(34, 197, 94, 0.08); border-left: 3px solid #22c55e;">
+                      <strong class="text-green-accent-3">⚖️ Bilanciata (Default):</strong>
+                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> La stragrande maggioranza degli atleti. Mantiene una progressione graduale, sicura e costante, frenando solo su fatica elevata documentata.</div>
+                    </div>
+                    <div class="pa-2 rounded-lg" style="background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444;">
+                      <strong class="text-red-lighten-2">🔥 Spinta:</strong>
+                      <div class="text-muted mt-0.5"><em>Per chi è ideale:</em> Powerlifter, atleti di forza agonisti o in fase di massa (surplus calorico). Punta costantemente al sovraccarico di carico ad ogni settimana superando i limiti.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">
+                    📝 Analisi Sforzo da Note (Opzionale)
+                  </h5>
+                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
+                    Di default è <strong>Disattivata</strong> per lasciare priorità assoluta ai kg inseriti. Se attivata nelle Impostazioni, il sistema legge parole chiave come <em>"difficile"</em>, <em>"duro"</em>, <em>"limite"</em> per bloccare automaticamente l'aumento dei kg e suggerire il consolidamento.
+                  </p>
+                </div>
               </div>
             </v-window-item>
 

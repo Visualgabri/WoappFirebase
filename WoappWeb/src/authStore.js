@@ -1232,6 +1232,7 @@ export const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo
 export const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + curAtletaId) !== 'false');
 export const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + curAtletaId) === 'true');
 export const sensibilitaFaticaGhost = ref(localStorage.getItem('sensibilitaFaticaGhost_' + curAtletaId) || 'bilanciata');
+export const ghostAnalisiNoteAttiva = ref(localStorage.getItem('ghostAnalisiNoteAttiva_' + curAtletaId) === 'true');
 
 export const defaultBilanciereGlobal = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
 export const vibrazioneAttivaGlobal = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
@@ -1262,7 +1263,8 @@ export const salvaClienteConfigFirestore = () => {
           prAttackAttivo: ghostPRAttackAttivo.value,
           autoregolazioneRepsAttiva: ghostAutoregolazioneRepsAttiva.value,
           sfidaRecordWeek1: sfidaRecordWeek1.value,
-          sensibilitaFatica: sensibilitaFaticaGhost.value
+          sensibilitaFatica: sensibilitaFaticaGhost.value,
+          analisiNoteAttiva: ghostAnalisiNoteAttiva.value
         },
         uiSettings: {
           userTheme: currentTheme.value,
@@ -1304,6 +1306,7 @@ export const syncClienteConfigListener = () => {
   ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
   sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
   sensibilitaFaticaGhost.value = localStorage.getItem('sensibilitaFaticaGhost_' + atletaId) || 'bilanciata';
+  ghostAnalisiNoteAttiva.value = localStorage.getItem('ghostAnalisiNoteAttiva_' + atletaId) === 'true';
 
   const docRef = doc(db, 'UTENTI_CONFIG', String(atletaId));
 
@@ -1338,6 +1341,10 @@ export const syncClienteConfigListener = () => {
       if (ghost.sensibilitaFatica !== undefined) {
         sensibilitaFaticaGhost.value = ghost.sensibilitaFatica;
         localStorage.setItem('sensibilitaFaticaGhost_' + atletaId, ghost.sensibilitaFatica);
+      }
+      if (ghost.analisiNoteAttiva !== undefined) {
+        ghostAnalisiNoteAttiva.value = ghost.analisiNoteAttiva === true;
+        localStorage.setItem('ghostAnalisiNoteAttiva_' + atletaId, String(ghost.analisiNoteAttiva));
       }
 
       if (ui.userTheme !== undefined && ui.userTheme !== currentTheme.value) {
@@ -1403,6 +1410,7 @@ watch([
   ghostAutoregolazioneRepsAttiva,
   sfidaRecordWeek1,
   sensibilitaFaticaGhost,
+  ghostAnalisiNoteAttiva,
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
   defaultTimerRecGlobal
@@ -1415,6 +1423,7 @@ watch([
     localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + atletaId, String(ghostAutoregolazioneRepsAttiva.value));
     localStorage.setItem('sfidaRecordWeek1_' + atletaId, String(sfidaRecordWeek1.value));
     localStorage.setItem('sensibilitaFaticaGhost_' + atletaId, sensibilitaFaticaGhost.value);
+    localStorage.setItem('ghostAnalisiNoteAttiva_' + atletaId, String(ghostAnalisiNoteAttiva.value));
     localStorage.setItem('woapp_default_bilanciere', String(defaultBilanciereGlobal.value));
     localStorage.setItem('woapp_vibrazione_attiva', String(vibrazioneAttivaGlobal.value));
     localStorage.setItem('woapp_default_timer_rec', String(defaultTimerRecGlobal.value));

@@ -174,9 +174,14 @@ export const triggerPlayClick = () => {
 // Helper per verificare se un valore rappresenta un esercizio da recuperare
 export const haRecupero = (val) => {
   if (!val) return false;
-  const str = String(val).toLowerCase().trim();
+  
+  // 1. Rimuove QUALSIASI contenuto tra parentesi tonde (...) in modo che note o commenti tra parentesi non attivino mai il recupero
+  const clean = String(val).replace(/\([^)]*\)/g, ' ').trim();
+  if (!clean) return false;
 
-  // Se la frase contiene una negazione esplicita (es. "non è più da fare", "non da fare"), NON è un recupero!
+  const str = clean.toLowerCase();
+
+  // Se la frase contiene una negazione esplicita, NON è un recupero!
   if (str.includes('non è più da fare') || str.includes('non piu da fare') || str.includes('non è da fare') || str.includes('non da fare') || str.includes('da non fare')) {
     return false;
   }

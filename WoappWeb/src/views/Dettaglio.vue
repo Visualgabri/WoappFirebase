@@ -730,11 +730,11 @@
           <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
             <div class="d-flex align-center">
               <v-icon
-                :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-lighten-2' : (isWeekCompleted(sett) ? 'green-darken-2' : 'grey-lighten-1')"
+                :color="haRecupero(inputSettimane[sett].ins) ? 'red-lighten-2' : (isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-') ? 'green-darken-2' : 'grey-lighten-1')"
                 class="mr-2"
                 :size="layoutCorrente === 'super_compatto' ? 14 : 18"
               >
-                {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'mdi-sync' : (isWeekCompleted(sett) ? 'mdi-check-circle' : 'mdi-circle-outline') }}
+                {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-sync' : ((isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-')) ? 'mdi-check-circle' : 'mdi-circle-outline') }}
               </v-icon>
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem !important' : '0.8rem !important' }">
                 WEEK {{ sett }}
@@ -750,13 +750,13 @@
             <!-- Tag di Stato (Etichetta informativa non cliccabile) -->
             <v-chip
               v-if="sett === settimanaAttiva || haRecupero(inputSettimane[sett].ins)"
-              :color="((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'red-lighten-2' : (isWeekCompleted(sett) ? 'green-lighten-2' : 'orange-lighten-2')"
+              :color="haRecupero(inputSettimane[sett].ins) ? 'red-lighten-2' : ((isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-')) ? 'green-lighten-2' : 'orange-lighten-2')"
               size="x-small"
               class="font-weight-black px-1.5"
-              :style="{ height: '16px', fontSize: '0.52rem', letterSpacing: '0.04em', background: (sett === settimanaAttiva && !isWeekCompleted(sett)) ? 'rgba(249, 115, 22, 0.12) !important' : '', border: (sett === settimanaAttiva && !isWeekCompleted(sett)) ? '1px solid rgba(249, 115, 22, 0.3) !important' : '', pointerEvents: 'none' }"
+              :style="{ height: '16px', fontSize: '0.52rem', letterSpacing: '0.04em', background: (sett === settimanaAttiva && !isWeekCompleted(sett) && !inputSettimane[sett]?.ins) ? 'rgba(249, 115, 22, 0.12) !important' : '', border: (sett === settimanaAttiva && !isWeekCompleted(sett) && !inputSettimane[sett]?.ins) ? '1px solid rgba(249, 115, 22, 0.3) !important' : '', pointerEvents: 'none' }"
               variant="tonal"
             >
-              {{ ((route.query.targetWeek && parseInt(route.query.targetWeek) === sett) || haRecupero(inputSettimane[sett].ins)) ? 'DA COMPLETARE' : (isWeekCompleted(sett) ? '✓ COMPLETATA' : 'ATTIVA') }}
+              {{ haRecupero(inputSettimane[sett].ins) ? 'DA COMPLETARE' : ((isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-')) ? '✓ COMPLETATA' : 'ATTIVA') }}
             </v-chip>
             <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
           </div>

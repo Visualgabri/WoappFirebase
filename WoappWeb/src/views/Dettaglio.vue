@@ -2879,8 +2879,8 @@
                     ⚙️ OPZIONI DI PROGRESSIONE
                   </span>
                   
-                  <v-row dense class="mx-0">
-                    <v-col v-for="strada in opzioniStradeProgressione" :key="strada.tipo" :cols="opzioniStradeProgressione.length > 3 ? 3 : 4" class="px-0.5">
+                  <div class="d-flex gap-1.5 overflow-x-auto pb-1 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
+                    <div v-for="strada in opzioniStradeProgressione" :key="strada.tipo" class="flex-grow-1" style="min-width: 95px; max-width: 130px;">
                       <v-card 
                         class="pa-2 rounded-xl text-center border bg-slate-900 d-flex flex-column justify-space-between fill-height"
                         :style="{
@@ -2888,10 +2888,10 @@
                           background: strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.04) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.04) !important' : (strada.tipo === 'stesso_peso' ? 'rgba(59, 130, 246, 0.04) !important' : 'rgba(255,255,255,0.01) !important'))
                         }"
                         elevation="0"
-                        style="min-height: 100px;"
+                        style="min-height: 95px;"
                       >
                         <div class="d-flex flex-column align-center">
-                          <span class="font-weight-black text-uppercase text-truncate" :class="strada.tipo === 'smart' ? 'text-green-accent-3' : (strada.tipo === 'sfidante' ? 'text-orange-lighten-2' : (strada.tipo === 'stesso_peso' ? 'text-blue-lighten-2' : 'text-blue-lighten-3'))" style="font-size: 0.58rem; letter-spacing: 0.03em;">
+                          <span class="font-weight-black text-uppercase text-truncate" :class="strada.tipo === 'smart' ? 'text-green-accent-3' : (strada.tipo === 'sfidante' ? 'text-orange-lighten-2' : (strada.tipo === 'stesso_peso' ? 'text-blue-lighten-2' : 'text-blue-lighten-3'))" style="font-size: 0.58rem; letter-spacing: 0.02em;">
                             {{ strada.titolo }}
                           </span>
                           <span class="text-super-caption text-muted text-truncate mt-0.5 font-weight-bold" style="font-size: 0.48rem; text-transform: none;">
@@ -2899,7 +2899,7 @@
                           </span>
                         </div>
                         
-                        <div class="opzione-peso-text my-1.5 text-subtitle-2 font-weight-black" style="line-height: 1.1; font-size: 0.88rem;">
+                        <div class="opzione-peso-text my-1 text-subtitle-2 font-weight-black" style="line-height: 1.1; font-size: 0.85rem;">
                           {{ strada.valore }}
                         </div>
                         
@@ -2913,22 +2913,19 @@
                           Applica
                         </v-btn>
                       </v-card>
-                    </v-col>
-                  </v-row>
+                    </div>
+                  </div>
 
                   <!-- 2.B CALCOLATORE INTERATTIVO CARICO CUSTOM / REPS TARGET -->
                   <div v-if="!isCorpoLiberoEsercizio(workout)" class="text-left mt-2.5 pa-2.5 rounded-xl border bg-slate-950" style="border-color: rgba(255, 255, 255, 0.1) !important;">
-                    <div class="d-flex align-center justify-space-between mb-1.5">
-                      <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase d-flex align-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.04em;">
-                        🧮 SIMULATORE CARICO CUSTOM & REPS TARGET
-                      </span>
-                      <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.52rem;">
-                        Calcolatore Vol. Invariato
+                    <div class="d-flex align-center justify-space-between mb-2">
+                      <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.04em;">
+                        🧮 SIMULATORE CARICO CUSTOM
                       </span>
                     </div>
 
                     <div class="d-flex align-center gap-2 mb-2">
-                      <div class="flex-grow-1" style="max-width: 140px;">
+                      <div style="width: 120px; flex-shrink: 0;">
                         <v-text-field
                           v-model="pesoCustomSimulatore"
                           type="number"
@@ -2937,73 +2934,78 @@
                           hide-details
                           variant="outlined"
                           prefix="KG"
-                          label="Carico Desiderato"
-                          class="custom-weight-input font-weight-bold text-caption"
-                          style="font-size: 0.75rem;"
+                          label="Peso"
+                          class="custom-weight-input font-weight-black"
+                          style="font-size: 0.82rem;"
                         ></v-text-field>
                       </div>
-                      <div class="text-super-caption text-slate-light" style="font-size: 0.56rem; line-height: 1.2;">
-                        Inserisci il peso scelto (es. <strong>57 kg</strong>) per calcolare le rep necessarie a progredire.
+                      <div class="text-super-caption text-slate-light font-weight-medium" style="font-size: 0.56rem; line-height: 1.2;">
+                        Calcola rep per progredire col peso scelto.
                       </div>
                     </div>
 
-                    <!-- RISULTATI SIMULAZIONE REPS -->
+                    <!-- RISULTATI SIMULAZIONE REPS IN 3 RIGHE PULITE -->
                     <div v-if="calcolaProgressioneRepCustom" class="d-flex flex-column gap-1.5 pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255, 255, 255, 0.05) !important;">
-                      <div class="d-flex align-center justify-space-between text-super-caption" style="font-size: 0.58rem;">
-                        <span class="text-slate-light font-weight-medium">
-                          🎯 Base: <strong>{{ calcolaProgressioneRepCustom.pesoRef }}kg × {{ calcolaProgressioneRepCustom.repsRef }}r</strong> (e1RM: {{ calcolaProgressioneRepCustom.e1rmRef }}kg)
-                        </span>
+                      <div class="text-super-caption text-slate-light font-weight-medium mb-0.5" style="font-size: 0.55rem;">
+                        🎯 Base: <strong>{{ calcolaProgressioneRepCustom.pesoRef }}kg × {{ calcolaProgressioneRepCustom.repsRef }}r</strong> (e1RM: {{ calcolaProgressioneRepCustom.e1rmRef }}kg)
                       </div>
 
-                      <v-row dense class="mx-0 mt-0.5">
-                        <v-col cols="4" class="px-0.5">
-                          <v-btn
-                            color="blue-darken-4"
-                            variant="tonal"
-                            size="x-small"
-                            block
-                            class="font-weight-black text-none d-flex flex-column py-2 h-auto rounded-lg border border-blue-500/30"
-                            style="font-size: 0.6rem;"
-                            @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.parita.valore)"
-                          >
-                            <span class="text-super-caption text-blue-lighten-3 font-weight-black" style="font-size: 0.52rem;">🟡 PARITÀ</span>
-                            <span class="text-subtitle-2 font-weight-black text-white my-0.5" style="font-size: 0.82rem;">{{ calcolaProgressioneRepCustom.parita.valore }}</span>
-                            <span class="text-super-caption text-slate-light font-weight-normal" style="font-size: 0.48rem;">Stessa Forza</span>
+                      <!-- 1. PARITÀ -->
+                      <div 
+                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-blue-950/40 border-blue-500/30 cursor-pointer hover:bg-blue-900/50 transition-colors"
+                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.parita.valore)"
+                      >
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-blue-lighten-3" style="font-size: 0.62rem;">🟡 PARITÀ</span>
+                          <span class="text-super-caption text-slate-light" style="font-size: 0.54rem;">Stessa Forza</span>
+                        </div>
+                        <div class="d-flex align-center gap-2">
+                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-blue-900/80 border border-blue-400/30" style="font-size: 0.82rem;">
+                            {{ calcolaProgressioneRepCustom.parita.valore }}
+                          </span>
+                          <v-btn color="blue-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2" style="font-size: 0.58rem; height: 22px;">
+                            Applica
                           </v-btn>
-                        </v-col>
+                        </div>
+                      </div>
 
-                        <v-col cols="4" class="px-0.5">
-                          <v-btn
-                            color="green-darken-3"
-                            variant="tonal"
-                            size="x-small"
-                            block
-                            class="font-weight-black text-none d-flex flex-column py-2 h-auto rounded-lg border border-green-500/40"
-                            style="font-size: 0.6rem;"
-                            @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.target.valore)"
-                          >
-                            <span class="text-super-caption text-green-accent-3 font-weight-black" style="font-size: 0.52rem;">🟢 TARGET</span>
-                            <span class="text-subtitle-2 font-weight-black text-white my-0.5" style="font-size: 0.82rem;">{{ calcolaProgressioneRepCustom.target.valore }}</span>
-                            <span class="text-super-caption text-green-accent-2 font-weight-bold" style="font-size: 0.48rem;">Progressione +1r</span>
+                      <!-- 2. TARGET (+1r) -->
+                      <div 
+                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-green-950/40 border-green-500/30 cursor-pointer hover:bg-green-900/50 transition-colors"
+                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.target.valore)"
+                      >
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-green-accent-3" style="font-size: 0.62rem;">🟢 TARGET</span>
+                          <span class="text-super-caption text-green-accent-2" style="font-size: 0.54rem;">Progressione +1r</span>
+                        </div>
+                        <div class="d-flex align-center gap-2">
+                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-green-900/80 border border-green-400/30" style="font-size: 0.82rem;">
+                            {{ calcolaProgressioneRepCustom.target.valore }}
+                          </span>
+                          <v-btn color="green-darken-2" size="x-small" density="compact" class="font-weight-black text-white text-none px-2" style="font-size: 0.58rem; height: 22px;">
+                            Applica
                           </v-btn>
-                        </v-col>
+                        </div>
+                      </div>
 
-                        <v-col cols="4" class="px-0.5">
-                          <v-btn
-                            color="orange-darken-4"
-                            variant="tonal"
-                            size="x-small"
-                            block
-                            class="font-weight-black text-none d-flex flex-column py-2 h-auto rounded-lg border border-orange-500/40"
-                            style="font-size: 0.6rem;"
-                            @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.sfidante.valore)"
-                          >
-                            <span class="text-super-caption text-orange-lighten-2 font-weight-black" style="font-size: 0.52rem;">🔥 SFIDANTE</span>
-                            <span class="text-subtitle-2 font-weight-black text-white my-0.5" style="font-size: 0.82rem;">{{ calcolaProgressioneRepCustom.sfidante.valore }}</span>
-                            <span class="text-super-caption text-orange-lighten-3 font-weight-bold" style="font-size: 0.48rem;">Progressione +2r</span>
+                      <!-- 3. SFIDANTE (+2r) -->
+                      <div 
+                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-orange-950/40 border-orange-500/30 cursor-pointer hover:bg-orange-900/50 transition-colors"
+                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.sfidante.valore)"
+                      >
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.62rem;">🔥 SFIDANTE</span>
+                          <span class="text-super-caption text-orange-lighten-3" style="font-size: 0.54rem;">Progressione +2r</span>
+                        </div>
+                        <div class="d-flex align-center gap-2">
+                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-orange-900/80 border border-orange-400/30" style="font-size: 0.82rem;">
+                            {{ calcolaProgressioneRepCustom.sfidante.valore }}
+                          </span>
+                          <v-btn color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2" style="font-size: 0.58rem; height: 22px;">
+                            Applica
                           </v-btn>
-                        </v-col>
-                      </v-row>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -4944,7 +4946,7 @@ const getBaseWeekInfo = (sett) => {
       pesoBase = pStr ? parseFloat(pStr) : null;
       
       const repsEseguite = estraiRepsDaInput(baseIns);
-      if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 15) {
+      if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 50) {
         repsBase = repsEseguite;
       } else {
         const repsVal = workout.value['reps_week' + baseWNum];
@@ -5577,24 +5579,28 @@ const getGhostWeightsRangeForWeek = (sett) => {
     };
   }
 
-  // Scenario 0: Intensificazione (repsTarget < repsBaseVal)
+  // Scenario 0: Intensificazione (repsTarget < repsBaseVal, es. W5 target 11r ma in W3 eseguito 16r)
   if (repsTarget < repsBaseVal) {
-    const repsVolume = repsBaseVal + 1;
+    const isIncrementoCarico = pesoConsigliato > pesoBase;
+    const prudenzialeValStr = `${pesoBase}x${repsBaseVal}r`;
+    const consigliatoValStr = isIncrementoCarico ? String(pesoConsigliato) : `${pesoBase}x${repsBaseVal + 1}r`;
+    const sfidanteValStr = isIncrementoCarico ? String(pesoSfidante) : `${pesoBase}x${repsBaseVal + 2}r`;
+
     return {
       prudenziale: {
-        value: `${pesoBase}x${repsVolume}r`,
-        display: `${formatWeight(pesoBase)}x${repsVolume}r`,
-        label: 'Prudenziale (+1r)'
+        value: prudenzialeValStr,
+        display: `${formatWeight(pesoBase)}x${repsBaseVal}r`,
+        label: 'Parità (Stessa Forza)'
       },
       consigliato: {
-        value: String(pesoConsigliato),
-        display: `${formatWeight(pesoConsigliato)} kg`,
-        label: 'Consigliato'
+        value: consigliatoValStr,
+        display: isIncrementoCarico ? `${formatWeight(pesoConsigliato)} kg` : `${formatWeight(pesoBase)}x${repsBaseVal + 1}r`,
+        label: isIncrementoCarico ? 'Consigliato (+Kg)' : 'Consigliato (+1r)'
       },
       sfidante: {
-        value: String(pesoSfidante),
-        display: `${formatWeight(pesoSfidante)} kg`,
-        label: 'Sfidante'
+        value: sfidanteValStr,
+        display: isIncrementoCarico ? `${formatWeight(pesoSfidante)} kg` : `${formatWeight(pesoBase)}x${repsBaseVal + 2}r`,
+        label: isIncrementoCarico ? 'Sfidante (+Kg)' : 'Sfidante (+2r)'
       }
     };
   }
@@ -6152,18 +6158,17 @@ const spiegazioneDinamicaConsigliata = computed(() => {
     return `⚡ Progressione di volume attiva! Le ripetizioni richieste sono aumentate (da ${info.repsBase} a ${info.repsTarget} reps). Mantenere lo stesso peso di ${info.pesoBase} kg (usato in W${info.baseWNum}${info.isPreviousWorkoutW6 ? ' prec.' : ''}) è già a tutti gli effetti una progressione per la modalità Safe. Se desideri aumentare anche il carico, seleziona le opzioni Consigliato o Sfidante!`;
   }
 
-  const potenziale = caricoIdealeConsigliato.value ? caricoIdealeConsigliato.value.pesoProposto : null;
   const programmato = pesoPropostoDettaglio.value;
   const consigliato = caricoConsigliatoViaDiMezzo.value;
   
-  if (potenziale === null || programmato === null) return '';
+  if (consigliato === null || programmato === null) return '';
   
-  if (potenziale > programmato) {
-    return `📈 La tua forza stimata recente (${potenziale} kg) è in crescita rispetto al carico programmato base. Ti consigliamo una via di mezzo di ${consigliato} kg per progredire in sicurezza senza stalli.`;
-  } else if (potenziale < programmato) {
-    return `⚠️ La stima sulle prestazioni recenti (${potenziale} kg) suggerisce prudenza rispetto al carico programmato base della scheda (${programmato} kg). Ti consigliamo una via di mezzo di ${consigliato} kg.`;
+  if (consigliato > programmato) {
+    return `📈 Forza stimata in crescita. Carico proposto: ${formatWeight(consigliato)} kg per progredire in sicurezza.`;
+  } else if (consigliato < programmato) {
+    return `⚠️ Prestazioni recenti suggeriscono prudenza. Carico consigliato: ${formatWeight(consigliato)} kg.`;
   } else {
-    return `🎯 La progressione programmata coincide perfettamente con la stima della tua forza attuale: ${consigliato} kg.`;
+    return `🎯 Carico consigliato allineato alla scheda: ${formatWeight(consigliato)} kg.`;
   }
 });
 

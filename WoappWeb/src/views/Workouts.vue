@@ -3926,37 +3926,29 @@ watch(mostraPromemoriaChiusura, (newVal) => {
 }, { immediate: true });
 
 // Cerca il primo esercizio incompleto in una specifica settimana,
-// dando priorità al giorno corrente (se aperto) oppure al primo giorno ancora aperto per quella settimana.
+// seguendo sempre l'ordine sequenziale naturale dei giorni (A -> B -> C -> D)
+// e saltando i giorni il cui allenamento è già stato chiuso per quella settimana.
 const trovaPrimoIncompletoInSettimana = (w) => {
   const tuttiGiorni = (listaGiorniDisponibili.value || []).map(g => g.toUpperCase());
   if (tuttiGiorni.length === 0) return null;
 
-  // 1. Filtra solo i giorni il cui header NON è ancora stato chiuso (cmp = false) per la settimana w
-  const giorniAperti = tuttiGiorni.filter(g => {
+  for (const g of tuttiGiorni) {
+    // 1. Verifica se l'intestazione del giorno g è già stata chiusa per la settimana w
     const header = listaAllenamenti.value.find(
       item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) === 0
     );
-    return header && !isCmpTrue(header['cmp' + w]);
-  });
+    const isChiuso = header && isCmpTrue(header['cmp' + w]);
 
-  // Se tutti i giorni della settimana w sono chiusi, ritorna null (la settimana w è terminata)
-  if (giorniAperti.length === 0) return null;
+    // Se il giorno g è già chiuso per la settimana w, passa al giorno successivo (es. A e B chiusi -> passa a C)
+    if (isChiuso) continue;
 
-  // 2. Ordina i giorni aperti mettendo per primo il giorno selezionato se è tra quelli aperti
-  const corrente = (giornoSelezionato.value || '').trim().toUpperCase();
-  let giorniOrdinati = giorniAperti;
-  if (giorniAperti.includes(corrente)) {
-    const idx = giorniAperti.indexOf(corrente);
-    giorniOrdinati = [...giorniAperti.slice(idx), ...giorniAperti.slice(0, idx)];
-  }
-
-  for (const g of giorniOrdinati) {
+    // 2. Cerca gli esercizi del giorno aperto
     const eserciziDelGiorno = listaAllenamenti.value.filter(
       item => (item.des_giorno || '').trim().toUpperCase() === g && parseInt(item.num_riga_giorno) > 0
     );
     eserciziDelGiorno.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
 
-    // Cerca il primo esercizio non ancora compilato nel giorno aperto
+    // Cerca il primo esercizio non ancora compilato nel primo giorno aperto in ordine sequenziale
     const primoIncompleto = eserciziDelGiorno.find(ex => {
       const val = ex['ins_week' + w];
       return !val || val.trim() === '';

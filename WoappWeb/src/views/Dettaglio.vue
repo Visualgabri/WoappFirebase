@@ -932,43 +932,12 @@
               {{ getGhostRenderInfo(sett).maxEffortNotice }}
             </div>
 
-            <!-- BANNER AVVISO SALTO CARICO RIR & PR -->
-            <div 
-              v-if="sett === settimanaAttiva && avvisoSaltoCaricoRIR" 
-              class="mb-2 pa-2.5 rounded-xl border text-left animate-fade-in" 
-              style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%) !important; border: 1.5px solid rgba(245, 158, 11, 0.4) !important;"
-            >
-              <div class="d-flex align-center gap-1.5 mb-1">
-                <v-icon size="16" color="amber-lighten-2">mdi-alert-outline</v-icon>
-                <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.60rem; letter-spacing: 0.04em;">
-                  Aumento Carico Riconosciuto (+{{ formatWeight(avvisoSaltoCaricoRIR.diff) }} kg)
-                </span>
-              </div>
-              <p class="text-super-caption text-slate-light mb-1.5" style="font-size: 0.65rem; line-height: 1.35; color: #cbd5e1 !important;">
-                Il salto da {{ formatWeight(avvisoSaltoCaricoRIR.pesoBase) }}kg a {{ formatWeight(avvisoSaltoCaricoRIR.pesoConsigliato) }}kg considera il tuo{{ avvisoSaltoCaricoRIR.prText }} la riduzione del buffer RIR (da RIR {{ avvisoSaltoCaricoRIR.rirW1 }} a RIR {{ avvisoSaltoCaricoRIR.rirCurr }}). Se cerchi un rientro graduale puoi usare l'opzione <strong>Graduale ({{ formatWeight(avvisoSaltoCaricoRIR.pesoGraduale) }} kg)</strong>.
-              </p>
-            </div>
 
             <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
             <div 
               v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'forma' || sett === 1)"
               class="d-flex flex-wrap gap-1.5 mt-1.5 mb-2.5 w-100 align-center justify-space-between animate-fade-in"
             >
-              <!-- BOTTONE EXTRA: GRADUALE / RIENTRO SOFT (Mostrato solo quando c'è un salto di carico) -->
-              <v-btn
-                v-if="avvisoSaltoCaricoRIR"
-                variant="flat"
-                color="teal-darken-2"
-                size="x-small"
-                class="flex-grow-1 text-none px-2 rounded-lg text-white font-weight-black"
-                style="height: 32px; font-size: 0.72rem; min-width: 22%;"
-                @click="applicaPropostaCaricoRapida(sett, avvisoSaltoCaricoRIR.pesoGraduale)"
-              >
-                <div class="d-flex flex-column align-center line-height-tight">
-                  <span class="font-weight-black">{{ formatWeight(avvisoSaltoCaricoRIR.pesoGraduale) }} kg</span>
-                  <span style="font-size: 0.52rem; opacity: 0.9;" class="text-truncate">🟢 Graduale</span>
-                </div>
-              </v-btn>
               <div class="w-100 text-super-caption text-left text-muted mb-1" style="font-size: 0.58rem !important; letter-spacing: 0.05em;">
                 {{ (sett === 1 && getGhostLiftSmart(sett).recordVal) ? '🏆 SFIDA IL RECORD IN WEEK 1:' : (sett === 1 ? '💡 RANGE PROPOSTO IN WEEK 1:' : (stileVisualizzazioneGhost === 'forma' ? '💡 COME TI SENTI OGGI?' : (stileVisualizzazioneGhost === 'marce' ? '⚙️ SELEZIONA LA MARCIA:' : '💡 TOCCA PER APPLICARE:'))) }}
               </div>
@@ -5973,41 +5942,6 @@ const caricoConsigliatoViaDiMezzo = computed(() => {
   return getCaricoConsigliatoViaDiMezzoForWeek(aiutoWeek.value);
 });
 
-const avvisoSaltoCaricoRIR = computed(() => {
-  if (!workout.value) return null;
-  const sett = settimanaAttiva.value;
-  const infoBase = getBaseWeekInfo(sett);
-  if (!infoBase || infoBase.pesoBase === null || isNaN(infoBase.pesoBase) || infoBase.pesoBase <= 0) return null;
-
-  const pesoBase = infoBase.pesoBase;
-  const range = getGhostWeightsRangeForWeek(sett);
-  if (!range) return null;
-
-  const pesoConsigliato = parseFloat(range.consigliato.value) || parseFloat(range.prudenziale.value) || 0;
-  const isManubri = isManubriEsercizio(workout.value);
-  const step = getWeightStep(isManubri, pesoBase);
-
-  // Rileva salto significativo di carico (>= 2 step o >= 25%)
-  if (pesoConsigliato >= pesoBase + (2 * step)) {
-    const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
-    const prText = (prWeight > pesoBase) ? ` record storico (${formatWeight(prWeight)}kg) e` : '';
-    const rirW1 = estraiRIRDaPrescrizione(workout.value['des_week' + (infoBase.baseWNum || 1)]) ?? getRIRDefault(infoBase.baseWNum || 1);
-    const rirCurr = estraiRIRDaPrescrizione(workout.value['des_week' + sett]) ?? getRIRDefault(sett);
-    const pesoGraduale = pesoBase + step;
-
-    return {
-      pesoBase,
-      pesoConsigliato,
-      diff: Math.round((pesoConsigliato - pesoBase) * 10) / 10,
-      prWeight,
-      prText,
-      rirW1,
-      rirCurr,
-      pesoGraduale
-    };
-  }
-  return null;
-});
 
 // Stato e Calcolatore Carico Custom per Simulatore Dialog
 const pesoCustomSimulatore = ref(null);

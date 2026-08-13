@@ -5354,9 +5354,22 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   }
 
   // Salvaguardia Incremento Massimo: Previene salti di carico irrealistici da storici remoti (es. 58kg -> 70kg)
-  if (pesoBase > 0 && result !== null && result > pesoBase) {
+  if (pesoBase > 0 && result !== null) {
+    const repsTarget = infoBase ? infoBase.repsTarget : getRepsPerWeek(sett);
+    const repsBase = infoBase ? infoBase.repsBase : 10;
+    
+    // Se le rep scendono (intensificazione, es. W5 16r -> W6 10r), il peso equivalente per pareggiare l'1RM sale!
+    let pesoRiferimentoEffettivo = pesoBase;
+    if (repsBase > repsTarget && repsTarget > 0) {
+      const e1rmBase = pesoBase * (1 + repsBase / 30);
+      const wEq = e1rmBase / (1 + repsTarget / 30);
+      if (wEq > pesoBase) {
+        pesoRiferimentoEffettivo = wEq;
+      }
+    }
+
     const maxIncrementoPct = isManubri ? 0.10 : (isCavoOMacchinaEsercizio(workout.value) ? 0.08 : 0.10);
-    const maxPesoAccettabile = Math.max(pesoBase + step, Math.round((pesoBase * (1 + maxIncrementoPct)) / step) * step);
+    const maxPesoAccettabile = Math.max(pesoRiferimentoEffettivo + step, Math.round((pesoRiferimentoEffettivo * (1 + maxIncrementoPct)) / step) * step);
     if (result > maxPesoAccettabile) {
       result = maxPesoAccettabile;
     }
@@ -5777,7 +5790,13 @@ const getGhostRenderInfo = (sett) => {
     valueText = valConsigliato;
 
     if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+      const repsW6 = getRepsPerWeek(6);
+      const repsPrev = baseInfo?.repsBase || 10;
+      const e1rmConsigliato = numConsigliato * (1 + repsW6 / 30);
+      const e1rmPrev = prevPeso * (1 + repsPrev / 30);
+      if (e1rmConsigliato > (e1rmPrev + 1.5)) {
+        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${repsW6} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+      }
     }
   } else if (ghost.isPostScarico) {
     const baseInfo = getBaseWeekInfo(sett);
@@ -5803,7 +5822,13 @@ const getGhostRenderInfo = (sett) => {
     valueText = valConsigliato;
 
     if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${getRepsPerWeek(6)} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+      const repsW6 = getRepsPerWeek(6);
+      const repsPrev = baseInfo?.repsBase || 10;
+      const e1rmConsigliato = numConsigliato * (1 + repsW6 / 30);
+      const e1rmPrev = prevPeso * (1 + repsPrev / 30);
+      if (e1rmConsigliato > (e1rmPrev + 1.5)) {
+        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${repsW6} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+      }
     }
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';

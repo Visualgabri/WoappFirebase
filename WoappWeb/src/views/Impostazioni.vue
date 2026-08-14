@@ -306,9 +306,9 @@
 
         <v-divider class="my-2 border-soft" style="opacity: 0.2;"></v-divider>
 
-        <!-- Suggerimenti Ghost -->
+        <!-- Suggerimenti e Stile Carico Consigliato -->
         <div>
-          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Suggerimenti Ghost</span>
+          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Stile Carichi Consigliati</span>
           <v-btn-toggle
             v-model="stileVisualizzazioneGhost"
             mandatory
@@ -322,9 +322,9 @@
             <v-btn value="forma" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Stato Forma</v-btn>
           </v-btn-toggle>
 
-          <!-- Motore Progressione Ghost -->
+          <!-- Motore di Progressione Automatica -->
           <div class="mb-2.5">
-            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Motore Progressione Ghost</span>
+            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Motore di Progressione</span>
             <v-btn-toggle
               v-model="modalitaIncrementoGhost"
               mandatory
@@ -342,7 +342,7 @@
 
           <!-- Sensibilità Sforzo / Fatica -->
           <div class="mb-2">
-            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Sensibilità Fatica Ghost</span>
+            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Sensibilità alla Fatica</span>
             <v-btn-toggle
               v-model="sensibilitaFaticaGhost"
               mandatory

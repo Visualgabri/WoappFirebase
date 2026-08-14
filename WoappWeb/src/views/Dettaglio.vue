@@ -3205,6 +3205,37 @@
                       </div>
                     </v-expansion-panel-text>
                   </v-expansion-panel>
+
+                  <!-- GUIDA: CAMBIO PALESTRA & CARRUCOLE (REGOLA PARENTESI) -->
+                  <v-expansion-panel bg-color="var(--card-bg-soft)" elevation="0">
+                    <v-expansion-panel-title class="font-weight-black py-2 text-amber-lighten-2" style="font-size: 0.68rem; min-height: 34px;">
+                      🏋️ Cambio Palestra o Carrucole Diverse? (Regola d'Oro)
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text class="px-0 pt-2 pb-1 text-slate-light" style="font-size: 0.68rem; line-height: 1.4;">
+                      <div class="pa-2 rounded-lg mb-2" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b;">
+                        <strong class="text-amber-lighten-1">👑 Regola d'Oro delle Parentesi ( ... ):</strong>
+                        <div class="mt-0.5">
+                          Tutto ciò che scrivi tra parentesi tonde <code>( ... )</code> (inclusi carichi e serie) viene escluso dal calcolo della progressione e dei PR.
+                        </div>
+                      </div>
+                      <div class="pa-2 rounded-lg mb-2 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <strong class="text-green-accent-3">✅ Formato Consigliato in Trasferta:</strong>
+                        <div class="font-mono mt-1 font-weight-bold" style="color: #4ade80; font-size: 0.66rem;">
+                          25 x11r<br>
+                          (45 x11r x2s Green Theory)
+                        </div>
+                        <div class="text-super-caption text-slate-light mt-1" style="font-size: 0.58rem;">
+                          L'app userà il 25kg per le progressioni future e salverà il 45kg tra parentesi come tuo promemoria.
+                        </div>
+                      </div>
+                      <div class="pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <strong class="text-cyan-lighten-2">⚙️ Pulegge 1:1 vs 2:1:</strong>
+                        <div class="mt-0.5">
+                          Se la macchina ospite ha carrucole dimezzate (2:1), devi impostare <strong>il doppio del peso</strong> sul selettore per ottenere lo stesso stimolo reale. Dividi a mente per 2 e registra il carico abituale!
+                        </div>
+                      </div>
+                    </v-expansion-panel-text>
+                  </v-expansion-panel>
                 </v-expansion-panels>
               </div>
             </template>
@@ -10848,8 +10879,8 @@ function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
   
-  // Rimuove QUALSIASI contenuto tra parentesi tonde (...) per evitare che note o impostazioni influenzino i calcoli
-  clean = clean.replace(/\([^)]*\)/g, ' ').trim();
+  // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per evitare che note o impostazioni influenzino i calcoli
+  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
 
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
@@ -10937,8 +10968,8 @@ function estraiPesoDaInput(str) {
   
   let clean = String(str).replace(/,/g, '.').trim();
   
-  // Rimuove QUALSIASI contenuto tra parentesi tonde (...) per escludere note ed impostazioni dai calcoli
-  clean = clean.replace(/\([^)]*\)/g, ' ').trim();
+  // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per escludere note ed impostazioni dai calcoli
+  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
   
   // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();

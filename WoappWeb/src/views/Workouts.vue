@@ -2909,7 +2909,9 @@ const stalloInSchedaPrecedente = (ex) => {
   const useRep = isRepProgression(exPrev);
   const parsePesoLocalInternal = (val) => {
     if (!val) return 0;
-    const clean = String(val).replace(/,/g, '.').trim();
+    let clean = String(val).replace(/,/g, '.').trim();
+    // Rimuove qualsiasi contenuto tra parentesi (...), quadre [...] o graffe {...}
+    clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
     if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
     if (/^\s*\d+(?:\.\d+)?\s*[xX]\s*\d+(?:\.\d+)?(?:\s*[rR]?\b)?\s*$/.test(clean)) return 0;
     const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
@@ -3048,6 +3050,9 @@ function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
   let clean = String(str).replace(/,/g, '.').trim();
   
+  // Rimuove QUALSIASI contenuto tra parentesi (...), quadre [...] o graffe {...} per evitare che note influenzino i calcoli
+  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();

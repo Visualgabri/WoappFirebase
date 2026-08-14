@@ -8299,22 +8299,20 @@ const tempoTrascorso = (dateStr) => {
     
     if (diffDays === 0) return 'oggi';
     if (diffDays === 1) return 'ieri';
-    if (diffDays < 7) return `${diffDays} gg fa`;
+    if (diffDays < 7) return `${diffDays}g fa`;
     
     const diffWeeks = Math.floor(diffDays / 7);
-    if (diffWeeks < 4) return `${diffWeeks} sett fa`;
+    if (diffWeeks < 4) return `${diffWeeks}sett fa`;
     
     const diffMonths = Math.round(diffDays / 30.43);
-    if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? 'mese' : 'mesi'} fa`;
+    if (diffMonths < 12) return `${diffMonths}m fa`;
     
     const years = Math.floor(diffMonths / 12);
     const remainingMonths = diffMonths % 12;
     if (remainingMonths === 0) {
-      return `${years} ${years === 1 ? 'anno' : 'anni'} fa`;
+      return `${years}a fa`;
     } else {
-      const annoStr = years === 1 ? 'anno' : 'anni';
-      const meseStr = remainingMonths === 1 ? 'mese' : 'mesi';
-      return `${years} ${annoStr} e ${remainingMonths} ${meseStr} fa`;
+      return `${years}a e ${remainingMonths}m fa`;
     }
   } catch (e) {
     return '';

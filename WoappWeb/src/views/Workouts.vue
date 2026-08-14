@@ -266,302 +266,7 @@
               </div>
             </v-card>
 
-            <!-- Pannello Esercizi da Recuperare (Accordion per giorno) -->
-            <v-expand-transition>
-              <div v-if="eserciziDaRecuperare.length > 0" class="mb-6">
-                <v-card
-                  class="pa-4 rounded-3xl border"
-                  style="background: linear-gradient(135deg, var(--theme-primary-bg-soft), rgba(0, 0, 0, 0.03)) !important; border: 1.5px solid var(--theme-primary-border) !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;"
-                >
-                  <!-- Header Globale -->
-                  <div class="d-flex align-center justify-space-between mb-3">
-                    <div class="d-flex align-center">
-                      <v-icon color="primary" class="mr-1.5 animate-pulse" size="14">mdi-sync</v-icon>
-                      <span class="font-weight-black text-theme-primary" style="letter-spacing: 0.03em; font-size: 0.72rem !important;">
-                        ESERCIZI DA RECUPERARE
-                      </span>
-                    </div>
-                    <v-chip 
-                      color="primary" 
-                      size="x-small" 
-                      class="font-weight-black text-white px-2" 
-                      variant="flat" 
-                      :style="{
-                        height: layoutEsercizi === 'super_compatto' ? '15px' : '18px',
-                        fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem'
-                      }"
-                    >
-                      {{ eserciziDaRecuperare.length }} TOTALI
-                    </v-chip>
-                  </div>
 
-                  <!-- Accordion per ogni giorno precedente -->
-                  <div class="d-flex flex-column gap-2">
-                    <div
-                      v-for="gruppo in recuperiRaggruppati"
-                      :key="gruppo.giorno"
-                      class="recupero-accordion-group rounded-xl overflow-hidden"
-                      style="border: 1px solid var(--theme-primary-border); background: rgba(0,0,0,0.15);"
-                    >
-                      <!-- Accordion Header (sempre visibile) -->
-                      <div
-                        class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none"
-                        style="transition: background 0.2s;"
-                        @click="toggleRecuperoAccordion(gruppo.giorno)"
-                      >
-                        <div class="d-flex align-center">
-                          <div
-                            class="d-flex align-center justify-center rounded-lg mr-3 font-weight-black"
-                            style="width: 32px; height: 32px; background: var(--theme-primary-bg-soft); color: var(--theme-primary); font-size: 0.95rem;"
-                          >
-                            {{ gruppo.giorno }}
-                          </div>
-                          <div>
-                            <div class="text-caption font-weight-black text-slate-dark" style="font-size: 0.8rem !important;">
-                              Da Giorno {{ gruppo.giorno }}
-                            </div>
-                            <div class="text-super-caption text-muted" style="font-size: 0.65rem;">
-                              {{ gruppo.esercizi.length }} eserciz{{ gruppo.esercizi.length === 1 ? 'io' : 'i' }} da completare
-                            </div>
-                          </div>
-                        </div>
-                        <div class="d-flex align-center gap-2">
-                          <v-chip 
-                            color="primary" 
-                            size="x-small" 
-                            variant="flat" 
-                            class="font-weight-black text-white px-2"
-                            :style="{
-                              height: layoutEsercizi === 'super_compatto' ? '15px' : '18px',
-                              fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem'
-                            }"
-                          >
-                            {{ gruppo.esercizi.length }}
-                          </v-chip>
-                          <v-icon size="18" color="primary" :style="{ transform: recuperoAccordionAperto === gruppo.giorno ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
-                            mdi-chevron-down
-                          </v-icon>
-                        </div>
-                      </div>
-
-                      <!-- Accordion Body (collassabile) -->
-                      <v-expand-transition>
-                        <div v-show="recuperoAccordionAperto === gruppo.giorno" class="px-3 pb-3">
-                          <!-- Coaching Tip -->
-                          <div class="d-flex align-center pa-2 mb-2 rounded-lg" style="background: var(--theme-primary-bg-soft); border: 1px dashed var(--theme-primary-border);">
-                            <v-icon size="14" color="primary" class="mr-2 flex-shrink-0">mdi-lightbulb-outline</v-icon>
-                            <span class="text-super-caption text-theme-primary" style="font-size: 0.62rem; line-height: 1.3;">
-                              Ordine consigliato: inserisci prima i <strong>multiarticolari</strong> (dopo i tuoi esercizi principali), poi l'<strong>isolamento</strong>, infine il <strong>core</strong>.
-                            </span>
-                          </div>
-
-                          <div class="d-flex flex-column gap-2">
-                            <v-card
-                              v-for="(recItem, idx) in gruppo.esercizi"
-                              :key="idx"
-                              class="pa-3 rounded-xl d-flex align-center cursor-pointer"
-                              flat
-                              style="border: 1px solid var(--card-border) !important; background: var(--card-bg-glass) !important; transition: background 0.2s;"
-                              @click="vaiAlRecupero(recItem)"
-                            >
-                              <!-- Numero ordine + Thumbnail -->
-                              <div class="d-flex flex-column align-center mr-3 flex-shrink-0" style="gap: 3px;">
-                                <div
-                                  class="d-flex align-center justify-center rounded font-weight-black"
-                                  style="width: 20px; height: 20px; font-size: 0.6rem; background: var(--theme-primary-bg-soft); color: var(--theme-primary);"
-                                >
-                                  {{ idx + 1 }}
-                                </div>
-                                <div class="rounded-lg overflow-hidden" style="width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.08);">
-                                  <v-img
-                                    :src="getGifUrl(recItem.exercise.UrlNormal) || '/logo.png'"
-                                    cover
-                                    height="100%"
-                                    width="100%"
-                                  >
-                                    <template v-slot:placeholder>
-                                      <div class="fill-height d-flex align-center justify-center" style="background: rgba(30,41,59,0.8);">
-                                        <v-icon color="grey" size="14">mdi-dumbbell</v-icon>
-                                      </div>
-                                    </template>
-                                  </v-img>
-                                </div>
-                              </div>
-
-                              <!-- Testo e controlli -->
-                              <div class="flex-grow-1 min-width-0 text-left">
-                                <div class="d-flex align-center justify-space-between flex-wrap gap-1">
-                                  <h4 class="text-caption font-weight-black text-slate-dark text-truncate mr-2" style="font-size: 0.82rem !important;">
-                                    {{ recItem.exercise.des_esercizio }}
-                                  </h4>
-                                  <div class="d-flex align-center gap-1">
-                                    <v-chip size="x-small" variant="flat" class="font-weight-bold px-1" style="font-size: 0.5rem; height: 15px;"
-                                      :color="recItem.complessita === 1 ? 'red-darken-3' : recItem.complessita === 2 ? 'amber-darken-3' : recItem.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
-                                    >
-                                      {{ labelComplessita(recItem.complessita) }}
-                                    </v-chip>
-                                    <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-bold" style="font-size: 0.55rem; height: 15px;">
-                                      W{{ recItem.week }}
-                                    </v-chip>
-                                  </div>
-                                </div>
-
-                                <!-- Prescrizione -->
-                                <div class="text-super-caption text-muted mt-0.5">
-                                  Target: {{ formattaPrescrizioneSemplice(recItem.prescrizione) }}
-                                </div>
-                                
-                                <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-super-caption text-theme-primary mt-0.5">
-                                  Log parziale: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
-                                </div>
-
-                                <!-- Bottone di completamento rapido senza casella di testo -->
-                                <v-btn
-                                  color="green-darken-3"
-                                  size="x-small"
-                                  variant="flat"
-                                  class="font-weight-black text-none text-white rounded-lg mt-2"
-                                  style="height: 24px; font-size: 0.65rem !important;"
-                                  @click.stop="concludiRecuperoRapido(recItem)"
-                                >
-                                  <v-icon size="12" class="mr-1">mdi-check-circle-outline</v-icon>
-                                  Segna come completato
-                                </v-btn>
-                              </div>
-                            </v-card>
-                          </div>
-                        </div>
-                      </v-expand-transition>
-                    </div>
-                  </div>
-                </v-card>
-              </div>
-            </v-expand-transition>
-
-            <!-- Ordine Esecuzione Proposto (Auto-generato con Recuperi integrati) -->
-            <v-expand-transition>
-              <div v-if="eserciziDaRecuperare.length > 0 && ordineEsecuzioneCompleto.length > 0" class="mb-6">
-                <v-card
-                  class="pa-3 rounded-xl mb-4 border elevation-1"
-                  style="background: linear-gradient(135deg, var(--card-bg-soft), var(--card-bg-glass)) !important; border: 1px solid var(--theme-primary-border) !important;"
-                >
-                  <div
-                    class="d-flex align-center justify-space-between cursor-pointer select-none"
-                    @click="ordineEsecuzioneAperto = !ordineEsecuzioneAperto"
-                  >
-                    <div class="d-flex align-center">
-                      <v-icon color="primary" class="mr-2" size="18">mdi-format-list-numbered</v-icon>
-                      <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.78rem !important; letter-spacing: 0.03em;">
-                        ORDINE ESECUZIONE
-                      </span>
-                      <v-chip
-                        v-if="eserciziDaRecuperare.length > 0"
-                        color="primary"
-                        size="x-small"
-                        class="ml-2 font-weight-black text-white px-1.5"
-                        variant="flat"
-                        style="font-size: 0.5rem; height: 16px;"
-                      >
-                        +{{ eserciziDaRecuperare.length }} RECUPERI
-                      </v-chip>
-                    </div>
-                    <div class="d-flex align-center gap-1">
-                      <v-chip
-                        color="grey-darken-1"
-                        size="x-small"
-                        variant="tonal"
-                        class="font-weight-black px-1.5"
-                        style="font-size: 0.5rem; height: 16px;"
-                      >
-                        {{ ordineEsecuzioneCompleto.length }} TOT
-                      </v-chip>
-                      <v-icon size="16" color="primary" :style="{ transform: ordineEsecuzioneAperto ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
-                        mdi-chevron-down
-                      </v-icon>
-                    </div>
-                  </div>
-
-                  <v-expand-transition>
-                    <div v-show="ordineEsecuzioneAperto" class="mt-3">
-                      <div class="d-flex flex-column gap-1">
-<div
-                            v-for="(item, idx) in ordineEsecuzioneCompleto"
-                            :key="'ord-' + idx"
-                            class="d-flex align-center py-1.5 px-2 rounded-lg cursor-pointer"
-                            :style="{
-                              background: item.tipo === 'recupero' ? 'var(--theme-primary-bg-soft)' : 'rgba(255, 255, 255, 0.02)',
-                              border: item.tipo === 'recupero' ? '1px solid var(--theme-primary-border)' : '1px solid rgba(255, 255, 255, 0.04)',
-                            }"
-                            @click="item.id ? (item.tipo === 'recupero' ? vaiAlDettaglio(item.id, item.weekRecupero) : vaiAlDettaglio(item.id)) : null"
-                          >
-                          <!-- Numero ordine -->
-                          <div
-                            class="d-flex align-center justify-center rounded font-weight-black flex-shrink-0 mr-2.5"
-                            :style="{
-                              width: '22px',
-                              height: '22px',
-                              fontSize: '0.62rem',
-                              background: item.tipo === 'recupero' ? 'var(--theme-primary-bg-soft)' : 'rgba(255, 255, 255, 0.08)',
-                              color: item.tipo === 'recupero' ? 'var(--theme-primary)' : '#94a3b8',
-                            }"
-                          >
-                            {{ idx + 1 }}
-                          </div>
-
-                          <!-- Info Esercizio -->
-                          <div class="flex-grow-1 min-width-0">
-                            <div class="d-flex align-center gap-1">
-                              <span class="text-caption font-weight-bold text-truncate" :class="item.tipo === 'recupero' ? 'text-theme-primary' : 'text-slate-dark'" style="font-size: 0.72rem !important;">
-                                {{ item.nome }}
-                              </span>
-                              <v-chip
-                                v-if="item.tipo === 'recupero'"
-                                color="amber-darken-3"
-                                size="x-small"
-                                variant="flat"
-                                class="font-weight-black text-white flex-shrink-0"
-                                style="font-size: 0.50rem; height: 15px; padding: 0 4px;"
-                              >
-                                🔁 REC
-                              </v-chip>
-                              <v-chip
-                                v-if="item.superserie"
-                                color="amber-darken-3"
-                                size="x-small"
-                                variant="tonal"
-                                class="font-weight-black flex-shrink-0"
-                                style="font-size: 0.50rem; height: 15px; padding: 0 4px;"
-                              >
-                                ⚡ {{ item.superserie }}
-                              </v-chip>
-                            </div>
-                            <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.55rem;">
-                              {{ item.settore }}
-                              <span v-if="item.prescrizione" class="text-slate ml-0.5">• {{ item.prescrizione }}</span>
-                            </div>
-                          </div>
-
-                          <!-- Status -->
-                          <v-icon
-                            v-if="item.completato"
-                            size="14"
-                            color="green-accent-4"
-                            class="flex-shrink-0 ml-1"
-                          >mdi-check-circle</v-icon>
-                          <v-icon
-                            v-else
-                            size="14"
-                            color="grey-darken-1"
-                            class="flex-shrink-0 ml-1"
-                            style="opacity: 0.4;"
-                          >mdi-circle-outline</v-icon>
-                        </div>
-                      </div>
-                    </div>
-                  </v-expand-transition>
-                </v-card>
-              </div>
-            </v-expand-transition>
 
         <!-- Container Unico Sessione Giorno -->
         <v-card
@@ -991,6 +696,484 @@
             }"
             style="background: rgba(30, 41, 59, 0.15);"
           >
+            <!-- Pannello Esercizi da Recuperare (Accordion per giorno) - Sotto la Card del Giorno -->
+            <v-expand-transition>
+              <div v-if="eserciziDaRecuperare.length > 0" :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3')">
+                <v-card
+                  class="border"
+                  :class="layoutEsercizi === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutEsercizi === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')"
+                  style="background: rgba(15, 23, 42, 0.65) !important; border: 1.5px solid rgba(var(--theme-primary-rgb, 249, 115, 22), 0.35) !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;"
+                >
+                  <!-- Header Globale -->
+                  <div 
+                    class="d-flex align-center justify-space-between"
+                    :class="layoutEsercizi === 'super_compatto' ? 'mb-1 px-0.5' : (layoutEsercizi === 'compatto' ? 'mb-1.5 px-1' : 'mb-2 px-1')"
+                  >
+                    <div class="d-flex align-center">
+                      <v-icon color="primary" class="mr-1 animate-pulse" :size="layoutEsercizi === 'super_compatto' ? 12 : (layoutEsercizi === 'compatto' ? 14 : 16)">mdi-sync</v-icon>
+                      <span 
+                        class="font-weight-black text-theme-primary" 
+                        :style="{ 
+                          fontSize: layoutEsercizi === 'super_compatto' ? '0.66rem' : (layoutEsercizi === 'compatto' ? '0.72rem' : '0.78rem'),
+                          letterSpacing: '0.03em'
+                        }"
+                      >
+                        ESERCIZI DA RECUPERARE
+                      </span>
+                    </div>
+                    <v-chip 
+                      color="primary" 
+                      size="x-small" 
+                      class="font-weight-black text-white" 
+                      variant="flat" 
+                      :style="{
+                        height: layoutEsercizi === 'super_compatto' ? '14px' : (layoutEsercizi === 'compatto' ? '16px' : '18px'),
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.48rem' : (layoutEsercizi === 'compatto' ? '0.52rem' : '0.56rem'),
+                        padding: layoutEsercizi === 'super_compatto' ? '0 4px' : '0 6px'
+                      }"
+                    >
+                      {{ eserciziDaRecuperare.length }} TOTALI
+                    </v-chip>
+                  </div>
+
+                  <!-- Gruppi per ogni giorno precedente -->
+                  <div class="d-flex flex-column" :style="{ gap: layoutEsercizi === 'super_compatto' ? '4px' : (layoutEsercizi === 'compatto' ? '6px' : '8px') }">
+                    <div
+                      v-for="gruppo in recuperiRaggruppati"
+                      :key="gruppo.giorno"
+                      class="recupero-group-wrapper"
+                    >
+                      <!-- Group Header (Accordion toggle o Subtitle pulito) -->
+                      <div
+                        class="d-flex align-center justify-space-between cursor-pointer select-none py-1 px-1 mb-1 rounded"
+                        :style="{
+                          background: recuperiRaggruppati.length > 1 ? 'rgba(255, 255, 255, 0.04)' : 'transparent',
+                          borderBottom: recuperiRaggruppati.length === 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
+                        }"
+                        @click="recuperiRaggruppati.length > 1 ? toggleRecuperoAccordion(gruppo.giorno) : null"
+                      >
+                        <div class="d-flex align-center min-width-0">
+                          <div
+                            class="d-flex align-center justify-center font-weight-black flex-shrink-0 rounded"
+                            :style="{
+                              width: layoutEsercizi === 'super_compatto' ? '18px' : '22px',
+                              height: layoutEsercizi === 'super_compatto' ? '18px' : '22px',
+                              fontSize: layoutEsercizi === 'super_compatto' ? '0.64rem' : '0.74rem',
+                              background: 'var(--theme-primary-bg-soft)',
+                              color: 'var(--theme-primary)',
+                              marginRight: '6px'
+                            }"
+                          >
+                            {{ gruppo.giorno }}
+                          </div>
+                          <div class="min-width-0 text-left">
+                            <span 
+                              class="font-weight-black text-slate-dark mr-1.5" 
+                              :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.68rem' : (layoutEsercizi === 'compatto' ? '0.74rem' : '0.80rem') }"
+                            >
+                              Da Giorno {{ gruppo.giorno }}
+                            </span>
+                            <span 
+                              class="text-muted" 
+                              :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : (layoutEsercizi === 'compatto' ? '0.58rem' : '0.62rem') }"
+                            >
+                              • {{ gruppo.esercizi.length }} da completare
+                            </span>
+                          </div>
+                        </div>
+                        <div v-if="recuperiRaggruppati.length > 1" class="d-flex align-center flex-shrink-0">
+                          <v-icon 
+                            :size="layoutEsercizi === 'super_compatto' ? 14 : 16" 
+                            color="primary" 
+                            :style="{ transform: recuperoAccordionAperto === gruppo.giorno ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }"
+                          >
+                            mdi-chevron-down
+                          </v-icon>
+                        </div>
+                      </div>
+
+                      <!-- Group Body (visibile se gruppo unico o se aperto) -->
+                      <v-expand-transition>
+                        <div v-show="recuperiRaggruppati.length === 1 || recuperoAccordionAperto === gruppo.giorno">
+                          <!-- Coaching Tip minimale senza box pesanti -->
+                          <div 
+                            class="d-flex align-center px-1 mb-1.5 text-muted"
+                            :style="{ 
+                              fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : (layoutEsercizi === 'compatto' ? '0.58rem' : '0.62rem'),
+                              lineHeight: 1.25,
+                              opacity: 0.85
+                            }"
+                          >
+                            <v-icon :size="layoutEsercizi === 'super_compatto' ? 11 : 13" color="primary" class="mr-1 flex-shrink-0">mdi-lightbulb-on-outline</v-icon>
+                            <span>Ordine consigliato: multiarticolari → isolamento → core</span>
+                          </div>
+
+                          <!-- Esercizi per Layout -->
+                          <div class="d-flex flex-column" :style="{ gap: layoutEsercizi === 'super_compatto' ? '3px' : (layoutEsercizi === 'compatto' ? '4px' : '6px') }">
+                            
+                            <!-- 1. SUPER COMPATTO (Monoriga ultra pulita) -->
+                            <template v-if="layoutEsercizi === 'super_compatto'">
+                              <div
+                                v-for="(recItem, idx) in gruppo.esercizi"
+                                :key="idx"
+                                class="d-flex align-center justify-space-between py-1 px-1.5 rounded-md cursor-pointer select-none"
+                                style="border: 1px solid rgba(255, 255, 255, 0.08) !important; background: rgba(30, 41, 59, 0.45) !important; transition: background 0.2s;"
+                                @click="vaiAlRecupero(recItem)"
+                              >
+                                <div class="d-flex align-center min-width-0 flex-grow-1 mr-1.5">
+                                  <div
+                                    class="d-flex align-center justify-center rounded font-weight-black flex-shrink-0 mr-1.5"
+                                    style="width: 16px; height: 16px; font-size: 0.50rem; background: var(--theme-primary-bg-soft); color: var(--theme-primary);"
+                                  >
+                                    {{ idx + 1 }}
+                                  </div>
+                                  <div class="min-width-0 text-left flex-grow-1">
+                                    <div class="d-flex align-center min-width-0">
+                                      <span class="font-weight-black text-slate-dark text-truncate" style="font-size: 0.68rem !important; line-height: 1.2;">
+                                        {{ recItem.exercise.des_esercizio }}
+                                      </span>
+                                    </div>
+                                    <div class="d-flex align-center flex-wrap gap-1 mt-0.5">
+                                      <v-chip 
+                                        size="x-small" 
+                                        variant="flat" 
+                                        class="font-weight-bold px-1" 
+                                        style="font-size: 0.42rem; height: 12px; border-radius: 2px;"
+                                        :color="recItem.complessita === 1 ? 'red-darken-3' : recItem.complessita === 2 ? 'amber-darken-3' : recItem.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
+                                      >
+                                        {{ labelComplessita(recItem.complessita) }}
+                                      </v-chip>
+                                      <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-bold px-1" style="font-size: 0.44rem; height: 12px; border-radius: 2px;">
+                                        W{{ recItem.week }}
+                                      </v-chip>
+                                      <span class="text-muted text-truncate font-weight-bold" style="font-size: 0.50rem;">
+                                        {{ formattaPrescrizioneSemplice(recItem.prescrizione) }}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="d-flex align-center flex-shrink-0 gap-1">
+                                  <v-btn
+                                    color="green-darken-3"
+                                    size="x-small"
+                                    variant="flat"
+                                    class="font-weight-black text-none text-white rounded px-1.5"
+                                    style="height: 19px; font-size: 0.52rem !important; min-width: auto;"
+                                    title="Segna come completato"
+                                    @click.stop="concludiRecuperoRapido(recItem)"
+                                  >
+                                    <v-icon size="10" class="mr-0.5">mdi-check</v-icon>
+                                    Fatto
+                                  </v-btn>
+                                  <v-icon size="12" color="slate-dark" style="opacity: 0.5;">mdi-chevron-right</v-icon>
+                                </div>
+                              </div>
+                            </template>
+
+                            <!-- 2. COMPATTO (Card ariosa e ordinata) -->
+                            <template v-else-if="layoutEsercizi === 'compatto'">
+                              <div
+                                v-for="(recItem, idx) in gruppo.esercizi"
+                                :key="idx"
+                                class="pa-1.5 rounded-lg d-flex align-center cursor-pointer select-none position-relative"
+                                style="border: 1px solid rgba(255, 255, 255, 0.08) !important; background: rgba(30, 41, 59, 0.5) !important; transition: background 0.2s;"
+                                @click="vaiAlRecupero(recItem)"
+                              >
+                                <div class="position-relative mr-2 flex-shrink-0" style="width: 44px; height: 44px;">
+                                  <div
+                                    class="position-absolute d-flex align-center justify-center font-weight-black text-white"
+                                    style="top: -3px; left: -3px; min-width: 16px; height: 16px; font-size: 0.54rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 4px;"
+                                  >
+                                    {{ idx + 1 }}
+                                  </div>
+                                  <div class="rounded-md overflow-hidden" style="width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.08);">
+                                    <v-img
+                                      :src="getGifUrl(recItem.exercise.UrlNormal) || '/logo.png'"
+                                      cover
+                                      height="100%"
+                                      width="100%"
+                                    >
+                                      <template v-slot:placeholder>
+                                        <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                                          <v-icon color="grey" size="14">mdi-dumbbell</v-icon>
+                                        </div>
+                                      </template>
+                                    </v-img>
+                                  </div>
+                                </div>
+
+                                <div class="flex-grow-1 min-width-0 text-left pr-1.5">
+                                  <h4 class="font-weight-black text-slate-dark text-truncate mb-0.5" style="font-size: 0.76rem !important; line-height: 1.25;">
+                                    {{ recItem.exercise.des_esercizio }}
+                                  </h4>
+                                  <div class="d-flex align-center flex-wrap gap-1 mb-0.5">
+                                    <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-black px-1" style="font-size: 0.46rem; height: 13px; border-radius: 3px;">
+                                      W{{ recItem.week }}
+                                    </v-chip>
+                                    <v-chip 
+                                      size="x-small" 
+                                      variant="flat" 
+                                      class="font-weight-bold px-1" 
+                                      style="font-size: 0.44rem; height: 13px; border-radius: 3px;"
+                                      :color="recItem.complessita === 1 ? 'red-darken-3' : recItem.complessita === 2 ? 'amber-darken-3' : recItem.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
+                                    >
+                                      {{ labelComplessita(recItem.complessita) }}
+                                    </v-chip>
+                                    <span class="text-muted text-truncate font-weight-bold" style="font-size: 0.58rem;">
+                                      Target: {{ formattaPrescrizioneSemplice(recItem.prescrizione) }}
+                                    </span>
+                                  </div>
+                                  <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-theme-primary text-truncate font-weight-medium" style="font-size: 0.52rem; opacity: 0.9;">
+                                    📝 Log: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
+                                  </div>
+                                </div>
+
+                                <div class="flex-shrink-0 ml-1">
+                                  <v-btn
+                                    color="green-darken-3"
+                                    size="x-small"
+                                    variant="flat"
+                                    class="font-weight-black text-none text-white rounded px-2 shadow-sm"
+                                    style="height: 23px; font-size: 0.58rem !important;"
+                                    @click.stop="concludiRecuperoRapido(recItem)"
+                                  >
+                                    <v-icon size="11" class="mr-0.5">mdi-check</v-icon>
+                                    Fatto
+                                  </v-btn>
+                                </div>
+                              </div>
+                            </template>
+
+                            <!-- 3. STANDARD -->
+                            <template v-else>
+                              <div
+                                v-for="(recItem, idx) in gruppo.esercizi"
+                                :key="idx"
+                                class="pa-2 rounded-xl d-flex align-center cursor-pointer select-none"
+                                style="border: 1px solid rgba(255, 255, 255, 0.08) !important; background: rgba(30, 41, 59, 0.5) !important; transition: background 0.2s;"
+                                @click="vaiAlRecupero(recItem)"
+                              >
+                                <div class="d-flex flex-column align-center mr-2.5 flex-shrink-0" style="gap: 3px;">
+                                  <div
+                                    class="d-flex align-center justify-center rounded font-weight-black"
+                                    style="width: 19px; height: 19px; font-size: 0.58rem; background: var(--theme-primary-bg-soft); color: var(--theme-primary);"
+                                  >
+                                    {{ idx + 1 }}
+                                  </div>
+                                  <div class="rounded-lg overflow-hidden" style="width: 48px; height: 48px; border: 1px solid rgba(255,255,255,0.08);">
+                                    <v-img
+                                      :src="getGifUrl(recItem.exercise.UrlNormal) || '/logo.png'"
+                                      cover
+                                      height="100%"
+                                      width="100%"
+                                    >
+                                      <template v-slot:placeholder>
+                                        <div class="fill-height d-flex align-center justify-center bg-slate-50">
+                                          <v-icon color="grey" size="14">mdi-dumbbell</v-icon>
+                                        </div>
+                                      </template>
+                                    </v-img>
+                                  </div>
+                                </div>
+
+                                <div class="flex-grow-1 min-width-0 text-left pr-2">
+                                  <h4 class="font-weight-black text-slate-dark text-truncate mb-1" style="font-size: 0.80rem !important;">
+                                    {{ recItem.exercise.des_esercizio }}
+                                  </h4>
+                                  <div class="d-flex align-center flex-wrap gap-1.5 mb-1">
+                                    <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-black px-1.5" style="font-size: 0.50rem; height: 15px; border-radius: 3px;">
+                                      W{{ recItem.week }}
+                                    </v-chip>
+                                    <v-chip 
+                                      size="x-small" 
+                                      variant="flat" 
+                                      class="font-weight-bold px-1.5" 
+                                      style="font-size: 0.48rem; height: 15px; border-radius: 3px;"
+                                      :color="recItem.complessita === 1 ? 'red-darken-3' : recItem.complessita === 2 ? 'amber-darken-3' : recItem.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
+                                    >
+                                      {{ labelComplessita(recItem.complessita) }}
+                                    </v-chip>
+                                    <span class="text-muted text-truncate font-weight-bold" style="font-size: 0.62rem;">
+                                      Target: {{ formattaPrescrizioneSemplice(recItem.prescrizione) }}
+                                    </span>
+                                  </div>
+                                  <div v-if="recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '' && recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() !== '-'" class="text-super-caption text-theme-primary text-truncate" style="font-size: 0.56rem;">
+                                    Log: "{{ recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').trim() }}"
+                                  </div>
+                                </div>
+
+                                <div class="flex-shrink-0">
+                                  <v-btn
+                                    color="green-darken-3"
+                                    size="small"
+                                    variant="flat"
+                                    class="font-weight-black text-none text-white rounded-lg px-2.5 shadow-sm"
+                                    style="height: 26px; font-size: 0.62rem !important;"
+                                    @click.stop="concludiRecuperoRapido(recItem)"
+                                  >
+                                    <v-icon size="13" class="mr-0.5">mdi-check</v-icon>
+                                    Fatto
+                                  </v-btn>
+                                </div>
+                              </div>
+                            </template>
+
+                          </div>
+                        </div>
+                      </v-expand-transition>
+                    </div>
+                  </div>
+                </v-card>
+              </div>
+            </v-expand-transition>
+
+            <!-- Ordine Esecuzione Proposto (Auto-generato con Recuperi integrati) - Sotto la Card del Giorno -->
+            <v-expand-transition>
+              <div v-if="eserciziDaRecuperare.length > 0 && ordineEsecuzioneCompleto.length > 0" :class="layoutEsercizi === 'super_compatto' ? 'mb-1.5' : (layoutEsercizi === 'compatto' ? 'mb-2' : 'mb-3')">
+                <v-card
+                  class="border elevation-1"
+                  :class="layoutEsercizi === 'super_compatto' ? 'pa-1.5 rounded-lg' : (layoutEsercizi === 'compatto' ? 'pa-2 rounded-xl' : 'pa-2.5 rounded-xl')"
+                  style="background: linear-gradient(135deg, var(--card-bg-soft), var(--card-bg-glass)) !important; border: 1px solid var(--theme-primary-border) !important;"
+                >
+                  <div
+                    class="d-flex align-center justify-space-between cursor-pointer select-none"
+                    @click="ordineEsecuzioneAperto = !ordineEsecuzioneAperto"
+                  >
+                    <div class="d-flex align-center min-width-0">
+                      <v-icon color="primary" class="mr-1.5 flex-shrink-0" :size="layoutEsercizi === 'super_compatto' ? 13 : (layoutEsercizi === 'compatto' ? 15 : 17)">mdi-format-list-numbered</v-icon>
+                      <span 
+                        class="font-weight-black text-slate-dark text-truncate" 
+                        :style="{ 
+                          fontSize: layoutEsercizi === 'super_compatto' ? '0.66rem' : (layoutEsercizi === 'compatto' ? '0.72rem' : '0.76rem'),
+                          letterSpacing: '0.02em'
+                        }"
+                      >
+                        ORDINE ESECUZIONE
+                      </span>
+                      <v-chip
+                        v-if="eserciziDaRecuperare.length > 0"
+                        color="primary"
+                        size="x-small"
+                        class="ml-1.5 font-weight-black text-white px-1.5 flex-shrink-0"
+                        variant="flat"
+                        :style="{
+                          fontSize: layoutEsercizi === 'super_compatto' ? '0.44rem' : (layoutEsercizi === 'compatto' ? '0.48rem' : '0.50rem'),
+                          height: layoutEsercizi === 'super_compatto' ? '13px' : (layoutEsercizi === 'compatto' ? '15px' : '16px')
+                        }"
+                      >
+                        +{{ eserciziDaRecuperare.length }} RECUPERI
+                      </v-chip>
+                    </div>
+                    <div class="d-flex align-center flex-shrink-0" :style="{ gap: layoutEsercizi === 'super_compatto' ? '2px' : '4px' }">
+                      <v-chip
+                        color="grey-darken-1"
+                        size="x-small"
+                        variant="tonal"
+                        class="font-weight-black px-1.5"
+                        :style="{
+                          fontSize: layoutEsercizi === 'super_compatto' ? '0.44rem' : (layoutEsercizi === 'compatto' ? '0.48rem' : '0.50rem'),
+                          height: layoutEsercizi === 'super_compatto' ? '13px' : (layoutEsercizi === 'compatto' ? '15px' : '16px')
+                        }"
+                      >
+                        {{ ordineEsecuzioneCompleto.length }} TOT
+                      </v-chip>
+                      <v-icon :size="layoutEsercizi === 'super_compatto' ? 14 : (layoutEsercizi === 'compatto' ? 16 : 18)" color="primary" :style="{ transform: ordineEsecuzioneAperto ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.25s ease' }">
+                        mdi-chevron-down
+                      </v-icon>
+                    </div>
+                  </div>
+
+                  <v-expand-transition>
+                    <div v-show="ordineEsecuzioneAperto" :class="layoutEsercizi === 'super_compatto' ? 'mt-1.5' : (layoutEsercizi === 'compatto' ? 'mt-2' : 'mt-2.5')">
+                      <div class="d-flex flex-column" :style="{ gap: layoutEsercizi === 'super_compatto' ? '2px' : (layoutEsercizi === 'compatto' ? '3px' : '4px') }">
+                        <div
+                          v-for="(item, idx) in ordineEsecuzioneCompleto"
+                          :key="'ord-' + idx"
+                          class="d-flex align-center rounded-lg cursor-pointer"
+                          :class="layoutEsercizi === 'super_compatto' ? 'py-0.5 px-1.5' : (layoutEsercizi === 'compatto' ? 'py-1 px-2' : 'py-1.5 px-2')"
+                          :style="{
+                            background: item.tipo === 'recupero' ? 'var(--theme-primary-bg-soft)' : 'rgba(255, 255, 255, 0.02)',
+                            border: item.tipo === 'recupero' ? '1px solid var(--theme-primary-border)' : '1px solid rgba(255, 255, 255, 0.04)',
+                          }"
+                          @click="item.id ? (item.tipo === 'recupero' ? vaiAlDettaglio(item.id, item.weekRecupero) : vaiAlDettaglio(item.id)) : null"
+                        >
+                          <!-- Numero ordine -->
+                          <div
+                            class="d-flex align-center justify-center rounded font-weight-black flex-shrink-0 mr-1.5"
+                            :style="{
+                              width: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : '20px'),
+                              height: layoutEsercizi === 'super_compatto' ? '16px' : (layoutEsercizi === 'compatto' ? '18px' : '20px'),
+                              fontSize: layoutEsercizi === 'super_compatto' ? '0.50rem' : (layoutEsercizi === 'compatto' ? '0.56rem' : '0.60rem'),
+                              background: item.tipo === 'recupero' ? 'var(--theme-primary-bg-soft)' : 'rgba(255, 255, 255, 0.08)',
+                              color: item.tipo === 'recupero' ? 'var(--theme-primary)' : '#94a3b8',
+                            }"
+                          >
+                            {{ idx + 1 }}
+                          </div>
+
+                          <!-- Info Esercizio -->
+                          <div class="flex-grow-1 min-width-0 text-left">
+                            <div class="d-flex align-center gap-1 min-width-0">
+                              <span 
+                                class="font-weight-bold text-truncate" 
+                                :class="item.tipo === 'recupero' ? 'text-theme-primary' : 'text-slate-dark'" 
+                                :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.66rem !important' : (layoutEsercizi === 'compatto' ? '0.70rem !important' : '0.74rem !important') }"
+                              >
+                                {{ item.nome }}
+                              </span>
+                              <v-chip
+                                v-if="item.tipo === 'recupero'"
+                                color="amber-darken-3"
+                                size="x-small"
+                                variant="flat"
+                                class="font-weight-black text-white flex-shrink-0"
+                                style="font-size: 0.42rem; height: 12px; padding: 0 3px; border-radius: 2px;"
+                              >
+                                🔁 REC
+                              </v-chip>
+                              <v-chip
+                                v-if="item.superserie"
+                                color="amber-darken-3"
+                                size="x-small"
+                                variant="tonal"
+                                class="font-weight-black flex-shrink-0"
+                                style="font-size: 0.42rem; height: 12px; padding: 0 3px; border-radius: 2px;"
+                              >
+                                ⚡ {{ item.superserie }}
+                              </v-chip>
+                            </div>
+                            <div 
+                              class="text-muted font-weight-bold text-truncate" 
+                              :style="{ fontSize: layoutEsercizi === 'super_compatto' ? '0.48rem' : (layoutEsercizi === 'compatto' ? '0.52rem' : '0.55rem') }"
+                            >
+                              {{ item.settore }}
+                              <span v-if="item.prescrizione" class="text-slate ml-0.5">• {{ item.prescrizione }}</span>
+                            </div>
+                          </div>
+
+                          <!-- Status -->
+                          <v-icon
+                            v-if="item.completato"
+                            :size="layoutEsercizi === 'super_compatto' ? 12 : (layoutEsercizi === 'compatto' ? 13 : 15)"
+                            color="green-accent-4"
+                            class="flex-shrink-0 ml-1"
+                          >mdi-check-circle</v-icon>
+                          <v-icon
+                            v-else
+                            :size="layoutEsercizi === 'super_compatto' ? 12 : (layoutEsercizi === 'compatto' ? 13 : 15)"
+                            color="grey-darken-1"
+                            class="flex-shrink-0 ml-1"
+                            style="opacity: 0.4;"
+                          >mdi-circle-outline</v-icon>
+                        </div>
+                      </div>
+                    </div>
+                  </v-expand-transition>
+                </v-card>
+              </div>
+            </v-expand-transition>
+
             <!-- Stato Vuoto se nessun esercizio presente nel giorno -->
             <div v-if="eserciziFiltrati.length === 0" class="text-center my-10 py-6">
               <v-icon color="grey-lighten-1" size="48">mdi-dumbbell-off</v-icon>
@@ -1134,36 +1317,36 @@
                         + Registra
                       </v-chip>
                       
-                      <!-- Trailing Chevron -->
+                              <!-- Trailing Chevron -->
                       <v-icon size="14" color="slate-dark" class="ml-1 opacity-50">mdi-chevron-right</v-icon>
                     </div>
                   </div>
 
                   <!-- VISUALIZZAZIONE COMPATTA -->
                   <template v-else-if="layoutEsercizi === 'compatto'">
-                    <!-- Miniatura GIF/Immagine sulla Sinistra con Badge Numero ed Overlay Timer Recupero in Basso -->
-                    <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" style="width: 62px; min-width: 62px;">
-                      <div class="position-relative" style="width: 62px; height: 62px;">
+                    <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
+                    <div class="d-flex flex-column align-center mr-2 mt-0.5" style="width: 50px; min-width: 50px;">
+                      <div class="position-relative" style="width: 50px; height: 50px;">
                         <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                         <div
                           class="position-absolute d-flex align-center justify-center font-weight-black text-white"
-                          style="top: -6px; left: -6px; min-width: 22px; height: 22px; font-size: 0.68rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
+                          style="top: -4px; left: -4px; min-width: 18px; height: 18px; font-size: 0.60rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 5px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
                         >
                           {{ ex.num_riga_giorno }}
                         </div>
 
-                        <div class="rounded-xl overflow-hidden shadow-sm position-relative" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
+                        <div class="rounded-lg overflow-hidden shadow-sm position-relative" style="width: 50px; height: 50px; border: 1px solid var(--card-border);">
                           <v-img
                             :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                            width="62px"
-                            height="62px"
+                            width="50px"
+                            height="50px"
                             cover
                             alt="Esercizio"
                             class="bg-grey-lighten-4"
                           >
                             <template v-slot:placeholder>
                               <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                                <v-icon color="grey-lighten-1" size="18">mdi-dumbbell</v-icon>
+                                <v-icon color="grey-lighten-1" size="16">mdi-dumbbell</v-icon>
                               </div>
                             </template>
                           </v-img>
@@ -1172,7 +1355,7 @@
                           <div
                             v-if="ex.des_rec_report"
                             class="position-absolute w-100 text-center font-weight-black text-amber-lighten-3 clickable-timer-chip"
-                            style="bottom: 0; left: 0; background: rgba(15, 23, 42, 0.85); font-size: 0.52rem; padding: 1.5px 0; z-index: 10; line-height: 1.1; backdrop-filter: blur(2px);"
+                            style="bottom: 0; left: 0; background: rgba(15, 23, 42, 0.85); font-size: 0.50rem; padding: 1px 0; z-index: 10; line-height: 1.1; backdrop-filter: blur(2px);"
                             title="Tocca per avviare timer recupero"
                             @click.stop="avviaTimerRecupero(ex.des_rec_report, ex.des_esercizio)"
                           >
@@ -1185,26 +1368,26 @@
                     <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                       <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                      <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                      <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         <span v-if="(ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                         <span class="text-truncate">{{ ex.des_esercizio || 'Esercizio' }}</span>
                         <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
-                      <!-- Settore, Emoji Sforzo e Prescrizione Lavoro (con margine riservato al pulsante centrale) -->
-                      <div class="d-flex align-center min-width-0 text-truncate mb-1" style="gap: 6px; padding-right: 72px;">
-                        <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0">
-                          <span style="font-size: 0.64rem !important;">{{ ex.des_settore || 'Corpo Libero' }}</span>
-                          <v-icon size="12" color="orange-darken-3" class="ml-0.5">mdi-fire</v-icon>
+                      <!-- Settore, Emoji Sforzo e Prescrizione Lavoro -->
+                      <div class="d-flex align-center min-width-0 mb-1" style="gap: 4px; padding-right: 56px;">
+                        <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0" style="max-width: 92px;">
+                          <span class="text-truncate" style="font-size: 0.64rem !important;">{{ ex.des_settore || 'Corpo Libero' }}</span>
+                          <v-icon size="11" color="orange-darken-3" class="ml-0.5 flex-shrink-0">mdi-fire</v-icon>
                         </div>
-                        <div class="text-caption font-weight-bold text-slate text-truncate" :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: '0.65rem !important' }]">
+                        <div class="text-caption font-weight-bold text-slate text-truncate flex-grow-1 min-width-0" :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: '0.65rem !important' }]">
                           {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
                         </div>
                       </div>
 
                       <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
-                      <div class="d-flex align-center flex-nowrap w-100 mt-1 pt-1 border-top-soft" style="row-gap: 0; overflow: hidden; gap: 2.5px;">
+                      <div class="d-flex align-center w-100 mt-1 pt-0.5 border-top-soft mini-weeks-row" style="gap: 2px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;">
                         <div
                           v-for="w in [1, 2, 3, 4, 5, 6]"
                           :key="w"
@@ -1215,11 +1398,11 @@
                             'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
                             'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w])
                           }"
-                          style="font-size: 0.48rem; padding: 1px 2.5px; height: 15px; min-width: 18px; cursor: pointer; border-radius: 4px;"
+                          style="font-size: 0.46rem; padding: 1px 2px; height: 14px; min-width: 15px; cursor: pointer; border-radius: 3px;"
                           @click.stop="vaiAlDettaglio(ex.id)"
                         >
-                          <span class="capsule-num font-weight-black" style="font-size: 0.45rem;">W{{ w }}</span>
-                          <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
+                          <span class="capsule-num font-weight-black" style="font-size: 0.44rem;">W{{ w }}</span>
+                          <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black" style="font-size: 0.44rem;">
                             {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
                           </span>
                         </div>
@@ -1227,14 +1410,14 @@
                     </div>
 
                     <!-- Pulsante Azione in Posizionamento Assoluto (Fluttuante a Centro Destra) -->
-                    <div class="position-absolute d-flex align-center justify-end" style="right: 6px; top: 50%; transform: translateY(-50%); z-index: 10;">
+                    <div class="position-absolute d-flex align-center justify-end" style="right: 4px; top: 50%; transform: translateY(-50%); z-index: 10;">
                       <v-chip 
                         v-if="ex['ins_week' + settimanaAttivaGiorno] && ex['ins_week' + settimanaAttivaGiorno] !== '-'" 
                         size="small" 
                         :color="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                         class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                         variant="flat" 
-                        style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
+                        style="height: 22px; font-size: 0.60rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(ex['ins_week' + settimanaAttivaGiorno]) }}
@@ -1245,7 +1428,7 @@
                         color="green-darken-3" 
                         class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                         variant="flat" 
-                        style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
+                        style="height: 22px; font-size: 0.60rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         ✔️ Fatto
@@ -1256,7 +1439,7 @@
                         variant="outlined" 
                         color="primary" 
                         class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4 theme-registra-chip"
-                        style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
+                        style="height: 22px; font-size: 0.60rem; border-radius: 5px;"
                         @click.stop="vaiAlDettaglio(ex.id)"
                       >
                         + Registra
@@ -1489,28 +1672,28 @@
               <!-- VISUALIZZAZIONE COMPATTA -->
               <template v-else-if="layoutEsercizi === 'compatto'">
                 <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" style="width: 62px; min-width: 62px;">
-                  <div class="position-relative" style="width: 62px; height: 62px;">
+                <div class="d-flex flex-column align-center mr-2 mt-0.5" style="width: 50px; min-width: 50px;">
+                  <div class="position-relative" style="width: 50px; height: 50px;">
                     <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                     <div
                       class="position-absolute d-flex align-center justify-center font-weight-black text-white"
-                      style="top: -6px; left: -6px; min-width: 22px; height: 22px; font-size: 0.68rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
+                      style="top: -4px; left: -4px; min-width: 18px; height: 18px; font-size: 0.60rem; background: var(--brand-accent, #c85a17); z-index: 10; border-radius: 5px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"
                     >
                       {{ block.exercise.num_riga_giorno }}
                     </div>
 
-                    <div class="rounded-xl overflow-hidden shadow-sm position-relative" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
+                    <div class="rounded-lg overflow-hidden shadow-sm position-relative" style="width: 50px; height: 50px; border: 1px solid var(--card-border);">
                       <v-img
                         :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                        width="62px"
-                        height="62px"
+                        width="50px"
+                        height="50px"
                         cover
                         alt="Esercizio"
                         class="bg-grey-lighten-4"
                       >
                         <template v-slot:placeholder>
                           <div class="fill-height d-flex align-center justify-center bg-slate-50">
-                            <v-icon color="grey-lighten-1" size="18">mdi-dumbbell</v-icon>
+                            <v-icon color="grey-lighten-1" size="16">mdi-dumbbell</v-icon>
                           </div>
                         </template>
                       </v-img>
@@ -1519,7 +1702,7 @@
                       <div
                         v-if="block.exercise.des_rec_report"
                         class="position-absolute w-100 text-center font-weight-black text-amber-lighten-3 clickable-timer-chip"
-                        style="bottom: 0; left: 0; background: rgba(15, 23, 42, 0.85); font-size: 0.52rem; padding: 1.5px 0; z-index: 10; line-height: 1.1; backdrop-filter: blur(2px);"
+                        style="bottom: 0; left: 0; background: rgba(15, 23, 42, 0.85); font-size: 0.50rem; padding: 1px 0; z-index: 10; line-height: 1.1; backdrop-filter: blur(2px);"
                         title="Tocca per avviare timer recupero"
                         @click.stop="avviaTimerRecupero(block.exercise.des_rec_report, block.exercise.des_esercizio)"
                       >
@@ -1532,26 +1715,26 @@
                 <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                   <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 pr-1 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                  <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     <span v-if="(block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                     <span class="text-truncate">{{ block.exercise.des_esercizio || 'Esercizio' }}</span>
                     <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                   </h4>
 
-                  <!-- Settore, Emoji Sforzo e Prescrizione Lavoro (con margine riservato al pulsante centrale) -->
-                  <div class="d-flex align-center min-width-0 text-truncate mb-1" style="gap: 6px; padding-right: 72px;">
-                    <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0">
-                      <span style="font-size: 0.64rem !important;">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
-                      <v-icon size="12" color="orange-darken-3" class="ml-0.5">mdi-fire</v-icon>
+                  <!-- Settore, Emoji Sforzo e Prescrizione Lavoro -->
+                  <div class="d-flex align-center min-width-0 mb-1" style="gap: 4px; padding-right: 56px;">
+                    <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0" style="max-width: 92px;">
+                      <span class="text-truncate" style="font-size: 0.64rem !important;">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                      <v-icon size="11" color="orange-darken-3" class="ml-0.5 flex-shrink-0">mdi-fire</v-icon>
                     </div>
-                    <div class="text-caption font-weight-bold text-slate text-truncate" :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: '0.65rem !important' }]">
+                    <div class="text-caption font-weight-bold text-slate text-truncate flex-grow-1 min-width-0" :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: '0.65rem !important' }]">
                       {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
                     </div>
                   </div>
 
                   <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
-                  <div class="d-flex align-center flex-nowrap w-100 mt-1 pt-1 border-top-soft" style="row-gap: 0; overflow: hidden; gap: 2.5px;">
+                  <div class="d-flex align-center w-100 mt-1 pt-0.5 border-top-soft mini-weeks-row" style="gap: 2px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
                       :key="w"
@@ -1562,11 +1745,11 @@
                         'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
                         'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w])
                       }"
-                      style="font-size: 0.48rem; padding: 1px 2.5px; height: 15px; min-width: 18px; cursor: pointer; border-radius: 4px;"
+                      style="font-size: 0.46rem; padding: 1px 2px; height: 14px; min-width: 15px; cursor: pointer; border-radius: 3px;"
                       @click.stop="vaiAlDettaglio(block.exercise.id)"
                     >
-                      <span class="capsule-num font-weight-black" style="font-size: 0.45rem;">W{{ w }}</span>
-                      <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black">
+                      <span class="capsule-num font-weight-black" style="font-size: 0.44rem;">W{{ w }}</span>
+                      <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black" style="font-size: 0.44rem;">
                         {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
                       </span>
                     </div>
@@ -1574,14 +1757,14 @@
                 </div>
 
                 <!-- Pulsante Azione in Posizionamento Assoluto (Fluttuante a Centro Destra) -->
-                <div class="position-absolute d-flex align-center justify-end" style="right: 6px; top: 50%; transform: translateY(-50%); z-index: 10;">
+                <div class="position-absolute d-flex align-center justify-end" style="right: 4px; top: 50%; transform: translateY(-50%); z-index: 10;">
                   <v-chip 
                     v-if="block.exercise['ins_week' + settimanaAttivaGiorno] && block.exercise['ins_week' + settimanaAttivaGiorno] !== '-'" 
                     size="small" 
                     :color="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'red-darken-2' : 'green-darken-3'" 
                     class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                     variant="flat" 
-                    style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
+                    style="height: 22px; font-size: 0.60rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : formattaCaricoCompatto(block.exercise['ins_week' + settimanaAttivaGiorno]) }}
@@ -1592,7 +1775,7 @@
                     color="green-darken-3" 
                     class="font-weight-black text-white px-1.5 py-0 shadow-sm" 
                     variant="flat" 
-                    style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
+                    style="height: 22px; font-size: 0.60rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     ✔️ Fatto
@@ -1603,7 +1786,7 @@
                     variant="outlined" 
                     color="primary" 
                     class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4 theme-registra-chip"
-                    style="height: 22px; font-size: 0.62rem; border-radius: 5px;"
+                    style="height: 22px; font-size: 0.60rem; border-radius: 5px;"
                     @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
                     + Registra
@@ -5483,6 +5666,27 @@ const recuperiRaggruppati = computed(() => {
 /* Segmenti capsule per il progresso delle settimane */
 .mini-weeks-progression {
   margin-top: 2px !important;
+}
+
+.mini-weeks-row {
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.mini-weeks-row::-webkit-scrollbar {
+  display: none !important;
+}
+
+.mini-weeks-row .mini-week-capsule {
+  min-width: 15px !important;
+  flex-shrink: 0 !important;
+}
+
+.mini-weeks-row .capsule-active {
+  transform: scale(1.08) !important;
+  margin: 0 1px !important;
 }
 
 .mini-week-capsule {

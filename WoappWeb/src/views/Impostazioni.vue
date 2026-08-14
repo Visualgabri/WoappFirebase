@@ -76,7 +76,7 @@
         </v-btn-toggle>
       </div>
 
-      <!-- Colore Tema Generale (Arancio / Blu / Verde) -->
+      <!-- Colore Tema Generale (Arancio / Blu / Verde / Fucsia / Giallo) -->
       <div>
         <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Colore Tema Generale</span>
         <v-btn-toggle
@@ -88,17 +88,20 @@
           class="w-100 card-glass border"
           style="height: 32px;"
         >
-          <v-btn value="arancio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+          <v-btn value="arancio" class="font-weight-bold flex-grow-1 px-0.5" style="font-size: 0.62rem; min-width: 0;">
             🍊 Arancio
           </v-btn>
-          <v-btn value="blu" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+          <v-btn value="blu" class="font-weight-bold flex-grow-1 px-0.5" style="font-size: 0.62rem; min-width: 0;">
             🔷 Blu
           </v-btn>
-          <v-btn value="verde" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+          <v-btn value="verde" class="font-weight-bold flex-grow-1 px-0.5" style="font-size: 0.62rem; min-width: 0;">
             🟢 Verde
           </v-btn>
-          <v-btn value="fucsia" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+          <v-btn value="fucsia" class="font-weight-bold flex-grow-1 px-0.5" style="font-size: 0.62rem; min-width: 0;">
             🌸 Fucsia
+          </v-btn>
+          <v-btn value="giallo" class="font-weight-bold flex-grow-1 px-0.5" style="font-size: 0.62rem; min-width: 0;">
+            🟡 Giallo
           </v-btn>
         </v-btn-toggle>
       </div>

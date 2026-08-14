@@ -2062,8 +2062,8 @@ const getMuscleColor = (sector) => {
   const v = volumeMuscolare.value[sector] || 0;
   if (v === 0) return 'rgba(255, 255, 255, 0.05)';
   const themeColor = temaHeaderGiornoGlobal ? temaHeaderGiornoGlobal.value : 'arancio';
-  const rgb = themeColor === 'blu' ? '59, 130, 246' : (themeColor === 'verde' ? '16, 185, 129' : (themeColor === 'fucsia' ? '236, 72, 153' : '249, 115, 22'));
-  const hex = themeColor === 'blu' ? '#3b82f6' : (themeColor === 'verde' ? '#10b981' : (themeColor === 'fucsia' ? '#ec4899' : '#f97316'));
+  const rgb = themeColor === 'blu' ? '59, 130, 246' : (themeColor === 'verde' ? '16, 185, 129' : (themeColor === 'fucsia' ? '236, 72, 153' : (themeColor === 'giallo' ? '234, 179, 8' : '249, 115, 22')));
+  const hex = themeColor === 'blu' ? '#3b82f6' : (themeColor === 'verde' ? '#10b981' : (themeColor === 'fucsia' ? '#ec4899' : (themeColor === 'giallo' ? '#eab308' : '#f97316')));
   if (v <= 4) return `rgba(${rgb}, 0.35)`;
   if (v <= 8) return `rgba(${rgb}, 0.65)`;
   if (v <= 12) return `rgba(${rgb}, 0.85)`;
@@ -2074,7 +2074,7 @@ const getMuscleStroke = (sector) => {
   const v = volumeMuscolare.value[sector] || 0;
   if (v === 0) return 'rgba(255, 255, 255, 0.12)';
   const themeColor = temaHeaderGiornoGlobal ? temaHeaderGiornoGlobal.value : 'arancio';
-  const rgb = themeColor === 'blu' ? '59, 130, 246' : (themeColor === 'verde' ? '16, 185, 129' : (themeColor === 'fucsia' ? '236, 72, 153' : '249, 115, 22'));
+  const rgb = themeColor === 'blu' ? '59, 130, 246' : (themeColor === 'verde' ? '16, 185, 129' : (themeColor === 'fucsia' ? '236, 72, 153' : (themeColor === 'giallo' ? '234, 179, 8' : '249, 115, 22')));
   return `rgba(${rgb}, 0.9)`;
 };
 

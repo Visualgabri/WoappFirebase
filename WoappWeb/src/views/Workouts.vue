@@ -5948,6 +5948,11 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(180deg, #ec4899 0%, #db2777 100%) !important;
 }
 
+.sticky-tabs-container .day-tabs-header-bar.active-tab-theme-giallo .v-tab--selected,
+:root:not([data-theme="light"]) .sticky-tabs-container .day-tabs-header-bar.active-tab-theme-giallo .v-tab--selected {
+  background: linear-gradient(180deg, #eab308 0%, #ca8a04 100%) !important;
+}
+
 .sticky-tabs-container .v-tabs-slider,
 .sticky-tabs-container .v-tabs-slider-wrapper,
 .sticky-tabs-container .v-tab-slider,
@@ -6219,6 +6224,10 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(180deg, #ec4899 0%, #db2777 100%) !important;
 }
 
+.active-tab-theme-giallo .v-tab--selected {
+  background: linear-gradient(180deg, #eab308 0%, #ca8a04 100%) !important;
+}
+
 .day-tabs-header-bar .v-tab--selected,
 .day-tabs-header-bar .v-tab--selected :deep(*),
 .day-tabs-header-bar .v-tab--selected::before,
@@ -6323,10 +6332,24 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(180deg, #ec4899 0%, #db2777 100%) !important;
 }
 
+/* Tema Giallo - Continuità perfetta */
+.day-header-section.tema-giallo {
+  background: linear-gradient(180deg, #ca8a04 0%, #713f12 100%) !important;
+  border-left: none !important;
+  color: #ffffff !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
+}
+
+.day-header-section.tema-giallo:hover {
+  background: linear-gradient(180deg, #eab308 0%, #ca8a04 100%) !important;
+}
+
 .tema-arancio .header-title-text,
 .tema-blu .header-title-text,
 .tema-verde .header-title-text,
-.tema-fucsia .header-title-text {
+.tema-fucsia .header-title-text,
+.tema-giallo .header-title-text {
   color: #ffffff !important;
   font-weight: 900 !important;
 }
@@ -6359,6 +6382,13 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 4px 10px rgba(190, 24, 93, 0.35) !important;
 }
 
+.tema-giallo .giorno-big-letter {
+  background: linear-gradient(135deg, #854d0e 0%, #eab308 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 10px rgba(133, 77, 14, 0.35) !important;
+}
+
 .tema-arancio .mini-week-capsule.capsule-completed {
   background: rgba(249, 115, 22, 0.25) !important;
   border: 1px solid rgba(249, 115, 22, 0.5) !important;
@@ -6381,6 +6411,12 @@ const recuperiRaggruppati = computed(() => {
   background: rgba(236, 72, 153, 0.25) !important;
   border: 1px solid rgba(236, 72, 153, 0.5) !important;
   color: #fbcfe8 !important;
+}
+
+.tema-giallo .mini-week-capsule.capsule-completed {
+  background: rgba(234, 179, 8, 0.25) !important;
+  border: 1px solid rgba(234, 179, 8, 0.5) !important;
+  color: #fef08a !important;
 }
 
 .tema-arancio .mini-week-capsule.capsule-active {
@@ -6418,15 +6454,30 @@ const recuperiRaggruppati = computed(() => {
   animation: pulse-fuchsia-glow 2s infinite alternate !important;
 }
 
+.tema-giallo .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #854d0e 0%, #eab308 100%) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.6) !important;
+  animation: pulse-yellow-glow 2s infinite alternate !important;
+}
+
 @keyframes pulse-fuchsia-glow {
   0% { box-shadow: 0 0 8px rgba(236, 72, 153, 0.4); }
   100% { box-shadow: 0 0 16px rgba(236, 72, 153, 0.8); }
 }
 
+@keyframes pulse-yellow-glow {
+  0% { box-shadow: 0 0 8px rgba(234, 179, 8, 0.4); }
+  100% { box-shadow: 0 0 16px rgba(234, 179, 8, 0.8); }
+}
+
 .tema-arancio .mini-week-capsule.capsule-pending,
 .tema-blu .mini-week-capsule.capsule-pending,
 .tema-verde .mini-week-capsule.capsule-pending,
-.tema-fucsia .mini-week-capsule.capsule-pending {
+.tema-fucsia .mini-week-capsule.capsule-pending,
+.tema-giallo .mini-week-capsule.capsule-pending {
   background: rgba(15, 23, 42, 0.35) !important;
   color: #cbd5e1 !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -6479,6 +6530,11 @@ const recuperiRaggruppati = computed(() => {
   font-weight: 900 !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo .density-label-text {
+  color: #854d0e !important;
+  font-weight: 900 !important;
+}
+
 [data-theme="light"] .promemoria-chiusura-chip {
   background: #fef3c7 !important;
   color: #92400e !important;
@@ -6490,6 +6546,13 @@ const recuperiRaggruppati = computed(() => {
   background: #dbeafe !important;
   color: #1e40af !important;
   border: 1px solid #93c5fd !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-giallo .promemoria-chiusura-chip {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
   font-weight: 900 !important;
 }
 
@@ -6622,6 +6685,46 @@ const recuperiRaggruppati = computed(() => {
   font-weight: 900 !important;
 }
 
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo {
+  background: #fefce8 !important;
+  border: 1px solid #fef08a !important;
+  border-bottom: none !important;
+  border-top-left-radius: 16px !important;
+  border-top-right-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo .v-tab:not(.v-tab--selected) {
+  background: #fef9c3 !important;
+  color: #854d0e !important;
+  opacity: 0.85 !important;
+  border-right: 1px solid #fef08a !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo .v-tab:not(.v-tab--selected) .tab-day-letter {
+  color: #713f12 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo .v-tab:not(.v-tab--selected) .tab-lock-icon {
+  color: #a16207 !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo .v-tab--selected,
+[data-theme="light"] .active-tab-theme-giallo .v-tab--selected {
+  background: linear-gradient(180deg, #fef08a 0%, #fde047 100%) !important;
+  color: #713f12 !important;
+  border: 1px solid #eab308 !important;
+  border-bottom: none !important;
+}
+
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo .v-tab--selected .tab-day-letter,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo .v-tab--selected span,
+[data-theme="light"] .day-tabs-header-bar.active-tab-theme-giallo .v-tab--selected .v-icon {
+  color: #713f12 !important;
+  font-weight: 900 !important;
+}
+
 /* Light Theme Header Sections */
 [data-theme="light"] .day-header-section.tema-arancio {
   background: linear-gradient(180deg, #ffedd5 0%, #fff7ed 100%) !important;
@@ -6644,6 +6747,12 @@ const recuperiRaggruppati = computed(() => {
 [data-theme="light"] .day-header-section.tema-fucsia {
   background: linear-gradient(180deg, #fbcfe8 0%, #fdf2f8 100%) !important;
   color: #831843 !important;
+  border: none !important;
+}
+
+[data-theme="light"] .day-header-section.tema-giallo {
+  background: linear-gradient(180deg, #fef08a 0%, #fefce8 100%) !important;
+  color: #713f12 !important;
   border: none !important;
 }
 
@@ -6672,6 +6781,12 @@ const recuperiRaggruppati = computed(() => {
   font-weight: 900 !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo .header-title-text,
+[data-theme="light"] .day-header-section.tema-giallo h3.header-title-text {
+  color: #854d0e !important;
+  font-weight: 900 !important;
+}
+
 /* Info text in Light Mode */
 [data-theme="light"] .day-header-section.tema-arancio .header-info-text,
 [data-theme="light"] .day-header-section.tema-arancio .header-info-text span {
@@ -6697,6 +6812,12 @@ const recuperiRaggruppati = computed(() => {
   font-weight: 700 !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo .header-info-text,
+[data-theme="light"] .day-header-section.tema-giallo .header-info-text span {
+  color: #713f12 !important;
+  font-weight: 700 !important;
+}
+
 /* Progress text in Light Mode */
 [data-theme="light"] .day-header-section.tema-arancio .header-progress-text,
 [data-theme="light"] .day-header-section.tema-arancio .header-progress-text span {
@@ -6719,6 +6840,12 @@ const recuperiRaggruppati = computed(() => {
 [data-theme="light"] .day-header-section.tema-fucsia .header-progress-text,
 [data-theme="light"] .day-header-section.tema-fucsia .header-progress-text span {
   color: #be185d !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .day-header-section.tema-giallo .header-progress-text,
+[data-theme="light"] .day-header-section.tema-giallo .header-progress-text span {
+  color: #854d0e !important;
   font-weight: 800 !important;
 }
 
@@ -6751,6 +6878,13 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 2px 8px rgba(219, 39, 119, 0.25) !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo .giorno-big-letter {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #fef08a !important;
+  box-shadow: 0 2px 8px rgba(161, 98, 7, 0.25) !important;
+}
+
 /* Completed Capsules in Light Mode */
 [data-theme="light"] .day-header-section.tema-arancio .mini-week-capsule.capsule-completed {
   background: #ea580c !important;
@@ -6773,6 +6907,12 @@ const recuperiRaggruppati = computed(() => {
 [data-theme="light"] .day-header-section.tema-fucsia .mini-week-capsule.capsule-completed {
   background: #db2777 !important;
   border-color: #be185d !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .day-header-section.tema-giallo .mini-week-capsule.capsule-completed {
+  background: #ca8a04 !important;
+  border-color: #a16207 !important;
   color: #ffffff !important;
 }
 
@@ -6806,6 +6946,12 @@ const recuperiRaggruppati = computed(() => {
   color: #ffffff !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo .mini-week-capsule.capsule-active {
+  background: #854d0e !important;
+  border-color: #713f12 !important;
+  color: #ffffff !important;
+}
+
 [data-theme="light"] .day-header-section .mini-week-capsule.capsule-active .capsule-num {
   color: #ffffff !important;
 }
@@ -6835,6 +6981,12 @@ const recuperiRaggruppati = computed(() => {
   border: 1px solid #fbcfe8 !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo .mini-week-capsule.capsule-pending {
+  background: #ffffff !important;
+  color: #a16207 !important;
+  border: 1px solid #fef08a !important;
+}
+
 [data-theme="light"] .day-header-section.tema-arancio .mini-week-capsule.capsule-pending .capsule-num {
   color: #c2410c !important;
 }
@@ -6846,6 +6998,9 @@ const recuperiRaggruppati = computed(() => {
 }
 [data-theme="light"] .day-header-section.tema-fucsia .mini-week-capsule.capsule-pending .capsule-num {
   color: #be185d !important;
+}
+[data-theme="light"] .day-header-section.tema-giallo .mini-week-capsule.capsule-pending .capsule-num {
+  color: #a16207 !important;
 }
 
 /* Progress bar in Dark & Light Modes */
@@ -6873,6 +7028,11 @@ const recuperiRaggruppati = computed(() => {
 .day-header-section.tema-fucsia .session-progress-bar-fill {
   background: linear-gradient(90deg, #db2777, #ec4899) !important;
   box-shadow: 0 0 10px rgba(236, 72, 153, 0.7) !important;
+}
+
+.day-header-section.tema-giallo .session-progress-bar-fill {
+  background: linear-gradient(90deg, #ca8a04, #facc15) !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.7) !important;
 }
 
 [data-theme="light"] .day-header-section.tema-arancio .session-progress-bar-container {
@@ -6911,6 +7071,15 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 0 8px rgba(236, 72, 153, 0.4) !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo .session-progress-bar-container {
+  background: #fef08a !important;
+  border-color: #fde047 !important;
+}
+[data-theme="light"] .day-header-section.tema-giallo .session-progress-bar-fill {
+  background: linear-gradient(90deg, #ca8a04, #a16207) !important;
+  box-shadow: 0 0 8px rgba(202, 138, 4, 0.4) !important;
+}
+
 [data-theme="light"] .workout-session-container {
   background: #ffffff !important;
   border: 1px solid #a7f3d0 !important;
@@ -6929,6 +7098,10 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(135deg, #065f46, #10b981) !important;
   box-shadow: 0 4px 10px rgba(6, 95, 70, 0.35) !important;
 }
+.tema-giallo .giorno-big-letter {
+  background: linear-gradient(135deg, #854d0e, #eab308) !important;
+  box-shadow: 0 4px 10px rgba(133, 77, 14, 0.35) !important;
+}
 
 /* Overrides per capsule-active dentro il header */
 .tema-blu .mini-week-capsule.capsule-active {
@@ -6940,6 +7113,11 @@ const recuperiRaggruppati = computed(() => {
   background: linear-gradient(135deg, #065f46, #10b981) !important;
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
   animation: pulse-green-glow 2s infinite alternate !important;
+}
+.tema-giallo .mini-week-capsule.capsule-active {
+  background: linear-gradient(135deg, #854d0e, #eab308) !important;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.6) !important;
+  animation: pulse-yellow-glow 2s infinite alternate !important;
 }
 
 @keyframes pulse-blue-glow {

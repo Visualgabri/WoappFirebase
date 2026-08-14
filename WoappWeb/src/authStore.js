@@ -68,7 +68,7 @@ if (typeof document !== 'undefined') {
     metaThemeColor.name = 'theme-color';
     document.head.appendChild(metaThemeColor);
   }
-  const themeHex = initThemeColor === 'blu' ? '#1d4ed8' : (initThemeColor === 'verde' ? '#059669' : (initThemeColor === 'fucsia' ? '#db2777' : '#ea580c'));
+  const themeHex = initThemeColor === 'blu' ? '#1d4ed8' : (initThemeColor === 'verde' ? '#059669' : (initThemeColor === 'fucsia' ? '#db2777' : (initThemeColor === 'giallo' ? '#ca8a04' : '#ea580c')));
   metaThemeColor.setAttribute('content', themeHex);
 }
 
@@ -1203,7 +1203,7 @@ watch(penalitaMaxStabiliPctGlobal, (newVal) => {
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {
-  const targetColor = (newVal === 'blu' || newVal === 'verde' || newVal === 'fucsia') ? newVal : 'arancio';
+  const targetColor = (newVal === 'blu' || newVal === 'verde' || newVal === 'fucsia' || newVal === 'giallo') ? newVal : 'arancio';
   localStorage.setItem('woapp_tema_header_giorno', targetColor);
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme-color', targetColor);
@@ -1215,7 +1215,7 @@ watch(temaHeaderGiornoGlobal, (newVal) => {
       metaThemeColor.name = 'theme-color';
       document.head.appendChild(metaThemeColor);
     }
-    const themeHex = targetColor === 'blu' ? '#1d4ed8' : (targetColor === 'verde' ? '#059669' : (targetColor === 'fucsia' ? '#db2777' : '#ea580c'));
+    const themeHex = targetColor === 'blu' ? '#1d4ed8' : (targetColor === 'verde' ? '#059669' : (targetColor === 'fucsia' ? '#db2777' : (targetColor === 'giallo' ? '#ca8a04' : '#ea580c')));
     metaThemeColor.setAttribute('content', themeHex);
   }
 });

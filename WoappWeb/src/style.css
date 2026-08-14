@@ -98,6 +98,26 @@
   --v-theme-primary-key: #ec4899 !important;
 }
 
+[data-theme-color="giallo"],
+[data-theme-color="giallo"] .v-application,
+[data-theme-color="giallo"] .v-overlay-container {
+  --theme-primary: #eab308;
+  --theme-primary-dark: #ca8a04;
+  --theme-primary-darker: #a16207;
+  --theme-primary-light: #facc15;
+  --theme-primary-lighter: #fef08a;
+  --theme-primary-glow: rgba(234, 179, 8, 0.28);
+  --theme-primary-bg-soft: rgba(234, 179, 8, 0.12);
+  --theme-primary-border: rgba(234, 179, 8, 0.38);
+  --theme-text-gradient: linear-gradient(90deg, #eab308, #fde047);
+  --theme-btn-gradient: linear-gradient(135deg, #ca8a04, #eab308);
+
+  --brand-accent: #ca8a04;
+  --brand-accent-glow: rgba(234, 179, 8, 0.28);
+  --v-theme-primary: 234, 179, 8 !important;
+  --v-theme-primary-key: #eab308 !important;
+}
+
 /* Logo Theme Adaptation Filter */
 [data-theme-color="blu"] .logo-theme-adapt {
   filter: hue-rotate(190deg) saturate(1.2);
@@ -107,6 +127,9 @@
 }
 [data-theme-color="fucsia"] .logo-theme-adapt {
   filter: hue-rotate(295deg) saturate(1.3);
+}
+[data-theme-color="giallo"] .logo-theme-adapt {
+  filter: hue-rotate(35deg) saturate(1.4) brightness(1.05);
 }
 
 [data-theme="light"],
@@ -145,6 +168,18 @@
   --color-red-700: #a51d1d;
   --color-purple-700: #7e22ce;
   --color-blue-700: #1d4ed8;
+}
+
+[data-theme="light"][data-theme-color="giallo"],
+[data-theme-color="giallo"] [data-theme="light"],
+[data-theme-color="giallo"][data-theme="light"] {
+  --brand-accent: #a16207;
+  --brand-accent-glow: rgba(161, 98, 7, 0.25);
+  --brand-accent-bg: rgba(234, 179, 8, 0.12);
+  --color-orange-700: #a16207;
+  --color-amber-700: #a16207;
+  --theme-primary-dark: #a16207;
+  --theme-primary-light: #ca8a04;
 }
 
 /* Theme Dynamic Utility Classes */
@@ -578,6 +613,12 @@
   border-bottom: 1px solid var(--card-border) !important;
 }
 
+[data-theme="light"] .day-header-section.tema-giallo {
+  background: linear-gradient(135deg, #fef9c3 0%, var(--card-bg-glass) 75%) !important;
+  border-left: 5px solid #a16207 !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    VOLUMES PREMIUM BOX
    ═══════════════════════════════════════════════════════════════════ */
@@ -880,6 +921,10 @@ body::before {
   top: 15%;
   left: -50px;
   background: radial-gradient(circle, #f97316 0%, rgba(249, 115, 22, 0) 70%);
+}
+
+[data-theme-color="giallo"] body::before {
+  background: radial-gradient(circle, #eab308 0%, rgba(234, 179, 8, 0) 70%);
 }
 
 body::after {
@@ -1582,6 +1627,10 @@ textarea:focus,
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(249, 115, 22, 0.6) !important;
+}
+
+[data-theme-color="giallo"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(234, 179, 8, 0.6) !important;
 }
 
 ::-webkit-scrollbar-corner {

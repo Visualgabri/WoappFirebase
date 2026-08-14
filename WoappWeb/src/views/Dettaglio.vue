@@ -1031,25 +1031,26 @@
             <!-- Box Formattato con Numeri in Risalto (Visualizzazione) -->
             <div
               v-if="risaltoNumeriInsWeek && activeEditingWeek !== sett && inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim()"
-              class="custom-weight-input v-input--density-compact position-relative cursor-text pa-2.5 d-flex align-start justify-space-between transition-all"
+              class="custom-weight-input v-input--density-compact position-relative cursor-text d-flex align-start justify-space-between transition-all"
               :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
               :style="{
-                minHeight: '42px',
+                minHeight: '48px',
+                padding: '10px 14px',
                 borderRadius: layoutCorrente === 'super_compatto' ? '4px' : (layoutCorrente === 'compatto' ? '8px' : '12px')
               }"
               @click="attivaEditingWeek(sett)"
             >
               <!-- Testo Formattato (Numeri grandi, Note alfanumeriche piccole) -->
               <div 
-                class="flex-grow-1 text-left line-height-normal pr-2 font-weight-medium"
-                style="white-space: pre-wrap; word-break: break-word; font-size: 0.95rem;"
+                class="flex-grow-1 text-left pr-2 font-weight-medium"
+                style="white-space: pre-wrap; word-break: break-word; font-size: 0.92rem; line-height: 1.45;"
                 v-html="formattaInsWeekHtml(inputSettimane[sett].ins)"
               ></div>
 
               <!-- Append Icon Recupero / R? -->
               <div 
-                class="d-flex align-center gap-1 pr-1 flex-shrink-0"
-                style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
+                class="d-flex align-center gap-1 pr-0 flex-shrink-0"
+                style="cursor: pointer; transition: all 0.2s; opacity: 0.85; margin-top: 2px;"
                 @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
                 @mouseover="$event.currentTarget.style.opacity = '1'"
                 @mouseleave="$event.currentTarget.style.opacity = '0.85'"

@@ -13889,9 +13889,12 @@ const tornaIndietro = () => {
   padding-bottom: 10px !important;
 }
 .custom-compact-textarea :deep(input),
-.custom-compact-textarea :deep(textarea) {
+.custom-compact-textarea :deep(textarea),
+.custom-weight-input :deep(input),
+.custom-weight-input :deep(textarea) {
   font-size: 0.9rem !important;
   line-height: 1.4 !important;
+  font-weight: 800 !important;
 }
 .custom-compact-textarea :deep(.v-label) {
   font-size: 0.8rem !important;
@@ -13911,11 +13914,14 @@ const tornaIndietro = () => {
 }
 .ghost-glow-green :deep(.v-field--focused) { border-color: #10b981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important; }
 .ghost-glow-green,
-.ghost-glow-green :deep(input), 
-.ghost-glow-green :deep(textarea),
 .ghost-glow-green .ins-num-highlight,
 .ghost-glow-green .ins-text-muted { 
   color: #34d399 !important; 
+}
+.ghost-glow-green :deep(input), 
+.ghost-glow-green :deep(textarea) { 
+  color: #34d399 !important; 
+  font-weight: 800 !important;
 }
 .ghost-glow-green :deep(.v-label) { color: #34d399 !important; opacity: 0.9 !important; }
 
@@ -13928,11 +13934,14 @@ const tornaIndietro = () => {
 }
 .ghost-glow-blue :deep(.v-field--focused) { border-color: #3b82f6 !important; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important; }
 .ghost-glow-blue,
-.ghost-glow-blue :deep(input), 
-.ghost-glow-blue :deep(textarea),
 .ghost-glow-blue .ins-num-highlight,
 .ghost-glow-blue .ins-text-muted { 
   color: #60a5fa !important; 
+}
+.ghost-glow-blue :deep(input), 
+.ghost-glow-blue :deep(textarea) { 
+  color: #60a5fa !important; 
+  font-weight: 800 !important;
 }
 .ghost-glow-blue :deep(.v-label) { color: #60a5fa !important; opacity: 0.9 !important; }
 
@@ -13945,11 +13954,14 @@ const tornaIndietro = () => {
 }
 .ghost-glow-orange :deep(.v-field--focused) { border-color: var(--theme-primary) !important; box-shadow: 0 0 20px var(--theme-primary-glow) !important; }
 .ghost-glow-orange,
-.ghost-glow-orange :deep(input), 
-.ghost-glow-orange :deep(textarea),
 .ghost-glow-orange .ins-num-highlight,
 .ghost-glow-orange .ins-text-muted { 
   color: var(--theme-primary-light) !important; 
+}
+.ghost-glow-orange :deep(input), 
+.ghost-glow-orange :deep(textarea) { 
+  color: var(--theme-primary-light) !important; 
+  font-weight: 800 !important;
 }
 .ghost-glow-orange :deep(.v-label) { color: var(--theme-primary-light) !important; opacity: 0.9 !important; }
 

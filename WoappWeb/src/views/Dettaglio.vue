@@ -2387,7 +2387,7 @@
                 🗺️ Roadmap di Progressione (W1 - W6)
               </span>
               <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white px-2 flex-shrink-0" style="font-size: 0.55rem; height: 20px; white-space: nowrap;">
-                {{ meAttrezzoLabel(strategiaCoachData.isManubri, strategiaCoachData.isCorpoLiberoPuro) }}
+                {{ meAttrezzoLabel(strategiaCoachData.isManubri, strategiaCoachData.isCorpoLiberoPuro, strategiaCoachData.isComfortAttivo, strategiaCoachData.percentualeInfortunio) }}
               </v-chip>
             </div>
 
@@ -2455,10 +2455,10 @@
                     </div>
                   </div>
 
-                  <!-- Indicatore 2: Target Teorico PR Storico -->
+                  <!-- Indicatore 2: Target Teorico PR Storico / Target Comfort -->
                   <div class="text-right pl-2" style="border-left: 1px solid var(--card-border);">
                     <span class="text-super-caption font-weight-bold text-cyan-lighten-3 uppercase d-block" style="font-size: 0.52rem; letter-spacing: 0.02em; white-space: nowrap;">
-                      🎯 Target PR
+                      {{ strategiaCoachData.isComfortAttivo ? '🎯 Target Comfort' : '🎯 Target PR' }}
                     </span>
                     <div class="d-flex align-baseline justify-end gap-1 mt-0.5">
                       <span class="text-caption font-weight-black text-cyan-lighten-2" style="font-size: 0.78rem; line-height: 1;">
@@ -2492,7 +2492,12 @@
                 Consigli Tattici FlexCoach
               </span>
             </div>
-            <ul class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35;">
+            <ul v-if="strategiaCoachData.isComfortAttivo" class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35;">
+              <li>Non forzare aumenti di peso finché il fastidio articolare non scende a 0-2/10.</li>
+              <li>Se tolleri bene il carico, dai priorità alla qualità esecutiva e alle ripetizioni prima dei kg.</li>
+              <li>Mantieni un tempo sotto tensione (TUT) controllato e curato sulla fase eccentrica.</li>
+            </ul>
+            <ul v-else class="text-super-caption text-slate-light pl-4 mb-0" style="font-size: 0.62rem; line-height: 1.35;">
               <li v-if="!strategiaCoachData.isCorpoLiberoPuro">Non forzare carichi elevati nella settimana 4 di scarico.</li>
               <li v-else>Nella settimana 4 di scarico, mantieni le ripetizioni senza cercare l'esaurimento.</li>
               <li>Se in W2 completi le {{ getRepsPerWeek(2) }} ripetizioni con RPE &lt; 8, {{ strategiaCoachData.isCorpoLiberoPuro ? 'incrementa le ripetizioni o aggiungi peso' : (strategiaCoachData.isManubri ? 'incrementa di 1 kg' : 'incrementa di 2.5 kg') }} in W3.</li>
@@ -5007,7 +5012,21 @@ const getBaseWeekInfo = (sett) => {
   let baseWNum = null;
   let isPreviousWorkoutW6 = false;
 
-  if (sett === 2) {
+  const isComfortAttivo = infortuniAttiviEsercizio.value && infortuniAttiviEsercizio.value.length > 0 && !ghostSbloccato.value;
+
+  if (isComfortAttivo && sett > 1) {
+    // In modalità comfort, scansioniamo all'indietro per prendere l'ultima settimana realmente loggata
+    for (let w = sett - 1; w >= 1; w--) {
+      const insVal = inputSettimane.value[w]?.ins;
+      if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+        baseWNum = w;
+        break;
+      }
+    }
+    if (baseWNum === null) {
+      baseWNum = sett - 1;
+    }
+  } else if (sett === 2) {
     const baseW = propostaBaseWeek2.value; // "W1" o "W6 Prec."
     if (baseW === 'W6 Prec.') {
       isPreviousWorkoutW6 = true;
@@ -5521,25 +5540,63 @@ const getGhostLiftSmart = (sett) => {
     smartGhost.isGhostInfortunio = true;
     smartGhost.percentualeInfortunio = pct;
     smartGhost.applicaRiduzioneInfortunio = applica;
+    smartGhost.gravitaInfortunio = inf.gravita || 3;
+    smartGhost.articolazioneInfortunio = inf.articolazione_coinvolta || 'Articolazione';
+
+    // Scansioniamo all'indietro per verificare se l'utente ha già registrato un carico reale nelle settimane precedenti
+    let lastLoggedIns = null;
+    let lastLoggedWeek = null;
+    let lastLoggedPeso = null;
+
+    if (sett > 1) {
+      for (let w = sett - 1; w >= 1; w--) {
+        const insVal = inputSettimane.value[w]?.ins;
+        if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+          const p = parseFloat(estraiPesoDaInput(insVal));
+          if (!isNaN(p) && p > 0) {
+            lastLoggedIns = insVal;
+            lastLoggedWeek = w;
+            lastLoggedPeso = p;
+            break;
+          }
+        }
+      }
+    }
+
+    if (lastLoggedIns) {
+      smartGhost.text = lastLoggedIns;
+      smartGhost.label = `W${lastLoggedWeek}`;
+    }
 
     if (applica && pct > 0) {
+      const isManubri = isManubriEsercizio(workout.value);
       const applicaRiduzioneInfortunio = (wVal) => {
         if (wVal === null || wVal === undefined || wVal <= 0) return wVal;
-        const isManubri = isManubriEsercizio(workout.value);
         const step = getWeightStep(isManubri, wVal);
         const factor = (100 - pct) / 100;
         const reduced = wVal * factor;
         return Math.max(step, Math.round(reduced / step) * step);
       };
 
-      if (smartGhost.peso > 0) {
-        smartGhost.peso = applicaRiduzioneInfortunio(smartGhost.peso);
-      }
-      if (smartGhost.pesoProposto > 0) {
-        smartGhost.pesoProposto = applicaRiduzioneInfortunio(smartGhost.pesoProposto);
-      }
-      if (smartGhost.suggerito > 0) {
-        smartGhost.suggerito = applicaRiduzioneInfortunio(smartGhost.suggerito);
+      // EVITA LA DOPPIA RIDUZIONE:
+      // Se l'utente ha già registrato un carico in modalità comfort nelle settimane precedenti (es. 12.5 kg),
+      // non dobbiamo riapplicare -40% su un carico che è già ridotto!
+      if (lastLoggedPeso !== null && lastLoggedPeso > 0) {
+        smartGhost.peso = lastLoggedPeso;
+        smartGhost.pesoProposto = lastLoggedPeso;
+        if (smartGhost.suggerito > 0) {
+          smartGhost.suggerito = lastLoggedPeso;
+        }
+      } else {
+        if (smartGhost.peso > 0) {
+          smartGhost.peso = applicaRiduzioneInfortunio(smartGhost.peso);
+        }
+        if (smartGhost.pesoProposto > 0) {
+          smartGhost.pesoProposto = applicaRiduzioneInfortunio(smartGhost.pesoProposto);
+        }
+        if (smartGhost.suggerito > 0) {
+          smartGhost.suggerito = applicaRiduzioneInfortunio(smartGhost.suggerito);
+        }
       }
     }
   }
@@ -5632,6 +5689,105 @@ const getGhostWeightsRangeForWeek = (sett) => {
       sfidante: {
         value: String(max),
         display: `${formatWeight(max)} kg`,
+        label: sfidanteLabel
+      }
+    };
+  }
+
+  // Se c'è il comfort articolare attivo, calcoliamo il range con logica di tutela e progressione reps
+  if (ghost.isGhostInfortunio && !ghostSbloccato.value) {
+    let pesoComfort = (info && info.pesoBase && info.pesoBase > 0) 
+      ? info.pesoBase 
+      : (ghost.peso || ghost.suggerito || ghost.pesoProposto || 0);
+
+    if (isManubri) pesoComfort = arrotondaManubrioCommerciale(pesoComfort);
+    if (pesoComfort <= 0) return null;
+
+    const gravita = ghost.gravitaInfortunio || 3;
+    const isIntensificazione = repsTarget < repsBaseVal; // es. W6 4x6 con 6 reps dopo che in W5 si era fatto 7 o 9 reps
+    const isDifficileOStallo = info ? isInputIndicaLimiteOStallo(info.baseInsText, info.noteText, info.faticaText) : false;
+
+    // In settimane di intensificazione (es. W6 4x6) o se la settimana precedente ha segnalato dolore/difficoltà:
+    // il target primario deve essere il carico comfort a repsTarget prescritte (es. 12.5 kg x 6 reps)
+    if (isIntensificazione || isDifficileOStallo) {
+      const prudenzialeVal = `${pesoComfort}x${repsTarget}r`;
+      const prudenzialeDisplay = `${formatWeight(pesoComfort)}x${repsTarget}r`;
+      const prudenzialeLabel = `Prudenziale (${repsTarget}r)`;
+
+      const consigliatoVal = String(pesoComfort);
+      const consigliatoDisplay = `${formatWeight(pesoComfort)} kg`;
+      const consigliatoLabel = 'Consigliato (Comfort)';
+
+      // Sfidante propone al massimo +1 rep (es. 7 reps in 4x6) senza forzare aumenti di peso
+      const sfidanteVal = `${pesoComfort}x${repsTarget + 1}r`;
+      const sfidanteDisplay = `${formatWeight(pesoComfort)}x${repsTarget + 1}r`;
+      const sfidanteLabel = 'Sfidante (+1r)';
+
+      return {
+        prudenziale: {
+          value: prudenzialeVal,
+          display: prudenzialeDisplay,
+          label: prudenzialeLabel
+        },
+        consigliato: {
+          value: consigliatoVal,
+          display: consigliatoDisplay,
+          label: consigliatoLabel
+        },
+        sfidante: {
+          value: sfidanteVal,
+          display: sfidanteDisplay,
+          label: sfidanteLabel
+        }
+      };
+    }
+
+    // Settimane a volume costante o in crescita (repsTarget >= repsBaseVal):
+    const repsConsigliate = Math.max(repsTarget, repsBaseVal);
+    const repsExtra = repsConsigliate + 1;
+
+    // 1. PRUDENZIALE: Carico comfort a reps prescritte base della settimana
+    const prudenzialeVal = (repsTarget < repsConsigliate) ? `${pesoComfort}x${repsTarget}r` : String(pesoComfort);
+    const prudenzialeDisplay = (repsTarget < repsConsigliate) ? `${formatWeight(pesoComfort)}x${repsTarget}r` : `${formatWeight(pesoComfort)} kg`;
+    const prudenzialeLabel = (repsTarget < repsConsigliate) ? `Prudenziale (${repsTarget}r)` : 'Prudenziale';
+
+    // 2. CONSIGLIATO: Carico comfort con reps consolidate
+    let consigliatoVal = `${pesoComfort}x${repsConsigliate}r`;
+    let consigliatoDisplay = `${formatWeight(pesoComfort)}x${repsConsigliate}r`;
+    let consigliatoLabel = (repsConsigliate > repsTarget) ? `Consigliato (${repsConsigliate}r)` : 'Consigliato (Comfort)';
+
+    if (repsConsigliate === repsTarget && repsBaseVal <= repsTarget) {
+      consigliatoVal = String(pesoComfort);
+      consigliatoDisplay = `${formatWeight(pesoComfort)} kg`;
+      consigliatoLabel = 'Consigliato (Comfort)';
+    }
+
+    // 3. SFIDANTE:
+    let sfidanteVal = `${pesoComfort}x${repsExtra}r`;
+    let sfidanteDisplay = `${formatWeight(pesoComfort)}x${repsExtra}r`;
+    let sfidanteLabel = 'Sfidante (+1r)';
+
+    if (gravita <= 3 && repsBaseVal >= repsTarget + 1) {
+      const microPeso = isManubri ? getDumbbellSequenceWeight(pesoComfort, 'up') : pesoComfort + step;
+      sfidanteVal = String(microPeso);
+      sfidanteDisplay = `${formatWeight(microPeso)} kg`;
+      sfidanteLabel = `Sfidante (+${formatWeight(microPeso - pesoComfort)}kg)`;
+    }
+
+    return {
+      prudenziale: {
+        value: prudenzialeVal,
+        display: prudenzialeDisplay,
+        label: prudenzialeLabel
+      },
+      consigliato: {
+        value: consigliatoVal,
+        display: consigliatoDisplay,
+        label: consigliatoLabel
+      },
+      sfidante: {
+        value: sfidanteVal,
+        display: sfidanteDisplay,
         label: sfidanteLabel
       }
     };
@@ -5875,7 +6031,13 @@ const getGhostRenderInfo = (sett) => {
     color = isLight ? '#dc2626' : '#ef4444';
     const pct = ghost.percentualeInfortunio ?? 20;
     label = (ghost.applicaRiduzioneInfortunio !== false && pct > 0) ? `Proposta Comfort (-${pct}%):` : 'Monitoraggio Fastidio:';
-    valueText = `${formatWeight(ghost.peso || ghost.suggerito || ghost.pesoProposto)} kg`;
+    
+    const range = getGhostWeightsRangeForWeek(sett);
+    if (range && range.consigliato && range.consigliato.display) {
+      valueText = range.consigliato.display;
+    } else {
+      valueText = `${formatWeight(ghost.peso || ghost.suggerito || ghost.pesoProposto)} kg`;
+    }
   } else if (ghost.isScarico) {
     icon = 'mdi-battery-charging-40';
     color = isLight ? '#b45309' : '#fbbf24';
@@ -6077,7 +6239,7 @@ const getGhostRenderInfo = (sett) => {
     hasReference = true;
   } else if (ghost.isPostScarico) {
     hasReference = true;
-  } else if (ghost.isOverload || ghost.isMetodo || ghost.isMandatory) {
+  } else if (ghost.isOverload || ghost.isMetodo || ghost.isMandatory || ghost.isGhostInfortunio) {
     hasReference = true;
   } else if (ghost.text) {
     hasReference = true;
@@ -11862,7 +12024,8 @@ const valutazioneProgressione = computed(() => {
   }
 });
 
-const meAttrezzoLabel = (isManubri, isCorpoLiberoPuro) => {
+const meAttrezzoLabel = (isManubri, isCorpoLiberoPuro, isComfortAttivo, pctComfort) => {
+  if (isComfortAttivo) return `🛡️ Tutela Articolare (-${pctComfort}%)`;
   if (isCorpoLiberoPuro) return 'Progressione Ripetizioni';
   return isManubri ? 'Step Manubri (+1kg)' : 'Step Bilanciere/Cavi (+2.5kg)';
 };
@@ -11875,6 +12038,12 @@ const strategiaCoachData = computed(() => {
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const hasWeight = !isCorpoLibero || (suggerimentoRecord.value?.recordHasWeight || suggerimentoRecord.value?.recordAbsoluteHasWeight);
   const isCorpoLiberoPuro = isCorpoLibero && !hasWeight;
+
+  const inf = (infortuniAttiviEsercizio.value && infortuniAttiviEsercizio.value.length > 0 && !ghostSbloccato.value) ? infortuniAttiviEsercizio.value[0] : null;
+  const isComfortAttivo = !!(inf && inf.applica_riduzione !== false && (inf.percentuale_riduzione ?? 20) > 0);
+  const pctComfort = isComfortAttivo ? (inf.percentuale_riduzione ?? 20) : 0;
+  const articolazioneCoinvolta = inf ? (inf.articolazione_coinvolta || 'Articolazione') : '';
+  const gravitaInfortunio = inf ? (inf.gravita || 3) : 0;
 
   // PR Storico
   const prWeight = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
@@ -11915,7 +12084,10 @@ const strategiaCoachData = computed(() => {
   let stato = 'PRIMA_VOLTA';
   let diffKg = 0;
   let diffPerc = 0;
-  if (isCorpoLiberoPuro) {
+
+  if (isComfortAttivo) {
+    stato = 'COMFORT_ATTIVO';
+  } else if (isCorpoLiberoPuro) {
     if (prReps > 0) {
       if (bestCurrentReps === 0) {
         stato = 'INIZIO';
@@ -11967,15 +12139,27 @@ const strategiaCoachData = computed(() => {
   const r5 = getRepsPerWeek(5);
   const r6 = getRepsPerWeek(6);
 
-  const w1Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r1) : (isManubri ? 10 : 20));
-  const w2Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.92, r2) : w1Target + getStepFor(w1Target));
-  const w3Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.98, r3) : w2Target + getStepFor(w2Target));
-  
-  // Per W4 (Scarico), usa il carico di W2 per coerenza col Ghost
-  const w4Target = adjustDumbbell(w2Target > 0 ? w2Target : (e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r4) : w1Target));
-  
-  const w5Target = adjustDumbbell(Math.max(w3Target + getStepFor(w3Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.02, r5) : w3Target + getStepFor(w3Target)));
-  const w6Target = adjustDumbbell(Math.max(w5Target + getStepFor(w5Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.05, r6) : w5Target + getStepFor(w5Target)));
+  let w1Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r1) : (isManubri ? 10 : 20));
+  let w2Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.92, r2) : w1Target + getStepFor(w1Target));
+  let w3Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.98, r3) : w2Target + getStepFor(w2Target));
+  let w4Target = adjustDumbbell(w2Target > 0 ? w2Target : (e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r4) : w1Target));
+  let w5Target = adjustDumbbell(Math.max(w3Target + getStepFor(w3Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.02, r5) : w3Target + getStepFor(w3Target)));
+  let w6Target = adjustDumbbell(Math.max(w5Target + getStepFor(w5Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.05, r6) : w5Target + getStepFor(w5Target)));
+
+  if (isComfortAttivo && pctComfort > 0) {
+    const factor = (100 - pctComfort) / 100;
+    const applicaComfortTarget = (wVal) => {
+      if (wVal <= 0) return wVal;
+      const s = getStepFor(wVal);
+      return adjustDumbbell(Math.max(s, Math.round((wVal * factor) / s) * s));
+    };
+    w1Target = applicaComfortTarget(w1Target);
+    w2Target = applicaComfortTarget(w2Target);
+    w3Target = applicaComfortTarget(w3Target);
+    w4Target = applicaComfortTarget(w4Target);
+    w5Target = applicaComfortTarget(w5Target);
+    w6Target = applicaComfortTarget(w6Target);
+  }
 
   // Calcolo del picco reale eseguito prima dello scarico (W1-W3)
   let peakLoggedPreScarico = 0;
@@ -12054,7 +12238,9 @@ const strategiaCoachData = computed(() => {
       repsRealiText = formatRepsDisplay(repsRealiVal);
     } else {
       let pesoProiettato = targetPeso;
-      if (w === 4) {
+      if (isComfortAttivo) {
+        pesoProiettato = targetPeso;
+      } else if (w === 4) {
         const valW2 = workout.value?.['ins_week2'];
         const pW2 = valW2 ? parseFloat(estraiPesoDaInput(valW2)) : 0;
         if (pW2 > 0) pesoProiettato = pW2;
@@ -12087,7 +12273,14 @@ const strategiaCoachData = computed(() => {
     };
   };
 
-  const roadmap = [
+  const roadmap = isComfortAttivo ? [
+    buildStepData(1, 'Adattamento Protetto', 'cyan', 'RPE 6-7', 'Carico ridotto. Focus su assenza di dolore e massima pulizia tecnica.', w1Target, `3x${r1} reps`),
+    buildStepData(2, 'Consolidamento Volume', 'teal', 'RPE 7', 'Mantieni il carico comfort ed esegui ogni ripetizione con controllo eccentrico.', w2Target, `3x${r2} reps`),
+    buildStepData(3, 'Progressione Ripetizioni', 'amber', 'RPE 7.5', 'Cerca 1-2 rep in più sul carico comfort prima di considerare aumenti di peso.', w3Target, `3x${r3} reps`),
+    buildStepData(4, 'Scarico Decompressivo', 'blue', 'RPE 6', 'Decompressione articolare e rigenerazione tendinea a carico ultra-sicuro.', w4Target, `3x${r4} reps`),
+    buildStepData(5, 'Densità & Reps Comfort', 'purple', 'RPE 7.5-8', 'Incrementa le ripetizioni mantenendo il carico protetto e sicuro.', w5Target, `3x${Math.max(r5 - 2, 1)}-${r5} reps`),
+    buildStepData(6, 'Valutazione Tolleranza Articolare', 'green', 'RPE 8', 'Testa la tenuta articolare sul volume target senza forzare picchi di kg.', w6Target, `3x${r6} reps`)
+  ] : [
     buildStepData(1, 'Accumulo & Tecnica', 'cyan', 'RPE 7-8', 'Volume sicuro. Focus su controllo e ritmo esecutivo.', w1Target, `3x${r1} reps`),
     buildStepData(2, 'Progressione Carico', 'amber', 'RPE 8', 'Incremento sostenibile. Mantieni la stessa qualità esecutiva.', w2Target, `3x${r2} reps`),
     buildStepData(3, 'Pareggio PR Storico', 'orange', 'RPE 8.5-9', 'Test di pareggio del tuo record storico passato.', w3Target, `3x${r3} reps`),
@@ -12100,6 +12293,10 @@ const strategiaCoachData = computed(() => {
     exName,
     isManubri,
     isCorpoLiberoPuro,
+    isComfortAttivo,
+    percentualeInfortunio: pctComfort,
+    articolazioneCoinvolta,
+    gravitaInfortunio,
     prWeight,
     prReps,
     e1rmStorico: Math.round(e1rmStorico * 10) / 10,
@@ -12114,6 +12311,7 @@ const strategiaCoachData = computed(() => {
 });
 
 const meStatoBg = (s) => {
+  if (s === 'COMFORT_ATTIVO') return 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%)';
   if (s === 'CALO') return 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.03) 100%)';
   if (s === 'PROGRESSIONE') return 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.03) 100%)';
   if (s === 'IN_LINEA') return 'linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.03) 100%)';
@@ -12150,6 +12348,7 @@ const getStepCardStyle = (step) => {
   
   const colorMap = {
     cyan: { bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(6, 182, 212, 0.22)' },
+    teal: { bg: 'linear-gradient(135deg, rgba(20, 184, 166, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(20, 184, 166, 0.22)' },
     amber: { bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(245, 158, 11, 0.22)' },
     orange: { bg: 'linear-gradient(135deg, rgba(249, 115, 22, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(249, 115, 22, 0.22)' },
     blue: { bg: 'linear-gradient(135deg, rgba(59, 130, 246, 0.07) 0%, rgba(248, 250, 252, 0.95) 100%)', border: 'rgba(59, 130, 246, 0.22)' },
@@ -12165,6 +12364,7 @@ const getStepCardStyle = (step) => {
 };
 
 const meStatoBorder = (s) => {
+  if (s === 'COMFORT_ATTIVO') return 'rgba(239, 68, 68, 0.35) !important';
   if (s === 'CALO') return 'rgba(239, 68, 68, 0.35) !important';
   if (s === 'PROGRESSIONE') return 'rgba(34, 197, 94, 0.35) !important';
   if (s === 'IN_LINEA') return 'rgba(6, 182, 212, 0.35) !important';
@@ -12172,6 +12372,7 @@ const meStatoBorder = (s) => {
 };
 
 const meStatoColor = (s) => {
+  if (s === 'COMFORT_ATTIVO') return 'red-lighten-2';
   if (s === 'CALO') return 'red-lighten-2';
   if (s === 'PROGRESSIONE') return 'green-lighten-2';
   if (s === 'IN_LINEA') return 'cyan-lighten-2';
@@ -12179,6 +12380,7 @@ const meStatoColor = (s) => {
 };
 
 const meStatoIcona = (s) => {
+  if (s === 'COMFORT_ATTIVO') return 'mdi-bandage';
   if (s === 'CALO') return 'mdi-alert-circle-outline';
   if (s === 'PROGRESSIONE') return 'mdi-trending-up';
   if (s === 'IN_LINEA') return 'mdi-minus-circle-outline';
@@ -12186,6 +12388,7 @@ const meStatoIcona = (s) => {
 };
 
 const meStatoTextClass = (s) => {
+  if (s === 'COMFORT_ATTIVO') return 'text-red-lighten-2';
   if (s === 'CALO') return 'text-red-lighten-2';
   if (s === 'PROGRESSIONE') return 'text-green-lighten-2';
   if (s === 'IN_LINEA') return 'text-cyan-lighten-2';
@@ -12193,6 +12396,7 @@ const meStatoTextClass = (s) => {
 };
 
 const meStatoTitolo = (s) => {
+  if (s === 'COMFORT_ATTIVO') return 'Comfort Articolare Attivo';
   if (s === 'CALO') return 'Calo temporaneo dal Picco Storico';
   if (s === 'PROGRESSIONE') return 'In Progressione sul PR!';
   if (s === 'IN_LINEA') return 'In Linea con i tuoi Standard';
@@ -12200,6 +12404,9 @@ const meStatoTitolo = (s) => {
 };
 
 const meStatoDescrizione = (data) => {
+  if (data.stato === 'COMFORT_ATTIVO') {
+    return `Monitoraggio fastidio su ${data.articolazioneCoinvolta || 'articolazione'} (${data.gravitaInfortunio}/10). Carichi ridotti del -${data.percentualeInfortunio}% per lavorare in comfort zone. La roadmap privilegia il controllo esecutivo (TUT) e l'aumento delle ripetizioni prima di incrementare il carico.`;
+  }
   if (data.isCorpoLiberoPuro) {
     if (data.stato === 'CALO') {
       return `Prestazione in calo dal tuo PR di ${data.prReps}r. Il piano ti guiderà per ritornare al tuo picco.`;

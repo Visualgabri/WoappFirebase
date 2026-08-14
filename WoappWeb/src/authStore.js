@@ -1006,11 +1006,36 @@ export const deallenamentoPct4Global = ref(parseFloat(localStorage.getItem('deal
 export const penalitaMaxInstabiliPctGlobal = ref(parseFloat(localStorage.getItem('penalitaMaxInstabiliPct') || localStorage.getItem('penalitaMaxInstabiliPct_' + athleteIdForInit) || '64'));
 export const penalitaMaxStabiliPctGlobal = ref(parseFloat(localStorage.getItem('penalitaMaxStabiliPct') || localStorage.getItem('penalitaMaxStabiliPct_' + athleteIdForInit) || '14'));
 export const dimensioneGifCompattaGlobal = ref(parseInt(localStorage.getItem('dimensioneGifCompatta') || '70', 10));
+export const risaltoNumeriInsWeekGlobal = ref(localStorage.getItem('risaltoNumeriInsWeekGlobal') === 'true');
 const localW2 = localStorage.getItem('regolaProgressioneW2Global');
 export const regolaProgressioneW2Global = ref(localW2 && localW2 !== 'reps' ? localW2 : 'peso');
 if (localW2 === 'reps') {
   localStorage.setItem('regolaProgressioneW2Global', 'peso');
 }
+
+// Helper per evidenziare numeri/carichi rispetto alle note alfanumeriche sui campi ins_week
+export const formattaInsWeekHtml = (str) => {
+  if (!str) return '';
+  const strVal = String(str);
+  if (!strVal.trim()) return '';
+  if (!risaltoNumeriInsWeekGlobal.value) return strVal;
+
+  const tokens = strVal.split(/([+-]?[0-9]+(?:[.,][0-9]+)?)/g);
+  
+  return tokens.map(token => {
+    if (!token) return '';
+    if (/[0-9]/.test(token)) {
+      return `<span class="ins-num-highlight">${token}</span>`;
+    }
+    return `<span class="ins-text-muted">${token}</span>`;
+  }).join('');
+};
+
+export const haContenutoAlfanumericoMisto = (str) => {
+  if (!str) return false;
+  const s = String(str).trim();
+  return /\d/.test(s) && /[a-zA-Z]/.test(s.replace(/kg|r|reps|w/gi, ''));
+};
 
 // Flag per evitare loop di sincronizzazione bidirezionale Firestore -> local -> Firestore
 let isSyncingFromFirestore = false;
@@ -1049,6 +1074,7 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         penalitaMaxInstabiliPct: penalitaMaxInstabiliPctGlobal.value,
         penalitaMaxStabiliPct: penalitaMaxStabiliPctGlobal.value,
         dimensioneGifCompatta: dimensioneGifCompattaGlobal.value,
+        risaltoNumeriInsWeek: risaltoNumeriInsWeekGlobal.value,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
@@ -1095,6 +1121,9 @@ export const syncConfigurazioniListener = () => {
       if (data.penalitaMaxInstabiliPct !== undefined) penalitaMaxInstabiliPctGlobal.value = parseFloat(data.penalitaMaxInstabiliPct);
       if (data.penalitaMaxStabiliPct !== undefined) penalitaMaxStabiliPctGlobal.value = parseFloat(data.penalitaMaxStabiliPct);
       if (data.dimensioneGifCompatta !== undefined) dimensioneGifCompattaGlobal.value = parseInt(data.dimensioneGifCompatta, 10);
+      if (data.risaltoNumeriInsWeek !== undefined) {
+        risaltoNumeriInsWeekGlobal.value = data.risaltoNumeriInsWeek === true || data.risaltoNumeriInsWeek === 'true';
+      }
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
       salvaConfigurazioniGlobaliFirestore();
@@ -1207,6 +1236,10 @@ watch(penalitaMaxStabiliPctGlobal, (newVal) => {
 });
 watch(dimensioneGifCompattaGlobal, (newVal) => {
   localStorage.setItem('dimensioneGifCompatta', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(risaltoNumeriInsWeekGlobal, (newVal) => {
+  localStorage.setItem('risaltoNumeriInsWeekGlobal', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {

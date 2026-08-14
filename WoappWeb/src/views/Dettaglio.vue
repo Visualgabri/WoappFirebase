@@ -1028,91 +1028,141 @@
               </v-btn>
             </div>
             
-            <!-- Textarea con ottimizzazione digitazione (.lazy) -->
-            <v-textarea
-              v-if="ottimizzaDigitazione"
-              v-model.lazy="inputSettimane[sett].ins"
-              :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
-              variant="outlined"
-              density="compact"
-              hide-details
-              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-              rows="1"
-              auto-grow
-              color="orange-darken-3"
-              class="custom-weight-input transition-all"
+            <!-- Box Formattato con Numeri in Risalto (Visualizzazione) -->
+            <div
+              v-if="risaltoNumeriInsWeek && activeEditingWeek !== sett && inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim()"
+              class="custom-weight-input v-input--density-compact position-relative cursor-text pa-2.5 d-flex align-start justify-space-between transition-all"
               :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
-              @blur="salvaDatoSettimanale(sett, 'ins')"
-              :id="'input-peso-w' + sett"
+              :style="{
+                minHeight: '42px',
+                borderRadius: layoutCorrente === 'super_compatto' ? '4px' : (layoutCorrente === 'compatto' ? '8px' : '12px'),
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                background: 'rgba(15, 23, 42, 0.4)'
+              }"
+              @click="attivaEditingWeek(sett)"
             >
-              <template v-slot:append-inner>
-                <div 
-                  class="d-flex align-center gap-1 pr-1"
-                  style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
-                  @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
-                  @mouseover="$event.currentTarget.style.opacity = '1'"
-                  @mouseleave="$event.currentTarget.style.opacity = '0.85'"
-                >
-                  <span 
-                    class="font-weight-black uppercase"
-                    :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
-                    :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
-                  >
-                    {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
-                  </span>
-                  <v-icon
-                    :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
-                    :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
-                    :size="layoutCorrente === 'super_compatto' ? 14 : 18"
-                  >
-                    {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
-                  </v-icon>
-                </div>
-              </template>
-            </v-textarea>
+              <!-- Testo Formattato (Numeri grandi, Note alfanumeriche piccole) -->
+              <div 
+                class="flex-grow-1 text-left line-height-normal pr-2 font-weight-medium"
+                style="white-space: pre-wrap; word-break: break-word; font-size: 0.95rem;"
+                v-html="formattaInsWeekHtml(inputSettimane[sett].ins)"
+              ></div>
 
-            <!-- Textarea standard in tempo reale (default) -->
-            <v-textarea
-              v-else
-              v-model="inputSettimane[sett].ins"
-              :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
-              variant="outlined"
-              density="compact"
-              hide-details
-              :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-              rows="1"
-              auto-grow
-              color="orange-darken-3"
-              class="custom-weight-input transition-all"
-              :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
-              @blur="salvaDatoSettimanale(sett, 'ins')"
-              :id="'input-peso-w' + sett"
-            >
-              <template v-slot:append-inner>
-                <div 
-                  class="d-flex align-center gap-1 pr-1"
-                  style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
-                  @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
-                  @mouseover="$event.currentTarget.style.opacity = '1'"
-                  @mouseleave="$event.currentTarget.style.opacity = '0.85'"
+              <!-- Append Icon Recupero / R? -->
+              <div 
+                class="d-flex align-center gap-1 pr-1 flex-shrink-0"
+                style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
+                @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
+                @mouseover="$event.currentTarget.style.opacity = '1'"
+                @mouseleave="$event.currentTarget.style.opacity = '0.85'"
+              >
+                <span 
+                  class="font-weight-black uppercase"
+                  :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
+                  :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
                 >
-                  <span 
-                    class="font-weight-black uppercase"
-                    :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
-                    :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
+                  {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
+                </span>
+                <v-icon
+                  :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
+                  :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
+                  :size="layoutCorrente === 'super_compatto' ? 14 : 18"
+                >
+                  {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
+                </v-icon>
+              </div>
+            </div>
+
+            <!-- Textarea Editabile (in digitazione o se risalto disattivo o se vuoto) -->
+            <template v-else>
+              <!-- Textarea con ottimizzazione digitazione (.lazy) -->
+              <v-textarea
+                v-if="ottimizzaDigitazione"
+                v-model.lazy="inputSettimane[sett].ins"
+                :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
+                variant="outlined"
+                density="compact"
+                hide-details
+                :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
+                rows="1"
+                auto-grow
+                color="orange-darken-3"
+                class="custom-weight-input transition-all"
+                :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
+                @focus="activeEditingWeek = sett"
+                @blur="activeEditingWeek = null; salvaDatoSettimanale(sett, 'ins')"
+                :id="'input-peso-w' + sett"
+              >
+                <template v-slot:append-inner>
+                  <div 
+                    class="d-flex align-center gap-1 pr-1"
+                    style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
+                    @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
+                    @mouseover="$event.currentTarget.style.opacity = '1'"
+                    @mouseleave="$event.currentTarget.style.opacity = '0.85'"
                   >
-                    {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
-                  </span>
-                  <v-icon
-                    :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
-                    :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
-                    :size="layoutCorrente === 'super_compatto' ? 14 : 18"
+                    <span 
+                      class="font-weight-black uppercase"
+                      :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
+                      :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
+                    >
+                      {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
+                    </span>
+                    <v-icon
+                      :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
+                      :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
+                      :size="layoutCorrente === 'super_compatto' ? 14 : 18"
+                    >
+                      {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
+                    </v-icon>
+                  </div>
+                </template>
+              </v-textarea>
+
+              <!-- Textarea standard in tempo reale (default) -->
+              <v-textarea
+                v-else
+                v-model="inputSettimane[sett].ins"
+                :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
+                variant="outlined"
+                density="compact"
+                hide-details
+                :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
+                rows="1"
+                auto-grow
+                color="orange-darken-3"
+                class="custom-weight-input transition-all"
+                :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
+                @focus="activeEditingWeek = sett"
+                @blur="activeEditingWeek = null; salvaDatoSettimanale(sett, 'ins')"
+                :id="'input-peso-w' + sett"
+              >
+                <template v-slot:append-inner>
+                  <div 
+                    class="d-flex align-center gap-1 pr-1"
+                    style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
+                    @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
+                    @mouseover="$event.currentTarget.style.opacity = '1'"
+                    @mouseleave="$event.currentTarget.style.opacity = '0.85'"
                   >
-                    {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
-                  </v-icon>
-                </div>
-              </template>
-            </v-textarea>
+                    <span 
+                      class="font-weight-black uppercase"
+                      :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
+                      :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
+                    >
+                      {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
+                    </span>
+                    <v-icon
+                      :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
+                      :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
+                      :size="layoutCorrente === 'super_compatto' ? 14 : 18"
+                    >
+                      {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
+                    </v-icon>
+                  </div>
+                </template>
+              </v-textarea>
+            </template>
 
             <!-- Suggerimento Formattazione Reps (es. 3x12 -> 3x12r) -->
             <div
@@ -3300,9 +3350,12 @@
                       <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
                         {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
                       </span>
-                      <strong class="font-weight-black d-block mt-1" style="font-size: 0.95rem; line-height: 1;" :style="getInsWeekTextStyle(prevEx, w)">
-                        {{ prevEx['ins_week' + w] || '-' }}
-                      </strong>
+                      <strong 
+                        class="font-weight-black d-block mt-1" 
+                        style="font-size: 0.95rem; line-height: 1;" 
+                        :style="getInsWeekTextStyle(prevEx, w)"
+                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
+                      ></strong>
                       <span v-if="w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold d-block mt-0.5" style="font-size: 0.50rem; line-height: 1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
                         {{ prevEx.num_faticaw6 }}
                       </span>
@@ -3346,9 +3399,12 @@
                       <div v-if="prevEx['des_week' + w]" class="table-prescription-text text-super-caption font-weight-medium" style="font-size: 0.65rem; line-height: 1;">
                         {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
                       </div>
-                      <div class="font-weight-black mt-1" style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;" :style="getInsWeekTextStyle(prevEx, w)">
-                        {{ prevEx['ins_week' + w] || '-' }}
-                      </div>
+                      <div 
+                        class="font-weight-black mt-1" 
+                        style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;" 
+                        :style="getInsWeekTextStyle(prevEx, w)"
+                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
+                      ></div>
                       <div v-if="w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold mt-0.5" style="font-size: 0.55rem; line-height: 1.1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
                         {{ prevEx.num_faticaw6 }}
                       </div>
@@ -4237,11 +4293,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
+import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -4285,6 +4341,18 @@ const FATICA_PESANTE_W1_PCT = faticaPesanteW1PctGlobal;
 const FATICA_DEVASTANTE_W1_PCT = faticaDevastanteW1PctGlobal;
 const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
 const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
+const risaltoNumeriInsWeek = risaltoNumeriInsWeekGlobal;
+
+const activeEditingWeek = ref(null);
+const attivaEditingWeek = (sett) => {
+  activeEditingWeek.value = sett;
+  nextTick(() => {
+    const el = document.getElementById('input-peso-w' + sett);
+    if (el) {
+      el.focus();
+    }
+  });
+};
 
 const inizializzaParametriProposta = (atletaId) => {
   // Gestito a livello globale in authStore.js

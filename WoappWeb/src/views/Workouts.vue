@@ -1208,7 +1208,8 @@
                         style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                         :title="ex['ins_week' + settimanaAttivaGiorno]"
                       >
-                        {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : ex['ins_week' + settimanaAttivaGiorno] }}
+                        <span v-if="haRecupero(ex['ins_week' + settimanaAttivaGiorno])">⚠️ RECUPERA</span>
+                        <span v-else v-html="formattaInsWeekHtml(ex['ins_week' + settimanaAttivaGiorno])"></span>
                       </v-chip>
                       <!-- If completed with simple check -->
                       <v-chip 
@@ -1404,7 +1405,8 @@
                         style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
                         @click.stop="segnaComeFattoRapido(ex)"
                       >
-                        {{ haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : '✔️ ' + String(ex['ins_week' + settimanaAttivaGiorno]).trim() }}
+                        <span v-if="haRecupero(ex['ins_week' + settimanaAttivaGiorno])">⚠️ RECUPERA</span>
+                        <span v-else v-html="'✔️ ' + formattaInsWeekHtml(ex['ins_week' + settimanaAttivaGiorno])"></span>
                       </v-chip>
                       
                       <v-chip
@@ -1554,7 +1556,8 @@
                       style="height: 16px; font-size: 0.52rem; border-radius: 2px;"
                       :title="block.exercise['ins_week' + settimanaAttivaGiorno]"
                     >
-                      {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : block.exercise['ins_week' + settimanaAttivaGiorno] }}
+                      <span v-if="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno])">⚠️ RECUPERA</span>
+                      <span v-else v-html="formattaInsWeekHtml(block.exercise['ins_week' + settimanaAttivaGiorno])"></span>
                     </v-chip>
                     <!-- If completed with simple check -->
                     <v-chip 
@@ -1751,7 +1754,8 @@
                     style="font-size: 0.62rem; height: 20px; border-radius: 6px; padding: 0 4px; width: 100%; justify-content: center; cursor: pointer;"
                     @click.stop="segnaComeFattoRapido(block.exercise)"
                   >
-                    {{ haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? '⚠️ RECUPERA' : '✔️ ' + String(block.exercise['ins_week' + settimanaAttivaGiorno]).trim() }}
+                    <span v-if="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno])">⚠️ RECUPERA</span>
+                    <span v-else v-html="'✔️ ' + formattaInsWeekHtml(block.exercise['ins_week' + settimanaAttivaGiorno])"></span>
                   </v-chip>
                   
                   <v-chip
@@ -2230,7 +2234,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();

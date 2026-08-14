@@ -437,6 +437,24 @@
 
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
 
+            <!-- Risalto Numerico nei Carichi W1-W6 -->
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+              <div>
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">Risalto Numerico Ins Week</span>
+                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Numeri in risalto e note alfanumeriche più piccole sui carichi W1–W6</span>
+              </div>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="risaltoNumeriInsWeek"
+                  color="orange-darken-3"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
+            </div>
+
+            <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
+
             <!-- Regola Progressione Week 2 -->
             <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <span class="text-caption font-weight-bold text-orange-lighten-2 pr-2" style="font-size: 0.72rem;">Progressione W2</span>
@@ -562,6 +580,8 @@
             <v-select
               v-model="atletaDeployTargetForm"
               :items="listaAtletiSoloSingoli"
+              item-title="title"
+              item-value="value"
               placeholder="Scegli atleta..."
               variant="outlined"
               density="compact"
@@ -768,10 +788,10 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
-import { collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, writeBatch, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { 
   utente, 
@@ -804,7 +824,12 @@ import {
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
   defaultTimerRecGlobal,
-  dimensioneGifCompattaGlobal
+  dimensioneGifCompattaGlobal,
+  risaltoNumeriInsWeekGlobal,
+  ORDINE_ORIGINALE_ATLETI,
+  MAPPA_CLIENTI,
+  MAPPA_CLIENTI_DINAMICI,
+  caricaNomiAtletiDinamici
 } from '../authStore.js';
 
 const router = useRouter();
@@ -829,6 +854,7 @@ const cambiaStileChiaroDaImpostazioni = (newVal) => {
 };
 
 // Modulo Coach Deploy Notifica
+const listaAtleti = ref([]);
 const tipoNotificaForm = ref('deploy'); // 'deploy' | 'messaggio'
 const titoloDeployForm = ref('🚀 Nuovo Aggiornamento!');
 const messaggioDeployGeneraleForm = ref('Nuova versione disponibile con miglioramenti.');
@@ -839,33 +865,66 @@ const snackbarDeployShow = ref(false);
 const snackbarDeployMessage = ref('');
 const snackbarDeployColor = ref('success');
 
+const caricaDatiAtleti = async () => {
+  try {
+    const docRef = doc(db, 'METADATA', 'clienti');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      listaAtleti.value = docSnap.data().lista || [];
+    }
+    await caricaNomiAtletiDinamici();
+  } catch (error) {
+    console.error("Errore caricamento lista atleti in Impostazioni:", error);
+  }
+};
+
+onMounted(async () => {
+  if (ruolo.value === 'coach') {
+    await caricaDatiAtleti();
+  }
+});
+
+// Computed per la lista atleti esclusiva dei messaggi individuali (SENZA "Tutti gli Atleti")
+const listaAtletiSoloSingoli = computed(() => {
+  const idsSet = new Set([
+    ...(listaAtleti.value || []),
+    ...(ORDINE_ORIGINALE_ATLETI || []),
+    ...Object.keys(MAPPA_CLIENTI || {}),
+    ...Object.keys(MAPPA_CLIENTI_DINAMICI.value || {})
+  ]);
+
+  const ordinati = Array.from(idsSet).map(id => String(id).trim()).filter(Boolean).sort((a, b) => {
+    const idxA = ORDINE_ORIGINALE_ATLETI ? ORDINE_ORIGINALE_ATLETI.indexOf(a) : -1;
+    const idxB = ORDINE_ORIGINALE_ATLETI ? ORDINE_ORIGINALE_ATLETI.indexOf(b) : -1;
+    const posA = idxA === -1 ? 999 : idxA;
+    const posB = idxB === -1 ? 999 : idxB;
+    if (posA !== posB) return posA - posB;
+    return a.localeCompare(b, undefined, { numeric: true });
+  });
+
+  const items = [];
+  ordinati.forEach(id => {
+    const nome = getNomeAtleta(id);
+    items.push({
+      title: nome ? `${nome} (ID: ${id})` : `Atleta #${id}`,
+      value: String(id)
+    });
+  });
+  return items;
+});
+
 watch(tipoNotificaForm, (nuovoTipo) => {
   if (nuovoTipo === 'messaggio') {
     titoloDeployForm.value = '💬 Messaggio dal Coach';
     messaggioDeployGeneraleForm.value = '';
-    if (atletaDeployTargetForm.value === 'tutti' && ORDINE_ORIGINALE_ATLETI.length > 0) {
-      atletaDeployTargetForm.value = String(ORDINE_ORIGINALE_ATLETI[0]);
+    if (atletaDeployTargetForm.value === 'tutti' && listaAtletiSoloSingoli.value.length > 0) {
+      atletaDeployTargetForm.value = String(listaAtletiSoloSingoli.value[0].value);
     }
   } else {
     titoloDeployForm.value = '🚀 Nuovo Aggiornamento!';
     messaggioDeployGeneraleForm.value = 'Nuova versione disponibile con miglioramenti.';
     atletaDeployTargetForm.value = 'tutti';
   }
-});
-
-// Computed per la lista atleti esclusiva dei messaggi individuali (SENZA "Tutti gli Atleti")
-const listaAtletiSoloSingoli = computed(() => {
-  const items = [];
-  ORDINE_ORIGINALE_ATLETI.forEach(id => {
-    const nome = getNomeAtleta(id);
-    if (nome) {
-      items.push({
-        title: `${nome} (ID: ${id})`,
-        value: String(id)
-      });
-    }
-  });
-  return items;
 });
 
 const getNomeAtletaTarget = (id) => {
@@ -931,6 +990,7 @@ const getActiveAtletaId = () => {
 
 const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
 const regolaProgressioneW2 = regolaProgressioneW2Global;
+const risaltoNumeriInsWeek = risaltoNumeriInsWeekGlobal;
 
 const vibraTattile = (ms = 12) => {
   if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;

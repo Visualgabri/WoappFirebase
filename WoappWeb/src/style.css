@@ -1730,3 +1730,23 @@ textarea:focus,
   background: var(--brand-accent, #ea580c) !important;
 }
 
+/* Stili per risalto numeri e carichi nei campi ins_week */
+.ins-num-highlight {
+  font-weight: 900 !important;
+  font-size: 1.15em !important;
+  letter-spacing: -0.2px;
+  color: inherit;
+  font-variant-numeric: tabular-nums;
+  display: inline;
+}
+
+.ins-text-muted {
+  font-weight: 500 !important;
+  font-size: 0.74em !important;
+  opacity: 0.85;
+  letter-spacing: 0.1px;
+  display: inline;
+}
+
+
+

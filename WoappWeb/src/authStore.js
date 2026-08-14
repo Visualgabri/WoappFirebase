@@ -692,6 +692,7 @@ export const getDensitaLayoutAtleta = (id) => {
 
 export const layoutEserciziGlobal = ref(localStorage.getItem('woapp_layout_esercizi') || 'standard');
 export const layoutDettaglioGlobal = ref(localStorage.getItem('woapp_layout_dettaglio') || 'auto');
+export const posizioneRecuperiGlobal = ref(localStorage.getItem('woapp_posizione_recuperi') || 'strategica');
 export const timerThemeGlobal = ref(localStorage.getItem('woapp_timer_theme') || 'accent-dark');
 export const comportamentoPlayGlobal = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
 export const temaHeaderGiornoGlobal = ref(localStorage.getItem('woapp_tema_header_giorno') || 'arancio');
@@ -1272,6 +1273,7 @@ export const salvaClienteConfigFirestore = () => {
           temaHeaderGiorno: temaHeaderGiornoGlobal.value,
           layoutEsercizi: layoutEserciziGlobal.value,
           layoutDettaglio: layoutDettaglioGlobal.value,
+          posizioneRecuperi: posizioneRecuperiGlobal.value,
           timerTheme: timerThemeGlobal.value
         },
         workoutSettings: {
@@ -1365,6 +1367,10 @@ export const syncClienteConfigListener = () => {
         layoutDettaglioGlobal.value = ui.layoutDettaglio;
         localStorage.setItem('woapp_layout_dettaglio', ui.layoutDettaglio);
       }
+      if (ui.posizioneRecuperi !== undefined) {
+        posizioneRecuperiGlobal.value = ui.posizioneRecuperi;
+        localStorage.setItem('woapp_posizione_recuperi', ui.posizioneRecuperi);
+      }
       if (ui.timerTheme !== undefined) {
         timerThemeGlobal.value = ui.timerTheme;
         localStorage.setItem('woapp_timer_theme', ui.timerTheme);
@@ -1428,6 +1434,11 @@ watch([
     localStorage.setItem('woapp_vibrazione_attiva', String(vibrazioneAttivaGlobal.value));
     localStorage.setItem('woapp_default_timer_rec', String(defaultTimerRecGlobal.value));
   }
+  salvaClienteConfigFirestore();
+});
+
+watch(posizioneRecuperiGlobal, (val) => {
+  localStorage.setItem('woapp_posizione_recuperi', val);
   salvaClienteConfigFirestore();
 });
 

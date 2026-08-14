@@ -151,6 +151,24 @@
         </v-btn-toggle>
       </div>
 
+      <!-- Posizione Esercizi da Recuperare -->
+      <div class="mb-2.5">
+        <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Posizione Esercizi da Recuperare</span>
+        <v-btn-toggle
+          v-model="posizioneRecuperi"
+          mandatory
+          selected-class="bg-orange-darken-3 text-white"
+          density="compact"
+          rounded="lg"
+          class="w-100 card-glass border"
+          style="height: 32px;"
+        >
+          <v-btn value="strategica" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.62rem;">🧠 Strategica</v-btn>
+          <v-btn value="inizio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.62rem;">🔝 Inizio</v-btn>
+          <v-btn value="fine" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.62rem;">🔚 Fine</v-btn>
+        </v-btn-toggle>
+      </div>
+
       <!-- Tasto Play -->
       <div>
         <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Tasto Play</span>
@@ -741,6 +759,7 @@ import {
   selectedSheet,
   layoutEserciziGlobal,
   layoutDettaglioGlobal,
+  posizioneRecuperiGlobal,
   timerThemeGlobal,
   comportamentoPlayGlobal,
   temaHeaderGiornoGlobal,
@@ -870,6 +889,7 @@ watch(selectedSheet, (v) => { schedaSelezionata.value = v; });
 // Layout refs (collegati direttamente ai global refs)
 const layoutEsercizi = layoutEserciziGlobal;
 const layoutDettaglio = layoutDettaglioGlobal;
+const posizioneRecuperi = posizioneRecuperiGlobal;
 const timerTheme = timerThemeGlobal;
 const temaHeaderGiorno = temaHeaderGiornoGlobal;
 

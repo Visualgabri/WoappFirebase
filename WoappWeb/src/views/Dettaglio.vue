@@ -683,7 +683,7 @@
             class="coaching-integrated-header mb-2.5 pa-2 rounded-lg"
           >
             <!-- 1. Setup Attrezzo (evidente e ingrandito) -->
-            <div v-if="workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()" class="d-flex align-center gap-1.5 py-0.5">
+            <div v-if="workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()" class="d-flex align-center py-0.5" style="gap: 6px;">
               <v-icon color="orange-darken-1" size="16" class="flex-shrink-0">mdi-wrench</v-icon>
               <div class="text-slate-dark font-weight-bold" style="font-size: 0.76rem; line-height: 1.3;">
                 <span class="text-orange-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.66rem; letter-spacing: 0.04em;">SETUP:</span>
@@ -694,7 +694,8 @@
             <!-- 2. Note Coach -->
             <div
               v-if="workout.des_note && String(workout.des_note).trim()"
-              class="d-flex align-start gap-1.5 py-0.5"
+              class="d-flex align-start py-0.5"
+              style="gap: 6px;"
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note_attrezzo}"
             >
               <v-icon color="orange-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-information-outline</v-icon>
@@ -707,7 +708,8 @@
             <!-- 3. Note Macchina -->
             <div
               v-if="workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()"
-              class="d-flex align-start gap-1.5 py-0.5"
+              class="d-flex align-start py-0.5"
+              style="gap: 6px;"
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo}"
             >
               <v-icon color="cyan-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-cogs</v-icon>
@@ -720,7 +722,8 @@
             <!-- 4. Tecnica / ROM -->
             <div
               v-if="workout.des_estesa_start && String(workout.des_estesa_start).trim()"
-              class="d-flex align-start gap-1.5 py-0.5"
+              class="d-flex align-start py-0.5"
+              style="gap: 6px;"
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr}"
             >
               <v-icon color="amber-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-cog-play-outline</v-icon>
@@ -733,7 +736,8 @@
             <!-- 5. RIR (se presenti esponenti) -->
             <div
               v-if="haEsponenti"
-              class="d-flex align-start gap-1.5 py-0.5"
+              class="d-flex align-start py-0.5"
+              style="gap: 6px;"
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr || workout.des_estesa_start}"
             >
               <v-icon color="blue-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-information-outline</v-icon>
@@ -8236,6 +8240,43 @@ const haPesoEsercizio = computed(() => {
   return false;
 });
 
+const applicaEsercizioPrecedenteSincrono = (wObj) => {
+  if (!wObj) return false;
+  const { key: keyIdCliente, id: atletaId } = getAtletaInfo(wObj);
+  const currentNumScheda = parseInt(wObj.num_scheda);
+  const desEsercizio = String(wObj.des_esercizio || '').trim().toLowerCase();
+  
+  if (!atletaId || isNaN(currentNumScheda) || !desEsercizio) return false;
+
+  let bestPrev = null;
+  if (globalStoryboard.value && globalStoryboard.value.length > 0) {
+    globalStoryboard.value.forEach(d => {
+      const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
+      if (String(dAtletaId) === String(atletaId) && String(d.des_esercizio || '').trim().toLowerCase() === desEsercizio) {
+        const sNum = parseInt(d.num_scheda);
+        if (sNum < currentNumScheda && (parseInt(d.num_riga_giorno) > 0 || !d.num_riga_giorno)) {
+          if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+            const itemId = d.id || d.num_riga;
+            bestPrev = { ...d, id: itemId };
+          }
+        }
+      }
+    });
+  }
+
+  if (bestPrev) {
+    previousWorkout.value = applicaModificheLocali(bestPrev);
+    for (let w = 1; w <= 6; w++) {
+      inputSettimanePrecedente.value[w].ins = previousWorkout.value['ins_week' + w] || '';
+      inputSettimanePrecedente.value[w].reps = previousWorkout.value['reps_week' + w] || '';
+    }
+    numIns6ValPrecedente.value = previousWorkout.value.num_ins6 || '';
+    numFaticaw6ValPrecedente.value = previousWorkout.value.num_faticaw6 || '';
+    return true;
+  }
+  return false;
+};
+
 const caricaEsercizioPrecedente = async () => {
   if (!workout.value) return;
   
@@ -8248,6 +8289,11 @@ const caricaEsercizioPrecedente = async () => {
   try {
     const currentSchedaNum = parseInt(currentNumScheda);
     if (isNaN(currentSchedaNum)) return;
+
+    // Se già trovato e applicato sincronicamente, evitiamo query se non necessario
+    if (previousWorkout.value && String(previousWorkout.value.des_esercizio || '').trim().toLowerCase() === String(desEsercizio).trim().toLowerCase()) {
+      return;
+    }
     
     const q = query(
       collection(db, 'STORYBOARD'),
@@ -8926,17 +8972,6 @@ const handleTouchEnd = (e) => {
 
 // Carica l'esercizio ed estrai i dati
 const caricaDatiEsercizio = async () => {
-  // Reset completo dello storico dell'esercizio precedente per evitare "leak" visivi o logici
-  previousWorkout.value = null;
-  for (let w = 1; w <= 6; w++) {
-    inputSettimanePrecedente.value[w].ins = '';
-    inputSettimanePrecedente.value[w].reps = '';
-  }
-  numIns6ValPrecedente.value = '';
-  numFaticaw6ValPrecedente.value = '';
-  storicoEsercizio.value = [];
-  storicoEsercizioPerAiuto.value = [];
-
   // CACHE REATTIVA PER SWIPE E CARICAMENTO IMMEDIATO
   let cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
   if (!cachedEx && globalStoryboard.value && globalStoryboard.value.length > 0) {
@@ -8947,17 +8982,49 @@ const caricaDatiEsercizio = async () => {
     workout.value = applicaModificheLocali({ ...cachedEx });
     const keyIdCliente = Object.keys(cachedEx).find(k => k.includes('ID_cliente')) || 'ID_cliente';
     const atletaId = cachedEx[keyIdCliente] || '';
-    if (route.query.targetWeek) {
-      settimanaAttiva.value = parseInt(route.query.targetWeek);
-    } else {
-      settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+    const schemaRef = workout.value?.num_scheda;
+    const desGiorno = workout.value?.des_giorno;
+
+    // Sincronizzazione immediata di Riga 0 e Settimana Attiva dalla cache in memoria
+    let cachedRiga0 = tuttiEserciziGiorno.value.find(ex => parseInt(ex.num_riga_giorno) === 0 || ex.riga === 0);
+    if (!cachedRiga0 && globalStoryboard.value && globalStoryboard.value.length > 0) {
+      cachedRiga0 = globalStoryboard.value.find(ex =>
+        (String(ex[keyIdCliente]) === String(atletaId) || String(ex['ID_cliente']) === String(atletaId)) &&
+        String(ex.num_scheda) === String(schemaRef) &&
+        String(ex.des_giorno).trim().toUpperCase() === String(desGiorno).trim().toUpperCase() &&
+        parseInt(ex.num_riga_giorno) === 0
+      );
     }
+    if (cachedRiga0) {
+      riga0.value = applicaModificheLocali(cachedRiga0);
+      determinaSettimanaAttivaGiorno();
+    } else {
+      if (route.query.targetWeek) {
+        settimanaAttiva.value = parseInt(route.query.targetWeek);
+      } else {
+        settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + atletaId)) || 2;
+      }
+    }
+
+    // Risoluzione sincrona immediata dell'esercizio precedente per evitare flickering di colore
+    const trovatoSync = applicaEsercizioPrecedenteSincrono(workout.value);
+    if (!trovatoSync) {
+      previousWorkout.value = null;
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = '';
+        inputSettimanePrecedente.value[w].reps = '';
+      }
+      numIns6ValPrecedente.value = '';
+      numFaticaw6ValPrecedente.value = '';
+      storicoEsercizio.value = [];
+      storicoEsercizioPerAiuto.value = [];
+    }
+
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
     posizionamentoSuperset.value = localStorage.getItem('posizionamentoSuperset_' + atletaId) || 'auto';
     inizializzaParametriProposta(atletaId);
 
-    const schemaRef = workout.value?.num_scheda;
     if (atletaId && schemaRef && !dataMesociclo.value) {
       caricaDataMesociclo(atletaId, schemaRef);
     }
@@ -8977,7 +9044,6 @@ const caricaDatiEsercizio = async () => {
     caricamento.value = false;
 
     // Carica il completamento del giorno (Riga 0) e l'elenco esercizi per lo swipe in background
-    const desGiorno = workout.value.des_giorno;
     if (atletaId && schemaRef && desGiorno) {
       caricaRiga0(keyIdCliente, atletaId, schemaRef, desGiorno).then(() => {
         determinaSettimanaAttivaGiorno();
@@ -8996,6 +9062,17 @@ const caricaDatiEsercizio = async () => {
 
     return;
   }
+
+  // Fallback se non in cache
+  previousWorkout.value = null;
+  for (let w = 1; w <= 6; w++) {
+    inputSettimanePrecedente.value[w].ins = '';
+    inputSettimanePrecedente.value[w].reps = '';
+  }
+  numIns6ValPrecedente.value = '';
+  numFaticaw6ValPrecedente.value = '';
+  storicoEsercizio.value = [];
+  storicoEsercizioPerAiuto.value = [];
 
   caricamento.value = true;
   try {
@@ -9027,6 +9104,7 @@ const caricaDatiEsercizio = async () => {
     if (docSnap && docSnap.exists()) {
       const dati = docSnap.data();
       workout.value = applicaModificheLocali({ id: targetDocId || docSnap.id, ...dati });
+      applicaEsercizioPrecedenteSincrono(workout.value);
 
       // Recupera la settimana attiva impostata nella Home per l'atleta specifico
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || '\uFEFF"ID_cliente"';
@@ -9118,6 +9196,7 @@ const caricaEsercizioDaBackup = async () => {
     });
     if (found) {
       workout.value = applicaModificheLocali(found);
+      applicaEsercizioPrecedenteSincrono(workout.value);
       const keyIdCliente = Object.keys(found).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = found[keyIdCliente] || '';
       if (route.query.targetWeek) {

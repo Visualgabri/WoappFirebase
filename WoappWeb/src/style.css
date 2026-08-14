@@ -1735,7 +1735,7 @@ textarea:focus,
   font-weight: 900 !important;
   font-size: 1.15em !important;
   letter-spacing: -0.2px;
-  color: inherit;
+  color: inherit !important;
   font-variant-numeric: tabular-nums;
   display: inline;
 }
@@ -1745,6 +1745,7 @@ textarea:focus,
   font-size: 0.74em !important;
   opacity: 0.85;
   letter-spacing: 0.1px;
+  color: inherit !important;
   display: inline;
 }
 

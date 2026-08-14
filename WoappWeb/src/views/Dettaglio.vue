@@ -527,8 +527,8 @@
 
           <!-- Status Linea Trend Progressione / Suggerimento Target -->
           <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft d-flex align-center justify-center px-1">
-            <span class="text-super-caption font-weight-bold d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.46rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.25; opacity: 0.9;">
-              <v-icon size="10" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
+            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.62rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.3;">
+              <v-icon size="12" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>
           </div>
@@ -603,9 +603,9 @@
             v-if="previousWorkout"
             prepend-icon="mdi-calendar-arrow-left"
             variant="tonal"
-            color="orange-lighten-2"
+            color="orange-darken-2"
             size="x-small"
-            class="font-weight-black text-none px-2.5 rounded-lg elevation-1"
+            class="font-weight-black text-none px-2.5 rounded-lg elevation-1 btn-scorso-action"
             style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
             @click="dialogProgressioniPrecedente = true"
           >
@@ -615,9 +615,9 @@
           <v-btn
             prepend-icon="mdi-chart-timeline-variant"
             variant="tonal"
-            color="cyan-accent-3"
+            color="cyan-darken-2"
             size="x-small"
-            class="font-weight-black text-none px-2.5 rounded-lg elevation-1"
+            class="font-weight-black text-none px-2.5 rounded-lg elevation-1 btn-storico-action"
             style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
             @click="apriStoricoEsercizio"
             title="Mostra Cronologia & Grafico Prestazioni Esercizio"
@@ -673,7 +673,7 @@
             }
           ]"
           :style="[
-            sett === settimanaAttiva ? (layoutCorrente === 'super_compatto' ? 'padding: 10px 10px 10px 10px !important;' : (layoutCorrente === 'compatto' ? 'padding: 12px 12px 14px 12px !important;' : 'padding: 14px 14px 16px 14px !important;')) : (modalitaSettimane === 'dinamica' ? 'opacity: 0.45 !important;' : '')
+            sett === settimanaAttiva ? (layoutCorrente === 'super_compatto' ? 'padding: 10px 10px 10px 10px !important;' : (layoutCorrente === 'compatto' ? 'padding: 12px 12px 14px 12px !important;' : 'padding: 14px 14px 16px 14px !important;')) : (modalitaSettimane === 'dinamica' ? (currentTheme === 'light' ? 'opacity: 0.9 !important;' : 'opacity: 0.50 !important;') : '')
           ]"
           elevation="1"
         >
@@ -681,18 +681,13 @@
           <div
             v-if="sett === settimanaAttiva && ((workout.des_note && String(workout.des_note).trim()) || (workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()) || (workout.des_note_gen_attr && String(workout.des_note_gen_attr).trim()) || (workout.des_estesa_start && String(workout.des_estesa_start).trim()) || haEsponenti)"
             class="coaching-integrated-header mb-2.5 pa-2 rounded-lg"
-            :style="{
-              background: 'rgba(249, 115, 22, 0.07)',
-              border: '1px solid rgba(249, 115, 22, 0.25)',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2)'
-            }"
           >
             <!-- 1. Setup Attrezzo (evidente e ingrandito) -->
             <div v-if="workout.des_note_attrezzo && String(workout.des_note_attrezzo).trim()" class="d-flex align-center gap-1.5 py-0.5">
               <v-icon color="orange-darken-1" size="16" class="flex-shrink-0">mdi-wrench</v-icon>
-              <div class="text-slate-100 font-weight-bold" style="font-size: 0.76rem; line-height: 1.3;">
+              <div class="text-slate-dark font-weight-bold" style="font-size: 0.76rem; line-height: 1.3;">
                 <span class="text-orange-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.66rem; letter-spacing: 0.04em;">SETUP:</span>
-                <span class="text-white font-weight-black">{{ String(workout.des_note_attrezzo).trim() }}</span>
+                <span class="text-slate-dark font-weight-black">{{ String(workout.des_note_attrezzo).trim() }}</span>
               </div>
             </div>
 
@@ -703,7 +698,7 @@
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note_attrezzo}"
             >
               <v-icon color="orange-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-information-outline</v-icon>
-              <div class="text-slate-100 font-weight-medium" style="font-size: 0.74rem; line-height: 1.35;">
+              <div class="text-slate-dark font-weight-medium" style="font-size: 0.74rem; line-height: 1.35;">
                 <span class="text-orange-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">COACH:</span>
                 <span>{{ String(workout.des_note).trim() }}</span>
               </div>
@@ -716,7 +711,7 @@
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo}"
             >
               <v-icon color="cyan-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-cogs</v-icon>
-              <div class="text-slate-200 font-weight-medium" style="font-size: 0.72rem; line-height: 1.3;">
+              <div class="text-slate-dark font-weight-medium" style="font-size: 0.72rem; line-height: 1.3;">
                 <span class="text-cyan-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">MACCHINA:</span>
                 <span>{{ String(workout.des_note_gen_attr).trim() }}</span>
               </div>
@@ -729,7 +724,7 @@
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr}"
             >
               <v-icon color="amber-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-cog-play-outline</v-icon>
-              <div class="text-slate-200 font-weight-medium" style="font-size: 0.72rem; line-height: 1.35;">
+              <div class="text-slate-dark font-weight-medium" style="font-size: 0.72rem; line-height: 1.35;">
                 <span class="text-amber-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">TECNICA/ROM:</span>
                 <span>{{ getDescrizioneBreve(workout.des_estesa_start) }}</span>
               </div>
@@ -742,7 +737,7 @@
               :class="{'mt-1 pt-1 border-top-soft': workout.des_note || workout.des_note_attrezzo || workout.des_note_gen_attr || workout.des_estesa_start}"
             >
               <v-icon color="blue-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-information-outline</v-icon>
-              <div class="text-slate-200 font-weight-medium" style="font-size: 0.70rem; line-height: 1.3;">
+              <div class="text-slate-dark font-weight-medium" style="font-size: 0.70rem; line-height: 1.3;">
                 <span class="text-blue-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">RIR:</span>
                 <span>Il numero ad esponente (es. 8²) indica le ripetizioni di margine da tenere prima del cedimento.</span>
               </div>
@@ -774,13 +769,13 @@
               v-if="sett === settimanaAttiva || haRecupero(inputSettimane[sett].ins)"
               :color="haRecupero(inputSettimane[sett].ins) ? 'red-lighten-2' : ((isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-')) ? 'green-lighten-2' : 'orange-lighten-2')"
               size="x-small"
-              class="font-weight-black px-1.5"
-              :style="{ height: '16px', fontSize: '0.52rem', letterSpacing: '0.04em', background: (sett === settimanaAttiva && !isWeekCompleted(sett) && !inputSettimane[sett]?.ins) ? 'rgba(249, 115, 22, 0.12) !important' : '', border: (sett === settimanaAttiva && !isWeekCompleted(sett) && !inputSettimane[sett]?.ins) ? '1px solid rgba(249, 115, 22, 0.3) !important' : '', pointerEvents: 'none' }"
+              class="font-weight-black px-1.5 week-active-chip"
+              :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
               variant="tonal"
             >
               {{ haRecupero(inputSettimane[sett].ins) ? 'DA COMPLETARE' : ((isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-')) ? '✓ COMPLETATA' : 'ATTIVA') }}
             </v-chip>
-            <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
+            <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5 week-altre-chip" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
@@ -14198,19 +14193,95 @@ th.sticky-col {
   box-shadow: 0 0 8px var(--brand-accent-glow) !important;
 }
 
-[data-theme="light"] .stepper-input-box {
-  background: var(--card-bg-soft) !important;
-  border: 1.5px solid var(--card-border) !important;
+[data-theme="light"] .coaching-integrated-header {
+  background: var(--brand-accent-bg, rgba(249, 115, 22, 0.08)) !important;
+  border: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.25)) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03) !important;
 }
 
-[data-theme="light"] .stepper-input-box input {
-  color: var(--text-dark) !important;
+.coaching-integrated-header {
+  background: var(--theme-primary-bg-soft, rgba(249, 115, 22, 0.08));
+  border: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.25));
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-[data-theme="light"] .fatica-btn:not(.fatica-btn-active-media):not(.fatica-btn-active-pesante):not(.fatica-btn-active-devastante) {
-  background: var(--card-bg-soft) !important;
-  color: var(--text-dark) !important;
-  border: 1.5px solid var(--card-border) !important;
+[data-theme="light"] .coaching-integrated-header .text-slate-dark {
+  color: var(--text-dark, #0f172a) !important;
+}
+
+[data-theme="light"] .week-secondary-card {
+  opacity: 0.92 !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .week-secondary-card .text-slate-dark {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .week-secondary-card .text-slate {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .week-active-chip {
+  background: var(--brand-accent-bg, rgba(249, 115, 22, 0.12)) !important;
+  border: 1px solid var(--brand-accent, #ea580c) !important;
+  color: var(--brand-accent, #ea580c) !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .week-altre-chip {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .btn-scorso-action {
+  background: var(--brand-accent-bg, #fff7ed) !important;
+  border: 1px solid var(--brand-accent, #ea580c) !important;
+  color: var(--brand-accent, #ea580c) !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .btn-storico-action {
+  background: #f0fdf4 !important;
+  border: 1px solid #059669 !important;
+  color: #047857 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .rmt-premium-card {
+  background: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .rmt-premium-card .text-cyan-lighten-2 {
+  color: #0e7490 !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .rmt-premium-card .text-amber-lighten-1,
+[data-theme="light"] .rmt-premium-card .text-amber-lighten-2 {
+  color: #b45309 !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .rmt-premium-card .text-muted {
+  color: #475569 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .rmt-premium-card .border-right-soft {
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .rmt-premium-card .border-top-soft {
+  border-top: 1px solid #e2e8f0 !important;
 }
 
 </style>

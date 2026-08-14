@@ -2538,9 +2538,16 @@ const esportaCSVLocale = () => {
   color: #334155 !important;
 }
 
-:deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--selected) {
+:deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--active):not(.v-item--active) {
   color: #0f172a !important;
   background-color: #f8fafc !important;
+}
+
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--active,
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-item--active,
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--selected {
+  color: #ffffff !important;
+  background-color: var(--brand-accent, #ea580c) !important;
 }
 
 /* Light Theme Overrides for Spreadsheet Table */

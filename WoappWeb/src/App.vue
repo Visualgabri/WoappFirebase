@@ -1806,13 +1806,16 @@ const elencoDischiGrafica = computed(() => {
 }
 .premium-toggle-group .v-btn {
   border: none !important;
-  color: #94a3b8 !important;
+  color: var(--text-slate, #94a3b8) !important;
   text-transform: none !important;
 }
+.premium-toggle-group .v-btn--active,
+.premium-toggle-group .v-btn.v-item--active,
 .premium-toggle-group .v-btn--selected {
-  background: #f97316 !important;
-  color: white !important;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4) !important;
+  background: var(--theme-btn-gradient, var(--brand-accent, #f97316)) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(249, 115, 22, 0.4)) !important;
 }
 </style>
 

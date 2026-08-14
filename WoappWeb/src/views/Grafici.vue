@@ -1204,16 +1204,22 @@ const progressioneSettimanaleChartOptions = ref({
 .filter-btn-toggle {
   height: 48px;
   border-radius: 8px !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.12)) !important;
+  background: var(--card-bg-soft) !important;
 }
 
 .filter-btn-toggle .v-btn {
   height: 100% !important;
   border: none !important;
-  color: #94a3b8 !important;
+  color: var(--text-slate, #94a3b8) !important;
 }
 
-.filter-btn-toggle .v-btn--active {
+.filter-btn-toggle .v-btn--active,
+.filter-btn-toggle .v-btn.v-item--active,
+.filter-btn-toggle .v-btn--selected {
+  background: var(--theme-btn-gradient, var(--brand-accent, #ea580c)) !important;
   color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(234, 88, 12, 0.35)) !important;
 }
 </style>

@@ -60,7 +60,7 @@
         <v-btn-toggle
           v-model="selectedTheme"
           mandatory
-          selected-class="bg-orange-darken-3 text-white"
+          selected-class="v-btn--active bg-theme-primary text-white"
           density="compact"
           rounded="lg"
           class="w-100 card-glass border"
@@ -82,7 +82,7 @@
         <v-btn-toggle
           v-model="temaHeaderGiorno"
           mandatory
-          selected-class="bg-orange-darken-3 text-white"
+          selected-class="v-btn--active bg-theme-primary text-white"
           density="compact"
           rounded="lg"
           class="w-100 card-glass border"
@@ -123,7 +123,7 @@
         <v-btn-toggle
           v-model="layoutEsercizi"
           mandatory
-          selected-class="bg-orange-darken-3 text-white"
+          selected-class="v-btn--active bg-theme-primary text-white"
           density="compact"
           rounded="lg"
           class="w-100 card-glass border"
@@ -141,7 +141,7 @@
         <v-btn-toggle
           v-model="layoutDettaglio"
           mandatory
-          selected-class="bg-orange-darken-3 text-white"
+          selected-class="v-btn--active bg-theme-primary text-white"
           density="compact"
           rounded="lg"
           class="w-100 card-glass border"
@@ -160,7 +160,7 @@
         <v-btn-toggle
           v-model="posizioneRecuperi"
           mandatory
-          selected-class="bg-orange-darken-3 text-white"
+          selected-class="v-btn--active bg-theme-primary text-white"
           density="compact"
           rounded="lg"
           class="w-100 card-glass border"
@@ -178,7 +178,7 @@
         <v-btn-toggle
           v-model="comportamentoPlay"
           mandatory
-          selected-class="bg-orange-darken-3 text-white"
+          selected-class="v-btn--active bg-theme-primary text-white"
           density="compact"
           rounded="lg"
           class="w-100 card-glass border"
@@ -312,7 +312,7 @@
           <v-btn-toggle
             v-model="stileVisualizzazioneGhost"
             mandatory
-            selected-class="bg-orange-darken-3 text-white"
+            selected-class="v-btn--active bg-theme-primary text-white"
             density="compact"
             rounded="lg"
             class="w-100 card-glass border mb-2"
@@ -328,7 +328,7 @@
             <v-btn-toggle
               v-model="modalitaIncrementoGhost"
               mandatory
-              selected-class="bg-orange-darken-3 text-white"
+              selected-class="v-btn--active bg-theme-primary text-white"
               density="compact"
               rounded="lg"
               class="w-100 card-glass border"
@@ -346,7 +346,7 @@
             <v-btn-toggle
               v-model="sensibilitaFaticaGhost"
               mandatory
-              selected-class="bg-orange-darken-3 text-white"
+              selected-class="v-btn--active bg-theme-primary text-white"
               density="compact"
               rounded="lg"
               class="w-100 card-glass border"
@@ -1372,24 +1372,51 @@ const formattaDataEsportazione = (isoString) => {
 
 :deep([data-theme="light"]) .v-btn-toggle,
 [data-theme="light"] .v-btn-toggle {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
-:deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--selected),
-[data-theme="light"] .v-btn-toggle .v-btn:not(.v-btn--selected) {
-  background: #ffffff !important;
+:deep([data-theme="light"]) .v-btn-toggle .v-btn:not(.v-btn--active):not(.v-item--active),
+[data-theme="light"] .v-btn-toggle .v-btn:not(.v-btn--active):not(.v-item--active) {
+  background: #f8fafc !important;
   color: #334155 !important;
   font-weight: 700 !important;
   border-right: 1px solid #e2e8f0 !important;
 }
 
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--active,
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-item--active,
 :deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--selected,
-[data-theme="light"] .v-btn-toggle .v-btn.v-btn--selected {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.bg-orange-darken-3,
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.bg-theme-primary,
+[data-theme="light"] .v-btn-toggle .v-btn.v-btn--active,
+[data-theme="light"] .v-btn-toggle .v-btn.v-item--active,
+[data-theme="light"] .v-btn-toggle .v-btn.v-btn--selected,
+[data-theme="light"] .v-btn-toggle .v-btn.bg-orange-darken-3,
+[data-theme="light"] .v-btn-toggle .v-btn.bg-theme-primary {
+  background: var(--theme-btn-gradient, var(--brand-accent, linear-gradient(135deg, #f97316 0%, #ea580c 100%))) !important;
   color: #ffffff !important;
   font-weight: 900 !important;
-  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35) !important;
+  box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(234, 88, 12, 0.35)) !important;
+  border-color: transparent !important;
+}
+
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-btn--active .v-icon,
+:deep([data-theme="light"]) .v-btn-toggle .v-btn.v-item--active .v-icon,
+[data-theme="light"] .v-btn-toggle .v-btn.v-btn--active .v-icon,
+[data-theme="light"] .v-btn-toggle .v-btn.v-item--active .v-icon {
+  color: #ffffff !important;
+}
+
+:deep([data-theme="light"]) .v-slider .v-slider-track__background {
+  background: #cbd5e1 !important;
+  opacity: 0.8 !important;
+}
+:deep([data-theme="light"]) .v-slider .v-slider-track__fill {
+  background: var(--theme-primary, #ea580c) !important;
+}
+:deep([data-theme="light"]) .v-slider .v-slider-thumb__surface {
+  background: var(--theme-primary, #ea580c) !important;
 }
 
 :deep([data-theme="light"]) .ultra-compact-select .v-field,

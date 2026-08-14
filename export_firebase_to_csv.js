@@ -157,8 +157,16 @@ async function run() {
         val = '';
       }
       
-      // Converte booleani e numeri in stringhe pulite
-      val = String(val).trim();
+      // Converte in stringa
+      val = String(val);
+
+      // Sostituisce eventuali a capo con uno spazio per tutti i campi che iniziano con "ins_"
+      if (header.startsWith('ins_')) {
+        val = val.replace(/[\r\n]+/g, ' ');
+      }
+
+      // Rimuove spazi superflui a inizio/fine stringa
+      val = val.trim();
 
       // Se stiamo esportando des_note, aggiungiamo il prefisso infortunio
       if (header === 'des_note' && prefissoInfortunio) {

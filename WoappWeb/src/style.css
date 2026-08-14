@@ -567,6 +567,7 @@
 [data-theme="light"] .superset-group-card.completed {
   background: #f0fdf4 !important;
   border-color: #86efac !important;
+  border-left: 4px solid var(--brand-accent, #c85a17) !important;
 }
 
 [data-theme="light"] .superset-exercise-item.completed {

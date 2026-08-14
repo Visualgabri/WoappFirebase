@@ -772,8 +772,9 @@
                         </v-list>
                       </v-menu>
                     </div>
-                    <!-- Dettagli: Week + Complessità + Target -->
+                    <!-- Dettagli: Settore + Week + Complessità + Target -->
                     <div class="d-flex align-center flex-wrap gap-1 mt-0.5" style="font-size: 0.56rem; line-height: 1;">
+                      <span v-if="block.exercise.des_settore" class="text-muted uppercase font-weight-black mr-1">{{ block.exercise.des_settore }}</span>
                       <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-black px-1" style="font-size: 0.44rem; height: 13px; border-radius: 2px;">
                         W{{ block.week }}
                       </v-chip>
@@ -813,9 +814,9 @@
 
               <!-- 2. COMPATTO -->
               <template v-else-if="layoutEsercizi === 'compatto'">
-                <!-- Miniatura 62x62px con badge REC -->
-                <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" style="width: 62px; min-width: 62px;">
-                  <div class="position-relative" style="width: 62px; height: 62px;">
+                <!-- Miniatura dinamica (default 70x70px) con badge REC -->
+                <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" :style="{ width: (dimensioneGifCompatta || 70) + 'px', minWidth: (dimensioneGifCompatta || 70) + 'px' }">
+                  <div class="position-relative" :style="{ width: (dimensioneGifCompatta || 70) + 'px', height: (dimensioneGifCompatta || 70) + 'px' }">
                     <!-- Badge RECUPERO a cavallo della foto -->
                     <div
                       class="position-absolute d-flex align-center justify-center font-weight-black text-white"
@@ -825,11 +826,11 @@
                       🔄
                     </div>
 
-                    <div class="rounded-xl overflow-hidden shadow-sm position-relative" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
+                    <div class="rounded-xl overflow-hidden shadow-sm position-relative" :style="{ width: (dimensioneGifCompatta || 70) + 'px', height: (dimensioneGifCompatta || 70) + 'px', border: '1px solid var(--card-border)' }">
                       <v-img
                         :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                        width="62px"
-                        height="62px"
+                        :width="(dimensioneGifCompatta || 70) + 'px'"
+                        :height="(dimensioneGifCompatta || 70) + 'px'"
                         cover
                         alt="Esercizio"
                         class="bg-grey-lighten-4"
@@ -856,20 +857,41 @@
 
                 <!-- Dettagli Centrali Estesi -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
-                  <!-- Intestazione: Badge 'RECUPERO DA G.X' + Titolo Esercizio + Selettore Posizione -->
-                  <div class="d-flex align-center min-width-0 mb-0.5" style="padding-right: 56px;">
+                  <!-- Riga 1: Titolo Esercizio (Pieno spazio per massima leggibilità su smartphone) -->
+                  <h4 class="font-weight-black leading-tight mb-0.5 text-slate-dark text-truncate" style="font-size: 0.80rem !important; line-height: 1.25 !important; padding-right: 64px;">
+                    {{ block.exercise.des_esercizio || 'Esercizio da recuperare' }}
+                  </h4>
+
+                  <!-- Riga 2: Settore Muscolare + Target Prescrizione -->
+                  <div class="d-flex align-center min-width-0 mb-1" style="gap: 5px; padding-right: 64px;">
+                    <div v-if="block.exercise.des_settore" class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0" style="max-width: 95px;">
+                      <span class="text-truncate" style="font-size: 0.64rem !important;">{{ block.exercise.des_settore }}</span>
+                    </div>
+                    <div class="text-caption font-weight-bold text-slate text-truncate flex-grow-1 min-width-0" style="font-size: 0.65rem !important;">
+                      🎯 {{ formattaPrescrizioneSemplice(block.prescrizione) }}
+                    </div>
+                  </div>
+
+                  <!-- Riga 3: Badge Origine Giorno/Week + Complessità + Selettore Posizione -->
+                  <div class="d-flex align-center flex-wrap gap-1 mt-0.5" style="padding-right: 64px;">
                     <v-chip 
                       color="primary" 
                       size="x-small" 
                       variant="flat" 
-                      class="font-weight-black text-white mr-1.5 flex-shrink-0 px-1.5" 
-                      style="height: 16px; font-size: 0.50rem; border-radius: 3px;"
+                      class="font-weight-black text-white px-1.5 flex-shrink-0" 
+                      style="height: 16px; font-size: 0.48rem; border-radius: 3px;"
                     >
-                      RECUPERO DA G.{{ block.exercise.des_giorno }}
+                      DA G.{{ block.exercise.des_giorno }} • W{{ block.week }}
                     </v-chip>
-                    <h4 class="font-weight-black leading-tight text-slate-dark text-truncate mr-1.5 flex-grow-1" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
-                      {{ block.exercise.des_esercizio }}
-                    </h4>
+                    <v-chip 
+                      size="x-small" 
+                      variant="flat" 
+                      class="font-weight-bold px-1.5 flex-shrink-0" 
+                      style="font-size: 0.46rem; height: 16px; border-radius: 3px;"
+                      :color="block.complessita === 1 ? 'red-darken-3' : block.complessita === 2 ? 'amber-darken-3' : block.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
+                    >
+                      {{ labelComplessita(block.complessita) }}
+                    </v-chip>
                     <!-- Selettore Posizione Rapido -->
                     <v-menu location="bottom end">
                       <template v-slot:activator="{ props }">
@@ -879,7 +901,7 @@
                           variant="tonal"
                           color="amber-lighten-2"
                           class="cursor-pointer font-weight-bold px-1.5 flex-shrink-0"
-                          style="height: 16px; font-size: 0.48rem; border-radius: 3px;"
+                          style="height: 16px; font-size: 0.46rem; border-radius: 3px;"
                           title="Cambia posizione esercizio nella sessione"
                           @click.stop
                         >
@@ -909,30 +931,11 @@
                     </v-menu>
                   </div>
 
-                  <!-- Chip Informazioni Ben Spaziati (NO Appiccicate) -->
-                  <div class="d-flex align-center min-width-0 flex-wrap mb-1" style="gap: 5px; padding-right: 56px;">
-                    <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-black px-1.5" style="font-size: 0.48rem; height: 15px; border-radius: 3px;">
-                      W{{ block.week }}
-                    </v-chip>
-                    <v-chip 
-                      size="x-small" 
-                      variant="flat" 
-                      class="font-weight-bold px-1.5" 
-                      style="font-size: 0.46rem; height: 15px; border-radius: 3px;"
-                      :color="block.complessita === 1 ? 'red-darken-3' : block.complessita === 2 ? 'amber-darken-3' : block.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
-                    >
-                      {{ labelComplessita(block.complessita) }}
-                    </v-chip>
-                    <div class="text-caption font-weight-bold text-slate text-truncate flex-grow-1 min-width-0" style="font-size: 0.65rem !important;">
-                      🎯 {{ formattaPrescrizioneSemplice(block.prescrizione) }}
-                    </div>
-                  </div>
-
                   <!-- Riga Log/Note precedente pulita e formattata -->
                   <div 
                     v-if="block.originalVal && block.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim() !== '' && block.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim() !== '-'" 
-                    class="text-super-caption text-theme-primary text-truncate font-weight-medium" 
-                    style="font-size: 0.52rem; opacity: 0.9;"
+                    class="text-super-caption text-theme-primary text-truncate font-weight-medium mt-0.5" 
+                    style="font-size: 0.52rem; opacity: 0.9; padding-right: 64px;"
                   >
                     📝 Nota: "{{ block.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim() }}"
                   </div>
@@ -997,13 +1000,37 @@
 
                 <!-- Dettagli Centrali Standard -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative">
+                  <!-- Titolo Esercizio Standard -->
                   <div class="d-flex align-center min-width-0 mb-1">
-                    <v-chip color="primary" size="x-small" variant="flat" class="font-weight-black text-white mr-1.5 px-2" style="font-size: 0.54rem; height: 18px;">
-                      RECUPERO W{{ block.week }}
-                    </v-chip>
                     <h4 class="font-weight-black leading-tight text-slate-dark text-truncate mr-2 flex-grow-1" style="font-size: 0.88rem !important;">
                       {{ block.exercise.des_esercizio }}
                     </h4>
+                  </div>
+
+                  <!-- Settore Muscolare + Target Prescrizione Standard -->
+                  <div class="d-flex align-center min-width-0 mb-1.5" style="gap: 8px;">
+                    <div v-if="block.exercise.des_settore" class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0">
+                      <span style="font-size: 0.72rem !important;">{{ block.exercise.des_settore }}</span>
+                    </div>
+                    <span class="text-caption font-weight-bold text-slate" style="font-size: 0.72rem !important;">
+                      🎯 Target: {{ formattaPrescrizioneSemplice(block.prescrizione) }}
+                    </span>
+                  </div>
+
+                  <!-- Metadata Chips Standard -->
+                  <div class="d-flex align-center flex-wrap gap-1.5 mb-1.5">
+                    <v-chip color="primary" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.54rem; height: 18px;">
+                      RECUPERO DA G.{{ block.exercise.des_giorno }} • W{{ block.week }}
+                    </v-chip>
+                    <v-chip 
+                      size="x-small" 
+                      variant="flat" 
+                      class="font-weight-bold px-2" 
+                      style="font-size: 0.52rem; height: 17px; border-radius: 4px;"
+                      :color="block.complessita === 1 ? 'red-darken-3' : block.complessita === 2 ? 'amber-darken-3' : block.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
+                    >
+                      {{ labelComplessita(block.complessita) }}
+                    </v-chip>
                     <!-- Selettore Posizione Rapido -->
                     <v-menu location="bottom end">
                       <template v-slot:activator="{ props }">
@@ -1041,21 +1068,6 @@
                         </v-list-item>
                       </v-list>
                     </v-menu>
-                  </div>
-
-                  <div class="d-flex align-center flex-wrap gap-1.5 mb-1.5">
-                    <v-chip 
-                      size="x-small" 
-                      variant="flat" 
-                      class="font-weight-bold px-2" 
-                      style="font-size: 0.52rem; height: 17px; border-radius: 4px;"
-                      :color="block.complessita === 1 ? 'red-darken-3' : block.complessita === 2 ? 'amber-darken-3' : block.complessita === 4 ? 'green-darken-3' : 'yellow-darken-3'"
-                    >
-                      {{ labelComplessita(block.complessita) }}
-                    </v-chip>
-                    <span class="text-caption font-weight-bold text-slate" style="font-size: 0.72rem !important;">
-                      🎯 Target: {{ formattaPrescrizioneSemplice(block.prescrizione) }}
-                    </span>
                   </div>
 
                   <div 
@@ -1143,7 +1155,11 @@
                   @click="vaiAlDettaglio(ex.id)"
                 >
                   <!-- Linea di collegamento tratteggiata (mostrata in standard e compatto) -->
-                  <div v-if="index < block.exercises.length - 1 && layoutEsercizi !== 'super_compatto'" class="superset-connector-line"></div>
+                  <div 
+                    v-if="index < block.exercises.length - 1 && layoutEsercizi !== 'super_compatto'" 
+                    class="superset-connector-line"
+                    :style="layoutEsercizi === 'compatto' ? { left: ((dimensioneGifCompatta || 70) / 2 + 14) + 'px' } : {}"
+                  ></div>
                   
                   <!-- VISUALIZZAZIONE SUPER COMPATTA (UNICA RIGA) -->
                   <div v-if="layoutEsercizi === 'super_compatto'" class="d-flex align-center w-100 py-1" style="z-index: 2;">
@@ -1225,8 +1241,8 @@
                   <!-- VISUALIZZAZIONE COMPATTA -->
                   <template v-else-if="layoutEsercizi === 'compatto'">
                     <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                    <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" style="width: 62px; min-width: 62px;">
-                      <div class="position-relative" style="width: 62px; height: 62px;">
+                    <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" :style="{ width: (dimensioneGifCompatta || 70) + 'px', minWidth: (dimensioneGifCompatta || 70) + 'px' }">
+                      <div class="position-relative" :style="{ width: (dimensioneGifCompatta || 70) + 'px', height: (dimensioneGifCompatta || 70) + 'px' }">
                         <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                         <div
                           class="position-absolute d-flex align-center justify-center font-weight-black text-white"
@@ -1235,11 +1251,11 @@
                           {{ ex.num_riga_giorno }}
                         </div>
 
-                        <div class="rounded-xl overflow-hidden shadow-sm position-relative" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
+                        <div class="rounded-xl overflow-hidden shadow-sm position-relative" :style="{ width: (dimensioneGifCompatta || 70) + 'px', height: (dimensioneGifCompatta || 70) + 'px', border: '1px solid var(--card-border)' }">
                           <v-img
                             :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                            width="62px"
-                            height="62px"
+                            :width="(dimensioneGifCompatta || 70) + 'px'"
+                            :height="(dimensioneGifCompatta || 70) + 'px'"
                             cover
                             alt="Esercizio"
                             class="bg-grey-lighten-4"
@@ -1275,11 +1291,10 @@
                         <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
-                      <!-- Settore, Emoji Sforzo e Prescrizione Lavoro -->
+                      <!-- Settore e Prescrizione Lavoro -->
                       <div class="d-flex align-center min-width-0 mb-1" style="gap: 4px; padding-right: 56px;">
                         <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0" style="max-width: 92px;">
                           <span class="text-truncate" style="font-size: 0.64rem !important;">{{ ex.des_settore || 'Corpo Libero' }}</span>
-                          <v-icon size="11" color="orange-darken-3" class="ml-0.5 flex-shrink-0">mdi-fire</v-icon>
                         </div>
                         <div class="text-caption font-weight-bold text-slate text-truncate flex-grow-1 min-width-0" :style="[getLavoroStyle(formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report), { fontSize: '0.65rem !important' }]">
                           {{ formattaPrescrizioneSemplice(ex['des_week' + settimanaAttivaGiorno]) || ex.des_qta_report || 'Prescrizione non definita' }}
@@ -1287,7 +1302,7 @@
                       </div>
 
                       <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
-                      <div class="d-flex align-center w-100 mt-1 pt-0.5 border-top-soft mini-weeks-row" style="gap: 2px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;">
+                      <div class="d-flex align-center w-100 mt-1 pt-0.5 border-top-soft mini-weeks-row" style="gap: 1.5px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; padding-right: 4px;">
                         <div
                           v-for="w in [1, 2, 3, 4, 5, 6]"
                           :key="w"
@@ -1296,12 +1311,13 @@
                             'capsule-recupero': haRecupero(ex['ins_week' + w]),
                             'capsule-active': w === settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
                             'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
-                            'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w])
+                            'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
+                            'ml-1': w === 6
                           }"
-                          style="font-size: 0.46rem; padding: 1px 2px; height: 14px; min-width: 15px; cursor: pointer; border-radius: 3px;"
+                          style="font-size: 0.44rem; padding: 1px 2.5px; height: 14px; min-width: 14px; cursor: pointer; border-radius: 3px; letter-spacing: -0.15px;"
                           @click.stop="vaiAlDettaglio(ex.id)"
                         >
-                          <span class="capsule-num font-weight-black" style="font-size: 0.44rem;">W{{ w }}</span>
+                          <span class="capsule-num font-weight-black" style="font-size: 0.42rem;">W{{ w }}</span>
                           <span v-if="ex['ins_week' + w] && String(ex['ins_week' + w]).trim()" class="ml-0.5 font-weight-black" style="font-size: 0.44rem;">
                             {{ formattaCaricoCompatto(ex['ins_week' + w]) }}
                           </span>
@@ -1414,10 +1430,9 @@
                         <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
-                      <!-- Settore e Emoji Sforzo -->
+                      <!-- Settore -->
                       <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
                         <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
-                        <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                       </div>
 
                       <!-- Prescrizione della settimana attiva -->
@@ -1436,7 +1451,8 @@
                               'capsule-recupero': haRecupero(ex['ins_week' + w]),
                               'capsule-active': w === settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
                               'capsule-completed': ex['ins_week' + w] && String(ex['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
-                              'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w])
+                              'capsule-pending': !(ex['ins_week' + w] && String(ex['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(ex['ins_week' + w]),
+                              'ml-2': w === 6
                             }"
                             style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
                             @click.stop="selezionaSettimanaManuale(w)"
@@ -1572,8 +1588,8 @@
               <!-- VISUALIZZAZIONE COMPATTA -->
               <template v-else-if="layoutEsercizi === 'compatto'">
                 <!-- Miniatura GIF/Immagine sulla Sinistra con Badge a cavallo del bordo Foto -->
-                <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" style="width: 62px; min-width: 62px;">
-                  <div class="position-relative" style="width: 62px; height: 62px;">
+                <div class="d-flex flex-column align-center ml-1 mr-3 mt-1 flex-shrink-0" :style="{ width: (dimensioneGifCompatta || 70) + 'px', minWidth: (dimensioneGifCompatta || 70) + 'px' }">
+                  <div class="position-relative" :style="{ width: (dimensioneGifCompatta || 70) + 'px', height: (dimensioneGifCompatta || 70) + 'px' }">
                     <!-- Badge Numero: a cavallo dell'angolo in alto a sinistra dell'immagine -->
                     <div
                       class="position-absolute d-flex align-center justify-center font-weight-black text-white"
@@ -1582,11 +1598,11 @@
                       {{ block.exercise.num_riga_giorno }}
                     </div>
 
-                    <div class="rounded-xl overflow-hidden shadow-sm position-relative" style="width: 62px; height: 62px; border: 1px solid var(--card-border);">
+                    <div class="rounded-xl overflow-hidden shadow-sm position-relative" :style="{ width: (dimensioneGifCompatta || 70) + 'px', height: (dimensioneGifCompatta || 70) + 'px', border: '1px solid var(--card-border)' }">
                       <v-img
                         :src="getGifUrl(block.exercise.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200'"
-                        width="62px"
-                        height="62px"
+                        :width="(dimensioneGifCompatta || 70) + 'px'"
+                        :height="(dimensioneGifCompatta || 70) + 'px'"
                         cover
                         alt="Esercizio"
                         class="bg-grey-lighten-4"
@@ -1622,11 +1638,10 @@
                     <v-icon v-if="block.exercise.flg_video === 'true' || block.exercise.flg_video === true" color="orange-darken-3" size="14" class="ml-1 flex-shrink-0" title="Video richiesto">mdi-video</v-icon>
                   </h4>
 
-                  <!-- Settore, Emoji Sforzo e Prescrizione Lavoro -->
+                  <!-- Settore e Prescrizione Lavoro -->
                   <div class="d-flex align-center min-width-0 mb-1" style="gap: 4px; padding-right: 56px;">
                     <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 flex-shrink-0" style="max-width: 92px;">
                       <span class="text-truncate" style="font-size: 0.64rem !important;">{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
-                      <v-icon size="11" color="orange-darken-3" class="ml-0.5 flex-shrink-0">mdi-fire</v-icon>
                     </div>
                     <div class="text-caption font-weight-bold text-slate text-truncate flex-grow-1 min-width-0" :style="[getLavoroStyle(formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report), { fontSize: '0.65rem !important' }]">
                       {{ formattaPrescrizioneSemplice(block.exercise['des_week' + settimanaAttivaGiorno]) || block.exercise.des_qta_report || 'Prescrizione non definita' }}
@@ -1634,7 +1649,7 @@
                   </div>
 
                   <!-- Cronologia Carichi (W1-W6) per Lungo in Monoriga su Tutta la Larghezza -->
-                  <div class="d-flex align-center w-100 mt-1 pt-0.5 border-top-soft mini-weeks-row" style="gap: 2px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;">
+                  <div class="d-flex align-center w-100 mt-1 pt-0.5 border-top-soft mini-weeks-row" style="gap: 1.5px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; padding-right: 4px;">
                     <div
                       v-for="w in [1, 2, 3, 4, 5, 6]"
                       :key="w"
@@ -1643,12 +1658,13 @@
                         'capsule-recupero': haRecupero(block.exercise['ins_week' + w]),
                         'capsule-active': w === settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
                         'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
-                        'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w])
+                        'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
+                        'ml-1': w === 6
                       }"
-                      style="font-size: 0.46rem; padding: 1px 2px; height: 14px; min-width: 15px; cursor: pointer; border-radius: 3px;"
+                      style="font-size: 0.44rem; padding: 1px 2.5px; height: 14px; min-width: 14px; cursor: pointer; border-radius: 3px; letter-spacing: -0.15px;"
                       @click.stop="vaiAlDettaglio(block.exercise.id)"
                     >
-                      <span class="capsule-num font-weight-black" style="font-size: 0.44rem;">W{{ w }}</span>
+                      <span class="capsule-num font-weight-black" style="font-size: 0.42rem;">W{{ w }}</span>
                       <span v-if="block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()" class="ml-0.5 font-weight-black" style="font-size: 0.44rem;">
                         {{ formattaCaricoCompatto(block.exercise['ins_week' + w]) }}
                       </span>
@@ -1772,10 +1788,9 @@
                     </v-chip>
                   </h4>
 
-                  <!-- Settore e Emoji Sforzo -->
+                  <!-- Settore -->
                   <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
                     <span>{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
-                    <v-icon size="12" color="orange" class="ml-1">mdi-fire</v-icon>
                   </div>
 
                   <!-- Prescrizione della settimana attiva -->
@@ -1794,7 +1809,8 @@
                           'capsule-recupero': haRecupero(block.exercise['ins_week' + w]),
                           'capsule-active': w === settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
                           'capsule-completed': block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim() && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
-                          'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w])
+                          'capsule-pending': !(block.exercise['ins_week' + w] && String(block.exercise['ins_week' + w]).trim()) && w !== settimanaAttivaGiorno && !haRecupero(block.exercise['ins_week' + w]),
+                          'ml-2': w === 6
                         }"
                         style="font-size: 0.55rem; padding: 1px 4px; height: 16px; min-width: 32px; cursor: pointer;"
                         @click.stop="selezionaSettimanaManuale(w)"
@@ -2214,7 +2230,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, getStoryboardBackup } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -2813,6 +2829,7 @@ const posizioneRecuperi = posizioneRecuperiGlobal;
 const timerTheme = timerThemeGlobal;
 const comportamentoPlay = comportamentoPlayGlobal;
 const temaHeaderGiorno = temaHeaderGiornoGlobal;
+const dimensioneGifCompatta = dimensioneGifCompattaGlobal;
 
 // Override locale rapido per sessione/card del recupero
 const overridePosizioneRecuperi = ref({}); // { [exId]: 'inizio' | 'strategica' | 'fine' }
@@ -5743,6 +5760,7 @@ const recuperiRaggruppati = computed(() => {
   position: relative;
   background: rgba(249, 115, 22, 0.02) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-left: 3.5px solid var(--theme-primary) !important;
   box-shadow: 0 8px 32px 0 rgba(249, 115, 22, 0.05) !important;
   transition: transform 0.2s ease, border-color 0.2s ease !important;
   overflow: hidden;
@@ -5751,32 +5769,29 @@ const recuperiRaggruppati = computed(() => {
 .superset-group-card:hover {
   transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.15) !important;
+  border-left: 3.5px solid var(--theme-primary) !important;
 }
 
 .border-superset {
-  border-left: none !important;
+  border-left: 3.5px solid var(--theme-primary) !important;
   position: relative;
 }
 
-/* Distanzia il contenuto standard per evitare sovrapposizioni con la banda sfumata */
-.superset-group-card.border-superset:not(.compatto-superset-card) {
-  padding-left: 24px !important;
+/* Rimuoviamo il vecchio ::before per avere la stessa barra pulita e precisa ovunque */
+.border-superset::before,
+.compatto-superset-card::before,
+.superset-group-card.rounded-md::before {
+  display: none !important;
 }
 
-.border-superset::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 6px;
-  background: linear-gradient(to bottom, var(--theme-primary) 0%, #d946ef 50%, #7c3aed 100%) !important;
-  z-index: 1;
+/* Distanzia il contenuto standard per allineamento coerente (3.5px border + 12.5px padding = 16px pa-4) */
+.superset-group-card.border-superset:not(.compatto-superset-card):not(.rounded-md) {
+  padding-left: 12.5px !important;
 }
 
 /* Stili compatti per Superserie Unificata con banda a sinistra (Dimensioni 100% identiche alle card singole) */
 .compatto-superset-card {
-  border-left: 3px solid var(--theme-primary) !important; /* Banda tema solida e fina */
+  border-left: 3.5px solid var(--theme-primary) !important; /* Banda tema solida e fina */
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -5786,18 +5801,12 @@ const recuperiRaggruppati = computed(() => {
   overflow: hidden !important;
 }
 
-/* Rimuove l'effetto gradient ::before nella visualizzazione compatta e super compatta */
-.compatto-superset-card::before,
-.superset-group-card.rounded-md::before {
-  display: none !important;
-}
-
 /* Applica la banda tema solida anche alle card arrotondate super_compatto */
 .superset-group-card.rounded-md {
-  border-left: 3px solid var(--theme-primary) !important;
+  border-left: 3.5px solid var(--theme-primary) !important;
 }
 
-/* Allineamento interno 100% omogeneo e identico alle card singole */
+/* Allineamento interno compatto originale */
 .compatto-superset-card .superset-exercise-item {
   padding-left: 0 !important;
   margin-left: 0 !important;
@@ -5805,7 +5814,7 @@ const recuperiRaggruppati = computed(() => {
   border-radius: 0 !important;
 }
 
-/* Allineamento a sinistra perfetto in visualizzazione super compatta (allineamento millimetrico dei checkbox) */
+/* Allineamento a sinistra perfetto in visualizzazione super compatta */
 .superset-group-card.rounded-md .superset-exercise-item {
   padding-left: 0px !important;
   margin-left: -6px !important;
@@ -7203,10 +7212,11 @@ const recuperiRaggruppati = computed(() => {
   box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.25) !important;
 }
 
-/* Superset card completata */
+/* Superset card completata - Preserva sempre la barra laterale a sinistra */
 .superset-group-card.completed {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(30, 41, 59, 0.75) 100%) !important;
   border-color: rgba(16, 185, 129, 0.35) !important;
+  border-left: 3.5px solid var(--theme-primary) !important;
 }
 
 /* Stili adattivi per Micro-Capsule (Dark Mode e Light Mode) */

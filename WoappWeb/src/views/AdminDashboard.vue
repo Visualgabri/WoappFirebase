@@ -202,6 +202,24 @@
                 <span class="text-super-caption text-slate-dark opacity-75 d-block" style="font-size: 0.56rem; text-transform: none; line-height: 1.2;">Evita rallentamenti</span>
               </div>
             </v-col>
+
+            <!-- Dimensione GIF Layout Compatto (Coach) -->
+            <v-col cols="12" sm="6" class="mt-1.5">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Dimensione GIF Compatta</span>
+              <v-text-field
+                v-model.number="DIMENSIONE_GIF_COMPATTA"
+                type="number"
+                step="2"
+                min="50"
+                max="100"
+                suffix="PX"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+              ></v-text-field>
+            </v-col>
           </v-row>
 
           <v-divider class="my-2.5 border-soft"></v-divider>
@@ -1482,6 +1500,7 @@ import {
   deallenamentoPct4Global,
   penalitaMaxInstabiliPctGlobal,
   penalitaMaxStabiliPctGlobal,
+  dimensioneGifCompattaGlobal,
   impostaNomeAtletaDinamico,
   caricaNomiAtletiDinamici
 } from '../authStore.js';
@@ -1500,6 +1519,7 @@ const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
 const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
 const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
 const regolaProgressioneW2 = regolaProgressioneW2Global;
+const DIMENSIONE_GIF_COMPATTA = dimensioneGifCompattaGlobal;
 const DEALLENAMENTO_SOGLIA1 = deallenamentoSoglia1Global;
 const DEALLENAMENTO_SOGLIA2 = deallenamentoSoglia2Global;
 const DEALLENAMENTO_SOGLIA3 = deallenamentoSoglia3Global;

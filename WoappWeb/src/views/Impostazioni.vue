@@ -173,7 +173,7 @@
       </div>
 
       <!-- Tasto Play -->
-      <div>
+      <div class="mb-2.5">
         <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Tasto Play</span>
         <v-btn-toggle
           v-model="comportamentoPlay"
@@ -188,6 +188,27 @@
           <v-btn value="dettaglio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Dettaglio</v-btn>
           <v-btn value="evidenzia" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Evidenzia</v-btn>
         </v-btn-toggle>
+      </div>
+
+      <!-- Dimensione GIF Compatta (Solo Coach) -->
+      <div v-if="ruolo === 'coach'" class="mt-2 pt-2 border-top-soft">
+        <div class="d-flex align-center justify-space-between mb-1">
+          <span class="text-caption font-weight-bold text-orange-lighten-2 uppercase" style="font-size: 0.65rem;">Dimensione GIF Compatta (Coach)</span>
+          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+            {{ dimensioneGifCompatta }} px
+          </v-chip>
+        </div>
+        <v-slider
+          v-model="dimensioneGifCompatta"
+          :min="54"
+          :max="90"
+          :step="2"
+          color="orange-darken-3"
+          track-color="rgba(255,255,255,0.12)"
+          density="compact"
+          hide-details
+          thumb-size="14"
+        ></v-slider>
       </div>
     </v-card>
 
@@ -782,7 +803,8 @@ import {
   ghostAnalisiNoteAttiva,
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
-  defaultTimerRecGlobal
+  defaultTimerRecGlobal,
+  dimensioneGifCompattaGlobal
 } from '../authStore.js';
 
 const router = useRouter();
@@ -895,6 +917,7 @@ const layoutDettaglio = layoutDettaglioGlobal;
 const posizioneRecuperi = posizioneRecuperiGlobal;
 const timerTheme = timerThemeGlobal;
 const temaHeaderGiorno = temaHeaderGiornoGlobal;
+const dimensioneGifCompatta = dimensioneGifCompattaGlobal;
 
 // Refs collegati allo store centralizzato
 const defaultBilanciere = defaultBilanciereGlobal;

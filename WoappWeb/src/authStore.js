@@ -1005,6 +1005,7 @@ export const deallenamentoPct3Global = ref(parseFloat(localStorage.getItem('deal
 export const deallenamentoPct4Global = ref(parseFloat(localStorage.getItem('deallenamentoPct4') || localStorage.getItem('deallenamentoPct4_' + athleteIdForInit) || '25'));
 export const penalitaMaxInstabiliPctGlobal = ref(parseFloat(localStorage.getItem('penalitaMaxInstabiliPct') || localStorage.getItem('penalitaMaxInstabiliPct_' + athleteIdForInit) || '64'));
 export const penalitaMaxStabiliPctGlobal = ref(parseFloat(localStorage.getItem('penalitaMaxStabiliPct') || localStorage.getItem('penalitaMaxStabiliPct_' + athleteIdForInit) || '14'));
+export const dimensioneGifCompattaGlobal = ref(parseInt(localStorage.getItem('dimensioneGifCompatta') || '70', 10));
 const localW2 = localStorage.getItem('regolaProgressioneW2Global');
 export const regolaProgressioneW2Global = ref(localW2 && localW2 !== 'reps' ? localW2 : 'peso');
 if (localW2 === 'reps') {
@@ -1047,6 +1048,7 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         deallenamentoPct4: deallenamentoPct4Global.value,
         penalitaMaxInstabiliPct: penalitaMaxInstabiliPctGlobal.value,
         penalitaMaxStabiliPct: penalitaMaxStabiliPctGlobal.value,
+        dimensioneGifCompatta: dimensioneGifCompattaGlobal.value,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
@@ -1092,6 +1094,7 @@ export const syncConfigurazioniListener = () => {
       if (data.deallenamentoPct4 !== undefined) deallenamentoPct4Global.value = parseFloat(data.deallenamentoPct4);
       if (data.penalitaMaxInstabiliPct !== undefined) penalitaMaxInstabiliPctGlobal.value = parseFloat(data.penalitaMaxInstabiliPct);
       if (data.penalitaMaxStabiliPct !== undefined) penalitaMaxStabiliPctGlobal.value = parseFloat(data.penalitaMaxStabiliPct);
+      if (data.dimensioneGifCompatta !== undefined) dimensioneGifCompattaGlobal.value = parseInt(data.dimensioneGifCompatta, 10);
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
       salvaConfigurazioniGlobaliFirestore();
@@ -1159,7 +1162,7 @@ watch(ottimizzaDigitazioneGlobal, (newVal) => {
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(regolaProgressioneW2Global, (newVal) => {
-  localStorage.setItem('regolaProgressioneW2Global', newVal);
+  localStorage.setItem('regolaProgressioneW2Global', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(deallenamentoSoglia1Global, (newVal) => {
@@ -1202,6 +1205,10 @@ watch(penalitaMaxStabiliPctGlobal, (newVal) => {
   localStorage.setItem('penalitaMaxStabiliPct', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
+watch(dimensioneGifCompattaGlobal, (newVal) => {
+  localStorage.setItem('dimensioneGifCompatta', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
 watch(temaHeaderGiornoGlobal, (newVal) => {
   const targetColor = (newVal === 'blu' || newVal === 'verde' || newVal === 'fucsia' || newVal === 'giallo') ? newVal : 'arancio';
   localStorage.setItem('woapp_tema_header_giorno', targetColor);
@@ -1218,6 +1225,7 @@ watch(temaHeaderGiornoGlobal, (newVal) => {
     const themeHex = targetColor === 'blu' ? '#1d4ed8' : (targetColor === 'verde' ? '#059669' : (targetColor === 'fucsia' ? '#db2777' : (targetColor === 'giallo' ? '#ca8a04' : '#ea580c')));
     metaThemeColor.setAttribute('content', themeHex);
   }
+  salvaClienteConfigFirestore();
 });
 
 // --- CONFIGURAZIONE PERSONALE CLIENTE CENTRALIZZATA (Firestore: UTENTI_CONFIG/{atletaId}) ---
@@ -1437,8 +1445,15 @@ watch([
   salvaClienteConfigFirestore();
 });
 
-watch(posizioneRecuperiGlobal, (val) => {
-  localStorage.setItem('woapp_posizione_recuperi', val);
+watch([
+  posizioneRecuperiGlobal,
+  layoutEserciziGlobal,
+  layoutDettaglioGlobal,
+  timerThemeGlobal,
+  comportamentoPlayGlobal,
+  currentTheme,
+  currentLightStyle
+], () => {
   salvaClienteConfigFirestore();
 });
 

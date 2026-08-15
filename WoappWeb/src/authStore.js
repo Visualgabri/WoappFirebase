@@ -1008,11 +1008,45 @@ export const penalitaMaxInstabiliPctGlobal = ref(parseFloat(localStorage.getItem
 export const penalitaMaxStabiliPctGlobal = ref(parseFloat(localStorage.getItem('penalitaMaxStabiliPct') || localStorage.getItem('penalitaMaxStabiliPct_' + athleteIdForInit) || '14'));
 export const dimensioneGifCompattaGlobal = ref(parseInt(localStorage.getItem('dimensioneGifCompatta') || '70', 10));
 export const risaltoNumeriInsWeekGlobal = ref(localStorage.getItem('risaltoNumeriInsWeekGlobal') === 'true');
+export const editorNoteEspansoGlobal = ref(localStorage.getItem('editorNoteEspansoGlobal') === 'true');
+export const smartNoteCleanupGlobal = ref(localStorage.getItem('smartNoteCleanupGlobal') === 'true');
 const localW2 = localStorage.getItem('regolaProgressioneW2Global');
 export const regolaProgressioneW2Global = ref(localW2 && localW2 !== 'reps' ? localW2 : 'peso');
 if (localW2 === 'reps') {
   localStorage.setItem('regolaProgressioneW2Global', 'peso');
 }
+
+// Helper per pulire e formattare in modo intelligente le note (Smart Note Cleanup)
+export const formattaECleanupNota = (str) => {
+  if (!str) return '';
+  let text = String(str);
+  if (!text.trim()) return '';
+
+  // 1. Normalizza a capo e spazi multipli
+  text = text.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
+
+  // 2. Normalizza decimali con virgola o punto attaccati ai numeri: "62 , 5" -> "62,5"
+  text = text.replace(/(\d+)\s*([.,])\s*(\d+)/g, '$1,$3');
+
+  // 3. Normalizza formato serie/carico/reps: "45 x 12 reps" o "25 x 11 r" -> "45 x12r"
+  text = text.replace(/(\d+(?:,\d+)?)\s*x\s*(\d+)\s*(?:r\b|reps?\b|rip(?:etizioni)?\b|colpi\b)?/gi, '$1 x$2r');
+
+  // 4. Normalizza ripetizioni isolate fuori da parentesi quadre: "12 reps", "12 rip" -> "12r"
+  text = text.replace(/(?:^|[^\w+])(\d+)\s*(?:reps?|rip(?:etizioni)?|colpi)\b/gi, (m, num) => m.replace(/(\d+)\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i, `${num}r`));
+
+  // 5. Normalizza suffissi kg: "50  kg" -> "50kg"
+  text = text.replace(/(\d+(?:,\d+)?)\s*kg\b/gi, '$1kg');
+
+  // 6. Normalizza gradi panca: "panca 45 gradi" o "panca 45 °" -> "panca 45°"
+  text = text.replace(/panca\s*(\d+)\s*(?:gradi|grado|°)/gi, 'panca $1°');
+
+  // 7. Rimuovi spaziature superflue all'interno delle parentesi: "(  nota  )" -> "(nota)"
+  text = text.replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
+  text = text.replace(/\[\s+/g, '[').replace(/\s+\]/g, ']');
+
+  // Pulisci inizio e fine di ogni riga
+  return text.split('\n').map(line => line.trim()).join('\n').trim();
+};
 
 // Helper per evidenziare in modo intelligente carichi, ripetizioni e note sui campi ins_week
 export const formattaInsWeekHtml = (str) => {
@@ -1248,6 +1282,8 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         penalitaMaxStabiliPct: penalitaMaxStabiliPctGlobal.value,
         dimensioneGifCompatta: dimensioneGifCompattaGlobal.value,
         risaltoNumeriInsWeek: risaltoNumeriInsWeekGlobal.value,
+        editorNoteEspanso: editorNoteEspansoGlobal.value,
+        smartNoteCleanup: smartNoteCleanupGlobal.value,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
@@ -1295,6 +1331,12 @@ export const syncConfigurazioniListener = () => {
       if (data.dimensioneGifCompatta !== undefined) dimensioneGifCompattaGlobal.value = parseInt(data.dimensioneGifCompatta, 10);
       if (data.risaltoNumeriInsWeek !== undefined) {
         risaltoNumeriInsWeekGlobal.value = data.risaltoNumeriInsWeek === true || data.risaltoNumeriInsWeek === 'true';
+      }
+      if (data.editorNoteEspanso !== undefined) {
+        editorNoteEspansoGlobal.value = data.editorNoteEspanso === true || data.editorNoteEspanso === 'true';
+      }
+      if (data.smartNoteCleanup !== undefined) {
+        smartNoteCleanupGlobal.value = data.smartNoteCleanup === true || data.smartNoteCleanup === 'true';
       }
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
@@ -1408,6 +1450,14 @@ watch(dimensioneGifCompattaGlobal, (newVal) => {
 });
 watch(risaltoNumeriInsWeekGlobal, (newVal) => {
   localStorage.setItem('risaltoNumeriInsWeekGlobal', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(editorNoteEspansoGlobal, (newVal) => {
+  localStorage.setItem('editorNoteEspansoGlobal', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(smartNoteCleanupGlobal, (newVal) => {
+  localStorage.setItem('smartNoteCleanupGlobal', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {

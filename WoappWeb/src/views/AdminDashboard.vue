@@ -206,6 +206,35 @@
                 hide-details
               ></v-text-field>
             </v-col>
+
+            <!-- Editor Note Espanso & Smart Note Cleanup (Coach) -->
+            <v-col cols="12" sm="6" class="d-flex align-center mt-2">
+              <v-switch
+                v-model="editorNoteEspanso"
+                color="orange-darken-3"
+                hide-details
+                density="compact"
+                class="mr-2 flex-shrink-0"
+              ></v-switch>
+              <div class="text-left">
+                <span class="text-caption font-weight-bold text-slate-dark d-block" style="font-size: 0.70rem; line-height: 1.1;">Editor Note Espanso (Modal)</span>
+                <span class="text-super-caption text-slate-dark opacity-75 d-block" style="font-size: 0.56rem; text-transform: none; line-height: 1.2;">Pannello dedicato dal basso con chip rapidi</span>
+              </div>
+            </v-col>
+
+            <v-col cols="12" sm="6" class="d-flex align-center mt-2">
+              <v-switch
+                v-model="smartNoteCleanup"
+                color="orange-darken-3"
+                hide-details
+                density="compact"
+                class="mr-2 flex-shrink-0"
+              ></v-switch>
+              <div class="text-left">
+                <span class="text-caption font-weight-bold text-slate-dark d-block" style="font-size: 0.70rem; line-height: 1.1;">Smart Note Cleanup</span>
+                <span class="text-super-caption text-slate-dark opacity-75 d-block" style="font-size: 0.56rem; text-transform: none; line-height: 1.2;">Pulisce e uniforma carichi e reps al salvataggio</span>
+              </div>
+            </v-col>
           </v-row>
 
           <v-divider class="my-2.5 border-soft"></v-divider>
@@ -1486,6 +1515,8 @@ import {
   penalitaMaxInstabiliPctGlobal,
   penalitaMaxStabiliPctGlobal,
   dimensioneGifCompattaGlobal,
+  editorNoteEspansoGlobal,
+  smartNoteCleanupGlobal,
   impostaNomeAtletaDinamico,
   caricaNomiAtletiDinamici
 } from '../authStore.js';
@@ -1504,6 +1535,8 @@ const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
 const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
 const regolaProgressioneW2 = regolaProgressioneW2Global;
 const DIMENSIONE_GIF_COMPATTA = dimensioneGifCompattaGlobal;
+const editorNoteEspanso = editorNoteEspansoGlobal;
+const smartNoteCleanup = smartNoteCleanupGlobal;
 const DEALLENAMENTO_SOGLIA1 = deallenamentoSoglia1Global;
 const DEALLENAMENTO_SOGLIA2 = deallenamentoSoglia2Global;
 const DEALLENAMENTO_SOGLIA3 = deallenamentoSoglia3Global;

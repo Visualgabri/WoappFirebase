@@ -1780,8 +1780,21 @@ textarea:focus,
   .guida-dialog-mobile .v-card-text {
     padding: 12px 10px !important;
   }
+
+  .editor-espanso-dialog {
+    margin: 8px !important;
+    align-self: flex-end;
+  }
+  .editor-espanso-dialog .v-card {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
 }
 
-
-
-
+/* Sizing fluido nativo hardware-accelerated per textarea carichi e note */
+.custom-weight-input textarea {
+  field-sizing: content;
+  min-height: 24px;
+  line-height: 1.45 !important;
+  font-size: 0.92rem !important;
+}

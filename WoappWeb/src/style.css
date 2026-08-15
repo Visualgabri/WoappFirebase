@@ -1759,6 +1759,37 @@ textarea:focus,
   display: inline;
 }
 
+/* Utility Gap Classes */
+.gap-0 { gap: 0px !important; }
+.gap-0\.5 { gap: 2px !important; }
+.gap-1 { gap: 4px !important; }
+.gap-1\.5 { gap: 6px !important; }
+.gap-2 { gap: 8px !important; }
+.gap-2\.5 { gap: 10px !important; }
+.gap-3 { gap: 12px !important; }
+.gap-3\.5 { gap: 14px !important; }
+.gap-4 { gap: 16px !important; }
+.gap-5 { gap: 20px !important; }
+.gap-6 { gap: 24px !important; }
+
+.gap-x-0 { column-gap: 0px !important; }
+.gap-x-0\.5 { column-gap: 2px !important; }
+.gap-x-1 { column-gap: 4px !important; }
+.gap-x-1\.5 { column-gap: 6px !important; }
+.gap-x-2 { column-gap: 8px !important; }
+.gap-x-2\.5 { column-gap: 10px !important; }
+.gap-x-3 { column-gap: 12px !important; }
+.gap-x-4 { column-gap: 16px !important; }
+
+.gap-y-0 { row-gap: 0px !important; }
+.gap-y-0\.5 { row-gap: 2px !important; }
+.gap-y-1 { row-gap: 4px !important; }
+.gap-y-1\.5 { row-gap: 6px !important; }
+.gap-y-2 { row-gap: 8px !important; }
+.gap-y-2\.5 { row-gap: 10px !important; }
+.gap-y-3 { row-gap: 12px !important; }
+.gap-y-4 { row-gap: 16px !important; }
+
 /* Ottimizzazioni Mobile per la Guida Interattiva */
 .scrollbar-none::-webkit-scrollbar {
   display: none !important;

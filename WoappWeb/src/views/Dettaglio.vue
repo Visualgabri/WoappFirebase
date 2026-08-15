@@ -1244,109 +1244,99 @@
             </v-btn>
           </v-card>
 
-          <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito) -->
-          <div v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(workout) || isOndaProgression(workout))" :class="[layoutCorrente === 'super_compatto' ? 'mt-2 pt-2' : 'mt-4 pt-4', 'border-top-soft']">
-            <div class="d-flex align-center justify-space-between" :class="layoutCorrente === 'super_compatto' ? 'mb-1' : 'mb-2'">
-              <div>
-                <span class="text-caption font-weight-black text-slate-dark d-block" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.8rem' }">Miglior Carico (W6) *</span>
-                <span class="text-super-caption text-orange-darken-3" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.58rem' }">(Solo valore numerico)</span>
-              </div>
-              
-              <!-- Stepper per Miglior Carico W6 -->
+          <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito - Touch Friendly) -->
+          <div 
+            v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(workout) || isOndaProgression(workout))" 
+            class="d-flex flex-column gap-2.5 border-top-soft"
+            :class="layoutCorrente === 'super_compatto' ? 'mt-3 pt-2.5 mb-1' : 'mt-3.5 pt-3 mb-1.5'"
+          >
+            <!-- 1. Miglior Carico W6 (Stepper Ampio) -->
+            <div class="d-flex align-center justify-space-between w-100">
+              <span 
+                class="font-weight-black text-slate-dark text-uppercase tracking-wider d-flex align-center gap-1.5"
+                :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '0.78rem' }"
+              >
+                🏆 Max W6:
+              </span>
               <div 
-                class="d-flex align-center card-glass border stepper-input-box" 
-                :class="[
-                  layoutCorrente === 'super_compatto' ? 'px-0.5 py-0 rounded-sm' : (layoutCorrente === 'compatto' ? 'px-1 py-0.5 rounded-lg' : 'px-1 py-0.5 rounded-xl')
-                ]" 
+                class="d-flex align-center card-glass border stepper-input-box px-1.5 py-0.5 rounded-xl" 
+                style="height: 36px;"
               >
                 <v-btn
                   icon
-                  :size="layoutCorrente === 'super_compatto' ? '20px' : 'x-small'"
+                  size="28px"
                   variant="text"
                   color="orange-darken-3"
                   @click="decrementaKgUnico"
                   id="btn-decrementa-kg-unico"
                 >
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 18">mdi-minus</v-icon>
+                  <v-icon size="18">mdi-minus</v-icon>
                 </v-btn>
                 <input
                   v-model="numIns6Val"
                   type="text"
                   class="text-center font-weight-black text-slate-dark px-1"
-                  :style="{ width: layoutCorrente === 'super_compatto' ? '45px' : '55px', border: 'none', outline: 'none', background: 'transparent', fontSize: layoutCorrente === 'super_compatto' ? '0.8rem' : '0.9rem' }"
+                  :style="{ width: layoutCorrente === 'super_compatto' ? '48px' : '58px', border: 'none', outline: 'none', background: 'transparent', fontSize: layoutCorrente === 'super_compatto' ? '0.85rem' : '0.95rem' }"
                   @blur="salvaKgUnico"
                   id="input-kg-unico-w6"
+                  placeholder="kg"
                 />
                 <v-btn
                   icon
-                  :size="layoutCorrente === 'super_compatto' ? '20px' : 'x-small'"
+                  size="28px"
                   variant="text"
                   color="orange-darken-3"
                   @click="incrementaKgUnico"
                   id="btn-incrementa-kg-unico"
                 >
-                  <v-icon :size="layoutCorrente === 'super_compatto' ? 14 : 18">mdi-plus</v-icon>
+                  <v-icon size="18">mdi-plus</v-icon>
                 </v-btn>
               </div>
             </div>
 
-            <p class="text-super-caption text-italic text-muted text-left" :class="layoutCorrente === 'super_compatto' ? 'mb-2.5' : 'mb-4'" :style="{ lineHeight: 1.35, fontSize: layoutCorrente === 'super_compatto' ? '0.58rem !important' : '0.65rem !important' }">
-              Inserisci qui sopra il massimo peso della week6 e qui sotto la tua percezione di sforzo. È essenziale per calcolare il peso della week1 nel prossimo mesociclo.
-            </p>
-
-            <!-- Selettore Sforzo Percepito W6 -->
-            <div class="text-left mb-2">
-              <span class="text-caption font-weight-black text-slate-dark d-block mb-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.8rem', marginBottom: layoutCorrente === 'super_compatto' ? '4px !important' : '8px !important' }">Sforzo Percepito (W6)</span>
-              <v-row dense class="gap-2 justify-space-between">
-                <v-col cols="4">
-                  <v-btn
-                    block
-                    variant="flat"
-                    :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-                    :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                    class="font-weight-black text-none fatica-btn"
-                    :class="{ 'fatica-btn-active-media': numFaticaw6Val === 'Media' }"
-                    style="font-size: 0.72rem;"
-                    :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
-                    @click="salvaFatica('Media')"
-                    id="btn-fatica-media"
-                  >
-                    Media
-                  </v-btn>
-                </v-col>
-                <v-col cols="4">
-                  <v-btn
-                    block
-                    variant="flat"
-                    :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-                    :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                    class="font-weight-black text-none fatica-btn"
-                    :class="{ 'fatica-btn-active-pesante': numFaticaw6Val === 'Pesante' }"
-                    style="font-size: 0.72rem;"
-                    :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
-                    @click="salvaFatica('Pesante')"
-                    id="btn-fatica-pesante"
-                  >
-                    Pesante
-                  </v-btn>
-                </v-col>
-                <v-col cols="4">
-                  <v-btn
-                    block
-                    variant="flat"
-                    :size="layoutCorrente === 'super_compatto' ? 'x-small' : 'small'"
-                    :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                    class="font-weight-black text-none fatica-btn"
-                    :class="{ 'fatica-btn-active-devastante': numFaticaw6Val === 'Devastante' }"
-                    style="font-size: 0.72rem;"
-                    :style="{ height: layoutCorrente === 'super_compatto' ? '26px' : '32px' }"
-                    @click="salvaFatica('Devastante')"
-                    id="btn-fatica-devastante"
-                  >
-                    Devastante
-                  </v-btn>
-                </v-col>
-              </v-row>
+            <!-- 2. Sforzo Percepito W6 (Pulsanti Ampi Touch-Friendly) -->
+            <div class="d-flex flex-column gap-1.5 w-100">
+              <span 
+                class="font-weight-black text-slate-dark text-uppercase tracking-wider text-left"
+                :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem' }"
+              >
+                Sforzo:
+              </span>
+              <div class="d-flex gap-2 w-100 justify-space-between align-center">
+                <v-btn
+                  variant="flat"
+                  rounded="xl"
+                  class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
+                  :class="{ 'fatica-btn-active-media': numFaticaw6Val === 'Media' }"
+                  style="font-size: 0.76rem; height: 36px; min-width: 0;"
+                  @click="salvaFatica('Media')"
+                  id="btn-fatica-media"
+                >
+                  🙂 Media
+                </v-btn>
+                <v-btn
+                  variant="flat"
+                  rounded="xl"
+                  class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
+                  :class="{ 'fatica-btn-active-pesante': numFaticaw6Val === 'Pesante' }"
+                  style="font-size: 0.76rem; height: 36px; min-width: 0;"
+                  @click="salvaFatica('Pesante')"
+                  id="btn-fatica-pesante"
+                >
+                  🔥 Pesante
+                </v-btn>
+                <v-btn
+                  variant="flat"
+                  rounded="xl"
+                  class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
+                  :class="{ 'fatica-btn-active-devastante': numFaticaw6Val === 'Devastante' }"
+                  style="font-size: 0.76rem; height: 36px; min-width: 0;"
+                  @click="salvaFatica('Devastante')"
+                  id="btn-fatica-devastante"
+                >
+                  💀 Devastante
+                </v-btn>
+              </div>
             </div>
           </div>
             <!-- Sezione Recupero (Fine Giro) per Superset inside orange active card -->
@@ -1927,30 +1917,44 @@
                   </div>
                 </div>
                 
-                <!-- Carico (A tutta larghezza - Textarea per evitare troncamento testo) -->
+                <!-- Carico (A tutta larghezza con regole dimensione e colori caselle ins_) -->
                 <div class="w-100">
+                  <!-- Box Formattato con Numeri e Colori in Risalto (Visualizzazione) -->
+                  <div
+                    v-if="risaltoNumeriInsWeek && activeEditingWeekPrecedente !== w && inputSettimanePrecedente[w]?.ins && String(inputSettimanePrecedente[w].ins).trim()"
+                    class="custom-prev-ins-field cursor-text w-100 font-weight-medium transition-all"
+                    :class="getGhostFieldClassPrecedente(w)"
+                    style="padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; white-space: pre-wrap; word-break: break-word; font-size: 0.92rem; line-height: 1.45; box-sizing: border-box;"
+                    @click="attivaEditingWeekPrecedente(w)"
+                    v-html="formattaInsWeekHtml(inputSettimanePrecedente[w].ins)"
+                  ></div>
+
+                  <!-- Textarea Editabile (in digitazione o se vuoto o se risalto disattivo) -->
                   <textarea
+                    v-else
+                    :id="'input-prev-peso-w' + w"
                     v-model="inputSettimanePrecedente[w].ins"
                     placeholder="Carico (es. 45 kg)"
-                    class="custom-prev-ins-field font-weight-black text-slate-dark w-100"
+                    class="custom-prev-ins-field font-weight-black w-100 transition-all"
+                    :class="getGhostFieldClassPrecedente(w)"
                     rows="1"
-                    style="width: 100%; outline: none; font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; height: auto; field-sizing: content; resize: vertical; line-height: 1.35; box-sizing: border-box;"
-                    @blur="salvaDatoSettimanalePrecedente(w, 'ins')"
+                    style="width: 100%; outline: none; font-size: 0.92rem; padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; height: auto; field-sizing: content; resize: vertical; line-height: 1.35; box-sizing: border-box;"
+                    @focus="activeEditingWeekPrecedente = w"
+                    @blur="onBlurWeekPrecedente(w)"
                   ></textarea>
                 </div>
 
-                <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito) - Spostato sotto la Week 6 -->
-                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(previousWorkout) || isOndaProgression(previousWorkout))" class="mt-3 pt-3 border-top-soft">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <div>
-                      <span class="text-super-caption font-weight-black text-slate-dark d-block" style="font-size: 0.58rem;">Miglior Carico (W6) *</span>
-                    </div>
-                    
-                    <!-- Stepper per Miglior Carico W6 Precedente -->
-                    <div class="d-flex align-center card-glass border rounded-xl px-1 py-0.5 stepper-input-box">
+                <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito - Touch Friendly) -->
+                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(previousWorkout) || isOndaProgression(previousWorkout))" class="mt-3 pt-3 mb-1 border-top-soft d-flex flex-column gap-2.5">
+                  <!-- Miglior Carico W6 Precedente -->
+                  <div class="d-flex align-center justify-space-between w-100">
+                    <span class="font-weight-black text-slate-dark text-uppercase tracking-wider d-flex align-center gap-1.5" style="font-size: 0.72rem;">
+                      🏆 Max W6:
+                    </span>
+                    <div class="d-flex align-center card-glass border stepper-input-box px-1.5 py-0.5 rounded-xl" style="height: 36px;">
                       <v-btn
                         icon
-                        size="x-small"
+                        size="28px"
                         variant="text"
                         color="orange-darken-3"
                         @click="decrementaKgUnicoPrecedente"
@@ -1961,12 +1965,13 @@
                         v-model="numIns6ValPrecedente"
                         type="text"
                         class="text-center font-weight-black text-slate-dark px-1"
-                        style="width: 55px; border: none; outline: none; background: transparent; font-size: 0.9rem;"
+                        style="width: 58px; border: none; outline: none; background: transparent; font-size: 0.95rem;"
                         @blur="salvaKgUnicoPrecedente"
+                        placeholder="kg"
                       />
                       <v-btn
                         icon
-                        size="x-small"
+                        size="28px"
                         variant="text"
                         color="orange-darken-3"
                         @click="incrementaKgUnicoPrecedente"
@@ -1977,52 +1982,42 @@
                   </div>
 
                   <!-- Selettore Sforzo Percepito W6 Precedente -->
-                  <div class="text-left mt-2">
-                    <span class="text-super-caption font-weight-black text-slate-dark d-block mb-1.5" style="font-size: 0.58rem;">Sforzo Percepito (W6)</span>
-                    <v-row dense class="gap-2 justify-space-between">
-                      <v-col cols="4">
-                        <v-btn
-                          block
-                          variant="flat"
-                          size="x-small"
-                          rounded="lg"
-                          class="font-weight-black text-none fatica-btn"
-                          :class="{ 'fatica-btn-active-media': numFaticaw6ValPrecedente === 'Media' }"
-                          style="font-size: 0.65rem; height: 26px;"
-                          @click="salvaFaticaPrecedente('Media')"
-                        >
-                          Media
-                        </v-btn>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn
-                          block
-                          variant="flat"
-                          size="x-small"
-                          rounded="lg"
-                          class="font-weight-black text-none fatica-btn"
-                          :class="{ 'fatica-btn-active-pesante': numFaticaw6ValPrecedente === 'Pesante' }"
-                          style="font-size: 0.65rem; height: 26px;"
-                          @click="salvaFaticaPrecedente('Pesante')"
-                        >
-                          Pesante
-                        </v-btn>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn
-                          block
-                          variant="flat"
-                          size="x-small"
-                          rounded="lg"
-                          class="font-weight-black text-none fatica-btn"
-                          :class="{ 'fatica-btn-active-devastante': numFaticaw6ValPrecedente === 'Devastante' }"
-                          style="font-size: 0.65rem; height: 26px;"
-                          @click="salvaFaticaPrecedente('Devastante')"
-                        >
-                          Devastante
-                        </v-btn>
-                      </v-col>
-                    </v-row>
+                  <div class="d-flex flex-column gap-1.5 w-100">
+                    <span class="font-weight-black text-slate-dark text-uppercase tracking-wider text-left" style="font-size: 0.68rem;">
+                      Sforzo:
+                    </span>
+                    <div class="d-flex gap-2 w-100 justify-space-between align-center">
+                      <v-btn
+                        variant="flat"
+                        rounded="xl"
+                        class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
+                        :class="{ 'fatica-btn-active-media': numFaticaw6ValPrecedente === 'Media' }"
+                        style="font-size: 0.72rem; height: 34px; min-width: 0;"
+                        @click="salvaFaticaPrecedente('Media')"
+                      >
+                        🙂 Media
+                      </v-btn>
+                      <v-btn
+                        variant="flat"
+                        rounded="xl"
+                        class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
+                        :class="{ 'fatica-btn-active-pesante': numFaticaw6ValPrecedente === 'Pesante' }"
+                        style="font-size: 0.72rem; height: 34px; min-width: 0;"
+                        @click="salvaFaticaPrecedente('Pesante')"
+                      >
+                        🔥 Pesante
+                      </v-btn>
+                      <v-btn
+                        variant="flat"
+                        rounded="xl"
+                        class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
+                        :class="{ 'fatica-btn-active-devastante': numFaticaw6ValPrecedente === 'Devastante' }"
+                        style="font-size: 0.72rem; height: 34px; min-width: 0;"
+                        @click="salvaFaticaPrecedente('Devastante')"
+                      >
+                        💀 Devastante
+                      </v-btn>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -4056,8 +4051,8 @@
             </p>
           </div>
 
-          <!-- Pulsanti Modale Fastidio/Infortunio (Più compatti) -->
-          <div class="d-flex flex-column gap-2 mb-2">
+          <!-- Pulsanti Modale Fastidio/Infortunio (Più compatti e separati) -->
+          <div class="d-flex flex-column gap-2.5 mb-2" style="gap: 10px !important;">
             <v-btn
               v-if="ghostSbloccato"
               block
@@ -4235,7 +4230,7 @@
           Hai inserito il carico per la <strong>Week 6</strong>. Seleziona lo sforzo provato per calcolare con precisione i carichi del prossimo mesociclo!
         </p>
 
-        <div class="d-flex flex-column gap-2 mb-3">
+        <div class="d-flex flex-column gap-2.5 mb-3" style="gap: 10px !important;">
           <v-btn
             block
             color="light-blue-darken-3"
@@ -7057,6 +7052,72 @@ const inputSettimanePrecedente = ref({
 });
 const numIns6ValPrecedente = ref('');
 const numFaticaw6ValPrecedente = ref('');
+const activeEditingWeekPrecedente = ref(null);
+
+const attivaEditingWeekPrecedente = (w) => {
+  activeEditingWeekPrecedente.value = w;
+  nextTick(() => {
+    const el = document.getElementById('input-prev-peso-w' + w);
+    if (el) {
+      el.focus();
+    }
+  });
+};
+
+const onBlurWeekPrecedente = (w) => {
+  activeEditingWeekPrecedente.value = null;
+  salvaDatoSettimanalePrecedente(w, 'ins');
+};
+
+const getGhostStatusPrecedente = (w) => {
+  const currentInput = inputSettimanePrecedente.value[w]?.ins;
+  if (!currentInput || !String(currentInput).trim()) return 'empty';
+
+  if (w === 1) return 'up'; // Week 1 base sempre verde come concordato
+
+  const isRepEx = previousWorkout.value ? isCorpoLiberoEsercizio(previousWorkout.value) : false;
+
+  // Cerca la settimana precedente con un dato valido per il confronto
+  let refInput = null;
+  for (let prevW = w - 1; prevW >= 1; prevW--) {
+    const prevVal = inputSettimanePrecedente.value[prevW]?.ins;
+    if (prevVal && String(prevVal).trim()) {
+      refInput = prevVal;
+      break;
+    }
+  }
+
+  if (!refInput) return 'up';
+
+  if (isRepEx) {
+    const currentReps = estraiRepsDaPrescrizione(currentInput) || parseFloat(String(currentInput).replace(/,/g, '.').trim());
+    const refReps = estraiRepsDaPrescrizione(refInput) || parseFloat(String(refInput).replace(/,/g, '.').trim());
+    if (!isNaN(currentReps) && !isNaN(refReps)) {
+      return currentReps >= refReps ? 'up' : 'down';
+    }
+    return 'up';
+  }
+
+  const currentPesoStr = estraiPesoDaInput(currentInput);
+  const refPesoStr = estraiPesoDaInput(refInput);
+
+  if (!currentPesoStr) return 'filled';
+  if (!refPesoStr) return 'up';
+
+  const currentPeso = parseFloat(currentPesoStr);
+  const refPeso = parseFloat(refPesoStr);
+
+  if (isNaN(currentPeso) || isNaN(refPeso)) return 'filled';
+  return currentPeso >= refPeso ? 'up' : 'down';
+};
+
+const getGhostFieldClassPrecedente = (w) => {
+  const status = getGhostStatusPrecedente(w);
+  if (status === 'up') return 'ghost-glow-green';
+  if (status === 'down') return 'ghost-glow-blue';
+  if (status === 'filled') return 'ghost-glow-orange';
+  return '';
+};
 
 // Blocco storico rimosso per modifiche sempre abilitate
 
@@ -14094,13 +14155,16 @@ const tornaIndietro = () => {
 /* Colori Caselle di Testo Dinamiche (Mai bianche/grigie se piene) */
 /* VERDE (Record Battuto o W1) */
 .ghost-glow-green.custom-weight-input,
+.ghost-glow-green.custom-prev-ins-field,
 .ghost-glow-green :deep(.v-field) {
   background: rgba(16, 185, 129, 0.1) !important;
   border: 1px solid rgba(16, 185, 129, 0.45) !important;
   box-shadow: 0 0 16px rgba(16, 185, 129, 0.25) !important;
 }
-.ghost-glow-green :deep(.v-field--focused) { border-color: #10b981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important; }
+.ghost-glow-green :deep(.v-field--focused),
+.ghost-glow-green.custom-prev-ins-field:focus { border-color: #10b981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important; }
 .ghost-glow-green,
+.ghost-glow-green.custom-prev-ins-field,
 .ghost-glow-green .ins-num-highlight,
 .ghost-glow-green .ins-rep-highlight,
 .ghost-glow-green .ins-text-muted { 
@@ -14115,13 +14179,16 @@ const tornaIndietro = () => {
 
 /* BLU (Carico Calato) */
 .ghost-glow-blue.custom-weight-input,
+.ghost-glow-blue.custom-prev-ins-field,
 .ghost-glow-blue :deep(.v-field) {
   background: rgba(59, 130, 246, 0.1) !important;
   border: 1px solid rgba(59, 130, 246, 0.45) !important;
   box-shadow: 0 0 16px rgba(59, 130, 246, 0.25) !important;
 }
-.ghost-glow-blue :deep(.v-field--focused) { border-color: #3b82f6 !important; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important; }
+.ghost-glow-blue :deep(.v-field--focused),
+.ghost-glow-blue.custom-prev-ins-field:focus { border-color: #3b82f6 !important; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important; }
 .ghost-glow-blue,
+.ghost-glow-blue.custom-prev-ins-field,
 .ghost-glow-blue .ins-num-highlight,
 .ghost-glow-blue .ins-rep-highlight,
 .ghost-glow-blue .ins-text-muted { 
@@ -14136,13 +14203,16 @@ const tornaIndietro = () => {
 
 /* THEME ACCENT (Testo generico senza Ghost o note) */
 .ghost-glow-orange.custom-weight-input,
+.ghost-glow-orange.custom-prev-ins-field,
 .ghost-glow-orange :deep(.v-field) {
   background: var(--theme-primary-bg-soft) !important;
   border: 1px solid var(--theme-primary-border) !important;
   box-shadow: 0 0 16px var(--theme-primary-glow) !important;
 }
-.ghost-glow-orange :deep(.v-field--focused) { border-color: var(--theme-primary) !important; box-shadow: 0 0 20px var(--theme-primary-glow) !important; }
+.ghost-glow-orange :deep(.v-field--focused),
+.ghost-glow-orange.custom-prev-ins-field:focus { border-color: var(--theme-primary) !important; box-shadow: 0 0 20px var(--theme-primary-glow) !important; }
 .ghost-glow-orange,
+.ghost-glow-orange.custom-prev-ins-field,
 .ghost-glow-orange .ins-num-highlight,
 .ghost-glow-orange .ins-rep-highlight,
 .ghost-glow-orange .ins-text-muted { 
@@ -14424,6 +14494,7 @@ th.sticky-col {
 }
 
 [data-theme="light"] .ghost-glow-green.custom-weight-input,
+[data-theme="light"] .ghost-glow-green.custom-prev-ins-field,
 [data-theme="light"] .ghost-glow-green :deep(.v-field) {
   background: #f0fdf4 !important;
   border: 1px solid #86efac !important;
@@ -14432,6 +14503,7 @@ th.sticky-col {
 [data-theme="light"] .ghost-glow-green,
 [data-theme="light"] .ghost-glow-green :deep(input),
 [data-theme="light"] .ghost-glow-green :deep(textarea),
+[data-theme="light"] .ghost-glow-green.custom-prev-ins-field,
 [data-theme="light"] .ghost-glow-green .ins-num-highlight,
 [data-theme="light"] .ghost-glow-green .ins-rep-highlight,
 [data-theme="light"] .ghost-glow-green .ins-text-muted {
@@ -14442,6 +14514,7 @@ th.sticky-col {
 }
 
 [data-theme="light"] .ghost-glow-blue.custom-weight-input,
+[data-theme="light"] .ghost-glow-blue.custom-prev-ins-field,
 [data-theme="light"] .ghost-glow-blue :deep(.v-field) {
   background: #eff6ff !important;
   border: 1px solid #93c5fd !important;
@@ -14450,6 +14523,7 @@ th.sticky-col {
 [data-theme="light"] .ghost-glow-blue,
 [data-theme="light"] .ghost-glow-blue :deep(input),
 [data-theme="light"] .ghost-glow-blue :deep(textarea),
+[data-theme="light"] .ghost-glow-blue.custom-prev-ins-field,
 [data-theme="light"] .ghost-glow-blue .ins-num-highlight,
 [data-theme="light"] .ghost-glow-blue .ins-rep-highlight,
 [data-theme="light"] .ghost-glow-blue .ins-text-muted {
@@ -14460,6 +14534,7 @@ th.sticky-col {
 }
 
 [data-theme="light"] .ghost-glow-orange.custom-weight-input,
+[data-theme="light"] .ghost-glow-orange.custom-prev-ins-field,
 [data-theme="light"] .ghost-glow-orange :deep(.v-field) {
   background: var(--brand-accent-bg) !important;
   border: 1.5px solid var(--theme-primary-border) !important;
@@ -14468,6 +14543,7 @@ th.sticky-col {
 [data-theme="light"] .ghost-glow-orange,
 [data-theme="light"] .ghost-glow-orange :deep(input),
 [data-theme="light"] .ghost-glow-orange :deep(textarea),
+[data-theme="light"] .ghost-glow-orange.custom-prev-ins-field,
 [data-theme="light"] .ghost-glow-orange .ins-num-highlight,
 [data-theme="light"] .ghost-glow-orange .ins-rep-highlight,
 [data-theme="light"] .ghost-glow-orange .ins-text-muted {
@@ -14801,6 +14877,12 @@ th.sticky-col {
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.08) !important;
   color: var(--text-dark) !important;
+}
+
+.custom-prev-ins-field:focus {
+  outline: none !important;
+  border-color: var(--theme-primary, #f97316) !important;
+  box-shadow: 0 0 8px var(--theme-primary-glow, rgba(249, 115, 22, 0.25)) !important;
 }
 
 [data-theme="light"] .custom-prev-ins-field {

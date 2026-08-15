@@ -1091,19 +1091,20 @@
             <!-- Textarea Editabile (in digitazione o se risalto disattivo o se vuoto) -->
             <template v-else>
               <v-textarea
-                v-model="inputSettimane[sett].ins"
+                :model-value="ottimizzaDigitazione ? (activeEditingWeek === sett ? localEditingIns[sett] : (inputSettimane[sett]?.ins || '')) : (inputSettimane[sett]?.ins || '')"
+                @update:model-value="val => onInputWeek(sett, val)"
                 :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
                 variant="outlined"
                 density="compact"
                 hide-details
                 :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                :rows="getInitialRows(inputSettimane[sett]?.ins)"
+                :rows="getInitialRows(ottimizzaDigitazione && activeEditingWeek === sett ? localEditingIns[sett] : inputSettimane[sett]?.ins)"
                 auto-grow
                 color="orange-darken-3"
                 class="custom-weight-input transition-all"
                 :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
-                @focus="activeEditingWeek = sett"
-                @blur="activeEditingWeek = null; salvaDatoSettimanale(sett, 'ins')"
+                @focus="onFocusWeek(sett)"
+                @blur="onBlurWeek(sett)"
                 :id="'input-peso-w' + sett"
               >
                 <template v-slot:append-inner>
@@ -1149,7 +1150,7 @@
 
             <!-- Suggerimento Formattazione Reps (es. 3x12 -> 3x12r) -->
             <div
-              v-if="getRepFormattingSuggestion(sett)"
+              v-if="(!ottimizzaDigitazione || activeEditingWeek !== sett) && getRepFormattingSuggestion(sett)"
               class="d-flex align-center mt-1.5 px-2.5 py-1.5 rounded-lg cursor-pointer animate-fade-in text-left"
               style="border: 1px solid rgba(245, 158, 11, 0.4) !important; background: rgba(245, 158, 11, 0.08) !important;"
               @click="applicaSuggerimentoFormattazioneReps(sett, getRepFormattingSuggestion(sett).suggested)"
@@ -4286,9 +4287,7 @@
     <v-dialog 
       v-model="dialogEditorEspanso" 
       max-width="540" 
-      class="editor-espanso-dialog" 
-      scrollable
-      transition="dialog-bottom-transition"
+      rounded="xl"
     >
       <v-card class="card-glass-dark rounded-2xl border overflow-hidden" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important' }">
         <v-card-title class="pa-3 py-2.5 border-bottom d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
@@ -4312,7 +4311,7 @@
             color="orange-darken-3"
             class="mb-3 font-weight-medium"
             style="font-size: 0.95rem; line-height: 1.5;"
-            placeholder="Es: 62,5 x8r\n(70 x8r Palestra Ospite)\npanca 30° pin 4"
+            placeholder="Es: 62,5 x8r&#10;(70 x8r Palestra Ospite)&#10;panca 30° pin 4"
             hide-details
             id="textarea-editor-espanso"
           ></v-textarea>
@@ -4326,9 +4325,9 @@
               <v-chip
                 v-for="chip in [
                   { label: 'kg', insert: 'kg' },
-                  { label: 'x', insert: ' x' },
+                  { label: 'x', insert: ' x ' },
                   { label: 'r', insert: 'r' },
-                  { label: '( ... )', insert: '()' },
+                  { label: '( ... )', insert: ' ()' },
                   { label: 'panca 30°', insert: ' panca 30°' },
                   { label: 'panca 45°', insert: ' panca 45°' },
                   { label: 'pin', insert: ' pin ' },
@@ -4425,6 +4424,35 @@ const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
 const risaltoNumeriInsWeek = risaltoNumeriInsWeekGlobal;
 
 const activeEditingWeek = ref(null);
+const localEditingIns = ref({ 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' });
+
+const onFocusWeek = (sett) => {
+  activeEditingWeek.value = sett;
+  localEditingIns.value[sett] = inputSettimane.value[sett]?.ins || '';
+};
+
+const onInputWeek = (sett, val) => {
+  if (ottimizzaDigitazione.value) {
+    localEditingIns.value[sett] = val;
+  } else {
+    if (!inputSettimane.value[sett]) {
+      inputSettimane.value[sett] = { ins: '', reps: '' };
+    }
+    inputSettimane.value[sett].ins = val;
+    localEditingIns.value[sett] = val;
+  }
+};
+
+const onBlurWeek = (sett) => {
+  if (ottimizzaDigitazione.value) {
+    if (!inputSettimane.value[sett]) {
+      inputSettimane.value[sett] = { ins: '', reps: '' };
+    }
+    inputSettimane.value[sett].ins = localEditingIns.value[sett] ?? '';
+  }
+  activeEditingWeek.value = null;
+  salvaDatoSettimanale(sett, 'ins');
+};
 
 const getInitialRows = (text) => {
   if (!text) return 1;
@@ -4440,26 +4468,38 @@ const tempEspansoText = ref('');
 const apriEditorNoteEspanso = (sett) => {
   vibraTattile(15);
   editingEspansoWeek.value = sett;
-  tempEspansoText.value = inputSettimane.value[sett]?.ins || '';
+  tempEspansoText.value = inputSettimane.value[sett]?.ins || localEditingIns.value[sett] || '';
   dialogEditorEspanso.value = true;
 };
 
 const inserisciSimboloEspanso = (token) => {
   vibraTattile(10);
-  if (!tempEspansoText.value) {
+  const current = tempEspansoText.value || '';
+  if (!current) {
     tempEspansoText.value = token.trim();
   } else {
-    tempEspansoText.value = tempEspansoText.value + token;
+    if (token === ' ()') {
+      tempEspansoText.value = current + ' ()';
+    } else if (token === 'kg' || token === 'r') {
+      tempEspansoText.value = current + token;
+    } else {
+      tempEspansoText.value = current + (token.startsWith(' ') ? token : ' ' + token);
+    }
   }
+  nextTick(() => {
+    const el = document.getElementById('textarea-editor-espanso');
+    if (el) el.focus();
+  });
 };
 
 const confermaEditorEspanso = () => {
   if (editingEspansoWeek.value) {
     const sett = editingEspansoWeek.value;
     if (!inputSettimane.value[sett]) {
-      inputSettimane.value[sett] = { ins: '', num: '', des: '' };
+      inputSettimane.value[sett] = { ins: '', reps: '' };
     }
     inputSettimane.value[sett].ins = tempEspansoText.value;
+    localEditingIns.value[sett] = tempEspansoText.value;
     salvaDatoSettimanale(sett, 'ins');
     snackbarMessaggio.value = `Note W${sett} aggiornate con successo!`;
     snackbarSalvataggio.value = true;
@@ -4472,7 +4512,7 @@ const attivaEditingWeek = (sett) => {
     apriEditorNoteEspanso(sett);
     return;
   }
-  activeEditingWeek.value = sett;
+  onFocusWeek(sett);
   nextTick(() => {
     const el = document.getElementById('input-peso-w' + sett);
     if (el) {
@@ -9258,6 +9298,7 @@ const caricaDatiEsercizio = async () => {
     for (let w = 1; w <= 6; w++) {
       inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
       inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
+      localEditingIns.value[w] = inputSettimane.value[w].ins;
     }
     noteAttrezzo.value = workout.value.des_note_attrezzo || '';
     noteEsercizio.value = workout.value.ins_esercizio || '';
@@ -9370,6 +9411,7 @@ const caricaDatiEsercizio = async () => {
       for (let w = 1; w <= 6; w++) {
         inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
         inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
+        localEditingIns.value[w] = inputSettimane.value[w].ins;
       }
       
       noteAttrezzo.value = workout.value.des_note_attrezzo || '';
@@ -9441,6 +9483,7 @@ const caricaEsercizioDaBackup = async () => {
       for (let w = 1; w <= 6; w++) {
         inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
         inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
+        localEditingIns.value[w] = inputSettimane.value[w].ins;
       }
       
       noteAttrezzo.value = workout.value.des_note_attrezzo || '';
@@ -11050,6 +11093,7 @@ const applicaSuggerimentoFormattazioneReps = (sett, suggestedText) => {
   vibraTattile(12);
   if (inputSettimane.value[sett]) {
     inputSettimane.value[sett].ins = suggestedText;
+    localEditingIns.value[sett] = suggestedText;
     salvaDatoSettimanale(sett, 'ins');
     snackbarMessaggio.value = `Formattato in ${suggestedText}!`;
     snackbarSalvataggio.value = true;
@@ -13560,15 +13604,23 @@ const impostaRecuperoValore = (valoreAttuale, attivo) => {
 
 const toggleRecuperoDettaglio = (sett, attivo) => {
   vibraTattile(15);
-  const valoreAttuale = inputSettimane.value[sett].ins;
+  const valoreAttuale = (activeEditingWeek.value === sett && ottimizzaDigitazione.value) ? localEditingIns.value[sett] : inputSettimane.value[sett].ins;
   const nuovoValore = impostaRecuperoValore(valoreAttuale, attivo);
   inputSettimane.value[sett].ins = nuovoValore;
+  localEditingIns.value[sett] = nuovoValore;
   salvaDatoSettimanale(sett, 'ins');
 };
 
 const salvaModifichePendenti = async () => {
   if (!workout.value) return;
   
+  if (activeEditingWeek.value && ottimizzaDigitazione.value) {
+    const sett = activeEditingWeek.value;
+    if (inputSettimane.value[sett]) {
+      inputSettimane.value[sett].ins = localEditingIns.value[sett] ?? '';
+    }
+  }
+
   const updates = {};
   
   for (let w = 1; w <= 6; w++) {

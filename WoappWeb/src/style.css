@@ -1759,6 +1759,29 @@ textarea:focus,
   display: inline;
 }
 
+/* Ottimizzazioni Mobile per la Guida Interattiva */
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+@media (max-width: 600px) {
+  .guida-dialog-mobile {
+    margin: 8px !important;
+  }
+  .guida-dialog-mobile .v-card {
+    margin: 0 !important;
+    border-radius: 16px !important;
+    max-height: 92vh !important;
+  }
+  .guida-dialog-mobile .v-card-text {
+    padding: 12px 10px !important;
+  }
+}
+
 
 
 

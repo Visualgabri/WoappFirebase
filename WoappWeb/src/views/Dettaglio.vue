@@ -1074,22 +1074,22 @@
 
             <!-- Textarea Editabile (in digitazione o se risalto disattivo o se vuoto) -->
             <template v-else>
-              <!-- Textarea con ottimizzazione digitazione (.lazy) -->
+              <!-- Textarea con ottimizzazione digitazione (Buffer isolato ultra-veloce senza ricalcoli continui) -->
               <v-textarea
                 v-if="ottimizzaDigitazione"
-                v-model.lazy="inputSettimane[sett].ins"
+                v-model="editingDraftIns"
                 :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
                 variant="outlined"
                 density="compact"
                 hide-details
                 :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
                 rows="1"
-                auto-grow
+                :auto-grow="false"
                 color="orange-darken-3"
                 class="custom-weight-input transition-all"
                 :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
-                @focus="activeEditingWeek = sett"
-                @blur="activeEditingWeek = null; salvaDatoSettimanale(sett, 'ins')"
+                @focus="avviaEditingDraft(sett)"
+                @blur="concludiEditingDraft(sett)"
                 :id="'input-peso-w' + sett"
               >
                 <template v-slot:append-inner>
@@ -4343,8 +4343,26 @@ const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
 const risaltoNumeriInsWeek = risaltoNumeriInsWeekGlobal;
 
 const activeEditingWeek = ref(null);
-const attivaEditingWeek = (sett) => {
+const editingDraftIns = ref('');
+
+const avviaEditingDraft = (sett) => {
   activeEditingWeek.value = sett;
+  editingDraftIns.value = inputSettimane.value[sett]?.ins || '';
+};
+
+const concludiEditingDraft = (sett) => {
+  if (activeEditingWeek.value === sett) {
+    if (!inputSettimane.value[sett]) {
+      inputSettimane.value[sett] = { ins: '', num: '', des: '' };
+    }
+    inputSettimane.value[sett].ins = editingDraftIns.value;
+  }
+  activeEditingWeek.value = null;
+  salvaDatoSettimanale(sett, 'ins');
+};
+
+const attivaEditingWeek = (sett) => {
+  avviaEditingDraft(sett);
   nextTick(() => {
     const el = document.getElementById('input-peso-w' + sett);
     if (el) {

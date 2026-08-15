@@ -1017,7 +1017,8 @@
     </v-dialog>
 
     <!-- MODALE GUIDA INTERATTIVA & FEATURE SHOWCASE -->
-    <v-dialog v-model="mostraGuidaInterattiva" max-width="600" scrollable transition="dialog-bottom-transition">
+    <!-- MODALE GUIDA INTERATTIVA & FEATURE SHOWCASE -->
+    <v-dialog v-model="mostraGuidaInterattiva" max-width="620" class="guida-dialog-mobile" scrollable transition="dialog-bottom-transition">
       <v-card class="card-glass-dark rounded-2xl border overflow-hidden" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important' }">
         <!-- Header della Modale con Titolo Compatto e Pulsante Tour -->
         <v-card-title class="pa-3.5 py-3 border-bottom d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
@@ -1043,7 +1044,7 @@
           </div>
         </v-card-title>
 
-        <!-- Searchbar interna & Navigazione Tab a Pillole Alta Visibilità -->
+        <!-- Searchbar interna & Navigazione Tab a Scorrimento Fluido (Mobile-First) -->
         <div class="px-3 pt-3 pb-2 border-bottom" :style="{ background: 'var(--card-bg-soft, #020617)' }">
           <v-text-field
             v-model="searchGuida"
@@ -1052,23 +1053,30 @@
             variant="outlined"
             hide-details
             clearable
-            class="mb-2.5"
+            class="mb-2"
             style="font-size: 0.75rem;"
           ></v-text-field>
 
-          <!-- Segmented Tab Pills Container High-Contrast Dynamic Theme -->
-          <div class="d-flex align-center justify-space-between gap-1 pa-1 rounded-xl border" :style="{ background: 'var(--card-bg-glass, #0f172a)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.12))' }">
+          <!-- Tab Pills Scrollabili Touch senza tagli -->
+          <div class="d-flex align-center gap-1.5 pa-1 rounded-xl border scrollbar-none overflow-x-auto w-100" style="background: var(--card-bg-glass, #0f172a); border-color: var(--card-border, rgba(255, 255, 255, 0.12)); -webkit-overflow-scrolling: touch;">
             <v-btn
-              v-for="(tab, i) in ['Strategia', 'Progressione', 'Esercizi & Timer', 'Infortuni', 'Temi']"
+              v-for="(tab, i) in [
+                { label: 'Strategia', icon: 'mdi-brain' },
+                { label: 'Progressione', icon: 'mdi-trending-up' },
+                { label: 'Esercizi & Timer', icon: 'mdi-timer-outline' },
+                { label: 'Infortuni', icon: 'mdi-bandage' },
+                { label: 'Temi & Stile', icon: 'mdi-palette-outline' }
+              ]"
               :key="i"
               size="x-small"
-              class="flex-grow-1 font-weight-bold text-none rounded-lg text-truncate px-1 transition-all"
+              class="flex-shrink-0 font-weight-bold text-none rounded-lg px-2.5 transition-all"
               :style="tabGuida === i 
-                ? 'font-size: 0.65rem; height: 30px; min-width: 0; color: #ffffff !important; background: var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important; font-weight: 900; border: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important; box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(249, 115, 22, 0.25));' 
-                : 'font-size: 0.65rem; height: 30px; min-width: 0; color: var(--text-dark, #1e293b) !important; background: var(--card-bg-soft, rgba(148, 163, 184, 0.12)) !important; border: 1px solid var(--card-border, rgba(148, 163, 184, 0.2)) !important;'"
+                ? 'font-size: 0.70rem; height: 32px; color: #ffffff !important; background: var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important; font-weight: 900; border: 1px solid var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important; box-shadow: 0 2px 8px var(--theme-primary-glow, rgba(249, 115, 22, 0.25));' 
+                : 'font-size: 0.70rem; height: 32px; color: var(--text-slate-light, #94a3b8) !important; background: var(--card-bg-soft, rgba(148, 163, 184, 0.12)) !important; border: 1px solid var(--card-border, rgba(148, 163, 184, 0.2)) !important;'"
               @click="tabGuida = i"
             >
-              {{ tab }}
+              <v-icon size="14" class="mr-1">{{ tab.icon }}</v-icon>
+              {{ tab.label }}
             </v-btn>
           </div>
         </div>
@@ -1120,65 +1128,43 @@
                   </div>
                 </div>
 
-                <h4 class="font-weight-black text-subtitle-2 mb-2 d-flex align-center" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
-                  <v-icon size="18" color="orange-darken-2" class="mr-2 flex-shrink-0">mdi-calendar-clock</v-icon>
-                  <span>Roadmap 6 Settimane (W1 - W6)</span>
-                </h4>
-                <div class="d-flex flex-column gap-2 mb-3.5">
-                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W1 - Accumulo & Tecnica</span>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Volume sicuro e controllo esecutivo</span>
+                <!-- Spiegazione Logica 6 Settimane -->
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <h5 class="font-weight-black text-caption mb-1.5" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.78rem;">
+                    Struttura del Mesociclo (6 Settimane)
+                  </h5>
+                  <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.4;">
+                    <div class="pa-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border-left: 3px solid #f97316;">
+                      <strong class="text-orange-lighten-2">Week 1 (Target):</strong>
+                      <div class="text-muted mt-0.5">Test iniziale per tarare il livello attuale e verificare il massimale stimato.</div>
                     </div>
-                    <v-chip color="cyan-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 7-8</v-chip>
-                  </div>
-                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W2 - Progressione Carico</span>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Incremento sostenibile del peso</span>
+                    <div class="pa-2 rounded-lg" style="background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6;">
+                      <strong class="text-blue-lighten-2">Week 2 & 3 (Accumulo):</strong>
+                      <div class="text-muted mt-0.5">Progressione di volume o carico in base ai parametri impostati dal Coach.</div>
                     </div>
-                    <v-chip color="amber-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 8</v-chip>
-                  </div>
-                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W3 - Pareggio PR Storico</span>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Avvicinamento o pareggio del record</span>
+                    <div class="pa-2 rounded-lg" style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981;">
+                      <strong class="text-green-accent-3">Week 4 (Scarico Attivo):</strong>
+                      <div class="text-muted mt-0.5">Riduzione strategica dell'intensità (-15%) per consentire il recupero neurale.</div>
                     </div>
-                    <v-chip color="orange-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 8.5-9</v-chip>
-                  </div>
-                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W4 - Scarico Rigenerativo</span>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Riduzione carico per recupero attivo</span>
+                    <div class="pa-2 rounded-lg" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b;">
+                      <strong class="text-amber-lighten-2">Week 5 (Consolidamento):</strong>
+                      <div class="text-muted mt-0.5">Supercompensazione post-scarico con ripresa di carichi elevati.</div>
                     </div>
-                    <v-chip color="blue-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 6-7</v-chip>
-                  </div>
-                  <div class="pa-2.5 rounded-xl border-2 d-flex align-center justify-space-between" :style="{ borderColor: 'var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important', background: 'var(--theme-primary-bg-soft, rgba(249, 115, 22, 0.12)) !important' }">
-                    <div>
-                      <div class="d-flex align-center gap-1.5 mb-0.5">
-                        <span class="font-weight-black text-caption dialog-text-primary" style="font-size: 0.74rem;">W5 - Picco Intensità</span>
-                        <v-chip :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important' }" size="x-small" variant="flat" class="font-weight-black text-white animate-pulse px-1.5" style="font-size: 0.52rem; height: 15px;">ATTIVA</v-chip>
-                      </div>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Superamento del record</span>
+                    <div class="pa-2 rounded-lg" style="background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444;">
+                      <strong class="text-red-lighten-2">Week 6 (Test / Peak):</strong>
+                      <div class="text-muted mt-0.5">Verifica dei nuovi massimali e test di superamento PR.</div>
                     </div>
-                    <v-chip color="purple-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 9-9.5</v-chip>
-                  </div>
-                  <div class="pa-2.5 rounded-xl border border-soft d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                    <div>
-                      <span class="font-weight-black text-caption dialog-text-primary d-block" style="font-size: 0.74rem;">W6 - Test Nuovo Record</span>
-                      <span class="text-super-caption d-block" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.63rem;">Test finale AMRAP per il nuovo PR</span>
-                    </div>
-                    <v-chip color="green-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.6rem;">RPE 10</v-chip>
                   </div>
                 </div>
 
-                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                <!-- Box Record Personale & Target -->
+                <div class="pa-3 rounded-xl border border-soft" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <div class="d-flex align-center mb-1">
-                    <v-icon size="16" color="orange-darken-2" class="mr-2 flex-shrink-0">mdi-gauge</v-icon>
-                    <h5 class="font-weight-black text-caption mb-0" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Indicatori di Fatica a Settimana 6</h5>
+                    <v-icon size="16" color="amber-darken-2" class="mr-2 flex-shrink-0">mdi-trophy-outline</v-icon>
+                    <h5 class="font-weight-black text-caption mb-0 text-amber-lighten-2" style="font-size: 0.76rem;">Record Personale & Stella PR</h5>
                   </div>
-                  <p class="text-caption mb-0" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.72rem; line-height: 1.4;">
-                    A fine Settimana 6 seleziona la fatica provata (<strong>Leggero</strong>, <strong>Medio</strong>, <strong>Pesante</strong>, <strong>Devastante</strong>) per calibrare i pesi di partenza del programma successivo.
+                  <p class="text-caption mb-0 text-slate-light" style="font-size: 0.72rem; line-height: 1.4;">
+                    Quando superi il tuo record storico stimato, l'app mostra una stella dorata 🌟 nel box di riepilogo e aggiorna automaticamente i parametri per i cicli successivi.
                   </p>
                 </div>
               </div>
@@ -1206,78 +1192,73 @@
                   </p>
                 </div>
 
-                <!-- 2. SEZIONE SPECIALE: CAMBIO PALESTRA & CARRUCOLE DIVERSE -->
-                <div class="pa-3 rounded-xl border-2 mb-3 text-left" :style="{ borderColor: 'var(--theme-primary-border, rgba(249, 115, 22, 0.4)) !important', background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%) !important' }">
-                  <div class="d-flex align-center mb-2">
-                    <v-icon color="orange-darken-2" size="20" class="mr-2 flex-shrink-0">mdi-weight-lifter</v-icon>
-                    <h5 class="font-weight-black text-caption mb-0 text-orange-lighten-2" style="font-size: 0.82rem; letter-spacing: 0.02em;">
-                      CAMBIO PALESTRA & CARRUCOLE DIVERSE
+                <!-- 2. SEZIONE FLAT: CAMBIO PALESTRA & CARRUCOLE DIVERSE -->
+                <div class="mb-3">
+                  <div class="d-flex align-center mb-1.5">
+                    <v-icon color="orange-darken-2" size="18" class="mr-1.5 flex-shrink-0">mdi-weight-lifter</v-icon>
+                    <h5 class="font-weight-black text-caption mb-0 text-orange-lighten-2" style="font-size: 0.80rem;">
+                      Cambio Palestra & Carrucole Diverse
                     </h5>
                   </div>
                   
-                  <!-- Box Regola d'Oro -->
-                  <div class="pa-2.5 rounded-lg mb-2.5 border" style="background: rgba(0, 0, 0, 0.4); border-color: rgba(249, 115, 22, 0.35) !important;">
+                  <!-- Box Regola d'Oro Parentesi -->
+                  <div class="pa-2.5 rounded-xl border mb-2" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important;">
                     <div class="d-flex align-center mb-1">
-                      <v-icon size="16" color="amber-darken-2" class="mr-2 flex-shrink-0">mdi-crown</v-icon>
-                      <strong class="text-amber-lighten-2 font-weight-black" style="font-size: 0.76rem;">LA REGOLA D'ORO DELLE PARENTESI TONDE ( ... )</strong>
+                      <v-icon size="15" color="amber-darken-2" class="mr-1.5 flex-shrink-0">mdi-crown</v-icon>
+                      <strong class="text-amber-lighten-2 font-weight-black" style="font-size: 0.74rem;">REGOLA D'ORO DELLE PARENTESI ( ... )</strong>
                     </div>
-                    <p class="text-caption mb-0 text-slate-light" style="font-size: 0.71rem; line-height: 1.45;">
-                      Tutto ciò che racchiudi tra <strong>parentesi tonde <code>( ... )</code></strong> (inclusi carichi in kg, serie, reps o annotazioni) viene <strong>totalmente escluso</strong> dai calcoli della progressione automatica, dei PR e dei grafici. I numeri tra parentesi non genereranno mai falsi record!
+                    <p class="text-caption mb-0 text-slate-light" style="font-size: 0.70rem; line-height: 1.4;">
+                      Tutto ciò che racchiudi tra <strong>parentesi <code>( ... )</code></strong> viene <strong>totalmente escluso</strong> dai calcoli di progressione e massimali. I numeri tra parentesi non genereranno mai falsi record!
                     </p>
                   </div>
 
-                  <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.42;">
+                  <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.71rem; line-height: 1.4;">
                     <!-- Esempio Corretto -->
-                    <div class="pa-2.5 rounded-lg" style="background: rgba(15, 23, 42, 0.85); border-left: 3px solid #22c55e;">
+                    <div class="pa-2.5 rounded-xl border border-soft" style="background: rgba(34, 197, 94, 0.06); border-left: 3.5px solid #22c55e !important;">
                       <div class="d-flex align-center mb-1">
-                        <v-icon size="16" color="green-accent-3" class="mr-2 flex-shrink-0">mdi-check-circle-outline</v-icon>
-                        <strong class="text-green-accent-3 font-weight-black">Come registrare la sessione in trasferta:</strong>
+                        <v-icon size="15" color="green-accent-3" class="mr-1.5 flex-shrink-0">mdi-check-circle-outline</v-icon>
+                        <strong class="text-green-accent-3 font-weight-black">Come registrare in trasferta:</strong>
                       </div>
                       <div class="text-slate-light">
-                        1. Scrivi come prima riga il carico teorico/consigliato della <strong>tua palestra abituale</strong>.<br>
-                        2. A capo, inserisci tra parentesi tonde il dato reale della palestra ospite per tua memoria:
-                        <div class="pa-2 rounded mt-1.5 font-weight-bold" style="background: rgba(0,0,0,0.6); font-family: monospace; font-size: 0.72rem; color: #4ade80;">
+                        Scrivi prima il carico standard e sotto tra parentesi il dato della palestra ospite:
+                        <div class="pa-1.5 px-2 rounded mt-1 font-weight-bold" style="background: rgba(0,0,0,0.5); font-family: monospace; font-size: 0.72rem; color: #4ade80;">
                           25 x11r<br>
                           (45 x11r x2s Green Theory)
                         </div>
-                        <span class="text-super-caption text-slate mt-1 d-block" style="font-size: 0.62rem;">
-                          👉 L'app userà 25kg per le progressioni e conserverà la nota tra parentesi per tuo promemoria visivo.
-                        </span>
                       </div>
                     </div>
 
                     <!-- Errore da evitare -->
-                    <div class="pa-2.5 rounded-lg" style="background: rgba(15, 23, 42, 0.85); border-left: 3px solid #ef4444;">
+                    <div class="pa-2.5 rounded-xl border border-soft" style="background: rgba(239, 68, 68, 0.06); border-left: 3.5px solid #ef4444 !important;">
                       <div class="d-flex align-center mb-0.5">
-                        <v-icon size="16" color="red-lighten-2" class="mr-2 flex-shrink-0">mdi-alert-circle-outline</v-icon>
-                        <strong class="text-red-lighten-2 font-weight-black">Errore comune da evitare (falso PR):</strong>
+                        <v-icon size="15" color="red-lighten-2" class="mr-1.5 flex-shrink-0">mdi-alert-circle-outline</v-icon>
+                        <strong class="text-red-lighten-2 font-weight-black">Errore da evitare (falso PR):</strong>
                       </div>
                       <div class="text-slate-light">
-                        Scrivere <code>45 (Green Theory)</code> farà leggere <code>45</code> come nuovo record! Il numero in kg deve stare <strong>interamente DENTRO</strong> le parentesi: <code>(45kg Green Theory)</code>.
+                        Scrivere <code>45 (Green Theory)</code> registra 45 come record! Inserisci i kg <strong>DENTRO</strong> le parentesi: <code>(45kg Green Theory)</code>.
                       </div>
                     </div>
 
                     <!-- Rapporto Carrucole -->
-                    <div class="pa-2.5 rounded-lg" style="background: rgba(15, 23, 42, 0.85); border-left: 3px solid #38bdf8;">
-                      <div class="d-flex align-center mb-1">
-                        <v-icon size="16" color="cyan-lighten-2" class="mr-2 flex-shrink-0">mdi-cog-sync-outline</v-icon>
-                        <strong class="text-cyan-lighten-2 font-weight-black">Rapporto Carrucole / Pulegge (Pulley Ratio):</strong>
+                    <div class="pa-2.5 rounded-xl border border-soft" style="background: rgba(56, 189, 248, 0.06); border-left: 3.5px solid #38bdf8 !important;">
+                      <div class="d-flex align-center mb-0.5">
+                        <v-icon size="15" color="cyan-lighten-2" class="mr-1.5 flex-shrink-0">mdi-cog-sync-outline</v-icon>
+                        <strong class="text-cyan-lighten-2 font-weight-black">Carrucole e Pulegge:</strong>
                       </div>
                       <div class="text-slate-light">
-                        • <strong>Carrucola Diretta (1:1):</strong> 25 kg selezionati = 25 kg effettivi sollevati.<br>
-                        • <strong>Doppia Carrucola / Dimezzata (2:1):</strong> Il carico percepito è dimezzato. Per avere 25 kg reali devi impostare <strong>50 kg (il doppio del peso)</strong> sul pacco pesi!<br>
-                        💡 <em>Se ti alleni su un cavo dimezzato, dividi a mente per 2 il peso del selettore per segnare il carico standard della tua palestra.</em>
+                        • <strong>Diretta (1:1):</strong> 25 kg selezionati = 25 kg effettivi.<br>
+                        • <strong>Doppia/Dimezzata (2:1):</strong> Carico dimezzato. Per 25 kg reali imposta <strong>50 kg</strong> (il doppio) sul selettore.
                       </div>
                     </div>
 
                     <!-- Metodo RPE -->
-                    <div class="pa-2.5 rounded-lg" style="background: rgba(15, 23, 42, 0.85); border-left: 3px solid #f59e0b;">
+                    <div class="pa-2.5 rounded-xl border border-soft" style="background: rgba(245, 158, 11, 0.06); border-left: 3.5px solid #f59e0b !important;">
                       <div class="d-flex align-center mb-0.5">
-                        <v-icon size="16" color="amber-lighten-2" class="mr-2 flex-shrink-0">mdi-bullseye-arrow</v-icon>
+                        <v-icon size="15" color="amber-lighten-2" class="mr-1.5 flex-shrink-0">mdi-bullseye-arrow</v-icon>
                         <strong class="text-amber-lighten-2 font-weight-black">Lavoro a RPE (Sforzo Percepito):</strong>
                       </div>
                       <div class="text-slate-light">
-                        Su macchine o leve ignote, allènati cercando lo stesso sforzo (<strong>RPE 8-9</strong>) alle ripetizioni target. Conferma il carico consigliato dalla scheda e annota le sensazioni tra parentesi.
+                        Su macchine ignote, cerca lo stesso sforzo (<strong>RPE 8-9</strong>) alle reps target. Conferma il carico consigliato e annota le sensazioni tra parentesi.
                       </div>
                     </div>
                   </div>
@@ -1291,7 +1272,7 @@
                   </div>
                   <div class="text-caption text-slate-light" style="font-size: 0.72rem; line-height: 1.42;">
                     <p class="mb-1.5">
-                      • <strong>Ottimizza Note (.lazy):</strong> Nelle <em>Impostazioni Utente</em> puoi attivare l'ottimizzazione per eliminare qualsiasi rallentamento o scatto della tastiera durante la digitazione su smartphone. I calcoli e il salvataggio vengono elaborati solo quando esci dalla casella di testo.<br>
+                      • <strong>Ottimizza Note:</strong> Nelle <em>Impostazioni Utente</em> puoi attivare l'ottimizzazione per eliminare qualsiasi rallentamento durante la digitazione su smartphone. I dati vengono sincronizzati all'uscita dal campo.<br>
                       • <strong>Gerarchia Tipografica Automatica:</strong>
                     </p>
                     <div class="pa-2 rounded-lg mb-1.5" style="background: rgba(0, 0, 0, 0.35); border-left: 3px solid #f97316;">
@@ -1308,9 +1289,6 @@
                         <span class="text-super-caption text-muted">→ Note, gradi e parentesi (Piccolo)</span>
                       </div>
                     </div>
-                    <span class="text-super-caption text-slate d-block" style="font-size: 0.64rem;">
-                      💡 <em>Tutto ciò che scrivi tra parentesi <code>( ... )</code> rimane rigorosamente piccolo e viene ignorato dai calcoli dei record.</em>
-                    </span>
                   </div>
                 </div>
 

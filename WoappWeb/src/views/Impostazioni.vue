@@ -424,7 +424,10 @@
             
             <!-- Ottimizza Digitazione Note -->
             <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
-              <span class="text-caption font-weight-bold text-orange-lighten-2" style="font-size: 0.72rem;">Ottimizza Note</span>
+              <div>
+                <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">Ottimizza Note</span>
+                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Elimina rallentamenti durante la digitazione di note lunghe (.lazy)</span>
+              </div>
               <div class="compact-switch">
                 <v-switch
                   v-model="ottimizzaDigitazione"
@@ -441,7 +444,7 @@
             <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <div>
                 <span class="text-caption font-weight-bold text-orange-lighten-2 d-block" style="font-size: 0.72rem;">Risalto Numerico Ins Week</span>
-                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Numeri in risalto e note alfanumeriche più piccole sui carichi W1–W6</span>
+                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Carichi grandi, reps medie, note e parentesi piccole sui log W1–W6</span>
               </div>
               <div class="compact-switch">
                 <v-switch

@@ -189,20 +189,6 @@
               ></v-select>
             </v-col>
 
-            <v-col cols="12" sm="6" class="d-flex align-center mt-2">
-              <v-switch
-                v-model="ottimizzaDigitazione"
-                color="orange-darken-3"
-                hide-details
-                density="compact"
-                class="mr-2 flex-shrink-0"
-              ></v-switch>
-              <div class="text-left">
-                <span class="text-caption font-weight-bold text-slate-dark d-block" style="font-size: 0.70rem; line-height: 1.1;">Ottimizza Note (.lazy)</span>
-                <span class="text-super-caption text-slate-dark opacity-75 d-block" style="font-size: 0.56rem; text-transform: none; line-height: 1.2;">Evita rallentamenti</span>
-              </div>
-            </v-col>
-
             <!-- Dimensione GIF Layout Compatto (Coach) -->
             <v-col cols="12" sm="6" class="mt-1.5">
               <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Dimensione GIF Compatta</span>
@@ -1488,7 +1474,6 @@ import {
   faticaDevastanteW1PctGlobal,
   faticaPesanteStoricoPctGlobal,
   faticaDevastanteStoricoPctGlobal,
-  ottimizzaDigitazioneGlobal,
   regolaProgressioneW2Global,
   deallenamentoSoglia1Global,
   deallenamentoSoglia2Global,
@@ -1517,7 +1502,6 @@ const FATICA_PESANTE_W1_PCT = faticaPesanteW1PctGlobal;
 const FATICA_DEVASTANTE_W1_PCT = faticaDevastanteW1PctGlobal;
 const FATICA_PESANTE_STORICO_PCT = faticaPesanteStoricoPctGlobal;
 const FATICA_DEVASTANTE_STORICO_PCT = faticaDevastanteStoricoPctGlobal;
-const ottimizzaDigitazione = ottimizzaDigitazioneGlobal;
 const regolaProgressioneW2 = regolaProgressioneW2Global;
 const DIMENSIONE_GIF_COMPATTA = dimensioneGifCompattaGlobal;
 const DEALLENAMENTO_SOGLIA1 = deallenamentoSoglia1Global;

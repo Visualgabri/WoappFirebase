@@ -1283,6 +1283,37 @@
                   </div>
                 </div>
 
+                <!-- OTTIMIZZA NOTE & RISALTO TIPOGRAFICO -->
+                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
+                  <div class="d-flex align-center mb-1">
+                    <v-icon size="16" color="orange-darken-2" class="mr-2 flex-shrink-0">mdi-format-size</v-icon>
+                    <h5 class="font-weight-black text-caption mb-0" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.76rem;">Ottimizza Note & Risalto Dati</h5>
+                  </div>
+                  <div class="text-caption text-slate-light" style="font-size: 0.72rem; line-height: 1.42;">
+                    <p class="mb-1.5">
+                      • <strong>Ottimizza Note (.lazy):</strong> Nelle <em>Impostazioni Utente</em> puoi attivare l'ottimizzazione per eliminare qualsiasi rallentamento o scatto della tastiera durante la digitazione su smartphone. I calcoli e il salvataggio vengono elaborati solo quando esci dalla casella di testo.<br>
+                      • <strong>Gerarchia Tipografica Automatica:</strong>
+                    </p>
+                    <div class="pa-2 rounded-lg mb-1.5" style="background: rgba(0, 0, 0, 0.35); border-left: 3px solid #f97316;">
+                      <div class="d-flex align-center gap-1.5 mb-1">
+                        <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.88rem;">62,5 kg</span>
+                        <span class="text-super-caption text-muted">→ Carico (Massimo risalto)</span>
+                      </div>
+                      <div class="d-flex align-center gap-1.5 mb-1">
+                        <span class="font-weight-bold text-slate-light" style="font-size: 0.78rem;">x7r</span>
+                        <span class="text-super-caption text-muted">→ Ripetizioni (Risalto medio)</span>
+                      </div>
+                      <div class="d-flex align-center gap-1.5">
+                        <span class="text-caption text-slate opacity-85" style="font-size: 0.68rem;">(nota / pin 4 / rpe 8)</span>
+                        <span class="text-super-caption text-muted">→ Note, gradi e parentesi (Piccolo)</span>
+                      </div>
+                    </div>
+                    <span class="text-super-caption text-slate d-block" style="font-size: 0.64rem;">
+                      💡 <em>Tutto ciò che scrivi tra parentesi <code>( ... )</code> rimane rigorosamente piccolo e viene ignorato dai calcoli dei record.</em>
+                    </span>
+                  </div>
+                </div>
+
                 <!-- 3. PULSANTE RECUPERO SERIE -->
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <div class="d-flex align-center mb-1">

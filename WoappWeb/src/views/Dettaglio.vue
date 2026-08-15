@@ -13916,6 +13916,7 @@ const tornaIndietro = () => {
 .ghost-glow-green :deep(.v-field--focused) { border-color: #10b981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important; }
 .ghost-glow-green,
 .ghost-glow-green .ins-num-highlight,
+.ghost-glow-green .ins-rep-highlight,
 .ghost-glow-green .ins-text-muted { 
   color: #34d399 !important; 
 }
@@ -13936,6 +13937,7 @@ const tornaIndietro = () => {
 .ghost-glow-blue :deep(.v-field--focused) { border-color: #3b82f6 !important; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important; }
 .ghost-glow-blue,
 .ghost-glow-blue .ins-num-highlight,
+.ghost-glow-blue .ins-rep-highlight,
 .ghost-glow-blue .ins-text-muted { 
   color: #60a5fa !important; 
 }
@@ -13956,6 +13958,7 @@ const tornaIndietro = () => {
 .ghost-glow-orange :deep(.v-field--focused) { border-color: var(--theme-primary) !important; box-shadow: 0 0 20px var(--theme-primary-glow) !important; }
 .ghost-glow-orange,
 .ghost-glow-orange .ins-num-highlight,
+.ghost-glow-orange .ins-rep-highlight,
 .ghost-glow-orange .ins-text-muted { 
   color: var(--theme-primary-light) !important; 
 }
@@ -14244,6 +14247,7 @@ th.sticky-col {
 [data-theme="light"] .ghost-glow-green :deep(input),
 [data-theme="light"] .ghost-glow-green :deep(textarea),
 [data-theme="light"] .ghost-glow-green .ins-num-highlight,
+[data-theme="light"] .ghost-glow-green .ins-rep-highlight,
 [data-theme="light"] .ghost-glow-green .ins-text-muted {
   color: var(--color-emerald-700) !important;
 }
@@ -14261,6 +14265,7 @@ th.sticky-col {
 [data-theme="light"] .ghost-glow-blue :deep(input),
 [data-theme="light"] .ghost-glow-blue :deep(textarea),
 [data-theme="light"] .ghost-glow-blue .ins-num-highlight,
+[data-theme="light"] .ghost-glow-blue .ins-rep-highlight,
 [data-theme="light"] .ghost-glow-blue .ins-text-muted {
   color: var(--color-blue-700) !important;
 }
@@ -14278,6 +14283,7 @@ th.sticky-col {
 [data-theme="light"] .ghost-glow-orange :deep(input),
 [data-theme="light"] .ghost-glow-orange :deep(textarea),
 [data-theme="light"] .ghost-glow-orange .ins-num-highlight,
+[data-theme="light"] .ghost-glow-orange .ins-rep-highlight,
 [data-theme="light"] .ghost-glow-orange .ins-text-muted {
   color: var(--text-dark) !important;
   font-weight: 700 !important;

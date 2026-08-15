@@ -994,7 +994,8 @@ export const faticaPesanteW1PctGlobal = ref(parseFloat(localStorage.getItem('fat
 export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteW1Pct') || localStorage.getItem('faticaDevastanteW1Pct_' + athleteIdForInit) || '10'));
 export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
 export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
-export const ottimizzaDigitazioneGlobal = ref(localStorage.getItem('ottimizzaDigitazioneGlobal') === 'true');
+export const ottimizzaDigitazioneGlobal = ref(localStorage.getItem('woapp_ottimizza_note_' + athleteIdForInit) === 'true' || localStorage.getItem('ottimizzaDigitazioneGlobal') === 'true');
+export const ottimizzaNoteGlobal = ottimizzaDigitazioneGlobal;
 export const deallenamentoSoglia1Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia1') || localStorage.getItem('deallenamentoSoglia1_' + athleteIdForInit) || '30', 10));
 export const deallenamentoSoglia2Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia2') || localStorage.getItem('deallenamentoSoglia2_' + athleteIdForInit) || '90', 10));
 export const deallenamentoSoglia3Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia3') || localStorage.getItem('deallenamentoSoglia3_' + athleteIdForInit) || '180', 10));
@@ -1013,22 +1014,195 @@ if (localW2 === 'reps') {
   localStorage.setItem('regolaProgressioneW2Global', 'peso');
 }
 
-// Helper per evidenziare numeri/carichi rispetto alle note alfanumeriche sui campi ins_week
+// Helper per evidenziare in modo intelligente carichi, ripetizioni e note sui campi ins_week
 export const formattaInsWeekHtml = (str) => {
   if (!str) return '';
   const strVal = String(str);
   if (!strVal.trim()) return '';
   if (!risaltoNumeriInsWeekGlobal.value) return strVal;
 
-  const tokens = strVal.split(/([+-]?[0-9]+(?:[.,][0-9]+)?)/g);
-  
-  return tokens.map(token => {
-    if (!token) return '';
-    if (/[0-9]/.test(token)) {
-      return `<span class="ins-num-highlight">${token}</span>`;
+  const escapeHtml = (text) => {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  const settingKeywords = [
+    'panca', 'inclinazione', 'inclinata', 'inclinato', 'buco', 'buca', 'buchi', 
+    'foro', 'fori', 'tacca', 'tacche', 'tacchetta', 'tacchette', 'posizione', 'pos', 'altezza', 
+    'inc', 'gradi', 'grado', '°', 'seduto', 'seduta', 'step', 'pin', 'livello', 'liv', 
+    'regolazione', 'tacc', 'tassello', 'tavoletta', 'board', 'catena', 'catene', 'elastico', 
+    'elastici', 'blocco', 'blocchi', 'box', 'serie', 'set', 'sets',
+    'giro', 'giri', 'circuiti', 'circuito', 
+    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo', 'tut', 't.u.t.',
+    'sedile', 'schienale', 'poggiapiede', 'poggiapiedi', 'schiena', 'rullo', 'perno', 
+    'distanza', 'ampiezza', 'impugnatura', 'presa', 'busto', 'cavo', 'puleggia',
+    'sopra', 'sotto', 'rpe', 'rp', 'sec', 'secondi', 'min', 'minuti'
+  ];
+
+  const stopWords = ['a', 'di', 'su', 'in', 'da', 'alla', 'al', 'del', 'della', 'n', 'n.', 'num', 'num.', 'n°', 'pos', 'pos.', '#', ':', '::', '@', 'at', 'con', 'e', 'o', 'per'];
+
+  // Segmenta la stringa isolando parentesi tonde (...), quadre [...] e graffe {...}
+  // Qualsiasi contenuto racchiuso tra parentesi rimane SEMPRE piccolo (ins-text-muted)
+  const segments = [];
+  let currentSegment = '';
+  let parenDepth = 0;
+  let parenType = '';
+
+  for (let i = 0; i < strVal.length; i++) {
+    const char = strVal[i];
+    if (parenDepth === 0) {
+      if (char === '(' || char === '[' || char === '{') {
+        if (currentSegment) {
+          segments.push({ text: currentSegment, isParen: false });
+          currentSegment = '';
+        }
+        parenDepth = 1;
+        parenType = char;
+        currentSegment += char;
+      } else {
+        currentSegment += char;
+      }
+    } else {
+      currentSegment += char;
+      if ((parenType === '(' && char === ')') ||
+          (parenType === '[' && char === ']') ||
+          (parenType === '{' && char === '}')) {
+        parenDepth--;
+        if (parenDepth === 0) {
+          segments.push({ text: currentSegment, isParen: true });
+          currentSegment = '';
+          parenType = '';
+        }
+      } else if (char === '(' || char === '[' || char === '{') {
+        parenDepth++;
+      }
     }
-    return `<span class="ins-text-muted">${token}</span>`;
-  }).join('');
+  }
+  if (currentSegment) {
+    segments.push({ text: currentSegment, isParen: parenDepth > 0 });
+  }
+
+  const formatOutsideText = (text) => {
+    const numberRegex = /([+-]?\d+(?:[.,]\d+)?)/g;
+    let lastIndex = 0;
+    let match;
+    let out = '';
+
+    while ((match = numberRegex.exec(text)) !== null) {
+      const numStr = match[0];
+      const startIdx = match.index;
+      const endIdx = startIdx + numStr.length;
+
+      const suffix = text.substring(endIdx);
+      const suffixClean = suffix.trimStart();
+      const prefix = text.substring(0, startIdx);
+      const prefixTrimmed = prefix.trimEnd();
+
+      // Riconoscimento del moltiplicatore x o X nel prefisso (es. "45 x7r", "45x7", "x14r", "1x14")
+      const matchPrecedingX = prefixTrimmed.match(/(?:^|[\s\d])([xX])\s*$/i);
+      const isAfterX = !!matchPrecedingX;
+      const isBeforeX = /^\s*[xX](?![a-zA-Z])\s*\d/.test(suffix);
+
+      // Riconoscimento tecnica Rest-Pause nel prefisso (es. "+ RP 14", "rp 12")
+      const matchPrecedingRP = prefixTrimmed.match(/\b(rp|rest\s*pause|drop\s*set|cluster)\s*$/i);
+      const isAfterRP = !!matchPrecedingRP;
+
+      // Riconoscimento suffissi espliciti di ripetizioni (es. "r", "reps", "rip", "colpi")
+      const matchExplicitRep = suffix.match(/^\s*(r\b(?!pe)|reps?\b|rip(?:etizioni)?\b|colpi\b)/i);
+      const isExplicitRepSuffix = !!matchExplicitRep;
+      const isExplicitKgSuffix = /^(?:kg\b|k\b|chili\b|kilo\b)/i.test(suffixClean);
+      const isDegreesSuffix = /^\s*°/.test(suffix) || /^(?:gradi|grado)\b/i.test(suffixClean);
+      const isTimeSuffix = /^(?:sec|secondi|s\b|min|minuti|m\b)/i.test(suffixClean);
+      const isSetsSuffix = /^(?:s\b|serie\b|set\b|sets\b)/i.test(suffixClean) && isAfterX;
+
+      const prefixTokens = prefixTrimmed.split(/[\s\-+:=@°\n\r,]+/);
+      let lastPrefixWord = '';
+      for (let j = prefixTokens.length - 1; j >= 0; j--) {
+        const t = prefixTokens[j].toLowerCase().trim();
+        if (!t) continue;
+        if (stopWords.includes(t)) continue;
+        lastPrefixWord = t;
+        break;
+      }
+
+      const isPrecededBySetting = lastPrefixWord && settingKeywords.some(k => (lastPrefixWord === k || lastPrefixWord.startsWith(k)) && k !== 'rp');
+      const isPrecededByRpeTut = lastPrefixWord && (lastPrefixWord.startsWith('rpe') || lastPrefixWord.startsWith('tut'));
+
+      let classification = 'load';
+
+      if (isDegreesSuffix || isTimeSuffix || isSetsSuffix || isPrecededBySetting || isPrecededByRpeTut) {
+        classification = 'muted';
+      } else if (isExplicitRepSuffix || isAfterRP || (isAfterX && !isExplicitKgSuffix)) {
+        classification = 'rep';
+      } else if (isBeforeX && !isExplicitKgSuffix && parseFloat(numStr.replace(',', '.')) <= 5 && !prefixTrimmed) {
+        classification = 'rep'; // es. 3x12: sia 3 che 12 fanno parte del blocco serie/ripetizioni
+      } else {
+        classification = 'load';
+      }
+
+      let precedingText = text.substring(lastIndex, startIdx);
+      let repPrefix = '';
+
+      if (classification === 'rep') {
+        if (matchPrecedingX) {
+          const xPos = precedingText.lastIndexOf(matchPrecedingX[1]);
+          if (xPos !== -1) {
+            repPrefix = precedingText.substring(xPos);
+            precedingText = precedingText.substring(0, xPos);
+          }
+        } else if (matchPrecedingRP) {
+          const rpPos = precedingText.toLowerCase().lastIndexOf(matchPrecedingRP[1].toLowerCase());
+          if (rpPos !== -1) {
+            repPrefix = precedingText.substring(rpPos);
+            precedingText = precedingText.substring(0, rpPos);
+          }
+        }
+      }
+
+      if (precedingText) {
+        out += `<span class="ins-text-muted">${escapeHtml(precedingText)}</span>`;
+      }
+
+      let repSuffix = '';
+      if (classification === 'rep' && matchExplicitRep) {
+        repSuffix = matchExplicitRep[0];
+        lastIndex = endIdx + matchExplicitRep[0].length;
+        numberRegex.lastIndex = lastIndex;
+      } else {
+        lastIndex = endIdx;
+      }
+
+      if (classification === 'load') {
+        out += `<span class="ins-num-highlight">${escapeHtml(numStr)}</span>`;
+      } else if (classification === 'rep') {
+        out += `<span class="ins-rep-highlight">${escapeHtml(repPrefix + numStr + repSuffix)}</span>`;
+      } else {
+        out += `<span class="ins-text-muted">${escapeHtml(numStr)}</span>`;
+      }
+    }
+
+    if (lastIndex < text.length) {
+      const remaining = text.substring(lastIndex);
+      out += `<span class="ins-text-muted">${escapeHtml(remaining)}</span>`;
+    }
+
+    return out;
+  };
+
+  const result = [];
+  for (const seg of segments) {
+    if (seg.isParen) {
+      result.push(`<span class="ins-text-muted">${escapeHtml(seg.text)}</span>`);
+    } else {
+      result.push(formatOutsideText(seg.text));
+    }
+  }
+
+  return result.join('');
 };
 
 export const haContenutoAlfanumericoMisto = (str) => {
@@ -1061,7 +1235,6 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         faticaDevastanteW1Pct: faticaDevastanteW1PctGlobal.value,
         faticaPesanteStoricoPct: faticaPesanteStoricoPctGlobal.value,
         faticaDevastanteStoricoPct: faticaDevastanteStoricoPctGlobal.value,
-        ottimizzaDigitazione: ottimizzaDigitazioneGlobal.value,
         regolaProgressioneW2: regolaProgressioneW2Global.value,
         deallenamentoSoglia1: deallenamentoSoglia1Global.value,
         deallenamentoSoglia2: deallenamentoSoglia2Global.value,
@@ -1106,7 +1279,6 @@ export const syncConfigurazioniListener = () => {
       if (data.faticaDevastanteW1Pct !== undefined) faticaDevastanteW1PctGlobal.value = parseFloat(data.faticaDevastanteW1Pct);
       if (data.faticaPesanteStoricoPct !== undefined) faticaPesanteStoricoPctGlobal.value = parseFloat(data.faticaPesanteStoricoPct);
       if (data.faticaDevastanteStoricoPct !== undefined) faticaDevastanteStoricoPctGlobal.value = parseFloat(data.faticaDevastanteStoricoPct);
-      if (data.ottimizzaDigitazione !== undefined) ottimizzaDigitazioneGlobal.value = data.ottimizzaDigitazione === true || data.ottimizzaDigitazione === 'true';
       if (data.regolaProgressioneW2 !== undefined) {
         regolaProgressioneW2Global.value = data.regolaProgressioneW2 === 'reps' ? 'peso' : data.regolaProgressioneW2;
       }
@@ -1184,10 +1356,6 @@ watch(faticaPesanteStoricoPctGlobal, (newVal) => {
 });
 watch(faticaDevastanteStoricoPctGlobal, (newVal) => {
   localStorage.setItem('faticaDevastanteStoricoPct', String(newVal));
-  salvaConfigurazioniGlobaliFirestore();
-});
-watch(ottimizzaDigitazioneGlobal, (newVal) => {
-  localStorage.setItem('ottimizzaDigitazioneGlobal', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(regolaProgressioneW2Global, (newVal) => {
@@ -1315,7 +1483,8 @@ export const salvaClienteConfigFirestore = () => {
           layoutEsercizi: layoutEserciziGlobal.value,
           layoutDettaglio: layoutDettaglioGlobal.value,
           posizioneRecuperi: posizioneRecuperiGlobal.value,
-          timerTheme: timerThemeGlobal.value
+          timerTheme: timerThemeGlobal.value,
+          ottimizzaNote: ottimizzaDigitazioneGlobal.value
         },
         workoutSettings: {
           defaultBilanciere: defaultBilanciereGlobal.value,
@@ -1416,6 +1585,11 @@ export const syncClienteConfigListener = () => {
         timerThemeGlobal.value = ui.timerTheme;
         localStorage.setItem('woapp_timer_theme', ui.timerTheme);
       }
+      if (ui.ottimizzaNote !== undefined || ui.ottimizzaDigitazione !== undefined) {
+        const optVal = (ui.ottimizzaNote !== undefined ? ui.ottimizzaNote : ui.ottimizzaDigitazione) === true;
+        ottimizzaDigitazioneGlobal.value = optVal;
+        localStorage.setItem('woapp_ottimizza_note_' + atletaId, String(optVal));
+      }
 
       if (wo.defaultBilanciere !== undefined) {
         defaultBilanciereGlobal.value = parseFloat(wo.defaultBilanciere);
@@ -1460,7 +1634,8 @@ watch([
   ghostAnalisiNoteAttiva,
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
-  defaultTimerRecGlobal
+  defaultTimerRecGlobal,
+  ottimizzaDigitazioneGlobal
 ], () => {
   const atletaId = getActiveAtletaId();
   if (atletaId) {
@@ -1474,6 +1649,7 @@ watch([
     localStorage.setItem('woapp_default_bilanciere', String(defaultBilanciereGlobal.value));
     localStorage.setItem('woapp_vibrazione_attiva', String(vibrazioneAttivaGlobal.value));
     localStorage.setItem('woapp_default_timer_rec', String(defaultTimerRecGlobal.value));
+    localStorage.setItem('woapp_ottimizza_note_' + atletaId, String(ottimizzaDigitazioneGlobal.value));
   }
   salvaClienteConfigFirestore();
 });

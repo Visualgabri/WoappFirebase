@@ -1730,11 +1730,21 @@ textarea:focus,
   background: var(--brand-accent, #ea580c) !important;
 }
 
-/* Stili per risalto numeri e carichi nei campi ins_week */
-.ins-num-highlight {
+/* Stili per risalto carichi, ripetizioni e note nei campi ins_week */
+.ins-num-highlight,
+.ins-load-highlight {
   font-weight: 900 !important;
   font-size: 1.15em !important;
   letter-spacing: -0.2px;
+  color: inherit !important;
+  font-variant-numeric: tabular-nums;
+  display: inline;
+}
+
+.ins-rep-highlight {
+  font-weight: 800 !important;
+  font-size: 0.95em !important;
+  letter-spacing: -0.1px;
   color: inherit !important;
   font-variant-numeric: tabular-nums;
   display: inline;
@@ -1748,6 +1758,7 @@ textarea:focus,
   color: inherit !important;
   display: inline;
 }
+
 
 
 

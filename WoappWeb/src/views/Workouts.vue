@@ -42,10 +42,30 @@
         </div>
       </div>
       <div class="header-actions d-flex align-center gap-1">
+        <v-btn 
+          icon 
+          color="amber-darken-3" 
+          variant="tonal" 
+          size="x-small" 
+          style="width: 28px; height: 28px;" 
+          @click="apriDialogGradimenti('tutti')" 
+          title="Gradimenti e Feeling Esercizi"
+          id="btn-apri-gradimenti-header"
+        >
+          <v-badge 
+            v-if="eserciziSenzaGradimento.length > 0" 
+            color="red-darken-2" 
+            :content="eserciziSenzaGradimento.length" 
+            floating 
+            style="font-size: 0.55rem;"
+          >
+            <v-icon size="16">mdi-star</v-icon>
+          </v-badge>
+          <v-icon v-else size="16">mdi-star</v-icon>
+        </v-btn>
         <v-btn icon color="primary" variant="tonal" size="x-small" style="width: 28px; height: 28px;" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
           <v-icon size="16">mdi-magnify</v-icon>
         </v-btn>
-        <v-btn icon color="slate-dark" variant="text" size="x-small" style="width: 28px; height: 28px;" @click="caricaAllenamenti" title="Aggiorna"><v-icon size="18">mdi-refresh</v-icon></v-btn>
       </div>
     </div>
 
@@ -214,7 +234,7 @@
               <p class="text-slate font-weight-medium mb-3" style="font-size: 0.75rem; line-height: 1.45; color: #cbd5e1 !important;">
                 Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda. Ottimo lavoro!
               </p>
-              <div class="d-flex gap-3 flex-wrap">
+              <div class="d-flex gap-2 flex-wrap align-center">
                 <v-btn
                   to="/ricerca"
                   variant="outlined"
@@ -237,6 +257,37 @@
                 >
                   📈 Riepilogo Progressioni
                 </v-btn>
+                <!-- Pulsante Inserisci Gradimenti Mancanti o Riepilogo Gradimenti -->
+                <v-btn
+                  v-if="eserciziSenzaGradimento.length > 0"
+                  variant="flat"
+                  color="amber-darken-3"
+                  size="small"
+                  class="font-weight-black text-none text-white animate-pulse"
+                  rounded="lg"
+                  @click="apriDialogGradimenti('mancanti')"
+                  id="btn-gradimenti-mancanti-banner"
+                >
+                  ⭐ Inserisci {{ eserciziSenzaGradimento.length }} Gradimenti Mancanti
+                </v-btn>
+                <v-btn
+                  v-else
+                  variant="outlined"
+                  color="amber-lighten-2"
+                  size="small"
+                  class="font-weight-black text-none card-glass"
+                  rounded="lg"
+                  @click="apriDialogGradimenti('tutti')"
+                  id="btn-gradimenti-tutti-banner"
+                >
+                  ⭐ Gradimenti (Media: {{ mediaGradimenti }}/5)
+                </v-btn>
+              </div>
+
+              <!-- Avviso se mancano ancora gradimenti a fine mesociclo -->
+              <div v-if="eserciziSenzaGradimento.length > 0" class="mt-2.5 d-flex align-center gap-1.5 text-super-caption font-weight-bold text-amber-lighten-2" style="font-size: 0.68rem;">
+                <v-icon size="14" color="amber-lighten-2">mdi-alert-circle-outline</v-icon>
+                <span>Mancano ancora {{ eserciziSenzaGradimento.length }} voti di gradimento prima di archiviare definitivamente la scheda.</span>
               </div>
             </div>
           </div>
@@ -1432,9 +1483,20 @@
                         <v-icon v-if="ex.flg_video === 'true' || ex.flg_video === true" color="orange" size="16" class="ml-1.5" title="Video richiesto">mdi-video</v-icon>
                       </h4>
 
-                      <!-- Settore -->
-                      <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
+                      <!-- Settore e Gradimento Esercizio -->
+                      <div class="d-flex align-center justify-space-between text-caption font-weight-bold text-orange-darken-3 mb-1">
                         <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
+                        <v-chip
+                          size="x-small"
+                          :color="ex.ind_reps_start ? 'amber-darken-3' : 'grey-darken-3'"
+                          :variant="ex.ind_reps_start ? 'flat' : 'outlined'"
+                          class="font-weight-black text-white px-1.5 cursor-pointer"
+                          style="height: 16px; font-size: 0.52rem; border-radius: 3px;"
+                          @click.stop="apriDialogGradimenti('tutti')"
+                          title="Gradimento esercizio (Tocca per gestire i voti)"
+                        >
+                          {{ ex.ind_reps_start ? '⭐ ' + ex.ind_reps_start + '/5' : '⭐ Vota' }}
+                        </v-chip>
                       </div>
 
                       <!-- Prescrizione della settimana attiva -->
@@ -1792,9 +1854,20 @@
                     </v-chip>
                   </h4>
 
-                  <!-- Settore -->
-                  <div class="d-flex align-center text-caption font-weight-bold text-orange-darken-3 mb-1">
+                  <!-- Settore e Gradimento Esercizio -->
+                  <div class="d-flex align-center justify-space-between text-caption font-weight-bold text-orange-darken-3 mb-1">
                     <span>{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
+                    <v-chip
+                      size="x-small"
+                      :color="block.exercise.ind_reps_start ? 'amber-darken-3' : 'grey-darken-3'"
+                      :variant="block.exercise.ind_reps_start ? 'flat' : 'outlined'"
+                      class="font-weight-black text-white px-1.5 cursor-pointer"
+                      style="height: 16px; font-size: 0.52rem; border-radius: 3px;"
+                      @click.stop="apriDialogGradimenti('tutti')"
+                      title="Gradimento esercizio (Tocca per gestire i voti)"
+                    >
+                      {{ block.exercise.ind_reps_start ? '⭐ ' + block.exercise.ind_reps_start + '/5' : '⭐ Vota' }}
+                    </v-chip>
                   </div>
 
                   <!-- Prescrizione della settimana attiva -->
@@ -2029,6 +2102,316 @@
             Chiudi
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Gestione Rapida Gradimenti Esercizi (1-5) -->
+    <v-dialog 
+      v-model="dialogGradimenti" 
+      max-width="620" 
+      scrollable
+      transition="dialog-bottom-transition"
+    >
+      <v-card 
+        class="card-glass-dark rounded-2xl overflow-hidden text-left" 
+        style="backdrop-filter: blur(25px); background: #0b0f19 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;"
+      >
+        <!-- Header Dialog -->
+        <v-card-title class="pa-4 pb-3 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2.5">
+            <v-avatar color="amber-darken-3" size="32" class="elevation-2">
+              <v-icon size="18" color="white">mdi-star</v-icon>
+            </v-avatar>
+            <div>
+              <span class="text-subtitle-1 font-weight-black text-white d-block leading-tight">Gradimenti Esercizi</span>
+              <span class="text-super-caption text-amber-lighten-2 font-weight-bold" style="font-size: 0.68rem;">
+                Scheda {{ schedaSelezionata || '' }} • Assegna rapidamente un voto da 1 a 5
+              </span>
+            </div>
+          </div>
+          <v-btn icon variant="text" width="32" height="32" color="grey-lighten-1" @click="dialogGradimenti = false">
+            <v-icon size="20">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <!-- Body con Barra di Progresso, Statistiche e Filtri -->
+        <v-card-text class="pa-3 pa-sm-4" style="max-height: 72vh;">
+          
+          <!-- Banner Statistiche Gradimenti -->
+          <div class="metric-pill metric-pill-box pa-3 rounded-xl mb-3 text-left border-soft" style="background: rgba(15, 23, 42, 0.85);">
+            <div class="d-flex align-center justify-space-between mb-1.5 flex-wrap gap-1">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.62rem;">
+                Progresso Voti Mesociclo
+              </span>
+              <div class="d-flex align-center gap-2">
+                <span class="text-caption font-weight-black text-amber-lighten-2">
+                  ⭐ {{ mediaGradimenti > 0 ? mediaGradimenti + '/5' : '-' }} media
+                </span>
+                <v-chip 
+                  size="x-small" 
+                  :color="eserciziSenzaGradimento.length === 0 ? 'green-darken-3' : 'amber-darken-4'" 
+                  class="font-weight-black text-white px-2 py-0" 
+                  variant="flat"
+                  style="font-size: 0.58rem; height: 18px;"
+                >
+                  {{ eserciziSenzaGradimento.length === 0 ? 'Tutti Votati 🎉' : eserciziSenzaGradimento.length + ' Mancanti ⚠️' }}
+                </v-chip>
+              </div>
+            </div>
+
+            <v-progress-linear
+              :model-value="percentualeVotati"
+              color="amber-darken-2"
+              height="7"
+              rounded
+              striped
+              class="mb-2"
+            ></v-progress-linear>
+
+            <div class="d-flex align-center justify-space-between text-super-caption text-slate font-weight-medium" style="font-size: 0.65rem;">
+              <span><strong>{{ eserciziConGradimento.length }}</strong> su <strong>{{ tuttiEserciziMesociclo.length }}</strong> esercizi valutati</span>
+              <span class="font-weight-black text-amber-lighten-2">{{ percentualeVotati }}%</span>
+            </div>
+          </div>
+
+          <!-- Filtri e Ricerca -->
+          <div class="d-flex flex-column gap-2 mb-3">
+            <!-- Barra di ricerca rapida -->
+            <v-text-field
+              v-model="ricercaGradimenti"
+              placeholder="Filtra per nome esercizio o settore..."
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+              color="amber-darken-2"
+              prepend-inner-icon="mdi-magnify"
+              class="rounded-xl"
+            ></v-text-field>
+
+            <!-- Chip Filtri -->
+            <div class="d-flex align-center gap-1.5 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+              <v-chip
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroGradimenti === 'tutti' ? 'amber-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroGradimenti === 'tutti' ? 'text-white' : 'text-slate-dark'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroGradimenti = 'tutti'"
+              >
+                Tutti ({{ tuttiEserciziMesociclo.length }})
+              </v-chip>
+
+              <v-chip
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroGradimenti === 'mancanti' ? 'red-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroGradimenti === 'mancanti' ? 'text-white' : (eserciziSenzaGradimento.length > 0 ? 'text-red-lighten-3' : 'text-slate-dark')"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroGradimenti = 'mancanti'"
+              >
+                <v-icon size="13" class="mr-1" color="red-lighten-2">mdi-alert-circle-outline</v-icon>
+                Senza Voto ({{ eserciziSenzaGradimento.length }})
+              </v-chip>
+
+              <v-chip
+                v-for="g in ['A', 'B', 'C', 'D'].filter(day => conteggioGradimentiPerGiorno[day] && conteggioGradimentiPerGiorno[day].total > 0)"
+                :key="g"
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroGradimenti === g ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroGradimenti === g ? 'text-white' : 'text-slate-dark'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroGradimenti = g"
+              >
+                {{ g }} ({{ conteggioGradimentiPerGiorno[g].voted }}/{{ conteggioGradimentiPerGiorno[g].total }})
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- Lista Esercizi per Gradimento Rapido -->
+          <div v-if="eserciziGradimentiFiltrati.length === 0" class="text-center py-8 text-muted card-glass rounded-xl pa-4">
+            <template v-if="filtroGradimenti === 'mancanti' && eserciziSenzaGradimento.length === 0">
+              <v-icon size="48" color="green-accent-4" class="mb-2 animate-bounce">mdi-check-decagram</v-icon>
+              <h4 class="text-subtitle-1 font-weight-black text-green-lighten-2 mb-1">
+                Tutti i gradimenti completati!
+              </h4>
+              <p class="text-caption text-slate font-weight-medium mb-0">
+                Hai assegnato un voto di feeling a tutti gli esercizi di questo mesociclo (Media: <strong>{{ mediaGradimenti }}/5 ⭐</strong>).
+              </p>
+            </template>
+            <template v-else>
+              <v-icon size="40" color="grey" class="mb-2">mdi-magnify-close</v-icon>
+              <p class="text-caption text-slate font-weight-medium mb-0">
+                Nessun esercizio trovato con i filtri selezionati.
+              </p>
+            </template>
+          </div>
+
+          <div v-else class="d-flex flex-column">
+            <v-card
+              v-for="ex in eserciziGradimentiFiltrati"
+              :key="ex.id"
+              class="quick-rating-card-item pa-2 rounded-xl text-left"
+              :class="[
+                ex.ind_reps_start && parseInt(ex.ind_reps_start) >= 1 && parseInt(ex.ind_reps_start) <= 5 ? 'is-rated' : 'is-unrated'
+              ]"
+              flat
+            >
+              <!-- Riga Intestazione Esercizio: Coordinata (es: C3), Settore, Titolo -->
+              <div class="d-flex align-center gap-2 mb-1">
+                <!-- Miniatura GIF / Icona compatta -->
+                <div 
+                  class="rounded-lg overflow-hidden flex-shrink-0 border"
+                  style="width: 36px; height: 36px; border-color: rgba(255,255,255,0.1) !important;"
+                >
+                  <v-img
+                    :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                    width="36px"
+                    height="36px"
+                    cover
+                    class="bg-grey-darken-4"
+                  >
+                    <template v-slot:placeholder>
+                      <div class="fill-height d-flex align-center justify-center bg-slate-900">
+                        <v-icon color="grey" size="16">mdi-dumbbell</v-icon>
+                      </div>
+                    </template>
+                  </v-img>
+                </div>
+
+                <div class="min-width-0 flex-grow-1">
+                  <div class="d-flex align-center">
+                    <!-- Coordinata compatta senza G (tipo A1, B2, C3) -->
+                    <v-chip
+                      size="x-small"
+                      color="orange-darken-3"
+                      variant="flat"
+                      class="font-weight-black text-white px-1.5 mr-2"
+                      style="height: 17px; font-size: 0.60rem; border-radius: 4px;"
+                    >
+                      {{ (ex.des_giorno || '').trim() }}{{ ex.num_riga_giorno }}
+                    </v-chip>
+                    <span v-if="ex.des_settore" class="text-super-caption font-weight-black text-orange-lighten-2 uppercase text-truncate" style="font-size: 0.60rem;">
+                      {{ ex.des_settore }}
+                    </span>
+                  </div>
+
+                  <h4 
+                    class="font-weight-black text-caption text-slate-dark text-truncate" 
+                    style="font-size: 0.82rem !important; line-height: 1.15; margin-top: 2px !important; margin-bottom: 0 !important;"
+                    :title="ex.des_esercizio"
+                  >
+                    {{ ex.des_esercizio }}
+                  </h4>
+                </div>
+              </div>
+
+              <!-- Gruppo Pulsanti Gradimento Touch Rapidi (1 a 5 con Emoji) -->
+              <div class="quick-rating-btn-group">
+                <v-btn
+                  v-for="voto in [1, 2, 3, 4, 5]"
+                  :key="voto"
+                  variant="flat"
+                  class="quick-vote-btn"
+                  :class="[
+                    'quick-vote-btn-' + voto,
+                    { 
+                      'is-selected': parseInt(ex.ind_reps_start) === voto,
+                      ['is-selected-' + voto]: parseInt(ex.ind_reps_start) === voto 
+                    }
+                  ]"
+                  @click.stop="salvaGradimentoRapido(ex, voto)"
+                  :id="'btn-gradimento-' + ex.id + '-' + voto"
+                  :title="getLabelVoto(voto)"
+                >
+                  <span v-if="voto === 1">😡 1</span>
+                  <span v-else-if="voto === 2">😕 2</span>
+                  <span v-else-if="voto === 3">😐 3</span>
+                  <span v-else-if="voto === 4">🙂 4</span>
+                  <span v-else-if="voto === 5">🤩 5</span>
+                </v-btn>
+              </div>
+            </v-card>
+          </div>
+        </v-card-text>
+
+        <!-- Footer Dialog -->
+        <v-card-actions class="pa-3 border-top d-flex align-center justify-space-between bg-slate-900">
+          <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.65rem;">
+            Tocca un voto per assegnarlo o rimuoverlo
+          </span>
+          <v-btn
+            color="amber-darken-3"
+            variant="flat"
+            size="small"
+            rounded="lg"
+            class="font-weight-black text-none text-white px-4"
+            @click="dialogGradimenti = false"
+            style="height: 32px; font-size: 0.72rem !important;"
+          >
+            Fatto
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Proposta Automatica Gradimenti a Fine Mesociclo -->
+    <v-dialog v-model="dialogPropostaGradimentiFineMesociclo" max-width="480" persistent>
+      <v-card class="card-glass-dark rounded-2xl border pa-5 text-center" style="background: rgba(15, 23, 42, 0.97) !important; border: 1.5px solid rgba(245, 158, 11, 0.4) !important; backdrop-filter: blur(25px) !important; box-shadow: 0 10px 40px rgba(245, 158, 11, 0.2) !important;">
+        <div class="d-flex justify-center mb-3">
+          <v-avatar color="amber-darken-3" size="56" class="elevation-3 animate-bounce">
+            <v-icon size="32" color="white">mdi-trophy-award</v-icon>
+          </v-avatar>
+        </div>
+
+        <h3 class="text-h6 font-weight-black text-amber-lighten-2 mb-1" style="font-size: 1.15rem !important;">
+          🎉 Mesociclo Completato!
+        </h3>
+        <p class="text-caption text-slate font-weight-bold mb-3" style="color: #e2e8f0 !important; font-size: 0.78rem;">
+          Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda!
+        </p>
+
+        <div class="pa-3 rounded-xl mb-4 text-left border" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.25) !important;">
+          <div class="d-flex align-center gap-2 mb-1">
+            <v-icon size="18" color="amber-darken-2">mdi-star-shooting</v-icon>
+            <span class="text-caption font-weight-black text-amber-lighten-1" style="font-size: 0.80rem;">
+              Inserisci i gradimenti degli esercizi
+            </span>
+          </div>
+          <p class="text-super-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4; color: #cbd5e1 !important;">
+            Ci sono ancora <strong class="text-amber-lighten-2">{{ eserciziSenzaGradimento.length }} esercizi</strong> senza voto di feeling. Assegna rapidamente i tuoi gradimenti per inviare al Coach un resoconto completo e ottimizzare la prossima scheda.
+          </p>
+        </div>
+
+        <div class="d-flex flex-column gap-2">
+          <v-btn
+            color="amber-darken-3"
+            variant="flat"
+            rounded="xl"
+            class="font-weight-black text-none py-2 text-white shadow-sm"
+            height="44"
+            @click="chiudiPropostaGradimenti(true)"
+            id="btn-proposta-gradimenti-conferma"
+          >
+            ⭐ Inserisci i {{ eserciziSenzaGradimento.length }} Gradimenti Mancanti
+          </v-btn>
+
+          <v-btn
+            variant="text"
+            color="grey-lighten-1"
+            rounded="xl"
+            class="font-weight-bold text-none"
+            size="small"
+            @click="chiudiPropostaGradimenti(false)"
+            id="btn-proposta-gradimenti-ignora"
+          >
+            Concludi comunque / Più tardi
+          </v-btn>
+        </div>
       </v-card>
     </v-dialog>
 
@@ -2861,6 +3244,226 @@ const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
 const allExercisesBackup = ref([]);
+
+const mesocicloCompletato = computed(() => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return false;
+  const righeZero = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) === 0);
+  if (righeZero.length === 0) return false;
+  return righeZero.every(header => {
+    for (let w = 1; w <= 6; w++) {
+      if (!isCmpTrue(header['cmp' + w])) return false;
+    }
+    return true;
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// GESTIONE GRADIMENTI (VOTI 1-5 FEELING ESERCIZI) & PROPOSTA FINE MESOCICLO
+// ═══════════════════════════════════════════════════════════════════
+
+const dialogGradimenti = ref(false);
+const filtroGradimenti = ref('tutti'); // 'tutti' | 'mancanti' | 'A' | 'B' | 'C' | 'D'
+const ricercaGradimenti = ref('');
+const dialogPropostaGradimentiFineMesociclo = ref(false);
+const salvataggioGradimentoInCorso = ref(null);
+
+// Lista ordinata di tutti i singoli esercizi del mesociclo attivo (esclusi gli header giorno num_riga_giorno === 0)
+const tuttiEserciziMesociclo = computed(() => {
+  if (!listaAllenamenti.value) return [];
+  return listaAllenamenti.value
+    .filter(item => parseInt(item.num_riga_giorno) > 0)
+    .slice()
+    .sort((a, b) => {
+      const gA = (a.des_giorno || '').trim().toUpperCase();
+      const gB = (b.des_giorno || '').trim().toUpperCase();
+      if (gA !== gB) return gA.localeCompare(gB);
+      return (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0);
+    });
+});
+
+// Esercizi a cui non è stato ancora assegnato un voto da 1 a 5
+const eserciziSenzaGradimento = computed(() => {
+  return tuttiEserciziMesociclo.value.filter(ex => {
+    const val = parseInt(ex.ind_reps_start);
+    return isNaN(val) || val < 1 || val > 5;
+  });
+});
+
+// Esercizi che hanno un voto valido da 1 a 5
+const eserciziConGradimento = computed(() => {
+  return tuttiEserciziMesociclo.value.filter(ex => {
+    const val = parseInt(ex.ind_reps_start);
+    return !isNaN(val) && val >= 1 && val <= 5;
+  });
+});
+
+// Percentuale di esercizi con gradimento completato
+const percentualeVotati = computed(() => {
+  const tot = tuttiEserciziMesociclo.value.length;
+  if (tot === 0) return 0;
+  return Math.round((eserciziConGradimento.value.length / tot) * 100);
+});
+
+// Media dei voti di gradimento
+const mediaGradimenti = computed(() => {
+  const votati = eserciziConGradimento.value;
+  if (votati.length === 0) return 0;
+  const somma = votati.reduce((acc, ex) => acc + parseInt(ex.ind_reps_start), 0);
+  return parseFloat((somma / votati.length).toFixed(1));
+});
+
+// Conteggio totali e mancanti per giorno
+const conteggioGradimentiPerGiorno = computed(() => {
+  const counts = {
+    A: { total: 0, missing: 0, voted: 0 },
+    B: { total: 0, missing: 0, voted: 0 },
+    C: { total: 0, missing: 0, voted: 0 },
+    D: { total: 0, missing: 0, voted: 0 }
+  };
+  tuttiEserciziMesociclo.value.forEach(ex => {
+    const g = (ex.des_giorno || '').trim().toUpperCase();
+    if (!counts[g]) {
+      counts[g] = { total: 0, missing: 0, voted: 0 };
+    }
+    counts[g].total++;
+    const v = parseInt(ex.ind_reps_start);
+    if (!isNaN(v) && v >= 1 && v <= 5) {
+      counts[g].voted++;
+    } else {
+      counts[g].missing++;
+    }
+  });
+  return counts;
+});
+
+// Esercizi filtrati per la vista rapida gradimenti
+const eserciziGradimentiFiltrati = computed(() => {
+  let list = tuttiEserciziMesociclo.value;
+  
+  if (filtroGradimenti.value === 'mancanti') {
+    list = list.filter(ex => {
+      const v = parseInt(ex.ind_reps_start);
+      return isNaN(v) || v < 1 || v > 5;
+    });
+  } else if (['A', 'B', 'C', 'D'].includes(filtroGradimenti.value)) {
+    list = list.filter(ex => (ex.des_giorno || '').trim().toUpperCase() === filtroGradimenti.value);
+  }
+
+  if (ricercaGradimenti.value && ricercaGradimenti.value.trim()) {
+    const q = ricercaGradimenti.value.toLowerCase().trim();
+    list = list.filter(ex => {
+      const nome = (ex.des_esercizio || '').toLowerCase();
+      const settore = (ex.des_settore || '').toLowerCase();
+      const giorno = (ex.des_giorno || '').toLowerCase();
+      return nome.includes(q) || settore.includes(q) || giorno.includes(q);
+    });
+  }
+
+  return list;
+});
+
+// Apertura modale gradimenti con filtro specificato
+const apriDialogGradimenti = (filtro = 'tutti') => {
+  vibraTattile(12);
+  filtroGradimenti.value = filtro;
+  ricercaGradimenti.value = '';
+  dialogGradimenti.value = true;
+};
+
+// Salvataggio istantaneo del voto (1-5) o toggle rimozione
+const salvaGradimentoRapido = async (ex, voto) => {
+  vibraTattile(18);
+  const votoStr = String(voto);
+  const valorePrecedente = (ex.ind_reps_start || '').trim();
+  
+  // Se si tocca il voto già attivo, lo rimuove (toggle)
+  const nuovoValore = valorePrecedente === votoStr ? '' : votoStr;
+  
+  // Aggiornamento reattivo istantaneo
+  ex.ind_reps_start = nuovoValore;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
+  
+  // Aggiorna anche in globalStoryboard se presente
+  if (globalStoryboard.value) {
+    const foundDoc = globalStoryboard.value.find(d => d.id === ex.id);
+    if (foundDoc) {
+      foundDoc.ind_reps_start = nuovoValore;
+    }
+  }
+
+  salvataggioGradimentoInCorso.value = ex.id;
+
+  // Salva offline nel localStorage
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates['ind_reps_start'] = nuovoValore;
+  updates['timestamp'] = ex.timestamp;
+  updates['timestamp_ute'] = ex.timestamp_ute;
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  if (ex.num_riga) {
+    const key2 = `offline_storyboard_${ex.num_riga}`;
+    localStorage.setItem(key2, JSON.stringify(updates));
+  }
+
+  // Salva su Firebase Firestore in background
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, {
+      ind_reps_start: nuovoValore,
+      timestamp: updates['timestamp'],
+      timestamp_ute: updates['timestamp_ute']
+    }, { merge: true });
+    console.log(`Gradimento per ${ex.des_esercizio} salvato su Firebase: ${nuovoValore}`);
+  } catch (err) {
+    console.warn("Errore salvataggio gradimento su Firebase:", err);
+  } finally {
+    salvataggioGradimentoInCorso.value = null;
+  }
+};
+
+// Funzione helper per ottenere l'etichetta del voto
+const getLabelVoto = (voto) => {
+  const v = parseInt(voto);
+  switch (v) {
+    case 1: return '1 - Scarso 😡';
+    case 2: return '2 - Sufficiente 😕';
+    case 3: return '3 - Medio 😐';
+    case 4: return '4 - Buono 🙂';
+    case 5: return '5 - Ottimo 🤩';
+    default: return 'Non votato';
+  }
+};
+
+// Controllo e apertura automatica della proposta gradimenti mancanti a fine mesociclo
+const controllaPropostaGradimentiFineMesociclo = () => {
+  if (!mesocicloCompletato.value) return;
+  if (eserciziSenzaGradimento.value.length === 0) return;
+
+  const athlete = selectedAthlete.value || 'default';
+  const sheet = selectedSheet.value || 'default';
+  const sessionKey = `avviso_gradimenti_proposto_${athlete}_${sheet}`;
+
+  // Se non è già stato proposto in questa sessione browser
+  if (!sessionStorage.getItem(sessionKey)) {
+    sessionStorage.setItem(sessionKey, 'true');
+    dialogPropostaGradimentiFineMesociclo.value = true;
+  }
+};
+
+const chiudiPropostaGradimenti = (apriGradimenti = false) => {
+  dialogPropostaGradimentiFineMesociclo.value = false;
+  if (apriGradimenti) {
+    setTimeout(() => {
+      apriDialogGradimenti('mancanti');
+    }, 200);
+  }
+};
 
 // Funzione infallibile che controlla se l'esercizio esisteva ESATTAMENTE nella scheda - 1
 const esisteInSchedaPrecedente = (ex) => {
@@ -4004,6 +4607,13 @@ const impostaChiusuraGiorno = async (w, val) => {
     if (haIncompleti) {
       dialogRecuperiAvviso.value = true;
     }
+
+    // Se la chiusura ha completato l'intero mesociclo e mancano dei gradimenti, proponi la lista
+    nextTick(() => {
+      if (mesocicloCompletato.value && eserciziSenzaGradimento.value.length > 0) {
+        dialogPropostaGradimentiFineMesociclo.value = true;
+      }
+    });
   }
 };
 
@@ -4362,6 +4972,15 @@ watch(loadingStoryboard, (newVal) => {
   }
 });
 
+// Watch per proporre automaticamente l'inserimento gradimenti quando il mesociclo è completato
+watch([mesocicloCompletato, loadingStoryboard], ([mesoDone, loading]) => {
+  if (mesoDone && !loading) {
+    nextTick(() => {
+      controllaPropostaGradimentiFineMesociclo();
+    });
+  }
+}, { immediate: true });
+
 // Naviga al dettaglio dell'esercizio
 const vaiAlDettaglio = (id, week = null) => {
   vibraTattile(10);
@@ -4393,16 +5012,7 @@ const vibraTattile = (ms = 12) => {
   }
 };
 
-const mesocicloCompletato = computed(() => {
-  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return false;
-  const righeZero = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) === 0);
-  if (righeZero.length === 0) return false;
-  return righeZero.every(header => {
-    for (let w = 1; w <= 6; w++) {
-      if (!isCmpTrue(header['cmp' + w])) return false;
-    }
-  });
-});
+
 
 const dialogProgressioni = ref(false);
 

@@ -1798,3 +1798,139 @@ textarea:focus,
   line-height: 1.45 !important;
   font-size: 0.92rem !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SISTEMA DI INSERIMENTO RAPIDO GRADIMENTI (VOTI ESERCIZI 1-5)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.quick-rating-card-item {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 12px !important;
+  margin-bottom: 8px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.quick-rating-card-item:hover {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.quick-rating-card-item.is-unrated {
+  border-left: 4px solid #ef4444 !important;
+}
+
+.quick-rating-card-item.is-rated {
+  border-left: 4px solid #f59e0b !important;
+}
+
+.quick-rating-btn-group {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  margin-top: 6px !important;
+}
+
+.quick-vote-btn {
+  flex: 1;
+  min-width: 0 !important;
+  height: 32px !important;
+  padding: 0 2px !important;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  border-radius: 7px !important;
+  background: rgba(30, 41, 59, 0.85) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.quick-vote-btn:hover {
+  background: rgba(51, 65, 85, 0.95) !important;
+  color: #ffffff !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  transform: scale(1.04);
+}
+
+.quick-vote-btn.is-selected {
+  background: linear-gradient(135deg, #d97706, #b45309) !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 3px 12px rgba(217, 119, 6, 0.45) !important;
+  transform: scale(1.03);
+}
+
+.quick-vote-btn.is-selected-1,
+.btn-feeling-item.btn-feeling-selected-1 {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.45) !important;
+}
+
+.quick-vote-btn.is-selected-2,
+.btn-feeling-item.btn-feeling-selected-2 {
+  background: linear-gradient(135deg, #ea580c, #c2410c) !important;
+  color: #ffffff !important;
+  border-color: #f97316 !important;
+  box-shadow: 0 3px 10px rgba(234, 88, 12, 0.45) !important;
+}
+
+.quick-vote-btn.is-selected-3,
+.btn-feeling-item.btn-feeling-selected-3 {
+  background: linear-gradient(135deg, #d97706, #b45309) !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.45) !important;
+}
+
+.quick-vote-btn.is-selected-4,
+.btn-feeling-item.btn-feeling-selected-4 {
+  background: linear-gradient(135deg, #65a30d, #4d7c0f) !important;
+  color: #ffffff !important;
+  border-color: #84cc16 !important;
+  box-shadow: 0 3px 10px rgba(101, 163, 13, 0.45) !important;
+}
+
+.quick-vote-btn.is-selected-5,
+.btn-feeling-item.btn-feeling-selected-5 {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  color: #ffffff !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 3px 10px rgba(5, 150, 105, 0.5) !important;
+}
+
+/* Light theme for quick rating */
+[data-theme="light"] .quick-rating-card-item {
+  background: var(--card-bg-glass) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .quick-rating-card-item.is-unrated {
+  border-left: 4px solid var(--color-red-700, #dc2626) !important;
+}
+
+[data-theme="light"] .quick-rating-card-item.is-rated {
+  border-left: 4px solid var(--brand-accent, #c85a17) !important;
+}
+
+[data-theme="light"] .quick-vote-btn {
+  background: var(--card-bg-soft) !important;
+  color: var(--text-dark) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .quick-vote-btn:hover {
+  background: #f1f5f9 !important;
+  border-color: var(--brand-accent) !important;
+}
+
+[data-theme="light"] .quick-vote-btn.is-selected {
+  background: var(--brand-accent) !important;
+  color: #ffffff !important;
+  border-color: var(--brand-accent) !important;
+  box-shadow: 0 3px 10px var(--brand-accent-glow) !important;
+}
+

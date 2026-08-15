@@ -1728,18 +1728,27 @@
               class="font-weight-black text-none flex-grow-1 btn-feeling-item"
               :class="[
                 layoutCorrente === 'super_compatto' ? 'rounded-sm' : (layoutCorrente === 'compatto' ? 'rounded-md' : 'rounded-lg'),
-                { 'btn-feeling-selected': parseInt(indRepsStartVal) === voto }
+                'btn-feeling-' + voto,
+                { 
+                  'btn-feeling-selected': parseInt(indRepsStartVal) === voto,
+                  ['btn-feeling-selected-' + voto]: parseInt(indRepsStartVal) === voto
+                }
               ]"
               :size="layoutCorrente === 'super_compatto' ? 'small' : 'default'"
               :style="{
                 minWidth: layoutCorrente === 'super_compatto' ? '35px' : '45px', 
-                height: layoutCorrente === 'super_compatto' ? '30px' : '40px', 
-                fontSize: layoutCorrente === 'super_compatto' ? '0.75rem' : '0.9rem'
+                height: layoutCorrente === 'super_compatto' ? '32px' : '40px', 
+                fontSize: layoutCorrente === 'super_compatto' ? '0.74rem' : '0.88rem',
+                padding: '0 4px'
               }"
               @click="salvaVotoFeeling(voto)"
               :id="'btn-feeling-' + voto"
             >
-              {{ voto }}
+              <span v-if="voto === 1">😡 1</span>
+              <span v-else-if="voto === 2">😕 2</span>
+              <span v-else-if="voto === 3">😐 3</span>
+              <span v-else-if="voto === 4">🙂 4</span>
+              <span v-else-if="voto === 5">🤩 5</span>
             </v-btn>
           </div>
         </div>

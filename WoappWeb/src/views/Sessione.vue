@@ -633,6 +633,45 @@ const getGifUrl = (url) => {
   return url;
 };
 
+// Helper per identificare la prima settimana non completata
+const activeUncompletedWeek = computed(() => {
+  if (!workout.value) return 1;
+  for (let w = 1; w <= 6; w++) {
+    const valCmp = workout.value['cmp' + w];
+    if (valCmp !== 'true' && valCmp !== true && String(valCmp).toLowerCase() !== 'true') {
+      return w;
+    }
+  }
+  return 6;
+});
+
+const scrollAllaSettimana = (targetW) => {
+  if (!targetW) return;
+  nextTick(() => {
+    setTimeout(() => {
+      const el = document.getElementById('week-card-' + targetW);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 300);
+  });
+};
+
+const applicaSettimanaIniziale = () => {
+  let targetW = null;
+  const qWeek = parseInt(route.query.week || route.query.targetWeek);
+  if (!isNaN(qWeek) && qWeek >= 1 && qWeek <= 6) {
+    targetW = qWeek;
+  } else {
+    targetW = activeUncompletedWeek.value;
+  }
+  selectedWeek.value = targetW;
+  
+  if (route.query.week || route.query.targetWeek) {
+    scrollAllaSettimana(targetW);
+  }
+};
+
 // Carica i dati del documento Riga 0
 const caricaDati = async () => {
   const currentId = routeId.value;
@@ -644,18 +683,18 @@ const caricaDati = async () => {
 
   if (cachedFromList) {
     workout.value = cachedFromList;
-    selectedWeek.value = activeUncompletedWeek.value;
+    applicaSettimanaIniziale();
     caricamento.value = false;
   } else if (cachedFromLocal.des_esercizio) {
     workout.value = cachedFromLocal;
-    selectedWeek.value = activeUncompletedWeek.value;
+    applicaSettimanaIniziale();
   }
 
   // 1. Prova prima dallo Store Globale in tempo reale (memoria istantanea)
   const cachedHeader = globalStoryboard.value.find(item => item.id === currentId);
   if (cachedHeader) {
     workout.value = applicaModificheLocali(cachedHeader);
-    selectedWeek.value = activeUncompletedWeek.value;
+    applicaSettimanaIniziale();
     
     const keyIdCliente = Object.keys(workout.value).find(k => k.includes('ID_cliente')) || 'ID_cliente';
     const atletaId = workout.value[keyIdCliente] || '';
@@ -680,7 +719,7 @@ const caricaDati = async () => {
     if (docSnap.exists()) {
       const dati = docSnap.data();
       workout.value = applicaModificheLocali({ id: docSnap.id, ...dati });
-      selectedWeek.value = activeUncompletedWeek.value;
+      applicaSettimanaIniziale();
       
       const keyIdCliente = Object.keys(dati).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = dati[keyIdCliente] || '';
@@ -743,7 +782,7 @@ const caricaDatiDaBackup = async () => {
       testList.value = tempTest;
       countTest.value = tempTest.length;
 
-      selectedWeek.value = activeUncompletedWeek.value;
+      applicaSettimanaIniziale();
     }
   } catch (errBackup) {
     console.error("Errore nel caricamento del backup locale in Sessione:", errBackup);
@@ -759,19 +798,6 @@ watch([selectedWeek, workout], () => {
     inputEnd.value = workout.value[getEndField(w)] || '';
   }
 }, { immediate: true, deep: true });
-
-
-// Helper per identificare la prima settimana non completata
-const activeUncompletedWeek = computed(() => {
-  if (!workout.value) return 1;
-  for (let w = 1; w <= 6; w++) {
-    const valCmp = workout.value['cmp' + w];
-    if (valCmp !== 'true' && valCmp !== true && String(valCmp).toLowerCase() !== 'true') {
-      return w;
-    }
-  }
-  return 6;
-});
 
 // Ottieni gli esercizi del giorno corrente
 const eserciziDelGiorno = computed(() => {
@@ -1348,7 +1374,9 @@ const tornaIndietro = () => {
 
 // Inizializza il caricamento dati e gli eventi di swipe
 onMounted(() => {
-  riportaAInizioPagina();
+  if (!route.query.week && !route.query.targetWeek && !localStorage.getItem('highlightChiusuraWeek')) {
+    riportaAInizioPagina();
+  }
   caricaDati();
 
   if (localStorage.getItem('highlightChiusuraWeek') === 'true') {
@@ -1356,17 +1384,16 @@ onMounted(() => {
     if (!isNaN(targetW)) {
       selectedWeek.value = targetW;
       evidenziaSwitchWeek.value = targetW;
-      nextTick(() => {
-        setTimeout(() => {
-          const el = document.getElementById('week-card-' + targetW);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 300);
-      });
+      scrollAllaSettimana(targetW);
     }
     localStorage.removeItem('highlightChiusuraWeek');
     localStorage.removeItem('highlightChiusuraWeekNumber');
+  } else if (route.query.week || route.query.targetWeek) {
+    const targetW = parseInt(route.query.week || route.query.targetWeek);
+    if (!isNaN(targetW) && targetW >= 1 && targetW <= 6) {
+      selectedWeek.value = targetW;
+      scrollAllaSettimana(targetW);
+    }
   }
 
   window.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -1379,12 +1406,16 @@ onBeforeUnmount(() => {
   window.removeEventListener('touchend', handleTouchEnd);
 });
 
-// Reagisce dinamicamente se la sessione cambia (es. aprendone un'altra)
-watch(() => route.params.id, (nuovoId) => {
+// Reagisce dinamicamente se la sessione o la settimana cambiano
+watch(() => [route.params.id, route.query.week, route.query.targetWeek], ([nuovoId, nuovoWeek, nuovoTargetWeek]) => {
   if (nuovoId) {
     transitionName.value = '';
-    riportaAInizioPagina();
     caricaDati();
+  }
+  const qW = parseInt(nuovoWeek || nuovoTargetWeek);
+  if (!isNaN(qW) && qW >= 1 && qW <= 6) {
+    selectedWeek.value = qW;
+    scrollAllaSettimana(qW);
   }
 });
 </script>

@@ -240,6 +240,87 @@
           <v-divider class="my-2.5 border-soft"></v-divider>
 
           <div class="text-subtitle-2 font-weight-black text-orange-darken-3 mb-2 d-flex align-center" style="font-size: 0.80rem;">
+            <v-icon size="15" class="mr-1">mdi-arrow-expand-vertical</v-icon>
+            Margini & Spaziature Dettaglio Esercizio (Coach)
+          </div>
+          
+          <v-row dense>
+            <!-- Spazio Sopra Ins -->
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Sopra Ins</span>
+              <v-text-field
+                v-model.number="margineTopInputWeek"
+                type="number"
+                step="1"
+                min="0"
+                max="50"
+                suffix="PX"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+              ></v-text-field>
+            </v-col>
+
+            <!-- Spazio Sotto Ins -->
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Sotto Ins</span>
+              <v-text-field
+                v-model.number="margineBottomInputWeek"
+                type="number"
+                step="1"
+                min="0"
+                max="50"
+                suffix="PX"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+              ></v-text-field>
+            </v-col>
+
+            <!-- Spazio Feedback W6 -->
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Feedback W6</span>
+              <v-text-field
+                v-model.number="margineTopW6Feedback"
+                type="number"
+                step="1"
+                min="0"
+                max="50"
+                suffix="PX"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+              ></v-text-field>
+            </v-col>
+
+            <!-- Spazio Avviso Ghost -->
+            <v-col cols="6" sm="3">
+              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Avviso Ghost</span>
+              <v-text-field
+                v-model.number="margineBottomGhostNotice"
+                type="number"
+                step="1"
+                min="0"
+                max="50"
+                suffix="PX"
+                variant="outlined"
+                density="compact"
+                color="orange-darken-3"
+                rounded="lg"
+                hide-details
+              ></v-text-field>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-2.5 border-soft"></v-divider>
+
+          <div class="text-subtitle-2 font-weight-black text-orange-darken-3 mb-2 d-flex align-center" style="font-size: 0.80rem;">
             <v-icon size="15" class="mr-1">mdi-scale-balance</v-icon>
             Incrementi Post-Scarico & Manubri
           </div>
@@ -1517,6 +1598,10 @@ import {
   dimensioneGifCompattaGlobal,
   editorNoteEspansoGlobal,
   smartNoteCleanupGlobal,
+  margineTopInputWeekGlobal,
+  margineBottomInputWeekGlobal,
+  margineTopW6FeedbackGlobal,
+  margineBottomGhostNoticeGlobal,
   impostaNomeAtletaDinamico,
   caricaNomiAtletiDinamici
 } from '../authStore.js';
@@ -1537,6 +1622,10 @@ const regolaProgressioneW2 = regolaProgressioneW2Global;
 const DIMENSIONE_GIF_COMPATTA = dimensioneGifCompattaGlobal;
 const editorNoteEspanso = editorNoteEspansoGlobal;
 const smartNoteCleanup = smartNoteCleanupGlobal;
+const margineTopInputWeek = margineTopInputWeekGlobal;
+const margineBottomInputWeek = margineBottomInputWeekGlobal;
+const margineTopW6Feedback = margineTopW6FeedbackGlobal;
+const margineBottomGhostNotice = margineBottomGhostNoticeGlobal;
 const DEALLENAMENTO_SOGLIA1 = deallenamentoSoglia1Global;
 const DEALLENAMENTO_SOGLIA2 = deallenamentoSoglia2Global;
 const DEALLENAMENTO_SOGLIA3 = deallenamentoSoglia3Global;

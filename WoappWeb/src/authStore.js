@@ -1010,6 +1010,10 @@ export const dimensioneGifCompattaGlobal = ref(parseInt(localStorage.getItem('di
 export const risaltoNumeriInsWeekGlobal = ref(localStorage.getItem('risaltoNumeriInsWeekGlobal') === 'true');
 export const editorNoteEspansoGlobal = ref(localStorage.getItem('editorNoteEspansoGlobal') === 'true');
 export const smartNoteCleanupGlobal = ref(localStorage.getItem('smartNoteCleanupGlobal') === 'true');
+export const margineTopInputWeekGlobal = ref(parseInt(localStorage.getItem('margineTopInputWeekGlobal') || '14', 10));
+export const margineBottomInputWeekGlobal = ref(parseInt(localStorage.getItem('margineBottomInputWeekGlobal') || '16', 10));
+export const margineTopW6FeedbackGlobal = ref(parseInt(localStorage.getItem('margineTopW6FeedbackGlobal') || '16', 10));
+export const margineBottomGhostNoticeGlobal = ref(parseInt(localStorage.getItem('margineBottomGhostNoticeGlobal') || '10', 10));
 const localW2 = localStorage.getItem('regolaProgressioneW2Global');
 export const regolaProgressioneW2Global = ref(localW2 && localW2 !== 'reps' ? localW2 : 'peso');
 if (localW2 === 'reps') {
@@ -1284,6 +1288,10 @@ const salvaConfigurazioniGlobaliFirestore = () => {
         risaltoNumeriInsWeek: risaltoNumeriInsWeekGlobal.value,
         editorNoteEspanso: editorNoteEspansoGlobal.value,
         smartNoteCleanup: smartNoteCleanupGlobal.value,
+        margineTopInputWeek: margineTopInputWeekGlobal.value,
+        margineBottomInputWeek: margineBottomInputWeekGlobal.value,
+        margineTopW6Feedback: margineTopW6FeedbackGlobal.value,
+        margineBottomGhostNotice: margineBottomGhostNoticeGlobal.value,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       console.log("[Firestore Sync] Configurazioni globali salvate su Cloud!");
@@ -1338,6 +1346,10 @@ export const syncConfigurazioniListener = () => {
       if (data.smartNoteCleanup !== undefined) {
         smartNoteCleanupGlobal.value = data.smartNoteCleanup === true || data.smartNoteCleanup === 'true';
       }
+      if (data.margineTopInputWeek !== undefined) margineTopInputWeekGlobal.value = parseInt(data.margineTopInputWeek, 10);
+      if (data.margineBottomInputWeek !== undefined) margineBottomInputWeekGlobal.value = parseInt(data.margineBottomInputWeek, 10);
+      if (data.margineTopW6Feedback !== undefined) margineTopW6FeedbackGlobal.value = parseInt(data.margineTopW6Feedback, 10);
+      if (data.margineBottomGhostNotice !== undefined) margineBottomGhostNoticeGlobal.value = parseInt(data.margineBottomGhostNotice, 10);
     } else {
       // Se non esiste ancora su Firestore, lo creiamo inizializzandolo con i valori correnti del client
       salvaConfigurazioniGlobaliFirestore();
@@ -1458,6 +1470,22 @@ watch(editorNoteEspansoGlobal, (newVal) => {
 });
 watch(smartNoteCleanupGlobal, (newVal) => {
   localStorage.setItem('smartNoteCleanupGlobal', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(margineTopInputWeekGlobal, (newVal) => {
+  localStorage.setItem('margineTopInputWeekGlobal', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(margineBottomInputWeekGlobal, (newVal) => {
+  localStorage.setItem('margineBottomInputWeekGlobal', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(margineTopW6FeedbackGlobal, (newVal) => {
+  localStorage.setItem('margineTopW6FeedbackGlobal', String(newVal));
+  salvaConfigurazioniGlobaliFirestore();
+});
+watch(margineBottomGhostNoticeGlobal, (newVal) => {
+  localStorage.setItem('margineBottomGhostNoticeGlobal', String(newVal));
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {

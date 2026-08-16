@@ -601,19 +601,18 @@
 
         <!-- Action Row (Giorno Wo, Scorso, Storico) - Accesso Diretto e Rapido -->
         <div class="d-flex align-center justify-space-between gap-1.5 mt-2 mb-1 px-0.5">
-          <!-- Pulsante Accessibile Diretto per Giorno Wo e Settimana Attiva -->
+          <!-- Pulsante Accessibile Diretto per Dettaglio Sessione e Settimana Attiva -->
           <v-btn
-            prepend-icon="mdi-calendar-check"
             variant="flat"
             color="orange-darken-3"
             size="x-small"
-            class="font-weight-black text-white text-none px-2.5 rounded-lg elevation-2 btn-giorno-action animate-fade-in"
-            style="font-size: 0.65rem; height: 24px; letter-spacing: 0.02em;"
+            class="font-weight-black text-white text-none px-2 rounded-lg elevation-1 btn-giorno-action"
+            style="font-size: 0.65rem; height: 24px; letter-spacing: 0.01em; min-width: unset;"
             @click="vaiAlGiornoAllenamento"
-            title="Torna al Giorno di Allenamento e scrolla alla settimana attiva"
+            title="Apri Dettaglio Sessione e scrolla alla settimana attiva"
             id="btn-dettaglio-vai-giorno"
           >
-            🏋️ Giorno {{ workout?.des_giorno || '' }} (W{{ settimanaAttiva }})
+            Giorno {{ workout?.des_giorno || '' }} (W{{ settimanaAttiva }})
           </v-btn>
 
           <div class="d-flex align-center gap-1.5">
@@ -979,7 +978,7 @@
               💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
-            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em' }">
+            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-1 mb-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em', marginBottom: (margineBottomGhostNoticeGlobal ?? 10) + 'px !important' }">
               {{ getGhostRenderInfo(sett).maxEffortNotice }}
             </div>
 
@@ -1054,8 +1053,10 @@
               class="custom-weight-input v-input--density-compact position-relative cursor-text d-flex align-start justify-space-between transition-all"
               :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
               :style="{
-                minHeight: '48px',
-                padding: '10px 14px',
+                marginTop: (margineTopInputWeekGlobal ?? 14) + 'px !important',
+                marginBottom: (margineBottomInputWeekGlobal ?? 16) + 'px !important',
+                minHeight: layoutCorrente === 'super_compatto' ? '36px' : '40px',
+                padding: layoutCorrente === 'super_compatto' ? '6px 10px' : '8px 12px',
                 borderRadius: layoutCorrente === 'super_compatto' ? '4px' : (layoutCorrente === 'compatto' ? '8px' : '12px')
               }"
               @click="attivaEditingWeek(sett)"
@@ -1123,6 +1124,10 @@
                 color="orange-darken-3"
                 class="custom-weight-input transition-all"
                 :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
+                :style="{
+                  marginTop: (margineTopInputWeekGlobal ?? 14) + 'px !important',
+                  marginBottom: (margineBottomInputWeekGlobal ?? 16) + 'px !important'
+                }"
                 @focus="onFocusWeek(sett)"
                 @blur="onBlurWeek(sett)"
                 :id="'input-peso-w' + sett"
@@ -1267,15 +1272,18 @@
           <!-- Card Premium Feedback e Miglior Carico per Week 6 -->
           <div 
             v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(workout) || isOndaProgression(workout))" 
-            class="w6-feedback-premium-box mt-3.5 pt-3 pb-2.5 px-3 rounded-2xl border"
-            :class="layoutCorrente === 'super_compatto' ? 'mt-2.5 pt-2 pb-2 px-2' : ''"
+            class="w6-feedback-premium-box pt-3 pb-2.5 px-3 rounded-2xl border"
+            :class="layoutCorrente === 'super_compatto' ? 'pt-2 pb-2 px-2' : ''"
+            :style="{
+              marginTop: (margineTopW6FeedbackGlobal ?? 16) + 'px !important'
+            }"
           >
             <!-- Header Box W6 -->
             <div class="d-flex align-center justify-space-between mb-2">
               <div class="d-flex align-center gap-1.5">
                 <v-icon color="amber-lighten-2" size="17">mdi-trophy-award</v-icon>
                 <span class="text-caption font-weight-black text-amber-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">
-                  Feedback Picco Week 6
+                  Feedback Week 6
                 </span>
               </div>
               <span class="text-super-caption font-weight-bold text-slate" style="font-size: 0.58rem; letter-spacing: 0.05em;">
@@ -1312,6 +1320,7 @@
                     v-model="numIns6Val"
                     type="text"
                     class="text-center font-weight-black text-slate-dark w6-stepper-input"
+                    @input="numIns6ModificatoManualmente = true"
                     @blur="salvaKgUnico"
                     id="input-kg-unico-w6"
                     placeholder="--"
@@ -4450,7 +4459,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -4524,6 +4533,27 @@ const onBlurWeek = (sett) => {
     inputSettimane.value[sett].ins = localEditingIns.value[sett] ?? '';
   }
   activeEditingWeek.value = null;
+
+  if (sett === 6) {
+    const valStr = String(inputSettimane.value[6]?.ins || '').trim();
+    if (!valStr) {
+      numIns6Val.value = '';
+      numIns6ModificatoManualmente.value = false;
+      salvaDatoGenerale('num_ins6', '');
+      numFaticaw6Val.value = '';
+      salvaDatoGenerale('num_faticaw6', '');
+    } else if (!numIns6ModificatoManualmente.value) {
+      const estratto = estraiNumeroMassimo(valStr);
+      if (estratto !== null) {
+        numIns6Val.value = String(estratto);
+        salvaDatoGenerale('num_ins6', String(estratto));
+        if (!numFaticaw6Val.value) {
+          dialogAvvisoFaticaW6.value = true;
+        }
+      }
+    }
+  }
+
   salvaDatoSettimanale(sett, 'ins');
 };
 
@@ -4573,6 +4603,27 @@ const confermaEditorEspanso = () => {
     }
     inputSettimane.value[sett].ins = tempEspansoText.value;
     localEditingIns.value[sett] = tempEspansoText.value;
+
+    if (sett === 6) {
+      const valStr = String(tempEspansoText.value || '').trim();
+      if (!valStr) {
+        numIns6Val.value = '';
+        numIns6ModificatoManualmente.value = false;
+        salvaDatoGenerale('num_ins6', '');
+        numFaticaw6Val.value = '';
+        salvaDatoGenerale('num_faticaw6', '');
+      } else if (!numIns6ModificatoManualmente.value) {
+        const estratto = estraiNumeroMassimo(valStr);
+        if (estratto !== null) {
+          numIns6Val.value = String(estratto);
+          salvaDatoGenerale('num_ins6', String(estratto));
+          if (!numFaticaw6Val.value) {
+            dialogAvvisoFaticaW6.value = true;
+          }
+        }
+      }
+    }
+
     salvaDatoSettimanale(sett, 'ins');
     snackbarMessaggio.value = `Note W${sett} aggiornate con successo!`;
     snackbarSalvataggio.value = true;
@@ -7601,6 +7652,7 @@ const noteAttrezzo = ref('');
 const noteEsercizio = ref('');
 const commentiAtleta = ref('');
 const numIns6Val = ref('');
+const numIns6ModificatoManualmente = ref(false);
 const numFaticaw6Val = ref('');
 const indRepsStartVal = ref('');
 
@@ -9425,7 +9477,7 @@ const vaiAdEsercizioPrecedente = () => {
   }
 };
 
-const vaiAlGiornoAllenamento = () => {
+const vaiAlGiornoAllenamento = async () => {
   vibraTattile(15);
   const giorno = (workout.value?.des_giorno || '').trim().toUpperCase();
   const week = settimanaAttiva.value || 1;
@@ -9436,14 +9488,66 @@ const vaiAlGiornoAllenamento = () => {
     localStorage.setItem('woapp_target_scroll_exercise', exId);
   }
   
-  router.push({
-    name: 'Workouts',
-    query: {
-      giorno: giorno,
-      week: week,
-      targetEx: exId
+  // 1. Cerchiamo l'id del documento Sessione (Riga 0) per questo giorno
+  let sessionId = riga0.value?.id;
+  
+  if (!sessionId && tuttiEserciziGiorno.value && tuttiEserciziGiorno.value.length > 0) {
+    const sessionObj = tuttiEserciziGiorno.value.find(item => parseInt(item.num_riga_giorno) === 0);
+    if (sessionObj) sessionId = sessionObj.id;
+  }
+  
+  if (!sessionId && allExercises.value && allExercises.value.length > 0) {
+    const sessionObj = allExercises.value.find(item => 
+      String(item.des_giorno).trim().toUpperCase() === giorno && parseInt(item.num_riga_giorno) === 0
+    );
+    if (sessionObj) sessionId = sessionObj.id;
+  }
+  
+  if (!sessionId && globalStoryboard.value && globalStoryboard.value.length > 0) {
+    const keyIdCliente = workout.value ? (Object.keys(workout.value).find(k => k.includes('ID_cliente')) || 'ID_cliente') : 'ID_cliente';
+    const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
+    const sessionObj = globalStoryboard.value.find(item =>
+      (String(item[keyIdCliente]) === String(atletaId) || String(item['ID_cliente']) === String(atletaId)) &&
+      String(item.num_scheda) === String(workout.value?.num_scheda) &&
+      String(item.des_giorno).trim().toUpperCase() === giorno &&
+      parseInt(item.num_riga_giorno) === 0
+    );
+    if (sessionObj) sessionId = sessionObj.id;
+  }
+
+  if (!sessionId) {
+    try {
+      const allData = await getStoryboardBackup();
+      const keyIdCliente = workout.value ? (Object.keys(workout.value).find(k => k.includes('ID_cliente')) || 'ID_cliente') : 'ID_cliente';
+      const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
+      const sessionObj = allData.find(item =>
+        (String(item[keyIdCliente]) === String(atletaId) || String(item['ID_cliente']) === String(atletaId)) &&
+        String(item.num_scheda) === String(workout.value?.num_scheda) &&
+        String(item.des_giorno).trim().toUpperCase() === giorno &&
+        parseInt(item.num_riga_giorno) === 0
+      );
+      if (sessionObj) sessionId = sessionObj.id || sessionObj.num_riga;
+    } catch (e) {
+      console.warn("Errore backup riga 0 per navigazione:", e);
     }
-  });
+  }
+
+  if (sessionId) {
+    router.push({
+      name: 'DettaglioSessione',
+      params: { id: sessionId },
+      query: { week: week }
+    });
+  } else {
+    router.push({
+      name: 'Workouts',
+      query: {
+        giorno: giorno,
+        week: week,
+        targetEx: exId
+      }
+    });
+  }
 };
 
 // Gesture di swipe touch
@@ -9544,6 +9648,7 @@ const caricaDatiEsercizio = async () => {
     noteEsercizio.value = workout.value.ins_esercizio || '';
     commentiAtleta.value = workout.value.des_commenti || '';
     numIns6Val.value = workout.value.num_ins6 || '';
+    numIns6ModificatoManualmente.value = false;
     numFaticaw6Val.value = workout.value.num_faticaw6 || '';
     indRepsStartVal.value = workout.value.ind_reps_start || '';
 
@@ -9731,6 +9836,7 @@ const caricaEsercizioDaBackup = async () => {
       commentiAtleta.value = workout.value.des_commenti || '';
 
       numIns6Val.value = workout.value.num_ins6 || '';
+      numIns6ModificatoManualmente.value = false;
       numFaticaw6Val.value = workout.value.num_faticaw6 || '';
       indRepsStartVal.value = workout.value.ind_reps_start || '';
 
@@ -11804,7 +11910,16 @@ const aggiornaDatoECommit = async (updates) => {
 const estraiNumeroMassimo = (str) => {
   if (!str) return null;
   const peso = estraiPesoDaInput(str);
-  if (peso) return parseFloat(peso);
+  if (peso !== null && peso !== undefined && peso !== '') {
+    const pNum = parseFloat(peso);
+    if (!isNaN(pNum)) return pNum;
+  }
+  const cleanStr = String(str).replace(/,/g, '.');
+  const matches = cleanStr.match(/\b\d+(?:\.\d+)?\b/g);
+  if (matches && matches.length > 0) {
+    const nums = matches.map(n => parseFloat(n)).filter(n => !isNaN(n));
+    if (nums.length > 0) return Math.max(...nums);
+  }
   return null;
 };
 
@@ -11831,8 +11946,7 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
       if (valStr) {
         const estratto = estraiNumeroMassimo(valStr);
         if (estratto !== null) {
-          const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
-          if (!numIns6Val.value || (vecchioEstratto !== null && parseFloat(numIns6Val.value) === vecchioEstratto)) {
+          if (!numIns6ModificatoManualmente.value) {
             numIns6Val.value = String(estratto);
             updates.num_ins6 = String(estratto);
           }
@@ -11842,11 +11956,12 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
           dialogAvvisoFaticaW6.value = true;
         }
       } else {
-        // Se l'utente cancella il peso in W6, cancella anche miglior carico e sforzo percepito
+        // Se l'utente cancella tutto nel campo ins_ in W6, cancella SEMPRE anche miglior carico (insw6) e sforzo percepito
         numIns6Val.value = '';
         updates.num_ins6 = '';
         numFaticaw6Val.value = '';
         updates.num_faticaw6 = '';
+        numIns6ModificatoManualmente.value = false;
       }
     }
     
@@ -11872,6 +11987,7 @@ const parseKg = (val) => {
 };
 
 const incrementaKgUnico = () => {
+  numIns6ModificatoManualmente.value = true;
   vibraTattile(10);
   const isManubri = isManubriEsercizio(workout.value);
   let current = parseKg(numIns6Val.value);
@@ -11882,6 +11998,7 @@ const incrementaKgUnico = () => {
 };
 
 const decrementaKgUnico = () => {
+  numIns6ModificatoManualmente.value = true;
   vibraTattile(10);
   const isManubri = isManubriEsercizio(workout.value);
   let current = parseKg(numIns6Val.value);
@@ -11894,6 +12011,7 @@ const decrementaKgUnico = () => {
 };
 
 const salvaKgUnico = async () => {
+  numIns6ModificatoManualmente.value = true;
   if (!numIns6Val.value || String(numIns6Val.value).trim() === '') {
     await salvaDatoGenerale('num_ins6', '');
   } else {
@@ -13871,11 +13989,17 @@ const salvaModifichePendenti = async () => {
       updates[campo] = valNuovo;
       
       // Auto-estrazione per la week 6
-      if (w === 6 && valNuovo) {
-        const estratto = estraiNumeroMassimo(valNuovo);
-        if (estratto !== null) {
-          const vecchioEstratto = estraiNumeroMassimo(valOriginale);
-          if (!numIns6Val.value || (vecchioEstratto !== null && parseFloat(numIns6Val.value) === vecchioEstratto)) {
+      if (w === 6) {
+        const valStr = String(valNuovo || '').trim();
+        if (!valStr) {
+          numIns6Val.value = '';
+          updates.num_ins6 = '';
+          numFaticaw6Val.value = '';
+          updates.num_faticaw6 = '';
+          numIns6ModificatoManualmente.value = false;
+        } else if (!numIns6ModificatoManualmente.value) {
+          const estratto = estraiNumeroMassimo(valNuovo);
+          if (estratto !== null) {
             numIns6Val.value = String(estratto);
             updates.num_ins6 = String(estratto);
           }
@@ -14308,12 +14432,12 @@ const tornaIndietro = () => {
 
 /* Stile per input compatto */
 .custom-compact-textarea :deep(.v-field) {
-  min-height: 48px !important;
+  min-height: 40px !important;
   border-radius: 8px !important;
 }
 .custom-compact-textarea :deep(.v-field__input) {
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
 }
 .custom-compact-textarea :deep(input),
 .custom-compact-textarea :deep(textarea),
@@ -15168,6 +15292,7 @@ th.sticky-col {
 
 /* W6 Feedback Box Premium Styling */
 .w6-feedback-premium-box {
+  margin-top: 16px !important;
   background: linear-gradient(145deg, rgba(30, 41, 59, 0.45), rgba(15, 23, 42, 0.75)) !important;
   border: 1px solid rgba(245, 158, 11, 0.28) !important;
   box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);

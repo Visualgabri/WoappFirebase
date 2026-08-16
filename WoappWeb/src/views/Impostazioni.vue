@@ -190,7 +190,7 @@
         </v-btn-toggle>
       </div>
 
-      <!-- Dimensione GIF Compatta (Solo Coach) -->
+      <!-- Controlli Layout Dettaglio & Margini (Solo Coach) -->
       <div v-if="ruolo === 'coach'" class="mt-2 pt-2 border-top-soft">
         <div class="d-flex align-center justify-space-between mb-1">
           <span class="text-caption font-weight-bold text-orange-lighten-2 uppercase" style="font-size: 0.65rem;">Dimensione GIF Compatta (Coach)</span>
@@ -203,6 +203,78 @@
           :min="54"
           :max="90"
           :step="2"
+          color="orange-darken-3"
+          track-color="rgba(255,255,255,0.12)"
+          density="compact"
+          hide-details
+          thumb-size="14"
+        ></v-slider>
+
+        <div class="d-flex align-center justify-space-between mt-2 mb-1">
+          <span class="text-caption font-weight-bold text-orange-lighten-2 uppercase" style="font-size: 0.65rem;">Spazio Sopra Ins (Coach)</span>
+          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+            {{ margineTopInputWeek }} px
+          </v-chip>
+        </div>
+        <v-slider
+          v-model="margineTopInputWeek"
+          :min="0"
+          :max="40"
+          :step="1"
+          color="orange-darken-3"
+          track-color="rgba(255,255,255,0.12)"
+          density="compact"
+          hide-details
+          thumb-size="14"
+        ></v-slider>
+
+        <div class="d-flex align-center justify-space-between mt-2 mb-1">
+          <span class="text-caption font-weight-bold text-orange-lighten-2 uppercase" style="font-size: 0.65rem;">Spazio Sotto Ins (Coach)</span>
+          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+            {{ margineBottomInputWeek }} px
+          </v-chip>
+        </div>
+        <v-slider
+          v-model="margineBottomInputWeek"
+          :min="0"
+          :max="40"
+          :step="1"
+          color="orange-darken-3"
+          track-color="rgba(255,255,255,0.12)"
+          density="compact"
+          hide-details
+          thumb-size="14"
+        ></v-slider>
+
+        <div class="d-flex align-center justify-space-between mt-2 mb-1">
+          <span class="text-caption font-weight-bold text-orange-lighten-2 uppercase" style="font-size: 0.65rem;">Spazio Feedback W6 (Coach)</span>
+          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+            {{ margineTopW6Feedback }} px
+          </v-chip>
+        </div>
+        <v-slider
+          v-model="margineTopW6Feedback"
+          :min="0"
+          :max="40"
+          :step="1"
+          color="orange-darken-3"
+          track-color="rgba(255,255,255,0.12)"
+          density="compact"
+          hide-details
+          thumb-size="14"
+        ></v-slider>
+
+        <div class="d-flex align-center justify-space-between mt-2 mb-1">
+          <span class="text-caption font-weight-bold text-orange-lighten-2 uppercase" style="font-size: 0.65rem;">Spazio Avviso Ghost (Coach)</span>
+          <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+            {{ margineBottomGhostNotice }} px
+          </v-chip>
+        </div>
+        <v-slider
+          v-model="margineBottomGhostNotice"
+          :min="0"
+          :max="40"
+          :step="1"
           color="orange-darken-3"
           track-color="rgba(255,255,255,0.12)"
           density="compact"
@@ -811,6 +883,10 @@ import {
   defaultTimerRecGlobal,
   dimensioneGifCompattaGlobal,
   risaltoNumeriInsWeekGlobal,
+  margineTopInputWeekGlobal,
+  margineBottomInputWeekGlobal,
+  margineTopW6FeedbackGlobal,
+  margineBottomGhostNoticeGlobal,
   ORDINE_ORIGINALE_ATLETI,
   MAPPA_CLIENTI,
   MAPPA_CLIENTI_DINAMICI,
@@ -962,6 +1038,10 @@ const posizioneRecuperi = posizioneRecuperiGlobal;
 const timerTheme = timerThemeGlobal;
 const temaHeaderGiorno = temaHeaderGiornoGlobal;
 const dimensioneGifCompatta = dimensioneGifCompattaGlobal;
+const margineTopInputWeek = margineTopInputWeekGlobal;
+const margineBottomInputWeek = margineBottomInputWeekGlobal;
+const margineTopW6Feedback = margineTopW6FeedbackGlobal;
+const margineBottomGhostNotice = margineBottomGhostNoticeGlobal;
 
 // Refs collegati allo store centralizzato
 const defaultBilanciere = defaultBilanciereGlobal;

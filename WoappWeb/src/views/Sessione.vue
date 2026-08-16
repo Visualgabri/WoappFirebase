@@ -264,7 +264,7 @@
           <v-expand-transition>
             <div v-show="selectedWeek === sett" class="pa-4 border-top-soft bg-slate-900-op">
               
-              <!-- STEP 1: REGISTRAZIONE ORE -->
+              <!-- STEP 1: REGISTRAZIONE ORE AVANZATA -->
               <div class="step-container mb-5">
                 <div class="d-flex align-center justify-space-between mb-2.5">
                   <span class="text-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">
@@ -276,58 +276,21 @@
                   </span>
                 </div>
                 
-                <v-row dense class="mb-3 gap-2">
-                  <!-- Record Start -->
-                  <v-col cols="6" class="flex-grow-1">
-                    <div class="d-flex flex-column text-center">
-                      <v-btn
-                        :color="inputStart ? 'green-darken-3' : 'orange-darken-3'"
-                        variant="tonal"
-                        rounded="lg"
-                        class="font-weight-black text-none py-2 btn-quick-log"
-                        @click="registraInizioOra(sett)"
-                        height="44"
-                      >
-                        <v-icon size="16" class="mr-1">mdi-play-circle-outline</v-icon>
-                        Inizio Wo
-                      </v-btn>
-                      <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputStart ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
-                        {{ inputStart ? formattaOraLeggibile(inputStart) : 'Non registrato' }}
-                      </span>
-                    </div>
-                  </v-col>
-                  
-                  <!-- Record End -->
-                  <v-col cols="6" class="flex-grow-1">
-                    <div class="d-flex flex-column text-center">
-                      <v-btn
-                        :color="inputEnd ? 'green-darken-3' : 'orange-darken-3'"
-                        variant="tonal"
-                        rounded="lg"
-                        class="font-weight-black text-none py-2 btn-quick-log"
-                        @click="registraFineOra(sett)"
-                        height="44"
-                        :disabled="!inputStart"
-                      >
-                        <v-icon size="16" class="mr-1">mdi-stop-circle-outline</v-icon>
-                        Fine Wo
-                      </v-btn>
-                      <span class="text-super-caption font-weight-bold d-block mt-2 text-truncate px-1" :class="inputEnd ? 'text-green-lighten-2' : 'text-muted'" style="font-size: 0.62rem;">
-                        {{ inputEnd ? formattaOraLeggibile(inputEnd) : 'Non registrato' }}
-                      </span>
-                    </div>
-                  </v-col>
-                </v-row>
-
-                <!-- Durata stimata -->
-                <div class="text-caption font-weight-bold text-slate d-flex align-center mt-2 pl-1">
-                  <v-icon size="14" color="grey" class="mr-1.5">mdi-timer-sand</v-icon>
-                  Durata Calcolata: <span class="text-orange-lighten-2 ml-1 font-weight-black">{{ calcolaDurata(inputStart, inputEnd) }}</span>
-                </div>
+                <!-- Componente Avanzato WorkoutTimePicker (Soluzioni 2, 3, 4 + Parametri & Best Practices) -->
+                <WorkoutTimePicker
+                  :start="inputStart"
+                  :end="inputEnd"
+                  :week="sett"
+                  @update:start="(val) => { inputStart = val; salvaDato(getStartField(sett), val); }"
+                  @update:end="(val) => { inputEnd = val; salvaDato(getEndField(sett), val); }"
+                  @quick-start="registraInizioOra(sett)"
+                  @quick-end="registraFineOra(sett)"
+                  @change="(payload) => onTimePickerChange(payload, sett)"
+                />
               </div>
 
               <!-- STEP 2: NOTE E COMMENTI -->
-              <div class="step-container mb-5">
+              <div class="step-container mb-2">
                 <div class="text-caption text-orange-lighten-2 font-weight-black uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.05em;">
                   2. Note & Commenti
                 </div>
@@ -345,54 +308,6 @@
                   @blur="salvaDato('ins_week' + sett, inputNote)"
                   hide-details
                 ></v-textarea>
-              </div>
-
-              <!-- Manual Adjustments -->
-              <div class="mt-4">
-                <div
-                  class="d-flex align-center justify-space-between cursor-pointer py-2 px-3 rounded-lg manual-toggle bg-slate-900 border-soft"
-                  @click="mostraManuale = !mostraManuale"
-                >
-                  <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem;">
-                    {{ mostraManuale ? '✓ Nascondi Ora Manuale' : '⚙️ Regola Data/Ora Manualmente' }}
-                  </span>
-                  <v-icon size="12" color="grey">{{ mostraManuale ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-                </div>
-                
-                <v-expand-transition>
-                  <div v-show="mostraManuale" class="mt-3 pt-3 border-top-soft">
-                    <v-row dense>
-                      <v-col cols="12" sm="6" class="mb-2 mb-sm-0">
-                        <v-text-field
-                          v-model="inputStart"
-                          type="datetime-local"
-                          label="Data/Ora Inizio"
-                          variant="outlined"
-                          density="compact"
-                          rounded="lg"
-                          color="orange-darken-3"
-                          @change="salvaDato(getStartField(sett), inputStart)"
-                          hide-details
-                          class="manual-datetime-field"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <v-text-field
-                          v-model="inputEnd"
-                          type="datetime-local"
-                          label="Data/Ora Fine"
-                          variant="outlined"
-                          density="compact"
-                          rounded="lg"
-                          color="orange-darken-3"
-                          @change="salvaDato(getEndField(sett), inputEnd)"
-                          hide-details
-                          class="manual-datetime-field"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                  </div>
-                </v-expand-transition>
               </div>
 
             </div>
@@ -448,6 +363,7 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'; // Aggiunt
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, globalStoryboard, getStoryboardBackup } from '../authStore.js';
+import WorkoutTimePicker from '../components/WorkoutTimePicker.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -870,17 +786,37 @@ const getLocalDatetimeString = () => {
   return localISOTime;
 };
 
-// Registrazione ora immediata
+// Registrazione ora immediata con toggle a vuoto/null se già registrato
 const registraInizioOra = (w) => {
-  const localNow = getLocalDatetimeString();
-  inputStart.value = localNow;
-  salvaDato(getStartField(w), localNow);
+  if (inputStart.value) {
+    inputStart.value = '';
+    inputEnd.value = '';
+    salvaDato(getStartField(w), '');
+    salvaDato(getEndField(w), '');
+  } else {
+    const localNow = getLocalDatetimeString();
+    inputStart.value = localNow;
+    salvaDato(getStartField(w), localNow);
+  }
 };
 
 const registraFineOra = (w) => {
-  const localNow = getLocalDatetimeString();
-  inputEnd.value = localNow;
-  salvaDato(getEndField(w), localNow);
+  if (inputEnd.value) {
+    inputEnd.value = '';
+    salvaDato(getEndField(w), '');
+  } else {
+    const localNow = getLocalDatetimeString();
+    inputEnd.value = localNow;
+    salvaDato(getEndField(w), localNow);
+  }
+};
+
+const onTimePickerChange = ({ start, end, week }, sett) => {
+  const targetWeek = week || sett;
+  inputStart.value = start;
+  inputEnd.value = end;
+  salvaDato(getStartField(targetWeek), start);
+  salvaDato(getEndField(targetWeek), end);
 };
 
 // Formattazione data leggibile sotto i bottoni (DD/MM alle HH:MM)

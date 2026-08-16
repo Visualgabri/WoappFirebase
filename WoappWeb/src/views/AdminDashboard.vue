@@ -190,21 +190,26 @@
             </v-col>
 
             <!-- Dimensione GIF Layout Compatto (Coach) -->
-            <v-col cols="12" sm="6" class="mt-1.5">
-              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Dimensione GIF Compatta</span>
-              <v-text-field
-                v-model.number="DIMENSIONE_GIF_COMPATTA"
-                type="number"
-                step="2"
-                min="50"
-                max="100"
-                suffix="PX"
-                variant="outlined"
-                density="compact"
+            <v-col cols="12" class="mt-1.5">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider" style="font-size: 0.65rem;">
+                  Dimensione GIF Compatta (Coach)
+                </span>
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+                  {{ DIMENSIONE_GIF_COMPATTA }} px
+                </v-chip>
+              </div>
+              <v-slider
+                v-model="DIMENSIONE_GIF_COMPATTA"
+                :min="54"
+                :max="90"
+                :step="2"
                 color="orange-darken-3"
-                rounded="lg"
+                track-color="rgba(255,255,255,0.12)"
+                density="compact"
                 hide-details
-              ></v-text-field>
+                thumb-size="14"
+              ></v-slider>
             </v-col>
 
             <!-- Editor Note Espanso & Smart Note Cleanup (Coach) -->
@@ -246,75 +251,95 @@
           
           <v-row dense>
             <!-- Spazio Sopra Ins -->
-            <v-col cols="6" sm="3">
-              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Sopra Ins</span>
-              <v-text-field
-                v-model.number="margineTopInputWeek"
-                type="number"
-                step="1"
-                min="0"
-                max="50"
-                suffix="PX"
-                variant="outlined"
-                density="compact"
+            <v-col cols="12" sm="6" class="mb-2">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider" style="font-size: 0.65rem;">
+                  Spazio Sopra Ins (Coach)
+                </span>
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+                  {{ margineTopInputWeek }} px
+                </v-chip>
+              </div>
+              <v-slider
+                v-model="margineTopInputWeek"
+                :min="0"
+                :max="40"
+                :step="1"
                 color="orange-darken-3"
-                rounded="lg"
+                track-color="rgba(255,255,255,0.12)"
+                density="compact"
                 hide-details
-              ></v-text-field>
+                thumb-size="14"
+              ></v-slider>
             </v-col>
 
             <!-- Spazio Sotto Ins -->
-            <v-col cols="6" sm="3">
-              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Sotto Ins</span>
-              <v-text-field
-                v-model.number="margineBottomInputWeek"
-                type="number"
-                step="1"
-                min="0"
-                max="50"
-                suffix="PX"
-                variant="outlined"
-                density="compact"
+            <v-col cols="12" sm="6" class="mb-2">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider" style="font-size: 0.65rem;">
+                  Spazio Sotto Ins (Coach)
+                </span>
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+                  {{ margineBottomInputWeek }} px
+                </v-chip>
+              </div>
+              <v-slider
+                v-model="margineBottomInputWeek"
+                :min="0"
+                :max="40"
+                :step="1"
                 color="orange-darken-3"
-                rounded="lg"
+                track-color="rgba(255,255,255,0.12)"
+                density="compact"
                 hide-details
-              ></v-text-field>
+                thumb-size="14"
+              ></v-slider>
             </v-col>
 
             <!-- Spazio Feedback W6 -->
-            <v-col cols="6" sm="3">
-              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Feedback W6</span>
-              <v-text-field
-                v-model.number="margineTopW6Feedback"
-                type="number"
-                step="1"
-                min="0"
-                max="50"
-                suffix="PX"
-                variant="outlined"
-                density="compact"
+            <v-col cols="12" sm="6" class="mb-2">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider" style="font-size: 0.65rem;">
+                  Spazio Feedback W6 (Coach)
+                </span>
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+                  {{ margineTopW6Feedback }} px
+                </v-chip>
+              </div>
+              <v-slider
+                v-model="margineTopW6Feedback"
+                :min="0"
+                :max="40"
+                :step="1"
                 color="orange-darken-3"
-                rounded="lg"
+                track-color="rgba(255,255,255,0.12)"
+                density="compact"
                 hide-details
-              ></v-text-field>
+                thumb-size="14"
+              ></v-slider>
             </v-col>
 
             <!-- Spazio Avviso Ghost -->
-            <v-col cols="6" sm="3">
-              <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-0.5" style="font-size: 0.58rem;">Spazio Avviso Ghost</span>
-              <v-text-field
-                v-model.number="margineBottomGhostNotice"
-                type="number"
-                step="1"
-                min="0"
-                max="50"
-                suffix="PX"
-                variant="outlined"
-                density="compact"
+            <v-col cols="12" sm="6" class="mb-2">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider" style="font-size: 0.65rem;">
+                  Spazio Avviso Ghost (Coach)
+                </span>
+                <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white" style="height: 18px; font-size: 0.65rem;">
+                  {{ margineBottomGhostNotice }} px
+                </v-chip>
+              </div>
+              <v-slider
+                v-model="margineBottomGhostNotice"
+                :min="0"
+                :max="40"
+                :step="1"
                 color="orange-darken-3"
-                rounded="lg"
+                track-color="rgba(255,255,255,0.12)"
+                density="compact"
                 hide-details
-              ></v-text-field>
+                thumb-size="14"
+              ></v-slider>
             </v-col>
           </v-row>
 

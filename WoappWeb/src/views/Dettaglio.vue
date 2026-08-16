@@ -30,9 +30,11 @@
               v-if="workout?.num_riga_giorno"
               color="orange-darken-3"
               size="x-small"
-              class="font-weight-black text-white mr-1.5 px-1.5 py-0"
+              class="font-weight-black text-white mr-1.5 px-1.5 py-0 cursor-pointer elevation-1"
               variant="flat"
               style="min-width: 20px; height: 16px; font-size: 0.62rem; display: inline-flex; vertical-align: middle; line-height: 1;"
+              @click.stop="vaiAlGiornoAllenamento"
+              title="Vai al Giorno Allenamento e alla settimana attiva"
             >
               {{ workout.des_giorno }}{{ workout.num_riga_giorno }}
             </v-chip>
@@ -597,33 +599,50 @@
           </v-card>
         </v-expand-transition>
 
-        <!-- Action Row (Scorso, Storico) - Soluzione 1 (Disposta pulita in alto a destra sopra le week) -->
-        <div class="d-flex align-center justify-end gap-2 mt-2 mb-1 px-0.5">
+        <!-- Action Row (Giorno Wo, Scorso, Storico) - Accesso Diretto e Rapido -->
+        <div class="d-flex align-center justify-space-between gap-1.5 mt-2 mb-1 px-0.5">
+          <!-- Pulsante Accessibile Diretto per Giorno Wo e Settimana Attiva -->
           <v-btn
-            v-if="previousWorkout"
-            prepend-icon="mdi-calendar-arrow-left"
-            variant="tonal"
-            color="orange-darken-2"
+            prepend-icon="mdi-calendar-check"
+            variant="flat"
+            color="orange-darken-3"
             size="x-small"
-            class="font-weight-black text-none px-2.5 rounded-lg elevation-1 btn-scorso-action"
-            style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
-            @click="dialogProgressioniPrecedente = true"
+            class="font-weight-black text-white text-none px-2.5 rounded-lg elevation-2 btn-giorno-action animate-fade-in"
+            style="font-size: 0.65rem; height: 24px; letter-spacing: 0.02em;"
+            @click="vaiAlGiornoAllenamento"
+            title="Torna al Giorno di Allenamento e scrolla alla settimana attiva"
+            id="btn-dettaglio-vai-giorno"
           >
-            Scorso
+            🏋️ Giorno {{ workout?.des_giorno || '' }} (W{{ settimanaAttiva }})
           </v-btn>
 
-          <v-btn
-            prepend-icon="mdi-chart-timeline-variant"
-            variant="tonal"
-            color="cyan-darken-2"
-            size="x-small"
-            class="font-weight-black text-none px-2.5 rounded-lg elevation-1 btn-storico-action"
-            style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
-            @click="apriStoricoEsercizio"
-            title="Mostra Cronologia & Grafico Prestazioni Esercizio"
-          >
-            Storico
-          </v-btn>
+          <div class="d-flex align-center gap-1.5">
+            <v-btn
+              v-if="previousWorkout"
+              prepend-icon="mdi-calendar-arrow-left"
+              variant="tonal"
+              color="orange-darken-2"
+              size="x-small"
+              class="font-weight-black text-none px-2 rounded-lg elevation-1 btn-scorso-action"
+              style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
+              @click="dialogProgressioniPrecedente = true"
+            >
+              Scorso
+            </v-btn>
+
+            <v-btn
+              prepend-icon="mdi-chart-timeline-variant"
+              variant="tonal"
+              color="cyan-darken-2"
+              size="x-small"
+              class="font-weight-black text-none px-2 rounded-lg elevation-1 btn-storico-action"
+              style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
+              @click="apriStoricoEsercizio"
+              title="Mostra Cronologia & Grafico Prestazioni Esercizio"
+            >
+              Storico
+            </v-btn>
+          </div>
         </div>
 
           </div>
@@ -664,6 +683,7 @@
       <div class="weeks-stacked-list mb-4">
         <template v-for="sett in settimaneVisualizzate" :key="sett">
         <v-card
+          :id="'week-card-' + sett"
           class="week-log-card border transition-all"
           :class="[
             layoutCorrente === 'super_compatto' ? 'rounded-sm py-1.5 px-2 mb-2.5' : (layoutCorrente === 'compatto' ? 'rounded-lg py-2 px-3 mb-4' : 'rounded-xl py-2.5 px-3 mb-6'),
@@ -1244,98 +1264,119 @@
             </v-btn>
           </v-card>
 
-          <!-- Campi Aggiuntivi per Week 6 (Miglior Carico e Sforzo Percepito - Touch Friendly) -->
+          <!-- Card Premium Feedback e Miglior Carico per Week 6 -->
           <div 
             v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(workout) || isOndaProgression(workout))" 
-            class="d-flex flex-column gap-2.5 border-top-soft"
-            :class="layoutCorrente === 'super_compatto' ? 'mt-3 pt-2.5 mb-1' : 'mt-3.5 pt-3 mb-1.5'"
+            class="w6-feedback-premium-box mt-3.5 pt-3 pb-2.5 px-3 rounded-2xl border"
+            :class="layoutCorrente === 'super_compatto' ? 'mt-2.5 pt-2 pb-2 px-2' : ''"
           >
-            <!-- 1. Miglior Carico W6 (Stepper Ampio) -->
-            <div class="d-flex align-center justify-space-between w-100">
-              <span 
-                class="font-weight-black text-slate-dark text-uppercase tracking-wider d-flex align-center gap-1.5"
-                :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem' : '0.78rem' }"
-              >
-                🏆 Max W6:
+            <!-- Header Box W6 -->
+            <div class="d-flex align-center justify-space-between mb-2">
+              <div class="d-flex align-center gap-1.5">
+                <v-icon color="amber-lighten-2" size="17">mdi-trophy-award</v-icon>
+                <span class="text-caption font-weight-black text-amber-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">
+                  Feedback Picco Week 6
+                </span>
+              </div>
+              <span class="text-super-caption font-weight-bold text-slate" style="font-size: 0.58rem; letter-spacing: 0.05em;">
+                RIFERIMENTO PROX MESO
               </span>
-              <div 
-                class="d-flex align-center card-glass border stepper-input-box px-1.5 py-0.5 rounded-xl" 
-                style="height: 36px;"
-              >
+            </div>
+
+            <!-- Riga 1: Miglior Carico W6 (Stepper Premium Vetro & Glow) -->
+            <div class="d-flex align-center justify-space-between w-100 mb-2.5 pa-1.5 rounded-xl stepper-row-glass border-soft">
+              <div class="d-flex flex-column text-left pl-1">
+                <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.68rem; line-height: 1.1;">
+                  Max Raggiunto
+                </span>
+                <span class="text-super-caption text-slate" style="font-size: 0.54rem;">
+                  Carico top chiuso a target
+                </span>
+              </div>
+
+              <div class="d-flex align-center w6-stepper-container rounded-xl px-1 py-0.5 border">
                 <v-btn
                   icon
                   size="28px"
-                  variant="text"
-                  color="orange-darken-3"
+                  variant="flat"
+                  color="transparent"
+                  class="stepper-btn text-orange-lighten-2"
                   @click="decrementaKgUnico"
                   id="btn-decrementa-kg-unico"
                 >
-                  <v-icon size="18">mdi-minus</v-icon>
+                  <v-icon size="16">mdi-minus</v-icon>
                 </v-btn>
-                <input
-                  v-model="numIns6Val"
-                  type="text"
-                  class="text-center font-weight-black text-slate-dark px-1"
-                  :style="{ width: layoutCorrente === 'super_compatto' ? '48px' : '58px', border: 'none', outline: 'none', background: 'transparent', fontSize: layoutCorrente === 'super_compatto' ? '0.85rem' : '0.95rem' }"
-                  @blur="salvaKgUnico"
-                  id="input-kg-unico-w6"
-                  placeholder="kg"
-                />
+
+                <div class="d-flex align-center justify-center px-1">
+                  <input
+                    v-model="numIns6Val"
+                    type="text"
+                    class="text-center font-weight-black text-slate-dark w6-stepper-input"
+                    @blur="salvaKgUnico"
+                    id="input-kg-unico-w6"
+                    placeholder="--"
+                  />
+                  <span class="text-super-caption font-weight-black text-orange-lighten-3 ml-0.5" style="font-size: 0.60rem;">KG</span>
+                </div>
+
                 <v-btn
                   icon
                   size="28px"
-                  variant="text"
-                  color="orange-darken-3"
+                  variant="flat"
+                  color="transparent"
+                  class="stepper-btn text-orange-lighten-2"
                   @click="incrementaKgUnico"
                   id="btn-incrementa-kg-unico"
                 >
-                  <v-icon size="18">mdi-plus</v-icon>
+                  <v-icon size="16">mdi-plus</v-icon>
                 </v-btn>
               </div>
             </div>
 
-            <!-- 2. Sforzo Percepito W6 (Pulsanti Ampi Touch-Friendly) -->
-            <div class="d-flex flex-column gap-1.5 w-100">
-              <span 
-                class="font-weight-black text-slate-dark text-uppercase tracking-wider text-left"
-                :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem' }"
-              >
-                Sforzo:
-              </span>
-              <div class="d-flex gap-2 w-100 justify-space-between align-center">
-                <v-btn
-                  variant="flat"
-                  rounded="xl"
-                  class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
-                  :class="{ 'fatica-btn-active-media': numFaticaw6Val === 'Media' }"
-                  style="font-size: 0.76rem; height: 36px; min-width: 0;"
+            <!-- Riga 2: Sforzo Percepito (Pill Segments Responsive) -->
+            <div class="d-flex flex-column gap-1.5 w-100 text-left">
+              <div class="d-flex align-center justify-space-between">
+                <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.65rem;">
+                  ⚡ Sforzo Percepito
+                </span>
+                <span v-if="numFaticaw6Val" class="text-super-caption font-weight-black" :style="getColoreFaticaStyle(numFaticaw6Val)">
+                  {{ numFaticaw6Val }}
+                </span>
+              </div>
+
+              <div class="w6-fatica-grid">
+                <button
+                  type="button"
+                  class="w6-fatica-pill"
+                  :class="{ 'active-media': numFaticaw6Val === 'Media' }"
                   @click="salvaFatica('Media')"
                   id="btn-fatica-media"
                 >
-                  🙂 Media
-                </v-btn>
-                <v-btn
-                  variant="flat"
-                  rounded="xl"
-                  class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
-                  :class="{ 'fatica-btn-active-pesante': numFaticaw6Val === 'Pesante' }"
-                  style="font-size: 0.76rem; height: 36px; min-width: 0;"
+                  <span class="pill-icon">🙂</span>
+                  <span class="pill-text">Media</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="w6-fatica-pill"
+                  :class="{ 'active-pesante': numFaticaw6Val === 'Pesante' }"
                   @click="salvaFatica('Pesante')"
                   id="btn-fatica-pesante"
                 >
-                  🔥 Pesante
-                </v-btn>
-                <v-btn
-                  variant="flat"
-                  rounded="xl"
-                  class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
-                  :class="{ 'fatica-btn-active-devastante': numFaticaw6Val === 'Devastante' }"
-                  style="font-size: 0.76rem; height: 36px; min-width: 0;"
+                  <span class="pill-icon">🔥</span>
+                  <span class="pill-text">Pesante</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="w6-fatica-pill"
+                  :class="{ 'active-devastante': numFaticaw6Val === 'Devastante' }"
                   @click="salvaFatica('Devastante')"
                   id="btn-fatica-devastante"
                 >
-                  💀 Devastante
-                </v-btn>
+                  <span class="pill-icon">💀</span>
+                  <span class="pill-text">Devastante</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1944,79 +1985,107 @@
                   ></textarea>
                 </div>
 
-                <!-- Campi Aggiuntivi per Week 6 (Miglior Carico & Sforzo Percepito - Touch Friendly) -->
-                <div v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(previousWorkout) || isOndaProgression(previousWorkout))" class="mt-3 pt-3 mb-1 border-top-soft d-flex flex-column gap-2.5">
-                  <!-- Miglior Carico W6 Precedente -->
-                  <div class="d-flex align-center justify-space-between w-100">
-                    <span class="font-weight-black text-slate-dark text-uppercase tracking-wider d-flex align-center gap-1.5" style="font-size: 0.72rem;">
-                      🏆 Max W6:
-                    </span>
-                    <div class="d-flex align-center card-glass border stepper-input-box px-1.5 py-0.5 rounded-xl" style="height: 36px;">
+                <!-- Card Premium Feedback e Miglior Carico W6 Precedente -->
+                <div 
+                  v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(previousWorkout) || isOndaProgression(previousWorkout))" 
+                  class="w6-feedback-premium-box mt-3 pt-3 pb-2.5 px-3 rounded-2xl border"
+                >
+                  <!-- Header Box W6 Precedente -->
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center gap-1.5">
+                      <v-icon color="amber-lighten-2" size="16">mdi-trophy-award</v-icon>
+                      <span class="text-caption font-weight-black text-amber-lighten-2 uppercase tracking-wide" style="font-size: 0.70rem;">
+                        Picco W6 Mesociclo Scorso
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Riga 1: Miglior Carico W6 Precedente -->
+                  <div class="d-flex align-center justify-space-between w-100 mb-2.5 pa-1.5 rounded-xl stepper-row-glass border-soft">
+                    <div class="d-flex flex-column text-left pl-1">
+                      <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.68rem; line-height: 1.1;">
+                        Max Raggiunto
+                      </span>
+                      <span class="text-super-caption text-slate" style="font-size: 0.54rem;">
+                        Carico top archiviato
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-center w6-stepper-container rounded-xl px-1 py-0.5 border">
                       <v-btn
                         icon
                         size="28px"
-                        variant="text"
-                        color="orange-darken-3"
+                        variant="flat"
+                        color="transparent"
+                        class="stepper-btn text-orange-lighten-2"
                         @click="decrementaKgUnicoPrecedente"
                       >
-                        <v-icon size="18">mdi-minus</v-icon>
+                        <v-icon size="16">mdi-minus</v-icon>
                       </v-btn>
-                      <input
-                        v-model="numIns6ValPrecedente"
-                        type="text"
-                        class="text-center font-weight-black text-slate-dark px-1"
-                        style="width: 58px; border: none; outline: none; background: transparent; font-size: 0.95rem;"
-                        @blur="salvaKgUnicoPrecedente"
-                        placeholder="kg"
-                      />
+                      <div class="d-flex align-center justify-center px-1">
+                        <input
+                          v-model="numIns6ValPrecedente"
+                          type="text"
+                          class="text-center font-weight-black text-slate-dark w6-stepper-input"
+                          @blur="salvaKgUnicoPrecedente"
+                          placeholder="--"
+                        />
+                        <span class="text-super-caption font-weight-black text-orange-lighten-3 ml-0.5" style="font-size: 0.60rem;">KG</span>
+                      </div>
                       <v-btn
                         icon
                         size="28px"
-                        variant="text"
-                        color="orange-darken-3"
+                        variant="flat"
+                        color="transparent"
+                        class="stepper-btn text-orange-lighten-2"
                         @click="incrementaKgUnicoPrecedente"
                       >
-                        <v-icon size="18">mdi-plus</v-icon>
+                        <v-icon size="16">mdi-plus</v-icon>
                       </v-btn>
                     </div>
                   </div>
 
-                  <!-- Selettore Sforzo Percepito W6 Precedente -->
-                  <div class="d-flex flex-column gap-1.5 w-100">
-                    <span class="font-weight-black text-slate-dark text-uppercase tracking-wider text-left" style="font-size: 0.68rem;">
-                      Sforzo:
-                    </span>
-                    <div class="d-flex gap-2 w-100 justify-space-between align-center">
-                      <v-btn
-                        variant="flat"
-                        rounded="xl"
-                        class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
-                        :class="{ 'fatica-btn-active-media': numFaticaw6ValPrecedente === 'Media' }"
-                        style="font-size: 0.72rem; height: 34px; min-width: 0;"
+                  <!-- Riga 2: Sforzo Percepito W6 Precedente -->
+                  <div class="d-flex flex-column gap-1.5 w-100 text-left">
+                    <div class="d-flex align-center justify-space-between">
+                      <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.65rem;">
+                        ⚡ Sforzo Percepito
+                      </span>
+                      <span v-if="numFaticaw6ValPrecedente" class="text-super-caption font-weight-black" :style="getColoreFaticaStyle(numFaticaw6ValPrecedente)">
+                        {{ numFaticaw6ValPrecedente }}
+                      </span>
+                    </div>
+
+                    <div class="w6-fatica-grid">
+                      <button
+                        type="button"
+                        class="w6-fatica-pill"
+                        :class="{ 'active-media': numFaticaw6ValPrecedente === 'Media' }"
                         @click="salvaFaticaPrecedente('Media')"
                       >
-                        🙂 Media
-                      </v-btn>
-                      <v-btn
-                        variant="flat"
-                        rounded="xl"
-                        class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
-                        :class="{ 'fatica-btn-active-pesante': numFaticaw6ValPrecedente === 'Pesante' }"
-                        style="font-size: 0.72rem; height: 34px; min-width: 0;"
+                        <span class="pill-icon">🙂</span>
+                        <span class="pill-text">Media</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="w6-fatica-pill"
+                        :class="{ 'active-pesante': numFaticaw6ValPrecedente === 'Pesante' }"
                         @click="salvaFaticaPrecedente('Pesante')"
                       >
-                        🔥 Pesante
-                      </v-btn>
-                      <v-btn
-                        variant="flat"
-                        rounded="xl"
-                        class="font-weight-black text-none fatica-btn flex-grow-1 px-1"
-                        :class="{ 'fatica-btn-active-devastante': numFaticaw6ValPrecedente === 'Devastante' }"
-                        style="font-size: 0.72rem; height: 34px; min-width: 0;"
+                        <span class="pill-icon">🔥</span>
+                        <span class="pill-text">Pesante</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="w6-fatica-pill"
+                        :class="{ 'active-devastante': numFaticaw6ValPrecedente === 'Devastante' }"
                         @click="salvaFaticaPrecedente('Devastante')"
                       >
-                        💀 Devastante
-                      </v-btn>
+                        <span class="pill-icon">💀</span>
+                        <span class="pill-text">Devastante</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -9356,6 +9425,27 @@ const vaiAdEsercizioPrecedente = () => {
   }
 };
 
+const vaiAlGiornoAllenamento = () => {
+  vibraTattile(15);
+  const giorno = (workout.value?.des_giorno || '').trim().toUpperCase();
+  const week = settimanaAttiva.value || 1;
+  const exId = workout.value?.id || routeIdLocal.value || '';
+  
+  if (giorno) {
+    localStorage.setItem('woapp_giorno_selezionato', giorno);
+    localStorage.setItem('woapp_target_scroll_exercise', exId);
+  }
+  
+  router.push({
+    name: 'Workouts',
+    query: {
+      giorno: giorno,
+      week: week,
+      targetEx: exId
+    }
+  });
+};
+
 // Gesture di swipe touch
 let touchStartX = 0;
 let touchStartY = 0;
@@ -15074,6 +15164,151 @@ th.sticky-col {
 
 [data-theme="light"] .rmt-premium-card .border-top-soft {
   border-top: 1px solid #e2e8f0 !important;
+}
+
+/* W6 Feedback Box Premium Styling */
+.w6-feedback-premium-box {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.45), rgba(15, 23, 42, 0.75)) !important;
+  border: 1px solid rgba(245, 158, 11, 0.28) !important;
+  box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+.stepper-row-glass {
+  background: rgba(15, 23, 42, 0.5) !important;
+}
+
+.w6-stepper-container {
+  background: rgba(30, 41, 59, 0.65) !important;
+  border-color: rgba(249, 115, 22, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  height: 34px;
+}
+
+.w6-stepper-input {
+  width: 50px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.stepper-btn {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  transition: all 0.15s ease;
+}
+.stepper-btn:active {
+  transform: scale(0.92);
+  background: rgba(249, 115, 22, 0.25) !important;
+}
+
+.w6-fatica-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.w6-fatica-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-slate-light, #94a3b8);
+  font-weight: 800;
+  font-size: 0.69rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.w6-fatica-pill .pill-icon {
+  font-size: 0.85rem;
+}
+
+.w6-fatica-pill:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.w6-fatica-pill.active-media {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.28), rgba(16, 185, 129, 0.18)) !important;
+  border-color: #22c55e !important;
+  color: #4ade80 !important;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.25);
+  transform: translateY(-1px);
+}
+
+.w6-fatica-pill.active-pesante {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.35), rgba(234, 88, 12, 0.2)) !important;
+  border-color: #f97316 !important;
+  color: #fb923c !important;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.3);
+  transform: translateY(-1px);
+}
+
+.w6-fatica-pill.active-devastante {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(220, 38, 38, 0.2)) !important;
+  border-color: #ef4444 !important;
+  color: #f87171 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Light Theme Overrides per W6 Box */
+[data-theme="light"] .w6-feedback-premium-box {
+  background: #ffffff !important;
+  border: 1.5px solid #fed7aa !important;
+  box-shadow: 0 2px 10px rgba(249, 115, 22, 0.08) !important;
+}
+
+[data-theme="light"] .stepper-row-glass {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .w6-stepper-container {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .w6-stepper-input {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .w6-fatica-pill {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+[data-theme="light"] .w6-fatica-pill.active-media {
+  background: #f0fdf4 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+}
+
+[data-theme="light"] .w6-fatica-pill.active-pesante {
+  background: #fff7ed !important;
+  border-color: #ea580c !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .w6-fatica-pill.active-devastante {
+  background: #fef2f2 !important;
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
 }
 
 </style>

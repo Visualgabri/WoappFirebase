@@ -2614,13 +2614,14 @@
 
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
+const route = useRoute();
 
 const isCmpTrue = (val) => {
   if (val === undefined || val === null) return false;
@@ -4944,8 +4945,52 @@ const scrollaAllUltimoEsercizio = () => {
   }
 };
 
+const gestisciNavigazioneDaQuery = () => {
+  const qGiorno = route.query?.giorno;
+  const qWeek = route.query?.week;
+  const qTarget = route.query?.targetEx || localStorage.getItem('woapp_target_scroll_exercise') || localStorage.getItem('ultimoEsercizioDettaglio');
+
+  if (qGiorno) {
+    const g = String(qGiorno).trim().toUpperCase();
+    if (giornoSelezionato.value !== g) {
+      giornoSelezionato.value = g;
+      salvaGiornoSelezionato(g);
+    }
+  }
+
+  if (qWeek) {
+    const w = parseInt(qWeek, 10);
+    if (w >= 1 && w <= 6) {
+      overrideWeek.value = w;
+    }
+  }
+
+  if (qTarget) {
+    localStorage.removeItem('woapp_target_scroll_exercise');
+    localStorage.removeItem('ultimoEsercizioDettaglio');
+    nextTick(() => {
+      let retries = 0;
+      const tryScroll = () => {
+        const el = document.getElementById('esercizio-' + qTarget);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('highlight-exercise');
+          setTimeout(() => {
+            el.classList.remove('highlight-exercise');
+          }, 1800);
+        } else if (retries < 15) {
+          retries++;
+          setTimeout(tryScroll, 100);
+        }
+      };
+      setTimeout(tryScroll, 120);
+    });
+  }
+};
+
 onMounted(() => {
   caricaAllenamenti();
+  gestisciNavigazioneDaQuery();
   window.addEventListener('touchstart', handleTouchStart, { passive: true });
   window.addEventListener('touchend', handleTouchEnd, { passive: true });
 });
@@ -4967,10 +5012,18 @@ watch(globalStoryboard, () => {
 
 watch(loadingStoryboard, (newVal) => {
   caricamento.value = newVal;
-  if (!newVal && localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
-    gestisciScrollIniziale();
+  if (!newVal) {
+    if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
+      gestisciScrollIniziale();
+    } else {
+      gestisciNavigazioneDaQuery();
+    }
   }
 });
+
+watch(() => route.query, () => {
+  gestisciNavigazioneDaQuery();
+}, { deep: true });
 
 // Watch per proporre automaticamente l'inserimento gradimenti quando il mesociclo è completato
 watch([mesocicloCompletato, loadingStoryboard], ([mesoDone, loading]) => {

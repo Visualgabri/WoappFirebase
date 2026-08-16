@@ -63,6 +63,27 @@
           </v-badge>
           <v-icon v-else size="16">mdi-star</v-icon>
         </v-btn>
+        <v-btn 
+          icon 
+          color="deep-orange-darken-2" 
+          variant="tonal" 
+          size="x-small" 
+          style="width: 22px; height: 22px;" 
+          @click="apriDialogInsW6Fatica('tutti')" 
+          title="Verifica carichi w6 & livello fatica"
+          id="btn-apri-insw6-fatica-header"
+        >
+          <v-badge 
+            v-if="eserciziIncompletiW6.length > 0" 
+            color="red-darken-2" 
+            :content="eserciziIncompletiW6.length" 
+            floating 
+            style="font-size: 0.55rem;"
+          >
+            <v-icon size="16">mdi-lightning-bolt</v-icon>
+          </v-badge>
+          <v-icon v-else size="16">mdi-lightning-bolt</v-icon>
+        </v-btn>
         <v-btn icon color="primary" variant="tonal" size="x-small" style="width: 28px; height: 28px;" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
           <v-icon size="16">mdi-magnify</v-icon>
         </v-btn>
@@ -282,12 +303,41 @@
                 >
                   ⭐ Gradimenti (Media: {{ mediaGradimenti }}/5)
                 </v-btn>
+                <!-- Pulsante Verifica Ins W6 & Fatica -->
+                <v-btn
+                  v-if="eserciziIncompletiW6.length > 0"
+                  variant="flat"
+                  color="deep-orange-darken-3"
+                  size="small"
+                  class="font-weight-black text-none text-white"
+                  rounded="lg"
+                  @click="apriDialogInsW6Fatica('incompleti')"
+                  id="btn-insw6-fatica-mancanti-banner"
+                >
+                  ⚡ {{ eserciziIncompletiW6.length }} Ins W6 & Fatica Mancanti
+                </v-btn>
+                <v-btn
+                  v-else
+                  variant="outlined"
+                  color="deep-orange-lighten-2"
+                  size="small"
+                  class="font-weight-black text-none card-glass"
+                  rounded="lg"
+                  @click="apriDialogInsW6Fatica('tutti')"
+                  id="btn-insw6-fatica-tutti-banner"
+                >
+                  ⚡ Ins W6 & Fatica (100% Completi 🎉)
+                </v-btn>
               </div>
 
-              <!-- Avviso se mancano ancora gradimenti a fine mesociclo -->
+              <!-- Avviso se mancano ancora gradimenti o W6 a fine mesociclo -->
               <div v-if="eserciziSenzaGradimento.length > 0" class="mt-2.5 d-flex align-center gap-1.5 text-super-caption font-weight-bold text-amber-lighten-2" style="font-size: 0.68rem;">
                 <v-icon size="14" color="amber-lighten-2">mdi-alert-circle-outline</v-icon>
                 <span>Mancano ancora {{ eserciziSenzaGradimento.length }} voti di gradimento prima di archiviare definitivamente la scheda.</span>
+              </div>
+              <div v-if="eserciziIncompletiW6.length > 0" class="mt-1.5 d-flex align-center gap-1.5 text-super-caption font-weight-bold text-deep-orange-lighten-2" style="font-size: 0.68rem;">
+                <v-icon size="14" color="deep-orange-lighten-2">mdi-lightning-bolt</v-icon>
+                <span>Mancano ancora {{ eserciziIncompletiW6.length }} registrazioni di Ins W6 / Sforzo percepito prima di chiudere il mesociclo.</span>
               </div>
             </div>
           </div>
@@ -1484,19 +1534,21 @@
                       </h4>
 
                       <!-- Settore e Gradimento Esercizio -->
-                      <div class="d-flex align-center justify-space-between text-caption font-weight-bold text-orange-darken-3 mb-1">
+                      <div class="d-flex align-center justify-space-between text-caption font-weight-bold text-orange-darken-3 mb-1 flex-wrap gap-1">
                         <span>{{ ex.des_settore || 'Corpo Libero' }}</span>
-                        <v-chip
-                          size="x-small"
-                          :color="ex.ind_reps_start ? 'amber-darken-3' : 'grey-darken-3'"
-                          :variant="ex.ind_reps_start ? 'flat' : 'outlined'"
-                          class="font-weight-black text-white px-1.5 cursor-pointer"
-                          style="height: 16px; font-size: 0.52rem; border-radius: 3px;"
-                          @click.stop="apriDialogGradimenti('tutti')"
-                          title="Gradimento esercizio (Tocca per gestire i voti)"
-                        >
-                          {{ ex.ind_reps_start ? '⭐ ' + ex.ind_reps_start + '/5' : '⭐ Vota' }}
-                        </v-chip>
+                        <div class="d-flex align-center gap-1">
+                          <v-chip
+                            size="x-small"
+                            :color="ex.ind_reps_start ? 'amber-darken-3' : 'grey-darken-3'"
+                            :variant="ex.ind_reps_start ? 'flat' : 'outlined'"
+                            class="font-weight-black text-white px-1.5 cursor-pointer"
+                            style="height: 16px; font-size: 0.52rem; border-radius: 3px;"
+                            @click.stop="apriDialogGradimenti('tutti')"
+                            title="Gradimento esercizio (Tocca per gestire i voti)"
+                          >
+                            {{ ex.ind_reps_start ? '⭐ ' + ex.ind_reps_start + '/5' : '⭐ Vota' }}
+                          </v-chip>
+                        </div>
                       </div>
 
                       <!-- Prescrizione della settimana attiva -->
@@ -1855,19 +1907,21 @@
                   </h4>
 
                   <!-- Settore e Gradimento Esercizio -->
-                  <div class="d-flex align-center justify-space-between text-caption font-weight-bold text-orange-darken-3 mb-1">
+                  <div class="d-flex align-center justify-space-between text-caption font-weight-bold text-orange-darken-3 mb-1 flex-wrap gap-1">
                     <span>{{ block.exercise.des_settore || 'Corpo Libero' }}</span>
-                    <v-chip
-                      size="x-small"
-                      :color="block.exercise.ind_reps_start ? 'amber-darken-3' : 'grey-darken-3'"
-                      :variant="block.exercise.ind_reps_start ? 'flat' : 'outlined'"
-                      class="font-weight-black text-white px-1.5 cursor-pointer"
-                      style="height: 16px; font-size: 0.52rem; border-radius: 3px;"
-                      @click.stop="apriDialogGradimenti('tutti')"
-                      title="Gradimento esercizio (Tocca per gestire i voti)"
-                    >
-                      {{ block.exercise.ind_reps_start ? '⭐ ' + block.exercise.ind_reps_start + '/5' : '⭐ Vota' }}
-                    </v-chip>
+                    <div class="d-flex align-center gap-1">
+                      <v-chip
+                        size="x-small"
+                        :color="block.exercise.ind_reps_start ? 'amber-darken-3' : 'grey-darken-3'"
+                        :variant="block.exercise.ind_reps_start ? 'flat' : 'outlined'"
+                        class="font-weight-black text-white px-1.5 cursor-pointer"
+                        style="height: 16px; font-size: 0.52rem; border-radius: 3px;"
+                        @click.stop="apriDialogGradimenti('tutti')"
+                        title="Gradimento esercizio (Tocca per gestire i voti)"
+                      >
+                        {{ block.exercise.ind_reps_start ? '⭐ ' + block.exercise.ind_reps_start + '/5' : '⭐ Vota' }}
+                      </v-chip>
+                    </div>
                   </div>
 
                   <!-- Prescrizione della settimana attiva -->
@@ -2125,7 +2179,7 @@
             <div>
               <span class="text-subtitle-1 font-weight-black text-white d-block leading-tight">Gradimenti Esercizi</span>
               <span class="text-super-caption text-amber-lighten-2 font-weight-bold" style="font-size: 0.68rem;">
-                Scheda {{ schedaSelezionata || '' }} • Assegna rapidamente un voto da 1 a 5
+                Scheda {{ schedaSelezionata || '' }} • Assegna un voto da 1 a 5
               </span>
             </div>
           </div>
@@ -2351,6 +2405,455 @@
             rounded="lg"
             class="font-weight-black text-none text-white px-4"
             @click="dialogGradimenti = false"
+            style="height: 32px; font-size: 0.72rem !important;"
+          >
+            Fatto
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Gestione e Verifica Rapida Ins W6 & Livello Fatica -->
+    <v-dialog 
+      v-model="dialogInsW6Fatica" 
+      max-width="600" 
+      scrollable
+      transition="dialog-bottom-transition"
+    >
+      <v-card 
+        class="card-glass-dark rounded-2xl overflow-hidden text-left" 
+        style="backdrop-filter: blur(25px); background: #0b0f19 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;"
+      >
+        <!-- Header Dialog Compatto & Responsive per Smartphone -->
+        <v-card-title class="pa-3 pa-sm-4 pb-2.5 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2 min-width-0 flex-grow-1 mr-2">
+            <v-avatar color="deep-orange-darken-2" size="28" class="elevation-2 flex-shrink-0">
+              <v-icon size="16" color="white">mdi-lightning-bolt</v-icon>
+            </v-avatar>
+            <div class="min-width-0 flex-grow-1">
+              <span class="text-body-1 font-weight-black text-white d-block leading-tight text-truncate" style="font-size: 0.90rem !important;">
+                Carichi W6 & Livello Fatica
+              </span>
+              <span class="text-super-caption text-deep-orange-lighten-2 font-weight-bold text-truncate d-block" style="font-size: 0.62rem;">
+                Scheda {{ schedaSelezionata || '' }} • Sforzo percepito
+              </span>
+            </div>
+          </div>
+          <v-btn icon variant="text" width="28" height="28" color="grey-lighten-1" class="flex-shrink-0" @click="dialogInsW6Fatica = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <!-- Body con Barra di Progresso, Statistiche e Filtri -->
+        <v-card-text class="pa-3 pa-sm-4 scrollbar-custom" style="max-height: 72vh;">
+          
+          <!-- Banner Statistiche W6 -->
+          <div class="metric-pill metric-pill-box pa-3 rounded-xl mb-3 text-left border-soft" style="background: rgba(15, 23, 42, 0.85);">
+            <div class="d-flex align-center justify-space-between mb-1.5 flex-wrap gap-1">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.62rem;">
+                Progresso Carichi e Fatica W6
+              </span>
+              <div class="d-flex align-center gap-2">
+                <v-chip 
+                  size="x-small" 
+                  :color="eserciziIncompletiW6.length === 0 ? 'green-darken-3' : 'amber-darken-4'" 
+                  class="font-weight-black text-white px-2 py-0" 
+                  variant="flat"
+                  style="font-size: 0.58rem; height: 18px;"
+                >
+                  {{ eserciziIncompletiW6.length === 0 ? 'Tutti Completi 🎉' : eserciziIncompletiW6.length + ' Incompleti ⚠️' }}
+                </v-chip>
+              </div>
+            </div>
+
+            <v-progress-linear
+              :model-value="percentualeCompletatiW6"
+              color="deep-orange-darken-2"
+              height="7"
+              rounded
+              striped
+              class="mb-2"
+            ></v-progress-linear>
+
+            <div class="d-flex align-center justify-space-between text-super-caption text-slate font-weight-medium mb-2" style="font-size: 0.65rem;">
+              <span><strong>{{ eserciziCompletiW6.length }}</strong> su <strong>{{ tuttiEserciziMesocicloW6.length }}</strong> esercizi completi</span>
+              <span class="font-weight-black text-deep-orange-lighten-2">{{ percentualeCompletatiW6 }}%</span>
+            </div>
+
+            <!-- Dettaglio Statistiche e Breakdown Fatiche -->
+            <div class="d-flex align-center justify-space-between flex-wrap gap-2 pt-2 border-top-soft" style="font-size: 0.64rem;">
+              <div class="d-flex align-center gap-2">
+                <span class="text-slate font-weight-bold">
+                  🏋️ Carichi: <strong class="text-white">{{ tuttiEserciziMesocicloW6.length - eserciziSenzaInsW6.length }}/{{ tuttiEserciziMesocicloW6.length }}</strong>
+                </span>
+                <span class="text-slate font-weight-bold">
+                  ⚡ Fatica: <strong class="text-white">{{ tuttiEserciziMesocicloW6.length - eserciziSenzaFatica.length }}/{{ tuttiEserciziMesocicloW6.length }}</strong>
+                </span>
+              </div>
+              <div class="d-flex align-center gap-1.5">
+                <span class="text-green-lighten-2 font-weight-bold" title="Fatica Media">🙂 {{ distribuzioneFaticaW6.Media }}</span>
+                <span class="text-orange-lighten-2 font-weight-bold" title="Fatica Pesante">🔥 {{ distribuzioneFaticaW6.Pesante }}</span>
+                <span class="text-red-lighten-2 font-weight-bold" title="Fatica Devastante">💀 {{ distribuzioneFaticaW6.Devastante }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alert Rapido per Esercizi con note W6 ma senza Miglior Carico (num_ins6) -->
+          <div 
+            v-if="eserciziConNoteW6SenzaMigliorCarico.length > 0" 
+            class="pa-2.5 rounded-xl mb-3 border text-left d-flex align-center justify-space-between flex-wrap gap-2"
+            style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35) !important;"
+          >
+            <div class="d-flex align-center gap-2">
+              <v-icon size="18" color="amber-lighten-2">mdi-auto-fix</v-icon>
+              <div class="text-super-caption font-weight-bold" style="font-size: 0.64rem; color: #fde68a;">
+                <span><strong>{{ eserciziConNoteW6SenzaMigliorCarico.length }}</strong> esercizi hanno note in W6 ma non il miglior carico salvato</span>
+              </div>
+            </div>
+            <v-btn
+              color="amber-darken-3"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black text-none text-white px-2.5"
+              style="font-size: 0.60rem; height: 24px;"
+              @click="autoCompilaMigliorCaricoDaNoteW6Tutti"
+              title="Estrai automaticamente il carico top dalle note W6 per tutti"
+            >
+              ⚡ Auto-estrai da note W6
+            </v-btn>
+          </div>
+
+          <!-- Filtri e Ricerca -->
+          <div class="d-flex flex-column gap-2 mb-3">
+            <!-- Barra di ricerca rapida -->
+            <v-text-field
+              v-model="ricercaInsW6Fatica"
+              placeholder="Filtra per nome esercizio, settore, giorno..."
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+              color="deep-orange-darken-2"
+              prepend-inner-icon="mdi-magnify"
+              class="rounded-xl"
+            ></v-text-field>
+
+            <!-- Chip Filtri -->
+            <div class="d-flex align-center gap-1.5 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+              <v-chip
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroInsW6Fatica === 'tutti' ? 'deep-orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroInsW6Fatica === 'tutti' ? 'text-white' : 'text-slate-dark'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroInsW6Fatica = 'tutti'"
+              >
+                Tutti ({{ tuttiEserciziMesocicloW6.length }})
+              </v-chip>
+
+              <v-chip
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroInsW6Fatica === 'incompleti' ? 'red-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroInsW6Fatica === 'incompleti' ? 'text-white' : (eserciziIncompletiW6.length > 0 ? 'text-red-lighten-3' : 'text-slate-dark')"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroInsW6Fatica = 'incompleti'"
+              >
+                <v-icon size="13" class="mr-1" color="red-lighten-2">mdi-alert-circle-outline</v-icon>
+                Incompleti ({{ eserciziIncompletiW6.length }})
+              </v-chip>
+
+              <v-chip
+                v-if="eserciziConNoteW6SenzaMigliorCarico.length > 0"
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroInsW6Fatica === 'note_w6' ? 'amber-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroInsW6Fatica === 'note_w6' ? 'text-white' : 'text-amber-lighten-3'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroInsW6Fatica = 'note_w6'"
+              >
+                <v-icon size="13" class="mr-1" color="amber-lighten-2">mdi-auto-fix</v-icon>
+                Da Note W6 ({{ eserciziConNoteW6SenzaMigliorCarico.length }})
+              </v-chip>
+
+              <v-chip
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroInsW6Fatica === 'senza_insw6' ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroInsW6Fatica === 'senza_insw6' ? 'text-white' : 'text-slate-dark'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroInsW6Fatica = 'senza_insw6'"
+              >
+                Senza Miglior Carico ({{ eserciziSenzaInsW6.length }})
+              </v-chip>
+
+              <v-chip
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroInsW6Fatica === 'senza_fatica' ? 'amber-darken-4' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroInsW6Fatica === 'senza_fatica' ? 'text-white' : 'text-slate-dark'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroInsW6Fatica = 'senza_fatica'"
+              >
+                Senza Fatica ({{ eserciziSenzaFatica.length }})
+              </v-chip>
+
+              <v-chip
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroInsW6Fatica === 'completi' ? 'green-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroInsW6Fatica === 'completi' ? 'text-white' : 'text-slate-dark'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroInsW6Fatica = 'completi'"
+              >
+                Completi ({{ eserciziCompletiW6.length }})
+              </v-chip>
+
+              <v-chip
+                v-for="g in ['A', 'B', 'C', 'D'].filter(day => conteggioW6PerGiorno[day] && conteggioW6PerGiorno[day].total > 0)"
+                :key="g"
+                size="small"
+                variant="flat"
+                class="font-weight-black cursor-pointer"
+                :color="filtroInsW6Fatica === g ? 'deep-orange-darken-4' : 'rgba(255, 255, 255, 0.08)'"
+                :class="filtroInsW6Fatica === g ? 'text-white' : 'text-slate-dark'"
+                style="font-size: 0.68rem; height: 26px;"
+                @click="filtroInsW6Fatica = filtroInsW6Fatica === g ? 'tutti' : g"
+              >
+                {{ g }} ({{ conteggioW6PerGiorno[g].completed }}/{{ conteggioW6PerGiorno[g].total }})
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- Lista Esercizi W6 -->
+          <div v-if="eserciziInsW6FaticaFiltrati.length === 0" class="text-center py-8 text-muted card-glass rounded-xl pa-4">
+            <template v-if="filtroInsW6Fatica === 'incompleti' && eserciziIncompletiW6.length === 0">
+              <v-icon size="48" color="green-accent-4" class="mb-2 animate-bounce">mdi-check-decagram</v-icon>
+              <h4 class="text-subtitle-1 font-weight-black text-green-lighten-2 mb-1">
+                Tutti i carichi e le fatiche W6 completati!
+              </h4>
+              <p class="text-caption text-slate font-weight-medium mb-0">
+                Tutti gli esercizi di questo mesociclo hanno sia il valore del miglior carico che il livello di fatica registrati correttamente.
+              </p>
+            </template>
+            <template v-else>
+              <v-icon size="40" color="grey" class="mb-2">mdi-magnify-close</v-icon>
+              <p class="text-caption text-slate font-weight-medium mb-0">
+                Nessun esercizio trovato con i filtri selezionati.
+              </p>
+            </template>
+          </div>
+
+          <div v-else class="d-flex flex-column gap-2">
+            <v-card
+              v-for="ex in eserciziInsW6FaticaFiltrati"
+              :key="ex.id"
+              class="w6-check-card-item pa-2.5 rounded-xl text-left"
+              :class="[
+                isCompletoW6(ex) ? 'is-complete' : (haInsW6(ex) || haFatica(ex) ? 'is-partial' : 'is-empty')
+              ]"
+              flat
+            >
+              <!-- Riga 1: Coordinata, Settore, Nome, Reps Target W6, Bottone Dettaglio -->
+              <div class="d-flex align-center justify-space-between gap-2 mb-2">
+                <div class="d-flex align-center gap-2 min-width-0 flex-grow-1">
+                  <!-- Miniatura GIF / Icona -->
+                  <div 
+                    class="rounded-lg overflow-hidden flex-shrink-0 border cursor-pointer"
+                    style="width: 38px; height: 38px; border-color: rgba(255,255,255,0.1) !important;"
+                    @click="vaiADettaglioEsercizio(ex)"
+                    title="Tocca per aprire il dettaglio"
+                  >
+                    <v-img
+                      :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'"
+                      width="38px"
+                      height="38px"
+                      cover
+                      class="bg-grey-darken-4"
+                    >
+                      <template v-slot:placeholder>
+                        <div class="fill-height d-flex align-center justify-center bg-slate-900">
+                          <v-icon color="grey" size="16">mdi-dumbbell</v-icon>
+                        </div>
+                      </template>
+                    </v-img>
+                  </div>
+
+                  <div class="min-width-0 flex-grow-1">
+                    <div class="d-flex align-center flex-wrap gap-1">
+                      <!-- Coordinata compatta interattiva (es: A1, B2) che filtra per giorno -->
+                      <v-chip
+                        size="x-small"
+                        color="orange-darken-3"
+                        variant="flat"
+                        class="font-weight-black text-white px-1.5 cursor-pointer"
+                        style="height: 16px; font-size: 0.58rem; border-radius: 4px;"
+                        @click.stop="toggleFiltroGiorno((ex.des_giorno || '').trim().toUpperCase())"
+                        title="Tocca per filtrare per questo giorno"
+                      >
+                        {{ (ex.des_giorno || '').trim() }}{{ ex.num_riga_giorno }}
+                      </v-chip>
+                      <span v-if="ex.des_settore" class="text-super-caption font-weight-black text-orange-lighten-2 uppercase text-truncate" style="font-size: 0.58rem;">
+                        {{ ex.des_settore }}
+                      </span>
+                    </div>
+
+                    <h4 
+                      class="font-weight-black text-caption text-slate-dark text-truncate cursor-pointer hover-text-primary mt-0.5 mb-0" 
+                      style="font-size: 0.82rem !important; line-height: 1.15;"
+                      :title="ex.des_esercizio"
+                      @click="vaiADettaglioEsercizio(ex)"
+                    >
+                      {{ ex.des_esercizio }}
+                    </h4>
+
+                    <!-- Target Ripetizioni / Prescrizione W6 -->
+                    <div v-if="getRepsPrescrizioneW6(ex)" class="d-flex align-center gap-1 mt-0.5 text-super-caption font-weight-bold" style="font-size: 0.63rem; color: #94a3b8;">
+                      <v-icon size="11" color="amber-lighten-2">mdi-target</v-icon>
+                      <span class="text-truncate">Target W6: <strong class="text-amber-lighten-2">{{ getRepsPrescrizioneW6(ex) }}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bottone Dettaglio -->
+                <v-btn
+                  icon
+                  variant="text"
+                  size="x-small"
+                  color="grey-lighten-1"
+                  style="width: 24px; height: 24px;"
+                  @click.stop="vaiADettaglioEsercizio(ex)"
+                  title="Apri Dettaglio"
+                >
+                  <v-icon size="16">mdi-chevron-right</v-icon>
+                </v-btn>
+              </div>
+
+              <!-- Riga 2: Inserimento Miglior Carico W6 con Stepper, Copia da Note W6 e Copia W5 -->
+              <div class="d-flex align-center justify-space-between flex-wrap gap-2 pt-1.5 pb-1.5 border-top-soft">
+                <div class="d-flex align-center gap-1.5">
+                  <span class="text-super-caption font-weight-black text-slate-dark text-uppercase" style="font-size: 0.62rem;">
+                    Carico:
+                  </span>
+                  <div class="w6-stepper-compact-box d-flex align-center rounded-lg border" style="width: 105px;">
+                    <button
+                      type="button"
+                      class="w6-stepper-mini-btn stepper-minus"
+                      @click.stop="modificaKgW6Rapido(ex, -1)"
+                      title="Diminuisci di 1 kg"
+                    >
+                      <v-icon size="13">mdi-minus</v-icon>
+                    </button>
+
+                    <input
+                      type="text"
+                      class="w6-stepper-mini-input text-center font-weight-black"
+                      :value="getValoreInsW6(ex)"
+                      placeholder="kg"
+                      @change="salvaInsW6Rapido(ex, $event.target.value)"
+                      @blur="salvaInsW6Rapido(ex, $event.target.value)"
+                      @keydown.enter="$event.target.blur()"
+                    />
+
+                    <button
+                      type="button"
+                      class="w6-stepper-mini-btn stepper-plus"
+                      @click.stop="modificaKgW6Rapido(ex, 1)"
+                      title="Aumenta di 1 kg"
+                    >
+                      <v-icon size="13">mdi-plus</v-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Bottoni Rapidi di Copia Valore Numerico (Da Note W6 o Da W5) -->
+                <div class="d-flex align-center gap-1.5 flex-wrap">
+                  <!-- Se ha note in ins_week6 ma num_ins6 non è impostato -> Pulsante prioritario da note W6 -->
+                  <button
+                    v-if="!haInsW6(ex) && ex.ins_week6 && estraiMigliorCaricoDaStringa(ex.ins_week6)"
+                    type="button"
+                    class="d-flex align-center gap-1 px-2 py-1 rounded-md border text-super-caption font-weight-bold text-amber-lighten-2"
+                    style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4) !important; font-size: 0.58rem; cursor: pointer; transition: all 0.2s;"
+                    @click.stop="copiaValoreW6InMigliorCarico(ex)"
+                    title="Estrai miglior carico numerico da note W6"
+                  >
+                    <v-icon size="11">mdi-auto-fix</v-icon>
+                    <span>Da note W6: <strong>{{ estraiMigliorCaricoDaStringa(ex.ins_week6) }} kg</strong></span>
+                  </button>
+
+                  <!-- Copia solo valore numerico estratto da W5 -->
+                  <button
+                    v-if="ex.ins_week5 && estraiMigliorCaricoDaStringa(ex.ins_week5)"
+                    type="button"
+                    class="d-flex align-center gap-1 px-2 py-1 rounded-md border text-super-caption font-weight-bold"
+                    :class="haInsW6(ex) ? 'text-slate border-soft' : 'text-orange-lighten-2 border-orange'"
+                    style="background: rgba(255, 255, 255, 0.04); font-size: 0.58rem; cursor: pointer; transition: all 0.2s;"
+                    @click.stop="copiaValoreW5InW6(ex)"
+                    title="Copia miglior carico numerico di W5 in Miglior Carico W6"
+                  >
+                    <v-icon size="11">mdi-content-copy</v-icon>
+                    <span>W5: <strong>{{ estraiMigliorCaricoDaStringa(ex.ins_week5) }} kg</strong></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Riga 3: 3 Pillole Fatica a Tutta Larghezza (Media, Pesante, Devastante) -->
+              <div class="w6-fatica-full-grid pt-1">
+                <button
+                  type="button"
+                  class="w6-fatica-mini-pill"
+                  :class="{ 'active-media': ex.num_faticaw6 === 'Media' }"
+                  @click.stop="salvaFaticaRapida(ex, 'Media')"
+                  title="Fatica Media"
+                >
+                  <span class="pill-mini-icon">🙂</span>
+                  <span class="pill-mini-text">Media</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="w6-fatica-mini-pill"
+                  :class="{ 'active-pesante': ex.num_faticaw6 === 'Pesante' }"
+                  @click.stop="salvaFaticaRapida(ex, 'Pesante')"
+                  title="Fatica Pesante"
+                >
+                  <span class="pill-mini-icon">🔥</span>
+                  <span class="pill-mini-text">Pesante</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="w6-fatica-mini-pill"
+                  :class="{ 'active-devastante': ex.num_faticaw6 === 'Devastante' }"
+                  @click.stop="salvaFaticaRapida(ex, 'Devastante')"
+                  title="Fatica Devastante"
+                >
+                  <span class="pill-mini-icon">💀</span>
+                  <span class="pill-mini-text">Devastante</span>
+                </button>
+              </div>
+            </v-card>
+          </div>
+        </v-card-text>
+
+        <!-- Footer Dialog -->
+        <v-card-actions class="pa-3 border-top d-flex align-center justify-space-between bg-slate-900">
+          <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.65rem;">
+            I valori e le fatiche vengono salvati in tempo reale
+          </span>
+          <v-btn
+            color="deep-orange-darken-2"
+            variant="flat"
+            size="small"
+            rounded="lg"
+            class="font-weight-black text-none text-white px-4"
+            @click="dialogInsW6Fatica = false"
             style="height: 32px; font-size: 0.72rem !important;"
           >
             Fatto
@@ -3464,6 +3967,467 @@ const chiudiPropostaGradimenti = (apriGradimenti = false) => {
       apriDialogGradimenti('mancanti');
     }, 200);
   }
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// GESTIONE E VERIFICA RAPIDA INS W6 & LIVELLO FATICA (MEDIA/PESANTE/DEVASTANTE)
+// ═══════════════════════════════════════════════════════════════════
+
+const dialogInsW6Fatica = ref(false);
+const filtroInsW6Fatica = ref('tutti'); // 'tutti' | 'incompleti' | 'senza_insw6' | 'senza_fatica' | 'completi' | 'A' | 'B' | 'C' | 'D'
+const ricercaInsW6Fatica = ref('');
+const salvataggioInsW6FaticaInCorso = ref(null);
+
+const isCorpoLiberoEsercizio = (ex) => {
+  if (!ex) return false;
+  const name = String(ex.des_esercizio || '').toLowerCase();
+  const note = String(ex.des_note_attrezzo || '').toLowerCase();
+  const attr = String(ex.des_note_gen_attr || '').toLowerCase();
+  const desNote = String(ex.des_note || '').toLowerCase();
+  const settore = String(ex.des_settore || '').toLowerCase();
+  const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
+
+  const weightKeywords = [
+    'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
+    'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
+    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
+    'con sovraccarico', 'con cavigliera', 'con cavigliere',
+    'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley'
+  ];
+  const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
+  if (hasWeightKeyword) return false;
+
+  const keywords = [
+    'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
+    'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 
+    'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
+    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
+    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
+    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
+    'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
+    'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
+    'pino', 'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
+    'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
+  ];
+  
+  const hasKeyword = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k));
+  if (hasKeyword) return true;
+
+  if (note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno')) {
+    return true;
+  }
+
+  return false;
+};
+
+const isOndaProgression = (ex) => {
+  if (!ex) return false;
+  
+  const getReps = (w) => {
+    if (ex['reps_week' + w]) {
+      const val = parseInt(ex['reps_week' + w], 10);
+      if (!isNaN(val)) return val;
+    }
+    const presc = ex['des_week' + w];
+    if (presc) {
+      const val = estraiRepsDaPrescrizione(presc);
+      if (val !== null && !isNaN(val)) return val;
+    }
+    return 10;
+  };
+
+  const repsW3 = getReps(3);
+  const repsW4 = getReps(4);
+  const repsW5 = getReps(5);
+
+  return repsW4 > repsW3 && repsW5 < repsW4;
+};
+
+// Controllo eligibilità per Ins W6 e livello di fatica
+const isEsercizioEligibileW6 = (ex) => {
+  if (!ex || parseInt(ex.num_riga_giorno) === 0) return false;
+  if (ex.flg_perc && String(ex.flg_perc).includes('V%')) return false;
+  if (isCorpoLiberoEsercizio(ex) && !isOndaProgression(ex)) return false;
+  return true;
+};
+
+// Lista ordinata dei soli esercizi del mesociclo eleggibili per Ins W6 e Fatica
+const tuttiEserciziMesocicloW6 = computed(() => {
+  return tuttiEserciziMesociclo.value.filter(isEsercizioEligibileW6);
+});
+
+// Helper per ottenere la prescrizione/target reps per Week 6
+const getRepsPrescrizioneW6 = (ex) => {
+  if (!ex) return '';
+  if (ex.des_week6 && String(ex.des_week6).trim()) {
+    return String(ex.des_week6).trim();
+  }
+  if (ex.reps_week6 && String(ex.reps_week6).trim()) {
+    return String(ex.reps_week6).trim() + ' reps';
+  }
+  if (ex.des_qta_report && String(ex.des_qta_report).trim()) {
+    return String(ex.des_qta_report).trim();
+  }
+  for (let w = 5; w >= 1; w--) {
+    if (ex['des_week' + w] && String(ex['des_week' + w]).trim()) {
+      return String(ex['des_week' + w]).trim();
+    }
+  }
+  return '';
+};
+
+// Algoritmo di estrazione del miglior carico numerico da stringhe (es: "62,5 65 65" -> 65, "36 36 36" -> 36, "3x8 80kg" -> 80)
+const estraiMigliorCaricoDaStringa = (str) => {
+  if (!str) return '';
+  let clean = String(str).replace(/,/g, '.').trim();
+  if (!clean || clean === '-') return '';
+  
+  // 1. Cerca formato esplicito con kg (es. "80kg", "65.5 kg")
+  const kgMatches = clean.match(/(\d+(?:\.\d+)?)\s*kg\b/gi);
+  if (kgMatches && kgMatches.length > 0) {
+    const kgNums = kgMatches.map(m => parseFloat(m.replace(/kg/i, '').trim())).filter(n => !isNaN(n) && n > 0);
+    if (kgNums.length > 0) {
+      const bestKg = Math.max(...kgNums);
+      return String(bestKg);
+    }
+  }
+  
+  // 2. Rimuovi TUT, RPE, tempi di recupero e serie esplicite (es: "3x10")
+  clean = clean.replace(/\b\d+\s*[xX]\s*\d+(?:\s*[rR]?\b)?/g, ' ');
+  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ');
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:\.\d+)?/gi, ' ');
+  clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|s|rec|recupero|min|minuti)\b/gi, ' ');
+  clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, ' ');
+  
+  // 3. Estrai tutti i numeri rimanenti
+  const matches = clean.match(/\d+(?:\.\d+)?/g);
+  if (!matches || matches.length === 0) return '';
+  
+  const nums = matches.map(m => parseFloat(m)).filter(n => !isNaN(n) && n > 0 && n <= 1000);
+  if (nums.length === 0) return '';
+  
+  const max = Math.max(...nums);
+  return String(max);
+};
+
+const haInsW6 = (ex) => {
+  if (!ex) return false;
+  const v = (ex.num_ins6 !== undefined && ex.num_ins6 !== null && String(ex.num_ins6).trim() !== '') 
+    ? String(ex.num_ins6).trim() 
+    : '';
+  return v !== '' && v !== '-';
+};
+
+const haFatica = (ex) => {
+  if (!ex) return false;
+  const f = (ex.num_faticaw6 || '').trim();
+  return f !== '';
+};
+
+const isCompletoW6 = (ex) => {
+  return haInsW6(ex) && haFatica(ex);
+};
+
+const isIncompletoW6 = (ex) => {
+  return !isCompletoW6(ex);
+};
+
+// Controllo per esercizi che hanno note in ins_week6 ma non il miglior carico num_ins6
+const haInsWeek6MaNonMigliorCarico = (ex) => {
+  if (!ex) return false;
+  return !haInsW6(ex) && !!(ex.ins_week6 && String(ex.ins_week6).trim() !== '' && String(ex.ins_week6).trim() !== '-');
+};
+
+const eserciziConNoteW6SenzaMigliorCarico = computed(() => {
+  return tuttiEserciziMesocicloW6.value.filter(haInsWeek6MaNonMigliorCarico);
+});
+
+const getValoreInsW6 = (ex) => {
+  if (!ex) return '';
+  return (ex.num_ins6 !== undefined && ex.num_ins6 !== null && String(ex.num_ins6).trim() !== '')
+    ? String(ex.num_ins6).trim()
+    : '';
+};
+
+const getColoreFaticaStyle = (fatica) => {
+  if (!fatica) return {};
+  const f = String(fatica).trim().toLowerCase();
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (f === 'media') return { color: isLight ? '#166534 !important' : '#81c784 !important' };
+  if (f === 'pesante') return { color: isLight ? '#b45309 !important' : '#ffb74d !important' };
+  if (f === 'devastante') return { color: isLight ? '#dc2626 !important' : '#e57373 !important' };
+  return {};
+};
+
+// Esercizi completi al 100% in W6 (hanno sia Miglior Carico num_ins6 che Fatica)
+const eserciziCompletiW6 = computed(() => {
+  return tuttiEserciziMesocicloW6.value.filter(isCompletoW6);
+});
+
+// Esercizi a cui manca Miglior Carico oppure Fatica (o entrambi)
+const eserciziIncompletiW6 = computed(() => {
+  return tuttiEserciziMesocicloW6.value.filter(isIncompletoW6);
+});
+
+// Esercizi a cui manca specificamente il campo Miglior Carico (num_ins6)
+const eserciziSenzaInsW6 = computed(() => {
+  return tuttiEserciziMesocicloW6.value.filter(ex => !haInsW6(ex));
+});
+
+// Esercizi a cui manca specificamente il livello di fatica
+const eserciziSenzaFatica = computed(() => {
+  return tuttiEserciziMesocicloW6.value.filter(ex => !haFatica(ex));
+});
+
+// Percentuale di esercizi con W6 completamente completato
+const percentualeCompletatiW6 = computed(() => {
+  const tot = tuttiEserciziMesocicloW6.value.length;
+  if (tot === 0) return 0;
+  return Math.round((eserciziCompletiW6.value.length / tot) * 100);
+});
+
+// Conteggio totali e completati per giorno
+const conteggioW6PerGiorno = computed(() => {
+  const counts = {
+    A: { total: 0, completed: 0, missingIns: 0, missingFatica: 0, incomplete: 0 },
+    B: { total: 0, completed: 0, missingIns: 0, missingFatica: 0, incomplete: 0 },
+    C: { total: 0, completed: 0, missingIns: 0, missingFatica: 0, incomplete: 0 },
+    D: { total: 0, completed: 0, missingIns: 0, missingFatica: 0, incomplete: 0 }
+  };
+  tuttiEserciziMesocicloW6.value.forEach(ex => {
+    const g = (ex.des_giorno || '').trim().toUpperCase();
+    if (!counts[g]) {
+      counts[g] = { total: 0, completed: 0, missingIns: 0, missingFatica: 0, incomplete: 0 };
+    }
+    counts[g].total++;
+    const comp = isCompletoW6(ex);
+    if (comp) {
+      counts[g].completed++;
+    } else {
+      counts[g].incomplete++;
+    }
+    if (!haInsW6(ex)) counts[g].missingIns++;
+    if (!haFatica(ex)) counts[g].missingFatica++;
+  });
+  return counts;
+});
+
+// Distribuzione statistica delle fatiche registrate
+const distribuzioneFaticaW6 = computed(() => {
+  const dist = { Media: 0, Pesante: 0, Devastante: 0, SenzaFatica: 0 };
+  tuttiEserciziMesocicloW6.value.forEach(ex => {
+    const f = (ex.num_faticaw6 || '').trim();
+    if (f === 'Media') dist.Media++;
+    else if (f === 'Pesante') dist.Pesante++;
+    else if (f === 'Devastante') dist.Devastante++;
+    else dist.SenzaFatica++;
+  });
+  return dist;
+});
+
+// Esercizi filtrati per la vista rapida Ins W6 & Fatica
+const eserciziInsW6FaticaFiltrati = computed(() => {
+  let list = tuttiEserciziMesocicloW6.value;
+
+  if (filtroInsW6Fatica.value === 'incompleti') {
+    list = list.filter(isIncompletoW6);
+  } else if (filtroInsW6Fatica.value === 'senza_insw6') {
+    list = list.filter(ex => !haInsW6(ex));
+  } else if (filtroInsW6Fatica.value === 'senza_fatica') {
+    list = list.filter(ex => !haFatica(ex));
+  } else if (filtroInsW6Fatica.value === 'note_w6') {
+    list = list.filter(haInsWeek6MaNonMigliorCarico);
+  } else if (filtroInsW6Fatica.value === 'completi') {
+    list = list.filter(isCompletoW6);
+  } else if (['A', 'B', 'C', 'D'].includes(filtroInsW6Fatica.value)) {
+    list = list.filter(ex => (ex.des_giorno || '').trim().toUpperCase() === filtroInsW6Fatica.value);
+  }
+
+  if (ricercaInsW6Fatica.value && ricercaInsW6Fatica.value.trim()) {
+    const q = ricercaInsW6Fatica.value.toLowerCase().trim();
+    list = list.filter(ex => {
+      const nome = (ex.des_esercizio || '').toLowerCase();
+      const settore = (ex.des_settore || '').toLowerCase();
+      const giorno = (ex.des_giorno || '').toLowerCase();
+      return nome.includes(q) || settore.includes(q) || giorno.includes(q);
+    });
+  }
+
+  return list;
+});
+
+// Apertura modale Ins W6 & Fatica con filtro specificato
+const apriDialogInsW6Fatica = (filtro = 'tutti') => {
+  vibraTattile(12);
+  filtroInsW6Fatica.value = filtro;
+  ricercaInsW6Fatica.value = '';
+  dialogInsW6Fatica.value = true;
+};
+
+// Toggle rapido filtro giorno cliccando sulla coordinata (es: A1 -> filtra per A o torna a 'tutti')
+const toggleFiltroGiorno = (g) => {
+  vibraTattile(12);
+  filtroInsW6Fatica.value = filtroInsW6Fatica.value === g ? 'tutti' : g;
+};
+
+// Salvataggio rapido Fatica con toggle
+const salvaFaticaRapida = async (ex, fatica) => {
+  vibraTattile(18);
+  const valorePrecedente = (ex.num_faticaw6 || '').trim();
+  const nuovoValore = valorePrecedente === fatica ? '' : fatica;
+
+  ex.num_faticaw6 = nuovoValore;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
+
+  if (globalStoryboard.value) {
+    const foundDoc = globalStoryboard.value.find(d => d.id === ex.id);
+    if (foundDoc) {
+      foundDoc.num_faticaw6 = nuovoValore;
+    }
+  }
+
+  salvataggioInsW6FaticaInCorso.value = ex.id;
+
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates['num_faticaw6'] = nuovoValore;
+  updates['timestamp'] = ex.timestamp;
+  updates['timestamp_ute'] = ex.timestamp_ute;
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  if (ex.num_riga) {
+    const key2 = `offline_storyboard_${ex.num_riga}`;
+    localStorage.setItem(key2, JSON.stringify(updates));
+  }
+
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, {
+      num_faticaw6: nuovoValore,
+      timestamp: updates['timestamp'],
+      timestamp_ute: updates['timestamp_ute']
+    }, { merge: true });
+    console.log(`Fatica W6 per ${ex.des_esercizio} salvata: ${nuovoValore}`);
+  } catch (err) {
+    console.warn("Errore salvataggio fatica W6 su Firebase:", err);
+  } finally {
+    salvataggioInsW6FaticaInCorso.value = null;
+  }
+};
+
+// Salvataggio rapido ESCLUSIVO su num_ins6 (Miglior Carico) - NON scrive su ins_week6
+const salvaInsW6Rapido = async (ex, nuovoValore) => {
+  vibraTattile(12);
+  const rawStr = String(nuovoValore !== null && nuovoValore !== undefined ? nuovoValore : '').trim();
+  const valStr = estraiMigliorCaricoDaStringa(rawStr) || rawStr;
+
+  ex.num_ins6 = valStr;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
+
+  if (globalStoryboard.value) {
+    const foundDoc = globalStoryboard.value.find(d => d.id === ex.id);
+    if (foundDoc) {
+      foundDoc.num_ins6 = valStr;
+    }
+  }
+
+  salvataggioInsW6FaticaInCorso.value = ex.id;
+
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates['num_ins6'] = valStr;
+  updates['timestamp'] = ex.timestamp;
+  updates['timestamp_ute'] = ex.timestamp_ute;
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  if (ex.num_riga) {
+    const key2 = `offline_storyboard_${ex.num_riga}`;
+    localStorage.setItem(key2, JSON.stringify(updates));
+  }
+
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, {
+      num_ins6: valStr,
+      timestamp: updates['timestamp'],
+      timestamp_ute: updates['timestamp_ute']
+    }, { merge: true });
+    console.log(`Miglior Carico num_ins6 per ${ex.des_esercizio} salvato: ${valStr}`);
+  } catch (err) {
+    console.warn("Errore salvataggio num_ins6 su Firebase:", err);
+  } finally {
+    salvataggioInsW6FaticaInCorso.value = null;
+  }
+};
+
+// Stepper incremento / decremento kg per Miglior Carico W6 (num_ins6)
+const modificaKgW6Rapido = async (ex, delta) => {
+  vibraTattile(10);
+  const currentValStr = getValoreInsW6(ex);
+  let currentNum = parseFloat(String(currentValStr).replace(',', '.'));
+  if (isNaN(currentNum)) {
+    const match = String(currentValStr).match(/[-+]?[0-9]*\.?[0-9]+/);
+    currentNum = match ? parseFloat(match[0]) : 0;
+  }
+  let nextNum = currentNum + delta;
+  if (nextNum < 0) nextNum = 0;
+  const cleanVal = parseFloat(nextNum.toFixed(2));
+  await salvaInsW6Rapido(ex, cleanVal > 0 ? String(cleanVal) : '');
+};
+
+// Copia automatica del valore numerico estratto da W5 in num_ins6 (Miglior Carico)
+const copiaValoreW5InW6 = async (ex) => {
+  vibraTattile(15);
+  const valW5 = (ex.ins_week5 || '').trim();
+  if (valW5) {
+    const numericVal = estraiMigliorCaricoDaStringa(valW5);
+    if (numericVal) {
+      await salvaInsW6Rapido(ex, numericVal);
+    }
+  }
+};
+
+// Copia automatica del valore numerico estratto dalle note W6 in num_ins6 (Miglior Carico)
+const copiaValoreW6InMigliorCarico = async (ex) => {
+  vibraTattile(15);
+  const valW6 = (ex.ins_week6 || '').trim();
+  if (valW6) {
+    const numericVal = estraiMigliorCaricoDaStringa(valW6);
+    if (numericVal) {
+      await salvaInsW6Rapido(ex, numericVal);
+    }
+  }
+};
+
+// Auto-estrazione batch di num_ins6 per tutti gli esercizi con ins_week6 ma senza num_ins6
+const autoCompilaMigliorCaricoDaNoteW6Tutti = async () => {
+  vibraTattile(20);
+  for (const ex of eserciziConNoteW6SenzaMigliorCarico.value) {
+    const valW6 = (ex.ins_week6 || '').trim();
+    if (valW6) {
+      const numericVal = estraiMigliorCaricoDaStringa(valW6);
+      if (numericVal) {
+        await salvaInsW6Rapido(ex, numericVal);
+      }
+    }
+  }
+};
+
+// Navigazione rapida al dettaglio esercizio
+const vaiADettaglioEsercizio = (ex) => {
+  vibraTattile(12);
+  dialogInsW6Fatica.value = false;
+  router.push({ name: 'DettaglioWorkout', params: { id: ex.id } });
 };
 
 // Funzione infallibile che controlla se l'esercizio esisteva ESATTAMENTE nella scheda - 1

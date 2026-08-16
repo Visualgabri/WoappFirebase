@@ -599,49 +599,33 @@
           </v-card>
         </v-expand-transition>
 
-        <!-- Action Row (Giorno Wo, Scorso, Storico) - Accesso Diretto e Rapido -->
-        <div class="d-flex align-center justify-space-between gap-1.5 mt-2 mb-1 px-0.5">
-          <!-- Pulsante Accessibile Diretto per Dettaglio Sessione e Settimana Attiva -->
+        <!-- Action Row (Scorso, Storico) - Accesso Diretto e Rapido -->
+        <div class="d-flex align-center justify-end gap-1.5 mt-2 mb-1 px-0.5">
           <v-btn
-            variant="flat"
-            color="orange-darken-3"
+            v-if="previousWorkout"
+            prepend-icon="mdi-calendar-arrow-left"
+            variant="tonal"
+            color="orange-darken-2"
             size="x-small"
-            class="font-weight-black text-white text-none px-2 rounded-lg elevation-1 btn-giorno-action"
-            style="font-size: 0.65rem; height: 24px; letter-spacing: 0.01em; min-width: unset;"
-            @click="vaiAlGiornoAllenamento"
-            title="Apri Dettaglio Sessione e scrolla alla settimana attiva"
-            id="btn-dettaglio-vai-giorno"
+            class="font-weight-black text-none px-2 rounded-lg elevation-1 btn-scorso-action"
+            style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
+            @click="dialogProgressioniPrecedente = true"
           >
-            Giorno {{ workout?.des_giorno || '' }} (W{{ settimanaAttiva }})
+            Scorso
           </v-btn>
 
-          <div class="d-flex align-center gap-1.5">
-            <v-btn
-              v-if="previousWorkout"
-              prepend-icon="mdi-calendar-arrow-left"
-              variant="tonal"
-              color="orange-darken-2"
-              size="x-small"
-              class="font-weight-black text-none px-2 rounded-lg elevation-1 btn-scorso-action"
-              style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
-              @click="dialogProgressioniPrecedente = true"
-            >
-              Scorso
-            </v-btn>
-
-            <v-btn
-              prepend-icon="mdi-chart-timeline-variant"
-              variant="tonal"
-              color="cyan-darken-2"
-              size="x-small"
-              class="font-weight-black text-none px-2 rounded-lg elevation-1 btn-storico-action"
-              style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
-              @click="apriStoricoEsercizio"
-              title="Mostra Cronologia & Grafico Prestazioni Esercizio"
-            >
-              Storico
-            </v-btn>
-          </div>
+          <v-btn
+            prepend-icon="mdi-chart-timeline-variant"
+            variant="tonal"
+            color="cyan-darken-2"
+            size="x-small"
+            class="font-weight-black text-none px-2 rounded-lg elevation-1 btn-storico-action"
+            style="font-size: 0.62rem; height: 24px; letter-spacing: 0.02em;"
+            @click="apriStoricoEsercizio"
+            title="Mostra Cronologia & Grafico Prestazioni Esercizio"
+          >
+            Storico
+          </v-btn>
         </div>
 
           </div>

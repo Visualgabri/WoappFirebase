@@ -1491,23 +1491,242 @@ const clearTimes = () => {
   color: var(--text-dark);
 }
 
-/* Light Theme Overrides */
-[data-theme="light"] .time-modal-card {
-  background: #ffffff !important;
-  color: var(--text-dark) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+/* ═══════════════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES (Full Accessibility & High Contrast)
+   ═══════════════════════════════════════════════════════════════════ */
+[data-theme="light"] .time-range-summary-card {
+  background: var(--card-bg-soft, #f8fafc) !important;
+  border-color: var(--card-border, #e2e8f0) !important;
 }
 
-[data-theme="light"] .time-picker-box,
-[data-theme="light"] .segmented-control,
-[data-theme="light"] .preset-card,
-[data-theme="light"] .settings-box,
-[data-theme="light"] .timeline-container {
+[data-theme="light"] .time-range-summary-card.has-data {
+  border-color: rgba(234, 88, 12, 0.4) !important;
+  background: linear-gradient(135deg, #fffaf5 0%, #ffffff 100%) !important;
+}
+
+[data-theme="light"] .time-badge {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .time-badge .badge-label {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .time-badge .badge-val {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .edit-pill {
+  background: #fff7ed !important;
+  border: 1px solid #fdba74 !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .nudge-chip {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .nudge-chip:hover {
+  background: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .nudge-chip.highlight {
+  background: #fff7ed !important;
+  border-color: #fdba74 !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .time-modal-card {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+}
+
+[data-theme="light"] .modal-drag-handle {
+  background: #cbd5e1 !important;
+}
+
+[data-theme="light"] .date-pill {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .date-pill:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .date-pill.active {
+  background: var(--brand-accent, #ea580c) !important;
+  border-color: var(--brand-accent, #ea580c) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px var(--brand-accent-glow, rgba(234, 88, 12, 0.3)) !important;
+}
+
+[data-theme="light"] .segmented-control {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .segment-btn {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .segment-btn:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .segment-btn.active {
+  background: #ffffff !important;
+  color: var(--brand-accent, #c2410c) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="light"] .time-picker-box {
   background: #f8fafc !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 [data-theme="light"] .time-digit-display {
   color: #0f172a !important;
+}
+
+[data-theme="light"] .digit-colon {
+  color: var(--brand-accent, #ea580c) !important;
+}
+
+[data-theme="light"] .stepper-btn {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .stepper-btn:hover,
+[data-theme="light"] .stepper-btn:active {
+  background: #fff7ed !important;
+  border-color: #ea580c !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .quick-chip-micro {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .quick-chip-micro:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .quick-chip-micro.highlight {
+  background: #fff7ed !important;
+  border-color: #fdba74 !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .duration-pill-center {
+  background: #fff7ed !important;
+  border: 1px solid #fdba74 !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .dur-quick-btn {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .dur-quick-btn:hover {
+  background: #fff7ed !important;
+  border-color: #ea580c !important;
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .visual-timeline-track {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .track-period {
+  color: #64748b !important;
+  border-right: 1px dashed #cbd5e1 !important;
+}
+
+[data-theme="light"] .active-range-highlight {
+  background: linear-gradient(90deg, #ea580c, #f97316) !important;
+  border: 1.5px solid #c2410c !important;
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.35) !important;
+}
+
+[data-theme="light"] .preset-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .preset-card:hover {
+  background: #fff7ed !important;
+  border-color: #fdba74 !important;
+}
+
+[data-theme="light"] .preset-title {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .preset-dur {
+  color: #c2410c !important;
+}
+
+[data-theme="light"] .preset-times {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .settings-box {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .setting-label {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .config-chip {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .config-chip:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .config-chip.active {
+  background: #fff7ed !important;
+  border: 1.5px solid #ea580c !important;
+  color: #c2410c !important;
+  font-weight: 900 !important;
+}
+
+[data-theme="light"] .timeline-container {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .btn-save-modal {
+  background: linear-gradient(135deg, #ea580c, #f97316) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35) !important;
 }
 </style>

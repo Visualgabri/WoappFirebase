@@ -2168,7 +2168,7 @@
     >
       <v-card 
         class="card-glass-dark rounded-2xl overflow-hidden text-left" 
-        style="backdrop-filter: blur(25px); background: #0b0f19 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;"
+        style="backdrop-filter: blur(25px);"
       >
         <!-- Header Dialog -->
         <v-card-title class="pa-4 pb-3 border-bottom d-flex align-center justify-space-between bg-slate-900">
@@ -2192,7 +2192,7 @@
         <v-card-text class="pa-3 pa-sm-4" style="max-height: 72vh;">
           
           <!-- Banner Statistiche Gradimenti -->
-          <div class="metric-pill metric-pill-box pa-3 rounded-xl mb-3 text-left border-soft" style="background: rgba(15, 23, 42, 0.85);">
+          <div class="metric-pill metric-pill-box pa-3 rounded-xl mb-3 text-left border-soft">
             <div class="d-flex align-center justify-space-between mb-1.5 flex-wrap gap-1">
               <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.62rem;">
                 Progresso Voti Mesociclo
@@ -2248,9 +2248,9 @@
               <v-chip
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroGradimenti === 'tutti' ? 'amber-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroGradimenti === 'tutti' ? 'text-white' : 'text-slate-dark'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-amber': filtroGradimenti === 'tutti' }"
+                :color="filtroGradimenti === 'tutti' ? 'amber-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroGradimenti = 'tutti'"
               >
@@ -2260,9 +2260,9 @@
               <v-chip
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroGradimenti === 'mancanti' ? 'red-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroGradimenti === 'mancanti' ? 'text-white' : (eserciziSenzaGradimento.length > 0 ? 'text-red-lighten-3' : 'text-slate-dark')"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-red': filtroGradimenti === 'mancanti' }"
+                :color="filtroGradimenti === 'mancanti' ? 'red-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroGradimenti = 'mancanti'"
               >
@@ -2275,9 +2275,9 @@
                 :key="g"
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroGradimenti === g ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroGradimenti === g ? 'text-white' : 'text-slate-dark'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-orange': filtroGradimenti === g }"
+                :color="filtroGradimenti === g ? 'orange-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroGradimenti = g"
               >
@@ -2422,7 +2422,7 @@
     >
       <v-card 
         class="card-glass-dark rounded-2xl overflow-hidden text-left" 
-        style="backdrop-filter: blur(25px); background: #0b0f19 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;"
+        style="backdrop-filter: blur(25px);"
       >
         <!-- Header Dialog Compatto & Responsive per Smartphone -->
         <v-card-title class="pa-3 pa-sm-4 pb-2.5 border-bottom d-flex align-center justify-space-between bg-slate-900">
@@ -2448,7 +2448,7 @@
         <v-card-text class="pa-3 pa-sm-4 scrollbar-custom" style="max-height: 72vh;">
           
           <!-- Banner Statistiche W6 -->
-          <div class="metric-pill metric-pill-box pa-3 rounded-xl mb-3 text-left border-soft" style="background: rgba(15, 23, 42, 0.85);">
+          <div class="metric-pill metric-pill-box pa-3 rounded-xl mb-3 text-left border-soft">
             <div class="d-flex align-center justify-space-between mb-1.5 flex-wrap gap-1">
               <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.62rem;">
                 Progresso Carichi e Fatica W6
@@ -2501,12 +2501,11 @@
           <!-- Alert Rapido per Esercizi con note W6 ma senza Miglior Carico (num_ins6) -->
           <div 
             v-if="eserciziConNoteW6SenzaMigliorCarico.length > 0" 
-            class="pa-2.5 rounded-xl mb-3 border text-left d-flex align-center justify-space-between flex-wrap gap-2"
-            style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35) !important;"
+            class="pa-2.5 rounded-xl mb-3 border text-left d-flex align-center justify-space-between flex-wrap gap-2 w6-note-alert-box"
           >
             <div class="d-flex align-center gap-2">
-              <v-icon size="18" color="amber-lighten-2">mdi-auto-fix</v-icon>
-              <div class="text-super-caption font-weight-bold" style="font-size: 0.64rem; color: #fde68a;">
+              <v-icon size="18" color="amber-darken-2">mdi-auto-fix</v-icon>
+              <div class="text-super-caption font-weight-bold alert-text" style="font-size: 0.64rem;">
                 <span><strong>{{ eserciziConNoteW6SenzaMigliorCarico.length }}</strong> esercizi hanno note in W6 ma non il miglior carico salvato</span>
               </div>
             </div>
@@ -2543,9 +2542,9 @@
               <v-chip
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroInsW6Fatica === 'tutti' ? 'deep-orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroInsW6Fatica === 'tutti' ? 'text-white' : 'text-slate-dark'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-orange': filtroInsW6Fatica === 'tutti' }"
+                :color="filtroInsW6Fatica === 'tutti' ? 'deep-orange-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroInsW6Fatica = 'tutti'"
               >
@@ -2555,9 +2554,9 @@
               <v-chip
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroInsW6Fatica === 'incompleti' ? 'red-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroInsW6Fatica === 'incompleti' ? 'text-white' : (eserciziIncompletiW6.length > 0 ? 'text-red-lighten-3' : 'text-slate-dark')"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-red': filtroInsW6Fatica === 'incompleti' }"
+                :color="filtroInsW6Fatica === 'incompleti' ? 'red-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroInsW6Fatica = 'incompleti'"
               >
@@ -2569,9 +2568,9 @@
                 v-if="eserciziConNoteW6SenzaMigliorCarico.length > 0"
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroInsW6Fatica === 'note_w6' ? 'amber-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroInsW6Fatica === 'note_w6' ? 'text-white' : 'text-amber-lighten-3'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-amber': filtroInsW6Fatica === 'note_w6' }"
+                :color="filtroInsW6Fatica === 'note_w6' ? 'amber-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroInsW6Fatica = 'note_w6'"
               >
@@ -2582,9 +2581,9 @@
               <v-chip
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroInsW6Fatica === 'senza_insw6' ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroInsW6Fatica === 'senza_insw6' ? 'text-white' : 'text-slate-dark'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-orange': filtroInsW6Fatica === 'senza_insw6' }"
+                :color="filtroInsW6Fatica === 'senza_insw6' ? 'orange-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroInsW6Fatica = 'senza_insw6'"
               >
@@ -2594,9 +2593,9 @@
               <v-chip
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroInsW6Fatica === 'senza_fatica' ? 'amber-darken-4' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroInsW6Fatica === 'senza_fatica' ? 'text-white' : 'text-slate-dark'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-amber': filtroInsW6Fatica === 'senza_fatica' }"
+                :color="filtroInsW6Fatica === 'senza_fatica' ? 'amber-darken-4' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroInsW6Fatica = 'senza_fatica'"
               >
@@ -2606,9 +2605,9 @@
               <v-chip
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroInsW6Fatica === 'completi' ? 'green-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroInsW6Fatica === 'completi' ? 'text-white' : 'text-slate-dark'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-green': filtroInsW6Fatica === 'completi' }"
+                :color="filtroInsW6Fatica === 'completi' ? 'green-darken-3' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroInsW6Fatica = 'completi'"
               >
@@ -2620,9 +2619,9 @@
                 :key="g"
                 size="small"
                 variant="flat"
-                class="font-weight-black cursor-pointer"
-                :color="filtroInsW6Fatica === g ? 'deep-orange-darken-4' : 'rgba(255, 255, 255, 0.08)'"
-                :class="filtroInsW6Fatica === g ? 'text-white' : 'text-slate-dark'"
+                class="font-weight-black cursor-pointer modal-filter-chip"
+                :class="{ 'active active-orange': filtroInsW6Fatica === g }"
+                :color="filtroInsW6Fatica === g ? 'deep-orange-darken-4' : undefined"
                 style="font-size: 0.68rem; height: 26px;"
                 @click="filtroInsW6Fatica = filtroInsW6Fatica === g ? 'tutti' : g"
               >
@@ -2864,7 +2863,7 @@
 
     <!-- Dialog Proposta Automatica Gradimenti a Fine Mesociclo -->
     <v-dialog v-model="dialogPropostaGradimentiFineMesociclo" max-width="480" persistent>
-      <v-card class="card-glass-dark rounded-2xl border pa-5 text-center" style="background: rgba(15, 23, 42, 0.97) !important; border: 1.5px solid rgba(245, 158, 11, 0.4) !important; backdrop-filter: blur(25px) !important; box-shadow: 0 10px 40px rgba(245, 158, 11, 0.2) !important;">
+      <v-card class="card-glass-dark rounded-2xl border pa-5 text-center" style="backdrop-filter: blur(25px) !important;">
         <div class="d-flex justify-center mb-3">
           <v-avatar color="amber-darken-3" size="56" class="elevation-3 animate-bounce">
             <v-icon size="32" color="white">mdi-trophy-award</v-icon>
@@ -2874,18 +2873,18 @@
         <h3 class="text-h6 font-weight-black text-amber-lighten-2 mb-1" style="font-size: 1.15rem !important;">
           🎉 Mesociclo Completato!
         </h3>
-        <p class="text-caption text-slate font-weight-bold mb-3" style="color: #e2e8f0 !important; font-size: 0.78rem;">
+        <p class="text-caption text-slate font-weight-bold mb-3" style="font-size: 0.78rem;">
           Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda!
         </p>
 
-        <div class="pa-3 rounded-xl mb-4 text-left border" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.25) !important;">
+        <div class="pa-3 rounded-xl mb-4 text-left border alert-box-w6" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.25) !important;">
           <div class="d-flex align-center gap-2 mb-1">
             <v-icon size="18" color="amber-darken-2">mdi-star-shooting</v-icon>
             <span class="text-caption font-weight-black text-amber-lighten-1" style="font-size: 0.80rem;">
               Inserisci i gradimenti degli esercizi
             </span>
           </div>
-          <p class="text-super-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4; color: #cbd5e1 !important;">
+          <p class="text-super-caption text-slate mb-0" style="font-size: 0.72rem; line-height: 1.4;">
             Ci sono ancora <strong class="text-amber-lighten-2">{{ eserciziSenzaGradimento.length }} esercizi</strong> senza voto di feeling. Assegna rapidamente i tuoi gradimenti per inviare al Coach un resoconto completo e ottimizzare la prossima scheda.
           </p>
         </div>
@@ -2923,7 +2922,7 @@
       <v-card class="card-glass rounded-2xl border pa-5 text-center" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
         <v-icon color="orange-darken-3" size="56" class="mb-4 animate-pulse">mdi-sync</v-icon>
         <h3 class="text-h6 font-weight-black text-slate-dark mb-2">Allenamento Completato!</h3>
-        <p class="text-body-2 text-slate mb-5" style="line-height: 1.5; color: #cbd5e1 !important;">
+        <p class="text-body-2 text-slate mb-5" style="line-height: 1.5;">
           Ci sono alcuni esercizi saltati o incompleti in questa seduta. Li abbiamo salvati e verranno riproposti automaticamente nella tua prossima sessione per essere recuperati.
         </p>
         <v-btn color="orange-darken-3" block rounded="xl" class="font-weight-black text-none py-2 text-white" height="44" @click="dialogRecuperiAvviso = false">
@@ -2934,7 +2933,7 @@
 
     <!-- Dialog Avviso Coach: Stallo dal Mesociclo Precedente -->
     <v-dialog v-model="dialogStalloEsercizio" max-width="480">
-      <v-card class="card-glass-dark rounded-2xl border-soft pa-4 text-left" style="background: rgba(15, 23, 42, 0.96) !important; border: 1.5px solid rgba(249, 115, 22, 0.4) !important;">
+      <v-card class="card-glass-dark rounded-2xl border-soft pa-4 text-left" style="backdrop-filter: blur(25px) !important;">
         <div class="d-flex align-center mb-3">
           <v-avatar color="orange-darken-3" size="40" class="mr-3 text-white elevation-2">
             <v-icon size="24">mdi-alert-decagram</v-icon>
@@ -2984,7 +2983,7 @@
 
     <!-- Dialog Ricerca Globale Scheda (Tutti i giorni raggruppati) -->
     <v-dialog v-model="dialogRicercaGlobaleScheda" max-width="600" scrollable>
-      <v-card class="card-glass-dark rounded-2xl overflow-hidden text-left" style="backdrop-filter: blur(25px); background: #0b0f19 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;">
+      <v-card class="card-glass-dark rounded-2xl overflow-hidden text-left" style="backdrop-filter: blur(25px);">
         <v-card-title class="pa-4 pb-3 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2.5">
             <v-icon color="orange-lighten-2" size="24">mdi-magnify</v-icon>

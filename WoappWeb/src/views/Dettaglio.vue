@@ -2102,7 +2102,7 @@
 
     <!-- Dialog Ricerca Rapida Esercizio (Tutta la Scheda Raggruppata) -->
     <v-dialog v-model="dialogRicercaRapida" max-width="550" scrollable>
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px); background: #0b0f19 !important;">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px);">
         <v-card-title class="pa-3 pb-2 border-bottom d-flex align-center justify-space-between bg-slate-900">
           <div class="d-flex align-center gap-2">
             <v-icon color="orange-lighten-2" size="20">mdi-magnify</v-icon>
@@ -4286,9 +4286,9 @@
 
     <!-- Dialog Avviso Sforzo Percepito (W6) Mancante -->
     <v-dialog v-model="dialogAvvisoFaticaW6" max-width="420" rounded="xl">
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden pa-4 text-center" style="background: rgba(15, 23, 42, 0.96) !important; backdrop-filter: blur(20px);">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden pa-4 text-center" style="backdrop-filter: blur(20px);">
         <div class="d-flex justify-center mb-2">
-          <div class="pa-3 rounded-circle" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35);">
+          <div class="pa-3 rounded-circle alert-circle-w6" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35);">
             <v-icon color="amber-lighten-2" size="32">mdi-alert-decagram-outline</v-icon>
           </div>
         </div>
@@ -4297,7 +4297,7 @@
           Sforzo Percepito (W6) Mancante
         </h3>
         
-        <p class="text-caption text-slate-300 mb-4" style="font-size: 0.75rem; line-height: 1.45;">
+        <p class="text-caption text-slate mb-4" style="font-size: 0.75rem; line-height: 1.45;">
           Hai inserito il carico per la <strong>Week 6</strong>. Seleziona lo sforzo provato per calcolare con precisione i carichi del prossimo mesociclo!
         </p>
 

@@ -322,27 +322,9 @@
             <v-btn value="forma" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Stato Forma</v-btn>
           </v-btn-toggle>
 
-          <!-- Motore di Progressione Automatica -->
+          <!-- Attitudine alla Progressione / Sensibilità Fatica -->
           <div class="mb-2.5">
-            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Motore di Progressione</span>
-            <v-btn-toggle
-              v-model="modalitaIncrementoGhost"
-              mandatory
-              selected-class="v-btn--active bg-theme-primary text-white"
-              density="compact"
-              rounded="lg"
-              class="w-100 card-glass border"
-              style="height: 32px;"
-            >
-              <v-btn value="ibrida" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">🧠 Ibrida SMART</v-btn>
-              <v-btn value="fissa" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">📐 Fissa Scheda</v-btn>
-              <v-btn value="dinamica" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.60rem;">⚡ Dinamica</v-btn>
-            </v-btn-toggle>
-          </div>
-
-          <!-- Sensibilità Sforzo / Fatica -->
-          <div class="mb-2">
-            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Sensibilità alla Fatica</span>
+            <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Attitudine alla Progressione (Sensibilità)</span>
             <v-btn-toggle
               v-model="sensibilitaFaticaGhost"
               mandatory

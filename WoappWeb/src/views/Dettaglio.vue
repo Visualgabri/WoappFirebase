@@ -2921,11 +2921,11 @@
                   <div class="d-flex align-center justify-space-between my-1">
                     <div>
                       <div class="text-h4 font-weight-black text-green-accent-3" style="line-height: 1.1; font-size: 1.6rem;">
-                        {{ (parsedPrescription(workout?.['des_week' + aiutoWeek])?.total) ? parsedPrescription(workout?.['des_week' + aiutoWeek]).total : (aiutoWeek === 1 ? (propostaWeek1?.pesoConsigliato || propostaWeek1?.peso || 0) : caricoConsigliatoViaDiMezzo) }} 
-                        <span class="text-caption text-muted" style="font-size: 0.72rem;">KG</span>
+                        {{ valoreConsigliatoHeroDialog.display }} 
+                        <span v-if="valoreConsigliatoHeroDialog.unit" class="text-caption text-muted" style="font-size: 0.72rem;">{{ valoreConsigliatoHeroDialog.unit }}</span>
                       </div>
-                      <div v-if="parsedPrescription(workout?.['des_week' + aiutoWeek])?.side" class="text-caption font-weight-black text-blue-lighten-2 mt-0.5" style="font-size: 0.78rem;">
-                        LATO: {{ parsedPrescription(workout?.['des_week' + aiutoWeek])?.side }} KG
+                      <div v-if="valoreConsigliatoHeroDialog.isLato" class="text-caption font-weight-black text-blue-lighten-2 mt-0.5" style="font-size: 0.78rem;">
+                        LATO: {{ valoreConsigliatoHeroDialog.isLato }} KG
                       </div>
                     </div>
                     <v-btn
@@ -2933,7 +2933,7 @@
                       size="small"
                       class="font-weight-black text-white px-3 text-none rounded-lg"
                       style="font-size: 0.72rem; height: 30px;"
-                      @click="applicaPropostaCaricoStorico((parsedPrescription(workout?.['des_week' + aiutoWeek])?.total) ? parsedPrescription(workout?.['des_week' + aiutoWeek]).total : (aiutoWeek === 1 ? (propostaWeek1?.pesoConsigliato || propostaWeek1?.peso || 0) : caricoConsigliatoViaDiMezzo))"
+                      @click="applicaPropostaCaricoStorico(valoreConsigliatoHeroDialog.valueToApply)"
                     >
                       Applica Consigliato
                     </v-btn>
@@ -2953,30 +2953,39 @@
                   <div class="d-flex gap-1.5 overflow-x-auto pb-1 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
                     <div v-for="strada in opzioniStradeProgressione" :key="strada.tipo" class="flex-grow-1" style="min-width: 95px; max-width: 130px;">
                       <v-card 
-                        class="pa-2 rounded-xl text-center border bg-slate-900 d-flex flex-column justify-space-between fill-height"
+                        class="pa-2 rounded-xl text-center border bg-slate-900 d-flex flex-column justify-space-between fill-height position-relative"
                         :style="{
-                          borderColor: strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.35) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.35) !important' : (strada.tipo === 'stesso_peso' ? 'rgba(59, 130, 246, 0.35) !important' : 'rgba(255,255,255,0.08) !important')),
-                          background: strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.04) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.04) !important' : (strada.tipo === 'stesso_peso' ? 'rgba(59, 130, 246, 0.04) !important' : 'rgba(255,255,255,0.01) !important'))
+                          borderColor: strada.isAttiva 
+                            ? (strada.tipo === 'smart' ? '#4ade80 !important' : (strada.tipo === 'sfidante' ? '#fb923c !important' : '#60a5fa !important'))
+                            : (strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.35) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.35) !important' : (strada.tipo === 'stesso_peso' ? 'rgba(59, 130, 246, 0.35) !important' : 'rgba(255,255,255,0.08) !important'))),
+                          background: strada.isAttiva
+                            ? (strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.12) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.12) !important' : 'rgba(59, 130, 246, 0.12) !important'))
+                            : (strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.04) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.04) !important' : (strada.tipo === 'stesso_peso' ? 'rgba(59, 130, 246, 0.04) !important' : 'rgba(255,255,255,0.01) !important'))),
+                          boxShadow: strada.isAttiva ? '0 0 8px rgba(0,0,0,0.5)' : 'none'
                         }"
                         elevation="0"
                         style="min-height: 95px;"
                       >
                         <div class="d-flex flex-column align-center">
-                          <span class="font-weight-black text-uppercase text-truncate" :class="strada.tipo === 'smart' ? 'text-green-accent-3' : (strada.tipo === 'sfidante' ? 'text-orange-lighten-2' : (strada.tipo === 'stesso_peso' ? 'text-blue-lighten-2' : 'text-blue-lighten-3'))" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                            {{ strada.titolo }}
-                          </span>
+                          <div class="d-flex align-center justify-center gap-1 w-100">
+                            <span class="font-weight-black text-uppercase text-truncate" :class="strada.tipo === 'smart' ? 'text-green-accent-3' : (strada.tipo === 'sfidante' ? 'text-orange-lighten-2' : (strada.tipo === 'stesso_peso' ? 'text-blue-lighten-2' : 'text-blue-lighten-3'))" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                              {{ strada.titolo }}
+                            </span>
+                            <span v-if="strada.isAttiva" class="text-super-caption font-weight-black" :class="strada.tipo === 'smart' ? 'text-green-accent-3' : (strada.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-3')" style="font-size: 0.5rem;">✓</span>
+                          </div>
                           <span class="text-super-caption text-muted text-truncate mt-0.5 font-weight-bold" style="font-size: 0.48rem; text-transform: none;">
                             {{ strada.sottoTitolo }}
                           </span>
                         </div>
                         
-                        <div class="opzione-peso-text my-1 text-subtitle-2 font-weight-black" style="line-height: 1.1; font-size: 0.85rem;">
+                        <div class="opzione-peso-text my-1 text-subtitle-2 font-weight-black" :class="{ 'text-white': strada.isAttiva }" style="line-height: 1.1; font-size: 0.85rem;">
                           {{ strada.valore }}
                         </div>
                         
                         <v-btn
                           :color="strada.tipo === 'smart' ? 'green-darken-2' : (strada.tipo === 'sfidante' ? 'orange-darken-3' : (strada.tipo === 'stesso_peso' ? 'blue-darken-2' : 'blue-darken-3'))"
                           size="x-small"
+                          :variant="strada.isAttiva ? 'flat' : 'tonal'"
                           class="font-weight-black text-white text-none w-100 rounded-lg"
                           style="font-size: 0.6rem; height: 22px;"
                           @click="applicaPropostaCaricoStorico(strada.peso)"
@@ -5127,13 +5136,24 @@ const analizzaRecordSettimana = (sett) => {
     pesoDaValutare = currentPeso;
     tipoValutato = 'logged';
   } else {
-    // Altrimenti valutiamo la proposta Ghost
-    const ghost = getGhostLiftSmart(sett);
-    if (ghost) {
-      const ghostPeso = ghost.isPostScarico && ghost.pesoProposto !== undefined ? ghost.pesoProposto : ghost.peso;
-      if (ghostPeso && !isNaN(ghostPeso) && ghostPeso > 0) {
-        pesoDaValutare = ghostPeso;
+    // Altrimenti valutiamo la proposta Ghost effettiva raccomandata
+    const ghostRender = getGhostRenderInfo(sett);
+    if (ghostRender && ghostRender.valueText) {
+      const pStr = estraiPesoDaInput(ghostRender.valueText);
+      const pVal = pStr ? parseFloat(pStr) : null;
+      if (pVal !== null && !isNaN(pVal) && pVal > 0) {
+        pesoDaValutare = pVal;
         tipoValutato = 'ghost';
+      }
+    }
+    if (pesoDaValutare === null) {
+      const ghost = getGhostLiftSmart(sett);
+      if (ghost) {
+        const ghostPeso = ghost.isPostScarico && ghost.pesoProposto !== undefined ? ghost.pesoProposto : ghost.peso;
+        if (ghostPeso && !isNaN(ghostPeso) && ghostPeso > 0) {
+          pesoDaValutare = ghostPeso;
+          tipoValutato = 'ghost';
+        }
       }
     }
   }
@@ -6258,6 +6278,20 @@ const getColoreRepsPrecedentiClass = (sett, prevReps) => {
   }
 };
 
+const calcolaAvvisoFaticaConsigliato = (sett, numConsigliato, repsTarget, repsPrev, prevPeso) => {
+  if (!numConsigliato || numConsigliato <= 0 || !prevPeso || prevPeso <= 0) return '';
+  if (!repsTarget || repsTarget <= 0 || !repsPrev || repsPrev <= 0) return '';
+
+  const e1rmConsigliato = numConsigliato * (1 + repsTarget / 30);
+  const e1rmPrev = prevPeso * (1 + repsPrev / 30);
+
+  // Se l'1RM stimato del carico proposto eccede significativamente (+1.5kg) l'1RM precedentemente dimostrato
+  if (e1rmConsigliato > (e1rmPrev + 1.5)) {
+    return `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${repsTarget} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+  }
+  return '';
+};
+
 const getGhostRenderInfo = (sett) => {
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
@@ -6354,14 +6388,10 @@ const getGhostRenderInfo = (sett) => {
     }
     valueText = valConsigliato;
 
-    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      const repsW6 = getRepsPerWeek(6);
+    if (numConsigliato > 0 && prevPeso > 0) {
+      const repsTarget = getRepsPerWeek(sett);
       const repsPrev = baseInfo?.repsBase || 10;
-      const e1rmConsigliato = numConsigliato * (1 + repsW6 / 30);
-      const e1rmPrev = prevPeso * (1 + repsPrev / 30);
-      if (e1rmConsigliato > (e1rmPrev + 1.5)) {
-        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${repsW6} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
-      }
+      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
     }
   } else if (ghost.isPostScarico) {
     const baseInfo = getBaseWeekInfo(sett);
@@ -6398,14 +6428,10 @@ const getGhostRenderInfo = (sett) => {
     }
     valueText = valConsigliato;
 
-    if (sett === 6 && isAumentoPeso && numConsigliato > 0) {
-      const repsW6 = getRepsPerWeek(6);
+    if (numConsigliato > 0 && prevPeso > 0) {
+      const repsTarget = getRepsPerWeek(sett);
       const repsPrev = baseInfo?.repsBase || 10;
-      const e1rmConsigliato = numConsigliato * (1 + repsW6 / 30);
-      const e1rmPrev = prevPeso * (1 + repsPrev / 30);
-      if (e1rmConsigliato > (e1rmPrev + 1.5)) {
-        maxEffortNotice = `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${repsW6} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
-      }
+      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
     }
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
@@ -6454,6 +6480,12 @@ const getGhostRenderInfo = (sett) => {
       label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Mantieni):';
     }
     valueText = valConsigliato;
+
+    if (numConsigliato > 0 && prevPeso > 0) {
+      const repsTarget = getRepsPerWeek(sett);
+      const repsPrev = baseInfo?.repsBase || 10;
+      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
+    }
   }
 
   // Calcolo Delta % rispetto a Week 1
@@ -6738,7 +6770,8 @@ const opzioniStradeProgressione = computed(() => {
       titolo: '🟢 Graduale',
       sottoTitolo: `Rientro Soft (+${formatWeight(step)}kg)`,
       valore: `${formatWeight(pesoGraduale)} kg`,
-      peso: pesoGraduale
+      peso: pesoGraduale,
+      isAttiva: false
     });
   }
 
@@ -6748,21 +6781,24 @@ const opzioniStradeProgressione = computed(() => {
       titolo: '🛡️ Safe',
       sottoTitolo: range.prudenziale.label || 'Prudenziale',
       valore: range.prudenziale.display,
-      peso: range.prudenziale.value
+      peso: range.prudenziale.value,
+      isAttiva: sensibilitaFaticaGhost.value === 'conservativa'
     },
     {
       tipo: 'smart',
       titolo: '💡 Smart',
-      sottoTitolo: sett === 6 ? 'Picco Max (RP / Stripping)' : (range.consigliato.label || 'Consigliato'),
+      sottoTitolo: sett === 6 ? 'Picco W6' : (range.consigliato.label || 'Consigliato'),
       valore: range.consigliato.display,
-      peso: range.consigliato.value
+      peso: range.consigliato.value,
+      isAttiva: sensibilitaFaticaGhost.value === 'bilanciata'
     },
     {
       tipo: 'sfidante',
       titolo: '🔥 Sfidante',
       sottoTitolo: range.sfidante.label || 'Sfidante',
       valore: range.sfidante.display,
-      peso: range.sfidante.value
+      peso: range.sfidante.value,
+      isAttiva: sensibilitaFaticaGhost.value === 'aggressiva'
     }
   );
 
@@ -6778,7 +6814,8 @@ const opzioniStradeProgressione = computed(() => {
           titolo: '🔄 Stesso Carico',
           sottoTitolo: `Progressione Vol. (+1r)`,
           valore: valStr,
-          peso: valStr
+          peso: valStr,
+          isAttiva: false
         });
       }
     }
@@ -6787,15 +6824,57 @@ const opzioniStradeProgressione = computed(() => {
   return res;
 });
 
+const valoreConsigliatoHeroDialog = computed(() => {
+  if (!workout.value) return { display: '0', unit: 'KG', valueToApply: 0, isRep: false, isLato: null };
+  const sett = aiutoWeek.value;
+  const presc = parsedPrescription(workout.value['des_week' + sett]);
+  if (presc && presc.total) {
+    return {
+      display: String(presc.total),
+      unit: 'KG',
+      valueToApply: presc.total,
+      isRep: false,
+      isLato: presc.side ? String(presc.side) : null
+    };
+  }
+
+  if (sett === 1) {
+    const p1 = propostaWeek1.value?.pesoConsigliato || propostaWeek1.value?.peso || 0;
+    return {
+      display: formatWeight(p1),
+      unit: 'KG',
+      valueToApply: p1,
+      isRep: false,
+      isLato: null
+    };
+  }
+
+  const ghostRender = getGhostRenderInfo(sett);
+  if (ghostRender && ghostRender.valueText) {
+    const cleanText = String(ghostRender.valueText).replace(/\s*kg/gi, '').trim();
+    const isRep = cleanText.includes('r') || cleanText.includes('x');
+    return {
+      display: cleanText,
+      unit: isRep ? '' : 'KG',
+      valueToApply: cleanText,
+      isRep,
+      isLato: null
+    };
+  }
+
+  const fallback = caricoConsigliatoViaDiMezzo.value || 0;
+  return {
+    display: formatWeight(fallback),
+    unit: 'KG',
+    valueToApply: fallback,
+    isRep: false,
+    isLato: null
+  };
+});
+
 const spiegazioneDinamicaConsigliata = computed(() => {
   if (!workout.value) return '';
   const sett = aiutoWeek.value;
-
-  if (sett === 6) {
-    const consigliatoVal = caricoConsigliatoViaDiMezzo.value || 22;
-    const repsW6 = getRepsPerWeek(6);
-    return `⚠️ Con ${consigliatoVal}kg sarà difficile chiudere ${repsW6} rep di fila. In caso di cedimento, completa le rep mancanti in Rest-Pause (es. ${consigliatoVal}x4+2r RP) o Stripping e annotalo nel campo.`;
-  }
 
   const presc = parsedPrescription(workout.value['des_week' + sett]);
   if (presc && presc.total) {
@@ -6806,6 +6885,11 @@ const spiegazioneDinamicaConsigliata = computed(() => {
       }
       return `🎯 Carico di forza prescritto dal coach per la Week ${sett}: ${presc.total} kg.`;
     }
+  }
+
+  const ghostRender = getGhostRenderInfo(sett);
+  if (ghostRender && ghostRender.maxEffortNotice) {
+    return ghostRender.maxEffortNotice;
   }
 
   const infoBaseCurrent = getBaseWeekInfo(aiutoWeek.value);
@@ -6827,16 +6911,21 @@ const spiegazioneDinamicaConsigliata = computed(() => {
   }
 
   const programmato = pesoPropostoDettaglio.value;
-  const consigliato = caricoConsigliatoViaDiMezzo.value;
+  const numConsigliato = ghostRender ? parseFloat(String(ghostRender.valueText).replace(',', '.')) : caricoConsigliatoViaDiMezzo.value;
   
-  if (consigliato === null || programmato === null) return '';
+  if (numConsigliato === null || isNaN(numConsigliato) || programmato === null) {
+    if (ghostRender && ghostRender.valueText) {
+      return `🎯 Target consigliato: ${ghostRender.valueText}.`;
+    }
+    return '';
+  }
   
-  if (consigliato > programmato) {
-    return `📈 Forza stimata in crescita. Carico proposto: ${formatWeight(consigliato)} kg per progredire in sicurezza.`;
-  } else if (consigliato < programmato) {
-    return `⚠️ Prestazioni recenti suggeriscono prudenza. Carico consigliato: ${formatWeight(consigliato)} kg.`;
+  if (numConsigliato > programmato) {
+    return `📈 Forza stimata in crescita. Carico proposto: ${formatWeight(numConsigliato)} kg per progredire in sicurezza.`;
+  } else if (numConsigliato < programmato) {
+    return `⚠️ Prestazioni recenti suggeriscono prudenza. Carico consigliato: ${formatWeight(numConsigliato)} kg.`;
   } else {
-    return `🎯 Carico consigliato allineato alla scheda: ${formatWeight(consigliato)} kg.`;
+    return `🎯 Carico consigliato allineato alla scheda: ${formatWeight(numConsigliato)} kg.`;
   }
 });
 

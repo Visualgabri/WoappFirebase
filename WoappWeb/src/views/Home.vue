@@ -1314,48 +1314,31 @@
                   </p>
                 </div>
 
-                <!-- 5. MOTORE PROGRESSIONE -->
+                <!-- 5. MOTORE PROGRESSIONE & ATTITUDINE -->
                 <h4 class="font-weight-black text-subtitle-2 mb-2 mt-4 d-flex align-center" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.84rem;">
                   <v-icon size="18" color="orange-darken-2" class="mr-2 flex-shrink-0">mdi-trending-up</v-icon>
-                  <span>Motore di Progressione & Profilazione Atleta</span>
+                  <span>Attitudine alla Progressione & Gestione Carichi</span>
                 </h4>
 
                 <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
                   <h5 class="font-weight-black text-caption mb-1.5" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.78rem;">
-                    Motore di Progressione
+                    Attitudine alla Progressione (Sensibilità)
                   </h5>
-                  <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.4;">
-                    <div class="pa-2 rounded-lg" style="background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6;">
-                      <strong class="text-blue-lighten-2">Ibrida SMART (Consigliata):</strong>
-                      <div class="text-muted mt-0.5">Sintesi intelligente tra la scheda e il potenziale stimato reale. Ideale per atleti intermedi e avanzati.</div>
-                    </div>
-                    <div class="pa-2 rounded-lg" style="background: rgba(148, 163, 184, 0.08); border-left: 3px solid #94a3b8;">
-                      <strong class="text-slate-light">Fissa Scheda:</strong>
-                      <div class="text-muted mt-0.5">Progressione lineare a step nominali. Ideale per principianti o atleti metodici che seguono target rigidi.</div>
-                    </div>
-                    <div class="pa-2 rounded-lg" style="background: rgba(249, 115, 22, 0.08); border-left: 3px solid #f97316;">
-                      <strong class="text-orange-lighten-2">Dinamica:</strong>
-                      <div class="text-muted mt-0.5">Reattività immediata alle ultime prestazioni e agli esuberi di reps. Ideale per atleti esperti.</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="pa-3 rounded-xl border border-soft mb-3" :style="{ background: 'var(--card-bg-soft, #0f172a)' }">
-                  <h5 class="font-weight-black text-caption mb-1.5" :style="{ color: 'var(--theme-primary, #f97316)' }" style="font-size: 0.78rem;">
-                    Sensibilità Fatica
-                  </h5>
+                  <p class="text-caption text-slate-light mb-2" style="font-size: 0.70rem; line-height: 1.35;">
+                    Il motore di calcolo unificato valuta costantemente l'1RM, le ripetizioni completate e lo storico mesocicli, proponendo il target ideale in base all'attitudine selezionata:
+                  </p>
                   <div class="d-flex flex-column gap-2 text-caption" style="font-size: 0.72rem; line-height: 1.4;">
                     <div class="pa-2 rounded-lg" style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8;">
-                      <strong class="text-cyan-lighten-2">Prudente:</strong>
-                      <div class="text-muted mt-0.5">Privilegia l'accumulo di ripetizioni e il consolidamento prima di salire di kg. Ideale in cut, atleti master o recupero articolare.</div>
+                      <strong class="text-cyan-lighten-2">🛡️ Prudente (Safe):</strong>
+                      <div class="text-muted mt-0.5">Privilegia l'accumulo di ripetizioni (+1r) e il volume prima di incrementare i kg. Ideale in ipocalorica, atleti master o tutela articolare.</div>
                     </div>
                     <div class="pa-2 rounded-lg" style="background: rgba(34, 197, 94, 0.08); border-left: 3px solid #22c55e;">
-                      <strong class="text-green-accent-3">Bilanciata (Default):</strong>
-                      <div class="text-muted mt-0.5">Progressione costante e bilanciata, con frenata solo su fatica elevata documentata. Per la maggioranza degli atleti.</div>
+                      <strong class="text-green-accent-3">⚖️ Bilanciata (Smart - Default):</strong>
+                      <div class="text-muted mt-0.5">Progressione fisiologica intelligente calcolata su 1RM e step attrezzo, con avanzamento bilanciato e allineamento istantaneo tra Ghost e Dialog.</div>
                     </div>
                     <div class="pa-2 rounded-lg" style="background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444;">
-                      <strong class="text-red-lighten-2">Spinta:</strong>
-                      <div class="text-muted mt-0.5">Massimizza il sovraccarico progressivo puntando subito al carico superiore e al PR. Per atleti di forza o in surplus calorico.</div>
+                      <strong class="text-red-lighten-2">🔥 Spinta (Sfidante / PR):</strong>
+                      <div class="text-muted mt-0.5">Massimizza il sovraccarico progressivo puntando subito allo step superiore (+Kg) o all'attacco diretto al record storico dell'esercizio.</div>
                     </div>
                   </div>
                 </div>

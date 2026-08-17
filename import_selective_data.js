@@ -59,12 +59,38 @@ function parseTimestampToMs(tsVal) {
   if (typeof tsVal === 'number') return tsVal;
   let str = String(tsVal).trim();
   if (!str) return 0;
-  if (str.includes(' ') && !str.includes('T')) {
-    str = str.replace(' ', 'T');
+
+  // Formato DD/MM/YYYY o DD/MM/YYYY HH:mm:ss (italiano)
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(str)) {
+    const parts = str.split(' ');
+    const dateParts = parts[0].split('/');
+    const day = parseInt(dateParts[0], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const year = parseInt(dateParts[2], 10);
+    let hours = 0, minutes = 0, seconds = 0;
+    if (parts[1]) {
+      const timeParts = parts[1].split(':');
+      hours = parseInt(timeParts[0] || '0', 10);
+      minutes = parseInt(timeParts[1] || '0', 10);
+      seconds = parseInt(timeParts[2] || '0', 10);
+    }
+    const d = new Date(year, month, day, hours, minutes, seconds);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
   }
+
+  // Formato YYYY-MM-DD o ISO
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    if (str.includes(' ') && !str.includes('T')) {
+      str = str.replace(' ', 'T');
+    }
+    const parsed = Date.parse(str);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
   const parsed = Date.parse(str);
   return isNaN(parsed) ? 0 : parsed;
 }
+
 
 function getRecordLatestTimestamp(record) {
   const candidateFields = [

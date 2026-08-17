@@ -2651,7 +2651,14 @@
             </v-tab>
           </v-tabs>
           
-          <!-- Rigo 2: Target Reps Settimana Attiva -->
+          <!-- Rigo 2: Subheader WEEK & REPS per Proposta Carico -->
+          <div v-if="activeTabAnalisi === 0" class="mb-1 px-3 py-1.5 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
+            <span class="text-caption font-weight-black text-center text-orange-lighten-2" style="font-size: 0.88rem; letter-spacing: 0.04em;">
+              WEEK {{ aiutoWeek }} • {{ formatRepsDisplay(targetRepsAttive) }} REPS
+            </span>
+          </div>
+
+          <!-- Rigo 2: Target Reps Settimana Attiva (per Cronologia) -->
           <div v-if="activeTabAnalisi === 1" class="mb-1.5 px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
             <v-chip size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))', fontSize: '0.65rem', height: '20px', left: '12px' }">
               WEEK {{ settimanaAttiva }}
@@ -2808,73 +2815,11 @@
         
         <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-3 scrollbar-custom" style="max-height: 85vh;">
 
-          <!-- TAB 0: PROPOSTA CARICO (SMART) -->
-          <div v-if="activeTabAnalisi === 0" class="pt-1">
-            <!-- Target Attuale (Badge Compatto) -->
-            <div class="mb-2.5 px-3 py-2 bg-slate-950 border rounded-xl d-flex align-center justify-center position-relative" style="border-color: rgba(249, 115, 22, 0.25) !important;">
-              <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" style="font-size: 0.65rem; height: 20px; left: 12px;">
-                WEEK {{ aiutoWeek }}
-              </v-chip>
-              <span class="text-caption font-weight-black text-orange-lighten-2 text-center" style="font-size: 0.9rem; letter-spacing: 0.02em;">
-                {{ formatRepsDisplay(targetRepsAttive) }} REPS
-              </span>
-            </div>
-
-            <!-- BANNER RECORD PERSONALE -->
-            <v-card
-              v-if="analizzaRecordSettimana(aiutoWeek)"
-              class="mb-3 border text-left pa-2.5 rounded-xl"
-              :style="{
-                background: analizzaRecordSettimana(aiutoWeek).stato === 'record'
-                  ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.16) 0%, rgba(251, 191, 36, 0.04) 100%) !important'
-                  : 'linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.03) 100%) !important',
-                borderColor: analizzaRecordSettimana(aiutoWeek).stato === 'record'
-                  ? 'rgba(251, 191, 36, 0.45) !important'
-                  : 'rgba(249, 115, 22, 0.3) !important'
-              }"
-              elevation="0"
-            >
-              <div class="d-flex align-center gap-2">
-                <span style="font-size: 1.1rem; line-height: 1;">
-                  {{ analizzaRecordSettimana(aiutoWeek).stato === 'record' ? '🏆' : '🔥' }}
-                </span>
-                <div style="flex-grow: 1; min-width: 0;">
-                  <div 
-                    :class="analizzaRecordSettimana(aiutoWeek).stato === 'record' ? 'text-amber-lighten-1 font-weight-black' : 'text-orange-lighten-2 font-weight-black'" 
-                    class="text-super-caption uppercase" 
-                    style="font-size: 0.58rem; letter-spacing: 0.04em;"
-                  >
-                    {{ analizzaRecordSettimana(aiutoWeek).stato === 'record' ? 'RECORD STORICO SUPERATO' : 'VICINO AL RECORD STORICO' }}
-                  </div>
-                  <div class="banner-record-text text-super-caption font-weight-bold" style="font-size: 0.65rem; line-height: 1.25;">
-                    <span v-if="analizzaRecordSettimana(aiutoWeek).stato === 'record'">
-                      {{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg supera il record di {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg per {{ formatRepsDisplay(analizzaRecordSettimana(aiutoWeek).targetReps) }}!
-                    </span>
-                    <span v-else>
-                      {{ formatWeight(analizzaRecordSettimana(aiutoWeek).peso) }} kg (Record: {{ formatWeight(analizzaRecordSettimana(aiutoWeek).record) }} kg, mancano +{{ formatWeight(analizzaRecordSettimana(aiutoWeek).diff) }} kg)
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </v-card>
-
-            <!-- Pulsante per aprire la progressione scheda precedente -->
-            <div v-if="previousWorkout && aiutoWeek === 1" class="mb-3 text-left">
-              <v-btn
-                prepend-icon="mdi-calendar-arrow-left"
-                variant="outlined"
-                color="orange-darken-3"
-                density="comfortable"
-                class="font-weight-black text-none w-100 rounded-lg"
-                style="font-size: 0.72rem; letter-spacing: 0.05em; background: rgba(249, 115, 22, 0.04); border-color: rgba(249, 115, 22, 0.25) !important; height: 32px;"
-                @click="dialogProgressioniPrecedente = true"
-              >
-                Vedi Progressione Scheda Precedente
-              </v-btn>
-            </div>
+          <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
+          <div v-if="activeTabAnalisi === 0" class="pt-0">
 
             <!-- CASO SCARICO WEEK 4 -->
-            <div v-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-3 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
+            <div v-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-2.5 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
               <div class="d-flex align-center justify-space-between mb-1.5">
                 <span class="text-super-caption text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
                   🔋 SCARICO ATTIVO (W4)
@@ -2917,435 +2862,562 @@
               </div>
             </div>
 
-            <!-- CASO WEEK 1 PROPOSTA / ALTRE SETTIMANE -->
-            <div v-else-if="caricandoAiutoCarico" class="text-center py-6">
-              <v-progress-circular indeterminate color="orange" size="28" class="mb-2"></v-progress-circular>
-              <p class="text-super-caption text-muted">Calcolo proposta in corso...</p>
-            </div>
-
             <!-- CASO GHOST COACH SET -->
-            <div v-else-if="getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-3 text-left animate-fade-in">
-              <div class="pa-3.5 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.3) !important; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.02) 100%) !important;">
-                <div class="d-flex align-center gap-2 mb-1.5">
-                  <v-icon color="amber-darken-2" size="20">mdi-alert-decagram-outline</v-icon>
+            <div v-else-if="getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-2.5 text-left animate-fade-in">
+              <div class="pa-3 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.3) !important; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.02) 100%) !important;">
+                <div class="d-flex align-center gap-2 mb-1">
+                  <v-icon color="amber-darken-2" size="18">mdi-alert-decagram-outline</v-icon>
                   <span class="text-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.72rem; letter-spacing: 0.04em;">
                     Carichi impostati dal Coach
                   </span>
                 </div>
-                <div class="text-super-caption text-slate-light font-weight-bold" style="font-size: 0.72rem; line-height: 1.45;">
+                <div class="text-super-caption text-slate-light font-weight-bold" style="font-size: 0.68rem; line-height: 1.4;">
                   I carichi per questo esercizio di forza sono già impostati dal coach, per cui non c'è alcuna proposta o variazione da consigliare.
                 </div>
               </div>
             </div>
 
-            <div v-else-if="aiutoWeek !== 4 && proposteStoricoCalcolate.length === 0 && (aiutoWeek === 1 ? propostaWeek1?.erroreCarichi : true)" class="text-center py-6">
-              <v-icon size="28" color="orange" class="mb-1">mdi-database-off-outline</v-icon>
-              <p class="text-super-caption text-muted">Nessun dato nello storico per calcolare la proposta.</p>
+            <!-- CASO WEEK 1 PROPOSTA ERROR -->
+            <div v-else-if="aiutoWeek === 1 && propostaWeek1?.erroreCarichi" class="mb-2.5 text-left">
+              <div class="pa-2.5 rounded-lg text-red-accent-4" style="background: rgba(239, 68, 68, 0.1) !important; border: 1px solid rgba(239, 68, 68, 0.35) !important;">
+                <div class="d-flex align-center gap-1.5 font-weight-bold text-caption" style="font-size: 0.68rem !important; color: #ff5252 !important;">
+                  <v-icon color="red-accent-4" size="14">mdi-alert-circle-outline</v-icon>
+                  <span>⚠️ Scheda prec. senza carichi. Carica il Miglior Carico W6 per la stima.</span>
+                </div>
+              </div>
+            </div>
+
+            <div v-else-if="caricandoAiutoCarico" class="text-center py-6">
+              <v-progress-circular indeterminate color="orange" size="28" class="mb-2"></v-progress-circular>
+              <p class="text-super-caption text-muted">Calcolo proposta in corso...</p>
             </div>
 
             <template v-else>
-              <!-- CASO WEEK 1 PROPOSTA ERROR -->
-              <div v-if="aiutoWeek === 1 && propostaWeek1?.erroreCarichi" class="mb-3 text-left">
-                <div class="pa-2.5 rounded-lg text-red-accent-4" style="background: rgba(239, 68, 68, 0.1) !important; border: 1px solid rgba(239, 68, 68, 0.35) !important;">
-                  <div class="d-flex align-center gap-1.5 font-weight-bold text-caption" style="font-size: 0.68rem !important; color: #ff5252 !important;">
-                    <v-icon color="red-accent-4" size="14">mdi-alert-circle-outline</v-icon>
-                    <span>⚠️ Scheda prec. senza carichi. Carica il Miglior Carico W6 per la stima.</span>
+              <!-- 2. BLOCCO RECORD IN ALTO (2 COLONNE + NUOVO PR) -->
+              <div v-if="recordOverviewData" class="mb-2.5 text-left">
+                <div class="d-flex gap-2 w-100">
+                  <!-- Colonna 1: Miglior Prestazione Assoluta -->
+                  <div 
+                    class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
+                    style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.10) 0%, rgba(245, 158, 11, 0.02) 100%); border-color: rgba(245, 158, 11, 0.35) !important; flex: 1 1 0%; min-width: 0;"
+                    @click="recordOverviewData.bestReal.id && vaiADettaglioStorico(recordOverviewData.bestReal.id)"
+                  >
+                    <div>
+                      <div class="d-flex align-center gap-1 mb-1 text-truncate">
+                        <v-icon color="amber-lighten-1" size="13">mdi-trophy</v-icon>
+                        <span class="text-super-caption font-weight-black text-amber-lighten-1 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+                          MIGLIOR PRESTAZIONE
+                        </span>
+                      </div>
+                      <div class="font-weight-black text-amber-lighten-2 text-truncate" style="font-size: 1.05rem; line-height: 1.15;">
+                        {{ recordOverviewData.bestReal.display }}
+                      </div>
+                    </div>
+                    <div class="mt-1 text-super-caption text-truncate font-weight-bold" :class="recordOverviewData.bestReal.isCurrent ? 'text-green-accent-3' : 'text-slate-400'" style="font-size: 0.55rem;">
+                      {{ recordOverviewData.bestReal.provenienza }}
+                    </div>
+                  </div>
+
+                  <!-- Colonna 2: e1RM Massimo (Stimato) -->
+                  <div 
+                    class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
+                    style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 100%); border-color: rgba(6, 182, 212, 0.35) !important; flex: 1 1 0%; min-width: 0;"
+                    @click="recordOverviewData.bestE1RM.id && vaiADettaglioStorico(recordOverviewData.bestE1RM.id)"
+                  >
+                    <div>
+                      <div class="d-flex align-center gap-1 mb-1 text-truncate">
+                        <v-icon color="cyan-lighten-2" size="13">mdi-chart-line</v-icon>
+                        <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+                          e1RM MASSIMO
+                        </span>
+                      </div>
+                      <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.05rem; line-height: 1.15;">
+                        {{ recordOverviewData.bestE1RM.display }}
+                      </div>
+                    </div>
+                    <div class="mt-1 text-super-caption text-truncate font-weight-bold d-flex align-center gap-1" style="font-size: 0.55rem;">
+                      <span class="text-cyan-lighten-3 font-italic">stimato</span>
+                      <span class="text-slate-400">• {{ recordOverviewData.bestE1RM.provenienza }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Barra Compatta Nuovo PR -->
+                <div 
+                  v-if="recordOverviewData.nuovoPR.isNew" 
+                  class="mt-2 pa-2 rounded-xl border d-flex align-center justify-space-between animate-pulse"
+                  style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.18) 0%, rgba(245, 158, 11, 0.08) 100%); border-color: rgba(251, 191, 36, 0.45) !important;"
+                >
+                  <div class="d-flex align-center gap-1.5">
+                    <span style="font-size: 1rem; line-height: 1;">🏆</span>
+                    <span class="font-weight-black text-amber-lighten-1 uppercase" style="font-size: 0.65rem; letter-spacing: 0.04em;">
+                      {{ recordOverviewData.nuovoPR.badgeText }}
+                    </span>
+                  </div>
+                  <div class="font-weight-black text-amber-accent-2" style="font-size: 0.65rem;">
+                    {{ recordOverviewData.nuovoPR.deltaText }}
                   </div>
                 </div>
               </div>
 
-              <!-- CASO STANDARD (WEEK 1 VALIDA E ALTRE WEEKS) -->
-              <div v-else class="d-flex flex-column gap-3">
-
-                <!-- 1. PROPOSTA CONSIGLIATA HERO CARD -->
-                <div class="pa-3 rounded-xl text-left border position-relative overflow-hidden" 
-                     style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.35) !important;">
-                  <div class="d-flex align-center justify-space-between mb-1">
-                    <div class="d-flex align-center gap-1.5 flex-wrap">
-                      <span class="text-super-caption text-green-accent-3 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
-                        💡 CARICO CONSIGLIATO
-                      </span>
-                      <span v-if="getGhostRenderInfo(aiutoWeek)?.deltaW1" 
-                            class="rounded px-1.5 py-0.2 font-weight-black text-no-wrap"
-                            :style="getGhostRenderInfo(aiutoWeek).deltaW1.style"
-                            style="font-size: 0.58rem; line-height: 1.15;">
-                        {{ getGhostRenderInfo(aiutoWeek).deltaW1.text }}
-                      </span>
-                    </div>
-                    <v-chip v-if="analizzaRecordSettimana(aiutoWeek)?.stato === 'record'" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.5rem; height: 16px;">
-                      🏆 RECORD
-                    </v-chip>
-                    <v-chip v-else color="green-darken-1" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.5rem; height: 16px;">
-                      OTTIMALE
-                    </v-chip>
-                  </div>
-                  
-                  <div class="d-flex align-center justify-space-between my-1">
-                    <div>
-                      <div class="text-h4 font-weight-black text-green-accent-3" style="line-height: 1.1; font-size: 1.6rem;">
-                        {{ valoreConsigliatoHeroDialog.display }} 
-                        <span v-if="valoreConsigliatoHeroDialog.unit" class="text-caption text-muted" style="font-size: 0.72rem;">{{ valoreConsigliatoHeroDialog.unit }}</span>
-                      </div>
-                      <div v-if="valoreConsigliatoHeroDialog.isLato" class="text-caption font-weight-black text-blue-lighten-2 mt-0.5" style="font-size: 0.78rem;">
-                        LATO: {{ valoreConsigliatoHeroDialog.isLato }} KG
-                      </div>
-                    </div>
-                    <v-btn
-                      color="green-darken-2"
-                      size="small"
-                      class="font-weight-black text-white px-3 text-none rounded-lg"
-                      style="font-size: 0.72rem; height: 30px;"
-                      @click="applicaPropostaCaricoStorico(valoreConsigliatoHeroDialog.valueToApply)"
+              <!-- 3. PROPOSTA PRINCIPALE (BLOCCO VISIVAMENTE DOMINANTE) -->
+              <div 
+                v-if="heroProposalData" 
+                class="pa-3 rounded-2xl text-left border position-relative overflow-hidden mb-2.5"
+                style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.03) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12);"
+              >
+                <!-- Badge riga superiore -->
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <div class="d-flex align-center gap-1.5 flex-wrap">
+                    <span class="font-weight-black uppercase px-2 py-0.5 rounded text-white" style="background: #15803d; font-size: 0.58rem; letter-spacing: 0.05em;">
+                      CONSIGLIATO
+                    </span>
+                    <span 
+                      v-if="heroProposalData.deltaW1" 
+                      class="rounded px-1.5 py-0.5 font-weight-black text-no-wrap"
+                      :style="heroProposalData.deltaW1.style"
+                      style="font-size: 0.58rem; line-height: 1.15;"
                     >
-                      Applica Consigliato
-                    </v-btn>
+                      ↗ {{ heroProposalData.deltaW1.text }}
+                    </span>
                   </div>
-                  
-                  <div class="text-super-caption text-slate-light font-weight-medium mt-1" style="font-size: 0.6rem; line-height: 1.3;">
-                    {{ (parsedPrescription(workout?.['des_week' + aiutoWeek])?.total) ? spiegazioneDinamicaConsigliata : (aiutoWeek === 1 ? 'Stima di partenza basata su scheda precedente con fatica e recupero integrati.' : (spiegazioneDinamicaConsigliata.length > 90 ? spiegazioneDinamicaConsigliata.substring(0, 87) + '...' : spiegazioneDinamicaConsigliata)) }}
+
+                  <div v-if="heroProposalData.stepTransitionText" class="font-weight-black text-slate-300 font-mono" style="font-size: 0.62rem;">
+                    {{ heroProposalData.stepTransitionText }}
                   </div>
                 </div>
 
-                <!-- 2. LE TRE STRADE DI PROGRESSIONE (HORIZONTAL CARDS) -->
-                <div v-if="opzioniStradeProgressione.length > 0" class="text-left">
-                  <span class="text-super-caption text-muted font-weight-black uppercase mb-1.5 px-1 d-block" style="font-size: 0.55rem; letter-spacing: 0.04em;">
-                    ⚙️ OPZIONI DI PROGRESSIONE
+                <!-- Carico Dominante e Bottone Applica -->
+                <div class="d-flex align-center justify-space-between my-2">
+                  <div>
+                    <div class="font-weight-black text-green-accent-3 d-flex align-baseline gap-1" style="font-size: 2.25rem; line-height: 1; letter-spacing: -0.02em; text-shadow: 0 0 20px rgba(74, 222, 128, 0.25);">
+                      {{ heroProposalData.displayNum }}
+                      <span v-if="heroProposalData.unit" class="text-caption text-slate-400 font-weight-bold" style="font-size: 0.85rem;">{{ heroProposalData.unit }}</span>
+                    </div>
+                    <div class="font-weight-black text-slate-300 mt-1" style="font-size: 0.72rem; letter-spacing: 0.02em;">
+                      {{ heroProposalData.serieRepsText }}
+                    </div>
+                    <div v-if="heroProposalData.isLato" class="text-caption font-weight-black text-cyan-lighten-3 mt-0.5" style="font-size: 0.72rem;">
+                      LATO: {{ heroProposalData.isLato }} KG
+                    </div>
+                  </div>
+
+                  <v-btn
+                    color="green-darken-1"
+                    size="default"
+                    class="font-weight-black text-white px-3.5 text-none rounded-xl elevation-2"
+                    style="font-size: 0.75rem; height: 38px;"
+                    @click="applicaPropostaCaricoStorico(heroProposalData.valueToApply)"
+                  >
+                    <v-icon start size="16" class="mr-1">mdi-check</v-icon>
+                    Applica Consigliato
+                  </v-btn>
+                </div>
+
+                <!-- Spiegazione Breve -->
+                <div class="text-super-caption text-slate-300 font-weight-medium pt-1.5 border-top" style="border-color: rgba(255,255,255,0.08) !important; font-size: 0.65rem; line-height: 1.35;">
+                  {{ heroProposalData.spiegazioneSintetica }}
+                </div>
+              </div>
+
+              <!-- 4. STRATEGIE ALTERNATIVE (SAFE / SMART / SFIDANTE) -->
+              <div v-if="strategieAlternativeCards.length > 0" class="mb-2.5 text-left">
+                <div class="d-flex align-center justify-space-between mb-1.5 px-0.5">
+                  <span class="text-super-caption font-weight-black uppercase" style="color: var(--text-slate, #94a3b8); font-size: 0.62rem; letter-spacing: 0.05em;">
+                    ⚖️ STRATEGIE ALTERNATIVE
                   </span>
-                  
-                  <div class="d-flex gap-1.5 overflow-x-auto pb-1 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
-                    <div v-for="strada in opzioniStradeProgressione" :key="strada.tipo" class="flex-grow-1" style="min-width: 95px; max-width: 130px;">
-                      <v-card 
-                        class="pa-2 rounded-xl text-center border bg-slate-900 d-flex flex-column justify-space-between fill-height position-relative"
-                        :style="{
-                          borderColor: strada.isAttiva 
-                            ? (strada.tipo === 'smart' ? '#4ade80 !important' : (strada.tipo === 'sfidante' ? '#fb923c !important' : '#60a5fa !important'))
-                            : (strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.35) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.35) !important' : (strada.tipo === 'stesso_peso' ? 'rgba(59, 130, 246, 0.35) !important' : 'rgba(255,255,255,0.08) !important'))),
-                          background: strada.isAttiva
-                            ? (strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.12) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.12) !important' : 'rgba(59, 130, 246, 0.12) !important'))
-                            : (strada.tipo === 'smart' ? 'rgba(16, 185, 129, 0.04) !important' : (strada.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.04) !important' : (strada.tipo === 'stesso_peso' ? 'rgba(59, 130, 246, 0.04) !important' : 'rgba(255,255,255,0.01) !important'))),
-                          boxShadow: strada.isAttiva ? '0 0 8px rgba(0,0,0,0.5)' : 'none'
-                        }"
-                        elevation="0"
-                        style="min-height: 95px;"
-                      >
-                        <div class="d-flex flex-column align-center">
-                          <div class="d-flex align-center justify-center gap-1 w-100">
-                            <span class="font-weight-black text-uppercase text-truncate" :class="strada.tipo === 'smart' ? 'text-green-accent-3' : (strada.tipo === 'sfidante' ? 'text-orange-lighten-2' : (strada.tipo === 'stesso_peso' ? 'text-blue-lighten-2' : 'text-blue-lighten-3'))" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                              {{ strada.titolo }}
-                            </span>
-                            <span v-if="strada.isAttiva" class="text-super-caption font-weight-black" :class="strada.tipo === 'smart' ? 'text-green-accent-3' : (strada.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-3')" style="font-size: 0.5rem;">✓</span>
-                          </div>
-                          <span class="text-super-caption text-muted text-truncate mt-0.5 font-weight-bold" style="font-size: 0.48rem; text-transform: none;">
-                            {{ strada.sottoTitolo }}
+                </div>
+
+                <div class="d-flex gap-2 overflow-x-auto pb-1 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
+                  <div 
+                    v-for="card in strategieAlternativeCards" 
+                    :key="card.tipo" 
+                    class="flex-grow-1"
+                    style="flex: 1 1 0%; min-width: 100px;"
+                  >
+                    <v-card 
+                      class="pa-2.5 rounded-xl border d-flex flex-column justify-space-between fill-height text-center position-relative transition-all"
+                      :style="{
+                        borderColor: card.isConsigliato ? 'rgba(74, 222, 128, 0.6) !important' : (card.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.4) !important' : 'rgba(59, 130, 246, 0.4) !important'),
+                        background: card.isConsigliato ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.03) 100%) !important' : (card.tipo === 'sfidante' ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.10) 0%, rgba(249, 115, 22, 0.02) 100%) !important' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.10) 0%, rgba(59, 130, 246, 0.02) 100%) !important'),
+                        boxShadow: card.isConsigliato ? '0 0 12px rgba(74, 222, 128, 0.15)' : 'none',
+                        transform: card.isConsigliato ? 'scale(1.02)' : 'none'
+                      }"
+                      elevation="0"
+                    >
+                      <!-- Intestazione Card -->
+                      <div>
+                        <div class="d-flex align-center justify-center gap-1">
+                          <span 
+                            class="font-weight-black uppercase text-truncate"
+                            :class="card.isConsigliato ? 'text-green-accent-3' : (card.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-2')"
+                            style="font-size: 0.65rem; letter-spacing: 0.03em;"
+                          >
+                            {{ card.icon }} {{ card.nome }}
                           </span>
+                          <span v-if="card.isConsigliato" class="text-green-accent-3 font-weight-black" style="font-size: 0.7rem;">✓</span>
                         </div>
-                        
-                        <div class="opzione-peso-text my-1 text-subtitle-2 font-weight-black" :class="{ 'text-white': strada.isAttiva }" style="line-height: 1.1; font-size: 0.85rem;">
-                          {{ strada.valore }}
+
+                        <!-- Valore Peso x Reps -->
+                        <div class="font-weight-black text-white mt-1 text-truncate" style="font-size: 0.95rem; line-height: 1.15;">
+                          {{ card.valoreDisplay }}
                         </div>
-                        
+
+                        <!-- Sottotitolo Dinamico -->
+                        <div class="text-super-caption text-slate-300 font-weight-bold text-truncate mt-0.5" style="font-size: 0.52rem; line-height: 1.2;">
+                          {{ card.sottotitolo }}
+                        </div>
+
+                        <!-- Reps Stimate Realistiche -->
+                        <div class="mt-1.5 px-1 py-0.5 rounded bg-black/40 border text-super-caption font-weight-bold text-truncate" style="border-color: rgba(255,255,255,0.06) !important; font-size: 0.5rem; color: #cbd5e1;">
+                          {{ card.repsStimateText }}
+                        </div>
+                      </div>
+
+                      <!-- Separatore e Metrica Rischio/Probabilità -->
+                      <div class="pt-1.5 mt-1.5 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
+                        <div class="text-super-caption text-muted font-weight-medium text-truncate" style="font-size: 0.48rem;">
+                          {{ card.metricLabel }}
+                        </div>
+                        <div 
+                          class="font-weight-black text-truncate"
+                          :class="card.isConsigliato ? 'text-green-accent-3' : (card.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-2')"
+                          style="font-size: 0.58rem; letter-spacing: 0.02em;"
+                        >
+                          {{ card.metricValue }}
+                        </div>
+
+                        <!-- Tasto Applica -->
                         <v-btn
-                          :color="strada.tipo === 'smart' ? 'green-darken-2' : (strada.tipo === 'sfidante' ? 'orange-darken-3' : (strada.tipo === 'stesso_peso' ? 'blue-darken-2' : 'blue-darken-3'))"
+                          :color="card.isConsigliato ? 'green-darken-1' : (card.tipo === 'sfidante' ? 'orange-darken-3' : 'blue-darken-3')"
                           size="x-small"
-                          :variant="strada.isAttiva ? 'flat' : 'tonal'"
-                          class="font-weight-black text-white text-none w-100 rounded-lg"
-                          style="font-size: 0.6rem; height: 22px;"
-                          @click="applicaPropostaCaricoStorico(strada.peso)"
+                          :variant="card.isConsigliato ? 'flat' : 'tonal'"
+                          class="font-weight-black text-white text-none w-100 rounded-lg mt-1.5"
+                          style="font-size: 0.6rem; height: 24px;"
+                          @click="applicaPropostaCaricoStorico(card.pesoToApply)"
                         >
                           Applica
                         </v-btn>
-                      </v-card>
-                    </div>
+                      </div>
+                    </v-card>
                   </div>
+                </div>
+              </div>
 
-                  <!-- 2.B CALCOLATORE INTERATTIVO CARICO CUSTOM / REPS TARGET -->
-                  <div v-if="!isCorpoLiberoEsercizio(workout)" class="text-left mt-2.5 pa-2.5 rounded-xl border bg-slate-950" style="border-color: rgba(255, 255, 255, 0.1) !important;">
-                    <div class="d-flex align-center justify-space-between mb-2">
-                      <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.04em;">
-                        🧮 SIMULATORE CARICO CUSTOM
+              <!-- 5. SIMULATORE CARICO (ACCORDION COMPATTO) -->
+              <div v-if="!isCorpoLiberoEsercizio(workout)" class="mb-2.5 text-left">
+                <v-card 
+                  class="rounded-xl border bg-slate-950 overflow-hidden" 
+                  style="border-color: rgba(255, 255, 255, 0.1) !important;"
+                >
+                  <div 
+                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    style="background: rgba(255, 255, 255, 0.02);"
+                    @click="showSimulatoreCarico = !showSimulatoreCarico"
+                  >
+                    <div class="d-flex align-center gap-1.5">
+                      <span style="font-size: 0.9rem;">🛠️</span>
+                      <span class="font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
+                        Simula altro carico
                       </span>
                     </div>
-
-                    <div class="d-flex align-center gap-2 mb-2">
-                      <div style="width: 120px; flex-shrink: 0;">
-                        <v-text-field
-                          v-model="pesoCustomSimulatore"
-                          type="number"
-                          step="0.5"
-                          density="compact"
-                          hide-details
-                          variant="outlined"
-                          prefix="KG"
-                          label="Peso"
-                          class="custom-weight-input font-weight-black"
-                          style="font-size: 0.82rem;"
-                        ></v-text-field>
-                      </div>
-                      <div class="text-super-caption text-slate-light font-weight-medium" style="font-size: 0.56rem; line-height: 1.2;">
-                        Calcola rep per progredire col peso scelto.
-                      </div>
-                    </div>
-
-                    <!-- RISULTATI SIMULAZIONE REPS IN 3 RIGHE PULITE -->
-                    <div v-if="calcolaProgressioneRepCustom" class="d-flex flex-column gap-1.5 pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255, 255, 255, 0.05) !important;">
-                      <div class="text-super-caption text-slate-light font-weight-medium mb-0.5" style="font-size: 0.55rem;">
-                        🎯 Base: <strong>{{ calcolaProgressioneRepCustom.pesoRef }}kg × {{ calcolaProgressioneRepCustom.repsRef }}r</strong> (e1RM: {{ calcolaProgressioneRepCustom.e1rmRef }}kg)
-                      </div>
-
-                      <!-- 1. PARITÀ -->
-                      <div 
-                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-blue-950/40 border-blue-500/30 cursor-pointer hover:bg-blue-900/50 transition-colors"
-                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.parita.valore)"
-                      >
-                        <div class="d-flex align-center gap-1.5">
-                          <span class="font-weight-black text-blue-lighten-3" style="font-size: 0.62rem;">🟡 PARITÀ</span>
-                          <span class="text-super-caption text-slate-light" style="font-size: 0.54rem;">Stessa Forza</span>
-                        </div>
-                        <div class="d-flex align-center gap-2">
-                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-blue-900/80 border border-blue-400/30" style="font-size: 0.82rem;">
-                            {{ calcolaProgressioneRepCustom.parita.valore }}
-                          </span>
-                          <v-btn color="blue-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2" style="font-size: 0.58rem; height: 22px;">
-                            Applica
-                          </v-btn>
-                        </div>
-                      </div>
-
-                      <!-- 2. TARGET (+1r) -->
-                      <div 
-                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-green-950/40 border-green-500/30 cursor-pointer hover:bg-green-900/50 transition-colors"
-                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.target.valore)"
-                      >
-                        <div class="d-flex align-center gap-1.5">
-                          <span class="font-weight-black text-green-accent-3" style="font-size: 0.62rem;">🟢 TARGET</span>
-                          <span class="text-super-caption text-green-accent-2" style="font-size: 0.54rem;">Progressione +1r</span>
-                        </div>
-                        <div class="d-flex align-center gap-2">
-                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-green-900/80 border border-green-400/30" style="font-size: 0.82rem;">
-                            {{ calcolaProgressioneRepCustom.target.valore }}
-                          </span>
-                          <v-btn color="green-darken-2" size="x-small" density="compact" class="font-weight-black text-white text-none px-2" style="font-size: 0.58rem; height: 22px;">
-                            Applica
-                          </v-btn>
-                        </div>
-                      </div>
-
-                      <!-- 3. SFIDANTE (+2r) -->
-                      <div 
-                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-orange-950/40 border-orange-500/30 cursor-pointer hover:bg-orange-900/50 transition-colors"
-                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.sfidante.valore)"
-                      >
-                        <div class="d-flex align-center gap-1.5">
-                          <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.62rem;">🔥 SFIDANTE</span>
-                          <span class="text-super-caption text-orange-lighten-3" style="font-size: 0.54rem;">Progressione +2r</span>
-                        </div>
-                        <div class="d-flex align-center gap-2">
-                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-orange-900/80 border border-orange-400/30" style="font-size: 0.82rem;">
-                            {{ calcolaProgressioneRepCustom.sfidante.valore }}
-                          </span>
-                          <v-btn color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2" style="font-size: 0.58rem; height: 22px;">
-                            Applica
-                          </v-btn>
-                        </div>
-                      </div>
-                    </div>
+                    <v-icon size="16" color="grey">{{ showSimulatoreCarico ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                   </div>
 
-                  <!-- Micro-scheda Riassuntiva Riferimenti Record (Soluzione 3) -->
-                  <div v-if="getRiferimentoSfidaRecord(aiutoWeek)" class="mt-1.5 pa-2 rounded-lg bg-slate-900 border text-super-caption text-slate-light d-flex flex-column gap-1" style="font-size: 0.55rem; border-color: rgba(255,255,255,0.06) !important;">
-                    <div 
-                      v-if="!isCorpoLiberoEsercizio(workout) && getRiferimentoSfidaRecord(aiutoWeek).massimale1RM" 
-                      class="d-flex align-center justify-space-between border-b py-1.5 px-2 transition-colors rounded text-no-wrap overflow-x-auto scrollbar-none" 
-                      :class="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource ? 'cursor-pointer hover:bg-slate-800/80 active:bg-slate-700' : ''"
-                      style="border-color: rgba(255,255,255,0.04) !important; min-height: 36px;"
-                      :title="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource ? '1RM Max assoluto storico. Clicca per aprire Sch. ' + getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.numScheda : ''"
-                      @click="vaiADettaglioStorico(getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource?.id)"
+                  <v-expand-transition>
+                    <div v-if="showSimulatoreCarico" class="px-3 pt-2 pb-3 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                      <!-- Stepper [ - ] 36 KG [ + ] -->
+                      <div class="d-flex align-center justify-center gap-3 my-1">
+                        <v-btn
+                          icon
+                          variant="tonal"
+                          color="amber-darken-3"
+                          size="small"
+                          class="rounded-lg"
+                          style="width: 36px; height: 36px;"
+                          @click="decrementaSimulatore"
+                        >
+                          <v-icon size="18">mdi-minus</v-icon>
+                        </v-btn>
+
+                        <div class="d-flex align-center justify-center px-4 py-1.5 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.35) !important; min-width: 130px;">
+                          <input
+                            v-model="pesoCustomSimulatore"
+                            type="number"
+                            step="0.5"
+                            class="font-weight-black text-center text-white"
+                            style="width: 60px; background: transparent; border: none; outline: none; font-size: 1.15rem;"
+                          />
+                          <span class="text-caption text-amber-lighten-2 font-weight-black ml-1">KG</span>
+                        </div>
+
+                        <v-btn
+                          icon
+                          variant="tonal"
+                          color="amber-darken-3"
+                          size="small"
+                          class="rounded-lg"
+                          style="width: 36px; height: 36px;"
+                          @click="incrementaSimulatore"
+                        >
+                          <v-icon size="18">mdi-plus</v-icon>
+                        </v-btn>
+                      </div>
+
+                      <!-- Stima Reps & e1RM Previsto -->
+                      <div v-if="simulatoreDinamicoData" class="d-flex align-center justify-space-between pa-2 rounded-lg bg-slate-900 border mt-2" style="border-color: rgba(255, 255, 255, 0.05) !important;">
+                        <div>
+                          <div class="font-weight-black text-green-accent-3" style="font-size: 0.78rem;">
+                            ≈ {{ simulatoreDinamicoData.repsStimate }} reps stimate
+                          </div>
+                          <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.58rem;">
+                            e1RM previsto: <strong class="text-cyan-lighten-2">{{ simulatoreDinamicoData.e1rmPrevisto }} kg</strong>
+                          </div>
+                        </div>
+
+                        <v-btn
+                          color="amber-darken-3"
+                          size="x-small"
+                          class="font-weight-black text-white text-none px-3 rounded-md"
+                          style="font-size: 0.62rem; height: 26px;"
+                          @click="applicaPropostaCaricoStorico(simulatoreDinamicoData.valoreToApply)"
+                        >
+                          Applica {{ simulatoreDinamicoData.valoreToApply }} kg
+                        </v-btn>
+                      </div>
+                    </div>
+                  </v-expand-transition>
+                </v-card>
+              </div>
+
+              <!-- 6. ANDAMENTO DEL CARICO NEL MESOCICLO (W1 -> W6 COMPATTO) -->
+              <div v-if="andamentoMesocicloData" class="mb-2.5 text-left pa-2.5 rounded-xl border bg-slate-950" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                <div class="d-flex align-center justify-space-between mb-1.5 px-0.5">
+                  <span class="text-super-caption font-weight-black uppercase" style="color: var(--text-slate, #94a3b8); font-size: 0.58rem; letter-spacing: 0.04em;">
+                    📊 ANDAMENTO CARICO NEL MESOCICLO
+                  </span>
+                </div>
+
+                <!-- Griglia Orizzontale W1..W6 -->
+                <div class="d-flex align-center gap-1 w-100">
+                  <div 
+                    v-for="item in andamentoMesocicloData.settimane" 
+                    :key="item.week"
+                    class="pa-1.5 rounded-lg border text-center flex-grow-1 transition-all"
+                    :style="{
+                      flex: '1 1 0%',
+                      minWidth: '0',
+                      borderColor: item.isCurrent ? '#4ade80 !important' : 'rgba(255, 255, 255, 0.08) !important',
+                      background: item.isCurrent ? 'rgba(74, 222, 128, 0.16) !important' : 'rgba(255, 255, 255, 0.02) !important',
+                      boxShadow: item.isCurrent ? '0 0 8px rgba(74, 222, 128, 0.2)' : 'none'
+                    }"
+                  >
+                    <span 
+                      class="d-block font-weight-black uppercase text-truncate"
+                      :class="item.isCurrent ? 'text-green-accent-3' : 'text-muted'"
+                      style="font-size: 0.52rem; line-height: 1;"
                     >
-                      <span class="text-slate-light font-weight-bold d-flex align-center gap-1 shrink-0">
-                        🏆 <strong>1RM Max Storico:</strong>
-                      </span>
-                      <span class="text-purple-lighten-2 font-weight-black text-right shrink-0 ml-2">
-                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).massimale1RM) }} kg 
-                        <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">
-                          <template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo?.bestSource">
-                            (da {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.peso }}kg×{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.reps }}r<template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.fatica"> • Fatica: {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.fatica }}</template> • Sch.{{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.numScheda }}<template v-if="getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso"> • {{ getRiferimentoSfidaRecord(aiutoWeek).massimaleInfo.bestSource.tempoTrascorso }}</template>)
-                          </template>
-                          <template v-else>
-                            (stima 1RM)
-                          </template>
-                        </span>
-                      </span>
-                    </div>
-
-                    <div 
-                      class="d-flex align-center justify-space-between border-b py-1.5 px-2 transition-colors rounded text-no-wrap overflow-x-auto scrollbar-none" 
-                      :class="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo ? 'cursor-pointer hover:bg-slate-800/80 active:bg-slate-700' : ''"
-                      style="border-color: rgba(255,255,255,0.04) !important; min-height: 36px;"
-                      :title="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo ? 'Record su ripetizioni target. Clicca per aprire Sch. ' + getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.numScheda : ''"
-                      @click="vaiADettaglioStorico(getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo?.id)"
+                      {{ item.label }}
+                    </span>
+                    <strong 
+                      class="d-block mt-1 text-truncate"
+                      :class="item.isCurrent ? 'text-green-accent-3 font-weight-black' : 'text-slate-200 font-weight-bold'"
+                      style="font-size: 0.82rem; line-height: 1;"
                     >
-                      <span class="text-slate-light font-weight-bold d-flex align-center gap-1 shrink-0">
-                        📜 <strong>Record Reale:</strong>
-                      </span>
-                      <span v-if="getRiferimentoSfidaRecord(aiutoWeek).recordReale" class="text-amber-lighten-1 font-weight-black text-right shrink-0 ml-2">
-                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).recordReale) }} kg 
-                        <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">
-                          <template v-if="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo">
-                            ({{ getRepsPerWeek(aiutoWeek) }}r • Sch.{{ getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.numScheda }}<template v-if="getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.tempoTrascorso"> • {{ getRiferimentoSfidaRecord(aiutoWeek).recordRealeInfo.tempoTrascorso }}</template>)
-                          </template>
-                          <template v-else>
-                            ({{ getRepsPerWeek(aiutoWeek) }}r in passato)
-                          </template>
-                        </span>
-                      </span>
-                      <span v-else class="text-muted font-weight-bold">
-                        N.D. <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">(Mai svolto {{ getRepsPerWeek(aiutoWeek) }}r)</span>
-                      </span>
-                    </div>
-                    
-                    <div class="d-flex align-center justify-space-between py-1 px-2 text-no-wrap overflow-x-auto scrollbar-none" style="min-height: 32px;">
-                      <span class="text-slate-light font-weight-bold d-flex align-center gap-1 shrink-0">
-                        📊 <strong>Stima Target:</strong>
-                      </span>
-                      <span v-if="!isCorpoLiberoEsercizio(workout) && getRiferimentoSfidaRecord(aiutoWeek).recordStimato" class="text-orange-lighten-2 font-weight-black text-right shrink-0 ml-2">
-                        {{ formatWeight(getRiferimentoSfidaRecord(aiutoWeek).recordStimato) }} kg <span class="text-super-caption text-muted font-weight-normal ml-0.5" style="font-size: 0.53rem;">(da altre serie)</span>
-                      </span>
-                      <span v-else-if="isCorpoLiberoEsercizio(workout)" class="text-orange-lighten-2 font-weight-black text-right shrink-0 ml-2">
-                        🎯 {{ formatRepsDisplay(getRepsPerWeek(aiutoWeek)) }}
-                      </span>
-                      <span v-else class="text-muted font-weight-bold">
-                        N.D.
-                      </span>
-                    </div>
-                  </div>
-                  <div v-else class="mt-1.5 px-2 py-1.5 rounded-lg bg-slate-900 border text-super-caption text-orange-lighten-2 font-weight-medium d-flex align-center gap-1" style="font-size: 0.56rem; border-color: rgba(255,255,255,0.06) !important;">
-                    🔥 <strong>Sfidante:</strong> Carico ambizioso orientato alla massima prestazione per provare a stabilire un nuovo primato personale (PR).
+                      {{ item.value }}
+                    </strong>
                   </div>
                 </div>
 
-                <!-- 3. DATI DI CALCOLO E DETTAGLI SCIENTIFICI -->
-                <v-expansion-panels class="text-left mt-1 border-soft overflow-hidden rounded-xl bg-slate-950" style="border-width: 1px !important;">
-                  <v-expansion-panel bg-color="var(--card-bg-soft)" elevation="0">
-                    <v-expansion-panel-title class="font-weight-black py-2 text-muted" style="font-size: 0.68rem; min-height: 34px;">
-                      📊 Dati & Analisi Scientifiche Forza
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text class="px-0 pt-2 pb-0">
-                      <!-- Rigo riassuntivo metadata di calcolo per W1 -->
-                      <div v-if="aiutoWeek === 1 && propostaWeek1" class="d-flex align-center gap-1.5 flex-wrap mb-2.5 px-2 py-1.5 bg-slate-900 rounded-lg border text-super-caption text-slate-light" style="font-size: 0.58rem; border-color: rgba(255,255,255,0.05) !important;">
-                        <span>📍 Base: <strong>W{{ propostaWeek1.settimanaBase }} prec. (<template v-if="!isCorpoLiberoEsercizio(workout) && propostaWeek1.prevPeso > 0">{{ propostaWeek1.prevPeso }}kg ×</template>{{ formatRepsDisplay(propostaWeek1.prevReps) }})</strong></span>
-                        <span>• Fatica: <strong>{{ propostaWeek1.fatica }}</strong></span>
-                        <span>• RIR: <strong>{{ propostaWeek1.rirTarget }}</strong></span>
+                <!-- Progressione Totale -->
+                <div class="text-center mt-1.5 font-weight-black text-green-accent-3" style="font-size: 0.65rem; letter-spacing: 0.02em;">
+                  {{ andamentoMesocicloData.deltaProgressioneText }}
+                </div>
+              </div>
+
+              <!-- 7. "PERCHÉ QUESTO CONSIGLIO?" (ACCORDION ESPANDIBILE) -->
+              <div v-if="percheConsiglioData" class="mb-2 text-left">
+                <v-card class="rounded-xl border bg-slate-950 overflow-hidden" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <div 
+                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    style="background: rgba(255, 255, 255, 0.02);"
+                    @click="showPercheConsiglio = !showPercheConsiglio"
+                  >
+                    <div>
+                      <div class="d-flex align-center gap-1.5">
+                        <span style="font-size: 0.9rem;">🧠</span>
+                        <span class="font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
+                          PERCHÉ QUESTO CONSIGLIO?
+                        </span>
                       </div>
-                      
-                      <!-- Dati Calcolo ed Aggiustamenti per standard weeks -->
-                      <div v-if="aiutoWeek > 1 && caricoIdealeConsigliato" class="d-flex align-center gap-1.5 flex-wrap mb-2.5 px-2 py-1.5 bg-slate-900 rounded-lg border text-super-caption text-slate-light" style="font-size: 0.58rem; border-color: rgba(255,255,255,0.05) !important;">
-                        <span>🏋️ Base: <strong>Sch.{{ caricoIdealeConsigliato.numScheda }} W{{ caricoIdealeConsigliato.week }} ({{ caricoIdealeConsigliato.pesoOriginale }}kg ×{{ formatRepsDisplay(caricoIdealeConsigliato.repsOriginali) }})</strong></span>
-                        <span>• 1RM Base Recente: <strong class="text-green-accent-3">{{ caricoIdealeConsigliato.massimaleStimato }} kg</strong></span>
+                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.52rem; margin-left: 20px;">
+                        Scopri come è stato calcolato
                       </div>
-                      
-                      <!-- Riferimenti specifici: Scheda e Stima Forza -->
-                      <div v-if="aiutoWeek > 1" class="d-flex gap-2 mb-3">
-                        <div class="flex-grow-1 pa-2 rounded bg-slate-900 border text-left" style="border-color: rgba(255,255,255,0.05) !important;">
-                          <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block" style="font-size: 0.52rem;">🛡️ Progressione Scheda</span>
-                          <span class="text-subtitle-2 font-weight-bold text-slate-light mt-0.5 d-block" style="line-height: 1;">
-                            {{ pesoPropostoDettaglio || '-' }} <span class="text-super-caption text-muted">KG</span>
-                          </span>
-                          <v-btn
-                            color="grey-darken-3"
-                            size="x-small"
-                            block
-                            class="font-weight-black text-white mt-2 text-none"
-                            rounded="md"
-                            style="font-size: 0.62rem; height: 22px;"
-                            :disabled="!pesoPropostoDettaglio"
-                            @click="applicaPropostaCaricoStorico(pesoPropostoDettaglio)"
-                          >
-                            Applica Scheda
-                          </v-btn>
+                    </div>
+                    <v-icon size="16" color="grey">{{ showPercheConsiglio ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                  </div>
+
+                  <v-expand-transition>
+                    <div v-if="showPercheConsiglio" class="px-3 pt-2 pb-3 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                      <!-- Griglia Metriche Tecniche -->
+                      <div class="d-flex flex-column gap-1.5 mb-2.5">
+                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                          <span class="text-slate-400 font-weight-medium">📍 Base di partenza:</span>
+                          <strong class="text-white">{{ percheConsiglioData.baseDiPartenza }}</strong>
                         </div>
-                        
-                        <div class="flex-grow-1 pa-2 rounded bg-slate-900 border text-left" style="border-color: rgba(255,255,255,0.05) !important;">
-                          <span class="text-super-caption text-orange font-weight-black uppercase d-block" style="font-size: 0.52rem;">📈 Stima Forza Recente</span>
-                          <span class="text-subtitle-2 font-weight-bold text-orange-lighten-2 mt-0.5 d-block" style="line-height: 1;">
-                            {{ caricoIdealeConsigliato ? caricoIdealeConsigliato.pesoProposto : '-' }} <span class="text-super-caption text-muted" v-if="caricoIdealeConsigliato">KG</span>
-                          </span>
-                          <v-btn
-                            color="orange-darken-3"
-                            size="x-small"
-                            block
-                            class="font-weight-black text-white mt-2 text-none"
-                            rounded="md"
-                            style="font-size: 0.62rem; height: 22px;"
-                            :disabled="!caricoIdealeConsigliato"
-                            @click="applicaPropostaCaricoStorico(caricoIdealeConsigliato.pesoProposto)"
-                          >
-                            Applica Stima
-                          </v-btn>
+
+                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                          <span class="text-slate-400 font-weight-medium">📈 e1RM recente stimato:</span>
+                          <strong class="text-cyan-lighten-2">{{ percheConsiglioData.e1rmRecente }}</strong>
+                        </div>
+
+                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                          <span class="text-slate-400 font-weight-medium">🎯 Target attuale:</span>
+                          <strong class="text-amber-lighten-2">{{ percheConsiglioData.targetAttuale }}</strong>
+                        </div>
+
+                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                          <span class="text-slate-400 font-weight-medium">⚙️ Strategia attiva:</span>
+                          <strong class="text-green-accent-3">{{ percheConsiglioData.strategiaAttiva }}</strong>
+                        </div>
+
+                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                          <span class="text-slate-400 font-weight-medium">↗ Incremento vs base:</span>
+                          <strong class="text-green-accent-3">{{ percheConsiglioData.incrementoVsBase }}</strong>
                         </div>
                       </div>
 
-                      <!-- Dettaglio Storico Completo -->
-                      <div v-if="proposteStoricoCalcolate.length > 0" class="d-flex flex-column gap-2 text-left">
-                        <p class="text-super-caption text-muted mb-1 px-1 font-weight-bold" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                          Dettaglio Carichi Storici Corretti per Deallenamento/Sforzo:
+                      <!-- Logica Discorsiva Naturale -->
+                      <div class="pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(6, 182, 212, 0.25) !important;">
+                        <span class="text-super-caption font-weight-black text-cyan-lighten-3 uppercase d-block mb-1" style="font-size: 0.55rem; letter-spacing: 0.03em;">
+                          Logica del calcolo
+                        </span>
+                        <p class="mb-0 text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.62rem; line-height: 1.4;">
+                          {{ percheConsiglioData.logicaCalcolo }}
                         </p>
+                      </div>
+                    </div>
+                  </v-expand-transition>
+                </v-card>
+              </div>
 
-                        <div v-for="prop in proposteStoricoCalcolate" :key="prop.id + '_' + prop.week" class="border border-soft rounded-lg bg-slate-900 pa-2 d-flex align-center justify-space-between" style="border-color: rgba(255, 255, 255, 0.05) !important;">
-                          <div class="flex-grow-1 mr-2" style="min-width: 0;">
-                            <div class="d-flex align-center gap-1 flex-wrap">
-                              <span class="text-super-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                                {{ prop.isCurrentMesocycle ? 'MESOCICLO ATTUALE' : 'Scheda ' + prop.numScheda }}
-                              </span>
-                              <span class="text-super-caption text-muted" style="font-size: 0.52rem;">
-                                • W{{ prop.week }} ({{ prop.tempoPassato }})
-                              </span>
-                            </div>
-                            <div class="text-caption font-weight-bold dialog-text-primary mt-0.5" style="font-size: 0.68rem;">
-                              {{ prop.pesoOriginale }} kg x {{ formatRepsDisplay(prop.repsOriginali) }}
-                            </div>
+              <!-- 8. STORICO COMPLETO (ACCORDION ESPANDIBILE) -->
+              <div class="mb-2 text-left">
+                <v-card class="rounded-xl border bg-slate-950 overflow-hidden" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <div 
+                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    style="background: rgba(255, 255, 255, 0.02);"
+                    @click="showStoricoCompleto = !showStoricoCompleto"
+                  >
+                    <div>
+                      <div class="d-flex align-center gap-1.5">
+                        <span style="font-size: 0.9rem;">📖</span>
+                        <span class="font-weight-black text-slate-200 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
+                          STORICO COMPLETO
+                        </span>
+                      </div>
+                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.52rem; margin-left: 20px;">
+                        Vedi tutte le serie e le schede
+                      </div>
+                    </div>
+                    <v-icon size="16" color="grey">{{ showStoricoCompleto ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                  </div>
+
+                  <v-expand-transition>
+                    <div v-if="showStoricoCompleto" class="px-3 pt-2 pb-3 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                      <!-- Timeline compatta -->
+                      <div v-if="storicoTimelineItems.length > 0" class="d-flex flex-column gap-1.5 mb-2.5">
+                        <div 
+                          v-for="it in storicoTimelineItems" 
+                          :key="it.id"
+                          class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption"
+                          :style="{
+                            borderColor: it.isCurrent ? 'rgba(74, 222, 128, 0.3) !important' : 'rgba(255,255,255,0.04) !important',
+                            background: it.isCurrent ? 'rgba(74, 222, 128, 0.08) !important' : '#0f172a'
+                          }"
+                          style="font-size: 0.62rem;"
+                        >
+                          <div class="d-flex align-center gap-1.5">
+                            <span class="font-weight-black" :class="it.isCurrent ? 'text-green-accent-3' : 'text-slate-300'">
+                              {{ it.titolo }}
+                            </span>
+                            <v-chip v-if="it.isPR" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.48rem; height: 14px; padding: 0 4px;">
+                              🏆 PR
+                            </v-chip>
                           </div>
 
-                          <div class="text-right flex-shrink-0">
-                            <div class="text-subtitle-2 font-weight-black text-green-accent-3">
-                              {{ prop.pesoProposto }} <span class="text-super-caption text-muted" style="font-size: 0.55rem;">KG</span>
-                            </div>
+                          <div class="d-flex align-center gap-2">
+                            <strong class="text-white">{{ it.caricoReps }}</strong>
+                            <span class="text-super-caption text-slate-400" style="font-size: 0.5rem;">{{ it.tempo }}</span>
                           </div>
                         </div>
                       </div>
-                    </v-expansion-panel-text>
-                  </v-expansion-panel>
 
-                  <!-- GUIDA: CAMBIO PALESTRA & CARRUCOLE (REGOLA PARENTESI) -->
-                  <v-expansion-panel bg-color="var(--card-bg-soft)" elevation="0">
-                    <v-expansion-panel-title class="font-weight-black py-2 text-amber-lighten-2" style="font-size: 0.68rem; min-height: 34px;">
-                      🏋️ Cambio Palestra o Carrucole Diverse? (Regola d'Oro)
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text class="px-0 pt-2 pb-1 text-slate-light" style="font-size: 0.68rem; line-height: 1.4;">
+                      <!-- Riepilogo Miglior Prestazione in fondo -->
+                      <div v-if="recordOverviewData" class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(251, 191, 36, 0.25) !important;">
+                        <span class="text-super-caption font-weight-black text-amber-lighten-2" style="font-size: 0.58rem;">
+                          🏆 Miglior prestazione: {{ recordOverviewData.bestReal.display }} • {{ recordOverviewData.bestReal.provenienza }}
+                        </span>
+                      </div>
+                    </div>
+                  </v-expand-transition>
+                </v-card>
+              </div>
+
+              <!-- 9. CAMBIO PALESTRA O CARICO DIVERSO? (ACCORDION ESPANDIBILE) -->
+              <div class="mb-2 text-left">
+                <v-card class="rounded-xl border bg-slate-950 overflow-hidden" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <div 
+                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    style="background: rgba(255, 255, 255, 0.02);"
+                    @click="showCambioPalestra = !showCambioPalestra"
+                  >
+                    <div>
+                      <div class="d-flex align-center gap-1.5">
+                        <span style="font-size: 0.9rem;">⚡</span>
+                        <span class="font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
+                          Cambio palestra o carico diverso?
+                        </span>
+                      </div>
+                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.52rem; margin-left: 20px;">
+                        Regola d'oro per adattare il carico
+                      </div>
+                    </div>
+                    <v-icon size="16" color="grey">{{ showCambioPalestra ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                  </div>
+
+                  <v-expand-transition>
+                    <div v-if="showCambioPalestra" class="px-3 pt-2 pb-3 border-top text-slate-light" style="border-color: rgba(255, 255, 255, 0.06) !important; font-size: 0.65rem; line-height: 1.4;">
+                      <!-- Regola parentesi -->
                       <div class="pa-2 rounded-lg mb-2" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b;">
                         <strong class="text-amber-lighten-1">👑 Regola d'Oro delle Parentesi ( ... ):</strong>
                         <div class="mt-0.5">
                           Tutto ciò che scrivi tra parentesi tonde <code>( ... )</code> (inclusi carichi e serie) viene escluso dal calcolo della progressione e dei PR.
                         </div>
                       </div>
+
+                      <!-- Formato trasferta -->
                       <div class="pa-2 rounded-lg mb-2 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
                         <strong class="text-green-accent-3">✅ Formato Consigliato in Trasferta:</strong>
                         <div class="font-mono mt-1 font-weight-bold" style="color: #4ade80; font-size: 0.66rem;">
                           25 x11r<br>
                           (45 x11r x2s Green Theory)
                         </div>
-                        <div class="text-super-caption text-slate-light mt-1" style="font-size: 0.58rem;">
+                        <div class="text-super-caption text-slate-400 mt-1" style="font-size: 0.55rem;">
                           L'app userà il 25kg per le progressioni future e salverà il 45kg tra parentesi come tuo promemoria.
                         </div>
                       </div>
+
+                      <!-- Pulegge -->
                       <div class="pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
                         <strong class="text-cyan-lighten-2">⚙️ Pulegge 1:1 vs 2:1:</strong>
                         <div class="mt-0.5">
-                          Se la macchina ospite ha carrucole dimezzate (2:1), devi impostare <strong>il doppio del peso</strong> sul selettore per ottenere lo stesso stimolo reale. Dividi a mente per 2 e registra il carico abituale!
+                          Se la macchina ospite ha carrucole dimezzate (2:1), imposta <strong>il doppio del peso</strong> sul selettore per ottenere lo stesso stimolo reale.
                         </div>
                       </div>
-                    </v-expansion-panel-text>
-                  </v-expansion-panel>
-                </v-expansion-panels>
+                    </div>
+                  </v-expand-transition>
+                </v-card>
               </div>
             </template>
           </div>
@@ -6782,6 +6854,38 @@ const caricoConsigliatoViaDiMezzo = computed(() => {
 // Stato e Calcolatore Carico Custom per Simulatore Dialog
 const pesoCustomSimulatore = ref(null);
 
+// Stati di espansione accordion per Dialog Proposta Carico
+const showSimulatoreCarico = ref(false);
+const showPercheConsiglio = ref(false);
+const showStoricoCompleto = ref(false);
+const showCambioPalestra = ref(false);
+
+const decrementaSimulatore = () => {
+  vibraTattile(8);
+  const isManubri = isManubriEsercizio(workout.value);
+  let cur = parseFloat(String(pesoCustomSimulatore.value || 0).replace(',', '.'));
+  if (isNaN(cur) || cur <= 0) {
+    const info = getBaseWeekInfo(aiutoWeek.value);
+    cur = (info && info.pesoBase) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20);
+  }
+  const step = getWeightStep(isManubri, cur);
+  let next = isManubri ? getDumbbellSequenceWeight(cur, 'down') : Math.max(0, cur - (step || 0.5));
+  pesoCustomSimulatore.value = Math.round(next * 100) / 100;
+};
+
+const incrementaSimulatore = () => {
+  vibraTattile(8);
+  const isManubri = isManubriEsercizio(workout.value);
+  let cur = parseFloat(String(pesoCustomSimulatore.value || 0).replace(',', '.'));
+  if (isNaN(cur) || cur <= 0) {
+    const info = getBaseWeekInfo(aiutoWeek.value);
+    cur = (info && info.pesoBase) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20);
+  }
+  const step = getWeightStep(isManubri, cur);
+  let next = isManubri ? getDumbbellSequenceWeight(cur, 'up') : cur + (step || 0.5);
+  pesoCustomSimulatore.value = Math.round(next * 100) / 100;
+};
+
 const calcolaRepsTargetPerPeso = (pesoCustom, pesoRef, repsRef) => {
   if (!pesoCustom || pesoCustom <= 0 || !pesoRef || pesoRef <= 0 || !repsRef || repsRef <= 0) {
     return { parita: 10, target: 11, sfidante: 12, e1rmRef: 0 };
@@ -6849,6 +6953,589 @@ const calcolaProgressioneRepCustom = computed(() => {
       label: 'Progressione Sfidante (+2r)'
     }
   };
+});
+
+// 1. COMPUTED RECORD OVERVIEW (Miglior Prestazione Assoluta + e1RM Massimo + Nuovo PR)
+const recordOverviewData = computed(() => {
+  if (!workout.value) return null;
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const currentNumScheda = parseInt(workout.value.num_scheda);
+  const sett = aiutoWeek.value;
+  const targetReps = getRepsPerWeek(sett);
+
+  // 1. MIGLIOR PRESTAZIONE ASSOLUTA (REALE ESEGUITA)
+  let bestRealWeight = 0;
+  let bestRealReps = 0;
+  let bestRealIsCurrent = false;
+  let bestRealSheet = null;
+  let bestRealWeek = null;
+  let bestRealDate = null;
+  let bestRealTempo = '';
+  let bestRealId = null;
+
+  // Controlla storico passato
+  if (storicoEsercizio.value && storicoEsercizio.value.length) {
+    storicoEsercizio.value.forEach(prevEx => {
+      const sNum = parseInt(prevEx.num_scheda);
+      if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+      const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+
+      for (let w = 1; w <= 6; w++) {
+        const insVal = prevEx['ins_week' + w];
+        if (insVal) {
+          const pStr = estraiPesoDaInput(insVal);
+          const p = pStr ? parseFloat(pStr) : 0;
+          let r = estraiRepsDaInput(insVal);
+          if (r === null || isNaN(r) || r <= 0) {
+            const rPrescr = prevEx['reps_week' + w] || estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+            r = rPrescr ? parseInt(rPrescr, 10) : 6;
+          }
+
+          if (!isCorpoLibero && p > 0) {
+            if (p > bestRealWeight || (p === bestRealWeight && r > bestRealReps)) {
+              bestRealWeight = p;
+              bestRealReps = r;
+              bestRealIsCurrent = false;
+              bestRealSheet = prevEx.num_scheda;
+              bestRealWeek = w;
+              bestRealDate = dEx;
+              bestRealTempo = tempoTrascorsoBreve(dEx) || tempoTrascorso(dEx) || '';
+              bestRealId = prevEx.id || prevEx.num_riga;
+            }
+          } else if (isCorpoLibero) {
+            const valComp = p > 0 ? p : r;
+            const currentComp = bestRealWeight > 0 ? bestRealWeight : bestRealReps;
+            if (valComp > currentComp) {
+              bestRealWeight = p;
+              bestRealReps = r;
+              bestRealIsCurrent = false;
+              bestRealSheet = prevEx.num_scheda;
+              bestRealWeek = w;
+              bestRealDate = dEx;
+              bestRealTempo = tempoTrascorsoBreve(dEx) || tempoTrascorso(dEx) || '';
+              bestRealId = prevEx.id || prevEx.num_riga;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Controlla scheda corrente (W1..W6)
+  if (inputSettimane.value) {
+    for (let w = 1; w <= 6; w++) {
+      const insVal = inputSettimane.value[w]?.ins;
+      if (insVal) {
+        const pStr = estraiPesoDaInput(insVal);
+        const p = pStr ? parseFloat(pStr) : 0;
+        let r = estraiRepsDaInput(insVal);
+        if (r === null || isNaN(r) || r <= 0) {
+          r = getRepsPerWeek(w);
+        }
+        if (!isCorpoLibero && p > 0) {
+          if (p >= bestRealWeight) {
+            bestRealWeight = p;
+            bestRealReps = r;
+            bestRealIsCurrent = true;
+            bestRealSheet = workout.value.num_scheda;
+            bestRealWeek = w;
+            bestRealDate = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+            bestRealTempo = 'questa scheda';
+            bestRealId = workout.value.id;
+          }
+        } else if (isCorpoLibero) {
+          const valComp = p > 0 ? p : r;
+          const currentComp = bestRealWeight > 0 ? bestRealWeight : bestRealReps;
+          if (valComp >= currentComp && valComp > 0) {
+            bestRealWeight = p;
+            bestRealReps = r;
+            bestRealIsCurrent = true;
+            bestRealSheet = workout.value.num_scheda;
+            bestRealWeek = w;
+            bestRealDate = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+            bestRealTempo = 'questa scheda';
+            bestRealId = workout.value.id;
+          }
+        }
+      }
+    }
+  }
+
+  // Se non c'è ancora nulla, fallback su suggerimentoRecord
+  if (bestRealWeight === 0 && (!isCorpoLibero || bestRealReps === 0) && suggerimentoRecord.value) {
+    if (suggerimentoRecord.value.recordAbsolute > 0) {
+      bestRealWeight = suggerimentoRecord.value.recordAbsolute;
+      bestRealReps = suggerimentoRecord.value.recordAbsoluteReps || targetReps;
+      bestRealSheet = suggerimentoRecord.value.recordAbsoluteSheet;
+      bestRealWeek = suggerimentoRecord.value.recordAbsoluteWeek;
+      bestRealDate = suggerimentoRecord.value.recordAbsoluteDate;
+      bestRealTempo = tempoTrascorso(suggerimentoRecord.value.recordAbsoluteDate) || '';
+      bestRealId = suggerimentoRecord.value.recordAbsoluteId;
+    }
+  }
+
+  const realDisplay = (!isCorpoLibero || bestRealWeight > 0)
+    ? `${formatWeight(bestRealWeight)} kg × ${bestRealReps || targetReps}r`
+    : `${bestRealReps}r`;
+
+  const realProvenienza = bestRealIsCurrent
+    ? `✓ questa scheda • W${bestRealWeek || sett}`
+    : (bestRealSheet ? `Scheda ${bestRealSheet} • ${bestRealTempo || 'nel passato'}` : (bestRealTempo || 'Storico'));
+
+  // 2. e1RM MASSIMO (TEORICO STIMATO)
+  const massimalePuroInfo = calcolaDettaglioMassimale1RMPuro();
+  let bestE1rmVal = massimalePuroInfo.best1RM || 0;
+  let bestE1rmIsCurrent = false;
+  let bestE1rmSheet = massimalePuroInfo.bestSource?.numScheda || null;
+  let bestE1rmWeek = null;
+  let bestE1rmTempo = massimalePuroInfo.bestSource?.tempoTrascorso || '';
+  let bestE1rmId = massimalePuroInfo.bestSource?.id || null;
+
+  if (massimalePuroInfo.bestSource?.tempoTrascorso === 'questa scheda' || String(bestE1rmSheet) === String(workout.value.num_scheda)) {
+    bestE1rmIsCurrent = true;
+  }
+
+  // Se l'e1RM della proposta corrente supera il max storico, aggiorna
+  const ghostRender = getGhostRenderInfo(sett);
+  const proposedNum = ghostRender ? parseFloat(String(ghostRender.valueText).replace(',', '.')) : (caricoConsigliatoViaDiMezzo.value || 0);
+  if (proposedNum > 0 && targetReps > 0) {
+    const e1rmProposed = calcolaE1RMSmorzato(proposedNum, targetReps, isCavoOMacchinaEsercizio(workout.value));
+    if (e1rmProposed > bestE1rmVal) {
+      bestE1rmVal = e1rmProposed;
+      bestE1rmIsCurrent = true;
+      bestE1rmWeek = sett;
+      bestE1rmTempo = 'questa scheda';
+    }
+  }
+
+  const e1rmDisplay = bestE1rmVal > 0 ? `${formatWeight(bestE1rmVal)} kg` : 'N.D.';
+  const e1rmProvenienza = bestE1rmIsCurrent
+    ? `questa scheda • W${bestE1rmWeek || sett}`
+    : (bestE1rmSheet ? `Sch. ${bestE1rmSheet}${bestE1rmWeek ? ' W' + bestE1rmWeek : ''} • ${bestE1rmTempo || 'nel passato'}` : (bestE1rmTempo || 'Storico'));
+
+  // 3. NUOVO PR EVALUATION
+  let isNuovoPR = false;
+  let prBadgeText = '';
+  let prDeltaText = '';
+
+  const recAnalisi = analizzaRecordSettimana(sett);
+  if (recAnalisi && recAnalisi.stato === 'record') {
+    isNuovoPR = true;
+    prBadgeText = `🏆 NUOVO PR ${formatRepsDisplay(targetReps)} REPS`;
+    
+    // Calcola delta nel mesociclo vs W1
+    const rawW1 = inputSettimane.value[1]?.ins || (workout.value ? (workout.value.ins_week1 || workout.value.num_ins1) : '');
+    const pW1 = parseFloat(estraiPesoDaInput(String(rawW1 || '')) || 0);
+    const pCurrent = recAnalisi.peso;
+    if (pW1 > 0 && pCurrent > pW1) {
+      const diffMeso = Math.round((pCurrent - pW1) * 10) / 10;
+      prDeltaText = `+${diffMeso} kg nel mesociclo`;
+    } else if (recAnalisi.diff > 0) {
+      prDeltaText = `+${recAnalisi.diff} kg vs record storico`;
+    } else {
+      prDeltaText = `Nuovo primato personale`;
+    }
+  }
+
+  return {
+    bestReal: {
+      weight: bestRealWeight,
+      reps: bestRealReps,
+      display: realDisplay,
+      isCurrent: bestRealIsCurrent,
+      provenienza: realProvenienza,
+      id: bestRealId
+    },
+    bestE1RM: {
+      e1rm: bestE1rmVal,
+      display: e1rmDisplay,
+      isCurrent: bestE1rmIsCurrent,
+      provenienza: e1rmProvenienza,
+      id: bestE1rmId
+    },
+    nuovoPR: {
+      isNew: isNuovoPR,
+      badgeText: prBadgeText,
+      deltaText: prDeltaText
+    }
+  };
+});
+
+// 2. COMPUTED HERO PROPOSAL DATA
+const heroProposalData = computed(() => {
+  if (!workout.value) return null;
+  const sett = aiutoWeek.value;
+  const targetReps = getRepsPerWeek(sett);
+  const presc = parsedPrescription(workout.value['des_week' + sett]);
+  const setsCount = presc?.sets ? parseInt(presc.sets, 10) : (workout.value.num_serie || 3);
+  
+  const valoreHero = valoreConsigliatoHeroDialog.value;
+  const displayNum = valoreHero.display;
+  const unit = valoreHero.unit || (isCorpoLiberoEsercizio(workout.value) ? '' : 'KG');
+  const isLato = valoreHero.isLato;
+  const valueToApply = valoreHero.valueToApply;
+
+  // Delta vs W1
+  const ghostRender = getGhostRenderInfo(sett);
+  const deltaW1 = ghostRender?.deltaW1 || null;
+
+  // Step transition text (es. 36×10 → 38×8)
+  const baseInfo = getBaseWeekInfo(sett);
+  let stepTransitionText = '';
+  if (baseInfo && baseInfo.pesoBase !== null && baseInfo.pesoBase > 0) {
+    const baseP = formatWeight(baseInfo.pesoBase);
+    const baseR = baseInfo.repsBase || 10;
+    const currP = formatWeight(displayNum);
+    const currR = targetReps;
+    stepTransitionText = `${baseP}×${baseR} → ${currP}×${currR}`;
+  }
+
+  // Spiegazione sintetica (es. "38 kg è il carico consigliato per progredire mantenendo il target di 8 reps.")
+  let spiegazioneSintetica = '';
+  if (displayNum && !isNaN(parseFloat(displayNum))) {
+    spiegazioneSintetica = `${displayNum} kg è il carico consigliato per progredire mantenendo il target di ${targetReps} reps.`;
+  } else if (spiegazioneDinamicaConsigliata.value) {
+    spiegazioneSintetica = spiegazioneDinamicaConsigliata.value;
+  } else {
+    spiegazioneSintetica = `Carico consigliato per completare le ${targetReps} ripetizioni prescritte.`;
+  }
+
+  return {
+    displayNum,
+    unit,
+    isLato,
+    valueToApply,
+    setsCount,
+    targetReps,
+    serieRepsText: `${setsCount} × ${formatRepsDisplay(targetReps)} REPS`,
+    deltaW1,
+    stepTransitionText,
+    spiegazioneSintetica
+  };
+});
+
+// 3. COMPUTED STRATEGIE ALTERNATIVE CARDS (SAFE / SMART / SFIDANTE)
+const strategieAlternativeCards = computed(() => {
+  if (!workout.value) return [];
+  const sett = aiutoWeek.value;
+  const range = getGhostWeightsRangeForWeek(sett);
+  if (!range) return [];
+
+  const targetReps = getRepsPerWeek(sett);
+  const baseInfo = getBaseWeekInfo(sett);
+  const pesoBase = baseInfo?.pesoBase || 0;
+  const repsBase = baseInfo?.repsBase || 10;
+  const isManubri = isManubriEsercizio(workout.value);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+
+  const smartVal = parseFloat(String(range.consigliato.value).replace(',', '.')) || 0;
+  const safeVal = parseFloat(String(range.prudenziale.value).replace(',', '.')) || 0;
+  const sfidanteVal = parseFloat(String(range.sfidante.value).replace(',', '.')) || 0;
+
+  // Helper per calcolare reps stimate con formula 1RM smorzata
+  const stimaRepsPerCarico = (pesoVal, e1rmRif) => {
+    if (!pesoVal || pesoVal <= 0 || !e1rmRif || e1rmRif <= 0) return targetReps;
+    const rRaw = ((e1rmRif / pesoVal) - 1) * 30;
+    return Math.max(1, Math.round(rRaw));
+  };
+
+  const e1rmRif = (pesoBase > 0 && repsBase > 0)
+    ? calcolaE1RMSmorzato(pesoBase, repsBase, isCavo)
+    : (smartVal > 0 ? calcolaE1RMSmorzato(smartVal, targetReps, isCavo) : 0);
+
+  // 1. CARD SAFE
+  let safeSottotitolo = 'Carico conservativo';
+  let safeRepsStimate = targetReps;
+  if (safeVal > 0 && pesoBase > 0) {
+    if (safeVal === pesoBase && repsBase > targetReps) {
+      safeSottotitolo = 'Più reps, stesso carico';
+    } else if (safeVal < smartVal) {
+      const diffSafe = Math.round((smartVal - safeVal) * 10) / 10;
+      safeSottotitolo = `−${diffSafe} kg dal consigliato`;
+    } else if (safeVal === pesoBase) {
+      safeSottotitolo = 'Stesso carico, più margine';
+    }
+    safeRepsStimate = stimaRepsPerCarico(safeVal, e1rmRif);
+  }
+  const safeDisplay = range.prudenziale.display;
+  const safeRepsStimateText = safeRepsStimate > targetReps
+    ? `≈ ${safeRepsStimate} reps stimate`
+    : `≈ ${targetReps} reps stimate`;
+
+  // 2. CARD SMART
+  let smartSottotitolo = sett === 6 ? 'Picco W6' : 'Consigliato';
+  if (smartVal > pesoBase && pesoBase > 0) {
+    const diffSmart = Math.round((smartVal - pesoBase) * 10) / 10;
+    smartSottotitolo = `Incremento moderato (+${diffSmart}kg)`;
+  }
+  const smartDisplay = range.consigliato.display;
+  const smartRepsStimateText = `≈ ${targetReps} reps stimate`;
+
+  // 3. CARD SFIDANTE
+  let sfidanteSottotitolo = 'Salto di carico';
+  if (sfidanteVal > smartVal && smartVal > 0) {
+    const diffSfid = Math.round((sfidanteVal - smartVal) * 10) / 10;
+    sfidanteSottotitolo = `+${diffSfid} kg dal consigliato`;
+  }
+  let sfidanteRepsStimate = targetReps;
+  if (sfidanteVal > 0 && e1rmRif > 0) {
+    sfidanteRepsStimate = stimaRepsPerCarico(sfidanteVal, e1rmRif);
+  }
+  const sfidanteDisplay = range.sfidante.display;
+  const sfidanteMin = Math.max(1, sfidanteRepsStimate - 1);
+  const sfidanteMax = Math.max(sfidanteMin, targetReps);
+  const sfidanteRepsStimateText = sfidanteMin < sfidanteMax
+    ? `≈ ${sfidanteMin}–${sfidanteMax} reps stimate`
+    : `≈ ${sfidanteMin} reps stimate`;
+
+  return [
+    {
+      tipo: 'safe',
+      icon: '🛡️',
+      nome: 'SAFE',
+      isConsigliato: false,
+      valoreDisplay: safeDisplay,
+      pesoToApply: range.prudenziale.value,
+      sottotitolo: safeSottotitolo,
+      targetRepsText: `Target: ${targetReps} reps`,
+      repsStimateText: safeRepsStimateText,
+      metricLabel: 'Probabilità chiusura:',
+      metricValue: 'ALTA',
+      themeColor: 'blue'
+    },
+    {
+      tipo: 'smart',
+      icon: '💡',
+      nome: 'SMART',
+      isConsigliato: true,
+      valoreDisplay: smartDisplay,
+      pesoToApply: range.consigliato.value,
+      sottotitolo: smartSottotitolo,
+      targetRepsText: `Target: ${targetReps} reps`,
+      repsStimateText: smartRepsStimateText,
+      metricLabel: 'Progressione:',
+      metricValue: 'OTTIMALE',
+      themeColor: 'green'
+    },
+    {
+      tipo: 'sfidante',
+      icon: '🔥',
+      nome: 'SFIDANTE',
+      isConsigliato: false,
+      valoreDisplay: sfidanteDisplay,
+      pesoToApply: range.sfidante.value,
+      sottotitolo: sfidanteSottotitolo,
+      targetRepsText: `Target: ${targetReps} reps`,
+      repsStimateText: sfidanteRepsStimateText,
+      metricLabel: 'Rischio fallimento:',
+      metricValue: 'PIÙ ALTO',
+      themeColor: 'orange'
+    }
+  ];
+});
+
+// 4. COMPUTED SIMULATORE DINAMICO DATA
+const simulatoreDinamicoData = computed(() => {
+  if (!workout.value) return null;
+  const sett = aiutoWeek.value;
+  const infoBase = getBaseWeekInfo(sett);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+
+  let pVal = parseFloat(String(pesoCustomSimulatore.value || '').replace(',', '.'));
+  if (isNaN(pVal) || pVal <= 0) {
+    pVal = (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) ? infoBase.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20);
+  }
+
+  let pesoRef = pVal;
+  let repsRef = getRepsPerWeek(sett);
+  if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0 && infoBase.repsBase > 0) {
+    pesoRef = infoBase.pesoBase;
+    repsRef = infoBase.repsBase;
+  }
+
+  const e1rmRef = calcolaE1RMSmorzato(pesoRef, repsRef, isCavo);
+  const rawReps = pVal > 0 ? Math.max(1, Math.round(((e1rmRef / pVal) - 1) * 30)) : 10;
+  const e1rmPrevisto = pVal * (1 + rawReps / 30);
+
+  return {
+    peso: pVal,
+    repsStimate: rawReps,
+    e1rmPrevisto: Math.round(e1rmPrevisto * 10) / 10,
+    valoreToApply: pVal
+  };
+});
+
+// 5. COMPUTED ANDAMENTO CARICO NEL MESOCICLO
+const andamentoMesocicloData = computed(() => {
+  if (!workout.value) return null;
+  const sett = aiutoWeek.value;
+
+  const settimane = [];
+  let pesoW1 = null;
+  let pesoCurrent = null;
+
+  for (let w = 1; w <= 6; w++) {
+    const isCurrent = (w === sett);
+    const insVal = inputSettimane.value[w]?.ins || workout.value['ins_week' + w];
+    let valDisplay = '-';
+    let valNum = null;
+
+    if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+      const pStr = estraiPesoDaInput(insVal);
+      const rVal = estraiRepsDaInput(insVal);
+      if (pStr) {
+        valNum = parseFloat(pStr);
+        valDisplay = `${formatWeight(valNum)}`;
+      } else if (rVal) {
+        valDisplay = `${rVal}r`;
+      }
+    } else if (isCurrent) {
+      // Usa il carico consigliato per la settimana corrente se non ancora inserito
+      const ghost = getGhostRenderInfo(w);
+      if (ghost && ghost.valueText) {
+        const clean = String(ghost.valueText).replace(/\s*kg/gi, '').trim();
+        valDisplay = clean;
+        const pParsed = parseFloat(clean.replace(',', '.'));
+        if (!isNaN(pParsed)) valNum = pParsed;
+      }
+    }
+
+    if (w === 1 && valNum !== null) pesoW1 = valNum;
+    if (isCurrent && valNum !== null) pesoCurrent = valNum;
+
+    settimane.push({
+      week: w,
+      label: `W${w}`,
+      value: valDisplay,
+      isCurrent
+    });
+  }
+
+  let deltaProgressioneText = '';
+  if (pesoW1 !== null && pesoCurrent !== null && pesoW1 > 0) {
+    const diffKg = Math.round((pesoCurrent - pesoW1) * 10) / 10;
+    const diffPct = Math.round(((pesoCurrent - pesoW1) / pesoW1) * 1000) / 10;
+    if (diffKg >= 0) {
+      deltaProgressioneText = `+${diffKg} kg nel mesociclo • +${diffPct}%`;
+    } else {
+      deltaProgressioneText = `${diffKg} kg nel mesociclo • ${diffPct}%`;
+    }
+  } else {
+    deltaProgressioneText = `Progressione attiva fino a W${sett}`;
+  }
+
+  return {
+    settimane,
+    deltaProgressioneText
+  };
+});
+
+// 6. COMPUTED "PERCHÉ QUESTO CONSIGLIO?"
+const percheConsiglioData = computed(() => {
+  if (!workout.value) return null;
+  const sett = aiutoWeek.value;
+  const targetReps = getRepsPerWeek(sett);
+  const infoBase = getBaseWeekInfo(sett);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+
+  let baseDiPartenza = 'N.D.';
+  let e1rmRecente = 'N.D.';
+  let incrementoVsBase = '';
+
+  if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
+    const bW = infoBase.baseWNum ? `W${infoBase.baseWNum}` : (infoBase.isPreviousWorkoutW6 ? 'W6 Prec.' : 'W1');
+    baseDiPartenza = `${bW}: ${formatWeight(infoBase.pesoBase)} kg × ${infoBase.repsBase || 10} reps`;
+    const e1rm = calcolaE1RMSmorzato(infoBase.pesoBase, infoBase.repsBase || 10, isCavo);
+    e1rmRecente = `${formatWeight(e1rm)} kg`;
+
+    const heroVal = parseFloat(String(valoreConsigliatoHeroDialog.value.display).replace(',', '.'));
+    if (heroVal > 0) {
+      const diffKg = Math.round((heroVal - infoBase.pesoBase) * 10) / 10;
+      const diffPct = Math.round(((heroVal - infoBase.pesoBase) / infoBase.pesoBase) * 1000) / 10;
+      if (diffKg >= 0) {
+        incrementoVsBase = `+${diffPct}% (+${diffKg} kg)`;
+      } else {
+        incrementoVsBase = `${diffPct}% (${diffKg} kg)`;
+      }
+    }
+  }
+
+  const targetAttuale = `${targetReps} reps in W${sett}`;
+  const strategiaAttiva = sett === 6 ? 'Smart (Picco W6)' : (sensibilitaFaticaGhost.value === 'aggressiva' ? 'Sfidante (Spinta)' : (sensibilitaFaticaGhost.value === 'conservativa' ? 'Safe (Prudenziale)' : 'Smart (Bilanciata)'));
+
+  // Logica discorsiva naturale
+  let logicaCalcolo = spiegazioneDinamicaConsigliata.value;
+  if (!logicaCalcolo || logicaCalcolo.length < 20) {
+    logicaCalcolo = `Hai completato ${infoBase?.repsBase || 9} reps nella settimana precedente. Per raggiungere ${targetReps} reps in W${sett} e stimolare nuovo progresso muscolare, l'algoritmo propone un carico calibrato sul tuo recupero e storico.`;
+  }
+
+  return {
+    baseDiPartenza,
+    e1rmRecente,
+    targetAttuale,
+    strategiaAttiva,
+    incrementoVsBase: incrementoVsBase || '= vs base',
+    logicaCalcolo
+  };
+});
+
+// 7. COMPUTED STORICO TIMELINE ITEMS
+const storicoTimelineItems = computed(() => {
+  if (!workout.value) return [];
+  const currentNumScheda = parseInt(workout.value.num_scheda);
+  const items = [];
+
+  // Scheda corrente (W1..W6)
+  for (let w = 6; w >= 1; w--) {
+    const insVal = inputSettimane.value[w]?.ins;
+    if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
+      const pStr = estraiPesoDaInput(insVal);
+      const p = pStr ? parseFloat(pStr) : null;
+      const r = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
+      const isRecord = analizzaRecordSettimana(w)?.stato === 'record';
+      items.push({
+        id: `current_w${w}`,
+        titolo: `W${w} attuale`,
+        caricoReps: p !== null ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
+        isPR: isRecord,
+        data: 'oggi / in corso',
+        tempo: 'questa scheda',
+        isCurrent: true
+      });
+    }
+  }
+
+  // Storico passato
+  if (storicoEsercizio.value && storicoEsercizio.value.length) {
+    const sorted = [...storicoEsercizio.value].sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
+    sorted.forEach(prevEx => {
+      const sNum = parseInt(prevEx.num_scheda);
+      if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+      const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+      const tempo = tempoTrascorso(dEx) || formattaDataStorico(dEx);
+
+      for (let w = 6; w >= 1; w--) {
+        const val = prevEx['ins_week' + w];
+        if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
+          const pStr = estraiPesoDaInput(val);
+          const p = pStr ? parseFloat(pStr) : null;
+          const rPrescr = prevEx['reps_week' + w] || estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+          const r = estraiRepsDaInput(val) || (rPrescr ? parseInt(rPrescr, 10) : 6);
+          items.push({
+            id: `${prevEx.id || prevEx.num_scheda}_w${w}`,
+            titolo: `Sch. ${prevEx.num_scheda} • W${w}`,
+            caricoReps: p !== null ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
+            isPR: false,
+            data: formattaDataStorico(dEx),
+            tempo: tempo,
+            isCurrent: false
+          });
+        }
+      }
+    });
+  }
+
+  return items;
 });
 
 const opzioniStradeProgressione = computed(() => {
@@ -7099,6 +7786,10 @@ const strategieProgressione = computed(() => {
 const apriAiutoCaricoDettagliato = async (sett) => {
   vibraTattile(10);
   activeTabAnalisi.value = 0; // Tab Proposta Carico
+  showSimulatoreCarico.value = false;
+  showPercheConsiglio.value = false;
+  showStoricoCompleto.value = false;
+  showCambioPalestra.value = false;
   dialogStorico.value = true;
   await caricaDatiAnalisi(sett);
   const info = getBaseWeekInfo(sett);

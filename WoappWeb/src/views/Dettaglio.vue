@@ -3135,119 +3135,117 @@
                     <v-icon size="16" color="grey">{{ showSimulatoreCarico ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                   </div>
 
-                  <v-expand-transition>
-                    <div v-if="showSimulatoreCarico" class="px-2.5 pt-2 pb-2.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
-                      <!-- Stepper [ - ] 45 KG [ + ] e Istruzione -->
-                      <div class="d-flex align-center justify-space-between gap-2 mb-2">
-                        <div class="d-flex align-center gap-1.5 pa-1 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.3) !important;">
-                          <v-btn
-                            icon
-                            variant="tonal"
-                            color="amber-darken-3"
-                            size="x-small"
-                            class="rounded-lg"
-                            style="width: 28px; height: 28px;"
-                            @click="decrementaSimulatore"
-                          >
-                            <v-icon size="14">mdi-minus</v-icon>
-                          </v-btn>
+                  <div v-if="showSimulatoreCarico" class="px-2.5 pt-2 pb-2.5 border-top animate-fade-in" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                    <!-- Stepper [ - ] 45 KG [ + ] e Istruzione -->
+                    <div class="d-flex align-center justify-space-between gap-2 mb-2">
+                      <div class="d-flex align-center gap-1.5 pa-1 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.3) !important;">
+                        <v-btn
+                          icon
+                          variant="tonal"
+                          color="amber-darken-3"
+                          size="x-small"
+                          class="rounded-lg"
+                          style="width: 28px; height: 28px;"
+                          @click="decrementaSimulatore"
+                        >
+                          <v-icon size="14">mdi-minus</v-icon>
+                        </v-btn>
 
-                          <div class="d-flex align-center px-1 text-no-wrap">
-                            <span class="text-super-caption text-amber-lighten-2 font-weight-black mr-1" style="font-size: 0.58rem;">KG</span>
-                            <input
-                              v-model="pesoCustomSimulatore"
-                              type="number"
-                              step="0.5"
-                              class="font-weight-black text-center text-white"
-                              style="width: 48px; background: transparent; border: none; outline: none; font-size: 1.05rem;"
-                            />
-                          </div>
-
-                          <v-btn
-                            icon
-                            variant="tonal"
-                            color="amber-darken-3"
-                            size="x-small"
-                            class="rounded-lg"
-                            style="width: 28px; height: 28px;"
-                            @click="incrementaSimulatore"
-                          >
-                            <v-icon size="14">mdi-plus</v-icon>
-                          </v-btn>
+                        <div class="d-flex align-center px-1 text-no-wrap">
+                          <span class="text-super-caption text-amber-lighten-2 font-weight-black mr-1" style="font-size: 0.58rem;">KG</span>
+                          <input
+                            v-model="pesoCustomSimulatore"
+                            type="number"
+                            step="0.5"
+                            class="font-weight-black text-center text-white"
+                            style="width: 48px; background: transparent; border: none; outline: none; font-size: 1.05rem;"
+                          />
                         </div>
 
-                        <div class="text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.54rem; line-height: 1.25;">
-                          Calcola rep per progredire col peso scelto.
+                        <v-btn
+                          icon
+                          variant="tonal"
+                          color="amber-darken-3"
+                          size="x-small"
+                          class="rounded-lg"
+                          style="width: 28px; height: 28px;"
+                          @click="incrementaSimulatore"
+                        >
+                          <v-icon size="14">mdi-plus</v-icon>
+                        </v-btn>
+                      </div>
+
+                      <div class="text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.54rem; line-height: 1.25;">
+                        Calcola rep per progredire col peso scelto.
+                      </div>
+                    </div>
+
+                    <!-- Base di Riferimento e le 3 Opzioni -->
+                    <div v-if="calcolaProgressioneRepCustom" class="d-flex flex-column gap-1.5 pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255, 255, 255, 0.05) !important;">
+                      <div class="text-super-caption text-slate-300 font-weight-medium mb-0.5" style="font-size: 0.54rem;">
+                        🎯 Base: <strong>{{ calcolaProgressioneRepCustom.pesoRef }}kg × {{ calcolaProgressioneRepCustom.repsRef }}r</strong> (e1RM: {{ calcolaProgressioneRepCustom.e1rmRef }}kg)
+                      </div>
+
+                      <!-- 1. PARITÀ -->
+                      <div 
+                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-blue-950/30 border-blue-500/20 cursor-pointer hover:bg-blue-900/40 transition-colors"
+                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.parita.valore)"
+                      >
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-blue-lighten-3" style="font-size: 0.58rem;">🟡 PARITÀ</span>
+                          <span class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.50rem;">Stessa Forza</span>
+                        </div>
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-blue-900/80 border border-blue-400/30" style="font-size: 0.75rem;">
+                            {{ calcolaProgressioneRepCustom.parita.valore }}
+                          </span>
+                          <v-btn color="blue-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
+                            Applica
+                          </v-btn>
                         </div>
                       </div>
 
-                      <!-- Base di Riferimento e le 3 Opzioni -->
-                      <div v-if="calcolaProgressioneRepCustom" class="d-flex flex-column gap-1.5 pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255, 255, 255, 0.05) !important;">
-                        <div class="text-super-caption text-slate-300 font-weight-medium mb-0.5" style="font-size: 0.54rem;">
-                          🎯 Base: <strong>{{ calcolaProgressioneRepCustom.pesoRef }}kg × {{ calcolaProgressioneRepCustom.repsRef }}r</strong> (e1RM: {{ calcolaProgressioneRepCustom.e1rmRef }}kg)
+                      <!-- 2. TARGET (+1r) -->
+                      <div 
+                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-green-950/30 border-green-500/20 cursor-pointer hover:bg-green-900/40 transition-colors"
+                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.target.valore)"
+                      >
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-green-accent-3" style="font-size: 0.58rem;">🟢 TARGET</span>
+                          <span class="text-super-caption text-green-accent-2 font-weight-medium" style="font-size: 0.50rem;">Progressione +1r</span>
                         </div>
-
-                        <!-- 1. PARITÀ -->
-                        <div 
-                          class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-blue-950/30 border-blue-500/20 cursor-pointer hover:bg-blue-900/40 transition-colors"
-                          @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.parita.valore)"
-                        >
-                          <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black text-blue-lighten-3" style="font-size: 0.58rem;">🟡 PARITÀ</span>
-                            <span class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.50rem;">Stessa Forza</span>
-                          </div>
-                          <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black text-white px-2 py-0.5 rounded bg-blue-900/80 border border-blue-400/30" style="font-size: 0.75rem;">
-                              {{ calcolaProgressioneRepCustom.parita.valore }}
-                            </span>
-                            <v-btn color="blue-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
-                              Applica
-                            </v-btn>
-                          </div>
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-green-900/80 border border-green-400/30" style="font-size: 0.75rem;">
+                            {{ calcolaProgressioneRepCustom.target.valore }}
+                          </span>
+                          <v-btn color="green-darken-2" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
+                            Applica
+                          </v-btn>
                         </div>
+                      </div>
 
-                        <!-- 2. TARGET (+1r) -->
-                        <div 
-                          class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-green-950/30 border-green-500/20 cursor-pointer hover:bg-green-900/40 transition-colors"
-                          @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.target.valore)"
-                        >
-                          <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black text-green-accent-3" style="font-size: 0.58rem;">🟢 TARGET</span>
-                            <span class="text-super-caption text-green-accent-2 font-weight-medium" style="font-size: 0.50rem;">Progressione +1r</span>
-                          </div>
-                          <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black text-white px-2 py-0.5 rounded bg-green-900/80 border border-green-400/30" style="font-size: 0.75rem;">
-                              {{ calcolaProgressioneRepCustom.target.valore }}
-                            </span>
-                            <v-btn color="green-darken-2" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
-                              Applica
-                            </v-btn>
-                          </div>
+                      <!-- 3. SFIDANTE (+2r / PR) -->
+                      <div 
+                        class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-orange-950/30 border-orange-500/20 cursor-pointer hover:bg-orange-900/40 transition-colors"
+                        @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.sfidante.valore)"
+                      >
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.58rem;">🔥 SFIDANTE</span>
+                          <span class="text-super-caption font-weight-medium" :class="calcolaProgressioneRepCustom.sfidante.isPR ? 'text-amber-accent-2 font-weight-black' : 'text-orange-lighten-3'" style="font-size: 0.50rem;">
+                            {{ calcolaProgressioneRepCustom.sfidante.label }}
+                          </span>
                         </div>
-
-                        <!-- 3. SFIDANTE (+2r / PR) -->
-                        <div 
-                          class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-orange-950/30 border-orange-500/20 cursor-pointer hover:bg-orange-900/40 transition-colors"
-                          @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.sfidante.valore)"
-                        >
-                          <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.58rem;">🔥 SFIDANTE</span>
-                            <span class="text-super-caption font-weight-medium" :class="calcolaProgressioneRepCustom.sfidante.isPR ? 'text-amber-accent-2 font-weight-black' : 'text-orange-lighten-3'" style="font-size: 0.50rem;">
-                              {{ calcolaProgressioneRepCustom.sfidante.label }}
-                            </span>
-                          </div>
-                          <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black text-white px-2 py-0.5 rounded bg-orange-900/80 border border-orange-400/30" style="font-size: 0.75rem;">
-                              {{ calcolaProgressioneRepCustom.sfidante.valore }}
-                            </span>
-                            <v-btn color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
-                              Applica
-                            </v-btn>
-                          </div>
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black text-white px-2 py-0.5 rounded bg-orange-900/80 border border-orange-400/30" style="font-size: 0.75rem;">
+                            {{ calcolaProgressioneRepCustom.sfidante.valore }}
+                          </span>
+                          <v-btn color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
+                            Applica
+                          </v-btn>
                         </div>
                       </div>
                     </div>
-                  </v-expand-transition>
+                  </div>
                 </v-card>
               </div>
 
@@ -3318,47 +3316,45 @@
                     <v-icon size="16" color="grey">{{ showPercheConsiglio ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                   </div>
 
-                  <v-expand-transition>
-                    <div v-if="showPercheConsiglio" class="px-2.5 pt-1.5 pb-2.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
-                      <!-- Griglia Metriche Tecniche -->
-                      <div class="d-flex flex-column gap-1 mb-2">
-                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
-                          <span class="text-slate-400 font-weight-medium">📍 Base di partenza:</span>
-                          <strong class="text-white">{{ percheConsiglioData.baseDiPartenza }}</strong>
-                        </div>
-
-                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
-                          <span class="text-slate-400 font-weight-medium">📈 e1RM recente stimato:</span>
-                          <strong class="text-cyan-lighten-2">{{ percheConsiglioData.e1rmRecente }}</strong>
-                        </div>
-
-                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
-                          <span class="text-slate-400 font-weight-medium">🎯 Target attuale:</span>
-                          <strong class="text-amber-lighten-2">{{ percheConsiglioData.targetAttuale }}</strong>
-                        </div>
-
-                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
-                          <span class="text-slate-400 font-weight-medium">⚙️ Strategia attiva:</span>
-                          <strong class="text-green-accent-3">{{ percheConsiglioData.strategiaAttiva }}</strong>
-                        </div>
-
-                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
-                          <span class="text-slate-400 font-weight-medium">↗ Incremento vs base:</span>
-                          <strong class="text-green-accent-3">{{ percheConsiglioData.incrementoVsBase }}</strong>
-                        </div>
+                  <div v-if="showPercheConsiglio" class="px-2.5 pt-1.5 pb-2.5 border-top animate-fade-in" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                    <!-- Griglia Metriche Tecniche -->
+                    <div class="d-flex flex-column gap-1 mb-2">
+                      <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
+                        <span class="text-slate-400 font-weight-medium">📍 Base di partenza:</span>
+                        <strong class="text-white">{{ percheConsiglioData.baseDiPartenza }}</strong>
                       </div>
 
-                      <!-- Logica Discorsiva Naturale -->
-                      <div class="pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(6, 182, 212, 0.25) !important;">
-                        <span class="text-super-caption font-weight-black text-cyan-lighten-3 uppercase d-block mb-0.5" style="font-size: 0.52rem; letter-spacing: 0.03em;">
-                          Logica del calcolo
-                        </span>
-                        <p class="mb-0 text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.58rem; line-height: 1.35;">
-                          {{ percheConsiglioData.logicaCalcolo }}
-                        </p>
+                      <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
+                        <span class="text-slate-400 font-weight-medium">📈 e1RM recente stimato:</span>
+                        <strong class="text-cyan-lighten-2">{{ percheConsiglioData.e1rmRecente }}</strong>
+                      </div>
+
+                      <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
+                        <span class="text-slate-400 font-weight-medium">🎯 Target attuale:</span>
+                        <strong class="text-amber-lighten-2">{{ percheConsiglioData.targetAttuale }}</strong>
+                      </div>
+
+                      <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
+                        <span class="text-slate-400 font-weight-medium">⚙️ Strategia attiva:</span>
+                        <strong class="text-green-accent-3">{{ percheConsiglioData.strategiaAttiva }}</strong>
+                      </div>
+
+                      <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
+                        <span class="text-slate-400 font-weight-medium">↗ Incremento vs base:</span>
+                        <strong class="text-green-accent-3">{{ percheConsiglioData.incrementoVsBase }}</strong>
                       </div>
                     </div>
-                  </v-expand-transition>
+
+                    <!-- Logica Discorsiva Naturale -->
+                    <div class="pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(6, 182, 212, 0.25) !important;">
+                      <span class="text-super-caption font-weight-black text-cyan-lighten-3 uppercase d-block mb-0.5" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+                        Logica del calcolo
+                      </span>
+                      <p class="mb-0 text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.58rem; line-height: 1.35;">
+                        {{ percheConsiglioData.logicaCalcolo }}
+                      </p>
+                    </div>
+                  </div>
                 </v-card>
               </div>
 
@@ -3384,44 +3380,42 @@
                     <v-icon size="16" color="grey">{{ showStoricoCompleto ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                   </div>
 
-                  <v-expand-transition>
-                    <div v-if="showStoricoCompleto" class="px-2.5 pt-1.5 pb-2.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
-                      <!-- Timeline compatta -->
-                      <div v-if="storicoTimelineItems.length > 0" class="d-flex flex-column gap-1 mb-2">
-                        <div 
-                          v-for="it in storicoTimelineItems" 
-                          :key="it.id"
-                          class="d-flex align-center justify-space-between pa-1.5 rounded border text-super-caption transition-colors"
-                          :style="{
-                            borderColor: it.isPR ? 'rgba(245, 158, 11, 0.45) !important' : (it.isCurrent ? 'rgba(74, 222, 128, 0.3) !important' : 'rgba(255,255,255,0.04) !important'),
-                            background: it.isPR ? 'rgba(245, 158, 11, 0.12) !important' : (it.isCurrent ? 'rgba(74, 222, 128, 0.08) !important' : '#0f172a')
-                          }"
-                          style="font-size: 0.58rem;"
-                        >
-                          <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black" :class="it.isPR ? 'text-amber-lighten-2' : (it.isCurrent ? 'text-green-accent-3' : 'text-slate-300')">
-                              {{ it.titolo }}
-                            </span>
-                            <v-chip v-if="it.isPR" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.45rem; height: 14px; padding: 0 3px;">
-                              🏆 PR
-                            </v-chip>
-                          </div>
+                  <div v-if="showStoricoCompleto" class="px-2.5 pt-1.5 pb-2.5 border-top animate-fade-in" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                    <!-- Timeline compatta -->
+                    <div v-if="storicoTimelineItems.length > 0" class="d-flex flex-column gap-1 mb-2">
+                      <div 
+                        v-for="it in storicoTimelineItems" 
+                        :key="it.id"
+                        class="d-flex align-center justify-space-between pa-1.5 rounded border text-super-caption transition-colors"
+                        :style="{
+                          borderColor: it.isPR ? 'rgba(245, 158, 11, 0.45) !important' : (it.isCurrent ? 'rgba(74, 222, 128, 0.3) !important' : 'rgba(255,255,255,0.04) !important'),
+                          background: it.isPR ? 'rgba(245, 158, 11, 0.12) !important' : (it.isCurrent ? 'rgba(74, 222, 128, 0.08) !important' : '#0f172a')
+                        }"
+                        style="font-size: 0.58rem;"
+                      >
+                        <div class="d-flex align-center gap-1.5">
+                          <span class="font-weight-black" :class="it.isPR ? 'text-amber-lighten-2' : (it.isCurrent ? 'text-green-accent-3' : 'text-slate-300')">
+                            {{ it.titolo }}
+                          </span>
+                          <v-chip v-if="it.isPR" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.45rem; height: 14px; padding: 0 3px;">
+                            🏆 PR
+                          </v-chip>
+                        </div>
 
-                          <div class="d-flex align-center gap-2">
-                            <strong :class="it.isPR ? 'text-amber-lighten-1 font-weight-black' : 'text-white'">{{ it.caricoReps }}</strong>
-                            <span class="text-super-caption text-slate-400" style="font-size: 0.48rem;">{{ it.tempo }}</span>
-                          </div>
+                        <div class="d-flex align-center gap-2">
+                          <strong :class="it.isPR ? 'text-amber-lighten-1 font-weight-black' : 'text-white'">{{ it.caricoReps }}</strong>
+                          <span class="text-super-caption text-slate-400" style="font-size: 0.48rem;">{{ it.tempo }}</span>
                         </div>
                       </div>
-
-                      <!-- Riepilogo Miglior Prestazione in fondo -->
-                      <div v-if="recordOverviewData" class="pa-1.5 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(251, 191, 36, 0.25) !important;">
-                        <span class="text-super-caption font-weight-black text-amber-lighten-2" style="font-size: 0.55rem;">
-                          🏆 Miglior prestazione: {{ recordOverviewData.bestReal.display }} • {{ recordOverviewData.bestReal.provenienza }}
-                        </span>
-                      </div>
                     </div>
-                  </v-expand-transition>
+
+                    <!-- Riepilogo Miglior Prestazione in fondo -->
+                    <div v-if="recordOverviewData" class="pa-1.5 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(251, 191, 36, 0.25) !important;">
+                      <span class="text-super-caption font-weight-black text-amber-lighten-2" style="font-size: 0.55rem;">
+                        🏆 Miglior prestazione: {{ recordOverviewData.bestReal.display }} • {{ recordOverviewData.bestReal.provenienza }}
+                      </span>
+                    </div>
+                  </div>
                 </v-card>
               </div>
 
@@ -3447,37 +3441,35 @@
                     <v-icon size="16" color="grey">{{ showCambioPalestra ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                   </div>
 
-                  <v-expand-transition>
-                    <div v-if="showCambioPalestra" class="px-2.5 pt-1.5 pb-2.5 border-top text-slate-light" style="border-color: rgba(255, 255, 255, 0.06) !important; font-size: 0.60rem; line-height: 1.35;">
-                      <!-- Regola parentesi -->
-                      <div class="pa-1.5 rounded-lg mb-1.5" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b;">
-                        <strong class="text-amber-lighten-1">👑 Regola d'Oro delle Parentesi ( ... ):</strong>
-                        <div class="mt-0.5">
-                          Tutto ciò che scrivi tra parentesi tonde <code>( ... )</code> (inclusi carichi e serie) viene escluso dal calcolo della progressione e dei PR.
-                        </div>
-                      </div>
-
-                      <!-- Formato trasferta -->
-                      <div class="pa-1.5 rounded-lg mb-1.5 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
-                        <strong class="text-green-accent-3">✅ Formato Consigliato in Trasferta:</strong>
-                        <div class="font-mono mt-0.5 font-weight-bold" style="color: #4ade80; font-size: 0.62rem;">
-                          25 x11r<br>
-                          (45 x11r x2s Green Theory)
-                        </div>
-                        <div class="text-super-caption text-slate-400 mt-0.5" style="font-size: 0.50rem;">
-                          L'app userà il 25kg per le progressioni future e salverà il 45kg tra parentesi come tuo promemoria.
-                        </div>
-                      </div>
-
-                      <!-- Pulegge -->
-                      <div class="pa-1.5 rounded-lg bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
-                        <strong class="text-cyan-lighten-2">⚙️ Pulegge 1:1 vs 2:1:</strong>
-                        <div class="mt-0.5">
-                          Se la macchina ospite ha carrucole dimezzate (2:1), imposta <strong>il doppio del peso</strong> sul selettore per ottenere lo stesso stimolo reale.
-                        </div>
+                  <div v-if="showCambioPalestra" class="px-2.5 pt-1.5 pb-2.5 border-top text-slate-light animate-fade-in" style="border-color: rgba(255, 255, 255, 0.06) !important; font-size: 0.60rem; line-height: 1.35;">
+                    <!-- Regola parentesi -->
+                    <div class="pa-1.5 rounded-lg mb-1.5" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b;">
+                      <strong class="text-amber-lighten-1">👑 Regola d'Oro delle Parentesi ( ... ):</strong>
+                      <div class="mt-0.5">
+                        Tutto ciò che scrivi tra parentesi tonde <code>( ... )</code> (inclusi carichi e serie) viene escluso dal calcolo della progressione e dei PR.
                       </div>
                     </div>
-                  </v-expand-transition>
+
+                    <!-- Formato trasferta -->
+                    <div class="pa-1.5 rounded-lg mb-1.5 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                      <strong class="text-green-accent-3">✅ Formato Consigliato in Trasferta:</strong>
+                      <div class="font-mono mt-0.5 font-weight-bold" style="color: #4ade80; font-size: 0.62rem;">
+                        25 x11r<br>
+                        (45 x11r x2s Green Theory)
+                      </div>
+                      <div class="text-super-caption text-slate-400 mt-0.5" style="font-size: 0.50rem;">
+                        L'app userà il 25kg per le progressioni future e salverà il 45kg tra parentesi come tuo promemoria.
+                      </div>
+                    </div>
+
+                    <!-- Pulegge -->
+                    <div class="pa-1.5 rounded-lg bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                      <strong class="text-cyan-lighten-2">⚙️ Pulegge 1:1 vs 2:1:</strong>
+                      <div class="mt-0.5">
+                        Se la macchina ospite ha carrucole dimezzate (2:1), imposta <strong>il doppio del peso</strong> sul selettore per ottenere lo stesso stimolo reale.
+                      </div>
+                    </div>
+                  </div>
                 </v-card>
               </div>
             </template>
@@ -6921,6 +6913,81 @@ const showPercheConsiglio = ref(false);
 const showStoricoCompleto = ref(false);
 const showCambioPalestra = ref(false);
 
+// Dialogs and States
+const dialogProgressioniPrecedente = ref(false);
+const dialogElimina = ref(false);
+const dialogModifica = ref(false);
+const modificandoEsercizio = ref(false);
+const modificaForm = ref({
+  des_esercizio: '',
+  des_settore: '',
+  des_rec_report: '',
+  des_esercizio_2: '',
+  alf_superserie: '',
+  UrlNormal: '',
+  des_note: '',
+  des_note_attrezzo: '',
+  des_note_gen_attr: '',
+  des_estesa_start: '',
+  des_estesa_end: '',
+  des_week1: '',
+  des_week2: '',
+  des_week3: '',
+  des_week4: '',
+  des_week5: '',
+  des_week6: ''
+});
+const dialogStorico = ref(false);
+
+// Valore Consigliato Hero Dialog
+const valoreConsigliatoHeroDialog = computed(() => {
+  if (!workout.value) return { display: '0', unit: 'KG', valueToApply: 0, isRep: false, isLato: null };
+  const sett = aiutoWeek.value;
+  const presc = parsedPrescription(workout.value['des_week' + sett]);
+  if (presc && presc.total) {
+    return {
+      display: String(presc.total),
+      unit: 'KG',
+      valueToApply: presc.total,
+      isRep: false,
+      isLato: presc.side ? String(presc.side) : null
+    };
+  }
+
+  if (sett === 1) {
+    const p1 = propostaWeek1.value?.pesoConsigliato || propostaWeek1.value?.peso || 0;
+    return {
+      display: formatWeight(p1),
+      unit: 'KG',
+      valueToApply: p1,
+      isRep: false,
+      isLato: null
+    };
+  }
+
+  const ghostRender = getGhostRenderInfo(sett);
+  if (ghostRender && ghostRender.valueText) {
+    const cleanText = String(ghostRender.valueText).replace(/\s*kg/gi, '').trim();
+    const isRep = cleanText.includes('r') || cleanText.includes('x');
+    return {
+      display: cleanText,
+      unit: isRep ? '' : 'KG',
+      valueToApply: cleanText,
+      isRep,
+      isLato: null
+    };
+  }
+
+  const fallback = caricoConsigliatoViaDiMezzo.value || 0;
+  return {
+    display: formatWeight(fallback),
+    unit: 'KG',
+    valueToApply: fallback,
+    isRep: false,
+    isLato: null
+  };
+});
+
 // 1. COMPUTED RECORD OVERVIEW (Miglior Prestazione Assoluta + e1RM Massimo + Nuovo PR)
 const recordOverviewData = computed(() => {
   if (!workout.value) return null;
@@ -7396,7 +7463,7 @@ const calcolaProgressioneRepCustom = computed(() => {
       valore: `${formatWeight(pVal)}x${calc.sfidante}r`,
       label: isSfidantePR ? `🏆 PR con ≥${minRepsPerPR}r` : 'Progressione +2r',
       isPR: isSfidantePR,
-      minRepsPR
+      minRepsPR: minRepsPerPR
     }
   };
 });
@@ -7432,7 +7499,7 @@ const incrementaSimulatore = () => {
 const toggleSimulatoreCarico = () => {
   showSimulatoreCarico.value = !showSimulatoreCarico.value;
   if (showSimulatoreCarico.value) {
-    let cur = parseFloat(String(pesoCustomSimulatore.value || '').replace(',', '.'));
+    let cur = parseFloat(String(pesoCustomSimulatore.value !== null && pesoCustomSimulatore.value !== undefined ? pesoCustomSimulatore.value : '').replace(',', '.'));
     if (isNaN(cur) || cur <= 0) {
       const heroP = parseFloat(String(heroProposalData.value?.displayNum || valoreConsigliatoHeroDialog.value?.display || '').replace(',', '.'));
       const info = getBaseWeekInfo(aiutoWeek.value);
@@ -7741,53 +7808,7 @@ const opzioniStradeProgressione = computed(() => {
   return res;
 });
 
-const valoreConsigliatoHeroDialog = computed(() => {
-  if (!workout.value) return { display: '0', unit: 'KG', valueToApply: 0, isRep: false, isLato: null };
-  const sett = aiutoWeek.value;
-  const presc = parsedPrescription(workout.value['des_week' + sett]);
-  if (presc && presc.total) {
-    return {
-      display: String(presc.total),
-      unit: 'KG',
-      valueToApply: presc.total,
-      isRep: false,
-      isLato: presc.side ? String(presc.side) : null
-    };
-  }
 
-  if (sett === 1) {
-    const p1 = propostaWeek1.value?.pesoConsigliato || propostaWeek1.value?.peso || 0;
-    return {
-      display: formatWeight(p1),
-      unit: 'KG',
-      valueToApply: p1,
-      isRep: false,
-      isLato: null
-    };
-  }
-
-  const ghostRender = getGhostRenderInfo(sett);
-  if (ghostRender && ghostRender.valueText) {
-    const cleanText = String(ghostRender.valueText).replace(/\s*kg/gi, '').trim();
-    const isRep = cleanText.includes('r') || cleanText.includes('x');
-    return {
-      display: cleanText,
-      unit: isRep ? '' : 'KG',
-      valueToApply: cleanText,
-      isRep,
-      isLato: null
-    };
-  }
-
-  const fallback = caricoConsigliatoViaDiMezzo.value || 0;
-  return {
-    display: formatWeight(fallback),
-    unit: 'KG',
-    valueToApply: fallback,
-    isRep: false,
-    isLato: null
-  };
-});
 
 const spiegazioneDinamicaConsigliata = computed(() => {
   if (!workout.value) return '';
@@ -7937,31 +7958,7 @@ const applicaPropostaCaricoStorico = (peso) => {
   }
 };
 
-// Dialogs and States
-const dialogProgressioniPrecedente = ref(false);
-const dialogElimina = ref(false);
-const dialogModifica = ref(false);
-const modificandoEsercizio = ref(false);
-const modificaForm = ref({
-  des_esercizio: '',
-  des_settore: '',
-  des_rec_report: '',
-  des_esercizio_2: '',
-  alf_superserie: '',
-  UrlNormal: '',
-  des_note: '',
-  des_note_attrezzo: '',
-  des_note_gen_attr: '',
-  des_estesa_start: '',
-  des_estesa_end: '',
-  des_week1: '',
-  des_week2: '',
-  des_week3: '',
-  des_week4: '',
-  des_week5: '',
-  des_week6: ''
-});
-const dialogStorico = ref(false);
+
 
 // Grafico Storico Esercizio
 const modeGraficoStorico = ref('A'); // 'A', 'B', 'C'

@@ -3124,7 +3124,7 @@
                   <div 
                     class="d-flex align-center justify-space-between px-3 py-1.5 cursor-pointer transition-colors"
                     style="background: rgba(255, 255, 255, 0.02);"
-                    @click="showSimulatoreCarico = !showSimulatoreCarico"
+                    @click="toggleSimulatoreCarico"
                   >
                     <div class="d-flex align-center gap-1.5">
                       <span style="font-size: 0.85rem;">🧮</span>
@@ -6921,117 +6921,6 @@ const showPercheConsiglio = ref(false);
 const showStoricoCompleto = ref(false);
 const showCambioPalestra = ref(false);
 
-const decrementaSimulatore = () => {
-  vibraTattile(8);
-  const isManubri = isManubriEsercizio(workout.value);
-  let cur = parseFloat(String(pesoCustomSimulatore.value || 0).replace(',', '.'));
-  if (isNaN(cur) || cur <= 0) {
-    const info = getBaseWeekInfo(aiutoWeek.value);
-    cur = (info && info.pesoBase) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20);
-  }
-  const step = getWeightStep(isManubri, cur);
-  let next = isManubri ? getDumbbellSequenceWeight(cur, 'down') : Math.max(0, cur - (step || 0.5));
-  pesoCustomSimulatore.value = Math.round(next * 100) / 100;
-};
-
-const incrementaSimulatore = () => {
-  vibraTattile(8);
-  const isManubri = isManubriEsercizio(workout.value);
-  let cur = parseFloat(String(pesoCustomSimulatore.value || 0).replace(',', '.'));
-  if (isNaN(cur) || cur <= 0) {
-    const info = getBaseWeekInfo(aiutoWeek.value);
-    cur = (info && info.pesoBase) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20);
-  }
-  const step = getWeightStep(isManubri, cur);
-  let next = isManubri ? getDumbbellSequenceWeight(cur, 'up') : cur + (step || 0.5);
-  pesoCustomSimulatore.value = Math.round(next * 100) / 100;
-};
-
-const calcolaRepsTargetPerPeso = (pesoCustom, pesoRef, repsRef) => {
-  if (!pesoCustom || pesoCustom <= 0 || !pesoRef || pesoRef <= 0 || !repsRef || repsRef <= 0) {
-    return { parita: 10, target: 11, sfidante: 12, e1rmRef: 0 };
-  }
-  const factorRef = 1 + (repsRef / 30);
-  const e1rmRef = pesoRef * factorRef;
-  const rawReps = ((e1rmRef / pesoCustom) - 1) * 30;
-  
-  const repsParita = Math.max(1, Math.round(rawReps));
-  const e1rmParita = pesoCustom * (1 + repsParita / 30);
-  const repsTarget = e1rmParita >= e1rmRef ? repsParita + 1 : Math.max(repsParita + 1, Math.round(rawReps) + 1);
-  const repsSfidante = repsTarget + 1;
-
-  return {
-    parita: repsParita,
-    target: repsTarget,
-    sfidante: repsSfidante,
-    e1rmRef: Math.round(e1rmRef * 10) / 10
-  };
-};
-
-const calcolaProgressioneRepCustom = computed(() => {
-  if (!workout.value) return null;
-  const sett = aiutoWeek.value;
-  const infoBase = getBaseWeekInfo(sett);
-  const isCavo = isCavoOMacchinaEsercizio(workout.value);
-  
-  let pVal = parseFloat(String(pesoCustomSimulatore.value || '').replace(',', '.'));
-  if (isNaN(pVal) || pVal <= 0) {
-    pVal = (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) ? infoBase.pesoBase : (caricoConsigliatoViaDiMezzo.value || 0);
-  }
-  if (pVal <= 0) return null;
-
-  let pesoRef = pVal;
-  let repsRef = getRepsPerWeek(sett);
-
-  if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0 && infoBase.repsBase > 0) {
-    pesoRef = infoBase.pesoBase;
-    repsRef = infoBase.repsBase;
-  } else {
-    const ghost = getGhostLiftSmart(sett);
-    if (ghost && ghost.peso > 0) {
-      pesoRef = ghost.peso;
-    }
-  }
-
-  const calc = calcolaRepsTargetPerPeso(pVal, pesoRef, repsRef);
-  
-  // Calcolo reps minime per fare PR assoluto di e1RM
-  const bestE1rm = recordOverviewData.value?.bestE1RM?.e1rm || 0;
-  let minRepsPerPR = calc.sfidante;
-  let isSfidantePR = false;
-  if (bestE1rm > 0 && pVal > 0) {
-    minRepsPerPR = Math.max(1, Math.floor(((bestE1rm / pVal) - 1) * 30) + 1);
-    const e1rmSfidante = pVal * (1 + calc.sfidante / 30);
-    if (e1rmSfidante > bestE1rm) {
-      isSfidantePR = true;
-    }
-  }
-
-  return {
-    pesoCustom: pVal,
-    pesoRef,
-    repsRef,
-    e1rmRef: calc.e1rmRef,
-    parita: {
-      reps: calc.parita,
-      valore: `${formatWeight(pVal)}x${calc.parita}r`,
-      label: 'Stessa Forza'
-    },
-    target: {
-      reps: calc.target,
-      valore: `${formatWeight(pVal)}x${calc.target}r`,
-      label: 'Progressione +1r'
-    },
-    sfidante: {
-      reps: calc.sfidante,
-      valore: `${formatWeight(pVal)}x${calc.sfidante}r`,
-      label: isSfidantePR ? `🏆 PR con ≥${minRepsPerPR}r` : 'Progressione +2r',
-      isPR: isSfidantePR,
-      minRepsPR
-    }
-  };
-});
-
 // 1. COMPUTED RECORD OVERVIEW (Miglior Prestazione Assoluta + e1RM Massimo + Nuovo PR)
 const recordOverviewData = computed(() => {
   if (!workout.value) return null;
@@ -7426,6 +7315,142 @@ const strategieAlternativeCards = computed(() => {
     }
   ];
 });
+
+const calcolaRepsTargetPerPeso = (pesoCustom, pesoRef, repsRef) => {
+  if (!pesoCustom || pesoCustom <= 0 || !pesoRef || pesoRef <= 0 || !repsRef || repsRef <= 0) {
+    return { parita: 10, target: 11, sfidante: 12, e1rmRef: 0 };
+  }
+  const factorRef = 1 + (repsRef / 30);
+  const e1rmRef = pesoRef * factorRef;
+  const rawReps = ((e1rmRef / pesoCustom) - 1) * 30;
+  
+  const repsParita = Math.max(1, Math.round(rawReps));
+  const e1rmParita = pesoCustom * (1 + repsParita / 30);
+  const repsTarget = e1rmParita >= e1rmRef ? repsParita + 1 : Math.max(repsParita + 1, Math.round(rawReps) + 1);
+  const repsSfidante = repsTarget + 1;
+
+  return {
+    parita: repsParita,
+    target: repsTarget,
+    sfidante: repsSfidante,
+    e1rmRef: Math.round(e1rmRef * 10) / 10
+  };
+};
+
+const calcolaProgressioneRepCustom = computed(() => {
+  if (!workout.value) return null;
+  const sett = aiutoWeek.value;
+  const infoBase = getBaseWeekInfo(sett);
+  
+  let pVal = parseFloat(String(pesoCustomSimulatore.value !== null && pesoCustomSimulatore.value !== undefined ? pesoCustomSimulatore.value : '').replace(',', '.'));
+  if (isNaN(pVal) || pVal <= 0) {
+    const heroP = parseFloat(String(heroProposalData.value?.displayNum || valoreConsigliatoHeroDialog.value?.display || '').replace(',', '.'));
+    pVal = (heroP > 0) ? heroP : ((infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) ? infoBase.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20));
+  }
+  if (pVal <= 0) pVal = 20;
+
+  let pesoRef = pVal;
+  let repsRef = getRepsPerWeek(sett) || 10;
+
+  if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0 && infoBase.repsBase > 0) {
+    pesoRef = infoBase.pesoBase;
+    repsRef = infoBase.repsBase;
+  } else {
+    const ghost = getGhostLiftSmart(sett);
+    if (ghost && ghost.peso > 0) {
+      pesoRef = ghost.peso;
+    }
+  }
+
+  const calc = calcolaRepsTargetPerPeso(pVal, pesoRef, repsRef);
+  
+  // Calcolo reps minime per fare PR assoluto di e1RM
+  const bestE1rm = recordOverviewData.value?.bestE1RM?.e1rm || 0;
+  let minRepsPerPR = calc.sfidante;
+  let isSfidantePR = false;
+  if (bestE1rm > 0 && pVal > 0) {
+    minRepsPerPR = Math.max(1, Math.floor(((bestE1rm / pVal) - 1) * 30) + 1);
+    const e1rmSfidante = pVal * (1 + calc.sfidante / 30);
+    if (e1rmSfidante > bestE1rm) {
+      isSfidantePR = true;
+    }
+  }
+
+  return {
+    pesoCustom: pVal,
+    pesoRef,
+    repsRef,
+    e1rmRef: calc.e1rmRef,
+    parita: {
+      reps: calc.parita,
+      valore: `${formatWeight(pVal)}x${calc.parita}r`,
+      label: 'Stessa Forza'
+    },
+    target: {
+      reps: calc.target,
+      valore: `${formatWeight(pVal)}x${calc.target}r`,
+      label: 'Progressione +1r'
+    },
+    sfidante: {
+      reps: calc.sfidante,
+      valore: `${formatWeight(pVal)}x${calc.sfidante}r`,
+      label: isSfidantePR ? `🏆 PR con ≥${minRepsPerPR}r` : 'Progressione +2r',
+      isPR: isSfidantePR,
+      minRepsPR
+    }
+  };
+});
+
+const decrementaSimulatore = () => {
+  vibraTattile(8);
+  const isManubri = isManubriEsercizio(workout.value);
+  let cur = parseFloat(String(pesoCustomSimulatore.value || 0).replace(',', '.'));
+  if (isNaN(cur) || cur <= 0) {
+    const heroP = parseFloat(String(heroProposalData.value?.displayNum || valoreConsigliatoHeroDialog.value?.display || '').replace(',', '.'));
+    const info = getBaseWeekInfo(aiutoWeek.value);
+    cur = (heroP > 0) ? heroP : ((info && info.pesoBase) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20));
+  }
+  const step = getWeightStep(isManubri, cur);
+  let next = isManubri ? getDumbbellSequenceWeight(cur, 'down') : Math.max(0, cur - (step || 0.5));
+  pesoCustomSimulatore.value = Math.round(next * 100) / 100;
+};
+
+const incrementaSimulatore = () => {
+  vibraTattile(8);
+  const isManubri = isManubriEsercizio(workout.value);
+  let cur = parseFloat(String(pesoCustomSimulatore.value || 0).replace(',', '.'));
+  if (isNaN(cur) || cur <= 0) {
+    const heroP = parseFloat(String(heroProposalData.value?.displayNum || valoreConsigliatoHeroDialog.value?.display || '').replace(',', '.'));
+    const info = getBaseWeekInfo(aiutoWeek.value);
+    cur = (heroP > 0) ? heroP : ((info && info.pesoBase) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20));
+  }
+  const step = getWeightStep(isManubri, cur);
+  let next = isManubri ? getDumbbellSequenceWeight(cur, 'up') : cur + (step || 0.5);
+  pesoCustomSimulatore.value = Math.round(next * 100) / 100;
+};
+
+const toggleSimulatoreCarico = () => {
+  showSimulatoreCarico.value = !showSimulatoreCarico.value;
+  if (showSimulatoreCarico.value) {
+    let cur = parseFloat(String(pesoCustomSimulatore.value || '').replace(',', '.'));
+    if (isNaN(cur) || cur <= 0) {
+      const heroP = parseFloat(String(heroProposalData.value?.displayNum || valoreConsigliatoHeroDialog.value?.display || '').replace(',', '.'));
+      const info = getBaseWeekInfo(aiutoWeek.value);
+      cur = (heroP > 0) ? heroP : ((info && info.pesoBase && info.pesoBase > 0) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20));
+      pesoCustomSimulatore.value = cur;
+    }
+  }
+};
+
+// Inizializza pesoCustomSimulatore quando si apre la dialog o cambia settimana
+watch([() => dialogStorico.value, () => aiutoWeek.value], ([isOpen, w]) => {
+  if (isOpen) {
+    const heroP = parseFloat(String(heroProposalData.value?.displayNum || valoreConsigliatoHeroDialog.value?.display || '').replace(',', '.'));
+    const info = getBaseWeekInfo(w || aiutoWeek.value);
+    const defP = (heroP > 0) ? heroP : ((info && info.pesoBase && info.pesoBase > 0) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 20));
+    pesoCustomSimulatore.value = defP;
+  }
+}, { immediate: true });
 
 // 4. COMPUTED SIMULATORE DINAMICO DATA
 const simulatoreDinamicoData = computed(() => {

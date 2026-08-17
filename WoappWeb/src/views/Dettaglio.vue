@@ -2653,8 +2653,8 @@
           
           <!-- Rigo 2: Subheader WEEK & REPS per Proposta Carico -->
           <div v-if="activeTabAnalisi === 0" class="mb-1 px-3 py-1.5 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
-            <span class="text-caption font-weight-black text-center text-orange-lighten-2" style="font-size: 0.88rem; letter-spacing: 0.04em;">
-              WEEK {{ aiutoWeek }} • {{ formatRepsDisplay(targetRepsAttive) }} REPS
+            <span class="text-caption font-weight-black text-center text-orange-lighten-2" style="font-size: 0.82rem; letter-spacing: 0.04em;">
+              WEEK {{ aiutoWeek }} • {{ String(targetRepsAttive).replace(/r$/i, '') }} REPS
             </span>
           </div>
 
@@ -2663,8 +2663,8 @@
             <v-chip size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))', fontSize: '0.65rem', height: '20px', left: '12px' }">
               WEEK {{ settimanaAttiva }}
             </v-chip>
-            <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.9rem', letterSpacing: '0.02em' }">
-              {{ getRepsPerWeek(settimanaAttiva) }} REPS
+            <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.85rem', letterSpacing: '0.02em' }">
+              {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
             </span>
           </div>
 
@@ -2894,48 +2894,48 @@
 
             <template v-else>
               <!-- 2. BLOCCO RECORD IN ALTO (2 COLONNE + NUOVO PR) -->
-              <div v-if="recordOverviewData" class="mb-2.5 text-left">
-                <div class="d-flex gap-2 w-100">
+              <div v-if="recordOverviewData" class="mb-2 text-left">
+                <div class="d-flex gap-1.5 w-100">
                   <!-- Colonna 1: Miglior Prestazione Assoluta -->
                   <div 
-                    class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
+                    class="pa-2 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
                     style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.10) 0%, rgba(245, 158, 11, 0.02) 100%); border-color: rgba(245, 158, 11, 0.35) !important; flex: 1 1 0%; min-width: 0;"
                     @click="recordOverviewData.bestReal.id && vaiADettaglioStorico(recordOverviewData.bestReal.id)"
                   >
                     <div>
-                      <div class="d-flex align-center gap-1 mb-1 text-truncate">
-                        <v-icon color="amber-lighten-1" size="13">mdi-trophy</v-icon>
-                        <span class="text-super-caption font-weight-black text-amber-lighten-1 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+                      <div class="d-flex align-center gap-1 mb-0.5 text-truncate">
+                        <v-icon color="amber-lighten-1" size="12">mdi-trophy</v-icon>
+                        <span class="text-super-caption font-weight-black text-amber-lighten-1 uppercase text-truncate" style="font-size: 0.48rem; letter-spacing: 0.03em;">
                           MIGLIOR PRESTAZIONE
                         </span>
                       </div>
-                      <div class="font-weight-black text-amber-lighten-2 text-truncate" style="font-size: 1.05rem; line-height: 1.15;">
+                      <div class="font-weight-black text-amber-lighten-2 text-truncate" style="font-size: 0.95rem; line-height: 1.15;">
                         {{ recordOverviewData.bestReal.display }}
                       </div>
                     </div>
-                    <div class="mt-1 text-super-caption text-truncate font-weight-bold" :class="recordOverviewData.bestReal.isCurrent ? 'text-green-accent-3' : 'text-slate-400'" style="font-size: 0.55rem;">
+                    <div class="mt-0.5 text-super-caption text-truncate font-weight-bold" :class="recordOverviewData.bestReal.isCurrent ? 'text-green-accent-3' : 'text-slate-300'" style="font-size: 0.52rem;">
                       {{ recordOverviewData.bestReal.provenienza }}
                     </div>
                   </div>
 
                   <!-- Colonna 2: e1RM Massimo (Stimato) -->
                   <div 
-                    class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
+                    class="pa-2 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
                     style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 100%); border-color: rgba(6, 182, 212, 0.35) !important; flex: 1 1 0%; min-width: 0;"
                     @click="recordOverviewData.bestE1RM.id && vaiADettaglioStorico(recordOverviewData.bestE1RM.id)"
                   >
                     <div>
-                      <div class="d-flex align-center gap-1 mb-1 text-truncate">
-                        <v-icon color="cyan-lighten-2" size="13">mdi-chart-line</v-icon>
-                        <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+                      <div class="d-flex align-center gap-1 mb-0.5 text-truncate">
+                        <v-icon color="cyan-lighten-2" size="12">mdi-chart-line</v-icon>
+                        <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.48rem; letter-spacing: 0.03em;">
                           e1RM MASSIMO
                         </span>
                       </div>
-                      <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.05rem; line-height: 1.15;">
+                      <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 0.95rem; line-height: 1.15;">
                         {{ recordOverviewData.bestE1RM.display }}
                       </div>
                     </div>
-                    <div class="mt-1 text-super-caption text-truncate font-weight-bold d-flex align-center gap-1" style="font-size: 0.55rem;">
+                    <div class="mt-0.5 text-super-caption text-truncate font-weight-bold d-flex align-center gap-1" style="font-size: 0.52rem;">
                       <span class="text-cyan-lighten-3 font-italic">stimato</span>
                       <span class="text-slate-400">• {{ recordOverviewData.bestE1RM.provenienza }}</span>
                     </div>
@@ -2945,16 +2945,16 @@
                 <!-- Barra Compatta Nuovo PR -->
                 <div 
                   v-if="recordOverviewData.nuovoPR.isNew" 
-                  class="mt-2 pa-2 rounded-xl border d-flex align-center justify-space-between animate-pulse"
+                  class="mt-1.5 pa-1.5 rounded-xl border d-flex align-center justify-space-between animate-pulse"
                   style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.18) 0%, rgba(245, 158, 11, 0.08) 100%); border-color: rgba(251, 191, 36, 0.45) !important;"
                 >
-                  <div class="d-flex align-center gap-1.5">
-                    <span style="font-size: 1rem; line-height: 1;">🏆</span>
-                    <span class="font-weight-black text-amber-lighten-1 uppercase" style="font-size: 0.65rem; letter-spacing: 0.04em;">
+                  <div class="d-flex align-center gap-1">
+                    <span style="font-size: 0.85rem; line-height: 1;">🏆</span>
+                    <span class="font-weight-black text-amber-lighten-1 uppercase" style="font-size: 0.60rem; letter-spacing: 0.04em;">
                       {{ recordOverviewData.nuovoPR.badgeText }}
                     </span>
                   </div>
-                  <div class="font-weight-black text-amber-accent-2" style="font-size: 0.65rem;">
+                  <div class="font-weight-black text-amber-accent-2" style="font-size: 0.60rem;">
                     {{ recordOverviewData.nuovoPR.deltaText }}
                   </div>
                 </div>
@@ -2963,85 +2963,85 @@
               <!-- 3. PROPOSTA PRINCIPALE (BLOCCO VISIVAMENTE DOMINANTE) -->
               <div 
                 v-if="heroProposalData" 
-                class="pa-3 rounded-2xl text-left border position-relative overflow-hidden mb-2.5"
-                style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.03) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12);"
+                class="pa-2.5 rounded-2xl text-left border position-relative overflow-hidden mb-2"
+                style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.03) 100%) !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.10);"
               >
                 <!-- Badge riga superiore -->
-                <div class="d-flex align-center justify-space-between mb-1">
+                <div class="d-flex align-center justify-space-between mb-0.5">
                   <div class="d-flex align-center gap-1.5 flex-wrap">
-                    <span class="font-weight-black uppercase px-2 py-0.5 rounded text-white" style="background: #15803d; font-size: 0.58rem; letter-spacing: 0.05em;">
+                    <span class="font-weight-black uppercase px-1.5 py-0.2 rounded text-white" style="background: #15803d; font-size: 0.52rem; letter-spacing: 0.05em;">
                       CONSIGLIATO
                     </span>
                     <span 
                       v-if="heroProposalData.deltaW1" 
-                      class="rounded px-1.5 py-0.5 font-weight-black text-no-wrap"
+                      class="rounded px-1.5 py-0.2 font-weight-black text-no-wrap"
                       :style="heroProposalData.deltaW1.style"
-                      style="font-size: 0.58rem; line-height: 1.15;"
+                      style="font-size: 0.52rem; line-height: 1.15;"
                     >
                       ↗ {{ heroProposalData.deltaW1.text }}
                     </span>
                   </div>
 
-                  <div v-if="heroProposalData.stepTransitionText" class="font-weight-black text-slate-300 font-mono" style="font-size: 0.62rem;">
+                  <div v-if="heroProposalData.stepTransitionText" class="font-weight-black text-slate-300 font-mono" style="font-size: 0.58rem;">
                     {{ heroProposalData.stepTransitionText }}
                   </div>
                 </div>
 
                 <!-- Carico Dominante e Bottone Applica -->
-                <div class="d-flex align-center justify-space-between my-2">
+                <div class="d-flex align-center justify-space-between my-1">
                   <div>
-                    <div class="font-weight-black text-green-accent-3 d-flex align-baseline gap-1" style="font-size: 2.25rem; line-height: 1; letter-spacing: -0.02em; text-shadow: 0 0 20px rgba(74, 222, 128, 0.25);">
+                    <div class="font-weight-black text-green-accent-3 d-flex align-baseline gap-1" style="font-size: 1.85rem; line-height: 1; letter-spacing: -0.02em; text-shadow: 0 0 16px rgba(74, 222, 128, 0.25);">
                       {{ heroProposalData.displayNum }}
-                      <span v-if="heroProposalData.unit" class="text-caption text-slate-400 font-weight-bold" style="font-size: 0.85rem;">{{ heroProposalData.unit }}</span>
+                      <span v-if="heroProposalData.unit" class="text-caption text-slate-400 font-weight-bold" style="font-size: 0.78rem;">{{ heroProposalData.unit }}</span>
                     </div>
-                    <div class="font-weight-black text-slate-300 mt-1" style="font-size: 0.72rem; letter-spacing: 0.02em;">
+                    <div class="font-weight-black text-slate-300 mt-0.5" style="font-size: 0.68rem; letter-spacing: 0.02em;">
                       {{ heroProposalData.serieRepsText }}
                     </div>
-                    <div v-if="heroProposalData.isLato" class="text-caption font-weight-black text-cyan-lighten-3 mt-0.5" style="font-size: 0.72rem;">
+                    <div v-if="heroProposalData.isLato" class="text-caption font-weight-black text-cyan-lighten-3 mt-0.5" style="font-size: 0.68rem;">
                       LATO: {{ heroProposalData.isLato }} KG
                     </div>
                   </div>
 
                   <v-btn
                     color="green-darken-1"
-                    size="default"
-                    class="font-weight-black text-white px-3.5 text-none rounded-xl elevation-2"
-                    style="font-size: 0.75rem; height: 38px;"
+                    size="small"
+                    class="font-weight-black text-white px-3 text-none rounded-xl elevation-2"
+                    style="font-size: 0.68rem; height: 32px;"
                     @click="applicaPropostaCaricoStorico(heroProposalData.valueToApply)"
                   >
-                    <v-icon start size="16" class="mr-1">mdi-check</v-icon>
+                    <v-icon start size="14" class="mr-1">mdi-check</v-icon>
                     Applica Consigliato
                   </v-btn>
                 </div>
 
                 <!-- Spiegazione Breve -->
-                <div class="text-super-caption text-slate-300 font-weight-medium pt-1.5 border-top" style="border-color: rgba(255,255,255,0.08) !important; font-size: 0.65rem; line-height: 1.35;">
+                <div class="text-super-caption text-slate-300 font-weight-medium pt-1 border-top" style="border-color: rgba(255,255,255,0.08) !important; font-size: 0.60rem; line-height: 1.3;">
                   {{ heroProposalData.spiegazioneSintetica }}
                 </div>
               </div>
 
               <!-- 4. STRATEGIE ALTERNATIVE (SAFE / SMART / SFIDANTE) -->
-              <div v-if="strategieAlternativeCards.length > 0" class="mb-2.5 text-left">
-                <div class="d-flex align-center justify-space-between mb-1.5 px-0.5">
-                  <span class="text-super-caption font-weight-black uppercase" style="color: var(--text-slate, #94a3b8); font-size: 0.62rem; letter-spacing: 0.05em;">
+              <div v-if="strategieAlternativeCards.length > 0" class="mb-2 text-left">
+                <div class="d-flex align-center justify-space-between mb-1 px-0.5">
+                  <span class="text-super-caption font-weight-black uppercase" style="color: var(--text-slate, #94a3b8); font-size: 0.58rem; letter-spacing: 0.04em;">
                     ⚖️ STRATEGIE ALTERNATIVE
                   </span>
                 </div>
 
-                <div class="d-flex gap-2 overflow-x-auto pb-1 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
+                <div class="d-flex gap-1.5 overflow-x-auto pb-1 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
                   <div 
                     v-for="card in strategieAlternativeCards" 
                     :key="card.tipo" 
                     class="flex-grow-1"
-                    style="flex: 1 1 0%; min-width: 100px;"
+                    style="flex: 1 1 0%; min-width: 95px;"
                   >
                     <v-card 
-                      class="pa-2.5 rounded-xl border d-flex flex-column justify-space-between fill-height text-center position-relative transition-all"
+                      class="pa-2 rounded-xl border d-flex flex-column justify-space-between fill-height text-center position-relative transition-all"
                       :style="{
                         borderColor: card.isConsigliato ? 'rgba(74, 222, 128, 0.6) !important' : (card.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.4) !important' : 'rgba(59, 130, 246, 0.4) !important'),
                         background: card.isConsigliato ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.03) 100%) !important' : (card.tipo === 'sfidante' ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.10) 0%, rgba(249, 115, 22, 0.02) 100%) !important' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.10) 0%, rgba(59, 130, 246, 0.02) 100%) !important'),
-                        boxShadow: card.isConsigliato ? '0 0 12px rgba(74, 222, 128, 0.15)' : 'none',
-                        transform: card.isConsigliato ? 'scale(1.02)' : 'none'
+                        boxShadow: card.isConsigliato ? '0 0 10px rgba(74, 222, 128, 0.12)' : 'none',
+                        transform: card.isConsigliato ? 'scale(1.01)' : 'none'
                       }"
                       elevation="0"
                     >
@@ -3051,38 +3051,49 @@
                           <span 
                             class="font-weight-black uppercase text-truncate"
                             :class="card.isConsigliato ? 'text-green-accent-3' : (card.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-2')"
-                            style="font-size: 0.65rem; letter-spacing: 0.03em;"
+                            style="font-size: 0.58rem; letter-spacing: 0.02em;"
                           >
                             {{ card.icon }} {{ card.nome }}
                           </span>
-                          <span v-if="card.isConsigliato" class="text-green-accent-3 font-weight-black" style="font-size: 0.7rem;">✓</span>
+                          <span v-if="card.isConsigliato" class="text-green-accent-3 font-weight-black" style="font-size: 0.65rem;">✓</span>
                         </div>
 
                         <!-- Valore Peso x Reps -->
-                        <div class="font-weight-black text-white mt-1 text-truncate" style="font-size: 0.95rem; line-height: 1.15;">
+                        <div class="font-weight-black text-white mt-0.5 text-truncate" style="font-size: 0.85rem; line-height: 1.15;">
                           {{ card.valoreDisplay }}
                         </div>
 
                         <!-- Sottotitolo Dinamico -->
-                        <div class="text-super-caption text-slate-300 font-weight-bold text-truncate mt-0.5" style="font-size: 0.52rem; line-height: 1.2;">
+                        <div class="text-super-caption text-slate-300 font-weight-bold mt-0.5" style="font-size: 0.48rem; line-height: 1.15; white-space: normal;">
                           {{ card.sottotitolo }}
                         </div>
 
-                        <!-- Reps Stimate Realistiche -->
-                        <div class="mt-1.5 px-1 py-0.5 rounded bg-black/40 border text-super-caption font-weight-bold text-truncate" style="border-color: rgba(255,255,255,0.06) !important; font-size: 0.5rem; color: #cbd5e1;">
+                        <!-- Obiettivo PR su Sfidante oppure Reps Stimate -->
+                        <div 
+                          v-if="card.prGoalText" 
+                          class="mt-1 px-1 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 text-super-caption font-weight-black text-amber-accent-2"
+                          style="font-size: 0.48rem; line-height: 1.15;"
+                        >
+                          {{ card.prGoalText }}
+                        </div>
+                        <div 
+                          v-else 
+                          class="mt-1 px-1 py-0.5 rounded bg-black/40 border text-super-caption font-weight-bold text-truncate" 
+                          style="border-color: rgba(255,255,255,0.06) !important; font-size: 0.48rem; color: #cbd5e1;"
+                        >
                           {{ card.repsStimateText }}
                         </div>
                       </div>
 
                       <!-- Separatore e Metrica Rischio/Probabilità -->
-                      <div class="pt-1.5 mt-1.5 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
-                        <div class="text-super-caption text-muted font-weight-medium text-truncate" style="font-size: 0.48rem;">
+                      <div class="pt-1 mt-1 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
+                        <div class="text-super-caption text-muted font-weight-medium text-truncate" style="font-size: 0.46rem;">
                           {{ card.metricLabel }}
                         </div>
                         <div 
                           class="font-weight-black text-truncate"
                           :class="card.isConsigliato ? 'text-green-accent-3' : (card.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-2')"
-                          style="font-size: 0.58rem; letter-spacing: 0.02em;"
+                          style="font-size: 0.52rem; letter-spacing: 0.02em;"
                         >
                           {{ card.metricValue }}
                         </div>
@@ -3092,8 +3103,8 @@
                           :color="card.isConsigliato ? 'green-darken-1' : (card.tipo === 'sfidante' ? 'orange-darken-3' : 'blue-darken-3')"
                           size="x-small"
                           :variant="card.isConsigliato ? 'flat' : 'tonal'"
-                          class="font-weight-black text-white text-none w-100 rounded-lg mt-1.5"
-                          style="font-size: 0.6rem; height: 24px;"
+                          class="font-weight-black text-white text-none w-100 rounded-lg mt-1"
+                          style="font-size: 0.55rem; height: 20px;"
                           @click="applicaPropostaCaricoStorico(card.pesoToApply)"
                         >
                           Applica
@@ -3104,86 +3115,136 @@
                 </div>
               </div>
 
-              <!-- 5. SIMULATORE CARICO (ACCORDION COMPATTO) -->
-              <div v-if="!isCorpoLiberoEsercizio(workout)" class="mb-2.5 text-left">
+              <!-- 5. SIMULATORE CARICO CUSTOM (ACCORDION ESPANDIBILE) -->
+              <div v-if="!isCorpoLiberoEsercizio(workout)" class="mb-2 text-left">
                 <v-card 
                   class="rounded-xl border bg-slate-950 overflow-hidden" 
                   style="border-color: rgba(255, 255, 255, 0.1) !important;"
                 >
                   <div 
-                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    class="d-flex align-center justify-space-between px-3 py-1.5 cursor-pointer transition-colors"
                     style="background: rgba(255, 255, 255, 0.02);"
                     @click="showSimulatoreCarico = !showSimulatoreCarico"
                   >
                     <div class="d-flex align-center gap-1.5">
-                      <span style="font-size: 0.9rem;">🛠️</span>
-                      <span class="font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
-                        Simula altro carico
+                      <span style="font-size: 0.85rem;">🧮</span>
+                      <span class="font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.03em;">
+                        SIMULATORE CARICO CUSTOM
                       </span>
                     </div>
                     <v-icon size="16" color="grey">{{ showSimulatoreCarico ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                   </div>
 
                   <v-expand-transition>
-                    <div v-if="showSimulatoreCarico" class="px-3 pt-2 pb-3 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
-                      <!-- Stepper [ - ] 36 KG [ + ] -->
-                      <div class="d-flex align-center justify-center gap-3 my-1">
-                        <v-btn
-                          icon
-                          variant="tonal"
-                          color="amber-darken-3"
-                          size="small"
-                          class="rounded-lg"
-                          style="width: 36px; height: 36px;"
-                          @click="decrementaSimulatore"
-                        >
-                          <v-icon size="18">mdi-minus</v-icon>
-                        </v-btn>
+                    <div v-if="showSimulatoreCarico" class="px-2.5 pt-2 pb-2.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                      <!-- Stepper [ - ] 45 KG [ + ] e Istruzione -->
+                      <div class="d-flex align-center justify-space-between gap-2 mb-2">
+                        <div class="d-flex align-center gap-1.5 pa-1 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.3) !important;">
+                          <v-btn
+                            icon
+                            variant="tonal"
+                            color="amber-darken-3"
+                            size="x-small"
+                            class="rounded-lg"
+                            style="width: 28px; height: 28px;"
+                            @click="decrementaSimulatore"
+                          >
+                            <v-icon size="14">mdi-minus</v-icon>
+                          </v-btn>
 
-                        <div class="d-flex align-center justify-center px-4 py-1.5 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.35) !important; min-width: 130px;">
-                          <input
-                            v-model="pesoCustomSimulatore"
-                            type="number"
-                            step="0.5"
-                            class="font-weight-black text-center text-white"
-                            style="width: 60px; background: transparent; border: none; outline: none; font-size: 1.15rem;"
-                          />
-                          <span class="text-caption text-amber-lighten-2 font-weight-black ml-1">KG</span>
+                          <div class="d-flex align-center px-1 text-no-wrap">
+                            <span class="text-super-caption text-amber-lighten-2 font-weight-black mr-1" style="font-size: 0.58rem;">KG</span>
+                            <input
+                              v-model="pesoCustomSimulatore"
+                              type="number"
+                              step="0.5"
+                              class="font-weight-black text-center text-white"
+                              style="width: 48px; background: transparent; border: none; outline: none; font-size: 1.05rem;"
+                            />
+                          </div>
+
+                          <v-btn
+                            icon
+                            variant="tonal"
+                            color="amber-darken-3"
+                            size="x-small"
+                            class="rounded-lg"
+                            style="width: 28px; height: 28px;"
+                            @click="incrementaSimulatore"
+                          >
+                            <v-icon size="14">mdi-plus</v-icon>
+                          </v-btn>
                         </div>
 
-                        <v-btn
-                          icon
-                          variant="tonal"
-                          color="amber-darken-3"
-                          size="small"
-                          class="rounded-lg"
-                          style="width: 36px; height: 36px;"
-                          @click="incrementaSimulatore"
-                        >
-                          <v-icon size="18">mdi-plus</v-icon>
-                        </v-btn>
+                        <div class="text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.54rem; line-height: 1.25;">
+                          Calcola rep per progredire col peso scelto.
+                        </div>
                       </div>
 
-                      <!-- Stima Reps & e1RM Previsto -->
-                      <div v-if="simulatoreDinamicoData" class="d-flex align-center justify-space-between pa-2 rounded-lg bg-slate-900 border mt-2" style="border-color: rgba(255, 255, 255, 0.05) !important;">
-                        <div>
-                          <div class="font-weight-black text-green-accent-3" style="font-size: 0.78rem;">
-                            ≈ {{ simulatoreDinamicoData.repsStimate }} reps stimate
+                      <!-- Base di Riferimento e le 3 Opzioni -->
+                      <div v-if="calcolaProgressioneRepCustom" class="d-flex flex-column gap-1.5 pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255, 255, 255, 0.05) !important;">
+                        <div class="text-super-caption text-slate-300 font-weight-medium mb-0.5" style="font-size: 0.54rem;">
+                          🎯 Base: <strong>{{ calcolaProgressioneRepCustom.pesoRef }}kg × {{ calcolaProgressioneRepCustom.repsRef }}r</strong> (e1RM: {{ calcolaProgressioneRepCustom.e1rmRef }}kg)
+                        </div>
+
+                        <!-- 1. PARITÀ -->
+                        <div 
+                          class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-blue-950/30 border-blue-500/20 cursor-pointer hover:bg-blue-900/40 transition-colors"
+                          @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.parita.valore)"
+                        >
+                          <div class="d-flex align-center gap-1.5">
+                            <span class="font-weight-black text-blue-lighten-3" style="font-size: 0.58rem;">🟡 PARITÀ</span>
+                            <span class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.50rem;">Stessa Forza</span>
                           </div>
-                          <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.58rem;">
-                            e1RM previsto: <strong class="text-cyan-lighten-2">{{ simulatoreDinamicoData.e1rmPrevisto }} kg</strong>
+                          <div class="d-flex align-center gap-1.5">
+                            <span class="font-weight-black text-white px-2 py-0.5 rounded bg-blue-900/80 border border-blue-400/30" style="font-size: 0.75rem;">
+                              {{ calcolaProgressioneRepCustom.parita.valore }}
+                            </span>
+                            <v-btn color="blue-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
+                              Applica
+                            </v-btn>
                           </div>
                         </div>
 
-                        <v-btn
-                          color="amber-darken-3"
-                          size="x-small"
-                          class="font-weight-black text-white text-none px-3 rounded-md"
-                          style="font-size: 0.62rem; height: 26px;"
-                          @click="applicaPropostaCaricoStorico(simulatoreDinamicoData.valoreToApply)"
+                        <!-- 2. TARGET (+1r) -->
+                        <div 
+                          class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-green-950/30 border-green-500/20 cursor-pointer hover:bg-green-900/40 transition-colors"
+                          @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.target.valore)"
                         >
-                          Applica {{ simulatoreDinamicoData.valoreToApply }} kg
-                        </v-btn>
+                          <div class="d-flex align-center gap-1.5">
+                            <span class="font-weight-black text-green-accent-3" style="font-size: 0.58rem;">🟢 TARGET</span>
+                            <span class="text-super-caption text-green-accent-2 font-weight-medium" style="font-size: 0.50rem;">Progressione +1r</span>
+                          </div>
+                          <div class="d-flex align-center gap-1.5">
+                            <span class="font-weight-black text-white px-2 py-0.5 rounded bg-green-900/80 border border-green-400/30" style="font-size: 0.75rem;">
+                              {{ calcolaProgressioneRepCustom.target.valore }}
+                            </span>
+                            <v-btn color="green-darken-2" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
+                              Applica
+                            </v-btn>
+                          </div>
+                        </div>
+
+                        <!-- 3. SFIDANTE (+2r / PR) -->
+                        <div 
+                          class="d-flex align-center justify-space-between pa-1.5 rounded-lg border bg-orange-950/30 border-orange-500/20 cursor-pointer hover:bg-orange-900/40 transition-colors"
+                          @click="applicaPropostaCaricoStorico(calcolaProgressioneRepCustom.sfidante.valore)"
+                        >
+                          <div class="d-flex align-center gap-1.5">
+                            <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.58rem;">🔥 SFIDANTE</span>
+                            <span class="text-super-caption font-weight-medium" :class="calcolaProgressioneRepCustom.sfidante.isPR ? 'text-amber-accent-2 font-weight-black' : 'text-orange-lighten-3'" style="font-size: 0.50rem;">
+                              {{ calcolaProgressioneRepCustom.sfidante.label }}
+                            </span>
+                          </div>
+                          <div class="d-flex align-center gap-1.5">
+                            <span class="font-weight-black text-white px-2 py-0.5 rounded bg-orange-900/80 border border-orange-400/30" style="font-size: 0.75rem;">
+                              {{ calcolaProgressioneRepCustom.sfidante.valore }}
+                            </span>
+                            <v-btn color="orange-darken-3" size="x-small" density="compact" class="font-weight-black text-white text-none px-2 rounded" style="font-size: 0.55rem; height: 20px;">
+                              Applica
+                            </v-btn>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </v-expand-transition>
@@ -3191,9 +3252,9 @@
               </div>
 
               <!-- 6. ANDAMENTO DEL CARICO NEL MESOCICLO (W1 -> W6 COMPATTO) -->
-              <div v-if="andamentoMesocicloData" class="mb-2.5 text-left pa-2.5 rounded-xl border bg-slate-950" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-                <div class="d-flex align-center justify-space-between mb-1.5 px-0.5">
-                  <span class="text-super-caption font-weight-black uppercase" style="color: var(--text-slate, #94a3b8); font-size: 0.58rem; letter-spacing: 0.04em;">
+              <div v-if="andamentoMesocicloData" class="mb-2 text-left pa-2 rounded-xl border bg-slate-950" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                <div class="d-flex align-center justify-space-between mb-1 px-0.5">
+                  <span class="text-super-caption font-weight-black uppercase" style="color: var(--text-slate, #94a3b8); font-size: 0.55rem; letter-spacing: 0.04em;">
                     📊 ANDAMENTO CARICO NEL MESOCICLO
                   </span>
                 </div>
@@ -3203,26 +3264,26 @@
                   <div 
                     v-for="item in andamentoMesocicloData.settimane" 
                     :key="item.week"
-                    class="pa-1.5 rounded-lg border text-center flex-grow-1 transition-all"
+                    class="pa-1 rounded-lg border text-center flex-grow-1 transition-all"
                     :style="{
                       flex: '1 1 0%',
                       minWidth: '0',
                       borderColor: item.isCurrent ? '#4ade80 !important' : 'rgba(255, 255, 255, 0.08) !important',
                       background: item.isCurrent ? 'rgba(74, 222, 128, 0.16) !important' : 'rgba(255, 255, 255, 0.02) !important',
-                      boxShadow: item.isCurrent ? '0 0 8px rgba(74, 222, 128, 0.2)' : 'none'
+                      boxShadow: item.isCurrent ? '0 0 6px rgba(74, 222, 128, 0.2)' : 'none'
                     }"
                   >
                     <span 
                       class="d-block font-weight-black uppercase text-truncate"
                       :class="item.isCurrent ? 'text-green-accent-3' : 'text-muted'"
-                      style="font-size: 0.52rem; line-height: 1;"
+                      style="font-size: 0.48rem; line-height: 1;"
                     >
                       {{ item.label }}
                     </span>
                     <strong 
-                      class="d-block mt-1 text-truncate"
+                      class="d-block mt-0.5 text-truncate"
                       :class="item.isCurrent ? 'text-green-accent-3 font-weight-black' : 'text-slate-200 font-weight-bold'"
-                      style="font-size: 0.82rem; line-height: 1;"
+                      style="font-size: 0.75rem; line-height: 1;"
                     >
                       {{ item.value }}
                     </strong>
@@ -3230,27 +3291,27 @@
                 </div>
 
                 <!-- Progressione Totale -->
-                <div class="text-center mt-1.5 font-weight-black text-green-accent-3" style="font-size: 0.65rem; letter-spacing: 0.02em;">
+                <div class="text-center mt-1 font-weight-black text-green-accent-3" style="font-size: 0.58rem; letter-spacing: 0.02em;">
                   {{ andamentoMesocicloData.deltaProgressioneText }}
                 </div>
               </div>
 
               <!-- 7. "PERCHÉ QUESTO CONSIGLIO?" (ACCORDION ESPANDIBILE) -->
-              <div v-if="percheConsiglioData" class="mb-2 text-left">
+              <div v-if="percheConsiglioData" class="mb-1.5 text-left">
                 <v-card class="rounded-xl border bg-slate-950 overflow-hidden" style="border-color: rgba(255, 255, 255, 0.08) !important;">
                   <div 
-                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    class="d-flex align-center justify-space-between px-3 py-1.5 cursor-pointer transition-colors"
                     style="background: rgba(255, 255, 255, 0.02);"
                     @click="showPercheConsiglio = !showPercheConsiglio"
                   >
                     <div>
                       <div class="d-flex align-center gap-1.5">
-                        <span style="font-size: 0.9rem;">🧠</span>
-                        <span class="font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
+                        <span style="font-size: 0.85rem;">🧠</span>
+                        <span class="font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.03em;">
                           PERCHÉ QUESTO CONSIGLIO?
                         </span>
                       </div>
-                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.52rem; margin-left: 20px;">
+                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.48rem; margin-left: 18px;">
                         Scopri come è stato calcolato
                       </div>
                     </div>
@@ -3258,30 +3319,30 @@
                   </div>
 
                   <v-expand-transition>
-                    <div v-if="showPercheConsiglio" class="px-3 pt-2 pb-3 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                    <div v-if="showPercheConsiglio" class="px-2.5 pt-1.5 pb-2.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
                       <!-- Griglia Metriche Tecniche -->
-                      <div class="d-flex flex-column gap-1.5 mb-2.5">
-                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                      <div class="d-flex flex-column gap-1 mb-2">
+                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
                           <span class="text-slate-400 font-weight-medium">📍 Base di partenza:</span>
                           <strong class="text-white">{{ percheConsiglioData.baseDiPartenza }}</strong>
                         </div>
 
-                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
                           <span class="text-slate-400 font-weight-medium">📈 e1RM recente stimato:</span>
                           <strong class="text-cyan-lighten-2">{{ percheConsiglioData.e1rmRecente }}</strong>
                         </div>
 
-                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
                           <span class="text-slate-400 font-weight-medium">🎯 Target attuale:</span>
                           <strong class="text-amber-lighten-2">{{ percheConsiglioData.targetAttuale }}</strong>
                         </div>
 
-                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
                           <span class="text-slate-400 font-weight-medium">⚙️ Strategia attiva:</span>
                           <strong class="text-green-accent-3">{{ percheConsiglioData.strategiaAttiva }}</strong>
                         </div>
 
-                        <div class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.62rem;">
+                        <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
                           <span class="text-slate-400 font-weight-medium">↗ Incremento vs base:</span>
                           <strong class="text-green-accent-3">{{ percheConsiglioData.incrementoVsBase }}</strong>
                         </div>
@@ -3289,10 +3350,10 @@
 
                       <!-- Logica Discorsiva Naturale -->
                       <div class="pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(6, 182, 212, 0.25) !important;">
-                        <span class="text-super-caption font-weight-black text-cyan-lighten-3 uppercase d-block mb-1" style="font-size: 0.55rem; letter-spacing: 0.03em;">
+                        <span class="text-super-caption font-weight-black text-cyan-lighten-3 uppercase d-block mb-0.5" style="font-size: 0.52rem; letter-spacing: 0.03em;">
                           Logica del calcolo
                         </span>
-                        <p class="mb-0 text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.62rem; line-height: 1.4;">
+                        <p class="mb-0 text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.58rem; line-height: 1.35;">
                           {{ percheConsiglioData.logicaCalcolo }}
                         </p>
                       </div>
@@ -3302,21 +3363,21 @@
               </div>
 
               <!-- 8. STORICO COMPLETO (ACCORDION ESPANDIBILE) -->
-              <div class="mb-2 text-left">
+              <div class="mb-1.5 text-left">
                 <v-card class="rounded-xl border bg-slate-950 overflow-hidden" style="border-color: rgba(255, 255, 255, 0.08) !important;">
                   <div 
-                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    class="d-flex align-center justify-space-between px-3 py-1.5 cursor-pointer transition-colors"
                     style="background: rgba(255, 255, 255, 0.02);"
                     @click="showStoricoCompleto = !showStoricoCompleto"
                   >
                     <div>
                       <div class="d-flex align-center gap-1.5">
-                        <span style="font-size: 0.9rem;">📖</span>
-                        <span class="font-weight-black text-slate-200 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
+                        <span style="font-size: 0.85rem;">📖</span>
+                        <span class="font-weight-black text-slate-200 uppercase" style="font-size: 0.62rem; letter-spacing: 0.03em;">
                           STORICO COMPLETO
                         </span>
                       </div>
-                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.52rem; margin-left: 20px;">
+                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.48rem; margin-left: 18px;">
                         Vedi tutte le serie e le schede
                       </div>
                     </div>
@@ -3324,9 +3385,9 @@
                   </div>
 
                   <v-expand-transition>
-                    <div v-if="showStoricoCompleto" class="px-3 pt-2 pb-3 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                    <div v-if="showStoricoCompleto" class="px-2.5 pt-1.5 pb-2.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
                       <!-- Timeline compatta -->
-                      <div v-if="storicoTimelineItems.length > 0" class="d-flex flex-column gap-1.5 mb-2.5">
+                      <div v-if="storicoTimelineItems.length > 0" class="d-flex flex-column gap-1 mb-2">
                         <div 
                           v-for="it in storicoTimelineItems" 
                           :key="it.id"
@@ -3335,27 +3396,27 @@
                             borderColor: it.isCurrent ? 'rgba(74, 222, 128, 0.3) !important' : 'rgba(255,255,255,0.04) !important',
                             background: it.isCurrent ? 'rgba(74, 222, 128, 0.08) !important' : '#0f172a'
                           }"
-                          style="font-size: 0.62rem;"
+                          style="font-size: 0.58rem;"
                         >
                           <div class="d-flex align-center gap-1.5">
                             <span class="font-weight-black" :class="it.isCurrent ? 'text-green-accent-3' : 'text-slate-300'">
                               {{ it.titolo }}
                             </span>
-                            <v-chip v-if="it.isPR" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.48rem; height: 14px; padding: 0 4px;">
+                            <v-chip v-if="it.isPR" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.45rem; height: 14px; padding: 0 3px;">
                               🏆 PR
                             </v-chip>
                           </div>
 
                           <div class="d-flex align-center gap-2">
                             <strong class="text-white">{{ it.caricoReps }}</strong>
-                            <span class="text-super-caption text-slate-400" style="font-size: 0.5rem;">{{ it.tempo }}</span>
+                            <span class="text-super-caption text-slate-400" style="font-size: 0.48rem;">{{ it.tempo }}</span>
                           </div>
                         </div>
                       </div>
 
                       <!-- Riepilogo Miglior Prestazione in fondo -->
-                      <div v-if="recordOverviewData" class="pa-2 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(251, 191, 36, 0.25) !important;">
-                        <span class="text-super-caption font-weight-black text-amber-lighten-2" style="font-size: 0.58rem;">
+                      <div v-if="recordOverviewData" class="pa-1.5 rounded-lg bg-slate-900 border text-center" style="border-color: rgba(251, 191, 36, 0.25) !important;">
+                        <span class="text-super-caption font-weight-black text-amber-lighten-2" style="font-size: 0.55rem;">
                           🏆 Miglior prestazione: {{ recordOverviewData.bestReal.display }} • {{ recordOverviewData.bestReal.provenienza }}
                         </span>
                       </div>
@@ -3365,21 +3426,21 @@
               </div>
 
               <!-- 9. CAMBIO PALESTRA O CARICO DIVERSO? (ACCORDION ESPANDIBILE) -->
-              <div class="mb-2 text-left">
+              <div class="mb-1.5 text-left">
                 <v-card class="rounded-xl border bg-slate-950 overflow-hidden" style="border-color: rgba(255, 255, 255, 0.08) !important;">
                   <div 
-                    class="d-flex align-center justify-space-between px-3 py-2 cursor-pointer transition-colors"
+                    class="d-flex align-center justify-space-between px-3 py-1.5 cursor-pointer transition-colors"
                     style="background: rgba(255, 255, 255, 0.02);"
                     @click="showCambioPalestra = !showCambioPalestra"
                   >
                     <div>
                       <div class="d-flex align-center gap-1.5">
-                        <span style="font-size: 0.9rem;">⚡</span>
-                        <span class="font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.65rem; letter-spacing: 0.03em;">
+                        <span style="font-size: 0.85rem;">⚡</span>
+                        <span class="font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.62rem; letter-spacing: 0.03em;">
                           Cambio palestra o carico diverso?
                         </span>
                       </div>
-                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.52rem; margin-left: 20px;">
+                      <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.48rem; margin-left: 18px;">
                         Regola d'oro per adattare il carico
                       </div>
                     </div>
@@ -3387,9 +3448,9 @@
                   </div>
 
                   <v-expand-transition>
-                    <div v-if="showCambioPalestra" class="px-3 pt-2 pb-3 border-top text-slate-light" style="border-color: rgba(255, 255, 255, 0.06) !important; font-size: 0.65rem; line-height: 1.4;">
+                    <div v-if="showCambioPalestra" class="px-2.5 pt-1.5 pb-2.5 border-top text-slate-light" style="border-color: rgba(255, 255, 255, 0.06) !important; font-size: 0.60rem; line-height: 1.35;">
                       <!-- Regola parentesi -->
-                      <div class="pa-2 rounded-lg mb-2" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b;">
+                      <div class="pa-1.5 rounded-lg mb-1.5" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b;">
                         <strong class="text-amber-lighten-1">👑 Regola d'Oro delle Parentesi ( ... ):</strong>
                         <div class="mt-0.5">
                           Tutto ciò che scrivi tra parentesi tonde <code>( ... )</code> (inclusi carichi e serie) viene escluso dal calcolo della progressione e dei PR.
@@ -3397,19 +3458,19 @@
                       </div>
 
                       <!-- Formato trasferta -->
-                      <div class="pa-2 rounded-lg mb-2 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                      <div class="pa-1.5 rounded-lg mb-1.5 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
                         <strong class="text-green-accent-3">✅ Formato Consigliato in Trasferta:</strong>
-                        <div class="font-mono mt-1 font-weight-bold" style="color: #4ade80; font-size: 0.66rem;">
+                        <div class="font-mono mt-0.5 font-weight-bold" style="color: #4ade80; font-size: 0.62rem;">
                           25 x11r<br>
                           (45 x11r x2s Green Theory)
                         </div>
-                        <div class="text-super-caption text-slate-400 mt-1" style="font-size: 0.55rem;">
+                        <div class="text-super-caption text-slate-400 mt-0.5" style="font-size: 0.50rem;">
                           L'app userà il 25kg per le progressioni future e salverà il 45kg tra parentesi come tuo promemoria.
                         </div>
                       </div>
 
                       <!-- Pulegge -->
-                      <div class="pa-2 rounded-lg bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                      <div class="pa-1.5 rounded-lg bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
                         <strong class="text-cyan-lighten-2">⚙️ Pulegge 1:1 vs 2:1:</strong>
                         <div class="mt-0.5">
                           Se la macchina ospite ha carrucole dimezzate (2:1), imposta <strong>il doppio del peso</strong> sul selettore per ottenere lo stesso stimolo reale.
@@ -6911,6 +6972,7 @@ const calcolaProgressioneRepCustom = computed(() => {
   if (!workout.value) return null;
   const sett = aiutoWeek.value;
   const infoBase = getBaseWeekInfo(sett);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
   
   let pVal = parseFloat(String(pesoCustomSimulatore.value || '').replace(',', '.'));
   if (isNaN(pVal) || pVal <= 0) {
@@ -6932,6 +6994,19 @@ const calcolaProgressioneRepCustom = computed(() => {
   }
 
   const calc = calcolaRepsTargetPerPeso(pVal, pesoRef, repsRef);
+  
+  // Calcolo reps minime per fare PR assoluto di e1RM
+  const bestE1rm = recordOverviewData.value?.bestE1RM?.e1rm || 0;
+  let minRepsPerPR = calc.sfidante;
+  let isSfidantePR = false;
+  if (bestE1rm > 0 && pVal > 0) {
+    minRepsPerPR = Math.max(1, Math.floor(((bestE1rm / pVal) - 1) * 30) + 1);
+    const e1rmSfidante = pVal * (1 + calc.sfidante / 30);
+    if (e1rmSfidante > bestE1rm) {
+      isSfidantePR = true;
+    }
+  }
+
   return {
     pesoCustom: pVal,
     pesoRef,
@@ -6940,17 +7015,19 @@ const calcolaProgressioneRepCustom = computed(() => {
     parita: {
       reps: calc.parita,
       valore: `${formatWeight(pVal)}x${calc.parita}r`,
-      label: 'Parità e1RM'
+      label: 'Stessa Forza'
     },
     target: {
       reps: calc.target,
       valore: `${formatWeight(pVal)}x${calc.target}r`,
-      label: 'Progressione Target (+1r)'
+      label: 'Progressione +1r'
     },
     sfidante: {
       reps: calc.sfidante,
       valore: `${formatWeight(pVal)}x${calc.sfidante}r`,
-      label: 'Progressione Sfidante (+2r)'
+      label: isSfidantePR ? `🏆 PR con ≥${minRepsPerPR}r` : 'Progressione +2r',
+      isPR: isSfidantePR,
+      minRepsPR
     }
   };
 });
@@ -7078,9 +7155,10 @@ const recordOverviewData = computed(() => {
     ? `${formatWeight(bestRealWeight)} kg × ${bestRealReps || targetReps}r`
     : `${bestRealReps}r`;
 
+  // Provenienza con COPPA 🏆 esplicita sulla scheda
   const realProvenienza = bestRealIsCurrent
-    ? `✓ questa scheda • W${bestRealWeek || sett}`
-    : (bestRealSheet ? `Scheda ${bestRealSheet} • ${bestRealTempo || 'nel passato'}` : (bestRealTempo || 'Storico'));
+    ? `🏆 questa scheda • W${bestRealWeek || sett}`
+    : (bestRealSheet ? `🏆 Scheda ${bestRealSheet}${bestRealWeek ? ' • W' + bestRealWeek : ''} • ${bestRealTempo || 'nel passato'}` : (bestRealTempo || 'Storico'));
 
   // 2. e1RM MASSIMO (TEORICO STIMATO)
   const massimalePuroInfo = calcolaDettaglioMassimale1RMPuro();
@@ -7121,7 +7199,8 @@ const recordOverviewData = computed(() => {
   const recAnalisi = analizzaRecordSettimana(sett);
   if (recAnalisi && recAnalisi.stato === 'record') {
     isNuovoPR = true;
-    prBadgeText = `🏆 NUOVO PR ${formatRepsDisplay(targetReps)} REPS`;
+    const cleanR = String(targetReps).replace(/r$/i, '');
+    prBadgeText = `🏆 NUOVO PR ${cleanR} REPS`;
     
     // Calcola delta nel mesociclo vs W1
     const rawW1 = inputSettimane.value[1]?.ins || (workout.value ? (workout.value.ins_week1 || workout.value.num_ins1) : '');
@@ -7143,6 +7222,8 @@ const recordOverviewData = computed(() => {
       reps: bestRealReps,
       display: realDisplay,
       isCurrent: bestRealIsCurrent,
+      sheet: bestRealSheet,
+      week: bestRealWeek,
       provenienza: realProvenienza,
       id: bestRealId
     },
@@ -7150,6 +7231,8 @@ const recordOverviewData = computed(() => {
       e1rm: bestE1rmVal,
       display: e1rmDisplay,
       isCurrent: bestE1rmIsCurrent,
+      sheet: bestE1rmSheet,
+      week: bestE1rmWeek,
       provenienza: e1rmProvenienza,
       id: bestE1rmId
     },
@@ -7190,14 +7273,15 @@ const heroProposalData = computed(() => {
     stepTransitionText = `${baseP}×${baseR} → ${currP}×${currR}`;
   }
 
-  // Spiegazione sintetica (es. "38 kg è il carico consigliato per progredire mantenendo il target di 8 reps.")
+  // Spiegazione sintetica
+  const cleanReps = String(targetReps).replace(/r$/i, '');
   let spiegazioneSintetica = '';
   if (displayNum && !isNaN(parseFloat(displayNum))) {
-    spiegazioneSintetica = `${displayNum} kg è il carico consigliato per progredire mantenendo il target di ${targetReps} reps.`;
+    spiegazioneSintetica = `${displayNum} kg è il carico consigliato per progredire mantenendo il target di ${cleanReps} reps.`;
   } else if (spiegazioneDinamicaConsigliata.value) {
     spiegazioneSintetica = spiegazioneDinamicaConsigliata.value;
   } else {
-    spiegazioneSintetica = `Carico consigliato per completare le ${targetReps} ripetizioni prescritte.`;
+    spiegazioneSintetica = `Carico consigliato per completare le ${cleanReps} ripetizioni prescritte.`;
   }
 
   return {
@@ -7207,7 +7291,7 @@ const heroProposalData = computed(() => {
     valueToApply,
     setsCount,
     targetReps,
-    serieRepsText: `${setsCount} × ${formatRepsDisplay(targetReps)} REPS`,
+    serieRepsText: `${setsCount} × ${cleanReps} REPS`,
     deltaW1,
     stepTransitionText,
     spiegazioneSintetica
@@ -7266,12 +7350,12 @@ const strategieAlternativeCards = computed(() => {
   let smartSottotitolo = sett === 6 ? 'Picco W6' : 'Consigliato';
   if (smartVal > pesoBase && pesoBase > 0) {
     const diffSmart = Math.round((smartVal - pesoBase) * 10) / 10;
-    smartSottotitolo = `Incremento moderato (+${diffSmart}kg)`;
+    smartSottotitolo = `Incremento +${diffSmart}kg`;
   }
   const smartDisplay = range.consigliato.display;
   const smartRepsStimateText = `≈ ${targetReps} reps stimate`;
 
-  // 3. CARD SFIDANTE
+  // 3. CARD SFIDANTE (CON CALCOLO ESATTO DEL PR)
   let sfidanteSottotitolo = 'Salto di carico';
   if (sfidanteVal > smartVal && smartVal > 0) {
     const diffSfid = Math.round((sfidanteVal - smartVal) * 10) / 10;
@@ -7282,11 +7366,16 @@ const strategieAlternativeCards = computed(() => {
     sfidanteRepsStimate = stimaRepsPerCarico(sfidanteVal, e1rmRif);
   }
   const sfidanteDisplay = range.sfidante.display;
-  const sfidanteMin = Math.max(1, sfidanteRepsStimate - 1);
-  const sfidanteMax = Math.max(sfidanteMin, targetReps);
-  const sfidanteRepsStimateText = sfidanteMin < sfidanteMax
-    ? `≈ ${sfidanteMin}–${sfidanteMax} reps stimate`
-    : `≈ ${sfidanteMin} reps stimate`;
+
+  // Calcolo reps necessarie per nuovo PR con sfidanteVal
+  const bestE1rmVal = recordOverviewData.value?.bestE1RM?.e1rm || 0;
+  let minRepsPerPR = targetReps;
+  let isPRPossibile = false;
+  if (bestE1rmVal > 0 && sfidanteVal > 0) {
+    minRepsPerPR = Math.max(1, Math.floor(((bestE1rmVal / sfidanteVal) - 1) * 30) + 1);
+    isPRPossibile = true;
+  }
+  const sfidantePRGoalText = isPRPossibile ? `🏆 Fai ≥ ${minRepsPerPR} reps per PR` : `≈ ${sfidanteRepsStimate} reps stimate`;
 
   return [
     {
@@ -7299,6 +7388,7 @@ const strategieAlternativeCards = computed(() => {
       sottotitolo: safeSottotitolo,
       targetRepsText: `Target: ${targetReps} reps`,
       repsStimateText: safeRepsStimateText,
+      prGoalText: null,
       metricLabel: 'Probabilità chiusura:',
       metricValue: 'ALTA',
       themeColor: 'blue'
@@ -7313,6 +7403,7 @@ const strategieAlternativeCards = computed(() => {
       sottotitolo: smartSottotitolo,
       targetRepsText: `Target: ${targetReps} reps`,
       repsStimateText: smartRepsStimateText,
+      prGoalText: null,
       metricLabel: 'Progressione:',
       metricValue: 'OTTIMALE',
       themeColor: 'green'
@@ -7326,7 +7417,9 @@ const strategieAlternativeCards = computed(() => {
       pesoToApply: range.sfidante.value,
       sottotitolo: sfidanteSottotitolo,
       targetRepsText: `Target: ${targetReps} reps`,
-      repsStimateText: sfidanteRepsStimateText,
+      repsStimateText: `≈ ${sfidanteRepsStimate} reps stimate`,
+      prGoalText: sfidantePRGoalText,
+      minRepsPR: minRepsPerPR,
       metricLabel: 'Rischio fallimento:',
       metricValue: 'PIÙ ALTO',
       themeColor: 'orange'

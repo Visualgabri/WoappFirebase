@@ -2739,7 +2739,7 @@
                     </template>
                   </span>
                   <span v-if="suggerimentoRecord.recordRepsValue && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate ml-2" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
-                    &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + suggerimentoRecord.recordRepsFatica + ')' : '' }}
+                    &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + formatFaticaAbbr(suggerimentoRecord.recordRepsFatica) + ')' : '' }}
                   </span>
                 </div>
 
@@ -3391,15 +3391,15 @@
                         <div 
                           v-for="it in storicoTimelineItems" 
                           :key="it.id"
-                          class="d-flex align-center justify-space-between pa-1.5 rounded bg-slate-900 border text-super-caption"
+                          class="d-flex align-center justify-space-between pa-1.5 rounded border text-super-caption transition-colors"
                           :style="{
-                            borderColor: it.isCurrent ? 'rgba(74, 222, 128, 0.3) !important' : 'rgba(255,255,255,0.04) !important',
-                            background: it.isCurrent ? 'rgba(74, 222, 128, 0.08) !important' : '#0f172a'
+                            borderColor: it.isPR ? 'rgba(245, 158, 11, 0.45) !important' : (it.isCurrent ? 'rgba(74, 222, 128, 0.3) !important' : 'rgba(255,255,255,0.04) !important'),
+                            background: it.isPR ? 'rgba(245, 158, 11, 0.12) !important' : (it.isCurrent ? 'rgba(74, 222, 128, 0.08) !important' : '#0f172a')
                           }"
                           style="font-size: 0.58rem;"
                         >
                           <div class="d-flex align-center gap-1.5">
-                            <span class="font-weight-black" :class="it.isCurrent ? 'text-green-accent-3' : 'text-slate-300'">
+                            <span class="font-weight-black" :class="it.isPR ? 'text-amber-lighten-2' : (it.isCurrent ? 'text-green-accent-3' : 'text-slate-300')">
                               {{ it.titolo }}
                             </span>
                             <v-chip v-if="it.isPR" color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.45rem; height: 14px; padding: 0 3px;">
@@ -3408,7 +3408,7 @@
                           </div>
 
                           <div class="d-flex align-center gap-2">
-                            <strong class="text-white">{{ it.caricoReps }}</strong>
+                            <strong :class="it.isPR ? 'text-amber-lighten-1 font-weight-black' : 'text-white'">{{ it.caricoReps }}</strong>
                             <span class="text-super-caption text-slate-400" style="font-size: 0.48rem;">{{ it.tempo }}</span>
                           </div>
                         </div>
@@ -7602,6 +7602,7 @@ const storicoTimelineItems = computed(() => {
   if (!workout.value) return [];
   const currentNumScheda = parseInt(workout.value.num_scheda);
   const items = [];
+  const bestReal = recordOverviewData.value?.bestReal;
 
   // Scheda corrente (W1..W6)
   for (let w = 6; w >= 1; w--) {
@@ -7610,12 +7611,12 @@ const storicoTimelineItems = computed(() => {
       const pStr = estraiPesoDaInput(insVal);
       const p = pStr ? parseFloat(pStr) : null;
       const r = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
-      const isRecord = analizzaRecordSettimana(w)?.stato === 'record';
+      const isRecord = (bestReal && bestReal.isCurrent && (parseInt(bestReal.week) === w || (p !== null && p === bestReal.weight && r === bestReal.reps))) || (analizzaRecordSettimana(w)?.stato === 'record');
       items.push({
         id: `current_w${w}`,
         titolo: `W${w} attuale`,
         caricoReps: p !== null ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
-        isPR: isRecord,
+        isPR: !!isRecord,
         data: 'oggi / in corso',
         tempo: 'questa scheda',
         isCurrent: true
@@ -7639,11 +7640,18 @@ const storicoTimelineItems = computed(() => {
           const p = pStr ? parseFloat(pStr) : null;
           const rPrescr = prevEx['reps_week' + w] || estraiRepsDaPrescrizione(prevEx['des_week' + w]);
           const r = estraiRepsDaInput(val) || (rPrescr ? parseInt(rPrescr, 10) : 6);
+
+          // Controlla se questa esecuzione corrisponde al record (PR assoluto)
+          const isThisPR = bestReal && !bestReal.isCurrent && (
+            (String(bestReal.sheet) === String(prevEx.num_scheda) && parseInt(bestReal.week) === w) ||
+            (p !== null && p === bestReal.weight && r === bestReal.reps && String(bestReal.sheet) === String(prevEx.num_scheda))
+          );
+
           items.push({
             id: `${prevEx.id || prevEx.num_scheda}_w${w}`,
             titolo: `Sch. ${prevEx.num_scheda} • W${w}`,
             caricoReps: p !== null ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
-            isPR: false,
+            isPR: !!isThisPR,
             data: formattaDataStorico(dEx),
             tempo: tempo,
             isCurrent: false
@@ -13942,6 +13950,15 @@ const meFormatNum = (val) => {
   return val.toString();
 };
 
+const formatFaticaAbbr = (fatica) => {
+  if (!fatica) return '';
+  const f = String(fatica).trim().toLowerCase();
+  if (f.startsWith('m')) return 'M';
+  if (f.startsWith('p')) return 'P';
+  if (f.startsWith('d')) return 'D';
+  return fatica.trim().charAt(0).toUpperCase();
+};
+
 const getColoreFaticaStyle = (fatica) => {
   if (!fatica) return {};
   const f = fatica.trim().toLowerCase();
@@ -15408,17 +15425,18 @@ const tornaIndietro = () => {
 .sticky-col {
   position: sticky;
   left: 0;
-  background: var(--card-bg-dark);
+  background-color: #0b1329 !important;
   z-index: 5;
-  border-right: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-right: 1.5px solid rgba(255, 255, 255, 0.12);
 }
 
 th.sticky-col {
   position: sticky;
   left: 0;
   top: 0;
-  background: rgba(30, 41, 59, 1);
+  background-color: #0f172a !important;
   z-index: 12; /* Massimo z-index per l'angolo in alto a sinistra (Scheda) */
+  border-right: 1.5px solid rgba(255, 255, 255, 0.12);
 }
 
 /* Red highlights for matching reps range */
@@ -15437,12 +15455,12 @@ th.sticky-col {
 }
 
 .red-scheda-cell {
-  background: rgba(239, 68, 68, 0.22) !important;
+  background-color: #2b1116 !important;
   border-right: 2.5px solid #ef4444 !important;
 }
 
 .red-scheda-header {
-  background: rgba(239, 68, 68, 0.15) !important;
+  background-color: #2b1116 !important;
   border: 1px solid rgba(239, 68, 68, 0.35) !important;
 }
 
@@ -15682,12 +15700,23 @@ th.sticky-col {
 }
 
 [data-theme="light"] .sticky-col {
-  background: var(--card-bg-glass) !important;
+  background-color: #ffffff !important;
   border-right: 1.5px solid var(--card-border) !important;
 }
 
 [data-theme="light"] th.sticky-col {
-  background: var(--card-bg-soft) !important;
+  background-color: #f8fafc !important;
+  border-right: 1.5px solid var(--card-border) !important;
+}
+
+[data-theme="light"] .red-scheda-cell {
+  background-color: #fef2f2 !important;
+  border-right: 2.5px solid #ef4444 !important;
+}
+
+[data-theme="light"] .red-scheda-header {
+  background-color: #fef2f2 !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
 }
 
 /* --- LIGHT THEME OVERRIDES FOR CRONOLOGIA & PROPOSTA CARICO MODAL --- */

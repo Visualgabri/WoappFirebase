@@ -278,11 +278,11 @@
                 
                 <!-- Componente Avanzato WorkoutTimePicker (Soluzioni 2, 3, 4 + Parametri & Best Practices) -->
                 <WorkoutTimePicker
-                  :start="inputStart"
-                  :end="inputEnd"
+                  :start="workout ? (workout[getStartField(sett)] || '') : ''"
+                  :end="workout ? (workout[getEndField(sett)] || '') : ''"
                   :week="sett"
-                  @update:start="(val) => { inputStart = val; salvaDato(getStartField(sett), val); }"
-                  @update:end="(val) => { inputEnd = val; salvaDato(getEndField(sett), val); }"
+                  @update:start="(val) => onTimeFieldUpdate(sett, 'start', val)"
+                  @update:end="(val) => onTimeFieldUpdate(sett, 'end', val)"
                   @quick-start="registraInizioOra(sett)"
                   @quick-end="registraFineOra(sett)"
                   @change="(payload) => onTimePickerChange(payload, sett)"
@@ -788,33 +788,59 @@ const getLocalDatetimeString = () => {
 
 // Registrazione ora immediata con toggle a vuoto/null se già registrato
 const registraInizioOra = (w) => {
-  if (inputStart.value) {
-    inputStart.value = '';
-    inputEnd.value = '';
-    salvaDato(getStartField(w), '');
-    salvaDato(getEndField(w), '');
+  if (!workout.value) return;
+  const startField = getStartField(w);
+  const endField = getEndField(w);
+  const currentStart = workout.value[startField] || '';
+  if (currentStart) {
+    if (selectedWeek.value === w) {
+      inputStart.value = '';
+      inputEnd.value = '';
+    }
+    salvaDato(startField, '');
+    salvaDato(endField, '');
   } else {
     const localNow = getLocalDatetimeString();
-    inputStart.value = localNow;
-    salvaDato(getStartField(w), localNow);
+    if (selectedWeek.value === w) {
+      inputStart.value = localNow;
+    }
+    salvaDato(startField, localNow);
   }
 };
 
 const registraFineOra = (w) => {
-  if (inputEnd.value) {
-    inputEnd.value = '';
-    salvaDato(getEndField(w), '');
+  if (!workout.value) return;
+  const endField = getEndField(w);
+  const currentEnd = workout.value[endField] || '';
+  if (currentEnd) {
+    if (selectedWeek.value === w) {
+      inputEnd.value = '';
+    }
+    salvaDato(endField, '');
   } else {
     const localNow = getLocalDatetimeString();
-    inputEnd.value = localNow;
-    salvaDato(getEndField(w), localNow);
+    if (selectedWeek.value === w) {
+      inputEnd.value = localNow;
+    }
+    salvaDato(endField, localNow);
   }
+};
+
+const onTimeFieldUpdate = (sett, type, val) => {
+  const field = type === 'start' ? getStartField(sett) : getEndField(sett);
+  if (selectedWeek.value === sett) {
+    if (type === 'start') inputStart.value = val;
+    else inputEnd.value = val;
+  }
+  salvaDato(field, val);
 };
 
 const onTimePickerChange = ({ start, end, week }, sett) => {
   const targetWeek = week || sett;
-  inputStart.value = start;
-  inputEnd.value = end;
+  if (selectedWeek.value === targetWeek) {
+    inputStart.value = start;
+    inputEnd.value = end;
+  }
   salvaDato(getStartField(targetWeek), start);
   salvaDato(getEndField(targetWeek), end);
 };
@@ -1182,6 +1208,22 @@ const setWeekCompleted = async (w, val) => {
   salvaModificaLocale(campo, valString);
   snackbar.value = true;
 
+  // Aggiorna anche globalStoryboard e allExercises in memoria
+  if (globalStoryboard.value && globalStoryboard.value.length > 0) {
+    const foundDoc = globalStoryboard.value.find(d => String(d.id) === String(routeId.value) || String(d.num_riga) === String(routeId.value));
+    if (foundDoc) {
+      foundDoc[campo] = valString;
+      foundDoc.timestamp_ute = timestampUte;
+    }
+  }
+  if (allExercises.value && allExercises.value.length > 0) {
+    const foundEx = allExercises.value.find(d => String(d.id) === String(routeId.value) || String(d.num_riga) === String(routeId.value));
+    if (foundEx) {
+      foundEx[campo] = valString;
+      foundEx.timestamp_ute = timestampUte;
+    }
+  }
+
   // 2. Prova ad aggiornare Firestore in background (con setDoc self-healing)
   try {
     const docRef = doc(db, 'STORYBOARD', routeId.value);
@@ -1209,6 +1251,22 @@ const salvaDato = async (campo, valore) => {
       workout.value.timestamp_ute = timestampUte;
       salvaModificaLocale(campo, valore);
       snackbar.value = true;
+
+      // Aggiorna anche globalStoryboard e allExercises in memoria
+      if (globalStoryboard.value && globalStoryboard.value.length > 0) {
+        const foundDoc = globalStoryboard.value.find(d => String(d.id) === String(routeId.value) || String(d.num_riga) === String(routeId.value));
+        if (foundDoc) {
+          foundDoc[campo] = valore;
+          foundDoc.timestamp_ute = timestampUte;
+        }
+      }
+      if (allExercises.value && allExercises.value.length > 0) {
+        const foundEx = allExercises.value.find(d => String(d.id) === String(routeId.value) || String(d.num_riga) === String(routeId.value));
+        if (foundEx) {
+          foundEx[campo] = valore;
+          foundEx.timestamp_ute = timestampUte;
+        }
+      }
 
       // 2. Prova ad aggiornare Firestore in background (con setDoc self-healing)
       const docRef = doc(db, 'STORYBOARD', routeId.value);

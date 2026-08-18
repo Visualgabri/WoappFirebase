@@ -855,15 +855,55 @@ const openModal = () => {
   const roundedNowMins = Math.floor(now.getMinutes() / config.value.stepMinutes) * config.value.stepMinutes;
   now.setMinutes(roundedNowMins, 0, 0);
 
-  if (modelStart.value) {
-    tempStart.value = modelStart.value;
-    tempEnd.value = modelEnd.value || toLocalISOString(now);
+  if (props.start) {
+    tempStart.value = props.start;
+    if (props.end) {
+      tempEnd.value = props.end;
+    } else {
+      const s = parseDate(props.start);
+      if (s) {
+        const defaultEnd = new Date(Math.max(now.getTime(), s.getTime() + config.value.defaultDurationMinutes * 60000));
+        tempEnd.value = toLocalISOString(defaultEnd);
+      } else {
+        tempEnd.value = toLocalISOString(now);
+      }
+    }
   } else {
     // Smart default: now - defaultDuration ending at now
     const defaultEnd = new Date(now);
     const defaultStart = new Date(now.getTime() - config.value.defaultDurationMinutes * 60000);
     tempStart.value = toLocalISOString(defaultStart);
     tempEnd.value = toLocalISOString(defaultEnd);
+  }
+
+  // Detect and set active date preset chip
+  const sDate = parseDate(tempStart.value);
+  if (sDate) {
+    const today = new Date();
+    const isSameDay = (d1, d2) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    
+    const twoDaysAgo = new Date(today);
+    twoDaysAgo.setDate(today.getDate() - 2);
+
+    if (isSameDay(sDate, today)) {
+      selectedDateKey.value = 'today';
+    } else if (isSameDay(sDate, yesterday)) {
+      selectedDateKey.value = 'yesterday';
+    } else if (isSameDay(sDate, twoDaysAgo)) {
+      selectedDateKey.value = '2daysAgo';
+    } else {
+      selectedDateKey.value = 'custom';
+      const yyyy = sDate.getFullYear();
+      const mm = String(sDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(sDate.getDate()).padStart(2, '0');
+      customDateInput.value = `${yyyy}-${mm}-${dd}`;
+      customDateDisplay.value = `${dd}/${mm}`;
+    }
+  } else {
+    selectedDateKey.value = 'today';
   }
 
   modalOpen.value = true;
@@ -887,19 +927,20 @@ const handleQuickEnd = () => {
 // Micro-nudges right in the in-place card
 const nudgeMinutes = (mins) => {
   vibra(15);
-  if (!modelStart.value) {
+  if (!props.start) {
     openModal();
     return;
   }
-  const s = parseDate(modelStart.value);
-  let e = parseDate(modelEnd.value);
+  const s = parseDate(props.start);
+  let e = parseDate(props.end);
   if (!e) {
     e = new Date(s.getTime() + config.value.defaultDurationMinutes * 60000);
   }
   const newEnd = new Date(e.getTime() + mins * 60000);
   if (newEnd > s) {
-    modelEnd.value = toLocalISOString(newEnd);
-    emit('change', { start: modelStart.value, end: modelEnd.value, week: props.week });
+    const endStr = toLocalISOString(newEnd);
+    emit('update:end', endStr);
+    emit('change', { start: props.start, end: endStr, week: props.week });
   }
 };
 
@@ -909,10 +950,12 @@ const applyPresetFinishedNow = () => {
   const roundedNowMins = Math.floor(now.getMinutes() / config.value.stepMinutes) * config.value.stepMinutes;
   now.setMinutes(roundedNowMins, 0, 0);
 
-  const startObj = modelStart.value ? parseDate(modelStart.value) : new Date(now.getTime() - config.value.defaultDurationMinutes * 60000);
-  modelStart.value = toLocalISOString(startObj);
-  modelEnd.value = toLocalISOString(now);
-  emit('change', { start: modelStart.value, end: modelEnd.value, week: props.week });
+  const startObj = props.start ? parseDate(props.start) : new Date(now.getTime() - config.value.defaultDurationMinutes * 60000);
+  const startStr = toLocalISOString(startObj);
+  const endStr = toLocalISOString(now);
+  emit('update:start', startStr);
+  emit('update:end', endStr);
+  emit('change', { start: startStr, end: endStr, week: props.week });
 };
 
 // Tab switching
@@ -1077,14 +1120,14 @@ const applyLivePreset = (p) => {
 
 const applyRoutinePreset = (r) => {
   vibra(20);
-  const now = new Date();
+  const sDate = parseDate(tempStart.value) || new Date();
   const [sH, sM] = r.start.split(':').map(n => parseInt(n, 10));
   const [eH, eM] = r.end.split(':').map(n => parseInt(n, 10));
 
-  const s = new Date(now);
+  const s = new Date(sDate);
   s.setHours(sH, sM, 0, 0);
 
-  const e = new Date(now);
+  const e = new Date(sDate);
   e.setHours(eH, eM, 0, 0);
 
   tempStart.value = toLocalISOString(s);
@@ -1095,10 +1138,12 @@ const applyRoutinePreset = (r) => {
 // Confirm and Save
 const confirmAndSave = () => {
   vibra(30);
-  modelStart.value = tempStart.value;
-  modelEnd.value = tempEnd.value;
+  const newStart = tempStart.value || '';
+  const newEnd = tempEnd.value || '';
+  emit('update:start', newStart);
+  emit('update:end', newEnd);
   modalOpen.value = false;
-  emit('change', { start: modelStart.value, end: modelEnd.value, week: props.week });
+  emit('change', { start: newStart, end: newEnd, week: props.week });
 };
 
 // Clear Times
@@ -1106,8 +1151,8 @@ const clearTimes = () => {
   vibra(25);
   tempStart.value = '';
   tempEnd.value = '';
-  modelStart.value = '';
-  modelEnd.value = '';
+  emit('update:start', '');
+  emit('update:end', '');
   modalOpen.value = false;
   emit('change', { start: '', end: '', week: props.week });
 };

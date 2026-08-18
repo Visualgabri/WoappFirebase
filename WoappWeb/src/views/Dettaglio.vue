@@ -3011,9 +3011,9 @@
                     <div>
                       <div class="d-flex align-center justify-space-between mb-0.5 gap-1">
                         <div class="d-flex align-center gap-1 text-truncate">
-                          <v-icon color="cyan-lighten-2" size="12">mdi-chart-line</v-icon>
+                          <v-icon color="cyan-lighten-2" size="12">{{ recordOverviewData.isCorpoLiberoPuro ? 'mdi-counter' : 'mdi-chart-line' }}</v-icon>
                           <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.44rem; letter-spacing: 0.02em;">
-                            1RM ATTUALE
+                            {{ recordOverviewData.isCorpoLiberoPuro ? 'MAX REPS STORICO' : '1RM ATTUALE' }}
                           </span>
                         </div>
                         <span 
@@ -3031,7 +3031,7 @@
                           {{ recordOverviewData.bestE1RM.calcoloBaseShort }}
                         </span>
                       </div>
-                      <!-- 1RM Attuale in GRANDE -->
+                      <!-- 1RM Attuale o Max Reps in GRANDE -->
                       <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.05rem; line-height: 1.15;">
                         {{ recordOverviewData.bestE1RM.display }}
                       </div>
@@ -3040,7 +3040,7 @@
                     <div>
                       <!-- Max Storico & Delta in PICCOLO sotto -->
                       <div v-if="recordOverviewData.bestE1RM.isNewPeak" class="mt-0.5 text-super-caption font-weight-medium text-cyan-accent-2" style="font-size: 0.41rem; line-height: 1.2; letter-spacing: -0.01em;">
-                        👑 Rec: {{ recordOverviewData.bestE1RM.calcoloBase || '' }} • W{{ recordOverviewData.bestE1RM.week || aiutoWeek }}
+                        {{ recordOverviewData.isCorpoLiberoPuro ? (recordOverviewData.bestE1RM.maxDeltaText || ('👑 Record: ' + recordOverviewData.bestE1RM.display + ' • W' + (recordOverviewData.bestE1RM.week || aiutoWeek))) : ('👑 Rec: ' + (recordOverviewData.bestE1RM.calcoloBase || '') + ' • W' + (recordOverviewData.bestE1RM.week || aiutoWeek)) }}
                       </div>
                       <div v-else>
                         <div 
@@ -3392,7 +3392,7 @@
                         <strong class="text-white">{{ percheConsiglioData.baseDiPartenza }}</strong>
                       </div>
 
-                      <div class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
+                      <div v-if="!recordOverviewData?.isCorpoLiberoPuro" class="d-flex align-center justify-space-between pa-1 rounded bg-slate-900 border text-super-caption" style="border-color: rgba(255,255,255,0.04) !important; font-size: 0.58rem;">
                         <span class="text-slate-400 font-weight-medium">📈 e1RM recente stimato:</span>
                         <strong class="text-cyan-lighten-2">{{ percheConsiglioData.e1rmRecente }}</strong>
                       </div>
@@ -4656,27 +4656,32 @@
                 🏆 PR A {{ resocontoCoachPR?.cleanTargetReps }} REPS
               </div>
               <div class="font-weight-black text-white mt-0.5" style="font-size: 1.10rem;">
-                {{ resocontoCoachPR?.prWeight }} kg
-                <span class="text-super-caption text-amber-lighten-3 font-weight-bold" style="font-size: 0.65rem;">
-                  x{{ resocontoCoachPR?.prReps }}r {{ resocontoCoachPR?.prFatica ? '(' + resocontoCoachPR.prFatica + ')' : '' }}
-                </span>
+                <template v-if="resocontoCoachPR?.isCorpoLiberoPuro">
+                  {{ resocontoCoachPR?.prReps }} reps
+                </template>
+                <template v-else>
+                  {{ resocontoCoachPR?.prWeight }} kg
+                  <span class="text-super-caption text-amber-lighten-3 font-weight-bold" style="font-size: 0.65rem;">
+                    x{{ resocontoCoachPR?.prReps }}r {{ resocontoCoachPR?.prFatica ? '(' + resocontoCoachPR.prFatica + ')' : '' }}
+                  </span>
+                </template>
               </div>
               <div class="text-super-caption text-slate-400 mt-1 font-weight-regular text-truncate" style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;">
                 📍 {{ resocontoCoachPR?.dataFormattataStr }} ({{ resocontoCoachPR?.tempoTrascorsoStr }})
               </div>
             </div>
 
-            <!-- Box 2: 1RM Attuale in grande & Max Storico in piccolo sotto -->
+            <!-- Box 2: 1RM Attuale o Max Reps Storico -->
             <div class="pa-2.5 rounded-xl border flex-grow-1" style="background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.3) !important; flex: 1 1 0%;">
               <div class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem;">
-                📈 1RM ATTUALE
+                {{ resocontoCoachPR?.isCorpoLiberoPuro ? '📈 MAX REPS STORICO' : '📈 1RM ATTUALE' }}
               </div>
               <div class="font-weight-black text-cyan-lighten-2 mt-0.5" style="font-size: 1.10rem;">
-                {{ resocontoCoachPR?.currentE1rmDisplay }}
+                {{ resocontoCoachPR?.isCorpoLiberoPuro ? resocontoCoachPR?.bestHistoricalRepsDisplay : resocontoCoachPR?.currentE1rmDisplay }}
               </div>
               <div class="text-super-caption font-weight-regular mt-1 text-truncate" :class="resocontoCoachPR?.isAbsolute1RMPeak ? 'text-green-accent-3 font-weight-bold' : 'text-cyan-lighten-3'" style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;">
-                <span v-if="resocontoCoachPR?.isAbsolute1RMPeak">👑 Nuovo picco assoluto</span>
-                <span v-else>👑 Max: {{ resocontoCoachPR?.bestE1rmDisplay }} (-{{ resocontoCoachPR?.diff1RMKg }} kg • Sch. {{ resocontoCoachPR?.bestE1rmSheet || '-' }})</span>
+                <span v-if="resocontoCoachPR?.isAbsolute1RMPeak">👑 {{ resocontoCoachPR?.isCorpoLiberoPuro ? 'Record assoluto reps' : 'Nuovo picco assoluto' }}</span>
+                <span v-else>👑 Max: {{ resocontoCoachPR?.isCorpoLiberoPuro ? (resocontoCoachPR?.bestHistoricalReps + ' reps (-' + resocontoCoachPR?.diffReps + 'r • Sch. ' + (resocontoCoachPR?.bestE1rmSheet || '-') + ')') : (resocontoCoachPR?.bestE1rmDisplay + ' (-' + resocontoCoachPR?.diff1RMKg + ' kg • Sch. ' + (resocontoCoachPR?.bestE1rmSheet || '-') + ')') }}</span>
               </div>
 
               <!-- Mini Progress Bar di Prossimità al Picco Assoluto -->
@@ -4709,7 +4714,12 @@
                 🎯 Prossimo Obiettivo PR
               </div>
               <div class="text-caption font-weight-black text-white" style="font-size: 0.75rem;">
-                Raggiungi <strong class="text-green-accent-3">{{ resocontoCoachPR?.targetNuovoPRKg }} kg</strong> a {{ resocontoCoachPR?.cleanTargetReps }} reps
+                <template v-if="resocontoCoachPR?.isCorpoLiberoPuro">
+                  Raggiungi <strong class="text-green-accent-3">≥ {{ resocontoCoachPR?.targetNuoveReps }} reps</strong> ({{ resocontoCoachPR?.exName }})
+                </template>
+                <template v-else>
+                  Raggiungi <strong class="text-green-accent-3">{{ resocontoCoachPR?.targetNuovoPRKg }} kg</strong> a {{ resocontoCoachPR?.cleanTargetReps }} reps
+                </template>
               </div>
             </div>
             <v-chip color="green-darken-2" size="x-small" class="font-weight-black text-white px-2" style="font-size: 0.55rem; height: 20px;">
@@ -4816,6 +4826,8 @@ const apriResocontoCoachPR = () => {
   const exName = workout.value.des_esercizio || 'questo esercizio';
   const isManubri = isManubriEsercizio(workout.value);
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
   
   const recData = recordOverviewData.value?.bestReal;
   const prWeight = recData?.weight || 0;
@@ -4834,6 +4846,86 @@ const apriResocontoCoachPR = () => {
   } else if (!isCurrentPR && prSheet) {
     dataFormattataStr = `Scheda ${prSheet}`;
     tempoTrascorsoStr = 'in un mesociclo precedente';
+  }
+
+  // Ramo dedicato per esercizi a Corpo Libero Puro (senza sovraccarico)
+  if (isCorpoLiberoPuro) {
+    let maxHistoricalReps = 0;
+    let maxHistoricalSheet = null;
+    if (storicoEsercizio.value && storicoEsercizio.value.length) {
+      storicoEsercizio.value.forEach(prevEx => {
+        for (let w = 1; w <= 6; w++) {
+          const insVal = prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null);
+          if (insVal) {
+            let r = estraiRepsDaInput(insVal);
+            if (r === null || isNaN(r) || r <= 0) {
+              const rPrescr = prevEx['reps_week' + w] || estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+              r = rPrescr ? parseInt(rPrescr, 10) : 0;
+            }
+            if (r > maxHistoricalReps) {
+              maxHistoricalReps = r;
+              maxHistoricalSheet = prevEx.num_scheda;
+            }
+          }
+        }
+      });
+    }
+
+    let repsRecente = targetReps;
+    let weekRecente = 1;
+    if (inputSettimane.value) {
+      for (let w = 6; w >= 1; w--) {
+        const ins = inputSettimane.value[w]?.ins;
+        if (ins) {
+          const r = estraiRepsDaInput(ins);
+          if (r && r > 0) {
+            repsRecente = r;
+            weekRecente = w;
+            break;
+          }
+        }
+      }
+    }
+
+    const isAbsoluteRepsPeak = Boolean(repsRecente >= maxHistoricalReps && repsRecente > 0);
+    const targetNuoveReps = Math.max(prReps + 1, maxHistoricalReps > 0 ? maxHistoricalReps + 1 : prReps + 1);
+    const diffReps = maxHistoricalReps > repsRecente ? maxHistoricalReps - repsRecente : 0;
+    const e1rmProximityPct = maxHistoricalReps > 0 ? Math.min(100, Math.round((repsRecente / maxHistoricalReps) * 100)) : 100;
+
+    let testoResoconto = '';
+    if (isCurrentPR && isAbsoluteRepsPeak) {
+      testoResoconto = `Fantastico! Su **${exName}** hai stabilito il tuo **nuovo record assoluto di ripetizioni** con **${prReps} reps** (${tempoTrascorsoStr}). Sei al massimo storico di sempre!\n\nPer continuare la progressione, il prossimo obiettivo è puntare a **≥ ${targetNuoveReps} reps**!`;
+    } else if (isCurrentPR && !isAbsoluteRepsPeak) {
+      testoResoconto = `Ottimo lavoro! Con **${prReps} reps** hai stabilito il tuo **Nuovo Record a ${cleanTargetReps} Reps** in questa scheda.\n\nIl tuo **Record Assoluto di sempre rimane di ${maxHistoricalReps} reps** (stabilito in Scheda ${maxHistoricalSheet || '-'}). Ti trovi a sole **-${diffReps} reps dal massimo storico**.\n\n🎯 **Obiettivo Coach:** per superare il record di sempre, punta a raggiungere **≥ ${targetNuoveReps} reps**!`;
+    } else if (repsRecente < maxHistoricalReps && maxHistoricalReps > 0) {
+      testoResoconto = `Il tuo **record a ${cleanTargetReps} reps** su **${exName}** è di **${prReps} reps** (in Scheda ${prSheet || '-'}).\n\nAttualmente nell'ultimo allenamento hai registrato **${repsRecente} reps** (W${weekRecente}), trovandoti a **-${diffReps} reps** dal picco assoluto storico (${maxHistoricalReps} reps in Scheda ${maxHistoricalSheet || '-'}).\n\nPer riagganciare e superare il primato, segui la progressione programmata e punta a raggiungere **≥ ${targetNuoveReps} reps**!`;
+    } else {
+      testoResoconto = `Il tuo **record a ${cleanTargetReps} reps** su **${exName}** è di **${prReps} reps** (${dataFormattataStr}, **${tempoTrascorsoStr}**).\n\nIl tuo volume attuale (**${repsRecente} reps**) è perfettamente allineato al tuo livello. Continua con la progressione programmata per stabilire un nuovo primato!`;
+    }
+
+    resocontoCoachPR.value = {
+      exName,
+      cleanTargetReps,
+      isCorpoLiberoPuro: true,
+      prReps,
+      prFatica: prFatica ? formatFaticaAbbr(prFatica) : null,
+      dataFormattataStr,
+      tempoTrascorsoStr,
+      isCurrentPR,
+      repsRecente,
+      weekRecente,
+      bestHistoricalReps: maxHistoricalReps,
+      bestHistoricalRepsDisplay: `${maxHistoricalReps > 0 ? maxHistoricalReps : prReps} reps`,
+      bestE1rmSheet: maxHistoricalSheet,
+      isAbsolute1RMPeak: isAbsoluteRepsPeak,
+      diffReps,
+      e1rmProximityPct,
+      targetNuoveReps,
+      testoResoconto
+    };
+
+    dialogResocontoCoachPR.value = true;
+    return;
   }
   
   // Prestazione più recente nel mesociclo corrente
@@ -5480,6 +5572,9 @@ const arrotondaAStep125 = (val) => {
 
 const calcolaDettaglioMassimale1RMPuro = () => {
   if (!workout.value) return { best1RM: 0, bestSource: null };
+  if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
+    return { best1RM: 0, bestSource: null, isCorpoLiberoPuro: true };
+  }
   const currentNumScheda = parseInt(workout.value.num_scheda);
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
   let best1RM = 0;
@@ -7355,7 +7450,23 @@ const dialogStorico = ref(false);
 // Valore Consigliato Hero Dialog
 const valoreConsigliatoHeroDialog = computed(() => {
   if (!workout.value) return { display: '0', unit: 'KG', valueToApply: 0, isRep: false, isLato: null };
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
   const sett = aiutoWeek.value;
+
+  if (isCorpoLiberoPuro) {
+    const ghostRender = getGhostRenderInfo(sett);
+    const rTarget = getRepsPerWeek(sett);
+    const cleanText = (ghostRender && ghostRender.valueText) ? String(ghostRender.valueText).replace(/\s*kg/gi, '').trim() : `${rTarget}r`;
+    return {
+      display: cleanText,
+      unit: '',
+      valueToApply: cleanText,
+      isRep: true,
+      isLato: null
+    };
+  }
+
   const presc = parsedPrescription(workout.value['des_week' + sett]);
   if (presc && presc.total) {
     return {
@@ -7570,6 +7681,108 @@ const recordOverviewData = computed(() => {
   const realProvenienza = bestIsCurrent
     ? `🏆 questa scheda • W${bestWeek || sett}`
     : (bestSheet ? `🏆 Sch. ${bestSheet}${bestDay ? ' ' + bestDay : ''} • ${formattaDataStorico(bestDate) || 'Storico'}` : 'Storico');
+
+  // GESTIONE CORPO LIBERO PURO (Senza sovraccarico): Mostra solo ripetizioni (NO 1RM in KG)
+  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
+  if (isCorpoLiberoPuro) {
+    let maxHistoricalReps = 0;
+    let maxHistoricalSheet = null;
+    let maxHistoricalWeek = null;
+    let maxHistoricalDate = null;
+    let maxHistoricalId = null;
+
+    if (storicoEsercizio.value && storicoEsercizio.value.length) {
+      storicoEsercizio.value.forEach(prevEx => {
+        const sNum = parseInt(prevEx.num_scheda);
+        if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+        const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+        for (let w = 1; w <= 6; w++) {
+          const insVal = prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null);
+          if (insVal) {
+            let r = estraiRepsDaInput(insVal);
+            if (r === null || isNaN(r) || r <= 0) {
+              const rPrescr = prevEx['reps_week' + w] || estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+              r = rPrescr ? parseInt(rPrescr, 10) : 0;
+            }
+            if (r > maxHistoricalReps) {
+              maxHistoricalReps = r;
+              maxHistoricalSheet = prevEx.num_scheda;
+              maxHistoricalWeek = w;
+              maxHistoricalDate = dEx;
+              maxHistoricalId = prevEx.id || prevEx.num_riga;
+            }
+          }
+        }
+      });
+    }
+
+    // Massimo ripetizioni nella scheda corrente
+    let maxCurrentReps = 0;
+    let maxCurrentWeek = null;
+    if (inputSettimane.value) {
+      for (let w = 1; w <= 6; w++) {
+        const insVal = inputSettimane.value[w]?.ins;
+        if (insVal) {
+          const r = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
+          if (r > maxCurrentReps) {
+            maxCurrentReps = r;
+            maxCurrentWeek = w;
+          }
+        }
+      }
+    }
+
+    const isNewRepsPeak = Boolean(maxCurrentReps >= maxHistoricalReps && maxCurrentReps > 0);
+    const displayReps = (maxCurrentReps > 0 ? maxCurrentReps : maxHistoricalReps) || targetReps;
+    let maxDeltaRepsText = null;
+    let e1rmProximityPct = 100;
+    if (!isNewRepsPeak && maxHistoricalReps > maxCurrentReps && maxCurrentReps > 0) {
+      const diffReps = maxHistoricalReps - maxCurrentReps;
+      maxDeltaRepsText = `👑 Max: ${maxHistoricalReps} reps (-${diffReps}r • S.${maxHistoricalSheet || '-'})`;
+      e1rmProximityPct = Math.min(100, Math.round((maxCurrentReps / maxHistoricalReps) * 100));
+    } else if (isNewRepsPeak) {
+      maxDeltaRepsText = `👑 Record assoluto: ${maxCurrentReps} reps • W${maxCurrentWeek || sett}`;
+    }
+
+    const bestE1RMBodyweight = {
+      display: `${displayReps} reps`,
+      currentE1RM: displayReps,
+      max1RM: maxHistoricalReps,
+      sheet: isNewRepsPeak ? workout.value.num_scheda : maxHistoricalSheet,
+      week: isNewRepsPeak ? maxCurrentWeek : maxHistoricalWeek,
+      date: isNewRepsPeak ? (workout.value.dat_scheda_ult_ex || workout.value.timestamp) : maxHistoricalDate,
+      isNewPeak: isNewRepsPeak,
+      calcoloBase: isNewRepsPeak ? `W${maxCurrentWeek} • questa scheda` : `Sch. ${maxHistoricalSheet || '-'}${maxHistoricalWeek ? ' W' + maxHistoricalWeek : ''}`,
+      calcoloBaseShort: isNewRepsPeak ? `Top ${displayReps}r` : `${maxHistoricalReps || displayReps}r`,
+      maxDeltaText: maxDeltaRepsText,
+      e1rmProximityPct,
+      id: isNewRepsPeak ? workout.value.id : maxHistoricalId
+    };
+
+    return {
+      bestReal: {
+        weight: 0,
+        reps: bestReps,
+        weightDisplay: `${bestReps} reps`,
+        repsDisplay: faticaStr || '',
+        display: `${bestReps} reps`,
+        fatica: bestFatica,
+        date: bestDate,
+        sheet: bestSheet,
+        day: bestDay,
+        week: bestWeek,
+        id: bestId,
+        isCurrentPR: bestIsCurrent,
+        provenienzaSenzaCoppa,
+        provenienza: realProvenienza,
+        sottoPRText: null
+      },
+      bestE1RM: bestE1RMBodyweight,
+      isCorpoLiberoPuro: true,
+      progressioneVsPRPrec: bestIsCurrent ? `Nuovo record: ${bestReps} reps` : `Record: ${bestReps} reps`,
+      progressioneMesociclo: maxCurrentReps > 0 ? `Max raggiunto: ${maxCurrentReps} reps` : 'In progressione'
+    };
+  }
 
   // 2. e1RM MASSIMO (TEORICO STIMATO - ARROTONDATO A 1 DECIMALE)
   const massimalePuroInfo = calcolaDettaglioMassimale1RMPuro();
@@ -7809,8 +8022,11 @@ const heroProposalData = computed(() => {
 
   // Spiegazione sintetica
   const cleanReps = String(targetReps).replace(/r$/i, '');
+  const isCorpoLiberoPuro = isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value;
   let spiegazioneSintetica = '';
-  if (displayNum && !isNaN(parseFloat(displayNum))) {
+  if (isCorpoLiberoPuro) {
+    spiegazioneSintetica = `Progressione consigliata per completare le ${cleanReps} ripetizioni prescritte.`;
+  } else if (displayNum && !isNaN(parseFloat(displayNum))) {
     spiegazioneSintetica = `${displayNum} kg è il carico consigliato per progredire mantenendo il target di ${cleanReps} reps.`;
   } else if (spiegazioneDinamicaConsigliata.value) {
     spiegazioneSintetica = spiegazioneDinamicaConsigliata.value;
@@ -8150,6 +8366,8 @@ const simulatoreDinamicoData = computed(() => {
 const andamentoMesocicloData = computed(() => {
   if (!workout.value) return null;
   const sett = aiutoWeek.value;
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
 
   const settimane = [];
   let pesoW1 = null;
@@ -8165,25 +8383,31 @@ const andamentoMesocicloData = computed(() => {
     let rNum = null;
 
     if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-      const perf = estraiMigliorPrestazioneInput(insVal, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value));
-      if (perf && perf.peso > 0) {
-        valNum = perf.peso;
-        rNum = perf.reps;
-        valDisplay = (perf.reps && perf.reps !== getRepsPerWeek(w)) ? `${formatWeight(valNum)}x${rNum}` : `${formatWeight(valNum)}`;
+      if (isCorpoLiberoPuro) {
+        const rVal = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
+        rNum = rVal;
+        valDisplay = `${rVal}r`;
       } else {
-        const pStr = estraiPesoDaInput(insVal);
-        const rVal = estraiRepsDaInput(insVal);
-        if (pStr && rVal) {
-          valNum = parseFloat(pStr);
-          rNum = rVal;
-          valDisplay = `${formatWeight(valNum)}x${rVal}`;
-        } else if (pStr) {
-          valNum = parseFloat(pStr);
-          rNum = getRepsPerWeek(w);
-          valDisplay = `${formatWeight(valNum)}`;
-        } else if (rVal) {
-          rNum = rVal;
-          valDisplay = `${rVal}r`;
+        const perf = estraiMigliorPrestazioneInput(insVal, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value));
+        if (perf && perf.peso > 0) {
+          valNum = perf.peso;
+          rNum = perf.reps;
+          valDisplay = (perf.reps && perf.reps !== getRepsPerWeek(w)) ? `${formatWeight(valNum)}x${rNum}` : `${formatWeight(valNum)}`;
+        } else {
+          const pStr = estraiPesoDaInput(insVal);
+          const rVal = estraiRepsDaInput(insVal);
+          if (pStr && rVal) {
+            valNum = parseFloat(pStr);
+            rNum = rVal;
+            valDisplay = `${formatWeight(valNum)}x${rVal}`;
+          } else if (pStr) {
+            valNum = parseFloat(pStr);
+            rNum = getRepsPerWeek(w);
+            valDisplay = `${formatWeight(valNum)}`;
+          } else if (rVal) {
+            rNum = rVal;
+            valDisplay = `${rVal}r`;
+          }
         }
       }
     } else if (isCurrent) {
@@ -8220,7 +8444,20 @@ const andamentoMesocicloData = computed(() => {
   }
 
   let deltaProgressioneText = '';
-  if (pesoW1 !== null && pesoCurrent !== null && pesoW1 > 0) {
+  if (isCorpoLiberoPuro) {
+    if (repsW1 !== null && repsCurrent !== null) {
+      const diffReps = repsCurrent - repsW1;
+      if (diffReps > 0) {
+        deltaProgressioneText = `+${diffReps} reps nel mesociclo vs W1`;
+      } else if (diffReps === 0) {
+        deltaProgressioneText = `Progressione attiva fino a W${sett}`;
+      } else {
+        deltaProgressioneText = `${diffReps} reps vs W1`;
+      }
+    } else {
+      deltaProgressioneText = `Progressione attiva fino a W${sett}`;
+    }
+  } else if (pesoW1 !== null && pesoCurrent !== null && pesoW1 > 0) {
     const diffKg = Math.round((pesoCurrent - pesoW1) * 10) / 10;
     const diffPct = Math.round(((pesoCurrent - pesoW1) / pesoW1) * 1000) / 10;
     const diffReps = (repsW1 !== null && repsCurrent !== null) ? (repsCurrent - repsW1) : 0;
@@ -8260,12 +8497,32 @@ const percheConsiglioData = computed(() => {
   const targetReps = getRepsPerWeek(sett);
   const infoBase = getBaseWeekInfo(sett);
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
 
   let baseDiPartenza = 'N.D.';
   let e1rmRecente = 'N.D.';
   let incrementoVsBase = '';
 
-  if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
+  if (isCorpoLiberoPuro) {
+    const bW = infoBase?.baseWNum ? `W${infoBase.baseWNum}` : (infoBase?.isPreviousWorkoutW6 ? 'W6 Prec.' : 'W1');
+    const rBase = infoBase?.repsBase || targetReps;
+    baseDiPartenza = `${bW}: ${rBase} reps`;
+    e1rmRecente = 'N.D.';
+
+    const heroDisplay = String(valoreConsigliatoHeroDialog.value.display || '');
+    const heroReps = estraiRepsDaInput(heroDisplay) || (parseFloat(heroDisplay) || targetReps);
+    if (heroReps && rBase) {
+      const diffR = heroReps - rBase;
+      if (diffR > 0) {
+        incrementoVsBase = `+${diffR} rep${diffR > 1 ? 's' : ''}`;
+      } else if (diffR === 0) {
+        incrementoVsBase = '= vs base';
+      } else {
+        incrementoVsBase = `${diffR} reps`;
+      }
+    }
+  } else if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
     const bW = infoBase.baseWNum ? `W${infoBase.baseWNum}` : (infoBase.isPreviousWorkoutW6 ? 'W6 Prec.' : 'W1');
     baseDiPartenza = `${bW}: ${formatWeight(infoBase.pesoBase)} kg × ${infoBase.repsBase || 10} reps`;
     const e1rm = calcolaE1RMSmorzato(infoBase.pesoBase, infoBase.repsBase || 10, isCavo);
@@ -8289,7 +8546,11 @@ const percheConsiglioData = computed(() => {
   // Logica discorsiva naturale
   let logicaCalcolo = spiegazioneDinamicaConsigliata.value;
   if (!logicaCalcolo || logicaCalcolo.length < 20) {
-    logicaCalcolo = `Hai completato ${infoBase?.repsBase || 9} reps nella settimana precedente. Per raggiungere ${targetReps} reps in W${sett} e stimolare nuovo progresso muscolare, l'algoritmo propone un carico calibrato sul tuo recupero e storico.`;
+    if (isCorpoLiberoPuro) {
+      logicaCalcolo = `Hai completato ${infoBase?.repsBase || targetReps} reps nella settimana precedente. Per raggiungere ${targetReps} reps in W${sett} e stimolare nuovo progresso muscolare, l'algoritmo propone una progressione di ripetizioni calibrata sul tuo recupero e storico.`;
+    } else {
+      logicaCalcolo = `Hai completato ${infoBase?.repsBase || 9} reps nella settimana precedente. Per raggiungere ${targetReps} reps in W${sett} e stimolare nuovo progresso muscolare, l'algoritmo propone un carico calibrato sul tuo recupero e storico.`;
+    }
   }
 
   return {
@@ -8306,6 +8567,8 @@ const percheConsiglioData = computed(() => {
 const storicoTimelineItems = computed(() => {
   if (!workout.value) return [];
   const currentNumScheda = parseInt(workout.value.num_scheda);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
   const items = [];
   const bestReal = recordOverviewData.value?.bestReal;
 
@@ -8314,13 +8577,13 @@ const storicoTimelineItems = computed(() => {
     const insVal = inputSettimane.value[w]?.ins;
     if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
       const pStr = estraiPesoDaInput(insVal);
-      const p = pStr ? parseFloat(pStr) : null;
+      const p = (pStr && !isCorpoLiberoPuro) ? parseFloat(pStr) : null;
       const r = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
-      const isRecord = (bestReal && bestReal.isCurrent && (parseInt(bestReal.week) === w || (p !== null && p === bestReal.weight && r === bestReal.reps))) || (analizzaRecordSettimana(w)?.stato === 'record');
+      const isRecord = (bestReal && bestReal.isCurrent && (parseInt(bestReal.week) === w || (!isCorpoLiberoPuro && p !== null && p === bestReal.weight && r === bestReal.reps) || (isCorpoLiberoPuro && r === bestReal.reps))) || (analizzaRecordSettimana(w)?.stato === 'record');
       items.push({
         id: `current_w${w}`,
         titolo: `W${w} attuale`,
-        caricoReps: p !== null ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
+        caricoReps: (p !== null && !isCorpoLiberoPuro) ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
         isPR: !!isRecord,
         data: 'oggi / in corso',
         tempo: 'questa scheda',
@@ -8342,20 +8605,21 @@ const storicoTimelineItems = computed(() => {
         const val = prevEx['ins_week' + w];
         if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
           const pStr = estraiPesoDaInput(val);
-          const p = pStr ? parseFloat(pStr) : null;
+          const p = (pStr && !isCorpoLiberoPuro) ? parseFloat(pStr) : null;
           const rPrescr = prevEx['reps_week' + w] || estraiRepsDaPrescrizione(prevEx['des_week' + w]);
           const r = estraiRepsDaInput(val) || (rPrescr ? parseInt(rPrescr, 10) : 6);
 
           // Controlla se questa esecuzione corrisponde al record (PR assoluto)
           const isThisPR = bestReal && !bestReal.isCurrent && (
             (String(bestReal.sheet) === String(prevEx.num_scheda) && parseInt(bestReal.week) === w) ||
-            (p !== null && p === bestReal.weight && r === bestReal.reps && String(bestReal.sheet) === String(prevEx.num_scheda))
+            (!isCorpoLiberoPuro && p !== null && p === bestReal.weight && r === bestReal.reps && String(bestReal.sheet) === String(prevEx.num_scheda)) ||
+            (isCorpoLiberoPuro && r === bestReal.reps && String(bestReal.sheet) === String(prevEx.num_scheda))
           );
 
           items.push({
             id: `${prevEx.id || prevEx.num_scheda}_w${w}`,
             titolo: `Sch. ${prevEx.num_scheda} • W${w}`,
-            caricoReps: p !== null ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
+            caricoReps: (p !== null && !isCorpoLiberoPuro) ? `${formatWeight(p)} kg × ${r}r` : `${r}r`,
             isPR: !!isThisPR,
             data: formattaDataStorico(dEx),
             tempo: tempo,
@@ -13112,8 +13376,10 @@ function estraiPesoDaInput(str) {
   const matchSxR = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*([rR])?\b)?\s*$/);
   if (matchSxR) {
     const num1 = parseFloat(matchSxR[1]);
-    const hasExplicitReps = !!matchSxR[3];
-    if (hasExplicitReps || num1 > 5) {
+    const isExplicitKg = /kg|kgs|kgb|lbs|\+/i.test(clean);
+    // Se è un numero intero piccolo (es. 1, 2, 3, 4) senza indicazione esplicita di kg,
+    // in 1x13, 2x15, 3x12, 4x10 la prima cifra indica il numero di serie (sets), non i kg!
+    if (isExplicitKg || num1 >= 5 || String(matchSxR[1]).includes('.')) {
       return String(num1);
     }
     return null;

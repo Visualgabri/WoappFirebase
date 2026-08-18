@@ -6727,20 +6727,19 @@ const getGhostWeightsRangeForWeek = (sett) => {
     const isValidoTargetReps = e1rmConsigliato >= (e1rmBase * 0.95);
 
     // Se l'atleta vuole progredire a parità di peso base (Safe):
-    // Deve mantenere almeno il volume base già raggiunto (es. 65x13r)
-    const repsSafeBase = repsBaseVal;
+    // Per avere una progressione reale di volume rispetto a quanto già fatto (repsBaseVal), propone +1 rep (es. 36x10r o 65x14r)
     const repsProgressioneBase = repsBaseVal + 1;
     const repsSfidanteBase = repsBaseVal + 2;
 
-    const prudenzialeValStr = `${pesoBase}x${repsSafeBase}r`;
+    const prudenzialeValStr = `${pesoBase}x${repsProgressioneBase}r`;
     const consigliatoValStr = isValidoTargetReps ? String(pesoConsigliato) : `${pesoBase}x${repsProgressioneBase}r`;
     const sfidanteValStr = isValidoTargetReps ? String(pesoSfidante) : `${pesoBase}x${repsSfidanteBase}r`;
 
     return {
       prudenziale: {
         value: prudenzialeValStr,
-        display: `${formatWeight(pesoBase)}x${repsSafeBase}r`,
-        label: 'Consolida volume'
+        display: `${formatWeight(pesoBase)}x${repsProgressioneBase}r`,
+        label: 'Prudenziale (+1r)'
       },
       consigliato: {
         value: consigliatoValStr,

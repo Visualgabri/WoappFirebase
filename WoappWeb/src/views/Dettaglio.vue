@@ -3125,8 +3125,8 @@
                           {{ card.valoreDisplay }}
                         </div>
 
-                        <!-- Sottotitolo Dinamico Sintetico (1 riga, font fine non pesante) -->
-                        <div class="text-super-caption text-slate-400 font-weight-regular mt-0.5 text-truncate" style="font-size: 0.41rem; line-height: 1.15; letter-spacing: -0.01em;">
+                        <!-- Sottotitolo Dinamico Sintetico (senza troncamento forzato, multiline armonioso) -->
+                        <div class="text-super-caption text-slate-400 font-weight-regular mt-0.5 text-center d-flex align-center justify-center" style="font-size: 0.44rem; line-height: 1.22; min-height: 22px; word-break: break-word;">
                           {{ card.sottotitolo }}
                         </div>
 
@@ -7813,15 +7813,23 @@ const strategieAlternativeCards = computed(() => {
     }
   }
 
-  // Helper per calcolare reps per PR su sfidante (solo se carico fisso inferiore al PR storico e non ancora a PR)
-  const bestE1rmVal = recordOverviewData.value?.bestE1RM?.e1rm || 0;
-  const isCurrentPRAlready = Boolean(recordOverviewData.value?.bestReal?.isCurrentPR || recordOverviewData.value?.bestE1RM?.isNewPeak);
+  // Helper per calcolare reps per PR su sfidante
+  // Riferimento: max 1RM assoluto storico (oppure bestReal se manca max1RM)
+  const max1rmStorico = recordOverviewData.value?.bestE1RM?.max1RM || 0;
   const isVolumeSfidante = String(range.sfidante?.value).includes('r');
   
+  // Benchmark e1RM da superare per il primato
+  let targetE1RMToBeat = max1rmStorico > 0 ? max1rmStorico : (recordOverviewData.value?.bestE1RM?.e1rm || 0);
+  if (targetE1RMToBeat === 0 && recordOverviewData.value?.bestReal?.weight > 0) {
+    const prW = recordOverviewData.value.bestReal.weight;
+    const prR = recordOverviewData.value.bestReal.reps || targetReps;
+    targetE1RMToBeat = prW * (1 + prR / 30);
+  }
+
   let sfidantePRGoalText = null;
   let sfidanteMinRepsPR = null;
-  if (!isCurrentPRAlready && !isVolumeSfidante && bestE1rmVal > 0 && sfidanteVal > 0) {
-    const calcMin = Math.floor(((bestE1rmVal / sfidanteVal) - 1) * 30) + 1;
+  if (!isVolumeSfidante && targetE1RMToBeat > 0 && sfidanteVal > 0) {
+    const calcMin = Math.floor(((targetE1RMToBeat / sfidanteVal) - 1) * 30) + 1;
     if (calcMin > targetReps) {
       sfidanteMinRepsPR = calcMin;
       sfidantePRGoalText = `🏆 ≥ ${calcMin}r per PR`;

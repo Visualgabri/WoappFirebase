@@ -6800,11 +6800,11 @@ const getGhostWeightsRangeForWeek = (sett) => {
   }
 
   // Scenario 3: Standard Success (repsBaseVal >= repsTarget, include il caso default con solo peso scritto)
-  const repsVolume = repsTarget + 1;
-  const isIncrementoPeso = pesoConsigliato > pesoBase;
-  const prudenzialeValue = isIncrementoPeso ? String(pesoBase) : `${pesoBase}x${repsVolume}r`;
-  const prudenzialeDisplay = isIncrementoPeso ? `${formatWeight(pesoBase)} kg` : `${formatWeight(pesoBase)}x${repsVolume}r`;
-  const prudenzialeLabel = isIncrementoPeso ? 'Prudenziale' : 'Prudenziale (+1r)';
+  const isVolumeProgressionAlready = repsTarget > repsBaseVal;
+  const repsVolume = Math.max(repsTarget, repsBaseVal) + 1;
+  const prudenzialeValue = isVolumeProgressionAlready ? String(pesoBase) : `${pesoBase}x${repsVolume}r`;
+  const prudenzialeDisplay = isVolumeProgressionAlready ? `${formatWeight(pesoBase)} kg` : `${formatWeight(pesoBase)}x${repsVolume}r`;
+  const prudenzialeLabel = isVolumeProgressionAlready ? 'Prudenziale (Stesso peso)' : 'Prudenziale (+1r)';
 
   return {
     prudenziale: {
@@ -7839,12 +7839,12 @@ const strategieAlternativeCards = computed(() => {
   // 1. SAFE (testo breve e fine)
   let safeSottotitolo = 'Stesso peso';
   if (range.prudenziale?.label && (range.prudenziale.label.includes('Consolida') || range.prudenziale.label.includes('base'))) {
-    safeSottotitolo = 'Consolida base';
+    safeSottotitolo = 'Consolida volume';
   } else if (String(range.prudenziale?.value).includes('r')) {
-    safeSottotitolo = 'Progressione reps';
+    safeSottotitolo = '+1 rep (+volume)';
   } else if (safeVal > 0 && pesoBase > 0) {
-    if (safeVal === pesoBase && repsBase > targetReps) {
-      safeSottotitolo = 'Stesso peso';
+    if (safeVal === pesoBase && repsBase < targetReps) {
+      safeSottotitolo = `+${targetReps - repsBase}r (+volume)`;
     } else if (safeVal < smartVal) {
       const diffSafe = Math.round((smartVal - safeVal) * 10) / 10;
       safeSottotitolo = `-${diffSafe}kg vs smart`;

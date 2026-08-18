@@ -2951,7 +2951,7 @@
                           v-if="recordOverviewData.bestReal.repsDisplay"
                           class="text-super-caption font-weight-medium ml-1 text-truncate"
                           :class="recordOverviewData.bestReal.isCurrentPR ? 'text-amber-lighten-3' : 'text-red-lighten-3'"
-                          style="font-size: 0.58rem;"
+                          style="font-size: 0.56rem;"
                         >
                           {{ recordOverviewData.bestReal.repsDisplay }}
                         </span>
@@ -2962,7 +2962,7 @@
                       <div 
                         class="mt-0.5 text-super-caption text-truncate font-weight-medium" 
                         :class="recordOverviewData.bestReal.isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
-                        style="font-size: 0.48rem; line-height: 1.15;"
+                        style="font-size: 0.46rem; line-height: 1.15;"
                       >
                         {{ recordOverviewData.bestReal.provenienzaSenzaCoppa }}
                       </div>
@@ -2970,35 +2970,77 @@
                       <!-- Sotto al PR (se da scheda passata ed inferiore) -->
                       <div 
                         v-if="recordOverviewData.bestReal.sottoPRText" 
-                        class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-medium text-truncate d-flex align-center gap-0.5" 
-                        style="font-size: 0.46rem; line-height: 1.1;"
+                        class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-regular text-truncate d-flex align-center gap-0.5" 
+                        style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;"
                       >
-                        <v-icon size="10" color="orange-lighten-2">mdi-trending-down</v-icon>
+                        <v-icon size="9" color="orange-lighten-2">mdi-trending-down</v-icon>
                         <span class="text-truncate">{{ recordOverviewData.bestReal.sottoPRText }}</span>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Colonna 2: e1RM Massimo (Stimato) -->
+                  <!-- Colonna 2: 1RM ATTUALE (in grande) & Max Storico (in piccolo sotto) -->
                   <div 
                     class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
-                    style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 100%); border: 1px solid rgba(6, 182, 212, 0.30) !important; flex: 1 1 0%; min-width: 0;"
+                    :style="{
+                      background: recordOverviewData.bestE1RM.isNewPeak
+                        ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.22) 0%, rgba(6, 182, 212, 0.05) 100%)'
+                        : 'linear-gradient(135deg, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 100%)',
+                      borderColor: recordOverviewData.bestE1RM.isNewPeak
+                        ? 'rgba(6, 182, 212, 0.65) !important'
+                        : 'rgba(6, 182, 212, 0.30) !important',
+                      flex: '1 1 0%',
+                      minWidth: '0'
+                    }"
                     @click="recordOverviewData.bestE1RM.id && vaiADettaglioStorico(recordOverviewData.bestE1RM.id)"
                   >
                     <div>
-                      <div class="d-flex align-center gap-1 mb-0.5 text-truncate">
-                        <v-icon color="cyan-lighten-2" size="13">mdi-chart-line</v-icon>
-                        <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.50rem; letter-spacing: 0.03em;">
-                          e1RM MASSIMO
+                      <div class="d-flex align-center justify-space-between mb-0.5 gap-1">
+                        <div class="d-flex align-center gap-1 text-truncate">
+                          <v-icon color="cyan-lighten-2" size="12">mdi-chart-line</v-icon>
+                          <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.48rem; letter-spacing: 0.02em;">
+                            1RM ATTUALE
+                          </span>
+                        </div>
+                        <span 
+                          v-if="recordOverviewData.bestE1RM.isNewPeak"
+                          class="font-weight-black text-cyan-950 bg-cyan-300 px-1 py-0.2 rounded text-truncate"
+                          style="font-size: 0.43rem; letter-spacing: 0.02em;"
+                        >
+                          NUOVO PICCO
                         </span>
                       </div>
+                      <!-- 1RM Attuale in GRANDE -->
                       <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.05rem; line-height: 1.15;">
                         {{ recordOverviewData.bestE1RM.display }}
                       </div>
                     </div>
-                    <div class="mt-0.5 text-super-caption text-truncate font-weight-medium d-flex align-center gap-1" style="font-size: 0.48rem; line-height: 1.15;">
-                      <span class="text-cyan-lighten-3 font-italic">stimato</span>
-                      <span class="text-slate-400">• {{ recordOverviewData.bestE1RM.provenienza }}</span>
+
+                    <div>
+                      <!-- Max Storico & Delta in PICCOLO sotto -->
+                      <div v-if="recordOverviewData.bestE1RM.isNewPeak" class="mt-0.5 text-super-caption text-truncate font-weight-medium text-cyan-accent-2" style="font-size: 0.44rem; line-height: 1.15;">
+                        👑 Record di sempre • {{ recordOverviewData.bestE1RM.provenienza }}
+                      </div>
+                      <div v-else>
+                        <div 
+                          class="mt-0.5 text-super-caption text-cyan-lighten-3 font-weight-regular text-truncate d-flex align-center gap-0.5" 
+                          style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;"
+                        >
+                          <span class="text-truncate">{{ recordOverviewData.bestE1RM.maxDeltaText }}</span>
+                        </div>
+
+                        <!-- Mini Progress Bar di Prossimità al Picco Assoluto -->
+                        <div 
+                          v-if="recordOverviewData.bestE1RM.e1rmProximityPct"
+                          class="w-100 rounded-pill overflow-hidden mt-1" 
+                          style="height: 2px; background: rgba(255, 255, 255, 0.08);"
+                        >
+                          <div 
+                            class="h-100 rounded-pill transition-all" 
+                            :style="{ width: recordOverviewData.bestE1RM.e1rmProximityPct + '%', background: 'linear-gradient(90deg, #06b6d4, #22d3ee)' }"
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3063,7 +3105,7 @@
                         </div>
 
                         <!-- Sottotitolo Dinamico Sintetico (1 riga, font fine non pesante) -->
-                        <div class="text-super-caption text-slate-400 font-weight-regular mt-0.5 text-truncate" style="font-size: 0.46rem; line-height: 1.15;">
+                        <div class="text-super-caption text-slate-400 font-weight-regular mt-0.5 text-truncate" style="font-size: 0.41rem; line-height: 1.15; letter-spacing: -0.01em;">
                           {{ card.sottotitolo }}
                         </div>
 
@@ -3071,7 +3113,7 @@
                         <div v-if="card.isConsigliato && card.mesoPillText" class="mt-1 d-flex justify-center">
                           <div 
                             class="d-inline-flex align-center justify-center px-1.5 py-0.5 rounded-lg border font-weight-bold text-green-accent-3 text-no-wrap"
-                            style="background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(74, 222, 128, 0.45) !important; font-size: 0.48rem; letter-spacing: 0.01em; line-height: 1.15;"
+                            style="background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(74, 222, 128, 0.45) !important; font-size: 0.45rem; letter-spacing: 0.01em; line-height: 1.15;"
                           >
                             ↗ {{ card.mesoPillText }}
                           </div>
@@ -3081,7 +3123,7 @@
                         <div v-else-if="card.prGoalText" class="mt-1 d-flex justify-center">
                           <div 
                             class="d-inline-flex align-center justify-center px-1.5 py-0.5 rounded-lg border font-weight-bold text-amber-accent-2 text-no-wrap"
-                            style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.40) !important; font-size: 0.46rem; letter-spacing: 0.01em; line-height: 1.15;"
+                            style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.40) !important; font-size: 0.43rem; letter-spacing: 0.01em; line-height: 1.15;"
                           >
                             {{ card.prGoalText }}
                           </div>
@@ -4598,23 +4640,34 @@
                   x{{ resocontoCoachPR?.prReps }}r {{ resocontoCoachPR?.prFatica ? '(' + resocontoCoachPR.prFatica + ')' : '' }}
                 </span>
               </div>
-              <div class="text-super-caption text-slate-400 mt-1 font-weight-medium" style="font-size: 0.52rem;">
+              <div class="text-super-caption text-slate-400 mt-1 font-weight-regular text-truncate" style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;">
                 📍 {{ resocontoCoachPR?.dataFormattataStr }} ({{ resocontoCoachPR?.tempoTrascorsoStr }})
               </div>
             </div>
 
-            <!-- Box 2: Stato Attuale -->
-            <div class="pa-2.5 rounded-xl border flex-grow-1" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.1) !important; flex: 1 1 0%;">
-              <div class="text-super-caption text-slate-400 font-weight-black uppercase" style="font-size: 0.52rem;">
-                📊 CARICO RECENTE
+            <!-- Box 2: 1RM Attuale in grande & Max Storico in piccolo sotto -->
+            <div class="pa-2.5 rounded-xl border flex-grow-1" style="background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.3) !important; flex: 1 1 0%;">
+              <div class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem;">
+                📈 1RM ATTUALE
               </div>
               <div class="font-weight-black text-cyan-lighten-2 mt-0.5" style="font-size: 1.10rem;">
-                {{ resocontoCoachPR?.pesoRecente }} kg
+                {{ resocontoCoachPR?.currentE1rmDisplay }}
               </div>
-              <div class="text-super-caption font-weight-bold mt-1" :class="resocontoCoachPR?.isCurrentPR ? 'text-green-accent-3' : 'text-orange-lighten-2'" style="font-size: 0.52rem;">
-                <span v-if="resocontoCoachPR?.isCurrentPR">✨ Nuovo PR attuale</span>
-                <span v-else-if="resocontoCoachPR?.statoGap === 'sotto_pr'">📉 -{{ resocontoCoachPR?.gapKg }} kg (-{{ resocontoCoachPR?.gapPct }}%) vs PR</span>
-                <span v-else>⚖️ In linea col PR</span>
+              <div class="text-super-caption font-weight-regular mt-1 text-truncate" :class="resocontoCoachPR?.isAbsolute1RMPeak ? 'text-green-accent-3 font-weight-bold' : 'text-cyan-lighten-3'" style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;">
+                <span v-if="resocontoCoachPR?.isAbsolute1RMPeak">👑 Nuovo picco assoluto</span>
+                <span v-else>👑 Max: {{ resocontoCoachPR?.bestE1rmDisplay }} (-{{ resocontoCoachPR?.diff1RMKg }} kg • Sch. {{ resocontoCoachPR?.bestE1rmSheet || '-' }})</span>
+              </div>
+
+              <!-- Mini Progress Bar di Prossimità al Picco Assoluto -->
+              <div 
+                v-if="resocontoCoachPR?.e1rmProximityPct && !resocontoCoachPR?.isAbsolute1RMPeak"
+                class="w-100 rounded-pill overflow-hidden mt-1" 
+                style="height: 2px; background: rgba(255, 255, 255, 0.08);"
+              >
+                <div 
+                  class="h-100 rounded-pill transition-all" 
+                  :style="{ width: resocontoCoachPR.e1rmProximityPct + '%', background: 'linear-gradient(90deg, #06b6d4, #22d3ee)' }"
+                ></div>
               </div>
             </div>
           </div>
@@ -4741,6 +4794,7 @@ const apriResocontoCoachPR = () => {
   const cleanTargetReps = String(targetReps).replace(/r$/i, '');
   const exName = workout.value.des_esercizio || 'questo esercizio';
   const isManubri = isManubriEsercizio(workout.value);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
   
   const recData = recordOverviewData.value?.bestReal;
   const prWeight = recData?.weight || 0;
@@ -4750,7 +4804,7 @@ const apriResocontoCoachPR = () => {
   const prSheet = recData?.sheet;
   const isCurrentPR = recData?.isCurrentPR;
   
-  // Data e tempo trascorso
+  // Data e tempo trascorso del PR a X reps
   let tempoTrascorsoStr = 'in questa scheda';
   let dataFormattataStr = 'Scheda corrente';
   if (!isCurrentPR && prDate) {
@@ -4783,7 +4837,22 @@ const apriResocontoCoachPR = () => {
     pesoRecente = caricoConsigliatoViaDiMezzo.value || prWeight;
   }
   
-  // Calcolo gap e margine
+  // Calcolo e1RM corrente unificato (da recordOverviewData) vs 1RM Massimo Assoluto
+  const currentE1RM = (pesoRecente > 0 && repsRecente > 0) ? calcolaE1RMSmorzato(pesoRecente, repsRecente, isCavo) : (recordOverviewData.value?.bestE1RM?.currentE1RM || 0);
+  const bestE1rmVal = recordOverviewData.value?.bestE1RM?.max1RM || 0;
+  const bestE1rmSheet = recordOverviewData.value?.bestE1RM?.sheet;
+  const isAbsolute1RMPeak = (currentE1RM >= bestE1rmVal && currentE1RM > 0 && bestE1rmVal > 0);
+  
+  let diff1RMKg = 0;
+  let diff1RMPct = 0;
+  let e1rmProximityPct = 100;
+  if (!isAbsolute1RMPeak && bestE1rmVal > 0 && currentE1RM > 0) {
+    diff1RMKg = Math.round((bestE1rmVal - currentE1RM) * 10) / 10;
+    diff1RMPct = Math.round((diff1RMKg / bestE1rmVal) * 100);
+    e1rmProximityPct = Math.min(100, Math.round((currentE1RM / bestE1rmVal) * 1000) / 10);
+  }
+  
+  // Calcolo gap sul PR a X reps
   let gapKg = 0;
   let gapPct = 0;
   let statoGap = 'in_linea';
@@ -4797,10 +4866,20 @@ const apriResocontoCoachPR = () => {
     statoGap = 'eguagliato';
   }
   
-  // Cosa serve concretamente per superarlo
+  // Cosa serve concretamente per superarlo (calcolo matematico reps necessarie)
   const stepKg = isManubri ? 1 : 2.5;
   const targetNuovoPRKg = Math.round((prWeight + stepKg) * 10) / 10;
-  const minRepsPR = strategieAlternativeCards.value?.find(c => c.tipo === 'sfidante')?.minRepsPR || (targetReps + 1);
+  const pr1RMTarget = prWeight * (1 + prReps / 30);
+  let minRepsPR = targetReps;
+  if (pesoRecente > 0 && pr1RMTarget > 0) {
+    if (pesoRecente < prWeight) {
+      minRepsPR = Math.max(targetReps + 1, Math.ceil(((pr1RMTarget / pesoRecente) - 1) * 30));
+    } else if (pesoRecente === prWeight) {
+      minRepsPR = prReps + 1;
+    } else {
+      minRepsPR = targetReps;
+    }
+  }
   
   // Analisi evoluzione nello storico
   const numSchedePassate = (storicoEsercizio.value || []).length;
@@ -4808,10 +4887,12 @@ const apriResocontoCoachPR = () => {
   // Costruzione del resoconto discorsivo in stile coach
   let testoResoconto = '';
   
-  if (isCurrentPR) {
-    testoResoconto = `Ottimo lavoro! Su **${exName}** hai stabilito il tuo **nuovo PR a ${cleanTargetReps} reps** proprio in questa scheda (**${formatWeight(prWeight)} kg × ${prReps}r**). Il tuo livello di forza per questo range è al massimo storico.\n\nPer continuare la progressione, il prossimo obiettivo del coach è consolidare questo carico con ottima tecnica e puntare a **${formatWeight(targetNuovoPRKg)} kg** o a chiudere ripetizioni extra con margine controllato.`;
+  if (isCurrentPR && isAbsolute1RMPeak) {
+    testoResoconto = `Fantastico! Su **${exName}** hai stabilito contemporaneamente il tuo **nuovo PR a ${cleanTargetReps} reps** (**${formatWeight(prWeight)} kg × ${prReps}r**) e il **nuovo picco assoluto di 1RM** (**${formatWeight(currentE1RM)} kg**). Sei al massimo storico di sempre su ogni fronte!\n\nPer continuare la progressione, il prossimo step è consolidare questo stimolo e puntare a **${formatWeight(targetNuovoPRKg)} kg**.`;
+  } else if (isCurrentPR && !isAbsolute1RMPeak) {
+    testoResoconto = `Ottimo lavoro! Con **${formatWeight(prWeight)} kg × ${prReps}r** hai stabilito il tuo **Nuovo PR sulle ${cleanTargetReps} Reps** in questa scheda, che esprime una forza stimata (1RM) di **${formatWeight(currentE1RM)} kg**.\n\nTuttavia, il tuo **1RM Assoluto di sempre rimane di ${formatWeight(bestE1rmVal)} kg** (stabilito in Scheda ${bestE1rmSheet || '-'}). Ti trovi a soli **-${formatWeight(diff1RMKg)} kg (-${diff1RMPct}%) dal record assoluto di forza**.\n\n🎯 **Obiettivo Coach:** per strappare anche il Record Assoluto mantenendo ${cleanTargetReps} ripetizioni, l'obiettivo è raggiungere **${formatWeight(targetNuovoPRKg)} kg**!`;
   } else if (statoGap === 'sotto_pr') {
-    testoResoconto = `Il tuo **PR a ${cleanTargetReps} reps** su **${exName}** è di **${formatWeight(prWeight)} kg × ${prReps}r**, ottenuto in **Scheda ${prSheet || '-'}** (${dataFormattataStr}, circa **${tempoTrascorsoStr}**).\n\nAttualmente nell'ultimo allenamento hai registrato **${formatWeight(pesoRecente)} kg** (W${weekRecente}), trovandoti a **-${formatWeight(gapKg)} kg (-${gapPct}%)** dal record.\n\nPer riagganciare e superare il primato, segui la progressione consigliata settimanale e punta a raggiungere **≥ ${minRepsPR} ripetizioni** per far salire l'1RM stimato, prima di attaccare i **${formatWeight(targetNuovoPRKg)} kg**.`;
+    testoResoconto = `Il tuo **PR a ${cleanTargetReps} reps** su **${exName}** è di **${formatWeight(prWeight)} kg × ${prReps}r**, ottenuto in **Scheda ${prSheet || '-'}** (${dataFormattataStr}, circa **${tempoTrascorsoStr}**).\n\nAttualmente nell'ultimo allenamento hai registrato **${formatWeight(pesoRecente)} kg** (W${weekRecente}, 1RM: **${formatWeight(currentE1RM)} kg**), trovandoti a **-${formatWeight(gapKg)} kg (-${gapPct}%)** dal record a ${cleanTargetReps} reps e a **-${formatWeight(diff1RMKg)} kg** dal picco 1RM assoluto (${formatWeight(bestE1rmVal)} kg in Scheda ${bestE1rmSheet || '-'}).\n\nPer riagganciare e superare il primato, segui la progressione consigliata settimanale e punta a raggiungere **≥ ${minRepsPR} ripetizioni** prima di attaccare i **${formatWeight(targetNuovoPRKg)} kg**.`;
   } else {
     testoResoconto = `Il tuo **PR a ${cleanTargetReps} reps** su **${exName}** è di **${formatWeight(prWeight)} kg × ${prReps}r** (${dataFormattataStr}, **${tempoTrascorsoStr}**).\n\nIl tuo carico attuale (**${formatWeight(pesoRecente)} kg**) è perfettamente allineato al tuo miglior livello storico. Continua con la progressione programmata per stabilire un nuovo record.`;
   }
@@ -4827,6 +4908,13 @@ const apriResocontoCoachPR = () => {
     isCurrentPR,
     pesoRecente: formatWeight(pesoRecente),
     weekRecente,
+    currentE1rmDisplay: `${formatWeight(Math.round(currentE1RM * 10) / 10)} kg`,
+    bestE1rmDisplay: `${formatWeight(Math.round(bestE1rmVal * 10) / 10)} kg`,
+    bestE1rmSheet,
+    isAbsolute1RMPeak,
+    diff1RMKg: formatWeight(diff1RMKg),
+    diff1RMPct,
+    e1rmProximityPct,
     gapKg: formatWeight(gapKg),
     gapPct,
     statoGap,
@@ -6736,11 +6824,18 @@ const calcolaAvvisoFaticaConsigliato = (sett, numConsigliato, repsTarget, repsPr
   if (!numConsigliato || numConsigliato <= 0 || !prevPeso || prevPeso <= 0) return '';
   if (!repsTarget || repsTarget <= 0 || !repsPrev || repsPrev <= 0) return '';
 
+  // Se l'incremento rientra nello step naturale dell'attrezzo o è la progressione picco W6, non generiamo falso allarme
+  const isManubri = workout.value ? isManubriEsercizio(workout.value) : false;
+  const stepConsentito = isManubri ? 2 : 2.5;
+  if (numConsigliato <= prevPeso + stepConsentito) {
+    return '';
+  }
+
   const e1rmConsigliato = numConsigliato * (1 + repsTarget / 30);
   const e1rmPrev = prevPeso * (1 + repsPrev / 30);
 
-  // Se l'1RM stimato del carico proposto eccede significativamente (+1.5kg) l'1RM precedentemente dimostrato
-  if (e1rmConsigliato > (e1rmPrev + 1.5)) {
+  // Se l'1RM stimato del carico proposto eccede significativamente (> 3.5kg) l'1RM precedentemente dimostrato
+  if (e1rmConsigliato > (e1rmPrev + 3.5)) {
     return `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${repsTarget} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
   }
   return '';
@@ -7413,6 +7508,63 @@ const recordOverviewData = computed(() => {
     ? `questa scheda • W${bestE1rmWeek || sett}`
     : (bestE1rmSheet ? `Sch. ${bestE1rmSheet}${bestE1rmWeek ? ' W' + bestE1rmWeek : ''}` : (bestE1rmTempo || 'Storico'));
 
+  // Calcolo e1RM reale della prestazione recente nel mesociclo in corso (W1..W6)
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  let pesoRecenteMesociclo = 0;
+  let repsRecenteMesociclo = targetReps;
+  
+  const currIns = inputSettimane.value ? inputSettimane.value[sett]?.ins : null;
+  const pCurr = currIns ? parseFloat(estraiPesoDaInput(currIns)) : 0;
+  if (pCurr > 0) {
+    pesoRecenteMesociclo = pCurr;
+    repsRecenteMesociclo = estraiRepsDaInput(currIns) || targetReps;
+  } else if (inputSettimane.value) {
+    for (let w = sett - 1; w >= 1; w--) {
+      const ins = inputSettimane.value[w]?.ins;
+      if (ins) {
+        const p = parseFloat(estraiPesoDaInput(ins));
+        if (p > 0) {
+          pesoRecenteMesociclo = p;
+          repsRecenteMesociclo = estraiRepsDaInput(ins) || getRepsPerWeek(w);
+          break;
+        }
+      }
+    }
+  }
+  if (pesoRecenteMesociclo === 0) {
+    const infoBase = getBaseWeekInfo(sett);
+    if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
+      pesoRecenteMesociclo = infoBase.pesoBase;
+      repsRecenteMesociclo = infoBase.repsBase || targetReps;
+    }
+  }
+  if (pesoRecenteMesociclo === 0 && currentRepsWeight > 0) {
+    pesoRecenteMesociclo = currentRepsWeight;
+    repsRecenteMesociclo = currentRepsReps;
+  } else if (pesoRecenteMesociclo === 0 && pW1 > 0) {
+    pesoRecenteMesociclo = pW1;
+    repsRecenteMesociclo = getRepsPerWeek(1);
+  }
+
+  let currentE1RM = (pesoRecenteMesociclo > 0 && repsRecenteMesociclo > 0)
+    ? calcolaE1RMSmorzato(pesoRecenteMesociclo, repsRecenteMesociclo, isCavo)
+    : 0;
+  const roundedCurrentE1RM = Math.round(currentE1RM * 10) / 10;
+
+  // Confronto con Picco 1RM Assoluto (bestE1rmVal, es. 34.1 kg)
+  const isNewPeak = Boolean(bestE1rmIsCurrent || (roundedCurrentE1RM >= roundedE1rm && roundedCurrentE1RM > 0));
+  let maxDeltaText = null;
+  let maxDeltaKg = 0;
+  let e1rmProximityPct = 100;
+  if (!isNewPeak && roundedE1rm > 0 && roundedCurrentE1RM > 0 && roundedCurrentE1RM < roundedE1rm) {
+    maxDeltaKg = Math.round((roundedE1rm - roundedCurrentE1RM) * 10) / 10;
+    const diff1RMPct = Math.round((maxDeltaKg / roundedE1rm) * 100);
+    maxDeltaText = `👑 Max: ${formatWeight(roundedE1rm)}kg (-${formatWeight(maxDeltaKg)}kg • S.${bestE1rmSheet || '-'})`;
+    e1rmProximityPct = Math.min(100, Math.round((roundedCurrentE1RM / roundedE1rm) * 1000) / 10);
+  }
+
+  const currentE1rmDisplay = roundedCurrentE1RM > 0 ? `${formatWeight(roundedCurrentE1RM)} kg` : (roundedE1rm > 0 ? `${formatWeight(roundedE1rm)} kg` : 'N.D.');
+
   // 3. CONFRONTO PR PRECEDENTE E PROGRESSIONE MESOCICLO
   let prevPRWeight = pastRepsWeight;
   let progressioneVsPRPrec = '';
@@ -7452,7 +7604,7 @@ const recordOverviewData = computed(() => {
   if (!isCurrentPR && pastRepsWeight > 0 && compWeight > 0 && compWeight < pastRepsWeight) {
     const diffKg = Math.round((pastRepsWeight - compWeight) * 10) / 10;
     const diffPct = Math.round((diffKg / pastRepsWeight) * 100);
-    sottoPRText = `Sotto al PR a ${cleanTargetReps}r (-${formatWeight(diffKg)} kg / -${diffPct}%)`;
+    sottoPRText = `-${formatWeight(diffKg)}kg (-${diffPct}%) vs PR ${cleanTargetReps}r`;
   }
 
   // 5. NUOVO PR EVALUATION (Coppa & Oro solo se Nuovo PR ottenuto in QUESTA scheda)
@@ -7479,9 +7631,16 @@ const recordOverviewData = computed(() => {
       id: bestId
     },
     bestE1RM: {
-      e1rm: roundedE1rm,
-      display: e1rmDisplay,
+      e1rm: roundedCurrentE1RM > 0 ? roundedCurrentE1RM : roundedE1rm,
+      display: currentE1rmDisplay,
       isCurrent: bestE1rmIsCurrent,
+      isNewPeak: isNewPeak,
+      currentE1RM: roundedCurrentE1RM,
+      max1RM: roundedE1rm,
+      maxDisplay: `${formatWeight(roundedE1rm)} kg`,
+      maxDeltaText: maxDeltaText,
+      maxDeltaKg: formatWeight(maxDeltaKg),
+      e1rmProximityPct: e1rmProximityPct,
       sheet: bestE1rmSheet,
       week: bestE1rmWeek,
       provenienza: e1rmProvenienza,
@@ -7599,15 +7758,15 @@ const strategieAlternativeCards = computed(() => {
   const sfidantePRGoalText = isPRPossibile ? `🏆 ≥ ${minRepsPerPR}r per PR` : null;
 
   // 1. SAFE (testo breve e fine)
-  let safeSottotitolo = 'Stesso carico';
+  let safeSottotitolo = 'Stesso peso';
   if (safeVal > 0 && pesoBase > 0) {
     if (safeVal === pesoBase && repsBase > targetReps) {
-      safeSottotitolo = 'Stesso carico';
+      safeSottotitolo = 'Stesso peso';
     } else if (safeVal < smartVal) {
       const diffSafe = Math.round((smartVal - safeVal) * 10) / 10;
       safeSottotitolo = `-${diffSafe}kg vs smart`;
     } else if (safeVal === pesoBase) {
-      safeSottotitolo = 'Stesso carico';
+      safeSottotitolo = 'Stesso peso';
     }
   }
 

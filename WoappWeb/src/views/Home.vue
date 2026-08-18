@@ -960,12 +960,12 @@
               </div>
               <div class="d-flex align-center justify-space-between">
                 <div class="d-flex align-center text-super-caption text-slate" style="font-size: 0.65rem;">
-                  <span>W1: <strong>{{ p.w1 }}{{ p.isRep ? 'r' : ' kg' }}</strong></span>
+                  <span>W1: <strong>{{ p.w1 }}{{ p.isRep ? 'r' : (String(p.w1).includes('(') ? '' : ' kg') }}</strong></span>
                   <v-icon size="12" class="mx-1" color="orange">mdi-arrow-right</v-icon>
-                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }}{{ p.isRep ? 'r' : ' kg' }}</strong></span>
+                  <span>W{{ p.latestWeek }}: <strong>{{ p.latest }}{{ p.isRep ? 'r' : (String(p.latest).includes('(') ? '' : ' kg') }}</strong></span>
                 </div>
                 <div class="text-super-caption text-green-accent-4 font-weight-black" style="font-size: 0.68rem;">
-                  +{{ p.delta }}{{ p.isRep ? 'r' : ' kg' }}
+                  {{ String(p.delta).startsWith('+') ? p.delta : '+' + p.delta }}{{ p.isRep ? 'r' : (p.isVolume ? '' : ' kg') }}
                 </div>
               </div>
             </v-card>
@@ -1161,15 +1161,19 @@ const reportProgressioni = computed(() => {
     if (!val) return 0;
     const clean = String(val).replace(/,/g, '.').trim();
     if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
-    const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
-    const parts = cleanNum.split(/\s+/);
-    const num = parseFloat(parts[0]);
-    return isNaN(num) ? 0 : num;
+    const matchKg = clean.match(/^(\d+(?:\.\d+)?)/);
+    if (matchKg) return parseFloat(matchKg[1]) || 0;
+    return 0;
   };
 
-  const estraiRepsVal = (val) => {
-    if (!val) return 0;
-    const clean = String(val).replace(/,/g, '.').trim();
+  const estraiRepsVal = (val, des = '') => {
+    if (!val && !des) return 0;
+    const clean = String(val || '').replace(/,/g, '.').trim();
+    const matchX = clean.match(/[xX]\s*(\d+)/) || clean.match(/(\d+)\s*[rR]\b/);
+    if (matchX) return parseInt(matchX[1]);
+    const cleanDes = String(des || '').trim();
+    const matchDes = cleanDes.match(/[xX]\s*(\d+)/) || cleanDes.match(/(\d+)\s*[rR]\b/);
+    if (matchDes) return parseInt(matchDes[1]);
     const num = parseInt(clean);
     return isNaN(num) ? 0 : num;
   };
@@ -1200,25 +1204,66 @@ const reportProgressioni = computed(() => {
     }
 
     const useRep = isRepProgressionHome(ex);
-    const w1Val = useRep ? (estraiRepsVal(ex.ins_week1) || 0) : parsePesoSafe(ex.ins_week1);
-    if (w1Val > 0) {
+    const p1 = parsePesoSafe(ex.ins_week1);
+    const r1 = estraiRepsVal(ex.ins_week1, ex.des_week1) || 10;
+    const w1Val = useRep ? (estraiRepsVal(ex.ins_week1) || 0) : p1;
+
+    if (w1Val > 0 || p1 > 0) {
       result.totaleEserciziConCarichi++;
       for (let w = 6; w >= 2; w--) {
-        const wVal = useRep ? (estraiRepsVal(ex['ins_week' + w]) || 0) : parsePesoSafe(ex['ins_week' + w]);
-        if (wVal > w1Val) {
-          const delta = useRep ? (wVal - w1Val) : parseFloat((wVal - w1Val).toFixed(1));
-          const pct = Math.round((delta / w1Val) * 100);
+        const pW = parsePesoSafe(ex['ins_week' + w]);
+        const rW = estraiRepsVal(ex['ins_week' + w], ex['des_week' + w]) || 10;
+        const wVal = useRep ? (estraiRepsVal(ex['ins_week' + w]) || 0) : pW;
+
+        if (useRep) {
+          if (wVal > w1Val) {
+            const delta = wVal - w1Val;
+            const pct = Math.round((delta / w1Val) * 100);
+            result.progressioniCarichi.push({
+              id: ex.id,
+              nome: ex.des_esercizio || 'Esercizio',
+              w1: w1Val,
+              latest: wVal,
+              latestWeek: w,
+              delta: delta,
+              pct: pct,
+              isRep: true
+            });
+            break;
+          }
+        } else if (pW > p1 && p1 > 0) {
+          const delta = parseFloat((pW - p1).toFixed(1));
+          const pct = Math.round((delta / p1) * 100);
           result.progressioniCarichi.push({
             id: ex.id,
             nome: ex.des_esercizio || 'Esercizio',
-            w1: w1Val,
-            latest: wVal,
+            w1: p1,
+            latest: pW,
             latestWeek: w,
             delta: delta,
             pct: pct,
-            isRep: useRep
+            isRep: false
           });
           break;
+        } else if (p1 > 0 && pW > 0 && rW > r1 + 1) {
+          const e1rm1 = p1 * (1 + r1 / 30);
+          const e1rmW = pW * (1 + rW / 30);
+          if (e1rmW >= e1rm1 * 0.98) {
+            const deltaReps = rW - r1;
+            const pct = Math.max(1, Math.round((deltaReps / r1) * 100));
+            result.progressioniCarichi.push({
+              id: ex.id,
+              nome: ex.des_esercizio || 'Esercizio',
+              w1: `${p1} (${r1}r)`,
+              latest: `${pW} (${rW}r)`,
+              latestWeek: w,
+              delta: `+${deltaReps}r`,
+              pct: pct,
+              isRep: false,
+              isVolume: true
+            });
+            break;
+          }
         }
       }
     }
@@ -2186,9 +2231,22 @@ const scaricaReportPDF = () => {
         deltaText = `+${isRep ? delta : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
       }
     } else if (delta < 0 && w1Val > 0) {
-      deltaText = `${isRep ? '-' + Math.abs(delta) : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
-      pctText = `${pct}%`;
-      colorType = 'negative';
+      const reps1 = w1Info.reps || 10;
+      const repsLatest = latestInfo.reps || 10;
+      const e1rm1 = w1Val * (1 + reps1 / 30);
+      const e1rmLatest = latestVal * (1 + repsLatest / 30);
+
+      if (repsLatest > reps1 && e1rmLatest >= e1rm1 * 0.98) {
+        const deltaReps = repsLatest - reps1;
+        const e1rmPct = Math.round(((e1rmLatest - e1rm1) / e1rm1) * 100);
+        deltaText = `${fmtVal(parseFloat(delta.toFixed(1)))}${unit} (+${deltaReps}r vol)`;
+        pctText = e1rmPct >= 0 ? `+${e1rmPct}% e1RM` : `+${deltaReps}r`;
+        colorType = 'positive';
+      } else {
+        deltaText = `${isRep ? '-' + Math.abs(delta) : fmtVal(parseFloat(delta.toFixed(1)))}${unit}`;
+        pctText = `${pct}%`;
+        colorType = 'negative';
+      }
     } else if (isPercV) {
       deltaText = 'Note %V';
       pctText = 'In Target';

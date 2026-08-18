@@ -1902,7 +1902,8 @@
                       style="font-size: 0.60rem; height: 18px; border-radius: 4px; vertical-align: middle;"
                       @click.stop="apriInfoStallo(block.exercise)"
                     >
-                      ⚠️ COACH: STALLO
+                      <v-icon size="11" class="mr-1">mdi-alert-circle</v-icon>
+                      COACH: STALLO
                     </v-chip>
                   </h4>
 
@@ -2936,7 +2937,7 @@
       <v-card class="card-glass-dark rounded-2xl border-soft pa-4 text-left" style="backdrop-filter: blur(25px) !important;">
         <div class="d-flex align-center mb-3">
           <v-avatar color="orange-darken-3" size="40" class="mr-3 text-white elevation-2">
-            <v-icon size="24">mdi-alert-decagram</v-icon>
+            <v-icon size="24">mdi-alert-circle</v-icon>
           </v-avatar>
           <div>
             <h3 class="text-subtitle-1 font-weight-black text-white mb-0" style="line-height: 1.2;">

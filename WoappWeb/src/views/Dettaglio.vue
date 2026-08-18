@@ -638,10 +638,10 @@
         style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.18), rgba(239, 68, 68, 0.08)) !important; border: 1.5px solid rgba(249, 115, 22, 0.5) !important; border-left: 4px solid #f97316 !important; border-radius: 12px !important; padding: 12px;"
       >
         <div class="d-flex align-start">
-          <v-icon color="orange-darken-2" class="mr-2 flex-shrink-0 mt-0.5" size="20">mdi-alert-decagram</v-icon>
+          <v-icon color="orange-darken-1" class="mr-2 flex-shrink-0 mt-0.5" size="20">mdi-alert-circle</v-icon>
           <div class="flex-grow-1">
             <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important;">
-              ⚠️ Coach Warning: Nessuna Progressione nel Mesociclo Precedente
+              Coach Warning: Nessuna Progressione nel Mesociclo Precedente
             </h4>
             <p class="text-slate font-weight-medium mb-2" style="font-size: 0.72rem; line-height: 1.4;">
               Su questo esercizio non sono state registrate progressioni tra W1 e W6 dello scorso mesociclo. 

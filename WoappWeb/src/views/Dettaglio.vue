@@ -461,7 +461,7 @@
                     </template>
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="suggerimentoRecord.recordAbsoluteReps !== null" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.62rem;">
+                      <span v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.62rem;">
                         x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                       </span>
                       <span v-if="suggerimentoRecord.recordAbsoluteDate && tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate)" class="text-super-caption text-cyan-lighten-4 font-weight-medium ml-1" style="font-size: 0.58rem; opacity: 0.9;">
@@ -1255,7 +1255,7 @@
 
           <!-- Card Premium Feedback e Miglior Carico per Week 6 -->
           <div 
-            v-if="sett === 6 && (!workout.flg_perc || !String(workout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(workout) || isOndaProgression(workout))" 
+            v-if="sett === 6 && isEsercizioEligibileW6(workout)" 
             class="w6-feedback-premium-box pt-3 pb-2.5 px-3 rounded-2xl border"
             :class="layoutCorrente === 'super_compatto' ? 'pt-2 pb-2 px-2' : ''"
             :style="{
@@ -1980,7 +1980,7 @@
 
                 <!-- Card Premium Feedback e Miglior Carico W6 Precedente -->
                 <div 
-                  v-if="w === 6 && (!previousWorkout.flg_perc || !String(previousWorkout.flg_perc).includes('V%')) && (!isCorpoLiberoEsercizio(previousWorkout) || isOndaProgression(previousWorkout))" 
+                  v-if="w === 6 && isEsercizioEligibileW6(previousWorkout)" 
                   class="w6-feedback-premium-box mt-3 pt-3 pb-2.5 px-3 rounded-2xl border"
                 >
                   <!-- Header Box W6 Precedente -->
@@ -2702,7 +2702,7 @@
                     {{ formatWeight(suggerimentoRecord.recordAbsolute) }} kg
                   </template>
                 </span>
-                <span v-if="suggerimentoRecord.recordAbsoluteReps !== null && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" class="text-caption font-weight-black ml-2" :style="{ color: 'var(--theme-primary-light, #38bdf8)' }" style="font-size: 0.72rem;">
+                <span v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" class="text-caption font-weight-black ml-2" :style="{ color: 'var(--theme-primary-light, #38bdf8)' }" style="font-size: 0.72rem;">
                   &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
                 </span>
               </div>
@@ -2741,7 +2741,7 @@
                       {{ formatWeight(suggerimentoRecord.record) }} kg
                     </template>
                   </span>
-                  <span v-if="suggerimentoRecord.recordRepsValue && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate ml-2" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
+                  <span v-if="suggerimentoRecord.recordRepsValue && suggerimentoRecord.recordRepsValue > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate ml-2" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
                     &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + formatFaticaAbbr(suggerimentoRecord.recordRepsFatica) + ')' : '' }}
                   </span>
                 </div>
@@ -4956,7 +4956,7 @@ const onBlurWeek = (sett) => {
   }
   activeEditingWeek.value = null;
 
-  if (sett === 6) {
+  if (sett === 6 && isEsercizioEligibileW6(workout.value)) {
     const valStr = String(inputSettimane.value[6]?.ins || '').trim();
     if (!valStr) {
       numIns6Val.value = '';
@@ -5026,7 +5026,7 @@ const confermaEditorEspanso = () => {
     inputSettimane.value[sett].ins = tempEspansoText.value;
     localEditingIns.value[sett] = tempEspansoText.value;
 
-    if (sett === 6) {
+    if (sett === 6 && isEsercizioEligibileW6(workout.value)) {
       const valStr = String(tempEspansoText.value || '').trim();
       if (!valStr) {
         numIns6Val.value = '';
@@ -5087,10 +5087,7 @@ watch(activeTabAnalisi, (newVal) => {
 
 const getRepsPerWeek = (sett) => {
   if (!workout.value) return 10;
-  const reps = workout.value['reps_week' + sett];
-  if (reps) return parseInt(reps, 10);
-  const presc = workout.value['des_week' + sett];
-  return estraiRepsDaPrescrizione(presc) || 10;
+  return estraiRepsEsercizioWeek(workout.value, sett, 10);
 };
 
 // --- LOGICA RECORD & INCREMENTI GHOST (Collegata a Store Centralizzato authStore.js) ---
@@ -9360,6 +9357,47 @@ const isOndaProgression = (ex) => {
   return repsW4 > repsW3 && repsW5 < repsW4;
 };
 
+function isEsercizioEligibileW6(ex) {
+  if (!ex || parseInt(ex.num_riga_giorno) === 0) return false;
+  if (ex.flg_perc && (String(ex.flg_perc).includes('V%') || String(ex.flg_perc).includes('%V') || String(ex.flg_perc).includes('V_PERC'))) return false;
+  if (isCorpoLiberoEsercizio(ex) && !isOndaProgression(ex)) return false;
+  return true;
+}
+
+function estraiRepsEsercizioWeek(ex, w, fallbackReps = 10) {
+  if (!ex) return fallbackReps > 0 ? fallbackReps : 10;
+  
+  // 1. Controlla prima le reps effettivamente scritte nella nota dell'utente (es. "160 x10r", "420 x6r")
+  const insVal = ex['ins_week' + w];
+  if (insVal) {
+    const inputReps = estraiRepsDaInput(insVal);
+    if (inputReps && inputReps > 0) return inputReps;
+  }
+  
+  // 2. Controlla campo reps_week specifico (se > 0)
+  const rVal = ex['reps_week' + w];
+  if (rVal && parseInt(rVal, 10) > 0) {
+    return parseInt(rVal, 10);
+  }
+  
+  // 3. Controlla prescrizione des_week specifico (se > 0)
+  const pReps = estraiRepsDaPrescrizione(ex['des_week' + w]);
+  if (pReps && pReps > 0) {
+    return pReps;
+  }
+  
+  // 4. Se la settimana è la 6 (es. AMRAP o test) o non ha reps, cerca a ritroso nelle altre settimane della stessa scheda (W5..W1)
+  for (let pw = 5; pw >= 1; pw--) {
+    const pwR = ex['reps_week' + pw];
+    if (pwR && parseInt(pwR, 10) > 0) return parseInt(pwR, 10);
+    const pwP = estraiRepsDaPrescrizione(ex['des_week' + pw]);
+    if (pwP && pwP > 0) return pwP;
+  }
+  
+  // 5. Fallback
+  return fallbackReps > 0 ? fallbackReps : 10;
+}
+
 const isManubriEsercizio = (ex) => {
   if (!ex) return false;
   const name = String(ex.des_esercizio || '').toLowerCase();
@@ -10179,13 +10217,11 @@ watch(posizionamentoSuperset, (nuovoValore) => {
   }
 });
 
-const getRepsForWeek = (w) => {
-  if (!workout.value) return null;
-  let reps = workout.value['reps_week' + w];
-  if (!reps) {
-    reps = estraiRepsDaPrescrizione(workout.value['des_week' + w]);
-  }
-  return reps ? parseInt(reps, 10) : null;
+const getRepsForWeek = (w, targetEx = null) => {
+  const ex = targetEx || workout.value;
+  if (!ex) return null;
+  const reps = estraiRepsEsercizioWeek(ex, w, null);
+  return (reps && reps > 0) ? reps : null;
 };
 
 const isWeek4Scarico = computed(() => {
@@ -10202,11 +10238,7 @@ const getPesoWeek2 = computed(() => {
 const targetRepsRange = computed(() => {
   if (!workout.value) return null;
   const wActive = settimanaAttiva.value;
-  let reps = workout.value['reps_week' + wActive];
-  if (!reps) {
-    reps = estraiRepsDaPrescrizione(workout.value['des_week' + wActive]);
-  }
-  return reps ? parseInt(reps, 10) : null;
+  return getRepsPerWeek(wActive);
 });
 
 
@@ -10214,12 +10246,8 @@ const isMatchingReps = (prevEx, w) => {
   const target = targetRepsRange.value;
   if (!target) return false;
   
-  let reps = prevEx['reps_week' + w];
-  if (!reps) {
-    reps = estraiRepsDaPrescrizione(prevEx['des_week' + w]);
-  }
-  
-  return reps && parseInt(reps, 10) === target;
+  const reps = estraiRepsEsercizioWeek(prevEx, w, target);
+  return reps === target;
 };
 
 const getExecutionDate = (prevEx, list, currWorkout) => {
@@ -12117,7 +12145,7 @@ function formatWeight(val) {
 function formatRepsDisplay(val) {
   if (val === null || val === undefined) return '-';
   const str = String(val).replace('.', ',').trim();
-  if (!str || str === '-') return '-';
+  if (!str || str === '-' || str === '0' || str === '0r') return '-';
   if (str.toLowerCase().endsWith('r')) return str;
   return str + 'r';
 }
@@ -13188,8 +13216,8 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
   if (valoreOriginale !== valoreNuovo) {
     const updates = { [campo]: valoreNuovo };
     
-    // Auto-estrazione per la week 6
-    if (settimana === 6 && tipo === 'ins') {
+    // Auto-estrazione per la week 6 (solo se l'esercizio è eligibile per feedback W6)
+    if (settimana === 6 && tipo === 'ins' && isEsercizioEligibileW6(workout.value)) {
       const valStr = String(valoreNuovo || '').trim();
       if (valStr) {
         const estratto = estraiNumeroMassimo(valStr);
@@ -13259,6 +13287,7 @@ const decrementaKgUnico = () => {
 };
 
 const salvaKgUnico = async () => {
+  if (!isEsercizioEligibileW6(workout.value)) return;
   numIns6ModificatoManualmente.value = true;
   if (!numIns6Val.value || String(numIns6Val.value).trim() === '') {
     await salvaDatoGenerale('num_ins6', '');
@@ -13563,16 +13592,15 @@ const suggerimentoRecord = computed(() => {
     if (rawInsW6) {
       const extractedW6 = parseFloat(estraiPesoDaInput(rawInsW6)) || 0;
       let pesoW6Num = 0;
-      let repsW6Num = 0;
+      let repsW6Num = estraiRepsEsercizioWeek(prevEx, 6, targetReps);
+
       if (!isCorpoLibero && extractedW6 > 0) {
         pesoW6Num = extractedW6;
-        repsW6Num = parseInt(prevEx.reps_week6) || targetReps;
       } else if (isCorpoLibero && extractedW6 === 0) {
         pesoW6Num = 0;
-        repsW6Num = estraiRepsDaInput(rawInsW6) || parseFloat(rawInsW6) || 0;
+        repsW6Num = estraiRepsDaInput(rawInsW6) || parseFloat(rawInsW6) || repsW6Num || 0;
       } else {
         pesoW6Num = extractedW6;
-        repsW6Num = parseInt(prevEx.reps_week6) || targetReps;
       }
 
       if (pesoW6Num > 0 || (isCorpoLibero && repsW6Num > 0)) {
@@ -13620,19 +13648,15 @@ const suggerimentoRecord = computed(() => {
       if (val) {
         const extractedVal = parseFloat(estraiPesoDaInput(val)) || 0;
         let pesoNum = 0;
-        let repsNum = 0;
-        let repsPrescr = prevEx['reps_week' + i] || estraiRepsDaPrescrizione(prevEx['des_week' + i]);
-        const repsTargetWeek = repsPrescr ? parseInt(repsPrescr, 10) : targetReps;
+        let repsNum = estraiRepsEsercizioWeek(prevEx, i, targetReps);
 
         if (!isCorpoLibero && extractedVal > 0) {
           pesoNum = extractedVal;
-          repsNum = repsTargetWeek;
         } else if (isCorpoLibero && extractedVal === 0) {
           pesoNum = 0;
-          repsNum = estraiRepsDaInput(val) || parseFloat(val) || 0;
+          repsNum = estraiRepsDaInput(val) || parseFloat(val) || repsNum || 0;
         } else {
           pesoNum = extractedVal;
-          repsNum = repsTargetWeek;
         }
 
         if (pesoNum > 0 || (isCorpoLibero && repsNum > 0)) {

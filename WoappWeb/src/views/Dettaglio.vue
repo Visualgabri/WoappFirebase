@@ -6682,6 +6682,27 @@ const getGhostWeightsRangeForWeek = (sett) => {
 
   const isDifficileOStallo = info ? isInputIndicaLimiteOStallo(info.baseInsText, info.noteText, info.faticaText) : false;
 
+  // Controllo se nella scheda attuale a pari repsTarget l'atleta ha già eseguito questo peso (es. W3 = 12 kg a 10 reps per W6 con 10 reps)
+  let prevMatchingRepsRecord = null;
+  if (inputSettimane.value && sett > 1) {
+    for (let w = 1; w < sett; w++) {
+      const wTarget = getRepsPerWeek(w);
+      if (wTarget === repsTarget) {
+        const insPrev = inputSettimane.value[w]?.ins;
+        if (insPrev) {
+          const pPrev = parseFloat(estraiPesoDaInput(insPrev)) || 0;
+          let rPrev = estraiRepsDaInput(insPrev);
+          if (rPrev === null || isNaN(rPrev) || rPrev <= 0) rPrev = wTarget;
+          if (pPrev > 0) {
+            if (!prevMatchingRepsRecord || pPrev > prevMatchingRepsRecord.peso || (pPrev === prevMatchingRepsRecord.peso && rPrev > prevMatchingRepsRecord.reps)) {
+              prevMatchingRepsRecord = { week: w, peso: pPrev, reps: rPrev };
+            }
+          }
+        }
+      }
+    }
+  }
+
   const smartWeight = getCaricoConsigliatoViaDiMezzoForWeek(sett);
   const potenzialeRaw = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
   let pesoConsigliato = (smartWeight !== null && smartWeight > pesoBase) 
@@ -6719,7 +6740,7 @@ const getGhostWeightsRangeForWeek = (sett) => {
     };
   }
 
-  // Scenario 0: Intensificazione (repsTarget < repsBaseVal, es. W5 target 9r -> W6 target 8r)
+  // Scenario 0: Intensificazione (repsTarget < repsBaseVal, es. W5 target 9r -> W6 target 8r o W5 10x13r -> W6 10r)
   if (repsTarget < repsBaseVal) {
     const e1rmBase = pesoBase * (1 + repsBaseVal / 30);
     const e1rmConsigliato = pesoConsigliato * (1 + repsTarget / 30);
@@ -6732,8 +6753,31 @@ const getGhostWeightsRangeForWeek = (sett) => {
     const repsSfidanteBase = repsBaseVal + 2;
 
     const prudenzialeValStr = `${pesoBase}x${repsProgressioneBase}r`;
-    const consigliatoValStr = isValidoTargetReps ? String(pesoConsigliato) : `${pesoBase}x${repsProgressioneBase}r`;
+    
+    let consigliatoValStr;
+    let consigliatoDisplayStr;
+    let consigliatoLabelStr;
+
+    if (isValidoTargetReps) {
+      if (prevMatchingRepsRecord && pesoConsigliato === prevMatchingRepsRecord.peso && prevMatchingRepsRecord.reps >= repsTarget) {
+        const nextReps = prevMatchingRepsRecord.reps + 1;
+        consigliatoValStr = `${pesoConsigliato}x${nextReps}r`;
+        consigliatoDisplayStr = `${formatWeight(pesoConsigliato)}x${nextReps}r`;
+        consigliatoLabelStr = sett === 6 ? 'Consigliato (Picco W6)' : 'Consigliato (+1r)';
+      } else {
+        consigliatoValStr = String(pesoConsigliato);
+        consigliatoDisplayStr = `${formatWeight(pesoConsigliato)} kg`;
+        consigliatoLabelStr = sett === 6 ? 'Consigliato (Picco W6)' : 'Consigliato (Aumento)';
+      }
+    } else {
+      consigliatoValStr = `${pesoBase}x${repsProgressioneBase}r`;
+      consigliatoDisplayStr = `${formatWeight(pesoBase)}x${repsProgressioneBase}r`;
+      consigliatoLabelStr = 'Consigliato (+1r)';
+    }
+
     const sfidanteValStr = isValidoTargetReps ? String(pesoSfidante) : `${pesoBase}x${repsSfidanteBase}r`;
+    const sfidanteDisplayStr = isValidoTargetReps ? `${formatWeight(pesoSfidante)} kg` : `${formatWeight(pesoBase)}x${repsSfidanteBase}r`;
+    const sfidanteLabelStr = isValidoTargetReps ? (sett === 6 ? 'Sfidante (Picco W6)' : 'Sfidante (+Kg)') : 'Sfidante (+2r)';
 
     return {
       prudenziale: {
@@ -6743,13 +6787,13 @@ const getGhostWeightsRangeForWeek = (sett) => {
       },
       consigliato: {
         value: consigliatoValStr,
-        display: isValidoTargetReps ? `${formatWeight(pesoConsigliato)} kg` : `${formatWeight(pesoBase)}x${repsProgressioneBase}r`,
-        label: isValidoTargetReps ? (sett === 6 ? 'Consigliato (Picco W6)' : 'Consigliato (Aumento)') : 'Consigliato (+1r)'
+        display: consigliatoDisplayStr,
+        label: consigliatoLabelStr
       },
       sfidante: {
         value: sfidanteValStr,
-        display: isValidoTargetReps ? `${formatWeight(pesoSfidante)} kg` : `${formatWeight(pesoBase)}x${repsSfidanteBase}r`,
-        label: isValidoTargetReps ? (sett === 6 ? 'Sfidante (Picco W6)' : 'Sfidante (+Kg)') : 'Sfidante (+2r)'
+        display: sfidanteDisplayStr,
+        label: sfidanteLabelStr
       }
     };
   }
@@ -6803,6 +6847,21 @@ const getGhostWeightsRangeForWeek = (sett) => {
   const prudenzialeDisplay = isVolumeProgressionAlready ? `${formatWeight(pesoBase)} kg` : `${formatWeight(pesoBase)}x${repsVolume}r`;
   const prudenzialeLabel = isVolumeProgressionAlready ? 'Prudenziale (Stesso peso)' : 'Prudenziale (+1r)';
 
+  let standardConsigliatoVal;
+  let standardConsigliatoDisplay;
+  let standardConsigliatoLabel;
+
+  if (prevMatchingRepsRecord && pesoConsigliato === prevMatchingRepsRecord.peso && prevMatchingRepsRecord.reps >= repsTarget) {
+    const nextReps = prevMatchingRepsRecord.reps + 1;
+    standardConsigliatoVal = `${pesoConsigliato}x${nextReps}r`;
+    standardConsigliatoDisplay = `${formatWeight(pesoConsigliato)}x${nextReps}r`;
+    standardConsigliatoLabel = sett === 6 ? 'Consigliato (Picco W6)' : 'Consigliato (+1r)';
+  } else {
+    standardConsigliatoVal = String(pesoConsigliato);
+    standardConsigliatoDisplay = `${formatWeight(pesoConsigliato)} kg`;
+    standardConsigliatoLabel = 'Consigliato';
+  }
+
   return {
     prudenziale: {
       value: prudenzialeValue,
@@ -6810,9 +6869,9 @@ const getGhostWeightsRangeForWeek = (sett) => {
       label: prudenzialeLabel
     },
     consigliato: {
-      value: String(pesoConsigliato),
-      display: `${formatWeight(pesoConsigliato)} kg`,
-      label: 'Consigliato'
+      value: standardConsigliatoVal,
+      display: standardConsigliatoDisplay,
+      label: standardConsigliatoLabel
     },
     sfidante: {
       value: String(pesoSfidante),
@@ -8681,7 +8740,7 @@ const getGhostStatusPrecedente = (w) => {
     const currentReps = estraiRepsDaPrescrizione(currentInput) || parseFloat(String(currentInput).replace(/,/g, '.').trim());
     const refReps = estraiRepsDaPrescrizione(refInput) || parseFloat(String(refInput).replace(/,/g, '.').trim());
     if (!isNaN(currentReps) && !isNaN(refReps)) {
-      return currentReps >= refReps ? 'up' : 'down';
+      return currentReps > refReps ? 'up' : 'down';
     }
     return 'up';
   }
@@ -8696,7 +8755,13 @@ const getGhostStatusPrecedente = (w) => {
   const refPeso = parseFloat(refPesoStr);
 
   if (isNaN(currentPeso) || isNaN(refPeso)) return 'filled';
-  return currentPeso >= refPeso ? 'up' : 'down';
+  
+  const currentReps = estraiRepsDaInput(currentInput) || 10;
+  const refReps = estraiRepsDaInput(refInput) || 10;
+
+  if (currentPeso > refPeso) return 'up';
+  if (currentPeso === refPeso) return currentReps > refReps ? 'up' : 'down';
+  return 'down';
 };
 
 const getGhostFieldClassPrecedente = (w) => {
@@ -12776,8 +12841,8 @@ const getGhostStatus = (sett) => {
 
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return 'filled'; // Inserito ma senza record o a % (sarà Arancione)
-    // Se è un overload (aumento peso consigliato) e non c'è input corrente, evidenzia verde
-    if (ghost.isOverload && !currentInput) return 'up';
+  // Se è un overload (aumento peso consigliato) e non c'è input corrente, evidenzia verde
+  if (ghost.isOverload && !currentInput) return 'up';
 
   if (sett === 1) return 'up'; // Week 1 sempre verde come concordato
 
@@ -12786,20 +12851,83 @@ const getGhostStatus = (sett) => {
     const currentReps = parseFloat(String(currentInput).replace(/,/g, '.').trim());
     const ghostReps = parseFloat(String(ghost.text).replace(/,/g, '.').trim());
     if (!isNaN(currentReps) && !isNaN(ghostReps)) {
-      return currentReps >= ghostReps ? 'up' : 'down';
+      return currentReps > ghostReps ? 'up' : 'down';
     }
     return 'up'; // Se non riusciamo a confrontare, considera positivo
   }
 
   const currentPesoStr = estraiPesoDaInput(currentInput);
   if (!currentPesoStr) return 'filled';
+  const currentPeso = parseFloat(currentPesoStr);
+  if (isNaN(currentPeso) || currentPeso <= 0) return 'filled';
 
-  // Confronta il peso attuale con il peso REALE della settimana di riferimento (ghost.text),
-  // NON con il peso proposto dall'algoritmo RIR (ghost.peso).
-  // Se l'utente ha aumentato rispetto alla settimana precedente, appare verde.
-  const refPesoStr = estraiPesoDaInput(ghost.text);
-  const refPeso = refPesoStr ? parseFloat(refPesoStr) : ghost.peso;
-  return parseFloat(currentPesoStr) >= refPeso ? 'up' : 'down';
+  const targetReps = getRepsPerWeek(sett);
+  const currentReps = estraiRepsDaInput(currentInput) || targetReps;
+
+  const baseInfo = getBaseWeekInfo(sett);
+  const refPesoStr = estraiPesoDaInput(baseInfo?.baseInsText || ghost.text);
+  const refPeso = refPesoStr ? parseFloat(refPesoStr) : (ghost.peso || 0);
+  const refReps = baseInfo?.repsBase || 10;
+
+  // 1. Controllo se nella scheda attuale a pari targetReps esiste una settimana precedente di confronto (es. W3 vs W6)
+  let prevSameTargetRecord = null;
+  if (inputSettimane.value && sett > 1) {
+    for (let w = 1; w < sett; w++) {
+      const wTarget = getRepsPerWeek(w);
+      if (wTarget === targetReps) {
+        const insPrev = inputSettimane.value[w]?.ins;
+        if (insPrev) {
+          const pPrev = parseFloat(estraiPesoDaInput(insPrev)) || 0;
+          let rPrev = estraiRepsDaInput(insPrev);
+          if (rPrev === null || isNaN(rPrev) || rPrev <= 0) rPrev = wTarget;
+          if (pPrev > 0) {
+            if (!prevSameTargetRecord || pPrev > prevSameTargetRecord.peso || (pPrev === prevSameTargetRecord.peso && rPrev > prevSameTargetRecord.reps)) {
+              prevSameTargetRecord = { week: w, peso: pPrev, reps: rPrev };
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Se c'è una settimana precedente a pari reps target (es. W3 con 12kg x 10r per W6 con 10r):
+  // Se pareggiamo esattamente o siamo sotto a quel record, è 'down' (BLU).
+  if (prevSameTargetRecord && prevSameTargetRecord.peso > 0) {
+    if (currentPeso < prevSameTargetRecord.peso) {
+      // Peso inferiore al record a pari reps: controlliamo se l'e1RM ha compensato in modo eccezionale
+      const currentE1RM = currentPeso * (1 + currentReps / 30);
+      const prevE1RM = prevSameTargetRecord.peso * (1 + prevSameTargetRecord.reps / 30);
+      return currentE1RM > prevE1RM + 0.05 ? 'up' : 'down';
+    } else if (currentPeso === prevSameTargetRecord.peso) {
+      // Stesso peso del record a pari reps: solo se facciamo più reps è 'up' (verde), altrimenti 'down' (blu)
+      return currentReps > prevSameTargetRecord.reps ? 'up' : 'down';
+    } else {
+      // Carico strettamente superiore al record a pari reps: se chiuse almeno a target reps è 'up'
+      const currentE1RM = currentPeso * (1 + currentReps / 30);
+      const prevE1RM = prevSameTargetRecord.peso * (1 + prevSameTargetRecord.reps / 30);
+      return currentE1RM >= prevE1RM ? 'up' : 'down';
+    }
+  }
+
+  // 2. Confronto standard con la settimana di riferimento (baseW / W-1)
+  if (refPeso > 0) {
+    if (currentPeso > refPeso) {
+      // Più peso: verifica che l'e1RM non sia crollato a causa di reps dimezzate
+      const currentE1RM = currentPeso * (1 + currentReps / 30);
+      const refE1RM = refPeso * (1 + refReps / 30);
+      return (currentE1RM >= refE1RM * 0.95) ? 'up' : 'down';
+    } else if (currentPeso === refPeso) {
+      // Stesso peso: verde solo se ci sono più ripetizioni rispetto alla settimana base
+      return currentReps > refReps ? 'up' : 'down';
+    } else {
+      // Meno peso: verde solo se compensato con reps altissime (e1RM maggiore)
+      const currentE1RM = currentPeso * (1 + currentReps / 30);
+      const refE1RM = refPeso * (1 + refReps / 30);
+      return currentE1RM > refE1RM + 0.05 ? 'up' : 'down';
+    }
+  }
+
+  return 'up';
 };
 
 const getGhostFieldClass = (sett) => {

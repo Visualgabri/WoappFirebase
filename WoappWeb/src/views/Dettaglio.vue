@@ -6726,23 +6726,21 @@ const getGhostWeightsRangeForWeek = (sett) => {
     // Un peso senza reps per le repsTarget è valido solo se pareggia o supera l'1RM base (entro il 95%)
     const isValidoTargetReps = e1rmConsigliato >= (e1rmBase * 0.95);
 
-    // Se l'atleta vuole progredire a parità di peso base:
-    // Prudenziale (Safe): Consolida il volume base già raggiunto in W5 (es. 57x16r)
-    // Consigliato (Smart): Progressione +1r (es. 57x17r) se non c'è un incremento di peso valido
-    // Sfidante: Spinta +2r (es. 57x18r) se non c'è un incremento di peso valido
+    // Se l'atleta vuole progredire a parità di peso base (Safe):
+    // Deve mantenere almeno il volume base già raggiunto (es. 65x13r)
     const repsSafeBase = repsBaseVal;
     const repsProgressioneBase = repsBaseVal + 1;
     const repsSfidanteBase = repsBaseVal + 2;
 
-    const prudenzialeValStr = isValidoTargetReps ? String(pesoBase) : `${pesoBase}x${repsSafeBase}r`;
+    const prudenzialeValStr = `${pesoBase}x${repsSafeBase}r`;
     const consigliatoValStr = isValidoTargetReps ? String(pesoConsigliato) : `${pesoBase}x${repsProgressioneBase}r`;
     const sfidanteValStr = isValidoTargetReps ? String(pesoSfidante) : `${pesoBase}x${repsSfidanteBase}r`;
 
     return {
       prudenziale: {
         value: prudenzialeValStr,
-        display: isValidoTargetReps ? `${formatWeight(pesoBase)} kg` : `${formatWeight(pesoBase)}x${repsSafeBase}r`,
-        label: isValidoTargetReps ? 'Prudenziale' : 'Consolida base'
+        display: `${formatWeight(pesoBase)}x${repsSafeBase}r`,
+        label: 'Consolida volume'
       },
       consigliato: {
         value: consigliatoValStr,

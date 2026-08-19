@@ -30,30 +30,42 @@
     <v-card class="premium-card rounded-xl text-left border pa-3 mb-3.5" elevation="1">
       <v-row dense class="align-center">
         <!-- Tipo di Dati da Caricare -->
-        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 3 : 4">
-          <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-1" style="font-size: 0.60rem;">Tipo Dati</span>
+        <v-col cols="12" sm="12" :md="tipoDatiCaricare === 'storyboard' ? 4 : 5">
+          <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-1" style="font-size: 0.60rem;">Tabella Database</span>
           <v-btn-toggle
             v-model="tipoDatiCaricare"
             mandatory
             color="orange-darken-3"
             variant="outlined"
-            class="d-flex w-100"
-            style="height: 34px; border-radius: 8px;"
+            class="d-flex w-100 flex-wrap"
+            style="min-height: 34px; border-radius: 8px;"
             @update:model-value="gestisciCambioTipoDati"
           >
-            <v-btn value="storyboard" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 100%; font-size: 0.70rem !important;">
-              <v-icon start size="14" class="mr-1">mdi-format-list-bulleted</v-icon>
+            <v-btn value="storyboard" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
+              <v-icon start size="13" class="mr-1">mdi-format-list-bulleted</v-icon>
               Storyboard
             </v-btn>
-            <v-btn value="workout_t" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 100%; font-size: 0.70rem !important;">
-              <v-icon start size="14" class="mr-1">mdi-calendar-month</v-icon>
+            <v-btn value="workout_t" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
+              <v-icon start size="13" class="mr-1">mdi-calendar-month</v-icon>
               Workout T
+            </v-btn>
+            <v-btn value="massimali" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
+              <v-icon start size="13" class="mr-1">mdi-weight-lifter</v-icon>
+              Massimali
+            </v-btn>
+            <v-btn value="clienti" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
+              <v-icon start size="13" class="mr-1">mdi-account-details</v-icon>
+              Cliente
+            </v-btn>
+            <v-btn value="infortuni" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
+              <v-icon start size="13" class="mr-1">mdi-bandage</v-icon>
+              Infortuni
             </v-btn>
           </v-btn-toggle>
         </v-col>
 
         <!-- Atleta -->
-        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 4 : 5">
+        <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 3 : 4">
           <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-1" style="font-size: 0.60rem;">Atleta</span>
           <v-autocomplete
             v-model="atletaSelezionato"
@@ -98,7 +110,7 @@
             class="text-white font-weight-bold text-none px-3"
             style="height: 36px; font-size: 0.76rem;"
             :disabled="!atletaSelezionato || (tipoDatiCaricare === 'storyboard' && !schedaSelezionata)"
-            @click="caricaEsercizi"
+            @click="caricaDati"
           >
             <v-icon class="mr-1" size="16">mdi-cloud-download</v-icon>
             CARICA DATI
@@ -712,25 +724,46 @@
         </div>
       </div>
 
-      <!-- TABS PER SWITCHARE TRA STORYBOARD E WORKOUT_T -->
-      <v-tabs v-model="activeTab" color="orange-darken-3" density="compact" grow class="mb-3 border-bottom-soft">
+      <!-- TABS PER SWITCHARE TRA TUTTE LE TABELLE DATABASE -->
+      <v-tabs v-model="activeTab" color="orange-darken-3" density="compact" class="mb-3 border-bottom-soft flex-wrap">
         <v-tab value="storyboard" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
-          <v-icon start size="16" class="mr-1">mdi-format-list-bulleted</v-icon>
+          <v-icon start size="15" class="mr-1">mdi-format-list-bulleted</v-icon>
           Storyboard
           <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="orange-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="records.length > 0">
             {{ records.length }}
           </v-chip>
         </v-tab>
         <v-tab value="workout_t" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
-          <v-icon start size="16" class="mr-1">mdi-calendar-month</v-icon>
+          <v-icon start size="15" class="mr-1">mdi-calendar-month</v-icon>
           Workout T
           <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="blue-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="workoutTRecords.length > 0">
             {{ workoutTRecords.length }}
           </v-chip>
         </v-tab>
+        <v-tab value="massimali" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
+          <v-icon start size="15" class="mr-1">mdi-weight-lifter</v-icon>
+          Massimali (WOAPP_MASSIMALI_R)
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="green-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="massimaliRecords.length > 0">
+            {{ massimaliRecords.length }}
+          </v-chip>
+        </v-tab>
+        <v-tab value="clienti" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
+          <v-icon start size="15" class="mr-1">mdi-account-details</v-icon>
+          Anagrafica Cliente
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="purple-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="clienteRecord">
+            1
+          </v-chip>
+        </v-tab>
+        <v-tab value="infortuni" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
+          <v-icon start size="15" class="mr-1">mdi-bandage</v-icon>
+          Infortuni
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="red-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="infortuniRecords.length > 0">
+            {{ infortuniRecords.length }}
+          </v-chip>
+        </v-tab>
       </v-tabs>
 
-      <!-- TAB STORYBOARD -->
+      <!-- TAB 1: STORYBOARD -->
       <div v-show="activeTab === 'storyboard'">
         <!-- Nessuna scheda selezionata -->
         <div v-if="!schedaSelezionata" class="text-center py-12 border-dashed rounded-xl my-4">
@@ -1103,7 +1136,7 @@
         </div>
       </div>
 
-      <!-- TAB WORKOUT_T -->
+      <!-- TAB 2: WORKOUT_T -->
       <div v-show="activeTab === 'workout_t'">
         <!-- Spinner Caricamento -->
         <div v-if="loadingWorkoutT" class="text-center my-12 py-12">
@@ -1127,6 +1160,7 @@
                 <th class="col-wt-scheda">Scheda #</th>
                 <th class="col-wt-date">Data Inizio</th>
                 <th class="col-wt-date">Scadenza</th>
+                <th class="col-wt-number">Peso Atleta</th>
                 <th class="col-wt-desc">Descrizione</th>
                 <th class="col-wt-note">Note Mesociclo</th>
                 <th class="col-wt-flag">Ramp Test</th>
@@ -1210,6 +1244,18 @@
                     type="text"
                     class="excel-input text-center"
                     placeholder="DD/MM/YYYY"
+                    @input="segnaModificatoWT(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Peso Atleta (num_peso_WT) -->
+                <td class="col-wt-number">
+                  <input
+                    v-model="row.num_peso_WT"
+                    type="text"
+                    class="excel-input text-center font-weight-bold text-orange-lighten-2"
+                    placeholder="Kg"
                     @input="segnaModificatoWT(row)"
                     :disabled="row.isDeleted"
                   />
@@ -1375,7 +1421,648 @@
             AGGIUNGI MESOCICLO
           </v-btn>
           <span class="text-caption text-muted font-italic">
-            * I record di WORKOUT_T definiscono le impostazioni generali, la data di inizio e la scadenza di ciascun mesociclo.
+            * I record di WORKOUT_T definiscono le impostazioni generali, peso atleta, data di inizio e scadenza di ciascun mesociclo.
+          </span>
+        </div>
+      </div>
+
+      <!-- TAB 3: WOAPP_MASSIMALI_R -->
+      <div v-show="activeTab === 'massimali'">
+        <!-- Spinner Caricamento -->
+        <div v-if="loadingMassimali" class="text-center my-12 py-12">
+          <v-progress-circular indeterminate color="green" size="48"></v-progress-circular>
+          <p class="mt-4 text-slate text-body-2">Caricamento massimali WOAPP_MASSIMALI_R...</p>
+        </div>
+
+        <!-- Nessun dato trovato -->
+        <div v-else-if="massimaliRecords.length === 0" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="grey" size="48" class="mb-2">mdi-database-alert-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Nessun massimale trovato</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">Non ci sono massimali registrati per questo atleta. Clicca su "+ Aggiungi Massimale" per crearne uno.</p>
+        </div>
+
+        <!-- Tabella Excel WOAPP_MASSIMALI_R -->
+        <div v-else class="table-container">
+          <table class="excel-table">
+            <thead>
+              <tr>
+                <th class="sticky-col col-actions">Azioni</th>
+                <th class="col-mas-data">Data</th>
+                <th class="col-mas-ex">Esercizio</th>
+                <th class="col-mas-id">ID Es.</th>
+                <th class="col-mas-kg">Kg Massimale</th>
+                <th class="col-mas-flag">RM Teorico</th>
+                <th class="col-mas-note">Note / Formula</th>
+                <th class="col-mas-num">Rapp. BW</th>
+                <th class="col-mas-num">Rapp. MM</th>
+                <th class="col-mas-num">Peso Atleta</th>
+                <th class="col-mas-num">% BF</th>
+                <th class="col-mas-data">Data Peso</th>
+                <th class="col-mas-num">Livello</th>
+                <th class="col-mas-num">Target Kg</th>
+                <th class="col-mas-num">Target Liv.</th>
+                <th class="col-mas-num">Kg Mancanti</th>
+                <th class="col-mas-num">% Mancanti</th>
+                <th class="col-mas-flag">Escludi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(row, rowIndex) in sortedMassimaliRecords"
+                :key="row.localId"
+                :class="{
+                  'row-dirty': row.isDirty,
+                  'row-new': row.isNew,
+                  'row-deleted': row.isDeleted
+                }"
+              >
+                <!-- Azioni -->
+                <td class="sticky-col col-actions align-center justify-center">
+                  <div class="d-flex align-center justify-center gap-1">
+                    <!-- Duplica -->
+                    <v-btn
+                      icon
+                      size="x-small"
+                      variant="text"
+                      color="blue-lighten-2"
+                      title="Duplica massimale"
+                      @click="duplicaMassimale(rowIndex)"
+                    >
+                      <v-icon size="14">mdi-content-copy</v-icon>
+                    </v-btn>
+                    <!-- Elimina/Ripristina -->
+                    <v-btn
+                      icon
+                      size="x-small"
+                      variant="text"
+                      :color="row.isDeleted ? 'green-lighten-2' : 'red-lighten-2'"
+                      :title="row.isDeleted ? 'Annulla eliminazione' : 'Segna per eliminazione'"
+                      @click="toggleEliminaMassimale(rowIndex)"
+                    >
+                      <v-icon size="14">{{ row.isDeleted ? 'mdi-restore' : 'mdi-delete' }}</v-icon>
+                    </v-btn>
+                  </div>
+                </td>
+
+                <!-- Data -->
+                <td class="col-mas-data">
+                  <input
+                    v-model="row.dat_data"
+                    type="text"
+                    class="excel-input text-center font-weight-bold"
+                    placeholder="DD/MM/YYYY"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Esercizio -->
+                <td class="col-mas-ex">
+                  <input
+                    v-model="row.des_esercizio"
+                    type="text"
+                    class="excel-input font-weight-bold"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- ID Es -->
+                <td class="col-mas-id">
+                  <input
+                    v-model="row.ID_esercizio"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Kg Massimale -->
+                <td class="col-mas-kg">
+                  <input
+                    v-model="row.num_kg"
+                    type="text"
+                    class="excel-input text-center font-weight-black text-orange-lighten-2"
+                    placeholder="Kg"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- RM Teorico -->
+                <td class="col-mas-flag text-center">
+                  <v-checkbox-btn
+                    v-model="row.flg_rm_teorico"
+                    :true-value="true"
+                    :false-value="false"
+                    color="orange-darken-3"
+                    @update:model-value="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                    class="d-inline-flex"
+                  ></v-checkbox-btn>
+                </td>
+
+                <!-- Note / Formula -->
+                <td class="col-mas-note">
+                  <input
+                    v-model="row.des_note"
+                    type="text"
+                    class="excel-input"
+                    placeholder="Note o formula (es. Calcolato da 5x90KG)"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Rapp. BW -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_rapp_BW"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Rapp. MM -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_rapp_MM"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Peso Atleta -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_peso"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- % BF -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_BF"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Data Peso -->
+                <td class="col-mas-data">
+                  <input
+                    v-model="row.data_peso"
+                    type="text"
+                    class="excel-input text-center"
+                    placeholder="DD/MM/YYYY"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Livello -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_lv"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Target Kg -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_obiettivo_kg"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Target Liv. -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_obiettivo_lv"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Kg Mancanti -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_kg_mancanti_ob"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- % Mancanti -->
+                <td class="col-mas-num">
+                  <input
+                    v-model="row.num_perc_mancanti_ob"
+                    type="text"
+                    class="excel-input text-center"
+                    @input="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Escludi -->
+                <td class="col-mas-flag text-center">
+                  <v-checkbox-btn
+                    v-model="row.flg_escludi"
+                    :true-value="true"
+                    :false-value="false"
+                    color="orange-darken-3"
+                    @update:model-value="segnaModificatoMassimali(row)"
+                    :disabled="row.isDeleted"
+                    class="d-inline-flex"
+                  ></v-checkbox-btn>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pulsanti sotto-tabella WOAPP_MASSIMALI_R -->
+        <div class="d-flex flex-wrap justify-space-between align-center mt-4 pt-3 border-top-soft">
+          <v-btn color="orange-darken-3" variant="text" rounded="lg" @click="aggiungiMassimale" :disabled="loadingMassimali">
+            <v-icon class="mr-1">mdi-plus</v-icon>
+            AGGIUNGI MASSIMALE
+          </v-btn>
+          <span class="text-caption text-muted font-italic">
+            * I record di WOAPP_MASSIMALI_R tracciano lo storico dei test massimali e le stime teoriche dell'atleta.
+          </span>
+        </div>
+      </div>
+
+      <!-- TAB 4: CLIENTI (Anagrafica Atleta) -->
+      <div v-show="activeTab === 'clienti'">
+        <!-- Spinner Caricamento -->
+        <div v-if="loadingCliente" class="text-center my-12 py-12">
+          <v-progress-circular indeterminate color="purple" size="48"></v-progress-circular>
+          <p class="mt-4 text-slate text-body-2">Caricamento anagrafica CLIENTE...</p>
+        </div>
+
+        <div v-else-if="!clienteRecord" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="grey" size="48" class="mb-2">mdi-account-off-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Nessun dato anagrafico trovato</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">Nessun record trovato nella collezione CLIENTI per questo atleta.</p>
+          <v-btn color="orange-darken-3" variant="tonal" rounded="lg" @click="creaSchedaClienteDefault" class="mt-3 text-none">
+            <v-icon class="mr-1">mdi-account-plus</v-icon>
+            Crea Anagrafica Base
+          </v-btn>
+        </div>
+
+        <div v-else class="pa-2">
+          <v-card class="card-glass border rounded-xl pa-4" style="background: rgba(15, 23, 42, 0.4) !important;">
+            <h4 class="text-subtitle-1 font-weight-black text-slate-dark mb-3 d-flex align-center">
+              <v-icon color="purple-lighten-2" class="mr-2">mdi-account-circle</v-icon>
+              Dati Anagrafici Atleta (ID: {{ clienteRecord.ID_cliente }})
+            </h4>
+
+            <v-row dense>
+              <v-col cols="12" sm="6" md="4">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Nome</span>
+                <v-text-field
+                  v-model="clienteRecord.Nome"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Cognome</span>
+                <v-text-field
+                  v-model="clienteRecord.Cognome"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Email Principale</span>
+                <v-text-field
+                  v-model="clienteRecord.des_email"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Email WoApp</span>
+                <v-text-field
+                  v-model="clienteRecord.des_email_woapp"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="2">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Sesso</span>
+                <v-select
+                  v-model="clienteRecord.flg_sesso"
+                  :items="['M', 'F']"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-select>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="3">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Data di Nascita</span>
+                <v-text-field
+                  v-model="clienteRecord.dat_data_nascita"
+                  placeholder="DD/MM/YYYY"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="3">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Altezza (cm)</span>
+                <v-text-field
+                  v-model="clienteRecord.num_altezza"
+                  placeholder="es. 175"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Scheda Selezionata</span>
+                <v-text-field
+                  v-model="clienteRecord.SchedaSelezionata"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Tipo Vista Dettagli</span>
+                <v-select
+                  v-model="clienteRecord.TipoVistaDettagli"
+                  :items="['TRUE', 'FALSE']"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-select>
+              </v-col>
+
+              <v-col cols="12">
+                <span class="text-super-caption text-slate-dark font-weight-black uppercase d-block mb-1">Note Coach</span>
+                <v-textarea
+                  v-model="clienteRecord.Note"
+                  rows="2"
+                  variant="outlined"
+                  density="compact"
+                  color="orange-darken-3"
+                  rounded="lg"
+                  @update:model-value="segnaModificatoCliente"
+                  hide-details
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-card>
+        </div>
+      </div>
+
+      <!-- TAB 5: INFORTUNI -->
+      <div v-show="activeTab === 'infortuni'">
+        <!-- Spinner Caricamento -->
+        <div v-if="loadingInfortuni" class="text-center my-12 py-12">
+          <v-progress-circular indeterminate color="red" size="48"></v-progress-circular>
+          <p class="mt-4 text-slate text-body-2">Caricamento infortuni atleta...</p>
+        </div>
+
+        <!-- Nessun dato trovato -->
+        <div v-else-if="infortuniRecords.length === 0" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="grey" size="48" class="mb-2">mdi-bandage</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Nessun infortunio registrato</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">Non ci sono fastidi o infortuni registrati per questo atleta. Clicca su "+ Segnala Infortunio" per aggiungerne uno.</p>
+        </div>
+
+        <!-- Tabella Excel INFORTUNI -->
+        <div v-else class="table-container">
+          <table class="excel-table">
+            <thead>
+              <tr>
+                <th class="sticky-col col-actions">Azioni</th>
+                <th class="col-inf-stato">Stato</th>
+                <th class="col-inf-data">Data Inizio</th>
+                <th class="col-inf-data">Data Risoluzione</th>
+                <th class="col-inf-zona">Articolazione / Zona</th>
+                <th class="col-inf-gravita">Gravità</th>
+                <th class="col-inf-num">Riduzione %</th>
+                <th class="col-inf-flag">Applica Riduz.</th>
+                <th class="col-inf-ex">Esercizi Coinvolti</th>
+                <th class="col-inf-note">Note Fastidio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(row, rowIndex) in sortedInfortuniRecords"
+                :key="row.localId"
+                :class="{
+                  'row-dirty': row.isDirty,
+                  'row-new': row.isNew,
+                  'row-deleted': row.isDeleted
+                }"
+              >
+                <!-- Azioni -->
+                <td class="sticky-col col-actions align-center justify-center">
+                  <div class="d-flex align-center justify-center gap-1">
+                    <!-- Elimina/Ripristina -->
+                    <v-btn
+                      icon
+                      size="x-small"
+                      variant="text"
+                      :color="row.isDeleted ? 'green-lighten-2' : 'red-lighten-2'"
+                      :title="row.isDeleted ? 'Annulla eliminazione' : 'Segna per eliminazione'"
+                      @click="toggleEliminaInfortuni(rowIndex)"
+                    >
+                      <v-icon size="14">{{ row.isDeleted ? 'mdi-restore' : 'mdi-delete' }}</v-icon>
+                    </v-btn>
+                  </div>
+                </td>
+
+                <!-- Stato -->
+                <td class="col-inf-stato">
+                  <select
+                    v-model="row.stato"
+                    class="excel-input text-center font-weight-bold"
+                    @change="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  >
+                    <option value="attivo" style="background: #0f172a; color: #f87171;">Attivo</option>
+                    <option value="risolto" style="background: #0f172a; color: #4ade80;">Risolto</option>
+                  </select>
+                </td>
+
+                <!-- Data Inizio -->
+                <td class="col-inf-data">
+                  <input
+                    v-model="row.data_inizio"
+                    type="text"
+                    class="excel-input text-center"
+                    placeholder="YYYY-MM-DD"
+                    @input="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Data Risoluzione -->
+                <td class="col-inf-data">
+                  <input
+                    v-model="row.data_risoluzione"
+                    type="text"
+                    class="excel-input text-center"
+                    placeholder="YYYY-MM-DD"
+                    @input="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Articolazione / Zona -->
+                <td class="col-inf-zona">
+                  <input
+                    v-model="row.articolazione_coinvolta"
+                    type="text"
+                    class="excel-input font-weight-bold"
+                    placeholder="es. Spalla DX, Ginocchio"
+                    @input="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Gravità -->
+                <td class="col-inf-gravita">
+                  <select
+                    v-model="row.gravita"
+                    class="excel-input text-center"
+                    @change="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  >
+                    <option value="lieve" style="background: #0f172a;">Lieve</option>
+                    <option value="moderato" style="background: #0f172a;">Moderato</option>
+                    <option value="severo" style="background: #0f172a;">Severo</option>
+                  </select>
+                </td>
+
+                <!-- Riduzione % -->
+                <td class="col-inf-num">
+                  <input
+                    v-model.number="row.percentuale_riduzione"
+                    type="number"
+                    class="excel-input text-center text-orange-lighten-2"
+                    placeholder="%"
+                    @input="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Applica Riduzione -->
+                <td class="col-inf-flag text-center">
+                  <v-checkbox-btn
+                    v-model="row.applica_riduzione"
+                    :true-value="true"
+                    :false-value="false"
+                    color="orange-darken-3"
+                    @update:model-value="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                    class="d-inline-flex"
+                  ></v-checkbox-btn>
+                </td>
+
+                <!-- Esercizi Originari -->
+                <td class="col-inf-ex">
+                  <input
+                    v-model="row.esercizi_originari"
+                    type="text"
+                    class="excel-input text-caption"
+                    placeholder="Esercizi limitati"
+                    @input="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+
+                <!-- Note -->
+                <td class="col-inf-note">
+                  <input
+                    v-model="row.note"
+                    type="text"
+                    class="excel-input"
+                    placeholder="Note e sintomi"
+                    @input="segnaModificatoInfortuni(row)"
+                    :disabled="row.isDeleted"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pulsanti sotto-tabella INFORTUNI -->
+        <div class="d-flex flex-wrap justify-space-between align-center mt-4 pt-3 border-top-soft">
+          <v-btn color="orange-darken-3" variant="text" rounded="lg" @click="aggiungiInfortuni" :disabled="loadingInfortuni">
+            <v-icon class="mr-1">mdi-plus</v-icon>
+            SEGNALA INFORTUNIO
+          </v-btn>
+          <span class="text-caption text-muted font-italic">
+            * Gli infortuni influenzano i calcoli di sicurezza e le riduzioni percentuali negli allenamenti dell'atleta.
           </span>
         </div>
       </div>
@@ -1676,6 +2363,18 @@ const tipoDatiCaricare = ref('storyboard');
 const workoutTRecords = ref([]);
 const loadingWorkoutT = ref(false);
 
+// Stato WOAPP_MASSIMALI_R
+const massimaliRecords = ref([]);
+const loadingMassimali = ref(false);
+
+// Stato CLIENTI
+const clienteRecord = ref(null);
+const loadingCliente = ref(false);
+
+// Stato INFORTUNI
+const infortuniRecords = ref([]);
+const loadingInfortuni = ref(false);
+
 // Watcher per allineare tipoDatiCaricare e activeTab bidirezionalmente
 watch(activeTab, (newVal) => {
   tipoDatiCaricare.value = newVal;
@@ -1728,7 +2427,6 @@ const itemsAtleti = computed(() => {
 // Ordinamento dei record locale basato su Giorno + num_riga_giorno + num_riga per visualizzarlo come nel CSV
 const sortedRecords = computed(() => {
   return [...records.value].sort((a, b) => {
-    // Gestione righe contrassegnate per eliminazione (mantengono l'ordine ma con classe css barrata)
     const giornoA = String(a.des_giorno || '').trim().toUpperCase();
     const giornoB = String(b.des_giorno || '').trim().toUpperCase();
     
@@ -1758,10 +2456,29 @@ const sortedWorkoutTRecords = computed(() => {
   });
 });
 
+// Ordinamento dei massimali WOAPP_MASSIMALI_R
+const sortedMassimaliRecords = computed(() => {
+  return [...massimaliRecords.value].sort((a, b) => {
+    const kgA = parseFloat(String(a.num_kg || 0).replace(',', '.')) || 0;
+    const kgB = parseFloat(String(b.num_kg || 0).replace(',', '.')) || 0;
+    return kgB - kgA;
+  });
+});
+
+// Ordinamento degli infortuni
+const sortedInfortuniRecords = computed(() => {
+  return [...infortuniRecords.value].sort((a, b) => {
+    return String(b.data_inizio || '').localeCompare(String(a.data_inizio || ''));
+  });
+});
+
 // Verifica se ci sono modifiche pendenti non salvate
 const haModifiche = computed(() => {
   return records.value.some(r => r.isDirty || r.isNew || r.isDeleted) ||
-         workoutTRecords.value.some(r => r.isDirty || r.isNew || r.isDeleted);
+         workoutTRecords.value.some(r => r.isDirty || r.isNew || r.isDeleted) ||
+         massimaliRecords.value.some(r => r.isDirty || r.isNew || r.isDeleted) ||
+         (clienteRecord.value && clienteRecord.value.isDirty) ||
+         infortuniRecords.value.some(r => r.isDirty || r.isNew || r.isDeleted);
 });
 
 // Registrazione dinamica dei riferimenti agli input in griglia per navigazione con tastiera
@@ -1789,7 +2506,7 @@ onMounted(async () => {
   // Pre-popola l'atleta attivo se impostato
   if (selectedAthlete.value) {
     atletaSelezionato.value = selectedAthlete.value;
-    await caricaSchedeAtleta();
+    await gestisciCambioAtleta();
   }
 });
 
@@ -1818,8 +2535,8 @@ const caricaSchedeAtleta = async () => {
     );
     const snap = await getDocs(q);
     const setSchede = new Set();
-    snap.forEach(doc => {
-      const data = doc.data();
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
       if (data.num_scheda) {
         setSchede.add(data.num_scheda.trim());
       }
@@ -1833,9 +2550,6 @@ const caricaSchedeAtleta = async () => {
       } else {
         schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
       }
-    } else {
-      // Carica comunque WORKOUT_T se lo storyboard è vuoto per questo atleta
-      await caricaWorkoutT();
     }
   } catch (err) {
     console.error("Errore caricamento schede:", err);
@@ -1844,18 +2558,7 @@ const caricaSchedeAtleta = async () => {
   }
 };
 
-const gestisciCambioAtleta = async () => {
-  schedaSelezionata.value = '';
-  records.value = [];
-  workoutTRecords.value = [];
-  if (tipoDatiCaricare.value === 'storyboard') {
-    await caricaSchedeAtleta();
-  } else {
-    await caricaWorkoutT();
-  }
-};
-
-// Carica tutti i record di WORKOUT_T relativi a cliente
+// Carica tutti i record di WORKOUT_T relativi al cliente
 const caricaWorkoutT = async () => {
   if (!atletaSelezionato.value) return;
   loadingWorkoutT.value = true;
@@ -1869,17 +2572,18 @@ const caricaWorkoutT = async () => {
     const temp = [];
     let localIdCounter = 1;
     
-    snap.forEach(doc => {
-      const data = doc.data();
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
       if (data.NomeCognomeTM) {
         impostaNomeAtletaDinamico(atletaSelezionato.value, data.NomeCognomeTM);
       }
       temp.push({
-        dbId: doc.id,
+        dbId: docSnap.id,
         localId: localIdCounter++,
         isDirty: false,
         isNew: false,
         isDeleted: false,
+        num_peso_WT: data.num_peso_WT || '',
         ...data
       });
     });
@@ -1892,97 +2596,208 @@ const caricaWorkoutT = async () => {
   }
 };
 
-// Carica tutti i record (sia WORKOUT_T che STORYBOARD) dopo salvataggio/annullamento
-const ricaricaTutto = async () => {
+// Carica tutti i massimali di WOAPP_MASSIMALI_R relativi al cliente
+const caricaMassimali = async () => {
   if (!atletaSelezionato.value) return;
-  
-  await caricaWorkoutT();
-  
-  if (schedaSelezionata.value) {
-    loadingData.value = true;
-    records.value = [];
-    inputRefs.value = {};
-    try {
-      const q = query(
-        collection(db, 'STORYBOARD'),
-        where('ID_cliente', '==', atletaSelezionato.value),
-        where('num_scheda', '==', String(schedaSelezionata.value))
-      );
-      const snap = await getDocs(q);
-      const temp = [];
-      let localIdCounter = 1;
-      snap.forEach(doc => {
-        temp.push({
-          dbId: doc.id,
-          localId: localIdCounter++,
-          isDirty: false,
-          isNew: false,
-          isDeleted: false,
-          ...doc.data()
-        });
+  loadingMassimali.value = true;
+  massimaliRecords.value = [];
+  try {
+    const q = query(
+      collection(db, 'WOAPP_MASSIMALI_R'),
+      where('ID_cliente', '==', String(atletaSelezionato.value))
+    );
+    const snap = await getDocs(q);
+    const temp = [];
+    let localIdCounter = 1;
+    
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      temp.push({
+        dbId: docSnap.id,
+        localId: localIdCounter++,
+        isDirty: false,
+        isNew: false,
+        isDeleted: false,
+        ...data
       });
-      records.value = temp;
-    } catch (err) {
-      console.error("Errore ricaricamento esercizi:", err);
-    } finally {
-      loadingData.value = false;
-    }
+    });
+    
+    massimaliRecords.value = temp;
+  } catch (err) {
+    console.error("Errore caricamento WOAPP_MASSIMALI_R da Firestore:", err);
+  } finally {
+    loadingMassimali.value = false;
   }
 };
 
-// Carica i record in base alla selezione del filtro
-const caricaEsercizi = async () => {
+// Carica il record CLIENTE
+const caricaCliente = async () => {
+  if (!atletaSelezionato.value) return;
+  loadingCliente.value = true;
+  try {
+    const docSnap = await getDoc(doc(db, 'CLIENTI', String(atletaSelezionato.value)));
+    if (docSnap.exists()) {
+      clienteRecord.value = {
+        isDirty: false,
+        ID_cliente: String(atletaSelezionato.value),
+        ...docSnap.data()
+      };
+    } else {
+      clienteRecord.value = null;
+    }
+  } catch (err) {
+    console.error("Errore caricamento CLIENTE da Firestore:", err);
+  } finally {
+    loadingCliente.value = false;
+  }
+};
+
+// Carica tutti gli infortuni relativi al cliente
+const caricaInfortuni = async () => {
+  if (!atletaSelezionato.value) return;
+  loadingInfortuni.value = true;
+  infortuniRecords.value = [];
+  try {
+    const q = query(
+      collection(db, 'infortuni'),
+      where('id_cliente', '==', String(atletaSelezionato.value))
+    );
+    const snap = await getDocs(q);
+    const temp = [];
+    let localIdCounter = 1;
+    
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      temp.push({
+        dbId: docSnap.id,
+        localId: localIdCounter++,
+        isDirty: false,
+        isNew: false,
+        isDeleted: false,
+        ...data
+      });
+    });
+    
+    infortuniRecords.value = temp;
+  } catch (err) {
+    console.error("Errore caricamento infortuni da Firestore:", err);
+  } finally {
+    loadingInfortuni.value = false;
+  }
+};
+
+// Carica tutti i record di tutte le tabelle per l'atleta
+const gestisciCambioAtleta = async () => {
+  schedaSelezionata.value = '';
+  records.value = [];
+  workoutTRecords.value = [];
+  massimaliRecords.value = [];
+  clienteRecord.value = null;
+  infortuniRecords.value = [];
+
+  await caricaSchedeAtleta();
+  await Promise.all([
+    caricaWorkoutT(),
+    caricaMassimali(),
+    caricaCliente(),
+    caricaInfortuni()
+  ]);
+
+  if (schedaSelezionata.value) {
+    await caricaEsercizi();
+  }
+};
+
+// Ricarica tutte le tabelle dopo salvataggio o annullamento
+const ricaricaTutto = async () => {
   if (!atletaSelezionato.value) return;
   
-  if (tipoDatiCaricare.value === 'workout_t') {
-    await caricaWorkoutT();
-  } else {
-    if (!schedaSelezionata.value) return;
-    loadingData.value = true;
-    records.value = [];
-    inputRefs.value = {};
+  await Promise.all([
+    caricaWorkoutT(),
+    caricaMassimali(),
+    caricaCliente(),
+    caricaInfortuni()
+  ]);
+  
+  if (schedaSelezionata.value) {
+    await caricaEsercizi();
+  }
+};
+
+const caricaDati = async () => {
+  await ricaricaTutto();
+};
+
+// Carica i record dello storyboard per la scheda selezionata
+const caricaEsercizi = async () => {
+  if (!atletaSelezionato.value || !schedaSelezionata.value) return;
+  loadingData.value = true;
+  records.value = [];
+  inputRefs.value = {};
+  
+  try {
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where('ID_cliente', '==', atletaSelezionato.value),
+      where('num_scheda', '==', String(schedaSelezionata.value))
+    );
+    const snap = await getDocs(q);
+    const temp = [];
+    let localIdCounter = 1;
     
-    try {
-      const q = query(
-        collection(db, 'STORYBOARD'),
-        where('ID_cliente', '==', atletaSelezionato.value),
-        where('num_scheda', '==', String(schedaSelezionata.value))
-      );
-      const snap = await getDocs(q);
-      const temp = [];
-      let localIdCounter = 1;
-      
-      snap.forEach(doc => {
-        temp.push({
-          dbId: doc.id,
-          localId: localIdCounter++,
-          isDirty: false,
-          isNew: false,
-          isDeleted: false,
-          ...doc.data()
-        });
+    snap.forEach(docSnap => {
+      temp.push({
+        dbId: docSnap.id,
+        localId: localIdCounter++,
+        isDirty: false,
+        isNew: false,
+        isDeleted: false,
+        ...docSnap.data()
       });
-      
-      records.value = temp;
-    } catch (err) {
-      console.error("Errore caricamento esercizi da Firestore:", err);
-    } finally {
-      loadingData.value = false;
-    }
+    });
+    
+    records.value = temp;
+  } catch (err) {
+    console.error("Errore caricamento esercizi da Firestore:", err);
+  } finally {
+    loadingData.value = false;
   }
 };
 
 // Segna la riga come modificata ("dirty")
 const segnaModificato = (row) => {
-  if (!row.isNew) {
-    row.isDirty = true;
-  }
+  if (!row.isNew) row.isDirty = true;
+};
+const segnaModificatoWT = (row) => {
+  if (!row.isNew) row.isDirty = true;
+};
+const segnaModificatoMassimali = (row) => {
+  if (!row.isNew) row.isDirty = true;
+};
+const segnaModificatoCliente = () => {
+  if (clienteRecord.value) clienteRecord.value.isDirty = true;
+};
+const segnaModificatoInfortuni = (row) => {
+  if (!row.isNew) row.isDirty = true;
 };
 
-const segnaModificatoWT = (row) => {
-  if (!row.isNew) {
-    row.isDirty = true;
-  }
+// Crea anagrafica cliente default
+const creaSchedaClienteDefault = () => {
+  const c = MAPPA_CLIENTI[String(atletaSelezionato.value)];
+  clienteRecord.value = {
+    isDirty: true,
+    ID_cliente: String(atletaSelezionato.value),
+    Nome: c?.nome || '',
+    Cognome: c?.cognome || '',
+    des_email: c?.email || '',
+    des_email_woapp: '',
+    flg_sesso: 'M',
+    dat_data_nascita: '',
+    num_altezza: '',
+    SchedaSelezionata: schedaSelezionata.value || '1',
+    TipoVistaDettagli: 'FALSE',
+    Note: ''
+  };
 };
 
 // Aggiunge un mesociclo in WORKOUT_T
@@ -1994,7 +2809,6 @@ const aggiungiWorkoutT = () => {
 
   const localId = workoutTRecords.value.length + 1;
   
-  // Calcolo delle date di default: oggi e oggi + 42 giorni
   const oggi = new Date();
   const formattaData = (d) => {
     const day = String(d.getDate()).padStart(2, '0');
@@ -2016,6 +2830,7 @@ const aggiungiWorkoutT = () => {
     num_scheda: String(maxScheda + 1),
     dat_data: datInizio,
     dat_scadenza: datFine,
+    num_peso_WT: '',
     des_descrizione: 'Mesociclo Definitivo',
     des_note: '',
     flg_da_finire: 'true',
@@ -2033,7 +2848,6 @@ const aggiungiWorkoutT = () => {
   workoutTRecords.value.push(newRow);
 };
 
-// Duplica un mesociclo in WORKOUT_T
 const duplicaWorkoutT = (rowIndex) => {
   const original = sortedWorkoutTRecords.value[rowIndex];
   if (!original) return;
@@ -2056,7 +2870,6 @@ const duplicaWorkoutT = (rowIndex) => {
   workoutTRecords.value.push(clone);
 };
 
-// Segna/rimuove flag di cancellazione riga in WORKOUT_T
 const toggleEliminaWorkoutT = (rowIndex) => {
   const row = sortedWorkoutTRecords.value[rowIndex];
   if (row) {
@@ -2068,7 +2881,102 @@ const toggleEliminaWorkoutT = (rowIndex) => {
   }
 };
 
-// Aggiunge una riga vuota
+// Massimali Actions
+const aggiungiMassimale = () => {
+  const oggi = new Date();
+  const d = String(oggi.getDate()).padStart(2, '0');
+  const m = String(oggi.getMonth() + 1).padStart(2, '0');
+  const y = oggi.getFullYear();
+  const dataOggi = `${d}/${m}/${y}`;
+
+  const newRow = {
+    localId: massimaliRecords.value.length + 1,
+    dbId: '',
+    isDirty: false,
+    isNew: true,
+    isDeleted: false,
+    ID_cliente: String(atletaSelezionato.value),
+    dat_data: dataOggi,
+    des_esercizio: 'Panca piana',
+    ID_esercizio: '',
+    num_kg: '100',
+    flg_rm_teorico: false,
+    des_note: '',
+    num_rapp_BW: '',
+    num_rapp_MM: '',
+    num_peso: '',
+    num_BF: '',
+    data_peso: dataOggi,
+    num_lv: '',
+    num_obiettivo_kg: '',
+    num_obiettivo_lv: '',
+    num_kg_mancanti_ob: '',
+    num_perc_mancanti_ob: '',
+    flg_escludi: false
+  };
+  massimaliRecords.value.push(newRow);
+};
+
+const duplicaMassimale = (rowIndex) => {
+  const original = sortedMassimaliRecords.value[rowIndex];
+  if (!original) return;
+  const clone = {
+    ...original,
+    localId: massimaliRecords.value.length + 1,
+    dbId: '',
+    isNew: true,
+    isDirty: false,
+    isDeleted: false
+  };
+  massimaliRecords.value.push(clone);
+};
+
+const toggleEliminaMassimale = (rowIndex) => {
+  const row = sortedMassimaliRecords.value[rowIndex];
+  if (row) {
+    if (row.isNew) {
+      massimaliRecords.value = massimaliRecords.value.filter(r => r.localId !== row.localId);
+    } else {
+      row.isDeleted = !row.isDeleted;
+    }
+  }
+};
+
+// Infortuni Actions
+const aggiungiInfortuni = () => {
+  const oggi = new Date().toISOString().substring(0, 10);
+  const newRow = {
+    localId: infortuniRecords.value.length + 1,
+    dbId: '',
+    isDirty: false,
+    isNew: true,
+    isDeleted: false,
+    id_cliente: String(atletaSelezionato.value),
+    stato: 'attivo',
+    data_inizio: oggi,
+    data_risoluzione: '',
+    articolazione_coinvolta: '',
+    gravita: 'lieve',
+    percentuale_riduzione: 20,
+    applica_riduzione: true,
+    esercizi_originari: '',
+    note: ''
+  };
+  infortuniRecords.value.push(newRow);
+};
+
+const toggleEliminaInfortuni = (rowIndex) => {
+  const row = sortedInfortuniRecords.value[rowIndex];
+  if (row) {
+    if (row.isNew) {
+      infortuniRecords.value = infortuniRecords.value.filter(r => r.localId !== row.localId);
+    } else {
+      row.isDeleted = !row.isDeleted;
+    }
+  }
+};
+
+// Aggiunge una riga vuota nello Storyboard
 const aggiungiRiga = () => {
   const maxRiga = records.value.reduce((max, r) => {
     const riga = parseInt(r.num_riga) || 0;
@@ -2105,7 +3013,7 @@ const aggiungiRiga = () => {
   records.value.push(newRow);
 };
 
-// Duplica una riga esistente
+// Duplica una riga esistente nello Storyboard
 const duplicaRiga = (rowIndex) => {
   const original = sortedRecords.value[rowIndex];
   if (!original) return;
@@ -2119,7 +3027,7 @@ const duplicaRiga = (rowIndex) => {
   const clone = {
     ...original,
     localId,
-    dbId: '', // Pulisci ID database per forzare creazione
+    dbId: '',
     isNew: true,
     isDirty: false,
     isDeleted: false,
@@ -2128,12 +3036,11 @@ const duplicaRiga = (rowIndex) => {
   records.value.push(clone);
 };
 
-// Segna/rimuove flag di cancellazione riga
+// Segna/rimuove flag di cancellazione riga nello Storyboard
 const toggleEliminaRiga = (rowIndex) => {
   const row = sortedRecords.value[rowIndex];
   if (row) {
     if (row.isNew) {
-      // Se è un record appena creato locale, lo togliamo direttamente dall'array
       records.value = records.value.filter(r => r.localId !== row.localId);
     } else {
       row.isDeleted = !row.isDeleted;
@@ -2146,13 +3053,13 @@ const annullaModifiche = async () => {
   await ricaricaTutto();
 };
 
-// Salva in blocco (Batch) su Firestore tutte le modifiche (Insert, Update, Delete)
+// Salva in blocco (Batch) su Firestore tutte le modifiche (Insert, Update, Delete) su tutte e 5 le collezioni
 const salvaModifiche = async () => {
   if (!atletaSelezionato.value) return;
   savingData.value = true;
   
   try {
-    // Validation for WORKOUT_T duplicate cards
+    // Validazione schede duplicate in WORKOUT_T
     const activeSchede = workoutTRecords.value
       .filter(r => !r.isDeleted)
       .map(r => String(r.num_scheda).trim());
@@ -2165,7 +3072,7 @@ const salvaModifiche = async () => {
 
     const batch = writeBatch(db);
     
-    // Process STORYBOARD records (only if schedaSelezionata is set)
+    // 1. Process STORYBOARD records (only if schedaSelezionata is set)
     if (schedaSelezionata.value) {
       for (const row of records.value) {
         const cleanData = { ...row };
@@ -2187,7 +3094,7 @@ const salvaModifiche = async () => {
       }
     }
     
-    // Process WORKOUT_T records
+    // 2. Process WORKOUT_T records
     for (const row of workoutTRecords.value) {
       const cleanData = { ...row };
       const dbId = cleanData.dbId;
@@ -2217,10 +3124,55 @@ const salvaModifiche = async () => {
         }
       }
     }
+
+    // 3. Process WOAPP_MASSIMALI_R records
+    for (const row of massimaliRecords.value) {
+      const cleanData = { ...row };
+      const dbId = cleanData.dbId;
+      delete cleanData.dbId;
+      delete cleanData.localId;
+      delete cleanData.isDirty;
+      delete cleanData.isNew;
+      delete cleanData.isDeleted;
+      
+      if (row.isDeleted) {
+        if (dbId) batch.delete(doc(db, 'WOAPP_MASSIMALI_R', dbId));
+      } else if (row.isNew) {
+        batch.set(doc(collection(db, 'WOAPP_MASSIMALI_R')), cleanData);
+      } else if (row.isDirty && dbId) {
+        batch.set(doc(db, 'WOAPP_MASSIMALI_R', dbId), cleanData, { merge: true });
+      }
+    }
+
+    // 4. Process CLIENTI record
+    if (clienteRecord.value && clienteRecord.value.isDirty) {
+      const cleanClient = { ...clienteRecord.value };
+      delete cleanClient.isDirty;
+      batch.set(doc(db, 'CLIENTI', String(atletaSelezionato.value)), cleanClient, { merge: true });
+    }
+
+    // 5. Process INFORTUNI records
+    for (const row of infortuniRecords.value) {
+      const cleanData = { ...row };
+      const dbId = cleanData.dbId;
+      delete cleanData.dbId;
+      delete cleanData.localId;
+      delete cleanData.isDirty;
+      delete cleanData.isNew;
+      delete cleanData.isDeleted;
+      
+      if (row.isDeleted) {
+        if (dbId) batch.delete(doc(db, 'infortuni', dbId));
+      } else if (row.isNew) {
+        batch.set(doc(collection(db, 'infortuni')), cleanData);
+      } else if (row.isDirty && dbId) {
+        batch.set(doc(db, 'infortuni', dbId), cleanData, { merge: true });
+      }
+    }
     
     await batch.commit();
-    console.log("Firebase Batch commit completato con successo!");
-    await ricaricaTutto(); // Ricarica i dati freschi da Firestore
+    console.log("Firebase Batch commit completato con successo per tutte le tabelle!");
+    await ricaricaTutto();
   } catch (err) {
     console.error("Errore durante il salvataggio in batch di Firestore:", err);
     alert("Errore durante il salvataggio su Firestore: " + err.message);
@@ -2658,6 +3610,26 @@ const esportaCSVLocale = () => {
 .col-wt-giorno { width: 80px; min-width: 80px; }
 .col-wt-url { min-width: 180px; width: 220px; }
 .col-wt-nome { min-width: 150px; width: 180px; }
+
+/* MASSIMALI (WOAPP_MASSIMALI_R) Columns widths */
+.col-mas-data { width: 110px; min-width: 110px; }
+.col-mas-ex { min-width: 180px; width: 220px; }
+.col-mas-id { width: 75px; min-width: 75px; }
+.col-mas-kg { width: 100px; min-width: 100px; }
+.col-mas-flag { width: 85px; min-width: 85px; }
+.col-mas-note { min-width: 180px; width: 220px; }
+.col-mas-num { width: 90px; min-width: 90px; }
+
+/* INFORTUNI Columns widths */
+.col-inf-stato { width: 100px; min-width: 100px; }
+.col-inf-data { width: 120px; min-width: 120px; }
+.col-inf-zona { min-width: 150px; width: 180px; }
+.col-inf-gravita { width: 110px; min-width: 110px; }
+.col-inf-num { width: 100px; min-width: 100px; }
+.col-inf-flag { width: 90px; min-width: 90px; }
+.col-inf-ex { min-width: 160px; width: 200px; }
+.col-inf-note { min-width: 180px; width: 220px; }
+
 
 :deep([data-theme="light"]) .text-slate-dark,
 [data-theme="light"] .text-slate-dark {

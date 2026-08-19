@@ -3120,7 +3120,7 @@
                         <div 
                           class="font-weight-black text-white mt-0.5 text-truncate" 
                           :class="card.isConsigliato ? 'text-green-accent-3' : 'text-white'"
-                          :style="{ fontSize: card.isConsigliato ? '1.05rem' : '0.90rem', lineHeight: '1.15' }"
+                          :style="{ fontSize: card.valoreDisplay && card.valoreDisplay.length > 9 ? '0.76rem' : (card.isConsigliato ? '1.05rem' : '0.90rem'), lineHeight: '1.15' }"
                         >
                           {{ card.valoreDisplay }}
                         </div>
@@ -3143,10 +3143,12 @@
                         <!-- Pillola PR (Esclusiva della card Sfidante) -->
                         <div v-else-if="card.prGoalText" class="mt-1 d-flex justify-center">
                           <div 
-                            class="d-inline-flex align-center justify-center px-1.5 py-0.5 rounded-lg border font-weight-bold text-amber-accent-2 text-no-wrap"
-                            style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.40) !important; font-size: 0.43rem; letter-spacing: 0.01em; line-height: 1.15;"
+                            class="d-inline-flex align-center justify-center px-1.5 py-0.5 rounded-lg border font-weight-bold text-amber-accent-2 text-no-wrap cursor-pointer"
+                            style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.40) !important; font-size: 0.41rem; letter-spacing: 0.01em; line-height: 1.15;"
+                            @click.stop="apriDettaglioSfidantePR(card.prDetail)"
                           >
                             {{ card.prGoalText }}
+                            <v-icon size="9" color="amber-accent-2" class="ml-0.5">mdi-information-outline</v-icon>
                           </div>
                         </div>
                       </div>
@@ -3164,8 +3166,32 @@
                           {{ card.metricValue }}
                         </div>
 
-                        <!-- Tasto Applica -->
+                        <!-- Tasti Applica Sfidante con doppio bersaglio -->
+                        <div v-if="card.recordAssolutoPesoToApply" class="d-flex gap-1 mt-1">
+                          <v-btn
+                            color="orange-darken-3"
+                            size="x-small"
+                            variant="tonal"
+                            class="font-weight-bold text-white text-none flex-grow-1 rounded-lg px-1"
+                            style="font-size: 0.48rem; height: 21px;"
+                            @click="applicaPropostaCaricoStorico(card.pesoToApply)"
+                          >
+                            {{ card.pesoToApply }}k
+                          </v-btn>
+                          <v-btn
+                            color="amber-darken-3"
+                            size="x-small"
+                            variant="flat"
+                            class="font-weight-black text-white text-none flex-grow-1 rounded-lg px-1"
+                            style="font-size: 0.48rem; height: 21px; background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;"
+                            @click="applicaPropostaCaricoStorico(card.recordAssolutoPesoToApply)"
+                          >
+                            👑 {{ card.recordAssolutoPesoToApply }}k
+                          </v-btn>
+                        </div>
+                        <!-- Tasto Applica Standard -->
                         <v-btn
+                          v-else
                           :color="card.isConsigliato ? 'green-darken-1' : (card.tipo === 'sfidante' ? 'orange-darken-3' : 'blue-darken-3')"
                           size="x-small"
                           :variant="card.isConsigliato ? 'flat' : 'tonal'"
@@ -4708,23 +4734,45 @@
           </div>
 
           <!-- Obiettivo Concreto per il Superamento -->
-          <div class="pa-2.5 rounded-xl border d-flex align-center justify-space-between" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.02) 100%); border-color: rgba(74, 222, 128, 0.35) !important;">
-            <div>
-              <div class="text-super-caption font-weight-black text-green-accent-3 uppercase" style="font-size: 0.52rem;">
-                🎯 Prossimo Obiettivo PR
+          <div class="d-flex flex-column gap-2">
+            <!-- Box 1: Prossimo Obiettivo Volume PR -->
+            <div class="pa-2.5 rounded-xl border d-flex align-center justify-space-between" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.02) 100%); border-color: rgba(74, 222, 128, 0.35) !important;">
+              <div>
+                <div class="text-super-caption font-weight-black text-green-accent-3 uppercase" style="font-size: 0.52rem;">
+                  🎯 Prossimo Obiettivo Volume PR
+                </div>
+                <div class="text-caption font-weight-black text-white" style="font-size: 0.75rem;">
+                  <template v-if="resocontoCoachPR?.isCorpoLiberoPuro">
+                    Raggiungi <strong class="text-green-accent-3">≥ {{ resocontoCoachPR?.targetNuoveReps }} reps</strong> ({{ resocontoCoachPR?.exName }})
+                  </template>
+                  <template v-else>
+                    Raggiungi <strong class="text-green-accent-3">{{ resocontoCoachPR?.targetNuovoPRKg }} kg</strong> a {{ resocontoCoachPR?.cleanTargetReps }} reps
+                  </template>
+                </div>
               </div>
-              <div class="text-caption font-weight-black text-white" style="font-size: 0.75rem;">
-                <template v-if="resocontoCoachPR?.isCorpoLiberoPuro">
-                  Raggiungi <strong class="text-green-accent-3">≥ {{ resocontoCoachPR?.targetNuoveReps }} reps</strong> ({{ resocontoCoachPR?.exName }})
-                </template>
-                <template v-else>
-                  Raggiungi <strong class="text-green-accent-3">{{ resocontoCoachPR?.targetNuovoPRKg }} kg</strong> a {{ resocontoCoachPR?.cleanTargetReps }} reps
-                </template>
-              </div>
+              <v-chip color="green-darken-2" size="x-small" class="font-weight-black text-white px-2" style="font-size: 0.55rem; height: 20px;">
+                PROSSIMO STEP
+              </v-chip>
             </div>
-            <v-chip color="green-darken-2" size="x-small" class="font-weight-black text-white px-2" style="font-size: 0.55rem; height: 20px;">
-              TARGET
-            </v-chip>
+
+            <!-- Box 2: Obiettivo Record Assoluto 1RM (se diverso dal prossimo step e non ancora picco assoluto) -->
+            <div 
+              v-if="!resocontoCoachPR?.isCorpoLiberoPuro && !resocontoCoachPR?.isAbsolute1RMPeak && resocontoCoachPR?.targetRecordAssolutoKg && resocontoCoachPR.targetRecordAssolutoKg !== resocontoCoachPR.targetNuovoPRKg"
+              class="pa-2.5 rounded-xl border d-flex align-center justify-space-between" 
+              style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(245, 158, 11, 0.03) 100%); border-color: rgba(245, 158, 11, 0.40) !important;"
+            >
+              <div>
+                <div class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.52rem;">
+                  👑 Obiettivo per Strappare il Record Assoluto (1RM)
+                </div>
+                <div class="text-caption font-weight-black text-white" style="font-size: 0.75rem;">
+                  Raggiungi <strong class="text-amber-accent-2">{{ resocontoCoachPR?.targetRecordAssolutoKg }} kg</strong> a {{ resocontoCoachPR?.cleanTargetReps }} reps <span class="text-slate-400 font-weight-regular" style="font-size: 0.60rem;">(vs max {{ resocontoCoachPR?.bestE1rmDisplay }})</span>
+                </div>
+              </div>
+              <v-chip color="amber-darken-3" size="x-small" class="font-weight-black text-white px-2" style="font-size: 0.55rem; height: 20px;">
+                RECORD 1RM
+              </v-chip>
+            </div>
           </div>
         </v-card-text>
 
@@ -4738,6 +4786,121 @@
             @click="dialogResocontoCoachPR = false"
           >
             Ho capito
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Dettaglio Strategia Sfidante & Obiettivi Record -->
+    <v-dialog v-model="dialogDettaglioSfidantePR" max-width="460" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: #0b1120 !important; border: 1.5px solid rgba(249, 115, 22, 0.4) !important;">
+        <v-card-title class="pa-3 py-2.5 border-bottom d-flex align-center justify-space-between" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.18) 0%, rgba(15, 23, 42, 0.95) 100%); border-color: rgba(249, 115, 22, 0.25) !important;">
+          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
+            <span style="font-size: 1.05rem;">🔥</span>
+            <div class="text-truncate">
+              <div class="font-weight-black text-orange-lighten-2 text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+                Dettaglio Strategia Sfidante
+              </div>
+              <div class="text-super-caption text-slate-400 text-truncate font-weight-medium" style="font-size: 0.58rem;">
+                {{ workout?.des_esercizio }} • W{{ aiutoWeek }} ({{ getRepsPerWeek(aiutoWeek) }} reps)
+              </div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogDettaglioSfidantePR = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3.5 scrollbar-custom" style="max-height: 70vh; font-size: 0.72rem; line-height: 1.5;">
+          <!-- Riepilogo Carico Proposto -->
+          <div class="pa-3 rounded-xl border mb-3 d-flex align-center justify-space-between" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.3) !important;">
+            <div>
+              <div class="text-super-caption text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem;">
+                CARICO SFIDANTE PROPOSTO
+              </div>
+              <div class="font-weight-black text-white mt-0.5" style="font-size: 1.15rem;">
+                <template v-if="dettaglioSfidantePRData?.pesoRecordAssoluto">
+                  {{ dettaglioSfidantePRData?.pesoSfidante }} – {{ dettaglioSfidantePRData?.pesoRecordAssoluto }} kg
+                </template>
+                <template v-else>
+                  {{ dettaglioSfidantePRData?.pesoSfidante }} kg
+                </template>
+                <span class="text-super-caption text-slate-300 font-weight-medium" style="font-size: 0.65rem;">
+                  (Target prescritto: {{ dettaglioSfidantePRData?.targetReps }} reps)
+                </span>
+              </div>
+            </div>
+            <v-chip color="orange-darken-3" size="small" class="font-weight-bold text-white">
+              SFIDANTE
+            </v-chip>
+          </div>
+
+          <!-- Obiettivo 1: PR di Volume sulle Reps Prescritte -->
+          <div class="pa-3 rounded-xl border mb-3" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(74, 222, 128, 0.3) !important;">
+            <div class="d-flex align-center gap-1.5 mb-1 text-green-accent-3 font-weight-black uppercase" style="font-size: 0.58rem;">
+              <v-icon size="14" color="green-accent-3">mdi-check-circle</v-icon>
+              1. PR Volume a {{ dettaglioSfidantePRData?.targetReps }} Reps ({{ dettaglioSfidantePRData?.pesoSfidante }} kg)
+            </div>
+            <div class="text-slate-200" style="font-size: 0.68rem; line-height: 1.45;">
+              Sollevando <strong>{{ dettaglioSfidantePRData?.pesoSfidante }} kg</strong> per le <strong>{{ dettaglioSfidantePRData?.targetReps }} reps</strong> previste, stabilisci <strong>immediatamente il tuo Nuovo PR di scheda</strong> su questo range <span v-if="dettaglioSfidantePRData?.prWeight > 0">(superando il precedente di {{ dettaglioSfidantePRData?.prWeight }} kg)</span>.
+            </div>
+          </div>
+
+          <!-- Obiettivo 2: Record Assoluto Storico (1RM) -->
+          <div class="pa-3 rounded-xl border mb-2" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.35) !important;">
+            <div class="d-flex align-center gap-1.5 mb-1.5 text-amber-lighten-2 font-weight-black uppercase" style="font-size: 0.58rem;">
+              <v-icon size="14" color="amber-lighten-2">mdi-crown</v-icon>
+              2. Record Assoluto di Forza Storica (1RM: {{ dettaglioSfidantePRData?.max1rm }} kg)
+            </div>
+            
+            <!-- Se è presente il carico calcolato per il record assoluto a target reps -->
+            <template v-if="dettaglioSfidantePRData?.pesoRecordAssoluto">
+              <div class="text-slate-200 mb-2" style="font-size: 0.68rem; line-height: 1.45;">
+                Per infrangere anche il tuo <strong>Record Assoluto di 1RM di tutti i tempi</strong> ({{ dettaglioSfidantePRData?.max1rm }} kg) mantenendo le <strong>{{ dettaglioSfidantePRData?.targetReps }} reps</strong> prescritte, il carico bersaglio calcolato è di <strong>{{ dettaglioSfidantePRData?.pesoRecordAssoluto }} kg</strong>!
+              </div>
+
+              <div class="pa-2 rounded-lg border d-flex align-center justify-space-between mb-2" style="background: rgba(15, 23, 42, 0.6); border-color: rgba(245, 158, 11, 0.3) !important;">
+                <span class="text-slate-300 font-weight-medium" style="font-size: 0.65rem;">👑 Carico Bersaglio Record Assoluto:</span>
+                <span class="font-weight-black text-amber-accent-2" style="font-size: 0.76rem;">
+                  {{ dettaglioSfidantePRData?.pesoRecordAssoluto }} kg × {{ dettaglioSfidantePRData?.targetReps }}r
+                </span>
+              </div>
+              <div class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.60rem; line-height: 1.35;">
+                In alternativa, se utilizzi il carico base di <strong>{{ dettaglioSfidantePRData?.pesoSfidante }} kg</strong>, per battere il record di sempre di 1RM devi spingerti ad almeno <strong>≥ {{ dettaglioSfidantePRData?.repsSupera }} reps</strong>.
+              </div>
+            </template>
+            <template v-else>
+              <div class="text-slate-200 mb-2" style="font-size: 0.68rem; line-height: 1.45;">
+                Se con <strong>{{ dettaglioSfidantePRData?.pesoSfidante }} kg</strong> decidi di spingere al massimo per agganciare o battere il tuo <strong>Record Assoluto di 1RM di sempre</strong> ({{ dettaglioSfidantePRData?.max1rm }} kg), le soglie calcolate sono:
+              </div>
+              
+              <div class="d-flex flex-column gap-1.5">
+                <div class="pa-2 rounded-lg border d-flex align-center justify-space-between" style="background: rgba(15, 23, 42, 0.6); border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <span class="text-slate-300 font-weight-medium" style="font-size: 0.65rem;">Per eguagliare il Record Assoluto:</span>
+                  <span class="font-weight-black text-amber-accent-2" style="font-size: 0.72rem;">
+                    {{ dettaglioSfidantePRData?.repsEguaglia }} reps <span class="text-super-caption text-slate-400 font-weight-regular">(+{{ dettaglioSfidantePRData?.deltaReps }}r vs {{ dettaglioSfidantePRData?.targetReps }}r)</span>
+                  </span>
+                </div>
+
+                <div class="pa-2 rounded-lg border d-flex align-center justify-space-between" style="background: rgba(15, 23, 42, 0.6); border-color: rgba(245, 158, 11, 0.3) !important;">
+                  <span class="text-slate-300 font-weight-medium" style="font-size: 0.65rem;">Per superare il Record Assoluto:</span>
+                  <span class="font-weight-black text-green-accent-3" style="font-size: 0.72rem;">
+                    ≥ {{ dettaglioSfidantePRData?.repsSupera }} reps
+                  </span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-2.5 border-top d-flex justify-end bg-slate-900">
+          <v-btn
+            color="orange-darken-3"
+            variant="flat"
+            size="small"
+            class="font-weight-black text-white text-none px-4 rounded-lg"
+            style="font-size: 0.68rem; height: 30px;"
+            @click="dialogDettaglioSfidantePR = false"
+          >
+            Chiudi
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -4799,6 +4962,16 @@ const risaltoNumeriInsWeek = risaltoNumeriInsWeekGlobal;
 // Dialog Resoconto Coach Intelligente su PR & Andamento
 const dialogResocontoCoachPR = ref(false);
 const resocontoCoachPR = ref(null);
+
+// Dialog Dettaglio Strategia Sfidante & Obiettivi Record
+const dialogDettaglioSfidantePR = ref(false);
+const dettaglioSfidantePRData = ref(null);
+
+const apriDettaglioSfidantePR = (detail) => {
+  if (!detail) return;
+  dettaglioSfidantePRData.value = detail;
+  dialogDettaglioSfidantePR.value = true;
+};
 
 let pressTimerPR = null;
 const handlePRTouchStart = () => {
@@ -4990,9 +5163,20 @@ const apriResocontoCoachPR = () => {
     statoGap = 'eguagliato';
   }
   
-  // Cosa serve concretamente per superarlo (calcolo matematico reps necessarie)
+  // Cosa serve concretamente per superarlo (calcolo matematico reps e carichi necessari)
   const stepKg = isManubri ? 1 : 2.5;
   const targetNuovoPRKg = Math.round((prWeight + stepKg) * 10) / 10;
+  
+  // Calcolo matematico del carico a target reps necessario per superare il Record Assoluto storico di 1RM
+  let targetRecordAssolutoKg = targetNuovoPRKg;
+  if (bestE1rmVal > 0 && targetReps > 0 && !isCorpoLiberoPuro) {
+    const rawTargetAbs = calcolaPesoDaE1RMSmorzato(bestE1rmVal + 0.1, targetReps, isCavo);
+    if (rawTargetAbs > 0) {
+      targetRecordAssolutoKg = Math.ceil(rawTargetAbs / stepKg) * stepKg;
+      targetRecordAssolutoKg = Math.max(targetNuovoPRKg, Math.round(targetRecordAssolutoKg * 10) / 10);
+    }
+  }
+
   const pr1RMTarget = prWeight * (1 + prReps / 30);
   let minRepsPR = targetReps;
   if (pesoRecente > 0 && pr1RMTarget > 0) {
@@ -5014,7 +5198,7 @@ const apriResocontoCoachPR = () => {
   if (isCurrentPR && isAbsolute1RMPeak) {
     testoResoconto = `Fantastico! Su **${exName}** hai stabilito contemporaneamente il tuo **nuovo PR a ${cleanTargetReps} reps** (**${formatWeight(prWeight)} kg × ${prReps}r**) e il **nuovo picco assoluto di 1RM** (**${formatWeight(roundedCurrentE1RM)} kg**). Sei al massimo storico di sempre su ogni fronte!\n\nPer continuare la progressione, il prossimo step è consolidare questo stimolo e puntare a **${formatWeight(targetNuovoPRKg)} kg**.`;
   } else if (isCurrentPR && !isAbsolute1RMPeak) {
-    testoResoconto = `Ottimo lavoro! Con **${formatWeight(prWeight)} kg × ${prReps}r** hai stabilito il tuo **Nuovo PR sulle ${cleanTargetReps} Reps** in questa scheda, che esprime una forza stimata (1RM) di **${formatWeight(roundedCurrentE1RM)} kg**.\n\nTuttavia, il tuo **1RM Assoluto di sempre rimane di ${formatWeight(roundedBestE1RM)} kg** (stabilito in Scheda ${bestE1rmSheet || '-'}). Ti trovi a soli **-${formatWeight(diff1RMKg)} kg (-${diff1RMPct}%) dal record assoluto di forza**.\n\n🎯 **Obiettivo Coach:** per strappare anche il Record Assoluto mantenendo ${cleanTargetReps} ripetizioni, l'obiettivo è raggiungere **${formatWeight(targetNuovoPRKg)} kg**!`;
+    testoResoconto = `Ottimo lavoro! Con **${formatWeight(prWeight)} kg × ${prReps}r** hai stabilito il tuo **Nuovo PR sulle ${cleanTargetReps} Reps** in questa scheda, che esprime una forza stimata (1RM) di **${formatWeight(roundedCurrentE1RM)} kg**.\n\nTuttavia, il tuo **1RM Assoluto di sempre rimane di ${formatWeight(roundedBestE1RM)} kg** (stabilito in Scheda ${bestE1rmSheet || '-'}). Ti trovi a **-${formatWeight(diff1RMKg)} kg (-${diff1RMPct}%) dal record assoluto di forza**.\n\n🎯 **Prossimo Step PR (${cleanTargetReps} reps):** ${formatWeight(targetNuovoPRKg)} kg\n👑 **Obiettivo Record Assoluto:** per superare anche il record di sempre di 1RM mantenendo ${cleanTargetReps} ripetizioni, l'obiettivo è raggiungere **${formatWeight(targetRecordAssolutoKg)} kg**!`;
   } else if (statoGap === 'sotto_pr') {
     if (repsRecente >= minRepsPR) {
       testoResoconto = `Il tuo **PR a ${cleanTargetReps} reps** su **${exName}** è di **${formatWeight(prWeight)} kg × ${prReps}r** (in Scheda ${prSheet || '-'}).\n\nAttualmente stai lavorando a **sovraccarico di volume** con **${formatWeight(pesoRecente)} kg × ${repsRecente}r** (W${weekRecente}, 1RM stimato: **${formatWeight(currentE1RM)} kg**). Con questo volume ad alte ripetizioni **hai già pareggiato la forza espressa nel tuo record storico**!\n\nPer continuare la progressione, segui l'indicazione di volume programmata (${formatWeight(pesoRecente)} kg × ${repsRecente + 1}r) oppure, se desideri riavvicinarti al range a ${cleanTargetReps} reps, procedi con un aumento di carico graduale (es. ${formatWeight(Math.min(targetNuovoPRKg, pesoRecente + (stepKg * 2)))} kg).`;
@@ -5047,6 +5231,7 @@ const apriResocontoCoachPR = () => {
     gapPct,
     statoGap,
     targetNuovoPRKg: formatWeight(targetNuovoPRKg),
+    targetRecordAssolutoKg: formatWeight(targetRecordAssolutoKg),
     minRepsPR,
     numSchedePassate,
     testoResoconto
@@ -6459,6 +6644,13 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     }
   }
 
+  if (result !== null && !isNaN(result)) {
+    result = Math.round(result / step) * step;
+    if (isManubri) {
+      result = arrotondaManubrioCommerciale(result);
+    }
+  }
+
   return result;
 };
 
@@ -6805,7 +6997,9 @@ const getGhostWeightsRangeForWeek = (sett) => {
     : ((potenzialeRaw !== null && potenzialeRaw > pesoBase) 
       ? potenzialeRaw 
       : (isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step));
+  pesoConsigliato = Math.round(pesoConsigliato / step) * step;
   let pesoSfidante = isManubri ? getDumbbellSequenceWeight(pesoConsigliato, 'up') : pesoConsigliato + step;
+  pesoSfidante = Math.round(pesoSfidante / step) * step;
 
   if (isManubri) {
     pesoConsigliato = arrotondaManubrioCommerciale(pesoConsigliato);
@@ -8063,9 +8257,17 @@ const strategieAlternativeCards = computed(() => {
   const rawW1 = inputSettimane.value[1]?.ins || (workout.value ? (workout.value.ins_week1 || workout.value.num_ins1) : '');
   const pesoW1 = parseFloat(estraiPesoDaInput(String(rawW1 || '')) || 0);
 
-  const smartVal = parseFloat(String(range.consigliato.value).replace(',', '.')) || 0;
-  const safeVal = parseFloat(String(range.prudenziale.value).replace(',', '.')) || 0;
-  const sfidanteVal = parseFloat(String(range.sfidante.value).replace(',', '.')) || 0;
+  const isManubri = isManubriEsercizio(workout.value);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLiberoPuro = isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value;
+  const rawSmart = parseFloat(String(range.consigliato.value).replace(',', '.')) || 0;
+  const rawSafe = parseFloat(String(range.prudenziale.value).replace(',', '.')) || 0;
+  const rawSfidante = parseFloat(String(range.sfidante.value).replace(',', '.')) || 0;
+  const step = getWeightStep(isManubri, rawSmart || pesoBase);
+
+  const smartVal = rawSmart > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSmart) : Math.round(rawSmart / step) * step) : 0;
+  const safeVal = rawSafe > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSafe) : Math.round(rawSafe / step) * step) : 0;
+  const sfidanteVal = rawSfidante > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSfidante) : Math.round(rawSfidante / step) * step) : 0;
 
   // Determina quale strategia è consigliata in base alla sensibilità fatica dell'utente
   const sens = sensibilitaFaticaGhost.value;
@@ -8088,23 +8290,65 @@ const strategieAlternativeCards = computed(() => {
   // Helper per calcolare reps per PR su sfidante
   // Riferimento: max 1RM assoluto storico (oppure bestReal se manca max1RM)
   const max1rmStorico = recordOverviewData.value?.bestE1RM?.max1RM || 0;
+  const prRealWeight = recordOverviewData.value?.bestReal?.weight || 0;
   const isVolumeSfidante = String(range.sfidante?.value).includes('r');
   
   // Benchmark e1RM da superare per il primato
   let targetE1RMToBeat = max1rmStorico > 0 ? max1rmStorico : (recordOverviewData.value?.bestE1RM?.e1rm || 0);
-  if (targetE1RMToBeat === 0 && recordOverviewData.value?.bestReal?.weight > 0) {
-    const prW = recordOverviewData.value.bestReal.weight;
+  if (targetE1RMToBeat === 0 && prRealWeight > 0) {
     const prR = recordOverviewData.value.bestReal.reps || targetReps;
-    targetE1RMToBeat = prW * (1 + prR / 30);
+    targetE1RMToBeat = prRealWeight * (1 + prR / 30);
+  }
+
+  // Calcolo matematico target 1RM assoluto per targetReps
+  let targetRecordAssolutoKg = null;
+  if (!isVolumeSfidante && targetE1RMToBeat > 0 && targetReps > 0 && !isCorpoLiberoPuro) {
+    const rawTargetAbs = calcolaPesoDaE1RMSmorzato(targetE1RMToBeat + 0.1, targetReps, isCavo);
+    if (rawTargetAbs > 0) {
+      const stepAbs = isManubri ? 1.0 : (isCavo ? 1.25 : 2.5);
+      targetRecordAssolutoKg = Math.ceil(rawTargetAbs / stepAbs) * stepAbs;
+      targetRecordAssolutoKg = Math.round(targetRecordAssolutoKg * 10) / 10;
+      if (targetRecordAssolutoKg <= sfidanteVal) {
+        targetRecordAssolutoKg = null; // È già compreso o superato
+      }
+    }
   }
 
   let sfidantePRGoalText = null;
   let sfidanteMinRepsPR = null;
+  let sfidantePRDetail = null;
   if (!isVolumeSfidante && targetE1RMToBeat > 0 && sfidanteVal > 0) {
-    const calcMin = Math.floor(((targetE1RMToBeat / sfidanteVal) - 1) * 30) + 1;
-    if (calcMin > targetReps) {
-      sfidanteMinRepsPR = calcMin;
-      sfidantePRGoalText = `🏆 ≥ ${calcMin}r per PR`;
+    const rawReps = ((targetE1RMToBeat / sfidanteVal) - 1) * 30;
+    const repsEguaglia = Math.max(1, Math.round(rawReps));
+    const repsSupera = Math.max(repsEguaglia, Math.floor(rawReps) + 1);
+    const deltaReps = repsEguaglia - targetReps;
+    
+    if (targetRecordAssolutoKg) {
+      sfidanteMinRepsPR = repsSupera;
+      sfidantePRGoalText = `🎯 ${formatWeight(sfidanteVal)}k (PR ${targetReps}r) • 👑 ${formatWeight(targetRecordAssolutoKg)}k (1RM)`;
+      sfidantePRDetail = {
+        pesoSfidante: sfidanteVal,
+        pesoRecordAssoluto: targetRecordAssolutoKg,
+        targetReps,
+        prWeight: prRealWeight,
+        max1rm: Math.round(targetE1RMToBeat * 10) / 10,
+        repsEguaglia,
+        repsSupera,
+        deltaReps
+      };
+    } else if (repsEguaglia > targetReps) {
+      sfidanteMinRepsPR = repsSupera;
+      sfidantePRGoalText = `🏆 ≥ ${repsSupera}r per Record 1RM (+${deltaReps}r)`;
+      sfidantePRDetail = {
+        pesoSfidante: sfidanteVal,
+        pesoRecordAssoluto: null,
+        targetReps,
+        prWeight: prRealWeight,
+        max1rm: Math.round(targetE1RMToBeat * 10) / 10,
+        repsEguaglia,
+        repsSupera,
+        deltaReps
+      };
     }
   }
 
@@ -8136,8 +8380,14 @@ const strategieAlternativeCards = computed(() => {
 
   // 3. SFIDANTE (testo breve e fine)
   let sfidanteSottotitolo = 'Spinta PR';
+  let sfidanteValoreDisplay = `${formatWeight(sfidanteVal)} kg`;
   if (String(range.sfidante?.value).includes('r')) {
     sfidanteSottotitolo = '+2 rep (+volume)';
+    sfidanteValoreDisplay = range.sfidante.display;
+  } else if (targetRecordAssolutoKg && targetRecordAssolutoKg > sfidanteVal) {
+    sfidanteValoreDisplay = `${formatWeight(sfidanteVal)} – ${formatWeight(targetRecordAssolutoKg)} kg`;
+    const diffSfid = Math.round((sfidanteVal - smartVal) * 10) / 10;
+    sfidanteSottotitolo = diffSfid > 0 ? `+${diffSfid}kg smart ➔ 👑 Record 1RM` : `Spinta ➔ 👑 Record 1RM`;
   } else if (sfidanteVal > smartVal && smartVal > 0) {
     const diffSfid = Math.round((sfidanteVal - smartVal) * 10) / 10;
     sfidanteSottotitolo = `+${diffSfid}kg vs smart`;
@@ -8149,7 +8399,7 @@ const strategieAlternativeCards = computed(() => {
       icon: '🛡️',
       nome: 'SAFE',
       isConsigliato: tipoConsigliato === 'safe',
-      valoreDisplay: range.prudenziale.display,
+      valoreDisplay: String(range.prudenziale.value).includes('r') ? range.prudenziale.display : `${formatWeight(safeVal)} kg`,
       pesoToApply: range.prudenziale.value,
       sottotitolo: safeSottotitolo,
       mesoPillText: tipoConsigliato === 'safe' ? mesoPillText : null,
@@ -8163,7 +8413,7 @@ const strategieAlternativeCards = computed(() => {
       icon: '💡',
       nome: 'SMART',
       isConsigliato: tipoConsigliato === 'smart',
-      valoreDisplay: range.consigliato.display,
+      valoreDisplay: String(range.consigliato.value).includes('r') ? range.consigliato.display : `${formatWeight(smartVal)} kg`,
       pesoToApply: range.consigliato.value,
       sottotitolo: smartSottotitolo,
       mesoPillText: tipoConsigliato === 'smart' ? mesoPillText : null,
@@ -8177,11 +8427,13 @@ const strategieAlternativeCards = computed(() => {
       icon: '🔥',
       nome: 'SFIDANTE',
       isConsigliato: tipoConsigliato === 'sfidante',
-      valoreDisplay: range.sfidante.display,
-      pesoToApply: range.sfidante.value,
+      valoreDisplay: sfidanteValoreDisplay,
+      pesoToApply: sfidanteVal,
+      recordAssolutoPesoToApply: targetRecordAssolutoKg,
       sottotitolo: sfidanteSottotitolo,
       mesoPillText: tipoConsigliato === 'sfidante' ? mesoPillText : null,
       prGoalText: sfidantePRGoalText,
+      prDetail: sfidantePRDetail,
       minRepsPR: sfidanteMinRepsPR,
       metricLabel: 'Rischio:',
       metricValue: 'PIÙ ALTO',
@@ -13264,7 +13516,7 @@ function estraiRpeDaInput(str) {
 
 function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
-  let clean = String(str).replace(/,/g, '.').trim();
+  let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per evitare che note o impostazioni influenzino i calcoli
   clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
@@ -13275,28 +13527,47 @@ function estraiRepsDaInputExplicitSingle(str) {
   clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
   clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, '').trim();
 
-  // 2. Rileva Rest-Pause / Tecniche (+ RP 14, RP 12)
-  const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
-  if (matchRP) {
-    const val = parseFloat(matchRP[1]);
+  // 2. Rimuove COMPLETAMENTE diciture Rest-Pause, Drop-Set, Cluster (es. "rp20", "rp 15", "+2r RP", "47,6x4+2r RP", "RP+3")
+  // I numeri associati a RP non sono ripetizioni standard della serie e non devono MAI inquinare il calcolo di reps, carichi o PR
+  clean = clean.replace(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?:?\s*@?\s*\+?\s*\d+(?:[\.,]\d+)?(?:\s*(?:sec|secondi|s|r|reps?|rip))?/gi, ' ').trim();
+  clean = clean.replace(/\+\s*\d+(?:[\.,]\d+)?\s*(?:r|reps?)?\s*(?:rp|rest\s*pause)/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rp|rest\s*pause|drop\s*set|cluster)\b/gi, ' ').trim();
+
+  // 3. Rileva formato esplicito con suffisso reps "40x23r", "42.5x24 reps", "5x12 rip"
+  const matchExplicitXWithR = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+  if (matchExplicitXWithR) {
+    const val = parseFloat(matchExplicitXWithR[2]);
     if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // 3. Rileva formato esplicito "5x12" o "5x12r" -> la seconda parte (12) sono le REPS
-  const matchX = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?/);
-  if (matchX) {
-    const val = parseFloat(matchX[2]);
-    if (!isNaN(val) && val > 0) return { val, explicit: true };
+  // 4. Rileva formato tipo "3x20", "4x12", "1x18" (dove il primo numero è il numero di serie [1..5] e il secondo sono le reps [>=6])
+  const matchSxR = clean.match(/^\s*(\d+)\s*[xX]\s*(\d+)\s*$/);
+  if (matchSxR) {
+    const nSets = parseInt(matchSxR[1], 10);
+    const nReps = parseInt(matchSxR[2], 10);
+    if (nSets >= 1 && nSets <= 5 && nReps >= 6) {
+      return { val: nReps, explicit: true };
+    }
+    // Se è tipo "47.5 x2" o "16 x2", il secondo numero indica le serie (2 serie) e non le reps! Non restituire reps.
+    return null;
   }
-  
-  // 4. Rileva ripetizioni esplicite con suffissi "r", "reps", "rip" (es. "12r", "12 reps")
-  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?)/i);
+
+  // 5. Rileva formato "47.5 x2" o "47.5 x2s" o "65 x2s" o "140 x3s" -> la seconda parte dopo 'x' senza 'r' indica le SERIE completate!
+  // Escludiamo queste serie per evitare che "x2" venga scambiato per 2 ripetizioni
+  const matchSets = clean.match(/\b\d+(?:\.\d+)?\s*[xX]\s*\d+\s*(?:s|set|sets|serie)?\b/i);
+  if (matchSets) {
+    // Se c'è una notazione di serie, rimuoviamola per vedere se ci sono altre reps esplicite nella stringa
+    clean = clean.replace(matchSets[0], ' ').trim();
+  }
+
+  // 6. Rileva ripetizioni esplicite con suffissi "r", "reps", "rip" (es. "12r", "12 reps", "20r")
+  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)/i);
   if (matchR) {
     const val = parseFloat(matchR[1]);
     if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // 5. UN NUMERO SINGOLO SENZA "r" O "reps" (es. "2", "3", "5", "12") È IL CARICO IN KG!
+  // 7. UN NUMERO SINGOLO SENZA "r" O "reps" (es. "2", "3", "5", "12", "50") È IL CARICO IN KG!
   // Non deve MAI restituire un valore di ripetizioni esplicito qui.
   return null;
 }
@@ -13322,7 +13593,7 @@ function estraiMigliorPrestazioneInput(strVal, defaultReps = 10, isCavo = false)
     if (pesoStr) {
       const peso = parseFloat(pesoStr);
       if (!isNaN(peso) && peso > 0) {
-        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
         const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
         const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
         const e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
@@ -13353,7 +13624,7 @@ function estraiRepsDaInput(str) {
 function estraiPesoDaInput(str) {
   if (!str) return null;
   
-  let clean = String(str).replace(/,/g, '.').trim();
+  let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per escludere note ed impostazioni dai calcoli
   clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
@@ -13362,8 +13633,12 @@ function estraiPesoDaInput(str) {
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
 
   // Rimuove espressioni di RPE (es. "Rpe: 93 - 99", "RPE 8.5", "RPE: 9-10", "rpe 93-99", "rpe@9")
-  // per evitare che la scala di sforzo percepito interferisca con l'estrazione del carico in KG
   clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
+
+  // Rimuove completamente espressioni di Rest-Pause / Drop-Set (es. "rp20", "rp 15", "+2r RP", "RP+3")
+  clean = clean.replace(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?:?\s*@?\s*\+?\s*\d+(?:[\.,]\d+)?(?:\s*(?:sec|secondi|s|r|reps?|rip))?/gi, ' ').trim();
+  clean = clean.replace(/\+\s*\d+(?:[\.,]\d+)?\s*(?:r|reps?)?\s*(?:rp|rest\s*pause)/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rp|rest\s*pause|drop\s*set|cluster)\b/gi, ' ').trim();
   
   // Rimuove espressioni di impostazioni/metadati (es. "PIN 12", "buco 3", "sedile 15", "sedile a 15")
   const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.|sedile|schienale|poggiapiede|poggiapiedi|schiena|rullo|perno|distanza|ampiezza|impugnatura|presa|busto|manubrio|cavo|puleggia|tacchetta|tacchette)\b\s*(?:a\s*)?\d+(?:\.\d+)?/gi;
@@ -13385,9 +13660,8 @@ function estraiPesoDaInput(str) {
     return null;
   }
   
-  // 1. Rimuoviamo il prefisso delle reps (es. "3x10", "4 x 12")
-  const repsPrefixRegex = /^\s*\d+\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g;
-  clean = clean.replace(repsPrefixRegex, '').trim();
+  // 1. Rimuoviamo il prefisso delle reps (es. "3x10", "4 x 12") se è [serie]x[reps]
+  clean = clean.replace(/^\s*[1-5]\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g, '').trim();
   
   // Trova tutti i numeri decimali o interi presenti nella stringa
   const numberRegex = /\d+(?:\.\d+)?/g;
@@ -13406,7 +13680,7 @@ function estraiPesoDaInput(str) {
     'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo', 'tut', 't.u.t.',
     'sedile', 'schienale', 'poggiapiede', 'poggiapiedi', 'schiena', 'rullo', 'perno', 
     'distanza', 'ampiezza', 'impugnatura', 'presa', 'busto', 'manubrio', 'cavo', 'puleggia',
-    'sopra', 'sotto'
+    'sopra', 'sotto', 'rp', 'rest'
   ];
   
   // Stopwords da ignorare prima del numero per trovare il prefisso reale
@@ -13443,10 +13717,12 @@ function estraiPesoDaInput(str) {
       continue;
     }
     
-    // Se il suffisso è ripetizioni (es. "r", "R", "reps", "rep", "rip"), lo escludiamo dal peso
+    // Se il suffisso è ripetizioni (es. "r", "R", "reps", "rep", "rip") o serie (es. "s", "set", "sets", "serie"), lo escludiamo dal peso
     if (suffixClean.toLowerCase().match(/^r(?![a-z])/i) || 
         suffixClean.toLowerCase().startsWith('rep') || 
-        suffixClean.toLowerCase().startsWith('rip')) {
+        suffixClean.toLowerCase().startsWith('rip') ||
+        suffixClean.toLowerCase().startsWith('set') ||
+        suffixClean.toLowerCase().startsWith('serie')) {
       continue;
     }
     
@@ -13481,10 +13757,14 @@ function estraiPesoDaInput(str) {
       break;
     }
     
-    // Se la parola significativa prima del numero è un'impostazione o rpe/rp, escludiamo il numero
+    // Se la parola significativa prima del numero è un'impostazione o rpe/rp o moltiplicatore 'x', escludiamo il numero
     if (prefixWord) {
       if (settingKeywords.some(word => prefixWord === word || prefixWord.includes(word)) || prefixWord === 'rpe' || prefixWord === 'rp') {
         continue; // Ignorato
+      }
+      // Se il prefisso è 'x' (es. "47.5 x2" -> per il 2 il prefisso è 'x' o '47.5x'), il 2 è il moltiplicatore di serie/reps e non un peso
+      if (prefixWord === 'x' || prefixWord.endsWith('x')) {
+        continue;
       }
     }
     

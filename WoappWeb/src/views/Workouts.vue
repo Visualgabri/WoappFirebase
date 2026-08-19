@@ -4620,7 +4620,7 @@ const isRepProgression = (ex) => {
 
 function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
-  let clean = String(str).replace(/,/g, '.').trim();
+  let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi (...), quadre [...] o graffe {...} per evitare che note influenzino i calcoli
   clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
@@ -4631,29 +4631,43 @@ function estraiRepsDaInputExplicitSingle(str) {
   clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
   clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, '').trim();
 
-  // 2. Rileva Rest-Pause / Tecniche (+ RP 14, RP 12)
-  const matchRP = clean.match(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?(\d+(?:\.\d+)?)/i);
-  if (matchRP) {
-    const val = parseFloat(matchRP[1]);
+  // 2. Rimuove COMPLETAMENTE diciture Rest-Pause, Drop-Set, Cluster (es. "rp20", "rp 15", "+2r RP", "47,6x4+2r RP", "RP+3")
+  clean = clean.replace(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?:?\s*@?\s*\+?\s*\d+(?:[\.,]\d+)?(?:\s*(?:sec|secondi|s|r|reps?|rip))?/gi, ' ').trim();
+  clean = clean.replace(/\+\s*\d+(?:[\.,]\d+)?\s*(?:r|reps?)?\s*(?:rp|rest\s*pause)/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rp|rest\s*pause|drop\s*set|cluster)\b/gi, ' ').trim();
+
+  // 3. Rileva formato esplicito con suffisso reps "40x23r", "42.5x24 reps", "5x12 rip"
+  const matchExplicitXWithR = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+  if (matchExplicitXWithR) {
+    const val = parseFloat(matchExplicitXWithR[2]);
     if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // 3. Rileva formato esplicito "5x12" o "5x12r" -> la seconda parte (12) sono le REPS
-  const matchX = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*[rR]?\b)?/);
-  if (matchX) {
-    const val = parseFloat(matchX[2]);
-    if (!isNaN(val) && val > 0) return { val, explicit: true };
+  // 4. Rileva formato tipo "3x20", "4x12", "1x18" (dove il primo numero è il numero di serie [1..5] e il secondo sono le reps [>=6])
+  const matchSxR = clean.match(/^\s*(\d+)\s*[xX]\s*(\d+)\s*$/);
+  if (matchSxR) {
+    const nSets = parseInt(matchSxR[1], 10);
+    const nReps = parseInt(matchSxR[2], 10);
+    if (nSets >= 1 && nSets <= 5 && nReps >= 6) {
+      return { val: nReps, explicit: true };
+    }
+    return null;
   }
-  
-  // 4. Rileva ripetizioni esplicite con suffissi "r", "reps", "rip" (es. "12r", "12 reps")
-  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?)/i);
+
+  // 5. Rileva formato "47.5 x2" o "47.5 x2s" o "65 x2s" o "140 x3s" -> la seconda parte dopo 'x' senza 'r' indica le SERIE completate!
+  const matchSets = clean.match(/\b\d+(?:\.\d+)?\s*[xX]\s*\d+\s*(?:s|set|sets|serie)?\b/i);
+  if (matchSets) {
+    clean = clean.replace(matchSets[0], ' ').trim();
+  }
+
+  // 6. Rileva ripetizioni esplicite con suffissi "r", "reps", "rip" (es. "12r", "12 reps", "20r")
+  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)/i);
   if (matchR) {
     const val = parseFloat(matchR[1]);
     if (!isNaN(val) && val > 0) return { val, explicit: true };
   }
 
-  // 5. UN NUMERO SINGOLO SENZA "r" O "reps" (es. "2", "3", "5", "12") È IL CARICO IN KG!
-  // Non deve MAI restituire un valore di ripetizioni esplicito qui.
+  // 7. UN NUMERO SINGOLO SENZA "r" O "reps" (es. "2", "3", "5", "12") È IL CARICO IN KG!
   return null;
 }
 
@@ -4678,7 +4692,7 @@ const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo = false)
     if (pesoStr) {
       const peso = parseFloat(pesoStr);
       if (!isNaN(peso) && peso > 0) {
-        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
         const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
         const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
         const e1rm = peso * (1 + reps / 30);

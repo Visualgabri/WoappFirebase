@@ -373,15 +373,41 @@
   border-color: var(--brand-accent) !important;
 }
 
-[data-theme="light"] .custom-weight-input .v-field {
-  background: var(--card-bg-glass) !important;
-  border: 1.5px solid var(--card-border) !important;
+.custom-weight-input {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
+.custom-weight-input:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.custom-weight-input:focus-within {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--theme-primary, #f97316);
+  box-shadow: 0 0 12px var(--theme-primary-glow, rgba(249, 115, 22, 0.25));
+}
+
+[data-theme="light"] .custom-weight-input,
+[data-theme="light"] .custom-weight-input .v-field {
+  background: var(--card-bg-glass, rgba(0, 0, 0, 0.04)) !important;
+  border: 1.5px solid var(--card-border, rgba(0, 0, 0, 0.14)) !important;
+}
+
+[data-theme="light"] .custom-weight-input:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.22) !important;
+}
+
+[data-theme="light"] .custom-weight-input:focus-within,
 [data-theme="light"] .custom-weight-input .v-field--focused {
-  background: var(--card-bg-glass) !important;
-  border-color: var(--brand-accent) !important;
-  box-shadow: 0 0 8px var(--brand-accent-glow) !important;
+  background: #ffffff !important;
+  border-color: var(--brand-accent, var(--theme-primary, #f97316)) !important;
+  box-shadow: 0 0 10px var(--brand-accent-glow, var(--theme-primary-glow)) !important;
 }
 
 [data-theme="light"] .custom-weight-input .v-label {

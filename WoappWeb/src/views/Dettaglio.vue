@@ -16599,7 +16599,26 @@ const tornaIndietro = () => {
   backdrop-filter: blur(8px);
 }
 
-/* Matite e label trasparenti per input carico settimanale */
+/* Box e riquadro input carico settimanale (custom-weight-input) */
+.custom-weight-input {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.custom-weight-input:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.32) !important;
+}
+
+.custom-weight-input:focus-within {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--theme-primary, #f97316) !important;
+  box-shadow: 0 0 12px var(--theme-primary-glow, rgba(249, 115, 22, 0.25)) !important;
+}
+
 .custom-weight-input :deep(.v-label) {
   opacity: 0.35 !important;
   color: #cbd5e1 !important;
@@ -16612,8 +16631,7 @@ const tornaIndietro = () => {
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
 }
-.custom-weight-input :deep(.v-field--focused),
-.custom-weight-input:focus-within {
+.custom-weight-input :deep(.v-field--focused) {
   background: rgba(255, 255, 255, 0.18) !important;
   border-color: var(--theme-primary) !important;
   box-shadow: 0 0 10px var(--theme-primary-glow) !important;
@@ -16984,17 +17002,24 @@ th.sticky-col {
   border-left: 3px solid var(--brand-accent) !important;
 }
 
+[data-theme="light"] .custom-weight-input,
 [data-theme="light"] .custom-weight-input :deep(.v-field),
 [data-theme="light"] .custom-textarea-input :deep(.v-field) {
-  background: var(--card-bg-glass) !important;
-  border: 1.5px solid var(--card-border) !important;
+  background: var(--card-bg-glass, rgba(0, 0, 0, 0.04)) !important;
+  border: 1.5px solid var(--card-border, rgba(0, 0, 0, 0.14)) !important;
 }
 
+[data-theme="light"] .custom-weight-input:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.22) !important;
+}
+
+[data-theme="light"] .custom-weight-input:focus-within,
 [data-theme="light"] .custom-weight-input :deep(.v-field--focused),
 [data-theme="light"] .custom-textarea-input :deep(.v-field--focused) {
-  background: var(--card-bg-glass) !important;
-  border-color: var(--brand-accent) !important;
-  box-shadow: 0 0 8px var(--brand-accent-glow) !important;
+  background: #ffffff !important;
+  border-color: var(--brand-accent, var(--theme-primary, #f97316)) !important;
+  box-shadow: 0 0 10px var(--brand-accent-glow, var(--theme-primary-glow)) !important;
 }
 
 [data-theme="light"] .custom-weight-input :deep(.v-label),

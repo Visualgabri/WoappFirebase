@@ -2,6 +2,75 @@ import { ref, watch } from 'vue';
 import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from './firebase.js';
 
+// Ordine originale degli atleti (estratto dal foglio Google)
+export const ORDINE_ORIGINALE_ATLETI = [
+  '1', '57', '93', '186', '219', '125', '188', '232', '193', '245',
+  '164', '196', '228', '276', '19', '237', '249', '243', '263', '54',
+  '268', '269', '281', '211', '178', '175', '297', '304', '274', '14',
+  '313', '312', '314'
+];
+
+// Mappa statica anagrafica clienti del foglio Google originario
+export const MAPPA_CLIENTI = {
+  '1': { nome: 'Gabriele', cognome: 'Belmonte', email: 'visualgabri@gmail.com', scheda: 49, vista: false, obsoleto: false, stileStorico: 'timeline', modalitaSettimane: 'fissa', sesso: 'M' },
+  '57': { nome: 'Jessica', cognome: 'Carletti', email: 'Jessica.carletti89@gmail.com', scheda: 36, vista: false, obsoleto: false, sesso: 'F' },
+  '93': { nome: 'Tiziano', cognome: 'Passetti', email: 'tizypass@gmail.com', scheda: 55, vista: null, obsoleto: false, sesso: 'M' },
+  '186': { nome: 'Jenny', cognome: 'Pichini', email: 'Pichinijenny@gmail.com', scheda: 14, vista: true, obsoleto: true, sesso: 'F' },
+  '219': { nome: 'Chiara', cognome: 'Lazzarini', email: 'chiara.lazzarini15@hotmail.com', scheda: 12, vista: true, obsoleto: true, sesso: 'F' },
+  '125': { nome: 'Carla', cognome: 'Leone', email: 'carlaleone59@gmail.com', scheda: 45, vista: true, obsoleto: false, stileStorico: 'tabella', modalitaSettimane: 'dinamica', sesso: 'F' },
+  '188': { nome: 'Gabriele', cognome: 'Cappelli', email: 'gabrielecappelli290723@gmail.com', scheda: 29, vista: false, obsoleto: false, sesso: 'M' },
+  '232': { nome: 'Damiano', cognome: 'Rossi', email: 'damianorossi6@gmail.com', scheda: 23, vista: false, obsoleto: false, sesso: 'M' },
+  '193': { nome: 'Giulietta', cognome: 'Bernareggi', email: 'giuli@intercom.it', scheda: 23, vista: null, obsoleto: false, sesso: 'F' },
+  '245': { nome: 'Emanuele', cognome: 'Furia', email: 'emanuelefuria@gmail.com', scheda: 22, vista: false, obsoleto: false, sesso: 'M' },
+  '164': { nome: 'Riccardo', cognome: 'Manetta', email: 'rick.manetta@hotmail.it', scheda: 21, vista: false, obsoleto: true, sesso: 'M' },
+  '196': { nome: 'Anastasia', cognome: 'Ciampoletta', email: 'anastasia.ciampoletta@gmail.com', scheda: 19, vista: true, obsoleto: true, sesso: 'F' },
+  '228': { nome: 'Francesco', cognome: 'Severini', email: 'francescoseverini2001@gmail.com', scheda: 6, vista: true, obsoleto: true, sesso: 'M' },
+  '276': { nome: 'Gessica', cognome: 'Zucchini', email: 'gessi.zucchini@gmail.com', scheda: 18, vista: false, obsoleto: true, sesso: 'F' },
+  '19': { nome: 'Gianni', cognome: 'Ferranti', email: 'g.ferranti@hotmail.com', scheda: 71, vista: false, obsoleto: false, sesso: 'M' },
+  '237': { nome: 'Claudia', cognome: 'Caligiana', email: 'clud69@gmail.com', scheda: 23, vista: false, obsoleto: false, sesso: 'F' },
+  '249': { nome: 'Stefania', cognome: 'Tantari', email: 'stefysweet@hotmail.it', scheda: 20, vista: false, obsoleto: false, sesso: 'F' },
+  '243': { nome: 'Francesco', cognome: 'De Vitis', email: 'francesco.devitis1@gmail.com', scheda: 17, vista: false, obsoleto: false, sesso: 'M' },
+  '263': { nome: 'Filippo', cognome: 'Primieri', email: 'primieri.filippo@gmail.com', scheda: 1, vista: false, obsoleto: true, sesso: 'M' },
+  '54': { nome: 'Alessia', cognome: 'Peroli', email: 'aleperoli@gmail.com', scheda: 31, vista: false, obsoleto: true, sesso: 'F' },
+  '268': { nome: 'Elisa', cognome: 'Sanna', email: 'elisasanna92@gmail.com', scheda: 3, vista: true, obsoleto: true, sesso: 'F' },
+  '269': { nome: 'Emma', cognome: 'Viali', email: 'emmaviali02@gmail.com', scheda: 17, vista: false, obsoleto: false, sesso: 'F' },
+  '281': { nome: 'Claudia', cognome: 'Antonini', email: 'Antoniniclaudia3@gmail.com', scheda: 5, vista: false, obsoleto: true, sesso: 'F' },
+  '211': { nome: 'Eugenia', cognome: 'Falini', email: 'eugenia.falini@gmail.com', scheda: 28, vista: false, obsoleto: false, sesso: 'F' },
+  '178': { nome: 'Andrea', cognome: 'Giommetti', email: 'elioandreagiommetti@gmail.com', scheda: 21, vista: false, obsoleto: true, sesso: 'M' },
+  '175': { nome: 'Laura', cognome: 'Becchetti', email: 'becchettilauramaria@gmail.com', scheda: 26, vista: false, obsoleto: true, sesso: 'F' },
+  '297': { nome: 'Marina', cognome: 'Torre', email: 'marinatorre94@gmail.com', scheda: 6, vista: false, obsoleto: false, sesso: 'F' },
+  '304': { nome: 'Franca', cognome: 'Balducci', email: 'francabalducci@libero.it', scheda: 5, vista: false, obsoleto: false, sesso: 'F' },
+  '274': { nome: 'Francesco', cognome: 'Gradi', email: 'francesco.gradi.fg@gmail.com', scheda: 13, vista: false, obsoleto: false, sesso: 'M' },
+  '14': { nome: 'Filippo', cognome: 'Cruccolini', email: 'filippo.cruccolini@gmail.com', scheda: 7, vista: false, obsoleto: false, sesso: 'M' },
+  '313': { nome: 'Lucia', cognome: 'Gozzi', email: 'Luciagozzi88@hotmail.com', scheda: 3, vista: false, obsoleto: false, sesso: 'F' },
+  '312': { nome: 'Rachele', cognome: 'Cucurnia', email: 'Rachele.cucurnia@gmail.com', scheda: 2, vista: false, obsoleto: false, sesso: 'F' },
+  '314': { nome: 'Matteo', cognome: 'Delle Fate', email: 'matteodellefate@gmail.com', scheda: 1, vista: false, obsoleto: false, sesso: 'M' }
+};
+
+// Helper per ottenere il sesso dell'atleta (M/F)
+export const getSessoAtleta = (id) => {
+  const cleanId = String(id || '').trim();
+  if (!cleanId) return 'M';
+  
+  if (MAPPA_CLIENTI[cleanId]?.sesso) {
+    return MAPPA_CLIENTI[cleanId].sesso;
+  }
+  if (MAPPA_CLIENTI[cleanId]?.flg_sesso) {
+    return MAPPA_CLIENTI[cleanId].flg_sesso;
+  }
+  const cached = localStorage.getItem('sesso_cliente_' + cleanId);
+  if (cached) return cached;
+  
+  return 'M';
+};
+
+// Helper per determinare il tema di default in base al sesso (Fucsia per femmine, Blu per maschi)
+export const getTemaDefaultPerSesso = (sesso) => {
+  const s = String(sesso || '').trim().toUpperCase();
+  if (s === 'F' || s === 'FEMMINA') return 'fucsia';
+  return 'blu';
+};
+
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
 const emailSalvata = localStorage.getItem('utenteEmail');
 let initialRuolo = localStorage.getItem('ruolo') || 'atleta';
@@ -54,7 +123,12 @@ export const setTheme = (themeName, vuetifyInstance = null) => {
 if (typeof document !== 'undefined') {
   const initTheme = localStorage.getItem('userTheme') || 'dark';
   const initStyle = localStorage.getItem('userLightStyle') || 'slate';
-  const initThemeColor = localStorage.getItem('woapp_tema_header_giorno') || 'arancio';
+  const activeAthlete = localStorage.getItem('selectedAthlete') || '1';
+  const sesso = getSessoAtleta(activeAthlete);
+  const defaultThemeColor = getTemaDefaultPerSesso(sesso);
+  const savedTheme = localStorage.getItem('woapp_tema_header_giorno');
+  const initThemeColor = (savedTheme && savedTheme !== 'arancio') ? savedTheme : defaultThemeColor;
+
   document.documentElement.setAttribute('data-theme', initTheme);
   document.body.setAttribute('data-theme', initTheme);
   document.documentElement.setAttribute('data-light-style', initStyle);
@@ -544,50 +618,7 @@ export const stopGlobalTimer = () => {
   }
 };
 
-// Ordine originale degli atleti (estratto dal foglio Google)
-export const ORDINE_ORIGINALE_ATLETI = [
-  '1', '57', '93', '186', '219', '125', '188', '232', '193', '245',
-  '164', '196', '228', '276', '19', '237', '249', '243', '263', '54',
-  '268', '269', '281', '211', '178', '175', '297', '304', '274', '14',
-  '313', '312', '314'
-];
 
-// Mappa statica anagrafica clienti del foglio Google originario
-export const MAPPA_CLIENTI = {
-  '1': { nome: 'Gabriele', cognome: 'Belmonte', email: 'visualgabri@gmail.com', scheda: 49, vista: false, obsoleto: false, stileStorico: 'timeline', modalitaSettimane: 'fissa' },
-  '57': { nome: 'Jessica', cognome: 'Carletti', email: 'Jessica.carletti89@gmail.com', scheda: 36, vista: false, obsoleto: false },
-  '93': { nome: 'Tiziano', cognome: 'Passetti', email: 'tizypass@gmail.com', scheda: 55, vista: null, obsoleto: false },
-  '186': { nome: 'Jenny', cognome: 'Pichini', email: 'Pichinijenny@gmail.com', scheda: 14, vista: true, obsoleto: true },
-  '219': { nome: 'Chiara', cognome: 'Lazzarini', email: 'chiara.lazzarini15@hotmail.com', scheda: 12, vista: true, obsoleto: true },
-  '125': { nome: 'Carla', cognome: 'Leone', email: 'carlaleone59@gmail.com', scheda: 45, vista: true, obsoleto: false, stileStorico: 'tabella', modalitaSettimane: 'dinamica' },
-  '188': { nome: 'Gabriele', cognome: 'Cappelli', email: 'gabrielecappelli290723@gmail.com', scheda: 29, vista: false, obsoleto: false },
-  '232': { nome: 'Damiano', cognome: 'Rossi', email: 'damianorossi6@gmail.com', scheda: 23, vista: false, obsoleto: false },
-  '193': { nome: 'Giulietta', cognome: 'Bernareggi', email: 'giuli@intercom.it', scheda: 23, vista: null, obsoleto: false },
-  '245': { nome: 'Emanuele', cognome: 'Furia', email: 'emanuelefuria@gmail.com', scheda: 22, vista: false, obsoleto: false },
-  '164': { nome: 'Riccardo', cognome: 'Manetta', email: 'rick.manetta@hotmail.it', scheda: 21, vista: false, obsoleto: true },
-  '196': { nome: 'Anastasia', cognome: 'Ciampoletta', email: 'anastasia.ciampoletta@gmail.com', scheda: 19, vista: true, obsoleto: true },
-  '228': { nome: 'Francesco', cognome: 'Severini', email: 'francescoseverini2001@gmail.com', scheda: 6, vista: true, obsoleto: true },
-  '276': { nome: 'Gessica', cognome: 'Zucchini', email: 'gessi.zucchini@gmail.com', scheda: 18, vista: false, obsoleto: true },
-  '19': { nome: 'Gianni', cognome: 'Ferranti', email: 'g.ferranti@hotmail.com', scheda: 71, vista: false, obsoleto: false },
-  '237': { nome: 'Claudia', cognome: 'Caligiana', email: 'clud69@gmail.com', scheda: 23, vista: false, obsoleto: false },
-  '249': { nome: 'Stefania', cognome: 'Tantari', email: 'stefysweet@hotmail.it', scheda: 20, vista: false, obsoleto: false },
-  '243': { nome: 'Francesco', cognome: 'De Vitis', email: 'francesco.devitis1@gmail.com', scheda: 17, vista: false, obsoleto: false },
-  '263': { nome: 'Filippo', cognome: 'Primieri', email: 'primieri.filippo@gmail.com', scheda: 1, vista: false, obsoleto: true },
-  '54': { nome: 'Alessia', cognome: 'Peroli', email: 'aleperoli@gmail.com', scheda: 31, vista: false, obsoleto: true },
-  '268': { nome: 'Elisa', cognome: 'Sanna', email: 'elisasanna92@gmail.com', scheda: 3, vista: true, obsoleto: true },
-  '269': { nome: 'Emma', cognome: 'Viali', email: 'emmaviali02@gmail.com', scheda: 17, vista: false, obsoleto: false },
-  '281': { nome: 'Claudia', cognome: 'Antonini', email: 'Antoniniclaudia3@gmail.com', scheda: 5, vista: false, obsoleto: true },
-  '211': { nome: 'Eugenia', cognome: 'Falini', email: 'eugenia.falini@gmail.com', scheda: 28, vista: false, obsoleto: false },
-  '178': { nome: 'Andrea', cognome: 'Giommetti', email: 'elioandreagiommetti@gmail.com', scheda: 21, vista: false, obsoleto: true },
-  '175': { nome: 'Laura', cognome: 'Becchetti', email: 'becchettilauramaria@gmail.com', scheda: 26, vista: false, obsoleto: true },
-  '297': { nome: 'Marina', cognome: 'Torre', email: 'marinatorre94@gmail.com', scheda: 6, vista: false, obsoleto: false },
-  '304': { nome: 'Franca', cognome: 'Balducci', email: 'francabalducci@libero.it', scheda: 5, vista: false, obsoleto: false },
-  '274': { nome: 'Francesco', cognome: 'Gradi', email: 'francesco.gradi.fg@gmail.com', scheda: 13, vista: false, obsoleto: false },
-  '14': { nome: 'Filippo', cognome: 'Cruccolini', email: 'filippo.cruccolini@gmail.com', scheda: 7, vista: false, obsoleto: false },
-  '313': { nome: 'Lucia', cognome: 'Gozzi', email: 'Luciagozzi88@hotmail.com', scheda: 3, vista: false, obsoleto: false },
-  '312': { nome: 'Rachele', cognome: 'Cucurnia', email: 'Rachele.cucurnia@gmail.com', scheda: 2, vista: false, obsoleto: false },
-  '314': { nome: 'Matteo', cognome: 'Delle Fate', email: 'matteodellefate@gmail.com', scheda: 1, vista: false, obsoleto: false }
-};
 
 // Mappa dinamica per i nuovi clienti caricati su Firestore che non sono in MAPPA_CLIENTI statica
 export const MAPPA_CLIENTI_DINAMICI = ref(JSON.parse(localStorage.getItem('mappa_clienti_dinamici') || '{}'));
@@ -696,7 +727,10 @@ export const posizioneRecuperiGlobal = ref(localStorage.getItem('woapp_posizione
 export const timerThemeGlobal = ref(localStorage.getItem('woapp_timer_theme') || 'accent-dark');
 const savedComportamentoPlay = localStorage.getItem('woapp_comportamento_play');
 export const comportamentoPlayGlobal = ref((savedComportamentoPlay && savedComportamentoPlay !== 'auto') ? savedComportamentoPlay : 'evidenzia');
-export const temaHeaderGiornoGlobal = ref(localStorage.getItem('woapp_tema_header_giorno') || 'arancio');
+const activeAthleteInit = localStorage.getItem('selectedAthlete') || '1';
+const defaultThemeColorInit = getTemaDefaultPerSesso(getSessoAtleta(activeAthleteInit));
+const savedThemeInit = localStorage.getItem('woapp_tema_header_giorno');
+export const temaHeaderGiornoGlobal = ref((savedThemeInit && savedThemeInit !== 'arancio') ? savedThemeInit : defaultThemeColorInit);
 
 // Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
 export const globalStoryboard = ref([]);
@@ -1644,9 +1678,17 @@ export const syncClienteConfigListener = () => {
       if (ui.userLightStyle !== undefined && ui.userLightStyle !== currentLightStyle.value) {
         setLightStyle(ui.userLightStyle);
       }
-      if (ui.temaHeaderGiorno !== undefined) {
+      if (ui.temaHeaderGiorno !== undefined && ui.temaHeaderGiorno !== 'arancio') {
         temaHeaderGiornoGlobal.value = ui.temaHeaderGiorno;
         localStorage.setItem('woapp_tema_header_giorno', ui.temaHeaderGiorno);
+      } else {
+        const sesso = getSessoAtleta(atletaId);
+        const defaultColor = getTemaDefaultPerSesso(sesso);
+        const currentSaved = localStorage.getItem('woapp_tema_header_giorno');
+        if (!currentSaved || currentSaved === 'arancio') {
+          temaHeaderGiornoGlobal.value = defaultColor;
+          localStorage.setItem('woapp_tema_header_giorno', defaultColor);
+        }
       }
       if (ui.layoutEsercizi !== undefined) {
         layoutEserciziGlobal.value = ui.layoutEsercizi;
@@ -1690,6 +1732,13 @@ export const syncClienteConfigListener = () => {
         localStorage.setItem('woapp_default_timer_rec', String(wo.defaultTimerRec));
       }
     } else {
+      const sesso = getSessoAtleta(atletaId);
+      const defaultColor = getTemaDefaultPerSesso(sesso);
+      const currentSaved = localStorage.getItem('woapp_tema_header_giorno');
+      if (!currentSaved || currentSaved === 'arancio') {
+        temaHeaderGiornoGlobal.value = defaultColor;
+        localStorage.setItem('woapp_tema_header_giorno', defaultColor);
+      }
       salvaClienteConfigFirestore();
     }
 

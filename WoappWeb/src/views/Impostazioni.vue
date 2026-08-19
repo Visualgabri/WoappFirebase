@@ -184,9 +184,9 @@
           class="w-100 card-glass border"
           style="height: 32px;"
         >
-          <v-btn value="auto" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Auto</v-btn>
-          <v-btn value="dettaglio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Dettaglio</v-btn>
           <v-btn value="evidenzia" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Evidenzia</v-btn>
+          <v-btn value="dettaglio" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Dettaglio</v-btn>
+          <v-btn value="auto" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Auto</v-btn>
         </v-btn-toggle>
       </div>
     </v-card>

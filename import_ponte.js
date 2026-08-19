@@ -94,6 +94,29 @@ function formatExcelDate(serial) {
   return `${day}/${month}/${year}`;
 }
 
+const BOOLEAN_FIELDS = new Set([
+  'flg_rm_teorico',
+  'flg_escludi',
+  'flg_video',
+  'no_elimina',
+  'flg_ex_mai_fatto',
+  'flg_escludi_lista_ex_wo_prec',
+  'flg_stampa_wo_grafici',
+  'flg_sic',
+  'flg_ramp_test',
+  'flg_da_finire'
+]);
+
+function parseBooleanFlag(val) {
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'number') return val === 1;
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    return s === 'true' || s === 'vero' || s === '1';
+  }
+  return false;
+}
+
 function areRecordsEqual(rec1, rec2) {
   const keys1 = Object.keys(rec1 || {});
   const keys2 = Object.keys(rec2 || {});
@@ -101,8 +124,18 @@ function areRecordsEqual(rec1, rec2) {
   
   for (const key of allKeys) {
     if (key === 'timestamp' || key === 'timestamp_ute') continue; // Salta i timestamp automatici di importazione
-    const val1 = String(rec1[key] !== undefined && rec1[key] !== null ? rec1[key] : '').trim();
-    const val2 = String(rec2[key] !== undefined && rec2[key] !== null ? rec2[key] : '').trim();
+    const rawVal1 = rec1[key];
+    const rawVal2 = rec2[key];
+    
+    if (BOOLEAN_FIELDS.has(key)) {
+      if (parseBooleanFlag(rawVal1) !== parseBooleanFlag(rawVal2)) {
+        return false;
+      }
+      continue;
+    }
+
+    const val1 = String(rawVal1 !== undefined && rawVal1 !== null ? rawVal1 : '').trim();
+    const val2 = String(rawVal2 !== undefined && rawVal2 !== null ? rawVal2 : '').trim();
     if (val1 !== val2) {
       return false;
     }
@@ -224,12 +257,17 @@ async function run() {
       const cleanRow = {};
       for (const [key, value] of Object.entries(row)) {
         const cleanKey = key.trim().replace(/^\uFEFF/, '');
-        let cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
 
-        if ((cleanKey === 'dat_data' || cleanKey === 'data_peso') && cleanVal !== '') {
-          cleanVal = formatExcelDate(cleanVal);
+        if (BOOLEAN_FIELDS.has(cleanKey)) {
+          cleanRow[cleanKey] = parseBooleanFlag(value);
+        } else {
+          let cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
+
+          if ((cleanKey === 'dat_data' || cleanKey === 'data_peso') && cleanVal !== '') {
+            cleanVal = formatExcelDate(cleanVal);
+          }
+          cleanRow[cleanKey] = cleanVal;
         }
-        cleanRow[cleanKey] = cleanVal;
       }
       
       // Filtra solo i record relativi all'atleta corrente
@@ -278,14 +316,14 @@ async function run() {
     for (const excelRec of remainingIncoming) {
       const ex1 = String(excelRec.ID_esercizio || excelRec.des_esercizio || '').trim().toLowerCase();
       const dat1 = String(excelRec.dat_data || '').trim();
-      const t1 = String(excelRec.flg_rm_teorico || '').trim().toLowerCase();
+      const t1 = parseBooleanFlag(excelRec.flg_rm_teorico);
 
       let candidateIdx = -1;
       for (let i = 0; i < unmatchedExistingDocs.length; i++) {
         const d = unmatchedExistingDocs[i].data;
         const ex2 = String(d.ID_esercizio || d.des_esercizio || '').trim().toLowerCase();
         const dat2 = String(d.dat_data || '').trim();
-        const t2 = String(d.flg_rm_teorico || '').trim().toLowerCase();
+        const t2 = parseBooleanFlag(d.flg_rm_teorico);
 
         if (ex1 && ex1 === ex2 && dat1 && dat1 === dat2 && t1 === t2) {
           candidateIdx = i;
@@ -340,12 +378,17 @@ async function run() {
     const cleanRow = {};
     for (const [key, value] of Object.entries(row)) {
       const cleanKey = key.trim().replace(/^\uFEFF/, '');
-      const cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
-      cleanRow[cleanKey] = cleanVal;
       
-      // Mappatura speciale des_week1Estratto -> des_week1
-      if (cleanKey === 'des_week1Estratto') {
-        cleanRow['des_week1'] = cleanVal;
+      if (BOOLEAN_FIELDS.has(cleanKey)) {
+        cleanRow[cleanKey] = parseBooleanFlag(value);
+      } else {
+        const cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
+        cleanRow[cleanKey] = cleanVal;
+        
+        // Mappatura speciale des_week1Estratto -> des_week1
+        if (cleanKey === 'des_week1Estratto') {
+          cleanRow['des_week1'] = cleanVal;
+        }
       }
     }
     return cleanRow;

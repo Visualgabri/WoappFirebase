@@ -694,7 +694,8 @@ export const layoutEserciziGlobal = ref(localStorage.getItem('woapp_layout_eserc
 export const layoutDettaglioGlobal = ref(localStorage.getItem('woapp_layout_dettaglio') || 'auto');
 export const posizioneRecuperiGlobal = ref(localStorage.getItem('woapp_posizione_recuperi') || 'strategica');
 export const timerThemeGlobal = ref(localStorage.getItem('woapp_timer_theme') || 'accent-dark');
-export const comportamentoPlayGlobal = ref(localStorage.getItem('woapp_comportamento_play') || 'auto');
+const savedComportamentoPlay = localStorage.getItem('woapp_comportamento_play');
+export const comportamentoPlayGlobal = ref((savedComportamentoPlay && savedComportamentoPlay !== 'auto') ? savedComportamentoPlay : 'evidenzia');
 export const temaHeaderGiornoGlobal = ref(localStorage.getItem('woapp_tema_header_giorno') || 'arancio');
 
 // Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
@@ -1677,9 +1678,12 @@ export const syncClienteConfigListener = () => {
         vibrazioneAttivaGlobal.value = wo.vibrazioneAttiva === true;
         localStorage.setItem('woapp_vibrazione_attiva', String(wo.vibrazioneAttiva));
       }
-      if (wo.comportamentoPlay !== undefined) {
+      if (wo.comportamentoPlay !== undefined && wo.comportamentoPlay !== 'auto') {
         comportamentoPlayGlobal.value = wo.comportamentoPlay;
         localStorage.setItem('woapp_comportamento_play', wo.comportamentoPlay);
+      } else if (wo.comportamentoPlay === 'auto') {
+        comportamentoPlayGlobal.value = 'evidenzia';
+        localStorage.setItem('woapp_comportamento_play', 'evidenzia');
       }
       if (wo.defaultTimerRec !== undefined) {
         defaultTimerRecGlobal.value = parseInt(wo.defaultTimerRec, 10);

@@ -20,7 +20,7 @@
           <v-icon size="13" class="mr-1">mdi-arrow-left</v-icon>
           App
         </v-btn>
-        <v-btn icon color="orange-darken-3" variant="text" @click="caricaDati" size="x-small" style="width: 28px; height: 28px;" :disabled="loadingData">
+        <v-btn icon color="orange-darken-3" variant="text" @click="caricaDati" size="x-small" style="width: 28px; height: 28px;" :disabled="loadingData || !atletaSelezionato" title="Sincronizza / Ricarica dati da Firestore">
           <v-icon size="16" :class="{ 'animate-spin': loadingData }">mdi-refresh</v-icon>
         </v-btn>
       </div>
@@ -97,7 +97,7 @@
             prepend-inner-icon="mdi-clipboard-text-outline"
             hide-details
             :disabled="!atletaSelezionato || loadingSchede"
-            @update:model-value="caricaEsercizi"
+            @update:model-value="gestisciCambioScheda"
           ></v-select>
         </v-col>
 
@@ -109,7 +109,8 @@
             rounded="lg"
             class="text-white font-weight-bold text-none px-3"
             style="height: 36px; font-size: 0.76rem;"
-            :disabled="!atletaSelezionato || (tipoDatiCaricare === 'storyboard' && !schedaSelezionata)"
+            :disabled="!atletaSelezionato || loadingData"
+            :loading="loadingData"
             @click="caricaDati"
           >
             <v-icon class="mr-1" size="16">mdi-cloud-download</v-icon>
@@ -729,35 +730,35 @@
         <v-tab value="storyboard" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
           <v-icon start size="15" class="mr-1">mdi-format-list-bulleted</v-icon>
           Storyboard
-          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="orange-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="records.length > 0">
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="orange-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="tabCaricate.storyboard && records.length > 0">
             {{ records.length }}
           </v-chip>
         </v-tab>
         <v-tab value="workout_t" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
           <v-icon start size="15" class="mr-1">mdi-calendar-month</v-icon>
           Workout T
-          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="blue-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="workoutTRecords.length > 0">
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="blue-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="tabCaricate.workout_t && workoutTRecords.length > 0">
             {{ workoutTRecords.length }}
           </v-chip>
         </v-tab>
         <v-tab value="massimali" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
           <v-icon start size="15" class="mr-1">mdi-weight-lifter</v-icon>
           Massimali (WOAPP_MASSIMALI_R)
-          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="green-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="massimaliRecords.length > 0">
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="green-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="tabCaricate.massimali && massimaliRecords.length > 0">
             {{ massimaliRecords.length }}
           </v-chip>
         </v-tab>
         <v-tab value="clienti" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
           <v-icon start size="15" class="mr-1">mdi-account-details</v-icon>
           Anagrafica Cliente
-          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="purple-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="clienteRecord">
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="purple-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="tabCaricate.clienti && clienteRecord">
             1
           </v-chip>
         </v-tab>
         <v-tab value="infortuni" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
           <v-icon start size="15" class="mr-1">mdi-bandage</v-icon>
           Infortuni
-          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="red-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="infortuniRecords.length > 0">
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="red-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="tabCaricate.infortuni && infortuniRecords.length > 0">
             {{ infortuniRecords.length }}
           </v-chip>
         </v-tab>
@@ -765,8 +766,17 @@
 
       <!-- TAB 1: STORYBOARD -->
       <div v-show="activeTab === 'storyboard'">
+        <!-- Dati non ancora caricati da Firestore -->
+        <div v-if="!tabCaricate.storyboard && !loadingData" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="orange-darken-3" size="48" class="mb-2">mdi-cloud-download-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Storyboard non caricato da Firestore</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">
+            Seleziona l'atleta e premi <strong class="text-orange-lighten-2">CARICA DATI</strong> in alto per scaricare lo Storyboard.
+          </p>
+        </div>
+
         <!-- Nessuna scheda selezionata -->
-        <div v-if="!schedaSelezionata" class="text-center py-12 border-dashed rounded-xl my-4">
+        <div v-else-if="!schedaSelezionata" class="text-center py-12 border-dashed rounded-xl my-4">
           <v-icon color="orange-darken-3" size="48" class="mb-2">mdi-clipboard-text-outline</v-icon>
           <h4 class="text-slate font-weight-bold text-body-1">Nessuna scheda selezionata</h4>
           <p class="text-caption text-muted px-4 leading-tight mt-1">
@@ -1144,6 +1154,15 @@
           <p class="mt-4 text-slate text-body-2">Caricamento record WORKOUT_T...</p>
         </div>
 
+        <!-- Dati non ancora caricati -->
+        <div v-else-if="!tabCaricate.workout_t" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="blue-lighten-2" size="48" class="mb-2">mdi-cloud-download-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Workout T non caricato da Firestore</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">
+            Seleziona l'atleta e premi <strong class="text-orange-lighten-2">CARICA DATI</strong> in alto per scaricare i mesocicli da Firestore.
+          </p>
+        </div>
+
         <!-- Nessun dato trovato -->
         <div v-else-if="workoutTRecords.length === 0" class="text-center py-12 border-dashed rounded-xl my-4">
           <v-icon color="grey" size="48" class="mb-2">mdi-database-alert-outline</v-icon>
@@ -1432,6 +1451,15 @@
         <div v-if="loadingMassimali" class="text-center my-12 py-12">
           <v-progress-circular indeterminate color="green" size="48"></v-progress-circular>
           <p class="mt-4 text-slate text-body-2">Caricamento massimali WOAPP_MASSIMALI_R...</p>
+        </div>
+
+        <!-- Dati non ancora caricati -->
+        <div v-else-if="!tabCaricate.massimali" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="green-lighten-2" size="48" class="mb-2">mdi-cloud-download-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Massimali non caricati da Firestore</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">
+            Seleziona l'atleta e premi <strong class="text-orange-lighten-2">CARICA DATI</strong> in alto per scaricare i massimali da Firestore.
+          </p>
         </div>
 
         <!-- Nessun dato trovato -->
@@ -1723,6 +1751,15 @@
           <p class="mt-4 text-slate text-body-2">Caricamento anagrafica CLIENTE...</p>
         </div>
 
+        <!-- Dati non ancora caricati -->
+        <div v-else-if="!tabCaricate.clienti" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="purple-lighten-2" size="48" class="mb-2">mdi-cloud-download-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Anagrafica Cliente non caricata da Firestore</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">
+            Seleziona l'atleta e premi <strong class="text-orange-lighten-2">CARICA DATI</strong> in alto per scaricare l'anagrafica da Firestore.
+          </p>
+        </div>
+
         <div v-else-if="!clienteRecord" class="text-center py-12 border-dashed rounded-xl my-4">
           <v-icon color="grey" size="48" class="mb-2">mdi-account-off-outline</v-icon>
           <h4 class="text-slate font-weight-bold text-body-1">Nessun dato anagrafico trovato</h4>
@@ -1886,6 +1923,15 @@
         <div v-if="loadingInfortuni" class="text-center my-12 py-12">
           <v-progress-circular indeterminate color="red" size="48"></v-progress-circular>
           <p class="mt-4 text-slate text-body-2">Caricamento infortuni atleta...</p>
+        </div>
+
+        <!-- Dati non ancora caricati -->
+        <div v-else-if="!tabCaricate.infortuni" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="red-lighten-2" size="48" class="mb-2">mdi-cloud-download-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Infortuni non caricati da Firestore</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">
+            Seleziona l'atleta e premi <strong class="text-orange-lighten-2">CARICA DATI</strong> in alto per scaricare gli infortuni da Firestore.
+          </p>
         </div>
 
         <!-- Nessun dato trovato -->
@@ -2375,6 +2421,108 @@ const loadingCliente = ref(false);
 const infortuniRecords = ref([]);
 const loadingInfortuni = ref(false);
 
+// Stato di caricamento selettivo per singola tabella
+const tabCaricate = ref({
+  storyboard: false,
+  workout_t: false,
+  massimali: false,
+  clienti: false,
+  infortuni: false
+});
+
+// Cache in-memory a livello di modulo per memorizzare i dati tra i cambi di rotta nella sessione
+const dashboardCache = new Map();
+
+// Helper per interpretare i valori booleani (supporta bool, stringhe 'true'/'vero'/'1', numeri)
+const isTrue = (val) => {
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'number') return val === 1;
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    return s === 'true' || s === 'vero' || s === '1';
+  }
+  return false;
+};
+
+// Salva lo stato corrente dell'atleta e della scheda nella cache in memoria
+const salvaInCache = () => {
+  if (!atletaSelezionato.value) return;
+  const athleteId = String(atletaSelezionato.value);
+  const current = dashboardCache.get(athleteId) || {
+    storyboardRecords: {},
+    tabCaricate: {}
+  };
+  
+  current.tabCaricate = { ...tabCaricate.value };
+  current.listaSchede = [...listaSchede.value];
+  current.workoutTRecords = JSON.parse(JSON.stringify(workoutTRecords.value));
+  current.massimaliRecords = JSON.parse(JSON.stringify(massimaliRecords.value));
+  current.clienteRecord = clienteRecord.value ? JSON.parse(JSON.stringify(clienteRecord.value)) : null;
+  current.infortuniRecords = JSON.parse(JSON.stringify(infortuniRecords.value));
+  
+  if (schedaSelezionata.value) {
+    if (!current.storyboardRecords) current.storyboardRecords = {};
+    current.storyboardRecords[String(schedaSelezionata.value)] = JSON.parse(JSON.stringify(records.value));
+  }
+  current.lastFetched = Date.now();
+  
+  dashboardCache.set(athleteId, current);
+};
+
+// Ripristina i dati dell'atleta dalla cache in memoria a costo 0 Firestore reads
+const ripristinaDaCache = (athleteId) => {
+  const cached = dashboardCache.get(String(athleteId));
+  if (!cached) return false;
+  
+  tabCaricate.value = {
+    storyboard: false,
+    workout_t: false,
+    massimali: false,
+    clienti: false,
+    infortuni: false,
+    ...(cached.tabCaricate || {})
+  };
+  listaSchede.value = [...(cached.listaSchede || [])];
+  workoutTRecords.value = JSON.parse(JSON.stringify(cached.workoutTRecords || []));
+  massimaliRecords.value = JSON.parse(JSON.stringify(cached.massimaliRecords || []));
+  clienteRecord.value = cached.clienteRecord ? JSON.parse(JSON.stringify(cached.clienteRecord)) : null;
+  infortuniRecords.value = JSON.parse(JSON.stringify(cached.infortuniRecords || []));
+  
+  if (listaSchede.value.length > 0 && !schedaSelezionata.value) {
+    if (selectedSheet.value && listaSchede.value.includes(String(selectedSheet.value).trim())) {
+      schedaSelezionata.value = String(selectedSheet.value).trim();
+    } else {
+      schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
+    }
+  }
+  
+  if (schedaSelezionata.value && cached.storyboardRecords && cached.storyboardRecords[String(schedaSelezionata.value)]) {
+    records.value = JSON.parse(JSON.stringify(cached.storyboardRecords[String(schedaSelezionata.value)]));
+  } else {
+    records.value = [];
+  }
+  
+  return true;
+};
+
+// Svuota i dati locali quando si cambia atleta senza avere cache
+const svuotaDatiLocali = () => {
+  records.value = [];
+  workoutTRecords.value = [];
+  massimaliRecords.value = [];
+  clienteRecord.value = null;
+  infortuniRecords.value = [];
+  listaSchede.value = [];
+  schedaSelezionata.value = '';
+  tabCaricate.value = {
+    storyboard: false,
+    workout_t: false,
+    massimali: false,
+    clienti: false,
+    infortuni: false
+  };
+};
+
 // Watcher per allineare tipoDatiCaricare e activeTab bidirezionalmente
 watch(activeTab, (newVal) => {
   tipoDatiCaricare.value = newVal;
@@ -2492,7 +2640,7 @@ const registerInputRef = (el, rowIndex, fieldName) => {
 };
 
 onMounted(async () => {
-  // Carica anagrafica clienti
+  // Carica anagrafica clienti per popolare il dropdown
   try {
     const docSnap = await getDoc(doc(db, 'METADATA', 'clienti'));
     if (docSnap.exists()) {
@@ -2503,11 +2651,19 @@ onMounted(async () => {
     console.error("Errore lettura METADATA clienti:", err);
   }
 
-  // Pre-popola l'atleta attivo se impostato
+  // Pre-popola l'atleta e la scheda attivi se impostati
   if (selectedAthlete.value) {
     atletaSelezionato.value = selectedAthlete.value;
-    await gestisciCambioAtleta();
   }
+  if (selectedSheet.value) {
+    schedaSelezionata.value = String(selectedSheet.value).trim();
+  }
+
+  // Se l'atleta è già presente nella cache in memoria della sessione, ripristina a costo 0 quote
+  if (atletaSelezionato.value && dashboardCache.has(String(atletaSelezionato.value))) {
+    ripristinaDaCache(String(atletaSelezionato.value));
+  }
+  // NOTA: Nessuna lettura automatica a Firestore viene eseguita qui se non in cache, salvaguardando le quote.
 });
 
 // Watcher per allineare l'atleta e la scheda selezionati localmente con lo stato globale
@@ -2538,7 +2694,7 @@ const caricaSchedeAtleta = async () => {
     snap.forEach(docSnap => {
       const data = docSnap.data();
       if (data.num_scheda) {
-        setSchede.add(data.num_scheda.trim());
+        setSchede.add(String(data.num_scheda).trim());
       }
     });
     listaSchede.value = Array.from(setSchede).sort((a, b) => Number(a) - Number(b));
@@ -2547,7 +2703,7 @@ const caricaSchedeAtleta = async () => {
     if (listaSchede.value.length > 0) {
       if (selectedSheet.value && listaSchede.value.includes(String(selectedSheet.value).trim())) {
         schedaSelezionata.value = String(selectedSheet.value).trim();
-      } else {
+      } else if (!schedaSelezionata.value || !listaSchede.value.includes(String(schedaSelezionata.value).trim())) {
         schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
       }
     }
@@ -2618,7 +2774,9 @@ const caricaMassimali = async () => {
         isDirty: false,
         isNew: false,
         isDeleted: false,
-        ...data
+        ...data,
+        flg_rm_teorico: isTrue(data.flg_rm_teorico),
+        flg_escludi: isTrue(data.flg_escludi)
       });
     });
     
@@ -2686,46 +2844,79 @@ const caricaInfortuni = async () => {
   }
 };
 
-// Carica tutti i record di tutte le tabelle per l'atleta
-const gestisciCambioAtleta = async () => {
-  schedaSelezionata.value = '';
-  records.value = [];
-  workoutTRecords.value = [];
-  massimaliRecords.value = [];
-  clienteRecord.value = null;
-  infortuniRecords.value = [];
+// Gestione selezione Atleta
+const gestisciCambioAtleta = () => {
+  const athleteId = String(atletaSelezionato.value || '');
+  if (!athleteId) {
+    svuotaDatiLocali();
+    return;
+  }
 
-  await caricaSchedeAtleta();
-  await Promise.all([
-    caricaWorkoutT(),
-    caricaMassimali(),
-    caricaCliente(),
-    caricaInfortuni()
-  ]);
-
-  if (schedaSelezionata.value) {
-    await caricaEsercizi();
+  // Se l'atleta è già presente nella cache della sessione, ripristina istantaneamente a costo 0
+  if (dashboardCache.has(athleteId)) {
+    ripristinaDaCache(athleteId);
+  } else {
+    // Altrimenti svuota la visualizzazione locale e attende il click su "CARICA DATI"
+    svuotaDatiLocali();
   }
 };
 
-// Ricarica tutte le tabelle dopo salvataggio o annullamento
-const ricaricaTutto = async () => {
-  if (!atletaSelezionato.value) return;
-  
-  await Promise.all([
-    caricaWorkoutT(),
-    caricaMassimali(),
-    caricaCliente(),
-    caricaInfortuni()
-  ]);
-  
-  if (schedaSelezionata.value) {
+// Gestione cambio Scheda
+const gestisciCambioScheda = async () => {
+  if (!atletaSelezionato.value || !schedaSelezionata.value) return;
+  const athleteId = String(atletaSelezionato.value);
+  const sheetId = String(schedaSelezionata.value);
+
+  const cached = dashboardCache.get(athleteId);
+  if (cached && cached.storyboardRecords && cached.storyboardRecords[sheetId]) {
+    records.value = JSON.parse(JSON.stringify(cached.storyboardRecords[sheetId]));
+    tabCaricate.value.storyboard = true;
+  } else if (tabCaricate.value.storyboard) {
     await caricaEsercizi();
+    salvaInCache();
   }
 };
 
+// Carica su richiesta ESCLUSIVAMENTE la tabella attualmente selezionata per risparmiare quote Firestore
 const caricaDati = async () => {
-  await ricaricaTutto();
+  if (!atletaSelezionato.value) return;
+  const tab = activeTab.value || tipoDatiCaricare.value || 'storyboard';
+  
+  if (tab === 'storyboard') {
+    loadingData.value = true;
+    try {
+      if (listaSchede.value.length === 0) {
+        await caricaSchedeAtleta();
+      }
+      if (schedaSelezionata.value) {
+        await caricaEsercizi();
+      }
+      tabCaricate.value.storyboard = true;
+      salvaInCache();
+    } finally {
+      loadingData.value = false;
+    }
+  } else if (tab === 'workout_t') {
+    await caricaWorkoutT();
+    tabCaricate.value.workout_t = true;
+    salvaInCache();
+  } else if (tab === 'massimali') {
+    await caricaMassimali();
+    tabCaricate.value.massimali = true;
+    salvaInCache();
+  } else if (tab === 'clienti') {
+    await caricaCliente();
+    tabCaricate.value.clienti = true;
+    salvaInCache();
+  } else if (tab === 'infortuni') {
+    await caricaInfortuni();
+    tabCaricate.value.infortuni = true;
+    salvaInCache();
+  }
+};
+
+const ricaricaTutto = async () => {
+  await caricaDati();
 };
 
 // Carica i record dello storyboard per la scheda selezionata
@@ -3134,6 +3325,9 @@ const salvaModifiche = async () => {
       delete cleanData.isDirty;
       delete cleanData.isNew;
       delete cleanData.isDeleted;
+      
+      cleanData.flg_rm_teorico = isTrue(cleanData.flg_rm_teorico);
+      cleanData.flg_escludi = isTrue(cleanData.flg_escludi);
       
       if (row.isDeleted) {
         if (dbId) batch.delete(doc(db, 'WOAPP_MASSIMALI_R', dbId));

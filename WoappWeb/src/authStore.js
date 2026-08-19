@@ -994,7 +994,7 @@ export const faticaPesanteW1PctGlobal = ref(parseFloat(localStorage.getItem('fat
 export const faticaDevastanteW1PctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteW1Pct') || localStorage.getItem('faticaDevastanteW1Pct_' + athleteIdForInit) || '10'));
 export const faticaPesanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaPesanteStoricoPct') || localStorage.getItem('faticaPesanteStorico_' + athleteIdForInit) || '3')); // Note: historical typo key check
 export const faticaDevastanteStoricoPctGlobal = ref(parseFloat(localStorage.getItem('faticaDevastanteStoricoPct') || localStorage.getItem('faticaDevastanteStorico_' + athleteIdForInit) || '6'));
-export const ottimizzaDigitazioneGlobal = ref(localStorage.getItem('woapp_ottimizza_note_' + athleteIdForInit) === 'true' || localStorage.getItem('ottimizzaDigitazioneGlobal') === 'true');
+export const ottimizzaDigitazioneGlobal = ref(localStorage.getItem('woapp_ottimizza_note_' + athleteIdForInit) !== 'false' && localStorage.getItem('ottimizzaDigitazioneGlobal') !== 'false');
 export const ottimizzaNoteGlobal = ottimizzaDigitazioneGlobal;
 export const deallenamentoSoglia1Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia1') || localStorage.getItem('deallenamentoSoglia1_' + athleteIdForInit) || '30', 10));
 export const deallenamentoSoglia2Global = ref(parseInt(localStorage.getItem('deallenamentoSoglia2') || localStorage.getItem('deallenamentoSoglia2_' + athleteIdForInit) || '90', 10));

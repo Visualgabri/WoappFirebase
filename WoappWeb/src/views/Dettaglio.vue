@@ -1107,69 +1107,71 @@
               </div>
             </div>
 
-            <!-- Textarea Editabile (in digitazione o se risalto disattivo o se vuoto) -->
-            <template v-else>
-              <v-textarea
-                :model-value="ottimizzaDigitazione ? (activeEditingWeek === sett ? localEditingIns[sett] : (inputSettimane[sett]?.ins || '')) : (inputSettimane[sett]?.ins || '')"
-                @update:model-value="val => onInputWeek(sett, val)"
-                :label="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
-                variant="outlined"
-                density="compact"
-                hide-details
-                :rounded="layoutCorrente === 'super_compatto' ? 'sm' : (layoutCorrente === 'compatto' ? 'md' : 'lg')"
-                :rows="getInitialRows(ottimizzaDigitazione && activeEditingWeek === sett ? localEditingIns[sett] : inputSettimane[sett]?.ins)"
-                auto-grow
-                color="orange-darken-3"
-                class="custom-weight-input transition-all"
-                :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
-                :style="{
-                  marginTop: (margineTopInputWeekGlobal ?? 14) + 'px !important',
-                  marginBottom: (margineBottomInputWeekGlobal ?? 16) + 'px !important'
-                }"
-                @focus="onFocusWeek(sett)"
-                @blur="onBlurWeek(sett)"
+            <!-- Textarea Editabile ad altissime prestazioni (in digitazione o se risalto disattivo o se vuoto) -->
+            <div
+              v-else
+              class="custom-weight-input position-relative d-flex align-start justify-space-between transition-all"
+              :class="[getGhostFieldClass(sett), layoutCorrente === 'super_compatto' ? 'custom-compact-textarea' : '']"
+              :style="{
+                marginTop: (margineTopInputWeekGlobal ?? 14) + 'px !important',
+                marginBottom: (margineBottomInputWeekGlobal ?? 16) + 'px !important',
+                minHeight: layoutCorrente === 'super_compatto' ? '36px' : '40px',
+                padding: layoutCorrente === 'super_compatto' ? '6px 10px' : '8px 12px',
+                borderRadius: layoutCorrente === 'super_compatto' ? '4px' : (layoutCorrente === 'compatto' ? '8px' : '12px')
+              }"
+            >
+              <textarea
                 :id="'input-peso-w' + sett"
-              >
-                <template v-slot:append-inner>
-                  <div class="d-flex align-center gap-1.5 pr-1">
-                    <!-- Icona Editor Espanso rapido se abilitato da Coach -->
-                    <v-icon
-                      v-if="editorNoteEspansoGlobal"
-                      size="17"
-                      color="orange-darken-3"
-                      class="cursor-pointer mr-0.5 opacity-80 hover-opacity-100"
-                      title="Apri Editor Note a Schermo Intero"
-                      @click.stop="apriEditorNoteEspanso(sett)"
-                    >
-                      mdi-arrow-expand-all
-                    </v-icon>
+                :value="localEditingRaw[sett] !== undefined ? localEditingRaw[sett] : (inputSettimane[sett]?.ins || '')"
+                @input="e => onInputWeek(sett, e.target.value)"
+                @focus="onFocusWeek(sett)"
+                @blur="e => onBlurWeek(sett, e.target.value)"
+                :placeholder="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
+                class="native-week-textarea flex-grow-1 text-left pr-2 font-weight-black"
+                rows="1"
+                style="background: transparent; border: none; outline: none; resize: none; width: 100%; color: inherit; font-size: 0.92rem; line-height: 1.45; font-family: inherit; box-sizing: border-box; padding: 0; margin: 0; min-height: 24px; field-sizing: content;"
+              ></textarea>
 
-                    <div 
-                      class="d-flex align-center gap-1"
-                      style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
-                      @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett].ins))"
-                      @mouseover="$event.currentTarget.style.opacity = '1'"
-                      @mouseleave="$event.currentTarget.style.opacity = '0.85'"
-                    >
-                      <span 
-                        class="font-weight-black uppercase"
-                        :class="haRecupero(inputSettimane[sett].ins) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
-                        :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
-                      >
-                        {{ haRecupero(inputSettimane[sett].ins) ? 'Recupero' : 'R?' }}
-                      </span>
-                      <v-icon
-                        :color="haRecupero(inputSettimane[sett].ins) ? 'orange-darken-3' : 'grey-darken-1'"
-                        :class="{'animate-pulse': haRecupero(inputSettimane[sett].ins)}"
-                        :size="layoutCorrente === 'super_compatto' ? 14 : 18"
-                      >
-                        {{ haRecupero(inputSettimane[sett].ins) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
-                      </v-icon>
-                    </div>
-                  </div>
-                </template>
-              </v-textarea>
-            </template>
+              <!-- Icone Azioni Rapide (Editor Espanso se abilitato + Recupero) -->
+              <div class="d-flex align-center gap-1.5 pr-0 flex-shrink-0" style="margin-top: 2px;">
+                <!-- Icona Editor Espanso (Opzione 2 Coach) -->
+                <v-btn
+                  v-if="editorNoteEspansoGlobal"
+                  icon="mdi-arrow-expand-all"
+                  variant="text"
+                  size="x-small"
+                  color="orange-darken-3"
+                  class="opacity-80 hover-opacity-100"
+                  style="width: 20px; height: 20px;"
+                  title="Apri Editor Note a Schermo Intero"
+                  @click.stop="apriEditorNoteEspanso(sett)"
+                ></v-btn>
+
+                <!-- Append Icon Recupero / R? -->
+                <div 
+                  class="d-flex align-center gap-1"
+                  style="cursor: pointer; transition: all 0.2s; opacity: 0.85;"
+                  @click.stop="toggleRecuperoDettaglio(sett, !haRecupero(inputSettimane[sett]?.ins || localEditingRaw[sett]))"
+                  @mouseover="$event.currentTarget.style.opacity = '1'"
+                  @mouseleave="$event.currentTarget.style.opacity = '0.85'"
+                >
+                  <span 
+                    class="font-weight-black uppercase"
+                    :class="haRecupero(inputSettimane[sett]?.ins || localEditingRaw[sett]) ? 'text-orange-darken-3' : 'text-grey-darken-1'"
+                    :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.48rem' : '0.55rem', letterSpacing: '0.05em', paddingTop: '1px' }"
+                  >
+                    {{ haRecupero(inputSettimane[sett]?.ins || localEditingRaw[sett]) ? 'Recupero' : 'R?' }}
+                  </span>
+                  <v-icon
+                    :color="haRecupero(inputSettimane[sett]?.ins || localEditingRaw[sett]) ? 'orange-darken-3' : 'grey-darken-1'"
+                    :class="{'animate-pulse': haRecupero(inputSettimane[sett]?.ins || localEditingRaw[sett])}"
+                    :size="layoutCorrente === 'super_compatto' ? 14 : 18"
+                  >
+                    {{ haRecupero(inputSettimane[sett]?.ins || localEditingRaw[sett]) ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
+                  </v-icon>
+                </div>
+              </div>
+            </div>
 
             <!-- Suggerimento Formattazione Reps (es. 3x12 -> 3x12r) -->
             <div
@@ -5241,36 +5243,32 @@ const apriResocontoCoachPR = () => {
 };
 
 const activeEditingWeek = ref(null);
+const localEditingRaw = { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' };
 const localEditingIns = ref({ 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' });
 
 const onFocusWeek = (sett) => {
   activeEditingWeek.value = sett;
-  localEditingIns.value[sett] = inputSettimane.value[sett]?.ins || '';
+  const current = inputSettimane.value[sett]?.ins || '';
+  localEditingRaw[sett] = current;
+  localEditingIns.value[sett] = current;
 };
 
 const onInputWeek = (sett, val) => {
-  if (ottimizzaDigitazione.value) {
-    localEditingIns.value[sett] = val;
-  } else {
-    if (!inputSettimane.value[sett]) {
-      inputSettimane.value[sett] = { ins: '', reps: '' };
-    }
-    inputSettimane.value[sett].ins = val;
-    localEditingIns.value[sett] = val;
-  }
+  localEditingRaw[sett] = val;
 };
 
-const onBlurWeek = (sett) => {
-  if (ottimizzaDigitazione.value) {
-    if (!inputSettimane.value[sett]) {
-      inputSettimane.value[sett] = { ins: '', reps: '' };
-    }
-    inputSettimane.value[sett].ins = localEditingIns.value[sett] ?? '';
+const onBlurWeek = (sett, val) => {
+  const finalVal = (val !== undefined && val !== null) ? val : (localEditingRaw[sett] !== undefined ? localEditingRaw[sett] : (inputSettimane.value[sett]?.ins || ''));
+  if (!inputSettimane.value[sett]) {
+    inputSettimane.value[sett] = { ins: '', reps: '' };
   }
+  inputSettimane.value[sett].ins = finalVal;
+  localEditingRaw[sett] = finalVal;
+  localEditingIns.value[sett] = finalVal;
   activeEditingWeek.value = null;
 
   if (sett === 6 && isEsercizioEligibileW6(workout.value)) {
-    const valStr = String(inputSettimane.value[6]?.ins || '').trim();
+    const valStr = String(finalVal || '').trim();
     if (!valStr) {
       numIns6Val.value = '';
       numIns6ModificatoManualmente.value = false;
@@ -9586,17 +9584,10 @@ const vaiAdEsercizioCollegato = (id) => {
 };
 
 const haEsponenti = computed(() => {
-  if (!workout.value) return false;
+  if (!workout.value || !settimanaAttiva.value) return false;
   const esponentiRegex = /[⁰¹²³⁴⁵⁶⁷⁸⁹]/;
-  for (let w = 1; w <= 6; w++) {
-    const des = workout.value['des_week' + w] || '';
-    const ins = (inputSettimane.value && inputSettimane.value[w] && inputSettimane.value[w].ins) || '';
-    const reps = (inputSettimane.value && inputSettimane.value[w] && inputSettimane.value[w].reps) || '';
-    if (esponentiRegex.test(des) || esponentiRegex.test(ins) || esponentiRegex.test(reps)) {
-      return true;
-    }
-  }
-  return false;
+  const des = workout.value['des_week' + settimanaAttiva.value] || '';
+  return esponentiRegex.test(des);
 });
 
 // Campi Modificabili
@@ -16156,20 +16147,26 @@ const impostaRecuperoValore = (valoreAttuale, attivo) => {
 
 const toggleRecuperoDettaglio = (sett, attivo) => {
   vibraTattile(15);
-  const valoreAttuale = (activeEditingWeek.value === sett && ottimizzaDigitazione.value) ? localEditingIns.value[sett] : inputSettimane.value[sett].ins;
+  const valoreAttuale = (activeEditingWeek.value === sett && localEditingRaw[sett] !== undefined) ? localEditingRaw[sett] : (inputSettimane.value[sett]?.ins || '');
   const nuovoValore = impostaRecuperoValore(valoreAttuale, attivo);
+  if (!inputSettimane.value[sett]) {
+    inputSettimane.value[sett] = { ins: '', reps: '' };
+  }
   inputSettimane.value[sett].ins = nuovoValore;
+  localEditingRaw[sett] = nuovoValore;
   localEditingIns.value[sett] = nuovoValore;
+  const el = document.getElementById('input-peso-w' + sett);
+  if (el) el.value = nuovoValore;
   salvaDatoSettimanale(sett, 'ins');
 };
 
 const salvaModifichePendenti = async () => {
   if (!workout.value) return;
   
-  if (activeEditingWeek.value && ottimizzaDigitazione.value) {
+  if (activeEditingWeek.value) {
     const sett = activeEditingWeek.value;
     if (inputSettimane.value[sett]) {
-      inputSettimane.value[sett].ins = localEditingIns.value[sett] ?? '';
+      inputSettimane.value[sett].ins = localEditingRaw[sett] ?? localEditingIns.value[sett] ?? '';
     }
   }
 
@@ -16615,13 +16612,36 @@ const tornaIndietro = () => {
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
 }
-.custom-weight-input :deep(.v-field--focused) {
+.custom-weight-input :deep(.v-field--focused),
+.custom-weight-input:focus-within {
   background: rgba(255, 255, 255, 0.18) !important;
   border-color: var(--theme-primary) !important;
   box-shadow: 0 0 10px var(--theme-primary-glow) !important;
 }
 .custom-weight-input :deep(.v-field__outline) {
   display: none !important;
+}
+
+.native-week-textarea {
+  font-family: inherit !important;
+  font-weight: 800 !important;
+  font-size: 0.92rem !important;
+  line-height: 1.45 !important;
+  color: #cbd5e1 !important;
+  caret-color: #f97316 !important;
+}
+.native-week-textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 0.55 !important;
+  font-weight: 500 !important;
+  font-size: 0.80rem !important;
+}
+[data-theme="light"] .native-week-textarea {
+  color: #1e293b !important;
+}
+[data-theme="light"] .native-week-textarea::placeholder {
+  color: #64748b !important;
+  opacity: 0.65 !important;
 }
 
 /* Stile per input compatto */

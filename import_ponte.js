@@ -30,7 +30,9 @@ if (tipo !== 'Nuovo' && tipo !== 'Refresh') {
   process.exit(1);
 }
 
-const EXCEL_PATH = "C:\\Users\\visua\\Google Drive\\WoApp_ponte.xlsx";
+const GOOGLE_DRIVE_PATH = "C:\\Users\\visua\\Google Drive\\WoApp_ponte.xlsx";
+const LOCAL_PATH = path.join(__dirname, "WoApp_ponte.xlsx");
+const EXCEL_PATH = fs.existsSync(GOOGLE_DRIVE_PATH) ? GOOGLE_DRIVE_PATH : LOCAL_PATH;
 
 if (!fs.existsSync(EXCEL_PATH)) {
   console.error(`[Import Ponte] Errore: Il file Excel '${EXCEL_PATH}' non esiste.`);
@@ -47,6 +49,8 @@ const db = admin.firestore();
 
 // Funzione helper per dividere le operazioni in lotti (max 500 per batch in Firestore)
 async function commitBatchOperations(operations) {
+  if (!operations || operations.length === 0) return;
+  
   let currentBatch = db.batch();
   let counter = 0;
   let batchIndex = 0;
@@ -91,12 +95,12 @@ function formatExcelDate(serial) {
 }
 
 function areRecordsEqual(rec1, rec2) {
-  const keys1 = Object.keys(rec1);
-  const keys2 = Object.keys(rec2);
+  const keys1 = Object.keys(rec1 || {});
+  const keys2 = Object.keys(rec2 || {});
   const allKeys = new Set([...keys1, ...keys2]);
   
   for (const key of allKeys) {
-    if (key === 'timestamp') continue; // Salta il timestamp automatico di importazione
+    if (key === 'timestamp' || key === 'timestamp_ute') continue; // Salta i timestamp automatici di importazione
     const val1 = String(rec1[key] !== undefined && rec1[key] !== null ? rec1[key] : '').trim();
     const val2 = String(rec2[key] !== undefined && rec2[key] !== null ? rec2[key] : '').trim();
     if (val1 !== val2) {
@@ -121,21 +125,53 @@ async function run() {
       const clientRow = clientiRows[0];
       const idClienteStr = String(clientRow.ID_cliente || idCliente).trim();
 
-      // Aggiorna la lista atleti in METADATA/clienti
-      const docRef = db.collection('METADATA').doc('clienti');
-      const docSnap = await docRef.get();
+      // 1.1 Aggiorna la lista atleti in METADATA/clienti se mancante
+      const metaRef = db.collection('METADATA').doc('clienti');
+      const metaSnap = await metaRef.get();
       let listaAtleti = [];
-      if (docSnap.exists) {
-        listaAtleti = docSnap.data().lista || [];
+      if (metaSnap.exists) {
+        listaAtleti = metaSnap.data().lista || [];
       }
       if (!listaAtleti.includes(idClienteStr)) {
         listaAtleti.push(idClienteStr);
         listaAtleti.sort((a, b) => Number(a) - Number(b));
-        await docRef.set({
+        await metaRef.set({
           lista: listaAtleti,
           aggiornatoAl: new Date().toISOString()
         }, { merge: true });
-        console.log(`[Import Ponte] Atleta ${idClienteStr} aggiunto/verificato in METADATA/clienti.`);
+        console.log(`[Import Ponte] Atleta ${idClienteStr} aggiunto in METADATA/clienti.`);
+      } else {
+        console.log(`[Import Ponte] Atleta ${idClienteStr} già presente in METADATA/clienti (scrittura saltata).`);
+      }
+
+      // 1.2 Costruisce e sincronizza il documento in collezione 'CLIENTI'
+      const clientRecord = {};
+      for (const [key, value] of Object.entries(clientRow)) {
+        const cleanKey = key.trim().replace(/^\uFEFF/, '');
+        let cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
+
+        // Formattazione data di nascita
+        if (cleanKey === 'dat_data_nascita' && cleanVal !== '') {
+          cleanVal = formatExcelDate(cleanVal);
+        }
+
+        clientRecord[cleanKey] = cleanVal;
+      }
+
+      const clientDocRef = db.collection('CLIENTI').doc(idClienteStr);
+      const clientDocSnap = await clientDocRef.get();
+
+      if (!clientDocSnap.exists) {
+        await clientDocRef.set(clientRecord);
+        console.log(`[Import Ponte] Record CLIENTE creato per '${idClienteStr}' (nuovo documento con flg_sesso, dat_data_nascita, num_altezza).`);
+      } else {
+        const existingClientData = clientDocSnap.data();
+        if (!areRecordsEqual(clientRecord, existingClientData)) {
+          await clientDocRef.set(clientRecord, { merge: true });
+          console.log(`[Import Ponte] Record CLIENTE aggiornato per '${idClienteStr}' (campi modificati).`);
+        } else {
+          console.log(`[Import Ponte] Record CLIENTE per '${idClienteStr}' già allineato (scrittura saltata).`);
+        }
       }
     }
   }
@@ -158,12 +194,138 @@ async function run() {
         wtRecord[cleanKey] = cleanVal;
       }
       const docId = `${idCliente}_${numScheda}`;
-      await db.collection('WORKOUT_T').doc(docId).set(wtRecord, { merge: true });
-      console.log(`[Import Ponte] Sincronizzato testata WORKOUT_T per '${docId}'.`);
+      const wtDocRef = db.collection('WORKOUT_T').doc(docId);
+      const wtDocSnap = await wtDocRef.get();
+
+      if (!wtDocSnap.exists) {
+        await wtDocRef.set(wtRecord);
+        console.log(`[Import Ponte] Testata WORKOUT_T creata per '${docId}' (nuovo documento con num_peso_WT).`);
+      } else {
+        const existingWtData = wtDocSnap.data();
+        if (!areRecordsEqual(wtRecord, existingWtData)) {
+          await wtDocRef.set(wtRecord, { merge: true });
+          console.log(`[Import Ponte] Testata WORKOUT_T aggiornata per '${docId}' (campi modificati/num_peso_WT).`);
+        } else {
+          console.log(`[Import Ponte] Testata WORKOUT_T per '${docId}' già allineata (scrittura saltata).`);
+        }
+      }
     }
   }
 
-  // === FASE 3: STORYBOARD (WORKOUT_R) ===
+  // === FASE 3: WOAPP_MASSIMALI_R ===
+  console.log(`[Import Ponte] Elaborazione foglio 'WOAPP_MASSIMALI_R'...`);
+  const massimaliSheet = workbook.Sheets['WOAPP_MASSIMALI_R'];
+  if (massimaliSheet) {
+    const massimaliRows = XLSX.utils.sheet_to_json(massimaliSheet, { defval: "" });
+    console.log(`[Import Ponte] Record massimali letti da Excel: ${massimaliRows.length}`);
+
+    const newMassimaliRecords = [];
+    massimaliRows.forEach(row => {
+      const cleanRow = {};
+      for (const [key, value] of Object.entries(row)) {
+        const cleanKey = key.trim().replace(/^\uFEFF/, '');
+        let cleanVal = value !== undefined && value !== null ? String(value).trim() : '';
+
+        if ((cleanKey === 'dat_data' || cleanKey === 'data_peso') && cleanVal !== '') {
+          cleanVal = formatExcelDate(cleanVal);
+        }
+        cleanRow[cleanKey] = cleanVal;
+      }
+      
+      // Filtra solo i record relativi all'atleta corrente
+      if (String(cleanRow.ID_cliente || '').trim() === String(idCliente).trim()) {
+        newMassimaliRecords.push(cleanRow);
+      }
+    });
+
+    console.log(`[Import Ponte] Record massimali per atleta ${idCliente}: ${newMassimaliRecords.length}`);
+
+    const massimaliRef = db.collection('WOAPP_MASSIMALI_R');
+    console.log(`[Import Ponte] Recupero massimali esistenti in Firestore per atleta ${idCliente}...`);
+    const existingMassimaliSnap = await massimaliRef
+      .where('ID_cliente', '==', String(idCliente))
+      .get();
+
+    console.log(`[Import Ponte] Massimali esistenti su Firestore per atleta ${idCliente}: ${existingMassimaliSnap.size}`);
+
+    const unmatchedExistingDocs = [];
+    existingMassimaliSnap.forEach(docSnap => {
+      unmatchedExistingDocs.push({
+        id: docSnap.id,
+        ref: docSnap.ref,
+        data: docSnap.data()
+      });
+    });
+
+    const massimaliOps = [];
+    let massimaliSkipped = 0;
+    let massimaliUpdated = 0;
+    let massimaliInserted = 0;
+
+    // Passo 1: Ricerca match esatti (nessuna scrittura se identico)
+    const remainingIncoming = [];
+    for (const excelRec of newMassimaliRecords) {
+      const exactIdx = unmatchedExistingDocs.findIndex(d => areRecordsEqual(excelRec, d.data));
+      if (exactIdx !== -1) {
+        unmatchedExistingDocs.splice(exactIdx, 1);
+        massimaliSkipped++;
+      } else {
+        remainingIncoming.push(excelRec);
+      }
+    }
+
+    // Passo 2: Ricerca candidati da aggiornare (stesso esercizio, data e tipologia RM)
+    for (const excelRec of remainingIncoming) {
+      const ex1 = String(excelRec.ID_esercizio || excelRec.des_esercizio || '').trim().toLowerCase();
+      const dat1 = String(excelRec.dat_data || '').trim();
+      const t1 = String(excelRec.flg_rm_teorico || '').trim().toLowerCase();
+
+      let candidateIdx = -1;
+      for (let i = 0; i < unmatchedExistingDocs.length; i++) {
+        const d = unmatchedExistingDocs[i].data;
+        const ex2 = String(d.ID_esercizio || d.des_esercizio || '').trim().toLowerCase();
+        const dat2 = String(d.dat_data || '').trim();
+        const t2 = String(d.flg_rm_teorico || '').trim().toLowerCase();
+
+        if (ex1 && ex1 === ex2 && dat1 && dat1 === dat2 && t1 === t2) {
+          candidateIdx = i;
+          break;
+        }
+      }
+
+      if (candidateIdx !== -1) {
+        const matchedDoc = unmatchedExistingDocs.splice(candidateIdx, 1)[0];
+        massimaliOps.push({
+          ref: matchedDoc.ref,
+          type: 'set',
+          data: excelRec,
+          merge: true
+        });
+        massimaliUpdated++;
+      } else {
+        // Passo 3: Nuovo record non presente in Firestore
+        const newDocRef = massimaliRef.doc();
+        massimaliOps.push({
+          ref: newDocRef,
+          type: 'set',
+          data: excelRec
+        });
+        massimaliInserted++;
+      }
+    }
+
+    console.log(`[Import Ponte] Riepilogo sincronizzazione WOAPP_MASSIMALI_R:`);
+    console.log(` - Massimali già allineati (scrittura saltata): ${massimaliSkipped}`);
+    console.log(` - Massimali aggiornati (valori modificati): ${massimaliUpdated}`);
+    console.log(` - Nuovi massimali inseriti: ${massimaliInserted}`);
+
+    if (massimaliOps.length > 0) {
+      console.log(`[Import Ponte] Esecuzione di ${massimaliOps.length} operazioni per WOAPP_MASSIMALI_R...`);
+      await commitBatchOperations(massimaliOps);
+    }
+  }
+
+  // === FASE 4: STORYBOARD (WORKOUT_R) ===
   console.log(`[Import Ponte] Elaborazione foglio 'WORKOUT_R'...`);
   const wrSheet = workbook.Sheets['WORKOUT_R'];
   if (!wrSheet) {
@@ -335,9 +497,14 @@ async function run() {
     console.log(` - Vecchi record rimossi: ${deletedCount}`);
   }
 
-  // === FASE 4: ESECUZIONE DELLE OPERAZIONI SU FIRESTORE ===
-  console.log(`[Import Ponte] Esecuzione di ${operations.length} operazioni totali su Firestore...`);
-  await commitBatchOperations(operations);
+  // === FASE 5: ESECUZIONE DELLE OPERAZIONI SU FIRESTORE ===
+  if (operations.length > 0) {
+    console.log(`[Import Ponte] Esecuzione di ${operations.length} operazioni totali per STORYBOARD su Firestore...`);
+    await commitBatchOperations(operations);
+  } else {
+    console.log(`[Import Ponte] Nessuna operazione di scrittura necessaria per STORYBOARD (tutto già allineato).`);
+  }
+  
   console.log(`🎉 [Import Ponte] Sincronizzazione completata con successo!`);
   process.exit(0);
 }

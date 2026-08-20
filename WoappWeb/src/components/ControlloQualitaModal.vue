@@ -1,444 +1,414 @@
 <template>
   <v-dialog
     v-model="mostra"
-    max-width="960"
+    :fullscreen="isMobile"
+    :max-width="isMobile ? undefined : 860"
     scrollable
     transition="dialog-bottom-transition"
     class="dialog-controllo-qualita"
   >
-    <v-card class="bg-slate-900 border border-slate-700 text-slate-100 rounded-2xl overflow-hidden elevation-24">
-      <!-- HEADER MODALE -->
-      <v-card-item class="bg-slate-950 border-b border-slate-800 py-3.5 px-4">
+    <v-card class="mobile-qc-card text-slate-100 overflow-hidden d-flex flex-column">
+      
+      <!-- 1. HEADER COMPATTO STICKY (2 RIGHE) -->
+      <div class="mobile-qc-header px-3.5 py-2.5 flex-shrink-0">
+        <!-- RIGA 1: Titolo + Badge Stato + Azioni Rapide -->
         <div class="d-flex align-center justify-space-between w-100">
-          <div class="d-flex align-center min-width-0">
-            <v-avatar size="36" color="orange-darken-3" class="mr-3 elevation-2 flex-shrink-0">
-              <v-icon size="20" color="white">mdi-shield-check</v-icon>
-            </v-avatar>
-            <div class="text-left min-width-0">
-              <div class="d-flex align-center gap-2">
-                <h2 class="text-subtitle-1 font-weight-black text-slate-100 leading-tight mb-0 text-truncate">
-                  Controllo Qualità Scheda
-                </h2>
-                <v-chip
-                  :color="risultato.totaleErrori === 0 ? (risultato.totaleAnomalie === 0 ? 'green-darken-2' : 'amber-darken-3') : 'red-darken-2'"
-                  size="x-small"
-                  variant="flat"
-                  class="font-weight-black text-white px-2 uppercase"
-                  style="font-size: 0.60rem;"
-                >
-                  {{ risultato.totaleErrori === 0 ? (risultato.totaleAnomalie === 0 ? 'Conforme 100%' : 'Verifica Consigliata') : 'Errori Rilevati' }}
-                </v-chip>
-              </div>
-              <span class="text-super-caption text-slate-400 font-weight-medium d-block text-truncate mt-0.5" style="font-size: 0.65rem;">
-                {{ nomeAtleta || ('Atleta #' + idAtleta) }} · Scheda {{ numScheda }} · Analisi istantanea client-side (0 letture Firebase)
-              </span>
+          <div class="d-flex align-center gap-2 min-width-0">
+            <div class="header-icon-badge flex-shrink-0">
+              <v-icon size="17" color="#f97316">mdi-shield-check</v-icon>
             </div>
+            <h2 class="mobile-qc-title text-truncate mb-0">
+              Controllo Scheda
+            </h2>
           </div>
 
           <div class="d-flex align-center gap-1.5 flex-shrink-0 ml-2">
+            <!-- Badge Stato Rapido Compatto -->
+            <v-chip
+              :color="risultato.totaleErrori === 0 ? (risultato.totaleAnomalie === 0 ? 'green-darken-2' : 'amber-darken-3') : 'red-darken-2'"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black text-white px-2 uppercase tracking-wide status-chip"
+            >
+              {{ risultato.totaleErrori > 0 
+                  ? `${risultato.totaleErrori} ${risultato.totaleErrori === 1 ? 'Errore' : 'Errori'}` 
+                  : (risultato.totaleAnomalie > 0 
+                      ? `${risultato.totaleAnomalie} ${risultato.totaleAnomalie === 1 ? 'Anomalia' : 'Anomalie'}` 
+                      : 'Conforme 100%') }}
+            </v-chip>
+
+            <!-- Pulsante Aggiorna -->
             <v-btn
               icon
               size="small"
-              color="orange-darken-3"
               variant="tonal"
+              color="orange-darken-3"
+              class="header-btn"
               @click="eseguiAnalisi(true)"
               title="Riesegui scansione adesso"
               :loading="inScansione"
             >
               <v-icon size="16">mdi-refresh</v-icon>
             </v-btn>
+
+            <!-- Pulsante Chiudi -->
             <v-btn
               icon
               size="small"
               variant="text"
               color="grey-lighten-1"
+              class="header-btn"
               @click="chiudi"
+              title="Chiudi"
             >
               <v-icon size="20">mdi-close</v-icon>
             </v-btn>
           </div>
         </div>
-      </v-card-item>
 
-      <!-- BARRA STATISTICHE & METRICHE RAPIDE -->
-      <div class="bg-slate-900 px-4 py-2.5 border-b border-slate-800">
-        <v-row dense class="align-center">
-          <v-col cols="12" md="7" class="d-flex align-center flex-wrap gap-1.5">
-            <!-- Chip Esercizi -->
-            <v-chip size="small" variant="outlined" color="slate-300" class="font-weight-bold px-2" style="font-size: 0.68rem;">
-              <v-icon start size="13" class="mr-1">mdi-dumbbell</v-icon>
-              {{ risultato.totaleEsercizi }} Esercizi
-            </v-chip>
+        <!-- RIGA 2: Sottotitolo discreto (Atleta · Scheda) -->
+        <div class="mobile-qc-subtitle text-truncate mt-0.5">
+          {{ nomeAtleta || ('Atleta #' + idAtleta) }} · Scheda {{ numScheda }}
+        </div>
+      </div>
 
-            <!-- Chip Valori -->
-            <v-chip size="small" variant="outlined" color="slate-300" class="font-weight-bold px-2" style="font-size: 0.68rem;">
-              <v-icon start size="13" class="mr-1">mdi-numeric</v-icon>
-              {{ risultato.totaleValoriControllati }} Valori
-            </v-chip>
+      <!-- 2. PANNELLO CONTROLLO: RIEPILOGO, AFFIDABILITÀ & FILTRI -->
+      <div class="mobile-qc-controls px-3.5 py-2 flex-shrink-0">
+        
+        <!-- RIEPILOGO CHIP (1-2 righe compatte) -->
+        <div class="d-flex align-center flex-wrap gap-1.5 mb-2">
+          <!-- Esercizi & Valori -->
+          <div class="mini-stat-chip neutral">
+            <v-icon size="11" class="mr-1 opacity-70">mdi-dumbbell</v-icon>
+            <span><strong>{{ risultato.totaleEsercizi }}</strong> es</span>
+          </div>
 
-            <!-- Chip Errori -->
-            <v-chip
-              size="small"
-              :variant="filtroSeverita === 'errore' ? 'flat' : 'tonal'"
-              color="red-darken-1"
-              class="font-weight-black cursor-pointer px-2"
-              style="font-size: 0.68rem;"
-              @click="filtroSeverita = filtroSeverita === 'errore' ? 'tutti' : 'errore'"
+          <div class="mini-stat-chip neutral">
+            <v-icon size="11" class="mr-1 opacity-70">mdi-numeric</v-icon>
+            <span><strong>{{ risultato.totaleValoriControllati }}</strong> val</span>
+          </div>
+
+          <!-- Errori (Cliccabile per filtro) -->
+          <div
+            class="mini-stat-chip severity-error cursor-pointer"
+            :class="{ 'active': filtroSeverita === 'errore' }"
+            @click="filtroSeverita = filtroSeverita === 'errore' ? 'tutti' : 'errore'"
+          >
+            <span>🔴 <strong>{{ risultato.totaleErrori }}</strong> {{ risultato.totaleErrori === 1 ? 'errore' : 'errori' }}</span>
+          </div>
+
+          <!-- Anomalie (Cliccabile per filtro) -->
+          <div
+            class="mini-stat-chip severity-warning cursor-pointer"
+            :class="{ 'active': filtroSeverita === 'anomalia' }"
+            @click="filtroSeverita = filtroSeverita === 'anomalia' ? 'tutti' : 'anomalia'"
+          >
+            <span>🟡 <strong>{{ risultato.totaleAnomalie }}</strong> {{ risultato.totaleAnomalie === 1 ? 'anomalia' : 'anomalie' }}</span>
+          </div>
+
+          <!-- Da Verificare (Cliccabile per filtro) -->
+          <div
+            v-if="risultato.totaleParticolari > 0"
+            class="mini-stat-chip severity-info cursor-pointer"
+            :class="{ 'active': filtroSeverita === 'particolare' }"
+            @click="filtroSeverita = filtroSeverita === 'particolare' ? 'tutti' : 'particolare'"
+          >
+            <span>🔵 <strong>{{ risultato.totaleParticolari }}</strong> da verificare</span>
+          </div>
+        </div>
+
+        <!-- AFFIDABILITÀ SCHEDA ULTRA-COMPATTA (Singola riga + Barra sottile) -->
+        <div class="affidabilita-bar-wrapper mb-2">
+          <div class="d-flex align-center justify-space-between mb-1">
+            <span class="affidabilita-label">Affidabilità Scheda</span>
+            <span
+              class="affidabilita-value"
+              :class="{
+                'text-green-accent-3': risultato.percentualeQualita >= 90,
+                'text-amber-accent-3': risultato.percentualeQualita >= 75 && risultato.percentualeQualita < 90,
+                'text-red-accent-3': risultato.percentualeQualita < 75
+              }"
             >
-              🔴 {{ risultato.totaleErrori }} {{ risultato.totaleErrori === 1 ? 'Errore' : 'Errori' }}
-            </v-chip>
-
-            <!-- Chip Anomalie -->
-            <v-chip
-              size="small"
-              :variant="filtroSeverita === 'anomalia' ? 'flat' : 'tonal'"
-              color="amber-darken-2"
-              class="font-weight-black cursor-pointer px-2"
-              style="font-size: 0.68rem;"
-              @click="filtroSeverita = filtroSeverita === 'anomalia' ? 'tutti' : 'anomalia'"
-            >
-              🟡 {{ risultato.totaleAnomalie }} {{ risultato.totaleAnomalie === 1 ? 'Anomalia' : 'Anomalie' }}
-            </v-chip>
-
-            <!-- Chip Da Verificare -->
-            <v-chip
-              size="small"
-              :variant="filtroSeverita === 'particolare' ? 'flat' : 'tonal'"
-              color="blue-darken-2"
-              class="font-weight-bold cursor-pointer px-2"
-              style="font-size: 0.68rem;"
-              @click="filtroSeverita = filtroSeverita === 'particolare' ? 'tutti' : 'particolare'"
-            >
-              🔵 {{ risultato.totaleParticolari }} Da Verificare
-            </v-chip>
-          </v-col>
-
-          <!-- Punteggio Qualità Dati -->
-          <v-col cols="12" md="5" class="d-flex align-center justify-md-end justify-space-between mt-2 mt-md-0">
-            <span class="text-super-caption text-slate-400 mr-2 font-weight-bold" style="font-size: 0.65rem;">
-              AFFIDABILITÀ SCHEDA:
+              {{ risultato.percentualeQualita }}%
             </span>
-            <div class="d-flex align-center gap-2">
-              <v-progress-linear
-                :model-value="risultato.percentualeQualita"
-                :color="risultato.percentualeQualita >= 90 ? 'green' : (risultato.percentualeQualita >= 75 ? 'amber' : 'red')"
-                height="8"
-                rounded
-                style="width: 90px;"
-              ></v-progress-linear>
-              <span class="text-caption font-weight-black text-slate-100" style="font-size: 0.75rem;">
-                {{ risultato.percentualeQualita }}%
-              </span>
-            </div>
-          </v-col>
-        </v-row>
-      </div>
+          </div>
+          <div class="progress-bar-track">
+            <div
+              class="progress-bar-fill"
+              :style="{
+                width: risultato.percentualeQualita + '%',
+                backgroundColor: risultato.percentualeQualita >= 90 ? '#22c55e' : (risultato.percentualeQualita >= 75 ? '#f59e0b' : '#ef4444')
+              }"
+            ></div>
+          </div>
+        </div>
 
-      <!-- FILTRI E RICERCA -->
-      <div class="bg-slate-950 px-4 py-2 border-b border-slate-800">
-        <v-row dense class="align-center">
-          <!-- Filtro Giorno -->
-          <v-col cols="12" sm="6" md="5" class="d-flex align-center gap-1">
-            <span class="text-super-caption text-slate-400 font-weight-bold mr-1" style="font-size: 0.60rem;">GIORNO:</span>
-            <v-btn-toggle
-              v-model="filtroGiorno"
-              mandatory
-              color="orange-darken-3"
-              density="compact"
-              variant="outlined"
-              style="height: 26px;"
+        <!-- FILTRO GIORNO (Segmented Control scrollabile con pollice) -->
+        <div class="segmented-days-container mb-2">
+          <div class="segmented-days-scroll">
+            <button
+              type="button"
+              class="segmented-day-btn"
+              :class="{ 'active': filtroGiorno === 'tutti' }"
+              @click="filtroGiorno = 'tutti'"
             >
-              <v-btn value="tutti" size="x-small" class="px-2 font-weight-bold" style="font-size: 0.62rem;">TUTTI</v-btn>
-              <v-btn value="A" size="x-small" class="px-2 font-weight-bold" style="font-size: 0.62rem;">A</v-btn>
-              <v-btn value="B" size="x-small" class="px-2 font-weight-bold" style="font-size: 0.62rem;">B</v-btn>
-              <v-btn value="C" size="x-small" class="px-2 font-weight-bold" style="font-size: 0.62rem;">C</v-btn>
-              <v-btn value="D" size="x-small" class="px-2 font-weight-bold" style="font-size: 0.62rem;">D</v-btn>
-            </v-btn-toggle>
-          </v-col>
+              Tutti
+            </button>
+            <button
+              v-for="giorno in ['A', 'B', 'C', 'D', 'E', 'F']"
+              :key="giorno"
+              type="button"
+              class="segmented-day-btn"
+              :class="{ 'active': filtroGiorno === giorno }"
+              @click="filtroGiorno = giorno"
+            >
+              {{ giorno }}
+            </button>
+          </div>
+        </div>
 
-          <!-- Ricerca Testuale -->
-          <v-col cols="12" sm="6" md="7">
-            <v-text-field
-              v-model="testoRicerca"
-              density="compact"
-              variant="outlined"
-              color="orange-darken-3"
-              placeholder="Cerca esercizio, coordinata (es. B3), testo..."
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-              clearable
-              rounded="lg"
-              style="font-size: 0.72rem;"
-            ></v-text-field>
-          </v-col>
-        </v-row>
+        <!-- BARRA DI RICERCA COMPATTA (42px) -->
+        <div class="search-input-wrapper">
+          <v-icon size="16" color="#94a3b8" class="search-icon">mdi-magnify</v-icon>
+          <input
+            v-model="testoRicerca"
+            type="text"
+            placeholder="Cerca esercizio o coordinata"
+            class="mobile-search-input"
+          />
+          <button
+            v-if="testoRicerca"
+            type="button"
+            class="clear-search-btn"
+            @click="testoRicerca = ''"
+          >
+            <v-icon size="15" color="#94a3b8">mdi-close-circle</v-icon>
+          </button>
+        </div>
       </div>
 
-      <!-- CORPO CENTRALE SCORREVOLE: ELENCO SEGNALAZIONI -->
-      <v-card-text class="pa-4 bg-slate-900" style="max-height: 65vh; min-height: 280px; overflow-y: auto;">
-        <!-- STATO 1: NESSUN PROBLEMA TROVATO (SCHEDA PERFETTA) -->
+      <!-- 3. CORPO CENTRALE SCORREVOLE CON LE CARD -->
+      <v-card-text class="mobile-qc-body px-3.5 py-3 flex-grow-1">
+        
+        <!-- STATO 1: NESSUN PROBLEMA (100% CONFORME) -->
         <div
           v-if="segnalazioniFiltrate.length === 0 && !testoRicerca && filtroSeverita === 'tutti' && filtroGiorno === 'tutti'"
-          class="text-center py-10 px-4"
+          class="text-center py-8 px-3"
         >
-          <v-avatar size="64" color="green-darken-3" class="mb-3 elevation-4">
-            <v-icon size="36" color="white">mdi-check-decagram</v-icon>
-          </v-avatar>
-          <h3 class="text-h6 font-weight-black text-green-accent-3 mb-1">
-            Controllo Qualità Superato con Successo!
+          <div class="success-check-avatar mx-auto mb-3">
+            <v-icon size="32" color="#22c55e">mdi-check-decagram</v-icon>
+          </div>
+          <h3 class="text-subtitle-1 font-weight-black text-green-accent-3 mb-1">
+            Scheda Conforme al 100%
           </h3>
-          <p class="text-body-2 text-slate-300 max-width-text mx-auto mb-4" style="font-size: 0.80rem; max-width: 540px; line-height: 1.4;">
-            Tutti i <strong>{{ risultato.totaleValoriControllati }} valori</strong> inseriti dall'atleta sono stati analizzati e risultano perfettamente formattati, coerenti con la prescrizione e leggibili al 100% dagli algoritmi Ghost, 1RM e progressioni.
+          <p class="text-caption text-slate-300 mx-auto mb-3 leading-relaxed" style="max-width: 380px;">
+            Tutti i <strong>{{ risultato.totaleValoriControllati }} valori</strong> registrati sono coerenti e perfettamente interpretabili dagli algoritmi di progressione.
           </p>
           <v-chip color="green-darken-4" class="text-green-accent-2 font-weight-bold px-3" size="small" variant="flat">
-            ✨ Nessun errore né anomalia rilevata
+            ✨ Nessun errore né anomalia
           </v-chip>
         </div>
 
-        <!-- STATO 2: FILTRO VUOTO -->
+        <!-- STATO 2: NESSUN RISULTATO PER I FILTRI IMPOSTATI -->
         <div
           v-else-if="segnalazioniFiltrate.length === 0"
-          class="text-center py-8 text-slate-400"
+          class="text-center py-6 text-slate-400"
         >
-          <v-icon size="36" class="mb-2 opacity-50">mdi-filter-off</v-icon>
-          <div class="text-subtitle-2 font-weight-bold">Nessuna segnalazione corrisponde ai filtri impostati.</div>
+          <v-icon size="30" class="mb-1.5 opacity-50">mdi-filter-off</v-icon>
+          <div class="text-caption font-weight-bold">Nessuna segnalazione per i filtri attivi.</div>
           <v-btn
             size="x-small"
             variant="text"
             color="orange-darken-3"
-            class="mt-2 text-none"
+            class="mt-1 text-none font-weight-bold"
             @click="resetFiltri"
           >
-            Reimposta tutti i filtri
+            Reimposta filtri
           </v-btn>
         </div>
 
-        <!-- STATO 3: ELENCO CARD SEGNALAZIONI -->
+        <!-- STATO 3: ELENCO CARD SEGNALAZIONI MOBILE FIRST -->
         <div v-else class="d-flex flex-column gap-3">
           <div
             v-for="s in segnalazioniFiltrate"
             :key="s.id"
-            class="card-segnalazione rounded-xl border pa-3 text-left transition-all"
+            class="mobile-anomaly-card"
             :class="{
-              'border-red-600 bg-red-950/20': s.livello === 'errore',
-              'border-amber-600 bg-amber-950/20': s.livello === 'anomalia',
-              'border-blue-600 bg-blue-950/20': s.livello === 'particolare'
+              'card-error': s.livello === 'errore',
+              'card-warning': s.livello === 'anomalia',
+              'card-info': s.livello === 'particolare'
             }"
           >
-            <!-- INTESTAZIONE CARD: Coordinata, Esercizio, Settimana, Livello (Cliccabile per navigare all'esercizio) -->
-            <div
-              class="d-flex flex-wrap align-center justify-space-between gap-1.5 mb-2 cursor-pointer card-header-clickable rounded-lg pa-1 transition-all"
-              @click="vaiAllEsercizio(s)"
-              title="Clicca per aprire la scheda di dettaglio di questo esercizio"
-            >
-              <div class="d-flex align-center gap-1.5 flex-wrap min-width-0">
-                <!-- Coordinata Giorno/Riga -->
-                <v-chip
-                  color="orange-darken-3"
-                  size="x-small"
-                  variant="flat"
-                  class="font-weight-black text-white px-2"
-                  style="font-size: 0.65rem;"
-                >
-                  {{ s.coordinata }}
-                </v-chip>
-
+            <!-- RIGA 1: BADGE METADATI + GRAVITÀ -->
+            <div class="d-flex align-center justify-space-between gap-1.5 mb-1.5 flex-wrap">
+              <div class="d-flex align-center gap-1 flex-wrap min-width-0">
+                <!-- Coordinata -->
+                <span class="badge-pill badge-coord">{{ s.coordinata }}</span>
+                
                 <!-- Settore -->
-                <v-chip
-                  v-if="s.des_settore"
-                  color="slate-700"
-                  size="x-small"
-                  variant="tonal"
-                  class="text-slate-300 font-weight-bold"
-                  style="font-size: 0.60rem;"
-                >
-                  {{ s.des_settore }}
-                </v-chip>
-
-                <!-- Settimana -->
-                <v-chip
-                  color="purple-darken-3"
-                  size="x-small"
-                  variant="flat"
-                  class="font-weight-black text-white px-2"
-                  style="font-size: 0.62rem;"
-                >
-                  {{ s.settimanaLabel }}
-                </v-chip>
-
-                <!-- Nome Esercizio con icona -->
-                <span class="text-subtitle-2 font-weight-black text-slate-100 ml-1 text-truncate link-esercizio d-inline-flex align-center gap-1" style="font-size: 0.85rem;">
-                  {{ s.des_esercizio }}
-                  <v-icon size="13" color="orange-lighten-2" class="icon-open">mdi-open-in-new</v-icon>
-                </span>
+                <span v-if="s.des_settore" class="badge-pill badge-sector">{{ s.des_settore }}</span>
+                
+                <!-- Week -->
+                <span class="badge-pill badge-week">{{ s.settimanaLabel }}</span>
               </div>
 
-              <!-- Badge Livello di Gravità -->
-              <v-chip
-                :color="s.livello === 'errore' ? 'red-darken-2' : (s.livello === 'anomalia' ? 'amber-darken-3' : 'blue-darken-3')"
-                size="x-small"
-                variant="flat"
-                class="font-weight-black text-white uppercase px-2"
-                style="font-size: 0.58rem; letter-spacing: 0.04em;"
+              <!-- Badge Gravità -->
+              <span
+                class="badge-severity"
+                :class="{
+                  'sev-error': s.livello === 'errore',
+                  'sev-warning': s.livello === 'anomalia',
+                  'sev-info': s.livello === 'particolare'
+                }"
               >
-                {{ s.livello === 'errore' ? '🔴 Errore Certo' : (s.livello === 'anomalia' ? '🟡 Possibile Anomalia' : '🔵 Da Verificare') }}
-              </v-chip>
+                {{ s.livello === 'errore' ? '🔴 Errore' : (s.livello === 'anomalia' ? '🟠 Anomalia' : '🔵 Verifica') }}
+              </span>
             </div>
 
-            <!-- BLOCCO CONFRONTO: Scritto dall'utente vs Interpretato dal sistema -->
-            <v-row dense class="mb-2 bg-slate-950/60 rounded-lg pa-2 border border-slate-800/80">
-              <!-- Valore Originale Utente -->
-              <v-col cols="12" sm="4" class="border-sm-right border-slate-800 pr-sm-2">
-                <span class="text-super-caption text-slate-400 font-weight-bold uppercase d-block mb-0.5" style="font-size: 0.58rem;">
-                  ✍️ Scritto dall'Utente:
-                </span>
-                <div class="font-weight-black text-amber-accent-2 font-mono text-break" style="font-size: 0.78rem;">
-                  "{{ s.valoreOriginale }}"
-                </div>
-              </v-col>
-
-              <!-- Carico & Reps Interpretati -->
-              <v-col cols="12" sm="4" class="border-sm-right border-slate-800 px-sm-2">
-                <span class="text-super-caption text-slate-400 font-weight-bold uppercase d-block mb-0.5" style="font-size: 0.58rem;">
-                  ⚙️ Interpretato dal Sistema:
-                </span>
-                <div class="font-weight-black text-slate-100" style="font-size: 0.78rem;">
-                  <span v-if="s.interpretatoCustom" class="text-amber-lighten-2">
-                    {{ s.interpretatoCustom }}
-                  </span>
-                  <span v-else-if="s.isCorpoLibero && !s.haSovraccarico" class="text-green-accent-3">
-                    Bodyweight · {{ s.repsEstratte !== null ? (s.repsEstratte + ' reps') : 'Reps n.d.' }}
-                  </span>
-                  <span v-else-if="s.isCorpoLibero && s.haSovraccarico" class="text-green-accent-3">
-                    +{{ s.caricoEstratto }} kg Zavorra · {{ s.repsEstratte !== null ? (s.repsEstratte + 'r') : '' }}
-                  </span>
-                  <span v-else-if="s.caricoEstratto !== null" class="text-green-accent-3">
-                    {{ s.caricoEstratto }} kg <span v-if="s.repsEstratte" class="text-slate-300">x {{ s.repsEstratte }}r</span>
-                  </span>
-                  <span v-else class="text-red-lighten-2">
-                    ⚠️ Nessun carico estratto
-                  </span>
-                </div>
-              </v-col>
-
-              <!-- Prescrizione della Settimana -->
-              <v-col cols="12" sm="4" class="pl-sm-2">
-                <span class="text-super-caption text-slate-400 font-weight-bold uppercase d-block mb-0.5" style="font-size: 0.58rem;">
-                  📋 Prescrizione Scheda:
-                </span>
-                <div class="text-caption text-slate-300 font-weight-medium text-truncate" style="font-size: 0.72rem;">
-                  {{ s.prescrizione || 'Non specificata' }}
-                </div>
-              </v-col>
-            </v-row>
-
-            <!-- TITOLO E MOTIVO DELLA SEGNALAZIONE -->
-            <div class="mb-1.5">
-              <div class="text-caption font-weight-black text-slate-100 d-flex align-center" style="font-size: 0.76rem;">
-                <v-icon size="14" class="mr-1" :color="s.livello === 'errore' ? 'red' : (s.livello === 'anomalia' ? 'amber' : 'blue')">
-                  {{ s.livello === 'errore' ? 'mdi-alert-octagon' : (s.livello === 'anomalia' ? 'mdi-alert' : 'mdi-information-outline') }}
-                </v-icon>
-                {{ s.titolo }}
+            <!-- RIGA 2: NOME ESERCIZIO + ICONA NAVIGAZIONE -->
+            <div
+              class="exercise-title-row d-flex align-center justify-space-between gap-1 cursor-pointer py-1"
+              @click="vaiAllEsercizio(s)"
+              title="Apri l'esercizio per modificarlo direttamente"
+            >
+              <div class="exercise-name font-weight-bold text-slate-100 text-truncate">
+                {{ s.des_esercizio }}
               </div>
-              <p class="text-caption text-slate-300 mb-0 mt-0.5 ml-4 leading-relaxed" style="font-size: 0.70rem;">
+              <div class="open-action-icon flex-shrink-0 d-flex align-center gap-1">
+                <span class="open-label d-none d-sm-inline">Apri</span>
+                <v-icon size="15" color="#f97316">mdi-open-in-new</v-icon>
+              </div>
+            </div>
+
+            <!-- RIGA 3: MINI PANNELLO DATI TECNICI (COMPRESSO) -->
+            <div class="technical-data-strip my-2">
+              <div class="data-strip-row">
+                <span class="data-label">✍️ Inserito</span>
+                <span class="data-value text-amber-accent-2 font-mono">"{{ s.valoreOriginale }}"</span>
+              </div>
+              <div class="data-strip-row">
+                <span class="data-label">⚙️ Interpretazione</span>
+                <span class="data-value">
+                  <span v-if="s.interpretatoCustom" class="text-amber-lighten-2 font-weight-bold">{{ s.interpretatoCustom }}</span>
+                  <span v-else-if="s.isCorpoLibero && !s.haSovraccarico" class="text-green-accent-3 font-weight-bold">
+                    Corpo Libero · {{ s.repsEstratte !== null ? (s.repsEstratte + 'r') : 'n.d.' }}
+                  </span>
+                  <span v-else-if="s.isCorpoLibero && s.haSovraccarico" class="text-green-accent-3 font-weight-bold">
+                    +{{ s.caricoEstratto }}kg zavorra · {{ s.repsEstratte !== null ? (s.repsEstratte + 'r') : '' }}
+                  </span>
+                  <span v-else-if="s.caricoEstratto !== null" class="text-green-accent-3 font-weight-bold">
+                    {{ s.caricoEstratto }}kg <span v-if="s.repsEstratte" class="text-slate-400">x{{ s.repsEstratte }}r</span>
+                  </span>
+                  <span v-else class="text-red-lighten-2 font-weight-bold">Nessun carico</span>
+                </span>
+              </div>
+              <div class="data-strip-row">
+                <span class="data-label">📋 Prescrizione</span>
+                <span class="data-value text-slate-300">{{ s.prescrizione || 'Non specificata' }}</span>
+              </div>
+            </div>
+
+            <!-- RIGA 4: PROBLEMA & IMPATTO SINTETICO -->
+            <div class="problem-statement mb-2">
+              <div class="problem-title font-weight-bold d-flex align-center">
+                <v-icon
+                  size="14"
+                  class="mr-1 flex-shrink-0"
+                  :color="s.livello === 'errore' ? '#ef4444' : (s.livello === 'anomalia' ? '#f59e0b' : '#3b82f6')"
+                >
+                  {{ s.livello === 'errore' ? 'mdi-alert-circle' : (s.livello === 'anomalia' ? 'mdi-alert' : 'mdi-information') }}
+                </v-icon>
+                <span>{{ s.titolo }}</span>
+              </div>
+              
+              <div class="problem-desc text-slate-300 mt-1 ml-4 leading-normal">
                 {{ s.spiegazione }}
-              </p>
+              </div>
+
+              <!-- Impatto sintetico -->
+              <div v-if="s.conseguenza" class="problem-impact mt-1 ml-4 d-flex align-start gap-1">
+                <span class="impact-badge flex-shrink-0">⚡ Impatto:</span>
+                <span class="impact-text">{{ s.conseguenza }}</span>
+              </div>
             </div>
 
-            <!-- CONSEGUENZA SUGLI ALGORITMI (GHOST / 1RM) -->
-            <div class="mb-1.5 ml-4 d-flex align-start gap-1">
-              <span class="text-super-caption text-orange-lighten-2 font-weight-black uppercase flex-shrink-0" style="font-size: 0.58rem; line-height: 1.3;">
-                ⚡ Impatto Algoritmi:
-              </span>
-              <span class="text-caption text-slate-400 leading-snug" style="font-size: 0.68rem;">
-                {{ s.conseguenza }}
-              </span>
-            </div>
-
-            <!-- CORREZIONE CONSIGLIATA & QUICK EDIT -->
-            <div class="bg-slate-950/80 rounded-lg p-2 mt-2 border border-slate-800 flex-column d-flex gap-1.5">
-              <div class="d-flex align-center justify-space-between flex-wrap gap-1">
-                <div class="d-flex align-center gap-1 min-width-0">
-                  <v-icon size="13" color="green-accent-3">mdi-lightbulb-on</v-icon>
-                  <span class="text-caption font-weight-bold text-green-accent-2" style="font-size: 0.68rem;">
-                    Consiglio: {{ s.correzioneConsigliata }}
+            <!-- RIGA 5: UNIFIED ACTION BOX (SUGGERIMENTO + PULSANTE CORREGGI) -->
+            <div class="action-box">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                <div class="suggestion-text d-flex align-start gap-1.5 flex-grow-1 min-width-0">
+                  <v-icon size="14" color="#22c55e" class="mt-0.5 flex-shrink-0">mdi-lightbulb-on</v-icon>
+                  <span class="text-green-accent-2 font-weight-medium leading-snug">
+                    {{ s.correzioneConsigliata }}
                   </span>
                 </div>
 
-                <v-btn
-                  size="x-small"
-                  variant="tonal"
-                  color="orange-darken-3"
-                  class="font-weight-bold text-none px-2"
-                  style="height: 22px; font-size: 0.62rem;"
+                <button
+                  type="button"
+                  class="btn-correggi-action"
+                  :class="{ 'btn-active': modificateAperte[s.id] }"
                   @click="toggleModificaRapida(s.id)"
                 >
-                  <v-icon start size="11" class="mr-0.5">mdi-pencil</v-icon>
-                  {{ modificateAperte[s.id] ? 'Annulla' : 'Correggi Adesso' }}
-                </v-btn>
+                  <v-icon size="13" class="mr-1">
+                    {{ modificateAperte[s.id] ? 'mdi-close' : 'mdi-pencil' }}
+                  </v-icon>
+                  <span>{{ modificateAperte[s.id] ? 'Annulla' : 'Correggi adesso' }}</span>
+                </button>
               </div>
 
               <!-- PANNELLO MODIFICA RAPIDA INLINE COACH -->
-              <div v-if="modificateAperte[s.id]" class="pt-1.5 border-t border-slate-800 d-flex align-center gap-1.5">
-                <v-text-field
-                  v-model="valoriModifica[s.id]"
-                  density="compact"
-                  variant="outlined"
-                  color="orange-darken-3"
-                  label="Nuovo valore ins_week"
-                  hide-details
-                  style="font-size: 0.75rem;"
-                  class="flex-grow-1"
-                ></v-text-field>
-
-                <v-btn
-                  size="small"
-                  color="green-darken-2"
-                  class="font-weight-bold text-white text-none px-3"
-                  style="height: 36px; font-size: 0.70rem;"
-                  @click="applicaCorrezioneCoach(s)"
-                  :loading="inSalvataggio === s.id"
-                >
-                  <v-icon start size="14">mdi-check</v-icon>
-                  Applica
-                </v-btn>
+              <div v-if="modificateAperte[s.id]" class="quick-edit-expanded mt-2 pt-2">
+                <div class="d-flex align-center gap-2">
+                  <div class="quick-input-container flex-grow-1">
+                    <input
+                      v-model="valoriModifica[s.id]"
+                      type="text"
+                      placeholder="es. 45 kg o 12r"
+                      class="quick-text-input"
+                      @keyup.enter="applicaCorrezioneCoach(s)"
+                    />
+                  </div>
+                  <v-btn
+                    color="green-darken-2"
+                    class="btn-applica-action font-weight-black text-white text-none"
+                    style="height: 40px; min-width: 80px;"
+                    @click="applicaCorrezioneCoach(s)"
+                    :loading="inSalvataggio === s.id"
+                  >
+                    <v-icon size="16" class="mr-1">mdi-check</v-icon>
+                    Applica
+                  </v-btn>
+                </div>
               </div>
             </div>
+
           </div>
         </div>
       </v-card-text>
 
-      <!-- FOOTER MODALE -->
-      <v-card-actions class="bg-slate-950 border-t border-slate-800 py-2.5 px-4 d-flex align-center justify-space-between flex-wrap gap-2">
-        <div class="d-flex align-center gap-1.5">
-          <v-btn
-            size="small"
-            variant="tonal"
-            color="slate-300"
-            class="text-none font-weight-bold px-2.5"
-            style="font-size: 0.68rem; height: 30px;"
-            @click="copiaReportMarkdown"
-          >
-            <v-icon start size="14" class="mr-1">mdi-content-copy</v-icon>
-            {{ reportCopiato ? 'Copiato!' : 'Copia Report' }}
-          </v-btn>
-
-          <span class="text-super-caption text-slate-400 d-none d-sm-inline" style="font-size: 0.60rem;">
-            Analisi completata in &lt;10ms senza chiamate di rete.
-          </span>
-        </div>
+      <!-- 4. FOOTER STICKY (COPIA REPORT & CHIUDI) -->
+      <div class="mobile-qc-footer px-3.5 py-2.5 flex-shrink-0 d-flex align-center justify-space-between gap-2">
+        <v-btn
+          variant="tonal"
+          color="slate-300"
+          class="btn-footer-copy font-weight-bold text-none"
+          style="height: 42px;"
+          @click="copiaReportMarkdown"
+        >
+          <v-icon size="16" class="mr-1.5">mdi-content-copy</v-icon>
+          <span>{{ reportCopiato ? 'Copiato!' : 'Copia Report' }}</span>
+        </v-btn>
 
         <v-btn
-          size="small"
           color="orange-darken-3"
           variant="flat"
-          class="font-weight-bold text-white text-none px-4"
-          style="font-size: 0.72rem; height: 30px;"
+          class="btn-footer-close font-weight-bold text-white text-none flex-grow-1"
+          style="height: 42px;"
           @click="chiudi"
         >
           Chiudi Controllo
         </v-btn>
-      </v-card-actions>
+      </div>
+
     </v-card>
 
     <!-- Toast di notifica rapida interna alla modale -->
@@ -458,7 +428,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { analizzaQualitaScheda } from '../utils/qualityChecker.js';
 import { globalStoryboard, selectedAthlete, selectedSheet } from '../authStore.js';
@@ -499,6 +469,27 @@ const emit = defineEmits(['update:modelValue', 'applica-correzione', 'salva-reco
 const mostra = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
+});
+
+// Gestione Responsive Mobile (<= 600px)
+const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth < 600 : true);
+
+const updateViewportSize = () => {
+  if (typeof window !== 'undefined') {
+    isMobile.value = window.innerWidth < 600;
+  }
+};
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', updateViewportSize);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateViewportSize);
+  }
 });
 
 const inScansione = ref(false);
@@ -808,41 +799,524 @@ const chiudi = () => {
 </script>
 
 <style scoped>
-.dialog-controllo-qualita :deep(.v-card) {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
+/* ==========================================================================
+   MOBILE FIRST PREMIUM DESIGN - CONTROLLO QUALITÀ SCHEDA
+   Linear / Apple Fitness / Notion Dark Aesthetic
+   ========================================================================== */
+
+.dialog-controllo-qualita :deep(.v-overlay__content) {
+  margin: 0 !important;
+  max-height: 100dvh !important;
 }
 
-.card-segnalazione {
-  background-color: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(8px);
+@media (max-width: 599px) {
+  .dialog-controllo-qualita :deep(.v-overlay__content) {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    border-radius: 0 !important;
+  }
+  
+  .mobile-qc-card {
+    border-radius: 0 !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
-.card-segnalazione:hover {
-  background-color: rgba(30, 41, 59, 0.85);
+.mobile-qc-card {
+  background: #090d16 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9) !important;
+  height: 100%;
 }
 
-.card-header-clickable {
+@media (min-width: 600px) {
+  .mobile-qc-card {
+    border-radius: 20px !important;
+    max-height: 88vh !important;
+  }
+}
+
+/* 1. HEADER COMPATTO */
+.mobile-qc-header {
+  background: rgba(11, 17, 30, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+}
+
+.header-icon-badge {
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  padding: 4px;
-}
-
-.card-header-clickable:hover {
   background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.card-header-clickable:hover .link-esercizio {
-  color: #fb923c !important;
+.mobile-qc-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
 }
 
-.card-header-clickable:hover .icon-open {
-  transform: translateX(2px) translateY(-1px);
+.mobile-qc-subtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+  padding-left: 36px;
 }
 
-.icon-open {
-  transition: transform 0.15s ease;
+.status-chip {
+  font-size: 0.60rem !important;
+  height: 20px !important;
+  letter-spacing: 0.03em !important;
 }
 
-.text-break {
+.header-btn {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* 2. CONTROLLI: STATISTICHE, PROGRESS BAR, FILTRI GIORNO, SEARCH */
+.mobile-qc-controls {
+  background: rgba(15, 23, 42, 0.75);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* MINI STAT CHIPS */
+.mini-stat-chip {
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.mini-stat-chip.neutral {
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mini-stat-chip.severity-error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.mini-stat-chip.severity-error.active {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.mini-stat-chip.severity-warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.mini-stat-chip.severity-warning.active {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #f59e0b;
+}
+
+.mini-stat-chip.severity-info {
+  background: rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+.mini-stat-chip.severity-info.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+/* AFFIDABILITÀ */
+.affidabilita-bar-wrapper {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.affidabilita-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.affidabilita-value {
+  font-size: 0.80rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* SEGMENTED DAY CONTROL */
+.segmented-days-container {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.segmented-days-container::-webkit-scrollbar {
+  display: none;
+}
+
+.segmented-days-scroll {
+  display: inline-flex;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2.5px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 2px;
+  min-width: 100%;
+}
+
+.segmented-day-btn {
+  flex: 1 0 auto;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.segmented-day-btn.active {
+  background: #f97316;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(249, 115, 22, 0.4);
+}
+
+/* SEARCH INPUT */
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.mobile-search-input {
+  width: 100%;
+  height: 38px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  padding: 0 32px 0 32px;
+  font-size: 0.75rem;
+  color: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.mobile-search-input:focus {
+  border-color: #f97316;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.mobile-search-input::placeholder {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 3. CARD SEGNALAZIONI MOBILE FIRST */
+.mobile-qc-body {
+  background: #090d16;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-anomaly-card {
+  background: rgba(15, 23, 42, 0.75);
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.mobile-anomaly-card.card-error {
+  border-left: 3px solid #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.mobile-anomaly-card.card-warning {
+  border-left: 3px solid #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.mobile-anomaly-card.card-info {
+  border-left: 3px solid #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+/* PILLS & BADGES */
+.badge-pill {
+  font-size: 0.60rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-coord {
+  background: rgba(249, 115, 22, 0.2);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.badge-sector {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+
+.badge-week {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.badge-severity {
+  font-size: 0.60rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-severity.sev-error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badge-severity.sev-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-severity.sev-info {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+/* EXERCISE TITLE */
+.exercise-title-row {
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.exercise-title-row:hover {
+  background: rgba(249, 115, 22, 0.08);
+}
+
+.exercise-name {
+  font-size: 0.95rem;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.open-label {
+  font-size: 0.65rem;
+  color: #f97316;
+  font-weight: 700;
+}
+
+/* TECHNICAL DATA STRIP */
+.technical-data-strip {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.data-strip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.70rem;
+}
+
+.data-label {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.data-value {
+  text-align: right;
   word-break: break-word;
+}
+
+/* PROBLEM STATEMENT */
+.problem-title {
+  font-size: 0.78rem;
+  color: #f8fafc;
+}
+
+.problem-desc {
+  font-size: 0.70rem;
+  color: #cbd5e1;
+}
+
+.problem-impact {
+  font-size: 0.68rem;
+}
+
+.impact-badge {
+  font-size: 0.60rem;
+  font-weight: 800;
+  color: #fb923c;
+  text-transform: uppercase;
+}
+
+.impact-text {
+  color: #fdba74;
+}
+
+/* ACTION BOX */
+.action-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.suggestion-text {
+  font-size: 0.68rem;
+}
+
+.btn-correggi-action {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  color: #fb923c;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 32px;
+  white-space: nowrap;
+}
+
+.btn-correggi-action:hover,
+.btn-correggi-action.btn-active {
+  background: #f97316;
+  color: #ffffff;
+  border-color: #ea580c;
+}
+
+/* QUICK EDIT */
+.quick-edit-expanded {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quick-text-input {
+  width: 100%;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  color: #ffffff;
+  outline: none;
+}
+
+.quick-text-input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 1px #f97316;
+}
+
+/* 4. FOOTER STICKY */
+.mobile-qc-footer {
+  background: rgba(11, 17, 30, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.btn-footer-copy {
+  font-size: 0.72rem !important;
+}
+
+.btn-footer-close {
+  font-size: 0.76rem !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35) !important;
+}
+
+/* AVATAR SUCCESS */
+.success-check-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

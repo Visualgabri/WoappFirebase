@@ -3246,7 +3246,7 @@ const pulisciParentesiQuadre = (str) => {
   return String(str).replace(/\[\s*KG?\s*W\s*\d+\s*\]?/gi, '').trim();
 };
 
-// Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77% o 3x6(78%)|45KG 92%)
+// Parser delle stringhe di prescrizione speciali (es. 5x2(75%)|87,5KG|33,75L 77% o 3x6(78%)|45KG 92% o AMRAP(90%)|65KG)
 const parsePrescription = (str) => {
   if (!str) return null;
   const cleanStr = pulisciParentesiQuadre(str);
@@ -3256,8 +3256,8 @@ const parsePrescription = (str) => {
   if (parts.length >= 2) {
     const part1 = parts[0].trim();
     
-    // Parse Part 1: reps and optional max (e.g. "5x2(75%)" or "3x12(60%)")
-    const m1 = part1.match(/^([0-9xX\s-]+)\s*\(([^)]+)\)$/);
+    // Parse Part 1: reps and optional max (e.g. "5x2(75%)" or "3x12(60%)" or "AMRAP(90%)")
+    const m1 = part1.match(/^([^\(]+?)\s*\(([^)]+)\)$/);
     const repsInfo = m1 ? m1[1].trim() : part1;
     const maxInfo = m1 ? m1[2].trim() : '';
     

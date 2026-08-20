@@ -450,7 +450,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { analizzaQualitaScheda } from '../utils/qualityChecker.js';
-import { globalStoryboard, selectedAthlete, selectedSheet } from '../authStore.js';
+import { globalStoryboard, selectedAthlete, selectedSheet, getStoryboardBackup } from '../authStore.js';
 import { db } from '../firebase.js';
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
@@ -513,7 +513,7 @@ onBeforeUnmount(() => {
 
 const inScansione = ref(false);
 const inSalvataggio = ref(null);
-const filtroSeverita = ref('errore'); // Default 'errore' all'apertura
+const filtroSeverita = ref('tutti'); // Default 'tutti' all'apertura per panoramica completa
 const filtroGiorno = ref('tutti'); // 'tutti', 'A', 'B', 'C', 'D'
 const testoRicerca = ref('');
 const reportCopiato = ref(false);
@@ -578,6 +578,9 @@ const eseguiAnalisi = async (manual = false) => {
         if (snap.empty && !isNaN(numAth)) {
           snap = await getDocs(query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', numAth), where('num_scheda', '==', currSheet)));
         }
+        if (snap.empty) {
+          snap = await getDocs(query(collection(db, 'STORYBOARD'), where('id_cliente', '==', currAthlete), where('num_scheda', '==', currSheet)));
+        }
         if (!snap.empty) {
           effectiveRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         } else {
@@ -601,6 +604,13 @@ const eseguiAnalisi = async (manual = false) => {
       numScheda: currSheet
     });
     risultato.value = res;
+
+    // Se ci sono errori, impostiamo il filtro su 'errore', altrimenti mostriamo 'tutti' per non visualizzare una lista vuota
+    if (res.totaleErrori > 0) {
+      filtroSeverita.value = 'errore';
+    } else {
+      filtroSeverita.value = 'tutti';
+    }
 
     // Pre-popola i valori per eventuale quick-edit
     const mapValori = {};
@@ -633,7 +643,7 @@ watch(
   () => props.modelValue,
   (newVal) => {
     if (newVal) {
-      filtroSeverita.value = 'errore';
+      filtroSeverita.value = 'tutti';
       filtroGiorno.value = 'tutti';
       testoRicerca.value = '';
       eseguiAnalisi();

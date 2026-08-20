@@ -2399,6 +2399,13 @@ const mostraDialogControlloQualita = ref(false);
 const storicoBackupCache = ref([]);
 
 const apriControlloQualita = async () => {
+  if (records.value.length === 0 && atletaSelezionato.value && schedaSelezionata.value) {
+    try {
+      await caricaEsercizi();
+    } catch (e) {
+      console.warn("Errore caricamento esercizi per Controllo Qualità:", e);
+    }
+  }
   if (storicoBackupCache.value.length === 0) {
     try {
       const backup = await getStoryboardBackup();

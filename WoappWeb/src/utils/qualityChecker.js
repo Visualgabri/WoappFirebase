@@ -21,6 +21,7 @@ import {
   haSovraccaricoEsplicito,
   estraiPesoDaInput,
   estraiRepsDaInput,
+  estraiRepsDaInputExplicitSingle,
   estraiRepsDaPrescrizione,
   estraiSerieDaPrescrizione,
   calcolaE1RMSmorzato
@@ -191,12 +192,16 @@ export const analizzaQualitaScheda = (records, options = {}) => {
 
       // --- CHECK SINTATTICO AMRAP: Prescrizione AMRAP con solo carico e senza ripetizioni ---
       else if (!segnalazioneW && (/amrap|max\s*reps?|massim[ae]\s*rip|cedimento/i.test(prescVal) || 
-               (w === 6 && /amrap/i.test(ex.des_rec_report || '')) ||
-               (w === 6 && /amrap/i.test(ex.des_qta_report || '')) ||
-               (w === 6 && /amrap/i.test(ex.des_note || '')) ||
-               (w === 6 && /amrap/i.test(ex.des_note_attrezzo || '')) ||
-               (w === 6 && /amrap/i.test(ex.des_esercizio || '')))) {
-        const hasExplicitReps = estraiRepsDaInputExplicitSingle(rawVal) !== null || /\b\d+\s*(?:r\b|reps?|rip)/i.test(rawVal) || /\+\s*\d+/i.test(rawVal);
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_rec_report || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_qta_report || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_note || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_note_attrezzo || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_estesa_end || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_estesa_start || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_commenti || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_esercizio_2 || '')) ||
+               (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_esercizio || '')))) {
+        const hasExplicitReps = estraiRepsDaInputExplicitSingle(rawVal) !== null || /\b\d+\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)\b/i.test(rawVal) || /\+\s*\d+/i.test(rawVal);
         if (parsedLoad !== null && !hasExplicitReps) {
           const pesoFmt = String(parsedLoad).replace('.', ',');
           segnalazioneW = {
@@ -221,7 +226,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             livello: 'errore',
             tipo: 'amrap_mancano_reps',
             titolo: `Ripetizioni AMRAP mancanti ("${rawVal}")`,
-            spiegazione: `Inserito solo il carico "${rawVal}" a fronte di serie AMRAP ("${prescVal}"). È fondamentale specificare le ripetizioni massime completate.`,
+            spiegazione: `Inserito solo il carico "${rawVal}" a fronte di serie AMRAP / Test Massime Ripetizioni ("${prescVal || ex.des_estesa_end || 'Test W6'}"). È fondamentale specificare le ripetizioni massime completate.`,
             conseguenza: `Senza il numero di ripetizioni non è possibile calcolare il nuovo massimale stimato né la progressione.`,
             correzioneConsigliata: `Specificare le reps eseguite (es. "${pesoFmt} x 8r" o "${pesoFmt} x 10r").`
           };

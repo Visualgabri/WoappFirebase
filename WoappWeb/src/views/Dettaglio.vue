@@ -5563,6 +5563,19 @@ const isStagnazioneSettimana = (sett) => {
   // Se la settimana è di scarico (W4 scarico o ghost.isScarico), NON è stagnazione!
   if ((sett === 4 && isWeek4Scarico?.value) || (ghost && ghost.isScarico)) return false;
 
+  // Se la settimana 6 è un test AMRAP o Max Reps (richiede stesso peso di W5 con massime ripetizioni a cedimento),
+  // NON è una stagnazione di carico ma un test massimale programmato!
+  if (sett === 6) {
+    const prescW6 = String(workout.value?.des_week6 || '');
+    const endW6 = String(workout.value?.des_estesa_end || '');
+    const noteW6 = String(workout.value?.des_note || '');
+    if (/amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(prescW6) || 
+        /massim[ae]\s*rip|amrap|max\s*reps?|cedimento/i.test(endW6) ||
+        /amrap|massim[ae]\s*rip/i.test(noteW6)) {
+      return false;
+    }
+  }
+
   const currentIns = inputSettimane.value[sett]?.ins;
   if (!currentIns || String(currentIns).trim() === '' || String(currentIns).trim() === '-') return false;
   
@@ -12074,8 +12087,8 @@ const parsePrescription = (str) => {
   if (parts.length >= 2) {
     const part1 = parts[0].trim();
     
-    // Parse Part 1: reps and optional max (e.g. "5x2(75%)" or "3x12(60%)")
-    const m1 = part1.match(/^([0-9xX\s-]+)\s*\(([^)]+)\)$/);
+    // Parse Part 1: reps and optional max (e.g. "5x2(75%)" or "3x12(60%)" or "AMRAP(90%)")
+    const m1 = part1.match(/^([^\(]+?)\s*\(([^)]+)\)$/);
     const repsInfo = m1 ? m1[1].trim() : part1;
     const maxInfo = m1 ? m1[2].trim() : '';
     
@@ -13609,13 +13622,34 @@ const getGhostFieldClass = (sett) => {
 
 const getRepFormattingSuggestion = (sett) => {
   if (!workout.value) return null;
-  const ghost = getGhostLiftSmart(sett);
-  if (!ghost || !ghost.isRepExercise) return null;
-
   const val = inputSettimane.value[sett]?.ins;
   if (!val) return null;
   const clean = String(val).trim();
+  if (!clean || clean === '-') return null;
+
+  // Caso 1: Test AMRAP / Week 6 con solo carico numerico inserito (es. "65" o "65kg") senza ripetizioni
+  const presc = String(workout.value['des_week' + sett] || '');
+  const endNote = String(workout.value.des_estesa_end || '');
+  const isAmrap = /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(presc) ||
+                  (sett === 6 && (/massim[ae]\s*rip|amrap/i.test(endNote) || /amrap/i.test(workout.value.des_note || '')));
   
+  if (isAmrap) {
+    const hasExplicitReps = /\b\d+\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)\b/i.test(clean) || /\d+\s*[xX]\s*\d+/i.test(clean) || /\+\s*\d+/i.test(clean);
+    const pesoStr = estraiPesoDaInput(clean);
+    if (pesoStr && !hasExplicitReps) {
+      const pesoFmt = pesoStr.replace('.', ',');
+      return {
+        text: clean,
+        suggested: `${pesoFmt} x 8r`,
+        message: `🎯 Test AMRAP: hai scritto solo il carico (${pesoFmt}kg). Specifica anche quante reps hai fatto (es. ${pesoFmt} x 8r)!`
+      };
+    }
+  }
+
+  // Caso 2: Esercizio a corpo libero / rep-based
+  const ghost = getGhostLiftSmart(sett);
+  if (!ghost || !ghost.isRepExercise) return null;
+
   // Rileva notazioni SxR come 3x12 o 4x10 (senza la 'r' finale)
   const matchSxR = clean.match(/^(\d+)\s*[xX]\s*(\d+)$/);
   if (matchSxR) {

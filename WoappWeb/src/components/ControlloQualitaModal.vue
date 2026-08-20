@@ -280,39 +280,47 @@
               </div>
             </div>
 
-            <!-- RIGA 3: MINI PANNELLO DATI TECNICI (COMPRESSO) -->
-            <div class="technical-data-strip my-2">
-              <div class="data-strip-row">
-                <span class="data-label">✍️ Inserito</span>
-                <span class="data-value text-amber-accent-2 font-mono">"{{ s.valoreOriginale }}"</span>
+            <!-- RIGA 3: PANNELLO DATI PRINCIPALI (INSERITO, INTERPRETAZIONE, PRESCRIZIONE) - MASSIMA PRIORITÀ -->
+            <div class="main-data-card my-2.5">
+              <!-- INSERITO -->
+              <div class="main-data-row">
+                <span class="main-data-label">✍️ Inserito</span>
+                <span class="main-data-value val-inserted font-mono">"{{ s.valoreOriginale }}"</span>
               </div>
-              <div class="data-strip-row">
-                <span class="data-label">⚙️ Interpretazione</span>
-                <span class="data-value">
-                  <span v-if="s.interpretatoCustom" class="text-amber-lighten-2 font-weight-bold">{{ s.interpretatoCustom }}</span>
-                  <span v-else-if="s.isCorpoLibero && !s.haSovraccarico" class="text-green-accent-3 font-weight-bold">
-                    Corpo Libero · {{ s.repsEstratte !== null ? (s.repsEstratte + 'r') : 'n.d.' }}
+
+              <!-- INTERPRETAZIONE -->
+              <div class="main-data-row">
+                <span class="main-data-label">⚙️ Interpretazione</span>
+                <span class="main-data-value val-interpretation">
+                  <span v-if="s.interpretatoCustom" class="text-amber-lighten-2">{{ s.interpretatoCustom }}</span>
+                  <span v-else-if="s.isCorpoLibero && !s.haSovraccarico" class="text-green-accent-3">
+                    Corpo Libero · {{ s.repsEstratte !== null ? (s.repsEstratte + ' reps') : 'n.d.' }}
                   </span>
-                  <span v-else-if="s.isCorpoLibero && s.haSovraccarico" class="text-green-accent-3 font-weight-bold">
-                    +{{ s.caricoEstratto }}kg zavorra · {{ s.repsEstratte !== null ? (s.repsEstratte + 'r') : '' }}
+                  <span v-else-if="s.isCorpoLibero && s.haSovraccarico" class="text-green-accent-3">
+                    +{{ s.caricoEstratto }} kg zavorra · {{ s.repsEstratte !== null ? (s.repsEstratte + 'r') : '' }}
                   </span>
-                  <span v-else-if="s.caricoEstratto !== null" class="text-green-accent-3 font-weight-bold">
-                    {{ s.caricoEstratto }}kg <span v-if="s.repsEstratte" class="text-slate-400">x{{ s.repsEstratte }}r</span>
+                  <span v-else-if="s.caricoEstratto !== null" class="text-green-accent-3">
+                    {{ s.caricoEstratto }} kg <span v-if="s.repsEstratte" class="text-slate-300 font-weight-medium">x{{ s.repsEstratte }}r</span>
                   </span>
-                  <span v-else class="text-red-lighten-2 font-weight-bold">Nessun carico</span>
+                  <span v-else class="text-red-lighten-2 d-inline-flex align-center gap-1">
+                    <v-icon size="14" color="#f87171">mdi-alert-circle-outline</v-icon>
+                    Nessun carico estratto
+                  </span>
                 </span>
               </div>
-              <div class="data-strip-row">
-                <span class="data-label">📋 Prescrizione</span>
-                <span class="data-value text-slate-300">{{ s.prescrizione || 'Non specificata' }}</span>
+
+              <!-- PRESCRIZIONE -->
+              <div class="main-data-row">
+                <span class="main-data-label">📋 Prescrizione</span>
+                <span class="main-data-value val-prescription text-slate-100">{{ s.prescrizione || 'Non specificata' }}</span>
               </div>
             </div>
 
-            <!-- RIGA 4: PROBLEMA & IMPATTO SINTETICO -->
-            <div class="problem-statement mb-2">
-              <div class="problem-title font-weight-bold d-flex align-center">
+            <!-- RIGA 4: CONTENUTO DIAGNOSTICO COMPATTO (SECONDARIO) -->
+            <div class="diagnostic-block mb-2">
+              <div class="diagnostic-title font-weight-bold d-flex align-center">
                 <v-icon
-                  size="14"
+                  size="13"
                   class="mr-1 flex-shrink-0"
                   :color="s.livello === 'errore' ? '#ef4444' : (s.livello === 'anomalia' ? '#f59e0b' : '#3b82f6')"
                 >
@@ -321,12 +329,12 @@
                 <span>{{ s.titolo }}</span>
               </div>
               
-              <div class="problem-desc text-slate-300 mt-1 ml-4 leading-normal">
+              <div class="diagnostic-desc text-slate-400 mt-0.5 ml-4 leading-normal">
                 {{ s.spiegazione }}
               </div>
 
               <!-- Impatto sintetico -->
-              <div v-if="s.conseguenza" class="problem-impact mt-1 ml-4 d-flex align-start gap-1">
+              <div v-if="s.conseguenza" class="diagnostic-impact mt-1 ml-4 d-flex align-start gap-1">
                 <span class="impact-badge flex-shrink-0">⚡ Impatto:</span>
                 <span class="impact-text">{{ s.conseguenza }}</span>
               </div>
@@ -335,8 +343,8 @@
             <!-- RIGA 5: UNIFIED ACTION BOX (SUGGERIMENTO + PULSANTE CORREGGI) -->
             <div class="action-box">
               <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-                <div class="suggestion-text d-flex align-start gap-1.5 flex-grow-1 min-width-0">
-                  <v-icon size="14" color="#22c55e" class="mt-0.5 flex-shrink-0">mdi-lightbulb-on</v-icon>
+                <div class="suggestion-text d-flex align-start gap-1 flex-grow-1 min-width-0">
+                  <v-icon size="13" color="#22c55e" class="mt-0.5 flex-shrink-0">mdi-lightbulb-on</v-icon>
                   <span class="text-green-accent-2 font-weight-medium leading-snug">
                     {{ s.correzioneConsigliata }}
                   </span>
@@ -348,7 +356,7 @@
                   :class="{ 'btn-active': modificateAperte[s.id] }"
                   @click="toggleModificaRapida(s.id)"
                 >
-                  <v-icon size="13" class="mr-1">
+                  <v-icon size="14" class="mr-1">
                     {{ modificateAperte[s.id] ? 'mdi-close' : 'mdi-pencil' }}
                   </v-icon>
                   <span>{{ modificateAperte[s.id] ? 'Annulla' : 'Correggi adesso' }}</span>
@@ -1177,55 +1185,80 @@ const chiudi = () => {
   font-weight: 700;
 }
 
-/* TECHNICAL DATA STRIP */
-.technical-data-strip {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 6px 8px;
+/* MAIN DATA CARD (INSERITO, INTERPRETAZIONE, PRESCRIZIONE) - MASSIMA PRIORITÀ */
+.main-data-card {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-.data-strip-row {
+.main-data-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  font-size: 0.70rem;
+  gap: 12px;
 }
 
-.data-label {
-  color: #94a3b8;
+.main-data-label {
+  color: #cbd5e1;
   font-weight: 600;
-  font-size: 0.65rem;
-  text-transform: uppercase;
+  font-size: 0.84rem; /* ~13.5px */
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
-.data-value {
+.main-data-value {
   text-align: right;
+  font-size: 0.96rem; /* ~15.5px */
+  font-weight: 700;
+  letter-spacing: -0.01em;
   word-break: break-word;
 }
 
-/* PROBLEM STATEMENT */
-.problem-title {
-  font-size: 0.78rem;
-  color: #f8fafc;
+.main-data-value.val-inserted {
+  color: #fde047; /* Giallo ambra luminoso */
 }
 
-.problem-desc {
-  font-size: 0.70rem;
-  color: #cbd5e1;
+.main-data-value.val-interpretation {
+  font-weight: 700;
 }
 
-.problem-impact {
-  font-size: 0.68rem;
+.main-data-value.val-prescription {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* DIAGNOSTIC BLOCK (SECONDARIO, PIÙ PICCOLO E COMPATTO) */
+.diagnostic-block {
+  padding: 2px 4px;
+}
+
+.diagnostic-title {
+  font-size: 0.78rem; /* ~12.5px */
+  font-weight: 600;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
+}
+
+.diagnostic-desc {
+  font-size: 0.72rem; /* ~11.5px */
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.diagnostic-impact {
+  font-size: 0.68rem; /* ~11px */
+  line-height: 1.3;
 }
 
 .impact-badge {
-  font-size: 0.60rem;
-  font-weight: 800;
+  font-size: 0.62rem;
+  font-weight: 700;
   color: #fb923c;
   text-transform: uppercase;
 }
@@ -1236,30 +1269,30 @@ const chiudi = () => {
 
 /* ACTION BOX */
 .action-box {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   padding: 8px 10px;
 }
 
 .suggestion-text {
-  font-size: 0.68rem;
+  font-size: 0.72rem; /* ~11.5px */
 }
 
 .btn-correggi-action {
-  background: rgba(249, 115, 22, 0.15);
-  border: 1px solid rgba(249, 115, 22, 0.35);
+  background: rgba(249, 115, 22, 0.16);
+  border: 1px solid rgba(249, 115, 22, 0.4);
   color: #fb923c;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.68rem;
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 0.75rem; /* ~12px */
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  min-height: 32px;
+  min-height: 36px;
   white-space: nowrap;
 }
 
@@ -1268,6 +1301,7 @@ const chiudi = () => {
   background: #f97316;
   color: #ffffff;
   border-color: #ea580c;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
 }
 
 /* QUICK EDIT */

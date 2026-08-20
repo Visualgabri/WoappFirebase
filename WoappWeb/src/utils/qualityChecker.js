@@ -124,10 +124,14 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       totaleValoriControllati++;
       riepilogoPerGiorno[giorno].total++;
 
-      const hasZavorra = haSovraccaricoEsplicito(rawVal);
-      const parsedLoadStr = estraiPesoDaInput(rawVal, { isCorpoLibero, prescrizione: prescVal });
+      // Stringa ripulita da QUALSIASI contenuto tra parentesi per TUTTI i controlli di calcolo, logica e sintassi
+      const withoutParens = rawVal.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+      const cleanVal = withoutParens.length > 0 ? withoutParens : rawVal;
+
+      const hasZavorra = haSovraccaricoEsplicito(cleanVal);
+      const parsedLoadStr = estraiPesoDaInput(cleanVal, { isCorpoLibero, prescrizione: prescVal });
       const parsedLoad = parsedLoadStr ? parseFloat(parsedLoadStr) : (isCorpoLibero && !hasZavorra ? 0 : null);
-      const parsedReps = estraiRepsDaInput(rawVal, { isCorpoLibero, repsPresc });
+      const parsedReps = estraiRepsDaInput(cleanVal, { isCorpoLibero, repsPresc });
 
       const e1rm = (parsedLoad && parsedLoad > 0 && parsedReps && parsedReps > 0)
         ? calcolaE1RMSmorzato(parsedLoad, parsedReps, isCavo)
@@ -136,6 +140,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       settimaneData[w] = {
         compilato: true,
         raw: rawVal,
+        clean: cleanVal,
         peso: parsedLoad,
         reps: parsedReps,
         e1rm,
@@ -146,7 +151,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       };
 
       // Tracciamento discreto di formati colloquiali (senza generare allarmi o card)
-      const hasFatteKeyword = /\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\b/i.test(rawVal);
+      const hasFatteKeyword = /\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\b/i.test(cleanVal);
       if (hasFatteKeyword && (parsedLoad !== null || isCorpoLibero) && parsedReps !== null) {
         totaleFormatiColloquiali++;
       }
@@ -201,7 +206,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
                (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_commenti || '')) ||
                (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_esercizio_2 || '')) ||
                (w === 6 && /amrap|massim[ae]\s*rip|max\s*reps?|cedimento/i.test(ex.des_esercizio || '')))) {
-        const hasExplicitReps = estraiRepsDaInputExplicitSingle(rawVal) !== null || /\b\d+\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)\b/i.test(rawVal) || /\+\s*\d+/i.test(rawVal);
+        const hasExplicitReps = estraiRepsDaInputExplicitSingle(cleanVal) !== null || /\b\d+\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)\b/i.test(cleanVal) || /\+\s*\d+/i.test(cleanVal);
         if (parsedLoad !== null && !hasExplicitReps) {
           const pesoFmt = String(parsedLoad).replace('.', ',');
           segnalazioneW = {
@@ -234,8 +239,8 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       }
 
       // --- CHECK SINTATTICO 2: Formato ambiguo SxR su esercizio con pesi (es. "10x8" senza kg) ---
-      else if (!isCorpoLibero && /^\s*\d+\s*[xX]\s*\d+\s*$/.test(rawVal) && !haSovraccaricoEsplicito(rawVal)) {
-        const parts = rawVal.split(/[xX]/);
+      else if (!isCorpoLibero && /^\s*\d+\s*[xX]\s*\d+\s*$/.test(cleanVal) && !haSovraccaricoEsplicito(cleanVal)) {
+        const parts = cleanVal.split(/[xX]/);
         const p1 = parseInt(parts[0], 10);
         const p2 = parseInt(parts[1], 10);
 
@@ -272,7 +277,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
 
       // --- CHECK SINTATTICO 4: Notazione tipo "67,5 x2" o "67.5x2" (moltiplicatore basso x1..x5) vs Prescrizione ---
       if (!segnalazioneW && !isCorpoLibero) {
-        const matchCaricoXN = rawVal.match(/^\s*(\d+(?:[.,]\d+)?)\s*[xX]\s*([1-5])(?:\s*([sSrR]))?\s*$/i);
+        const matchCaricoXN = cleanVal.match(/^\s*(\d+(?:[.,]\d+)?)\s*[xX]\s*([1-5])(?:\s*([sSrR]))?\s*$/i);
         if (matchCaricoXN) {
           const pesoVal = parseFloat(matchCaricoXN[1].replace(',', '.'));
           const molt = parseInt(matchCaricoXN[2], 10);
@@ -345,8 +350,8 @@ export const analizzaQualitaScheda = (records, options = {}) => {
         };
       }
 
-      // --- CHECK SINTATTICO 6: Notazione delta '+N rep' (es. '7,5 +2' o '14 +1 rep') ---
-      if (!segnalazioneW && /\+\s*\d+/i.test(rawVal) && parsedLoad && parsedReps) {
+      // --- CHECK SINTATTICO 6: Notazione delta '+N rep' (es. '7,5 +2' o '14 +1 rep') FUORI dalle parentesi ---
+      if (!segnalazioneW && /\+\s*\d+/i.test(cleanVal) && parsedLoad && parsedReps) {
         const pesoFmt = String(parsedLoad).replace('.', ',');
         const delta = repsPresc ? Math.max(1, parsedReps - repsPresc) : 1;
         segnalazioneW = {

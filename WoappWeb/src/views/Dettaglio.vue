@@ -13826,8 +13826,12 @@ function estraiRepsDaInput(str, defaultOrTargetReps = null) {
   if (!str) return null;
   const strVal = String(str);
 
+  // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi prima di estrarre delta reps o ripetizioni
+  const withoutParens = strVal.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  const cleanStr = withoutParens.length > 0 ? withoutParens : strVal;
+
   // Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps")
-  const matchDeltaReps = strVal.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
+  const matchDeltaReps = cleanStr.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
   if (matchDeltaReps) {
     const delta = parseInt(matchDeltaReps[1], 10);
     if (!isNaN(delta) && delta > 0 && delta <= 30) {
@@ -13838,7 +13842,7 @@ function estraiRepsDaInput(str, defaultOrTargetReps = null) {
     }
   }
 
-  const lines = strVal.split(/[\n;\r]+/);
+  const lines = cleanStr.split(/[\n;\r]+/);
   const results = lines.map(l => estraiRepsDaInputExplicitSingle(l)).filter(v => v !== null && !isNaN(v.val) && Number.isInteger(v.val) && v.val > 0 && v.val <= 50);
   if (results.length === 0) return null;
   const explicitResults = results.filter(v => v.explicit);

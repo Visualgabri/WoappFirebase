@@ -78,8 +78,14 @@ export const isCorpoLiberoEsercizio = (ex) => {
  */
 export const haSovraccaricoEsplicito = (str) => {
   if (!str) return false;
-  const s = String(str).toLowerCase().trim();
+  let s = String(str).toLowerCase().trim();
   if (!s || s === '-') return false;
+
+  // IMPORTANT: Rimuove QUALSIASI contenuto tra parentesi prima di verificare la presenza di sovraccarico esplicito
+  const withoutParens = s.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  if (withoutParens.length > 0) {
+    s = withoutParens;
+  }
 
   // 1. Cerca suffisso esplicito kg / chili
   if (/\b\d+(?:[.,]\d+)?\s*(?:kg\b|k\b|chili\b|kilo\b|lbs?\b)/i.test(s)) return true;
@@ -478,9 +484,14 @@ export const estraiRepsDaInput = (str, options = {}) => {
   const isCorpoLibero = options.isCorpoLibero ?? false;
   const repsPresc = options.repsPresc || options.defaultReps || null;
 
+  // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
+  // per escludere note, stripping, commenti ed impostazioni dai calcoli!
+  const withoutParens = strVal.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  const cleanStr = withoutParens.length > 0 ? withoutParens : strVal;
+
   // 0. Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps", "12kg + 1 rep")
   // dove N rappresenta ripetizioni in più rispetto al target prescritto!
-  const matchDeltaReps = strVal.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
+  const matchDeltaReps = cleanStr.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
   if (matchDeltaReps) {
     const delta = parseInt(matchDeltaReps[1], 10);
     if (!isNaN(delta) && delta > 0 && delta <= 30) {
@@ -493,7 +504,7 @@ export const estraiRepsDaInput = (str, options = {}) => {
 
   // 1. Controlla se ci sono set multipli con ramping/warmup (es. "8x15r 10x15r 12 facili")
   // In cui il carico massimo estratto è isolato (non ha suffisso xR o r proprio)
-  const maxPesoStr = estraiPesoDaInput(strVal, { isCorpoLibero });
+  const maxPesoStr = estraiPesoDaInput(cleanStr, { isCorpoLibero });
   if (maxPesoStr && repsPresc) {
     const maxPeso = parseFloat(maxPesoStr);
     
@@ -504,7 +515,7 @@ export const estraiRepsDaInput = (str, options = {}) => {
     let foundRepsForMax = null;
     let hasOtherExplicitSets = false;
     
-    while ((match = regexSxR.exec(strVal)) !== null) {
+    while ((match = regexSxR.exec(cleanStr)) !== null) {
       const w = parseFloat(match[1].replace(',', '.'));
       const r = parseFloat(match[2].replace(',', '.'));
       if (w === maxPeso && r > 0) {
@@ -526,7 +537,7 @@ export const estraiRepsDaInput = (str, options = {}) => {
     }
   }
 
-  const lines = strVal.split(/[\n;\r]+/);
+  const lines = cleanStr.split(/[\n;\r]+/);
 
   const results = lines
     .map(l => estraiRepsDaInputExplicitSingle(l))
@@ -541,8 +552,8 @@ export const estraiRepsDaInput = (str, options = {}) => {
   }
 
   // Se è a corpo libero e non ha trovato reps esplicite con 'r', controlla se c'è un numero isolato (es. "14", "12 12 12")
-  if (isCorpoLibero && !haSovraccaricoEsplicito(strVal)) {
-    const cleanNumbers = strVal.replace(/\([^)]*\)/g, ' ').match(/\b\d+\b/g);
+  if (isCorpoLibero && !haSovraccaricoEsplicito(cleanStr)) {
+    const cleanNumbers = cleanStr.match(/\b\d+\b/g);
     if (cleanNumbers && cleanNumbers.length > 0) {
       const nums = cleanNumbers.map(n => parseInt(n, 10)).filter(n => n >= 1 && n <= 100);
       if (nums.length > 0) {

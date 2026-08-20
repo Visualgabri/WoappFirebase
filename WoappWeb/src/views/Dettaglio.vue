@@ -2416,6 +2416,71 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog Controllo Diretto: Mancano Ripetizioni AMRAP -->
+    <v-dialog v-model="dialogMancanoRepsAmrap" max-width="440" persistent>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-center" style="backdrop-filter: blur(25px); background: #0b111e !important; border: 1.5px solid rgba(249, 115, 22, 0.4) !important;">
+        <v-card-title class="pa-4 pb-2 d-flex align-center justify-center gap-2 bg-slate-900 border-bottom">
+          <v-icon color="orange-accent-3" size="24">mdi-fire</v-icon>
+          <span class="text-subtitle-1 font-weight-black text-white">Quante reps hai fatto nell'AMRAP?</span>
+        </v-card-title>
+
+        <v-card-text class="pa-4 text-left">
+          <p class="text-caption text-slate-200 mb-3" style="font-size: 0.82rem; line-height: 1.45;">
+            Hai inserito il carico di <strong class="text-amber-lighten-2">{{ caricoMancanoReps }} kg</strong> senza specificare le ripetizioni massime completate.
+          </p>
+          <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-2" style="font-size: 0.65rem;">
+            Tocca le ripetizioni completate per salvare:
+          </div>
+
+          <!-- Griglia rapida reps -->
+          <div class="d-flex flex-wrap gap-1.5 justify-center mb-3">
+            <v-btn
+              v-for="r in [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20]"
+              :key="r"
+              size="small"
+              variant="flat"
+              color="grey-darken-3"
+              class="font-weight-black text-white px-2"
+              style="min-width: 44px; height: 36px; border: 1px solid rgba(255, 255, 255, 0.12);"
+              @click="applicaRepsAmrap(r)"
+            >
+              {{ r }}r
+            </v-btn>
+          </div>
+
+          <!-- Input manuale -->
+          <div class="d-flex align-center gap-2 mt-2">
+            <v-text-field
+              v-model="inputRepsManualeAmrap"
+              placeholder="Altre reps (es. 22)"
+              type="number"
+              density="compact"
+              variant="outlined"
+              hide-details
+              class="flex-grow-1"
+            ></v-text-field>
+            <v-btn
+              color="orange-darken-3"
+              variant="flat"
+              size="small"
+              class="font-weight-bold text-none px-3"
+              style="height: 40px;"
+              :disabled="!inputRepsManualeAmrap || parseInt(inputRepsManualeAmrap) <= 0"
+              @click="applicaRepsAmrap(inputRepsManualeAmrap)"
+            >
+              Salva
+            </v-btn>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 justify-space-between">
+          <v-btn variant="text" color="grey" size="x-small" class="text-none font-weight-bold" @click="dialogMancanoRepsAmrap = false">
+            Solo carico (lascia così)
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Dialog Strategia Coach (Roadmap & Analisi e1RM) -->
     <v-dialog v-model="dialogStrategiaCoach" max-width="580" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
@@ -5246,6 +5311,34 @@ const activeEditingWeek = ref(null);
 const localEditingRaw = { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' };
 const localEditingIns = ref({ 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' });
 
+// Controllo Diretto: Mancano Ripetizioni AMRAP
+const dialogMancanoRepsAmrap = ref(false);
+const settimanaMancanoReps = ref(6);
+const caricoMancanoReps = ref('');
+const inputRepsManualeAmrap = ref('');
+
+const applicaRepsAmrap = (reps) => {
+  const r = parseInt(reps, 10);
+  if (isNaN(r) || r <= 0) return;
+  const sett = settimanaMancanoReps.value;
+  const c = caricoMancanoReps.value;
+  const newText = `${c} x ${r}r`;
+
+  if (!inputSettimane.value[sett]) {
+    inputSettimane.value[sett] = { ins: '', reps: '' };
+  }
+  inputSettimane.value[sett].ins = newText;
+  localEditingRaw[sett] = newText;
+  localEditingIns.value[sett] = newText;
+
+  salvaDatoSettimanale(sett, 'ins');
+  dialogMancanoRepsAmrap.value = false;
+  inputRepsManualeAmrap.value = '';
+  vibraTattile(20);
+  snackbarMessaggio.value = `Registrato: ${newText}!`;
+  snackbarSalvataggio.value = true;
+};
+
 const onFocusWeek = (sett) => {
   activeEditingWeek.value = sett;
   const current = inputSettimane.value[sett]?.ins || '';
@@ -5288,6 +5381,23 @@ const onBlurWeek = (sett, val) => {
   }
 
   salvaDatoSettimanale(sett, 'ins');
+
+  // Controllo Diretto: Se in una settimana AMRAP l'utente inserisce solo il carico senza le reps
+  if (workout.value && !isCorpoLiberoEsercizio(workout.value)) {
+    const presc = String(workout.value['des_week' + sett] || '');
+    const isAmrap = /amrap|max\s*reps?|massim[ae]\s*rip|cedimento/i.test(presc) || (sett === 6 && /amrap/i.test(workout.value.des_rec_report || ''));
+    const parsedLoad = estraiPesoDaInput(finalVal);
+    const parsedReps = estraiRepsDaInputExplicitSingle(finalVal);
+    const hasAnyReps = parsedReps !== null || /\b\d+\s*(?:r\b|reps?|rip)/i.test(finalVal) || /\+\s*\d+/i.test(finalVal);
+
+    if (isAmrap && parsedLoad && !hasAnyReps) {
+      settimanaMancanoReps.value = sett;
+      caricoMancanoReps.value = String(parsedLoad).replace('.', ',');
+      inputRepsManualeAmrap.value = '';
+      dialogMancanoRepsAmrap.value = true;
+      vibraTattile(25);
+    }
+  }
 };
 
 const getInitialRows = (text) => {

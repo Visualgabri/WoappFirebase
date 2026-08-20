@@ -150,6 +150,13 @@ export const analizzaQualitaScheda = (records, options = {}) => {
         totaleFormatiColloquiali++;
       }
 
+      // Se la prescrizione del coach per questa settimana è esplicitamente "NO" o "NON FARE" / "SALTA"
+      // l'esercizio non è previsto e non deve generare alcun errore sintattico né logico
+      const isPrescrizioneNo = /^\s*(?:no|non\s*fare|salta|non\s*previsto|riposo|-)\s*$/i.test(prescVal);
+      if (isPrescrizioneNo) {
+        continue;
+      }
+
       let segnalazioneW = null;
 
       // --- CHECK SINTATTICO 1: Testo presente ma nessun dato numerico estratto ---
@@ -180,6 +187,40 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           conseguenza: `I calcoli automatici per le settimane successive non avranno dati su cui basarsi.`,
           correzioneConsigliata: `Inserire il valore numerico (es. "45" o "45kg").`
         };
+      }
+
+      // --- CHECK SINTATTICO AMRAP: Prescrizione AMRAP con solo carico e senza ripetizioni ---
+      else if (!segnalazioneW && (/amrap|max\s*reps?|massim[ae]\s*rip/i.test(prescVal) || (w === 6 && /amrap/i.test(ex.des_rec_report || '')))) {
+        const hasExplicitReps = estraiRepsDaInputExplicitSingle(rawVal) !== null || /\b\d+\s*(?:r\b|reps?|rip)/i.test(rawVal) || /\+\s*\d+/i.test(rawVal);
+        if (parsedLoad !== null && !hasExplicitReps) {
+          const pesoFmt = String(parsedLoad).replace('.', ',');
+          segnalazioneW = {
+            id: `${ex.id || ex.num_riga}_w${w}_amrap_mancano_reps`,
+            coordinata,
+            giorno,
+            riga: rigaGiorno,
+            numRiga: ex.num_riga || '',
+            docId: ex.id || '',
+            des_esercizio: nomeEx,
+            des_settore: settore,
+            settimana: w,
+            settimanaLabel: `W${w}`,
+            valoreOriginale: rawVal,
+            caricoEstratto: parsedLoad,
+            repsEstratte: null,
+            isCorpoLibero,
+            haSovraccarico: hasZavorra,
+            prescrizione: prescVal,
+            repsPreviste: repsPresc,
+            seriePreviste: seriePresc,
+            livello: 'errore',
+            tipo: 'amrap_mancano_reps',
+            titolo: `Ripetizioni AMRAP mancanti ("${rawVal}")`,
+            spiegazione: `Inserito solo il carico "${rawVal}" a fronte di serie AMRAP ("${prescVal}"). È fondamentale specificare le ripetizioni massime completate.`,
+            conseguenza: `Senza il numero di ripetizioni non è possibile calcolare il nuovo massimale stimato né la progressione.`,
+            correzioneConsigliata: `Specificare le reps eseguite (es. "${pesoFmt} x 8r" o "${pesoFmt} x 10r").`
+          };
+        }
       }
 
       // --- CHECK SINTATTICO 2: Formato ambiguo SxR su esercizio con pesi (es. "10x8" senza kg) ---

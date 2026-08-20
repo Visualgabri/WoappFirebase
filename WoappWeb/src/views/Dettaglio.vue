@@ -13576,6 +13576,33 @@ function estraiRepsDaInputExplicitSingle(str) {
   clean = clean.replace(/\+\s*\d+(?:[\.,]\d+)?\s*(?:r|reps?)?\s*(?:rp|rest\s*pause)/gi, ' ').trim();
   clean = clean.replace(/\b(?:rp|rest\s*pause|drop\s*set|cluster)\b/gi, ' ').trim();
 
+  // 2a. Riconoscimento speciale "fatte [reps] [peso]" (es. "Fatte 15 3,75", "fatte 15 da 3.75", "fatto 12 con 50")
+  const matchFatteRepsWeight = clean.match(/\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\s+(\d+(?:\.\d+)?)\s*(?:a|da|con|@)?\s+(\d+(?:\.\d+)?)\s*(?:kg)?\b/i);
+  if (matchFatteRepsWeight) {
+    const r = parseFloat(matchFatteRepsWeight[1]);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return { val: Math.round(r), explicit: true };
+    }
+  }
+
+  // 2b. Riconoscimento speciale "[peso] fatte [reps]" (es. "3,75 fatte 19", "3.75 fatte 19", "3,75 fatte a 19", "50 fatte 12")
+  const matchWeightFatteReps = clean.match(/\b(\d+(?:\.\d+)?)\s*(?:kg)?\s*(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\s*(?:a|da|con|@)?\s+(\d+(?:\.\d+)?)\s*(?:r|reps?|rip)?\b/i);
+  if (matchWeightFatteReps) {
+    const r = parseFloat(matchWeightFatteReps[2]);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return { val: Math.round(r), explicit: true };
+    }
+  }
+
+  // 2c. Riconoscimento speciale "fatte [reps]" singolo (es. "fatte 15", "fatto 12", "fatti 10")
+  const matchFatteSingle = clean.match(/\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\s+(\d+(?:\.\d+)?)\b/i);
+  if (matchFatteSingle) {
+    const r = parseFloat(matchFatteSingle[1]);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return { val: Math.round(r), explicit: true };
+    }
+  }
+
   // 3. Rileva formato esplicito con suffisso reps "40x23r", "42.5x24 reps", "5x12 rip"
   const matchExplicitXWithR = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
   if (matchExplicitXWithR) {
@@ -13689,6 +13716,24 @@ function estraiPesoDaInput(str) {
   
   // Rimuove gradi (es. "30°")
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
+
+  // 0a. Riconoscimento speciale "fatte [reps] [peso]" (es. "Fatte 15 3,75", "fatte 15 da 3.75", "fatto 12 con 50")
+  const matchFatteRepsWeight = clean.match(/\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\s+(\d+(?:\.\d+)?)\s*(?:a|da|con|@)?\s+(\d+(?:\.\d+)?)\s*(?:kg)?\b/i);
+  if (matchFatteRepsWeight) {
+    const w = parseFloat(matchFatteRepsWeight[2]);
+    if (!isNaN(w) && w > 0) {
+      return String(w);
+    }
+  }
+
+  // 0b. Riconoscimento speciale "[peso] fatte [reps]" (es. "3,75 fatte 19", "3.75 fatte 19", "3,75 fatte a 19", "50 fatte 12")
+  const matchWeightFatteReps = clean.match(/\b(\d+(?:\.\d+)?)\s*(?:kg)?\s*(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\s*(?:a|da|con|@)?\s+(\d+(?:\.\d+)?)\s*(?:r|reps?|rip)?\b/i);
+  if (matchWeightFatteReps) {
+    const w = parseFloat(matchWeightFatteReps[1]);
+    if (!isNaN(w) && w > 0) {
+      return String(w);
+    }
+  }
 
   // Rileva formato tipo "30x12r", "30 x12r" o "3x12"
   const matchSxR = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*([rR])?\b)?\s*$/);

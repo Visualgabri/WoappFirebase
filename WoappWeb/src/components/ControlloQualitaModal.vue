@@ -558,7 +558,11 @@ const eseguiAnalisi = (manual = false) => {
     // Pre-popola i valori per eventuale quick-edit
     const mapValori = {};
     res.segnalazioni.forEach(s => {
-      mapValori[s.id] = s.valoreOriginale;
+      if (s.tipo === 'formato_fatte_info' && s.caricoEstratto !== null && s.repsEstratte !== null) {
+        mapValori[s.id] = `${String(s.caricoEstratto).replace('.', ',')} x ${s.repsEstratte}r`;
+      } else {
+        mapValori[s.id] = s.valoreOriginale;
+      }
     });
     valoriModifica.value = mapValori;
 

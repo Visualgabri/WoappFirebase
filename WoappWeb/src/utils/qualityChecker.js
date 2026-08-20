@@ -317,6 +317,40 @@ export const analizzaQualitaScheda = (records, options = {}) => {
         };
       }
 
+      // --- CHECK SINTATTICO 6: Formato colloquiale con "fatte" / "fatto" ---
+      if (!segnalazioneW) {
+        const hasFatteKeyword = /\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\b/i.test(rawVal);
+        if (hasFatteKeyword && parsedLoad !== null && parsedReps !== null) {
+          const pesoFmt = String(parsedLoad).replace('.', ',');
+          segnalazioneW = {
+            id: `${ex.id || ex.num_riga}_w${w}_formato_fatte_info`,
+            coordinata,
+            giorno,
+            riga: rigaGiorno,
+            numRiga: ex.num_riga || '',
+            docId: ex.id || '',
+            des_esercizio: nomeEx,
+            des_settore: settore,
+            settimana: w,
+            settimanaLabel: `W${w}`,
+            valoreOriginale: rawVal,
+            caricoEstratto: parsedLoad,
+            repsEstratte: parsedReps,
+            isCorpoLibero,
+            haSovraccarico: hasZavorra,
+            prescrizione: prescVal,
+            repsPreviste: repsPresc,
+            seriePreviste: seriePresc,
+            livello: 'particolare',
+            tipo: 'formato_fatte_info',
+            titolo: `Formato non standard ("fatte")`,
+            spiegazione: `Inserito "${rawVal}". Il sistema lo ha interpretato correttamente come ${pesoFmt} kg x ${parsedReps}r.`,
+            conseguenza: `Nessun problema di calcolo: interpretato correttamente.`,
+            correzioneConsigliata: `💡 Per favore in app scrivi nel formato standard "${pesoFmt} x ${parsedReps}r" (carico x reps).`
+          };
+        }
+      }
+
       if (segnalazioneW) {
         segnalazioni.push(segnalazioneW);
       }

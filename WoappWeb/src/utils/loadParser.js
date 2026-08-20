@@ -595,16 +595,129 @@ export const calcolaE1RMSmorzato = (peso, reps, isCavoOMacchina = false) => {
  * @returns {number}
  */
 export const calcolaPesoDaE1RMSmorzato = (e1rm, targetReps, isCavoOMacchina = false) => {
-  if (!e1rm || targetReps <= 0) return 0;
-  let repsTargetEffettive = targetReps;
-  if (targetReps > 10) {
-    repsTargetEffettive = 10 + (targetReps - 10) * 1.8;
+  if (!e1rm || e1rm <= 0 || !targetReps || targetReps <= 0) return 0;
+  const r = targetReps > 0 ? targetReps : 1;
+  let repsTargetEffettive = r;
+  if (r > 10) {
+    repsTargetEffettive = 10 + (r - 10) * 1.8;
   }
-  let pesoStimato = e1rm / (1 + repsTargetEffettive / 30);
-  if (isCavoOMacchina && targetReps > 8) {
-    pesoStimato *= 0.82;
+  let factor = 1 + repsTargetEffettive / 30;
+  if (isCavoOMacchina && r > 8) {
+    factor *= 0.82;
   }
-  return pesoStimato;
+  return e1rm / factor;
+};
+
+/**
+ * Calcola esattamente quante ripetizioni servono con un dato peso per eguagliare o superare un 1RM target.
+ * @param {number} peso 
+ * @param {number} targetE1RM 
+ * @param {boolean} [isCavoOMacchina=false] 
+ * @param {number} [maxRepsLimit=60] 
+ * @returns {{ repsEguaglia: number, repsSupera: number, e1rmEguaglia: number, e1rmSupera: number, isPossible: boolean }}
+ */
+export const calcolaRepsPerE1RMTarget = (peso, targetE1RM, isCavoOMacchina = false, maxRepsLimit = 60) => {
+  if (!peso || peso <= 0 || !targetE1RM || targetE1RM <= 0) {
+    return { repsEguaglia: 0, repsSupera: 0, e1rmEguaglia: 0, e1rmSupera: 0, isPossible: false };
+  }
+  let repsEguaglia = null;
+  let repsSupera = null;
+
+  for (let r = 1; r <= maxRepsLimit; r++) {
+    const e1 = calcolaE1RMSmorzato(peso, r, isCavoOMacchina);
+    const roundedE1 = Math.round(e1 * 10) / 10;
+    const roundedTarget = Math.round(targetE1RM * 10) / 10;
+
+    if (repsEguaglia === null && (roundedE1 >= roundedTarget || e1 >= targetE1RM)) {
+      repsEguaglia = r;
+    }
+    if (repsSupera === null && (roundedE1 > roundedTarget || e1 > targetE1RM + 0.01)) {
+      repsSupera = r;
+      break;
+    }
+  }
+
+  if (repsEguaglia === null) repsEguaglia = maxRepsLimit + 1;
+  if (repsSupera === null) repsSupera = Math.max(repsEguaglia, maxRepsLimit + 1);
+
+  return {
+    repsEguaglia,
+    repsSupera,
+    e1rmEguaglia: Math.round(calcolaE1RMSmorzato(peso, repsEguaglia, isCavoOMacchina) * 10) / 10,
+    e1rmSupera: Math.round(calcolaE1RMSmorzato(peso, repsSupera, isCavoOMacchina) * 10) / 10,
+    isPossible: repsSupera <= maxRepsLimit
+  };
+};
+
+/**
+ * Calcola la combinazione bilanciata (carico x reps con reps <= maxReps) necessaria per superare realmente l'1RM target.
+ * @param {number} pesoAttuale 
+ * @param {number} targetE1RM 
+ * @param {number} [stepKg=2.5] 
+ * @param {number} [maxReps=14] 
+ * @param {boolean} [isCavoOMacchina=false] 
+ * @returns {{ peso: number, reps: number, e1rm: number, deltaPeso: number, isFeasible: boolean }|null}
+ */
+export const calcolaObiettivoBilanciato1RM = (pesoAttuale, targetE1RM, stepKg = 2.5, maxReps = 14, isCavoOMacchina = false) => {
+  if (!targetE1RM || targetE1RM <= 0) return null;
+  const startP = pesoAttuale > 0 ? pesoAttuale : stepKg;
+  const step = stepKg > 0 ? stepKg : 2.5;
+
+  for (let s = 0; s <= 30; s++) {
+    const p = Math.round((startP + (s * step)) * 100) / 100;
+    const { repsSupera, e1rmSupera, isPossible } = calcolaRepsPerE1RMTarget(p, targetE1RM, isCavoOMacchina);
+    if (isPossible && repsSupera <= maxReps && repsSupera >= 1) {
+      return {
+        peso: p,
+        reps: repsSupera,
+        e1rm: e1rmSupera,
+        deltaPeso: pesoAttuale > 0 ? Math.round((p - pesoAttuale) * 10) / 10 : 0,
+        isFeasible: true
+      };
+    }
+  }
+
+  const rawPesoAtMaxReps = calcolaPesoDaE1RMSmorzato(targetE1RM + 0.1, maxReps, isCavoOMacchina);
+  const roundedP = Math.ceil(rawPesoAtMaxReps / step) * step;
+  const finalP = Math.round(roundedP * 10) / 10;
+  const calcFinal = calcolaRepsPerE1RMTarget(finalP, targetE1RM, isCavoOMacchina);
+  return {
+    peso: finalP,
+    reps: Math.min(calcFinal.repsSupera, maxReps),
+    e1rm: calcFinal.e1rmSupera,
+    deltaPeso: pesoAttuale > 0 ? Math.round((finalP - pesoAttuale) * 10) / 10 : 0,
+    isFeasible: true
+  };
+};
+
+/**
+ * Calcola la tabella delle reps necessarie con diversi carichi per eguagliare e superare il record assoluto.
+ * @param {number} pesoAttuale 
+ * @param {number} targetE1RM 
+ * @param {number} [stepKg=2.5] 
+ * @param {boolean} [isCavoOMacchina=false] 
+ * @param {number} [numPesi=3] 
+ * @returns {Array<{ peso: number, isCaricoAttuale: boolean, stepIndex: number, repsEguaglia: number, repsSupera: number, e1rmSupera: number, isRealistico: boolean }>}
+ */
+export const calcolaTabellaRepsRecordAssoluto = (pesoAttuale, targetE1RM, stepKg = 2.5, isCavoOMacchina = false, numPesi = 3) => {
+  if (!targetE1RM || targetE1RM <= 0 || !pesoAttuale || pesoAttuale <= 0) return [];
+  const step = stepKg > 0 ? stepKg : 2.5;
+  const result = [];
+
+  for (let i = 0; i < numPesi; i++) {
+    const p = Math.round((pesoAttuale + (i * step)) * 100) / 100;
+    const calc = calcolaRepsPerE1RMTarget(p, targetE1RM, isCavoOMacchina);
+    result.push({
+      peso: p,
+      isCaricoAttuale: i === 0,
+      stepIndex: i,
+      repsEguaglia: calc.repsEguaglia,
+      repsSupera: calc.repsSupera,
+      e1rmSupera: calc.e1rmSupera,
+      isRealistico: calc.repsSupera <= 35
+    });
+  }
+  return result;
 };
 
 /**

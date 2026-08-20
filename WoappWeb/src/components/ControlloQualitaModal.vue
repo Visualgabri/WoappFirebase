@@ -513,7 +513,7 @@ onBeforeUnmount(() => {
 
 const inScansione = ref(false);
 const inSalvataggio = ref(null);
-const filtroSeverita = ref('tutti'); // 'tutti', 'errore', 'anomalia', 'particolare'
+const filtroSeverita = ref('errore'); // Default 'errore' all'apertura
 const filtroGiorno = ref('tutti'); // 'tutti', 'A', 'B', 'C', 'D'
 const testoRicerca = ref('');
 const reportCopiato = ref(false);
@@ -595,6 +595,9 @@ watch(
   () => props.modelValue,
   (newVal) => {
     if (newVal) {
+      filtroSeverita.value = 'errore';
+      filtroGiorno.value = 'tutti';
+      testoRicerca.value = '';
       eseguiAnalisi();
     }
   }

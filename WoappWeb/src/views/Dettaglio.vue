@@ -3706,9 +3706,21 @@
                   class="d-flex align-center justify-space-between mb-1 px-1.5 py-1 rounded sticky-timeline-header"
                   :class="{'red-scheda-header': !soloCorrispondenti && haSettimanaCorrispondente(prevEx), 'bg-slate-900': soloCorrispondenti || !haSettimanaCorrispondente(prevEx)}"
                 >
-                  <span class="text-caption font-weight-black text-slate-dark uppercase" style="font-size: 0.72rem !important;">
-                    Scheda {{ prevEx.num_scheda }}
-                  </span>
+                  <div class="d-flex align-center gap-1.5 flex-wrap">
+                    <span class="text-caption font-weight-black text-slate-dark uppercase" style="font-size: 0.72rem !important;">
+                      Scheda {{ prevEx.num_scheda }}
+                    </span>
+                    <v-chip
+                      v-if="calcola1RMW6Prescritto(prevEx)"
+                      size="x-small"
+                      density="compact"
+                      class="font-weight-black text-cyan-accent-2 px-1.5"
+                      variant="tonal"
+                      style="font-size: 0.54rem; height: 18px; border: 1px solid rgba(6, 182, 212, 0.35); background: rgba(6, 182, 212, 0.12);"
+                    >
+                      ⚡ 1RM W6: {{ formatta1RMW6Prescritto(prevEx) }}
+                    </v-chip>
+                  </div>
                   <div class="d-flex align-center gap-1.5">
                     <span v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">
                       {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }} <span class="text-orange-lighten-2 ml-1">({{ tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }})</span>

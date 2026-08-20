@@ -111,7 +111,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
     for (let w = 1; w <= 6; w++) {
       const rawVal = ex['ins_week' + w] !== undefined && ex['ins_week' + w] !== null ? String(ex['ins_week' + w]).trim() : '';
       const prescVal = ex['des_week' + w] !== undefined && ex['des_week' + w] !== null ? String(ex['des_week' + w]).trim() : '';
-      const repsPresc = ex['reps_week' + w] ? parseInt(ex['reps_week' + w], 10) : estraiRepsDaPrescrizione(prescVal);
+      const repsPresc = estraiRepsDaPrescrizione(prescVal) || (ex['reps_week' + w] ? parseInt(ex['reps_week' + w], 10) : null);
       const seriePresc = estraiSerieDaPrescrizione(prescVal);
 
       if (!rawVal || rawVal === '-') {
@@ -294,9 +294,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
         };
       }
 
-      // --- CHECK SINTATTICO 6: Notazione delta '+N rep' (es. '14 +1 rep') ---
-      if (!segnalazioneW && /\+\s*\d+\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i.test(rawVal) && parsedLoad && parsedReps) {
+      // --- CHECK SINTATTICO 6: Notazione delta '+N rep' (es. '7,5 +2' o '14 +1 rep') ---
+      if (!segnalazioneW && /\+\s*\d+/i.test(rawVal) && parsedLoad && parsedReps) {
         const pesoFmt = String(parsedLoad).replace('.', ',');
+        const delta = repsPresc ? Math.max(1, parsedReps - repsPresc) : 1;
         segnalazioneW = {
           id: `${ex.id || ex.num_riga}_w${w}_delta_reps_info`,
           coordinata,
@@ -318,8 +319,8 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           seriePreviste: seriePresc,
           livello: 'anomalia',
           tipo: 'delta_reps_info',
-          titolo: `Notazione '+1 rep' interpretata come ${parsedReps}r`,
-          spiegazione: `Inserito "${rawVal}" a fronte di target ${repsPresc}r. Significa che l'atleta ha eseguito 1 rep in più (${parsedReps}r) e non 1 sola rep.`,
+          titolo: `Notazione '+${delta} rep' interpretata come ${parsedReps}r`,
+          spiegazione: `Inserito "${rawVal}" a fronte di prescrizione ${prescVal || (repsPresc + 'r')}. Significa che l'atleta ha eseguito ${delta} ripetizioni in più (${parsedReps}r con carico prescritto) e non solo ${delta} reps.`,
           conseguenza: `Interpretato correttamente come ${parsedLoad} kg x ${parsedReps}r.`,
           correzioneConsigliata: `Formato consigliato per ${parsedReps} reps completate: doveva scrivere "${pesoFmt} x ${parsedReps}r" (o "${pesoFmt}x${parsedReps}r").`
         };

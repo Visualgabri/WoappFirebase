@@ -152,7 +152,7 @@ export const isManubriEsercizio = (ex) => {
 export const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return null;
   const part = String(prescrizioneStr).split('|')[0].trim();
-  const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
+  const cleanPart = part.replace(/\([^)]+\)/g, '').replace(/\[[^\]]+\]/g, '').trim();
 
   const matchX = cleanPart.match(/\d+\s*[xX]\s*(\d+)/);
   if (matchX) {

@@ -365,14 +365,19 @@
 
     <!-- Dialog Congratulazioni Premium -->
     <v-dialog v-model="mostraCongratulazioni" max-width="350" rounded="xl" persistent>
-      <v-card class="pa-6 rounded-2xl card-glass border text-center" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; border-color: rgba(249, 115, 22, 0.3) !important; backdrop-filter: blur(25px) !important;">
+      <v-card 
+        class="pa-6 rounded-2xl card-glass border text-center cursor-pointer select-none" 
+        @click="chiudiCongratulazioniEProcedi"
+        style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.05)) !important; border-color: rgba(249, 115, 22, 0.3) !important; backdrop-filter: blur(25px) !important;"
+      >
         <div class="emoji-celebration mb-4" style="font-size: 3.5rem;">🎉</div>
         <h3 class="text-h6 font-weight-black text-white mb-2">Grandioso!</h3>
-        <p class="text-body-2 text-slate-light" style="color: #e2e8f0 !important; line-height: 1.4;">
+        <p class="text-body-2 text-slate-light mb-0" style="color: #e2e8f0 !important; line-height: 1.4;">
           La sessione del <span class="font-weight-black text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} (Week {{ infoGiornoDaChiudere.week }})</span> è stata salvata e chiusa con successo!
         </p>
-        <div class="mt-4 font-weight-bold text-caption text-orange-lighten-2 animate-pulse">
-          Sincronizzazione in corso...
+        <div class="mt-4 font-weight-bold text-caption text-orange-lighten-2 animate-pulse d-flex align-center justify-center gap-1">
+          <v-progress-circular indeterminate color="orange" size="14" width="2" class="mr-1"></v-progress-circular>
+          <span>Sincronizzazione in corso...</span>
         </div>
       </v-card>
     </v-dialog>
@@ -1072,6 +1077,19 @@ const getActiveHeaderIdForDay = (day) => {
   return header ? header.id : null;
 };
 
+let timerCongratulazioni = null;
+
+const chiudiCongratulazioniEProcedi = () => {
+  if (timerCongratulazioni) {
+    clearTimeout(timerCongratulazioni);
+    timerCongratulazioni = null;
+  }
+  if (mostraCongratulazioni.value) {
+    mostraCongratulazioni.value = false;
+    eseguiAzionePlay();
+  }
+};
+
 const chiudiRapido = async () => {
   caricamentoChiusuraRapida.value = true;
   try {
@@ -1079,9 +1097,10 @@ const chiudiRapido = async () => {
     if (success) {
       mostraDialogAvvisoChiusura.value = false;
       mostraCongratulazioni.value = true;
-      setTimeout(() => {
-        mostraCongratulazioni.value = false;
-      }, 2500);
+      if (timerCongratulazioni) clearTimeout(timerCongratulazioni);
+      timerCongratulazioni = setTimeout(() => {
+        chiudiCongratulazioniEProcedi();
+      }, 2200);
     }
   } catch (err) {
     console.error("Errore durante la chiusura rapida:", err);

@@ -6111,6 +6111,12 @@ watch(() => route.query, () => {
   gestisciNavigazioneDaQuery();
 }, { deep: true });
 
+watch(() => route.path, (newPath) => {
+  if (newPath === '/' && localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
+    gestisciScrollIniziale();
+  }
+});
+
 // Watch per proporre automaticamente l'inserimento gradimenti quando il mesociclo è completato
 watch([mesocicloCompletato, loadingStoryboard], ([mesoDone, loading]) => {
   if (mesoDone && !loading) {

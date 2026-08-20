@@ -555,14 +555,33 @@ const getEffectiveRecords = () => {
   return [];
 };
 
-const eseguiAnalisi = (manual = false) => {
+const eseguiAnalisi = async (manual = false) => {
   inScansione.value = true;
   try {
-    const effectiveRecords = getEffectiveRecords();
-    const res = analizzaQualitaScheda(effectiveRecords, {
+    let effectiveRecords = getEffectiveRecords();
+    const currAthlete = String(props.idAtleta || selectedAthlete.value || '').trim();
+    const currSheet = String(props.numScheda || selectedSheet.value || '').trim();
+
+    // Se i records locali sono vuoti, recuperiamo gli esercizi direttamente da Firestore per atleta e scheda!
+    if ((!effectiveRecords || effectiveRecords.length === 0) && currAthlete && currSheet) {
+      try {
+        const numSch = parseInt(currSheet, 10);
+        const q = !isNaN(numSch)
+          ? query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', currAthlete), where('num_scheda', '==', numSch))
+          : query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', currAthlete), where('num_scheda', '==', currSheet));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          effectiveRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+      } catch (eDb) {
+        console.warn("Fetch fallback STORYBOARD fallito in ControlloQualitaModal:", eDb);
+      }
+    }
+
+    const res = analizzaQualitaScheda(effectiveRecords || [], {
       storicoBackup: props.storicoBackup,
-      atletaId: props.idAtleta || selectedAthlete.value,
-      numScheda: props.numScheda || selectedSheet.value
+      atletaId: currAthlete,
+      numScheda: currSheet
     });
     risultato.value = res;
 

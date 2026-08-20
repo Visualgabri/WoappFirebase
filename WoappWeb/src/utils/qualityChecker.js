@@ -190,7 +190,12 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       }
 
       // --- CHECK SINTATTICO AMRAP: Prescrizione AMRAP con solo carico e senza ripetizioni ---
-      else if (!segnalazioneW && (/amrap|max\s*reps?|massim[ae]\s*rip/i.test(prescVal) || (w === 6 && /amrap/i.test(ex.des_rec_report || '')))) {
+      else if (!segnalazioneW && (/amrap|max\s*reps?|massim[ae]\s*rip|cedimento/i.test(prescVal) || 
+               (w === 6 && /amrap/i.test(ex.des_rec_report || '')) ||
+               (w === 6 && /amrap/i.test(ex.des_qta_report || '')) ||
+               (w === 6 && /amrap/i.test(ex.des_note || '')) ||
+               (w === 6 && /amrap/i.test(ex.des_note_attrezzo || '')) ||
+               (w === 6 && /amrap/i.test(ex.des_esercizio || '')))) {
         const hasExplicitReps = estraiRepsDaInputExplicitSingle(rawVal) !== null || /\b\d+\s*(?:r\b|reps?|rip)/i.test(rawVal) || /\+\s*\d+/i.test(rawVal);
         if (parsedLoad !== null && !hasExplicitReps) {
           const pesoFmt = String(parsedLoad).replace('.', ',');

@@ -3757,7 +3757,7 @@
 
             <!-- LAYOUT 2: TABELLA MATRICE -->
             <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'tabella'" ref="storicoTableContainer" class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto scrollbar-hidden">
-              <table class="premium-storico-table" style="width: 1740px; table-layout: fixed; border-collapse: collapse;">
+              <table class="premium-storico-table" style="width: 1825px; table-layout: fixed; border-collapse: collapse;">
                 <thead>
                   <tr>
                     <th class="sticky-col header-cell text-left" style="width: 75px;">Scheda</th>
@@ -3765,6 +3765,7 @@
                       <div class="table-header-title font-weight-bold">W{{ w }}</div>
                     </th>
                     <th class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
+                    <th class="header-cell text-cyan-accent-2" style="width: 85px;">1RM W6</th>
                     <th class="header-cell" style="width: 75px;">Peso Corp.</th>
                     <th class="header-cell" style="width: 110px;">Giorno</th>
                     <th class="header-cell" style="width: 250px;">Note</th>
@@ -3801,6 +3802,9 @@
                     
                     <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
                       {{ prevEx.num_ins6 ? (isCorpoLiberoEsercizio(workout) ? (String(prevEx.num_ins6).toLowerCase().endsWith('r') ? prevEx.num_ins6 : prevEx.num_ins6 + 'r') : (String(prevEx.num_ins6).toLowerCase().includes('kg') ? prevEx.num_ins6 : prevEx.num_ins6 + ' kg')) : '-' }}
+                    </td>
+                    <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
+                      {{ formatta1RMW6Prescritto(prevEx) }}
                     </td>
                     <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.peso_corporeo || '-' }}</td>
                     <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</td>
@@ -15952,6 +15956,59 @@ const getW6BestColorStyle = (prevEx) => {
   }
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   return { color: isLight ? '#b45309 !important' : '#ffca28' };
+};
+
+const calcola1RMW6Prescritto = (prevEx) => {
+  if (!prevEx) return null;
+  
+  const isCL = isCorpoLiberoEsercizio(workout.value || prevEx);
+  const rawW6 = (prevEx.num_ins6 !== undefined && prevEx.num_ins6 !== null && String(prevEx.num_ins6).trim() !== '')
+    ? String(prevEx.num_ins6).trim()
+    : (prevEx.ins_week6 ? String(prevEx.ins_week6).trim() : null);
+
+  if (!rawW6 || rawW6 === '-') return null;
+
+  if (isCL && !haSovraccaricoEsplicito(rawW6)) {
+    return null;
+  }
+
+  const pesoStr = estraiPesoDaInput(rawW6, { isCorpoLibero: isCL }) ||
+    (!isNaN(parseFloat(String(rawW6).replace(',', '.'))) ? String(parseFloat(String(rawW6).replace(',', '.'))) : null);
+
+  if (!pesoStr) return null;
+  const peso = parseFloat(pesoStr);
+  if (isNaN(peso) || peso <= 0) return null;
+
+  // Ripetizioni prescritte della Week 6
+  let repsPresc = estraiRepsDaPrescrizione(prevEx.des_week6);
+  if (!repsPresc && prevEx.reps_week6) {
+    repsPresc = parseInt(prevEx.reps_week6, 10);
+  }
+  if (!repsPresc && parsedPrescription(prevEx.des_week6)?.reps) {
+    repsPresc = estraiRepsDaPrescrizione(parsedPrescription(prevEx.des_week6).reps);
+  }
+  if (!repsPresc || isNaN(repsPresc) || repsPresc <= 0) {
+    repsPresc = 1;
+  }
+
+  if (repsPresc === 1) {
+    return Math.round(peso * 10) / 10;
+  }
+
+  // Formula 1RM Epley: Peso * (1 + Reps / 30)
+  const e1rm = peso * (1 + repsPresc / 30);
+  return Math.round(e1rm * 10) / 10;
+};
+
+const formatta1RMW6Prescritto = (prevEx) => {
+  const val = calcola1RMW6Prescritto(prevEx);
+  if (val === null || isNaN(val) || val <= 0) return '-';
+  return `${val} kg`;
+};
+
+const get1RMW6ColorStyle = (prevEx) => {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return { color: isLight ? '#0284c7 !important' : '#38bdf8 !important' };
 };
 
 const getInsWeekTextStyle = (prevEx, w) => {

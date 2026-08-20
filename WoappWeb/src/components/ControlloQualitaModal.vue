@@ -316,11 +316,11 @@
               </div>
             </div>
 
-            <!-- RIGA 4: CONTENUTO DIAGNOSTICO COMPATTO (SECONDARIO) -->
-            <div class="diagnostic-block mb-2">
-              <div class="diagnostic-title font-weight-bold d-flex align-center">
+            <!-- RIGA 4: CONTENUTO DIAGNOSTICO COMPATTO E FINE (SECONDARIO) -->
+            <div class="diagnostic-block mb-1.5">
+              <div class="diagnostic-title d-flex align-center">
                 <v-icon
-                  size="13"
+                  size="12"
                   class="mr-1 flex-shrink-0"
                   :color="s.livello === 'errore' ? '#ef4444' : (s.livello === 'anomalia' ? '#f59e0b' : '#3b82f6')"
                 >
@@ -329,12 +329,12 @@
                 <span>{{ s.titolo }}</span>
               </div>
               
-              <div class="diagnostic-desc text-slate-400 mt-0.5 ml-4 leading-normal">
+              <div class="diagnostic-desc mt-0.5 ml-3.5">
                 {{ s.spiegazione }}
               </div>
 
               <!-- Impatto sintetico -->
-              <div v-if="s.conseguenza" class="diagnostic-impact mt-1 ml-4 d-flex align-start gap-1">
+              <div v-if="s.conseguenza" class="diagnostic-impact mt-0.5 ml-3.5 d-flex align-start gap-1">
                 <span class="impact-badge flex-shrink-0">⚡ Impatto:</span>
                 <span class="impact-text">{{ s.conseguenza }}</span>
               </div>
@@ -344,8 +344,8 @@
             <div class="action-box">
               <div class="d-flex align-center justify-space-between flex-wrap gap-2">
                 <div class="suggestion-text d-flex align-start gap-1 flex-grow-1 min-width-0">
-                  <v-icon size="13" color="#22c55e" class="mt-0.5 flex-shrink-0">mdi-lightbulb-on</v-icon>
-                  <span class="text-green-accent-2 font-weight-medium leading-snug">
+                  <v-icon size="12" color="#22c55e" class="mt-0.5 flex-shrink-0">mdi-lightbulb-on</v-icon>
+                  <span class="leading-tight">
                     {{ s.correzioneConsigliata }}
                   </span>
                 </div>
@@ -356,7 +356,7 @@
                   :class="{ 'btn-active': modificateAperte[s.id] }"
                   @click="toggleModificaRapida(s.id)"
                 >
-                  <v-icon size="14" class="mr-1">
+                  <v-icon size="13" class="mr-1">
                     {{ modificateAperte[s.id] ? 'mdi-close' : 'mdi-pencil' }}
                   </v-icon>
                   <span>{{ modificateAperte[s.id] ? 'Annulla' : 'Correggi adesso' }}</span>
@@ -1233,50 +1233,54 @@ const chiudi = () => {
   font-weight: 600;
 }
 
-/* DIAGNOSTIC BLOCK (SECONDARIO, PIÙ PICCOLO E COMPATTO) */
+/* DIAGNOSTIC BLOCK (SECONDARIO, MOLTO PIÙ PICCOLO E FINO) */
 .diagnostic-block {
-  padding: 2px 4px;
+  padding: 1px 2px;
 }
 
 .diagnostic-title {
-  font-size: 0.78rem; /* ~12.5px */
-  font-weight: 600;
-  color: #f1f5f9;
+  font-size: 0.68rem; /* ~11px */
+  font-weight: 500;   /* Fino */
+  color: #e2e8f0;
   letter-spacing: -0.01em;
 }
 
 .diagnostic-desc {
-  font-size: 0.72rem; /* ~11.5px */
+  font-size: 0.62rem; /* ~10px */
+  font-weight: 400;   /* Fino/Regular */
   color: #94a3b8;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 
 .diagnostic-impact {
-  font-size: 0.68rem; /* ~11px */
-  line-height: 1.3;
+  font-size: 0.60rem; /* ~9.5px */
+  line-height: 1.2;
 }
 
 .impact-badge {
-  font-size: 0.62rem;
-  font-weight: 700;
+  font-size: 0.58rem;
+  font-weight: 600;
   color: #fb923c;
   text-transform: uppercase;
 }
 
 .impact-text {
   color: #fdba74;
+  font-weight: 400;
 }
 
 /* ACTION BOX */
 .action-box {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 6px 9px;
 }
 
 .suggestion-text {
-  font-size: 0.72rem; /* ~11.5px */
+  font-size: 0.64rem; /* ~10px */
+  font-weight: 400;   /* Fino */
+  color: #86efac;
 }
 
 .btn-correggi-action {

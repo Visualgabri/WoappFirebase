@@ -3817,11 +3817,11 @@
 
             <!-- LAYOUT 3: GRAFICO DELLE PROGRESSIONI -->
             <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'grafico'" class="d-flex flex-column gap-3 py-1">
-              <!-- Se l'esercizio NON è V%, mostra i selettori standard A/B/C e Raggruppamento Reps -->
+              <!-- Se l'esercizio NON è V%, mostra i selettori standard A/B/C/1RM_W6 e Raggruppamento Reps -->
               <template v-if="!isEsercizioVPercentuale">
                 <!-- Selettore Modalità Grafico -->
                 <div class="text-left">
-                  <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">Modalità Grafico (Tutte le Reps)</span>
+                  <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">Modalità Grafico</span>
                   <v-btn-toggle
                     v-model="modeGraficoStorico"
                     mandatory
@@ -3831,20 +3831,34 @@
                     class="card-glass border w-100"
                     style="height: 32px;"
                   >
-                    <v-btn value="A" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    <v-btn value="A" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.60rem; min-height: 30px;">
                       A: Linee + 1RM
                     </v-btn>
-                    <v-btn value="B" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    <v-btn value="B" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.60rem; min-height: 30px;">
                       B: Punti + 1RM
                     </v-btn>
-                    <v-btn value="C" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    <v-btn value="C" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.60rem; min-height: 30px;">
                       C: Linea Unica
+                    </v-btn>
+                    <v-btn value="1RM_W6" class="flex-grow-1 font-weight-black text-none px-1 text-cyan-accent-2" style="font-size: 0.60rem; min-height: 30px;">
+                      ⚡ 1RM W6
                     </v-btn>
                   </v-btn-toggle>
                 </div>
 
-                <!-- Selettore Raggruppamento Reps -->
-                <div class="text-left">
+                <!-- Info Card per 1RM W6 -->
+                <div v-if="modeGraficoStorico === '1RM_W6'" class="pa-2.5 rounded-xl border text-left" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important;">
+                  <div class="d-flex align-center gap-1.5 mb-1 text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.62rem;">
+                    <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
+                    Progressione Massimale Week 6 (1RM Peak)
+                  </div>
+                  <div class="text-slate-300" style="font-size: 0.60rem; line-height: 1.35;">
+                    Visualizza il trend del <strong>Massimale Stimato (1RM)</strong> raggiunto in Week 6 confrontato con il carico effettivo sollevato nelle diverse schede.
+                  </div>
+                </div>
+
+                <!-- Selettore Raggruppamento Reps (mostrato solo in modalità A, B, C) -->
+                <div v-if="modeGraficoStorico !== '1RM_W6'" class="text-left">
                   <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">Raggruppamento Reps</span>
                   <v-btn-toggle
                     v-model="raggruppamentoReps"
@@ -3868,7 +3882,7 @@
                 </div>
 
                 <!-- Filtro Reps (Multi-selezione) -->
-                <div v-if="availableBuckets.length > 0" class="text-left">
+                <div v-if="modeGraficoStorico !== '1RM_W6' && availableBuckets.length > 0" class="text-left">
                   <div class="d-flex align-center justify-space-between mb-1.5">
                     <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.55rem; letter-spacing: 0.05em;">Filtra Reps</span>
                     <v-btn 
@@ -16220,6 +16234,95 @@ const rigeneraGraficoStorico = () => {
     return;
   }
 
+  if (modeGraficoStorico.value === '1RM_W6') {
+    const labels = [];
+    const data1RM = [];
+    const dataCarico = [];
+    const customPoints = [];
+
+    storicoFiltrato.value.forEach(prevEx => {
+      const sNum = String(prevEx.num_scheda || '').trim();
+      const val1RM = calcola1RMW6Prescritto(prevEx);
+      
+      const rawW6 = (prevEx.num_ins6 !== undefined && prevEx.num_ins6 !== null && String(prevEx.num_ins6).trim() !== '')
+        ? String(prevEx.num_ins6).trim()
+        : (prevEx.ins_week6 ? String(prevEx.ins_week6).trim() : null);
+
+      let peso = null;
+      if (rawW6 && rawW6 !== '-') {
+        const pesoStr = estraiPesoDaInput(rawW6, { isCorpoLibero: isCorpoLiberoEsercizio(workout.value || prevEx) }) ||
+          (!isNaN(parseFloat(String(rawW6).replace(',', '.'))) ? String(parseFloat(String(rawW6).replace(',', '.'))) : null);
+        if (pesoStr) peso = parseFloat(pesoStr);
+      }
+
+      let reps = estraiRepsDaPrescrizione(prevEx.des_week6);
+      if (!reps && prevEx.reps_week6) reps = parseInt(prevEx.reps_week6, 10);
+      if (!reps && parsedPrescription(prevEx.des_week6)?.reps) reps = estraiRepsDaPrescrizione(parsedPrescription(prevEx.des_week6).reps);
+      if (!reps) reps = 1;
+
+      const date = getExecutionDate(prevEx, storicoEsercizio.value, workout.value) || '';
+
+      if (val1RM !== null || peso !== null) {
+        const label = `S.${sNum}`;
+        labels.push(label);
+        data1RM.push(val1RM);
+        dataCarico.push(peso);
+        customPoints.push({
+          label: `${label} (Week 6)`,
+          scheda: sNum,
+          week: '6',
+          peso: peso || 0,
+          reps: reps,
+          e1rm: val1RM || 0,
+          date: date,
+          giorno: prevEx.des_giorno || '',
+          note: prevEx.des_note || '',
+          noteAttrezzo: prevEx.des_note_attrezzo || '',
+          noteGen: prevEx.des_note_gen_attr || '',
+          fatica: prevEx.num_faticaw6 || ''
+        });
+      }
+    });
+
+    rawPointsLocal.value = customPoints;
+
+    datasets.push({
+      label: '1RM W6 (Massimale Stimato)',
+      data: data1RM,
+      borderColor: isLight ? '#0284c7' : '#38bdf8',
+      backgroundColor: isLight ? 'rgba(2, 132, 199, 0.15)' : 'rgba(56, 189, 248, 0.12)',
+      borderWidth: 3,
+      pointBackgroundColor: isLight ? '#0284c7' : '#38bdf8',
+      pointBorderColor: isLight ? '#0f172a' : '#ffffff',
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      fill: true,
+      tension: 0.15
+    });
+
+    datasets.push({
+      label: 'Carico Week 6 (kg)',
+      data: dataCarico,
+      borderColor: isLight ? '#d97706' : '#f59e0b',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      pointBackgroundColor: isLight ? '#d97706' : '#f59e0b',
+      pointBorderColor: isLight ? '#0f172a' : '#ffffff',
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      fill: false
+    });
+
+    storicoChartData.value = {
+      labels: labels,
+      datasets: datasets
+    };
+    storicoChartOptions.value = getChartOptions(isLight);
+    storicoChartReady.value = true;
+    return;
+  }
+
   if (modeGraficoStorico.value === 'A') {
     uniqueBuckets.forEach((b, idx) => {
       // Skip if bucket is not selected in filters
@@ -16383,7 +16486,20 @@ const getChartOptions = (isLight) => ({
           
           let dateInfo = '';
           
-          if (modeGraficoStorico.value === 'C') {
+          if (modeGraficoStorico.value === '1RM_W6') {
+            const pt = rawPointsLocal.value[index];
+            if (pt) {
+              if (pt.date) {
+                dateInfo = ` | Data: ${formattaDataStorico(pt.date)} (${tempoTrascorso(pt.date)})`;
+              }
+              const faticaText = pt.fatica ? ` | Fatica: ${pt.fatica}` : '';
+              if (label.includes('1RM')) {
+                return ` 1RM Stimato: ${val} kg (${pt.peso}kg x${pt.reps}r)${faticaText}${dateInfo}`;
+              } else {
+                return ` Carico W6: ${val} kg (${pt.reps} reps)${faticaText}${dateInfo}`;
+              }
+            }
+          } else if (modeGraficoStorico.value === 'C') {
             const activePoints = rawPointsLocal.value.filter(p => selectedBuckets.value.includes(p.bucket));
             const pt = activePoints[index];
             if (pt) {
@@ -16437,7 +16553,25 @@ const storicoChartOptions = ref(getChartOptions(document.documentElement.getAttr
 
 const gestisciClickGrafico = (datasetIndex, index) => {
   let pt = null;
-  if (modeGraficoStorico.value === 'C') {
+  if (modeGraficoStorico.value === '1RM_W6') {
+    pt = rawPointsLocal.value[index];
+    if (pt) {
+      selectedPointDetails.value = {
+        label: pt.label,
+        scheda: pt.scheda,
+        week: pt.week,
+        peso: pt.peso,
+        reps: pt.reps,
+        e1rm: pt.e1rm,
+        date: pt.date,
+        giorno: pt.giorno,
+        note: pt.note,
+        noteAttrezzo: pt.noteAttrezzo,
+        noteGen: pt.noteGen
+      };
+    }
+    return;
+  } else if (modeGraficoStorico.value === 'C') {
     const activePoints = rawPointsLocal.value.filter(p => selectedBuckets.value.includes(p.bucket));
     pt = activePoints[index];
   } else {

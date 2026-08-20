@@ -455,25 +455,22 @@
               <div class="text-center">
                 <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
                 <span class="font-weight-black text-cyan-lighten-2" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
-                  <template v-if="suggerimentoRecord && (suggerimentoRecord.recordAbsolute > 0 || suggerimentoRecord.recordAbsoluteReps > 0)">
-                    <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordAbsoluteHasWeight">
-                      {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute) }}
+                  <template v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
+                    <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
+                      {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
                     </template>
                     <template v-else>
-                      {{ formatWeight(suggerimentoRecord.recordAbsolute) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.60rem;">
-                        x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
+                      {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                      <span v-if="recordMaxAssolutoInfo.reps && recordMaxAssolutoInfo.reps > 0" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.60rem;">
+                        x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
                       </span>
-                      <span v-if="suggerimentoRecord.recordAbsoluteDate && tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate)" class="text-super-caption text-cyan-lighten-4 font-weight-regular ml-1" style="font-size: 0.52rem; opacity: 0.85; white-space: nowrap;">
-                        ({{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) }})
+                      <span v-if="recordMaxAssolutoInfo.isCurrentMeso" class="text-super-caption text-green-lighten-3 ml-1 font-weight-regular" style="font-size: 0.52rem; opacity: 0.9; white-space: nowrap;">
+                        (questa scheda)
+                      </span>
+                      <span v-else-if="recordMaxAssolutoInfo.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-super-caption text-cyan-lighten-4 font-weight-regular ml-1" style="font-size: 0.52rem; opacity: 0.85; white-space: nowrap;">
+                        ({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})
                       </span>
                     </template>
-                  </template>
-                  <template v-else-if="isCorpoLiberoEsercizio(workout)">
-                    --
-                  </template>
-                  <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
                   </template>
                   <template v-else>
                     --
@@ -484,7 +481,10 @@
             <v-col cols="6">
               <div class="text-center">
                 <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">
-                  <template v-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
+                  <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                    Record {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                  </template>
+                  <template v-else-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
                     Record {{ recordMaxRepsInfo.maxReps }} Reps
                   </template>
                   <template v-else-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
@@ -497,8 +497,22 @@
                     Target {{ getRepsPerWeek(settimanaAttiva) }} Reps
                   </template>
                 </span>
-                <span class="font-weight-black" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordMaxRepsInfo?.isCurrentMeso || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
-                  <template v-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
+                <span class="font-weight-black" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordOverviewData?.bestReal?.isCurrentPR || recordMaxRepsInfo?.isCurrentMeso || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
+                  <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                    <template v-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
+                      {{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}
+                    </template>
+                    <template v-else>
+                      {{ formatWeight(recordOverviewData.bestReal.weight) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                      <span v-if="recordOverviewData.bestReal.isCurrentPR" class="text-super-caption text-green-lighten-3 ml-1 font-weight-regular" style="font-size: 0.52rem; opacity: 0.9; white-space: nowrap;">
+                        (questa scheda)
+                      </span>
+                      <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-super-caption text-amber-lighten-3 font-weight-regular ml-1" style="font-size: 0.52rem; opacity: 0.85; white-space: nowrap;">
+                        ({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})
+                      </span>
+                    </template>
+                  </template>
+                  <template v-else-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
                     <template v-if="isCorpoLiberoEsercizio(workout)">
                       {{ formatRepsDisplay(recordMaxRepsInfo.maxReps) }}
                     </template>
@@ -15148,11 +15162,134 @@ const currentWeekLoggedReps = computed(() => {
   return (r && !isNaN(r) && r > 0) ? r : getRepsPerWeek(w);
 });
 
+const recordMaxAssolutoInfo = computed(() => {
+  if (!workout.value) return null;
+  let maxWeight = 0;
+  let repsAtMaxWeight = 0;
+  let weekAtMaxWeight = 0;
+  let sheetAtMaxWeight = null;
+  let dateAtMaxWeight = null;
+  let isCurrentMeso = false;
+  let idAtMaxWeight = null;
+  let itemAtMaxWeight = null;
+
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const currentNumScheda = parseInt(workout.value?.num_scheda);
+
+  // 1. Cerca nel mesociclo corrente W1-W6
+  for (let w = 1; w <= 6; w++) {
+    const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
+    if (ins) {
+      const lines = String(ins).split(/[\n;\r]+/);
+      lines.forEach(line => {
+        const l = line.trim();
+        if (!l) return;
+        const pStr = estraiPesoDaInput(l);
+        const p = pStr ? parseFloat(pStr) : 0;
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
+        const r = (explicitReps && explicitReps > 0) ? explicitReps : getRepsPerWeek(w);
+
+        if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
+          maxWeight = p;
+          repsAtMaxWeight = r;
+          weekAtMaxWeight = w;
+          sheetAtMaxWeight = workout.value.num_scheda;
+          dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+          isCurrentMeso = true;
+          idAtMaxWeight = workout.value.id;
+          itemAtMaxWeight = workout.value;
+        } else if (isCorpoLibero && p === 0 && r > repsAtMaxWeight && maxWeight === 0) {
+          repsAtMaxWeight = r;
+          weekAtMaxWeight = w;
+          sheetAtMaxWeight = workout.value.num_scheda;
+          dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+          isCurrentMeso = true;
+        }
+      });
+    }
+  }
+
+  // 2. Cerca nello storico delle schede passate
+  if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+    storicoEsercizio.value.forEach(prevEx => {
+      const sNum = parseInt(prevEx.num_scheda);
+      if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+      const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+
+      for (let w = 1; w <= 6; w++) {
+        const ins = prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null);
+        if (ins) {
+          const lines = String(ins).split(/[\n;\r]+/);
+          lines.forEach(line => {
+            const l = line.trim();
+            if (!l) return;
+            const pStr = estraiPesoDaInput(l);
+            const p = pStr ? parseFloat(pStr) : 0;
+            const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+            const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
+            const r = (explicitReps && explicitReps > 0) ? explicitReps : estraiRepsEsercizioWeek(prevEx, w, 10);
+
+            if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
+              maxWeight = p;
+              repsAtMaxWeight = r;
+              weekAtMaxWeight = w;
+              sheetAtMaxWeight = prevEx.num_scheda;
+              dateAtMaxWeight = dEx;
+              isCurrentMeso = false;
+              idAtMaxWeight = prevEx.id || prevEx.num_riga;
+              itemAtMaxWeight = prevEx;
+            } else if (isCorpoLibero && p === 0 && r > repsAtMaxWeight && maxWeight === 0) {
+              repsAtMaxWeight = r;
+              weekAtMaxWeight = w;
+              sheetAtMaxWeight = prevEx.num_scheda;
+              dateAtMaxWeight = dEx;
+              isCurrentMeso = false;
+            }
+          });
+        }
+      }
+    });
+  }
+
+  // 3. Fallback da suggerimentoRecord se disponibile
+  if (maxWeight === 0 && suggerimentoRecord.value?.recordAbsolute > 0) {
+    maxWeight = suggerimentoRecord.value.recordAbsolute;
+    repsAtMaxWeight = suggerimentoRecord.value.recordAbsoluteReps || 0;
+    weekAtMaxWeight = suggerimentoRecord.value.recordAbsoluteWeek;
+    sheetAtMaxWeight = suggerimentoRecord.value.recordAbsoluteSheet;
+    dateAtMaxWeight = suggerimentoRecord.value.recordAbsoluteDate;
+    isCurrentMeso = false;
+    idAtMaxWeight = suggerimentoRecord.value.recordAbsoluteId;
+    itemAtMaxWeight = suggerimentoRecord.value.recordAbsoluteItem;
+  }
+
+  if (maxWeight <= 0 && (!isCorpoLibero || repsAtMaxWeight <= 0)) return null;
+
+  return {
+    peso: maxWeight,
+    reps: repsAtMaxWeight,
+    week: weekAtMaxWeight,
+    sheet: sheetAtMaxWeight,
+    date: dateAtMaxWeight,
+    isCurrentMeso,
+    id: idAtMaxWeight,
+    item: itemAtMaxWeight
+  };
+});
+
 const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
 
   if (!suggerimentoRecord.value) {
+    if (recordMaxAssolutoInfo.value && recordMaxAssolutoInfo.value.peso > 0) {
+      return {
+        testo: `Primo ciclo di allenamento • Max: ${formatWeight(recordMaxAssolutoInfo.value.peso)} kg (${recordMaxAssolutoInfo.value.reps}r)`,
+        colore: 'text-amber-lighten-2',
+        icona: 'mdi-sparkles'
+      };
+    }
     return {
       testo: 'Primo ciclo di allenamento',
       colore: 'text-amber-lighten-2',

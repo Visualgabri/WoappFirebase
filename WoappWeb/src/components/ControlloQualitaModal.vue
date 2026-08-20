@@ -562,16 +562,33 @@ const eseguiAnalisi = async (manual = false) => {
     const currAthlete = String(props.idAtleta || selectedAthlete.value || '').trim();
     const currSheet = String(props.numScheda || selectedSheet.value || '').trim();
 
-    // Se i records locali sono vuoti, recuperiamo gli esercizi direttamente da Firestore per atleta e scheda!
+    // Se i records locali sono vuoti, recuperiamo gli esercizi direttamente da Firestore o dal backup!
     if ((!effectiveRecords || effectiveRecords.length === 0) && currAthlete && currSheet) {
       try {
         const numSch = parseInt(currSheet, 10);
-        const q = !isNaN(numSch)
-          ? query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', currAthlete), where('num_scheda', '==', numSch))
-          : query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', currAthlete), where('num_scheda', '==', currSheet));
-        const snap = await getDocs(q);
+        const numAth = parseInt(currAthlete, 10);
+
+        let snap = await getDocs(query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', currAthlete), where('num_scheda', '==', currSheet)));
+        if (snap.empty && !isNaN(numSch)) {
+          snap = await getDocs(query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', currAthlete), where('num_scheda', '==', numSch)));
+        }
+        if (snap.empty && !isNaN(numAth)) {
+          snap = await getDocs(query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', numAth), where('num_scheda', '==', isNaN(numSch) ? currSheet : numSch)));
+        }
+        if (snap.empty && !isNaN(numAth)) {
+          snap = await getDocs(query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', numAth), where('num_scheda', '==', currSheet)));
+        }
         if (!snap.empty) {
           effectiveRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } else {
+          const allBackup = await getStoryboardBackup();
+          if (allBackup && allBackup.length > 0) {
+            effectiveRecords = allBackup.filter(r => {
+              const rCli = String(r.ID_cliente || r.id_cliente || '').trim();
+              const rSch = String(r.num_scheda || '').trim();
+              return rCli === currAthlete && rSch === currSheet;
+            });
+          }
         }
       } catch (eDb) {
         console.warn("Fetch fallback STORYBOARD fallito in ControlloQualitaModal:", eDb);
@@ -590,6 +607,8 @@ const eseguiAnalisi = async (manual = false) => {
     res.segnalazioni.forEach(s => {
       if ((s.tipo === 'formato_fatte_info' || s.tipo === 'delta_reps_info') && s.caricoEstratto !== null && s.repsEstratte !== null) {
         mapValori[s.id] = `${String(s.caricoEstratto).replace('.', ',')} x ${s.repsEstratte}r`;
+      } else if (s.tipo === 'amrap_mancano_reps' && s.caricoEstratto !== null) {
+        mapValori[s.id] = `${String(s.caricoEstratto).replace('.', ',')} x 10r`;
       } else if (s.tipo === 'macchina_diversa_parentesi' && s.valoreOriginale) {
         const raw = s.valoreOriginale.trim();
         mapValori[s.id] = raw.startsWith('(') && raw.endsWith(')') ? raw : `(${raw})`;
@@ -623,7 +642,7 @@ watch(
 );
 
 watch(
-  () => props.records,
+  [() => props.records, () => props.idAtleta, () => props.numScheda],
   () => {
     if (props.modelValue) {
       eseguiAnalisi();

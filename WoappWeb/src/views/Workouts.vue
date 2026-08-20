@@ -3129,9 +3129,9 @@
       v-model="mostraDialogControlloQualita"
       :records="listaAllenamenti && listaAllenamenti.length > 0 ? listaAllenamenti : globalStoryboard"
       :storico-backup="storicoBackupCache"
-      :id-atleta="atletaSelezionato"
-      :nome-atleta="getNomeAtleta(atletaSelezionato)"
-      :num-scheda="schedaSelezionata"
+      :id-atleta="selectedAthlete"
+      :nome-atleta="getNomeAtleta(selectedAthlete)"
+      :num-scheda="selectedSheet"
       @applica-correzione="gestisciApplicaCorrezioneWorkouts"
       @seleziona-esercizio="gestisciSelezionaEsercizioDaControllo"
     />

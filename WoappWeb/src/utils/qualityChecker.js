@@ -294,6 +294,37 @@ export const analizzaQualitaScheda = (records, options = {}) => {
         };
       }
 
+      // --- CHECK SINTATTICO 6: Notazione delta '+N rep' (es. '14 +1 rep') ---
+      if (!segnalazioneW && /\+\s*\d+\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i.test(rawVal) && parsedLoad && parsedReps) {
+        const pesoFmt = String(parsedLoad).replace('.', ',');
+        segnalazioneW = {
+          id: `${ex.id || ex.num_riga}_w${w}_delta_reps_info`,
+          coordinata,
+          giorno,
+          riga: rigaGiorno,
+          numRiga: ex.num_riga || '',
+          docId: ex.id || '',
+          des_esercizio: nomeEx,
+          des_settore: settore,
+          settimana: w,
+          settimanaLabel: `W${w}`,
+          valoreOriginale: rawVal,
+          caricoEstratto: parsedLoad,
+          repsEstratte: parsedReps,
+          isCorpoLibero,
+          haSovraccarico: hasZavorra,
+          prescrizione: prescVal,
+          repsPreviste: repsPresc,
+          seriePreviste: seriePresc,
+          livello: 'anomalia',
+          tipo: 'delta_reps_info',
+          titolo: `Notazione '+1 rep' interpretata come ${parsedReps}r`,
+          spiegazione: `Inserito "${rawVal}" a fronte di target ${repsPresc}r. Significa che l'atleta ha eseguito 1 rep in più (${parsedReps}r) e non 1 sola rep.`,
+          conseguenza: `Interpretato correttamente come ${parsedLoad} kg x ${parsedReps}r.`,
+          correzioneConsigliata: `Formato consigliato per ${parsedReps} reps completate: doveva scrivere "${pesoFmt} x ${parsedReps}r" (o "${pesoFmt}x${parsedReps}r").`
+        };
+      }
+
       if (segnalazioneW) {
         segnalazioni.push(segnalazioneW);
       }
@@ -395,32 +426,63 @@ export const analizzaQualitaScheda = (records, options = {}) => {
               const repsCalate = (prev.reps && cur.reps && cur.reps <= prev.reps - 3) || (prev.repsPresc && cur.repsPresc && cur.repsPresc <= prev.repsPresc - 3);
 
               if (!repsCalate) {
-                segnalazioni.push({
-                  id: `${ex.id || ex.num_riga}_w${w}_aumento_anomalo`,
-                  coordinata,
-                  giorno,
-                  riga: rigaGiorno,
-                  numRiga: ex.num_riga || '',
-                  docId: ex.id || '',
-                  des_esercizio: nomeEx,
-                  des_settore: settore,
-                  settimana: w,
-                  settimanaLabel: `W${w}`,
-                  valoreOriginale: cur.raw,
-                  caricoEstratto: cur.peso,
-                  repsEstratte: cur.reps,
-                  isCorpoLibero,
-                  haSovraccarico: cur.hasZavorra,
-                  prescrizione: cur.prescVal,
-                  repsPreviste: cur.repsPresc,
-                  seriePreviste: cur.seriePreviste,
-                  livello: 'anomalia',
-                  tipo: 'aumento_eccessivo',
-                  titolo: `Aumento di carico notevole (+${incrementoPct}%)`,
-                  spiegazione: `Incremento da ${prev.peso} kg (W${prevWNum}) a ${cur.peso} kg in W${w} (+${incrementoKg} kg) a parità di ripetizioni.`,
-                  conseguenza: `Verificare la sostenibilità del carico per l'atleta.`,
-                  correzioneConsigliata: `Controllare se il carico era reale o parziale.`
-                });
+                const isMacchinaDiversa = /\b(?:macchina|macchine|green|rossa|nera|nuova|diversa|differente|altra|technogym|matrix|panatta|hammer|pure|palestra|altra\s*palestra)\b/i.test(cur.raw);
+
+                if (isMacchinaDiversa) {
+                  segnalazioni.push({
+                    id: `${ex.id || ex.num_riga}_w${w}_macchina_diversa_parentesi`,
+                    coordinata,
+                    giorno,
+                    riga: rigaGiorno,
+                    numRiga: ex.num_riga || '',
+                    docId: ex.id || '',
+                    des_esercizio: nomeEx,
+                    des_settore: settore,
+                    settimana: w,
+                    settimanaLabel: `W${w}`,
+                    valoreOriginale: cur.raw,
+                    caricoEstratto: cur.peso,
+                    repsEstratte: cur.reps,
+                    isCorpoLibero,
+                    haSovraccarico: cur.hasZavorra,
+                    prescrizione: cur.prescVal,
+                    repsPreviste: cur.repsPresc,
+                    seriePreviste: cur.seriePreviste,
+                    livello: 'anomalia',
+                    tipo: 'macchina_diversa_parentesi',
+                    titolo: `Carico con macchina/palestra diversa (+${incrementoPct}%)`,
+                    spiegazione: `Inserito "${cur.raw}" con cambio macchina rispetto a ${prev.peso} kg in W${prevWNum}.`,
+                    conseguenza: `I carichi di macchine o palestre diverse sfasano i massimali e le stime future.`,
+                    correzioneConsigliata: `Se si cambia palestra o macchina sporadicamente e non tornano i carichi, scrivi carico e note tra parentesi: "(${cur.raw})" per non alterare gli algoritmi.`
+                  });
+                } else {
+                  segnalazioni.push({
+                    id: `${ex.id || ex.num_riga}_w${w}_aumento_anomalo`,
+                    coordinata,
+                    giorno,
+                    riga: rigaGiorno,
+                    numRiga: ex.num_riga || '',
+                    docId: ex.id || '',
+                    des_esercizio: nomeEx,
+                    des_settore: settore,
+                    settimana: w,
+                    settimanaLabel: `W${w}`,
+                    valoreOriginale: cur.raw,
+                    caricoEstratto: cur.peso,
+                    repsEstratte: cur.reps,
+                    isCorpoLibero,
+                    haSovraccarico: cur.hasZavorra,
+                    prescrizione: cur.prescVal,
+                    repsPreviste: cur.repsPresc,
+                    seriePreviste: cur.seriePreviste,
+                    livello: 'anomalia',
+                    tipo: 'aumento_eccessivo',
+                    titolo: `Aumento di carico notevole (+${incrementoPct}%)`,
+                    spiegazione: `Incremento da ${prev.peso} kg (W${prevWNum}) a ${cur.peso} kg in W${w} (+${incrementoKg} kg) a parità di ripetizioni.`,
+                    conseguenza: `Verificare la sostenibilità del carico per l'atleta.`,
+                    correzioneConsigliata: `Controllare se il carico era reale o parziale.`
+                  });
+                }
               } else {
                 segnalazioni.push({
                   id: `${ex.id || ex.num_riga}_w${w}_aumento_intensificazione`,

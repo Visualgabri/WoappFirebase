@@ -13678,9 +13678,22 @@ function estraiMigliorPrestazioneInput(strVal, defaultReps = 10, isCavo = false)
   return bestPerf;
 }
 
-function estraiRepsDaInput(str) {
+function estraiRepsDaInput(str, defaultOrTargetReps = null) {
   if (!str) return null;
   const strVal = String(str);
+
+  // Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps")
+  const matchDeltaReps = strVal.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
+  if (matchDeltaReps) {
+    const delta = parseInt(matchDeltaReps[1], 10);
+    if (!isNaN(delta) && delta > 0 && delta <= 30) {
+      if (defaultOrTargetReps && defaultOrTargetReps > 0) {
+        return defaultOrTargetReps + delta;
+      }
+      return delta;
+    }
+  }
+
   const lines = strVal.split(/[\n;\r]+/);
   const results = lines.map(l => estraiRepsDaInputExplicitSingle(l)).filter(v => v !== null && !isNaN(v.val) && Number.isInteger(v.val) && v.val > 0 && v.val <= 50);
   if (results.length === 0) return null;

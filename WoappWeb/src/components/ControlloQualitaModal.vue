@@ -569,8 +569,11 @@ const eseguiAnalisi = (manual = false) => {
     // Pre-popola i valori per eventuale quick-edit
     const mapValori = {};
     res.segnalazioni.forEach(s => {
-      if (s.tipo === 'formato_fatte_info' && s.caricoEstratto !== null && s.repsEstratte !== null) {
+      if ((s.tipo === 'formato_fatte_info' || s.tipo === 'delta_reps_info') && s.caricoEstratto !== null && s.repsEstratte !== null) {
         mapValori[s.id] = `${String(s.caricoEstratto).replace('.', ',')} x ${s.repsEstratte}r`;
+      } else if (s.tipo === 'macchina_diversa_parentesi' && s.valoreOriginale) {
+        const raw = s.valoreOriginale.trim();
+        mapValori[s.id] = raw.startsWith('(') && raw.endsWith(')') ? raw : `(${raw})`;
       } else {
         mapValori[s.id] = s.valoreOriginale;
       }

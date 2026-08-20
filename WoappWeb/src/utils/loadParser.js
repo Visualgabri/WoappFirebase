@@ -478,6 +478,19 @@ export const estraiRepsDaInput = (str, options = {}) => {
   const isCorpoLibero = options.isCorpoLibero ?? false;
   const repsPresc = options.repsPresc || options.defaultReps || null;
 
+  // 0. Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps", "12kg + 1 rep")
+  // dove N rappresenta ripetizioni in più rispetto al target prescritto!
+  const matchDeltaReps = strVal.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
+  if (matchDeltaReps) {
+    const delta = parseInt(matchDeltaReps[1], 10);
+    if (!isNaN(delta) && delta > 0 && delta <= 30) {
+      if (repsPresc && repsPresc > 0) {
+        return repsPresc + delta;
+      }
+      return delta;
+    }
+  }
+
   // 1. Controlla se ci sono set multipli con ramping/warmup (es. "8x15r 10x15r 12 facili")
   // In cui il carico massimo estratto è isolato (non ha suffisso xR o r proprio)
   const maxPesoStr = estraiPesoDaInput(strVal, { isCorpoLibero });

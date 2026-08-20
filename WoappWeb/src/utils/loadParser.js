@@ -327,7 +327,21 @@ export const estraiPesoDaInput = (str, options = {}) => {
       }
     }
 
-    // 2. Analisi del Prefisso
+  // Se la stringa contiene solo reps (es. "Fatte 5", "fatto 8", "12r", "15 reps") senza indicazione di peso
+  // ed è presente un carico esplicito nella prescrizione (es. "AMRAP(90%)|40KG|10L", "4x10 (70%)|50KG"),
+  // recuperiamo il carico prescritto
+  if (options.prescrizione) {
+    const isOnlyReps = /^\s*(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|chiuse?)\s*\d+(?:\s*(?:r|reps?|rip))?\s*$/i.test(clean) ||
+                       /^\s*\d+\s*(?:r|reps?|rip(?:etizioni)?|colpi)\s*$/i.test(clean);
+    if (isOnlyReps) {
+      const matchPrescKg = String(options.prescrizione).match(/\|\s*(\d+(?:[.,]\d+)?)\s*kg/i) || String(options.prescrizione).match(/(\d+(?:[.,]\d+)?)\s*kg\b/i);
+      if (matchPrescKg) {
+        return matchPrescKg[1].replace(',', '.');
+      }
+    }
+  }
+
+  // 2. Analisi del Prefisso
     const prefixStr = clean.substring(0, startIdx);
     const prefixTokens = prefixStr.trim().split(/[\s\-+:=@°]+/);
     let prefixWord = '';
@@ -339,6 +353,9 @@ export const estraiPesoDaInput = (str, options = {}) => {
     }
 
     if (prefixWord) {
+      if (['fatte', 'fatto', 'fatti', 'fatta', 'eseguite', 'eseguiti', 'eseguito', 'completate', 'chiuse', 'chiuso'].includes(prefixWord) && !isExplicitKg) {
+        continue;
+      }
       if (SETTING_KEYWORDS.some(word => prefixWord === word || prefixWord.includes(word)) || prefixWord === 'rpe' || prefixWord === 'rp') {
         continue;
       }

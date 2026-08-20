@@ -64,6 +64,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
   const segnalazioni = [];
   let totaleValoriControllati = 0;
   let totaleValidi = 0;
+  let totaleFormatiColloquiali = 0;
 
   const riepilogoPerGiorno = {
     A: { total: 0, errori: 0, anomalie: 0, particolari: 0, validi: 0 },
@@ -123,7 +124,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       riepilogoPerGiorno[giorno].total++;
 
       const hasZavorra = haSovraccaricoEsplicito(rawVal);
-      const parsedLoadStr = estraiPesoDaInput(rawVal, { isCorpoLibero });
+      const parsedLoadStr = estraiPesoDaInput(rawVal, { isCorpoLibero, prescrizione: prescVal });
       const parsedLoad = parsedLoadStr ? parseFloat(parsedLoadStr) : (isCorpoLibero && !hasZavorra ? 0 : null);
       const parsedReps = estraiRepsDaInput(rawVal, { isCorpoLibero, repsPresc });
 
@@ -142,6 +143,12 @@ export const analizzaQualitaScheda = (records, options = {}) => {
         seriePresc,
         prescVal
       };
+
+      // Tracciamento discreto di formati colloquiali (senza generare allarmi o card)
+      const hasFatteKeyword = /\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\b/i.test(rawVal);
+      if (hasFatteKeyword && (parsedLoad !== null || isCorpoLibero) && parsedReps !== null) {
+        totaleFormatiColloquiali++;
+      }
 
       let segnalazioneW = null;
 
@@ -201,7 +208,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             haSovraccarico: false,
             prescrizione: prescVal,
             repsPreviste: repsPresc,
-            seriePreviste: seriePresc,
+            seriePreviste: seriePreviste,
             livello: 'errore',
             tipo: 'formato_ambiguo_sxr',
             titolo: 'Formato ambiguo: Serie x Reps senza kg',
@@ -210,36 +217,6 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             correzioneConsigliata: `Specificare i kg (es. "${p2}kg x${p1}s" o "${p1}x${p2} 50kg").`
           };
         }
-      }
-
-      // --- CHECK SINTATTICO 3: Corpo libero con zavorra esplicita ---
-      else if (isCorpoLibero && hasZavorra && parsedLoad && parsedLoad > 0) {
-        segnalazioneW = {
-          id: `${ex.id || ex.num_riga}_w${w}_corpolibero_zavorra`,
-          coordinata,
-          giorno,
-          riga: rigaGiorno,
-          numRiga: ex.num_riga || '',
-          docId: ex.id || '',
-          des_esercizio: nomeEx,
-          des_settore: settore,
-          settimana: w,
-          settimanaLabel: `W${w}`,
-          valoreOriginale: rawVal,
-          caricoEstratto: parsedLoad,
-          repsEstratte: parsedReps,
-          isCorpoLibero: true,
-          haSovraccarico: true,
-          prescrizione: prescVal,
-          repsPreviste: repsPresc,
-          seriePreviste: seriePresc,
-          livello: 'particolare',
-          tipo: 'corpo_libero_con_zavorra',
-          titolo: 'Corpo libero con sovraccarico',
-          spiegazione: `Eseguito con sovraccarico/zavorra di ${parsedLoad} kg${parsedReps ? ` x${parsedReps}r` : ''}.`,
-          conseguenza: `Il sistema considera il sovraccarico nei calcoli di volume ed e1RM.`,
-          correzioneConsigliata: `Nessuna correzione richiesta se intenzionale.`
-        };
       }
 
       // --- CHECK SINTATTICO 4: Notazione tipo "67,5 x2" o "67.5x2" (moltiplicatore basso x1..x5) vs Prescrizione ---
@@ -315,40 +292,6 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           conseguenza: `Possibile cedimento precoce o carico eccessivo sul range target.`,
           correzioneConsigliata: `Verificare se il carico era troppo pesante o se indicava le serie completate.`
         };
-      }
-
-      // --- CHECK SINTATTICO 6: Formato colloquiale con "fatte" / "fatto" ---
-      if (!segnalazioneW) {
-        const hasFatteKeyword = /\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\b/i.test(rawVal);
-        if (hasFatteKeyword && parsedLoad !== null && parsedReps !== null) {
-          const pesoFmt = String(parsedLoad).replace('.', ',');
-          segnalazioneW = {
-            id: `${ex.id || ex.num_riga}_w${w}_formato_fatte_info`,
-            coordinata,
-            giorno,
-            riga: rigaGiorno,
-            numRiga: ex.num_riga || '',
-            docId: ex.id || '',
-            des_esercizio: nomeEx,
-            des_settore: settore,
-            settimana: w,
-            settimanaLabel: `W${w}`,
-            valoreOriginale: rawVal,
-            caricoEstratto: parsedLoad,
-            repsEstratte: parsedReps,
-            isCorpoLibero,
-            haSovraccarico: hasZavorra,
-            prescrizione: prescVal,
-            repsPreviste: repsPresc,
-            seriePreviste: seriePresc,
-            livello: 'particolare',
-            tipo: 'formato_fatte_info',
-            titolo: `Formato non standard ("fatte")`,
-            spiegazione: `Inserito "${rawVal}". Il sistema lo ha interpretato correttamente come ${pesoFmt} kg x ${parsedReps}r.`,
-            conseguenza: `Nessun problema di calcolo: interpretato correttamente.`,
-            correzioneConsigliata: `💡 Per favore in app scrivi nel formato standard "${pesoFmt} x ${parsedReps}r" (carico x reps).`
-          };
-        }
       }
 
       if (segnalazioneW) {
@@ -772,6 +715,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
     totaleAnomalie,
     totaleParticolari,
     totaleValidi,
+    totaleFormatiColloquiali,
     percentualeQualita: punteggio,
     segnalazioni,
     riepilogoPerGiorno,

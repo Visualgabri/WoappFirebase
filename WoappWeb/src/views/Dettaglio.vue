@@ -13847,6 +13847,9 @@ function estraiPesoDaInput(str) {
     
     // Se la parola significativa prima del numero è un'impostazione o rpe/rp o moltiplicatore 'x', escludiamo il numero
     if (prefixWord) {
+      if (['fatte', 'fatto', 'fatti', 'fatta', 'eseguite', 'eseguiti', 'eseguito', 'completate', 'chiuse', 'chiuso'].includes(prefixWord) && !isExplicitKg) {
+        continue;
+      }
       if (settingKeywords.some(word => prefixWord === word || prefixWord.includes(word)) || prefixWord === 'rpe' || prefixWord === 'rp') {
         continue; // Ignorato
       }

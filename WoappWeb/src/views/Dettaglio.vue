@@ -11338,10 +11338,46 @@ const caricaRiga0 = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
   }
 };
 
+const eseguiScrollSettimanaTarget = (targetWeek) => {
+  const wNum = parseInt(targetWeek, 10);
+  if (!wNum || isNaN(wNum) || wNum < 1 || wNum > 6) return;
+
+  settimanaAttiva.value = wNum;
+
+  const tryScroll = (tentativiRimasti = 6) => {
+    // 1. Cerca il campo input della settimana o la card della settimana
+    const inputEl = document.getElementById('input-peso-w' + wNum) || 
+                    (wNum === 6 ? document.getElementById('input-kg-unico-w6') : null);
+    const cardEl = document.getElementById('week-card-' + wNum);
+
+    if (inputEl || cardEl) {
+      const scrollTarget = inputEl || cardEl;
+      scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Evidenzia con animazione pulsante glow
+      const highlightEl = cardEl || inputEl;
+      highlightEl.classList.add('evidenzia-esercizio-scroll');
+      setTimeout(() => highlightEl.classList.remove('evidenzia-esercizio-scroll'), 2800);
+
+      // Focus sul campo per permettere modifica immediata
+      if (inputEl) {
+        setTimeout(() => {
+          inputEl.focus?.();
+        }, 300);
+      }
+    } else if (tentativiRimasti > 0) {
+      setTimeout(() => tryScroll(tentativiRimasti - 1), 150);
+    }
+  };
+
+  setTimeout(() => tryScroll(6), 250);
+};
+
 const determinaSettimanaAttivaGiorno = () => {
-  // Se arriviamo da un link di recupero (targetWeek), forziamo la settimana attiva su quella
-  if (route.query.targetWeek) {
-    settimanaAttiva.value = parseInt(route.query.targetWeek);
+  // Se arriviamo da un link di recupero o navigazione da controllo qualità, forziamo la settimana attiva su quella
+  const targetW = route.query.scrollWeek || route.query.targetWeek || route.query.week;
+  if (targetW) {
+    settimanaAttiva.value = parseInt(targetW, 10);
     return;
   }
   
@@ -11368,12 +11404,21 @@ const riportaAInizioPagina = () => {
   }
 };
 
-watch(() => route.params.id, (nuovoId) => {
-  if (nuovoId) {
+watch(() => [route.params.id, route.query.scrollWeek, route.query.targetWeek, route.query.week], ([nuovoId, sW, tW, w]) => {
+  const targetW = sW || tW || w;
+  if (!targetW) {
     riportaAInizioPagina();
+  }
+  if (nuovoId && nuovoId !== routeIdLocal.value) {
     routeIdLocal.value = nuovoId;
     localStorage.setItem('ultimoEsercizioDettaglio', nuovoId);
-    caricaDatiEsercizio();
+    caricaDatiEsercizio().then(() => {
+      if (targetW) {
+        eseguiScrollSettimanaTarget(targetW);
+      }
+    });
+  } else if (targetW) {
+    eseguiScrollSettimanaTarget(targetW);
   }
 });
 
@@ -11869,8 +11914,15 @@ const caricaEsercizioDaBackup = async () => {
 };
 
 onMounted(() => {
-  riportaAInizioPagina();
-  caricaDatiEsercizio();
+  const targetW = route.query.scrollWeek || route.query.targetWeek || route.query.week;
+  if (!targetW) {
+    riportaAInizioPagina();
+  }
+  caricaDatiEsercizio().then(() => {
+    if (targetW) {
+      eseguiScrollSettimanaTarget(targetW);
+    }
+  });
   if (routeIdLocal.value) {
     localStorage.setItem('ultimoEsercizioDettaglio', routeIdLocal.value);
   }
@@ -17685,6 +17737,35 @@ th.sticky-col {
   background: #fef2f2 !important;
   border-color: #dc2626 !important;
   color: #b91c1c !important;
+}
+
+/* Evidenziazione luminosa target durante scroll da Controllo Qualità */
+.evidenzia-esercizio-scroll {
+  animation: pulse-glow-target 2.6s ease-in-out !important;
+  border-color: #f97316 !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.7), 0 0 10px rgba(249, 115, 22, 0.35) inset !important;
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes pulse-glow-target {
+  0% {
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+    transform: scale(1);
+  }
+  25% {
+    box-shadow: 0 0 32px rgba(249, 115, 22, 0.95), 0 0 15px rgba(249, 115, 22, 0.5) inset;
+    transform: scale(1.018);
+  }
+  65% {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.75), 0 0 8px rgba(249, 115, 22, 0.3) inset;
+    transform: scale(1.008);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+    transform: scale(1);
+  }
 }
 
 </style>

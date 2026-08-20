@@ -84,6 +84,19 @@
           </v-badge>
           <v-icon v-else size="16">mdi-lightning-bolt</v-icon>
         </v-btn>
+        <v-btn 
+          v-if="ruolo === 'coach'"
+          icon 
+          color="green-darken-2" 
+          variant="tonal" 
+          size="x-small" 
+          style="width: 28px; height: 28px;" 
+          @click="apriDialogControlloQualita" 
+          title="Controllo Qualità Scheda (Pannello Coach)"
+          id="btn-apri-controllo-qualita-workouts"
+        >
+          <v-icon size="16">mdi-shield-check</v-icon>
+        </v-btn>
         <v-btn icon color="primary" variant="tonal" size="x-small" style="width: 28px; height: 28px;" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
           <v-icon size="16">mdi-magnify</v-icon>
         </v-btn>
@@ -3110,7 +3123,18 @@
 
 
 
-    <!-- Pulsante Fluttuante Persistente Play rimosso da qui ed integrato a livello globale in App.vue -->
+    <!-- MODALE CONTROLLO QUALITÀ SCHEDA COACH -->
+    <ControlloQualitaModal
+      v-if="ruolo === 'coach'"
+      v-model="mostraDialogControlloQualita"
+      :records="listaAllenamenti && listaAllenamenti.length > 0 ? listaAllenamenti : globalStoryboard"
+      :storico-backup="storicoBackupCache"
+      :id-atleta="atletaSelezionato"
+      :nome-atleta="getNomeAtleta(atletaSelezionato)"
+      :num-scheda="schedaSelezionata"
+      @applica-correzione="gestisciApplicaCorrezioneWorkouts"
+      @seleziona-esercizio="gestisciSelezionaEsercizioDaControllo"
+    />
 
   </v-container>
 </template>
@@ -3120,7 +3144,8 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo } from '../authStore.js';
+import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
@@ -3695,6 +3720,89 @@ const getGifUrl = (url) => {
 const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
 const giornoSelezionato = ref('A');
+
+// Stato Controllo Qualità Scheda per Coach
+const mostraDialogControlloQualita = ref(false);
+const storicoBackupCache = ref([]);
+
+const apriDialogControlloQualita = async () => {
+  if (storicoBackupCache.value.length === 0) {
+    try {
+      const backup = await getStoryboardBackup();
+      storicoBackupCache.value = backup || [];
+    } catch (e) {
+      console.warn("Impossibile caricare backup storico:", e);
+    }
+  }
+  mostraDialogControlloQualita.value = true;
+};
+
+const gestisciApplicaCorrezioneWorkouts = async ({ docId, numRiga, settimana, nuovoValore, des_esercizio }) => {
+  const ex = globalStoryboard.value.find(r => 
+    (docId && (r.id === docId || r.dbId === docId)) || 
+    (numRiga && String(r.num_riga) === String(numRiga)) || 
+    (des_esercizio && String(r.des_esercizio || '').trim() === String(des_esercizio).trim())
+  );
+  if (ex) {
+    ex['ins_week' + settimana] = nuovoValore;
+    if (ex.id) {
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        await updateDoc(doc(db, 'STORYBOARD', ex.id), {
+          ['ins_week' + settimana]: nuovoValore,
+          timestamp_ute: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        });
+      } catch (e) {
+        console.warn("Errore salvataggio correzione Firestore:", e);
+      }
+    }
+  }
+};
+
+const gestisciSelezionaEsercizioDaControllo = async (segnalazione) => {
+  mostraDialogControlloQualita.value = false;
+
+  const giorno = segnalazione.giorno;
+  if (giorno && giornoSelezionato.value !== giorno) {
+    giornoSelezionato.value = giorno;
+  }
+
+  await nextTick();
+
+  setTimeout(() => {
+    const targetRecords = listaAllenamenti.value?.length > 0 ? listaAllenamenti.value : globalStoryboard.value;
+    const ex = targetRecords.find(r => 
+      (segnalazione.docId && (r.id === segnalazione.docId || r.dbId === segnalazione.docId)) ||
+      (segnalazione.numRiga && String(r.num_riga) === String(segnalazione.numRiga)) ||
+      (segnalazione.des_esercizio && String(r.des_esercizio || '').trim() === String(segnalazione.des_esercizio).trim())
+    );
+
+    const targetId = ex?.id || ex?.dbId || segnalazione.docId;
+    let targetEl = null;
+
+    if (targetId) {
+      targetEl = document.getElementById('esercizio-' + targetId);
+    }
+
+    if (!targetEl && segnalazione.des_esercizio) {
+      const cards = document.querySelectorAll('.exercise-item-card, .superset-exercise-item');
+      for (const card of cards) {
+        if (card.textContent.includes(segnalazione.des_esercizio)) {
+          targetEl = card;
+          break;
+        }
+      }
+    }
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetEl.classList.add('evidenzia-esercizio-scroll');
+      setTimeout(() => {
+        targetEl.classList.remove('evidenzia-esercizio-scroll');
+      }, 2600);
+    }
+  }, 220);
+};
 
 // Stato scroll per mostrare la linea di separazione del header solo al momento dello scroll
 const isScrolledPastDayHeader = ref(false);
@@ -9026,5 +9134,29 @@ const recuperiRaggruppati = computed(() => {
 /* Singoli esercizi completati all'interno della superserie */
 .superset-exercise-item.completed {
   background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+@keyframes pulseGlowExercise {
+  0% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.8);
+    outline: 2px solid rgba(249, 115, 22, 1);
+    transform: scale(1.01);
+  }
+  50% {
+    box-shadow: 0 0 24px 8px rgba(249, 115, 22, 0.6);
+    outline: 3px solid rgba(249, 115, 22, 1);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+    outline: 2px solid transparent;
+    transform: scale(1);
+  }
+}
+
+.evidenzia-esercizio-scroll {
+  animation: pulseGlowExercise 2.5s ease-in-out forwards !important;
+  transition: all 0.3s ease;
+  z-index: 20 !important;
 }
 </style>

@@ -714,6 +714,21 @@
           </span>
         </div>
         <div class="d-flex align-center gap-1.5 mt-2 mt-sm-0">
+          <v-btn
+            v-if="activeTab === 'storyboard' && schedaSelezionata && records.length > 0"
+            color="green-darken-2"
+            size="x-small"
+            variant="flat"
+            rounded="lg"
+            @click="apriControlloQualita"
+            class="text-white font-weight-bold text-none px-2.5 elevation-1 mr-1"
+            style="height: 28px; font-size: 0.70rem;"
+            id="btn-controllo-qualita"
+            title="Analizza l'intera scheda per errori, anomalie e problemi di progressione"
+          >
+            <v-icon size="14" class="mr-1">mdi-shield-check</v-icon>
+            Controlla Qualità Scheda
+          </v-btn>
           <v-btn color="orange-darken-3" size="x-small" variant="tonal" rounded="lg" @click="mostraIstruzioni = true" class="mr-1 font-weight-bold text-none px-2" style="height: 28px; font-size: 0.70rem;">
             <v-icon size="14" class="mr-1">mdi-help-circle-outline</v-icon>
             Scorciatoie Excel
@@ -2315,6 +2330,18 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- MODALE CONTROLLO QUALITÀ SCHEDA -->
+    <ControlloQualitaModal
+      v-model="mostraDialogControlloQualita"
+      :records="records"
+      :storico-backup="storicoBackupCache"
+      :id-atleta="atletaSelezionato"
+      :nome-atleta="getNomeAtleta(atletaSelezionato)"
+      :num-scheda="schedaSelezionata"
+      @applica-correzione="gestisciApplicaCorrezione"
+      @seleziona-esercizio="gestisciSelezionaEsercizio"
+    />
   </v-container>
 </template>
 
@@ -2361,8 +2388,63 @@ import {
   margineTopW6FeedbackGlobal,
   margineBottomGhostNoticeGlobal,
   impostaNomeAtletaDinamico,
-  caricaNomiAtletiDinamici
+  caricaNomiAtletiDinamici,
+  getNomeAtleta,
+  getStoryboardBackup
 } from '../authStore.js';
+import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
+
+// Stato Controllo Qualità Scheda
+const mostraDialogControlloQualita = ref(false);
+const storicoBackupCache = ref([]);
+
+const apriControlloQualita = async () => {
+  if (storicoBackupCache.value.length === 0) {
+    try {
+      const backup = await getStoryboardBackup();
+      storicoBackupCache.value = backup || [];
+    } catch (e) {
+      console.warn("Impossibile caricare backup storico:", e);
+    }
+  }
+  mostraDialogControlloQualita.value = true;
+};
+
+const gestisciApplicaCorrezione = ({ docId, numRiga, settimana, nuovoValore, des_esercizio }) => {
+  const rec = records.value.find(r => 
+    (docId && (r.dbId === docId || r.id === docId)) || 
+    (numRiga && String(r.num_riga) === String(numRiga)) || 
+    (des_esercizio && String(r.des_esercizio || '').trim() === String(des_esercizio).trim())
+  );
+  if (rec) {
+    rec['ins_week' + settimana] = nuovoValore;
+    rec.isDirty = true;
+    rec.timestamp_ute = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    console.log(`Correzione applicata a ${rec.des_esercizio} W${settimana}: "${nuovoValore}"`);
+  }
+};
+
+const gestisciSelezionaEsercizio = (segnalazione) => {
+  mostraDialogControlloQualita.value = false;
+  setTimeout(() => {
+    const rec = records.value.find(r => 
+      (segnalazione.docId && (r.dbId === segnalazione.docId || r.id === segnalazione.docId)) || 
+      (segnalazione.numRiga && String(r.num_riga) === String(segnalazione.numRiga)) || 
+      (segnalazione.des_esercizio && String(r.des_esercizio || '').trim() === String(segnalazione.des_esercizio).trim())
+    );
+    if (rec) {
+      const rows = document.querySelectorAll('tr, .v-data-table__tr');
+      for (const row of rows) {
+        if (row.textContent.includes(rec.des_esercizio) || (segnalazione.coordinata && row.textContent.includes(segnalazione.coordinata))) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          row.classList.add('evidenzia-esercizio-scroll');
+          setTimeout(() => row.classList.remove('evidenzia-esercizio-scroll'), 2600);
+          break;
+        }
+      }
+    }
+  }, 220);
+};
 
 // Local mappings for global settings
 const propostaBaseWeek2 = propostaBaseWeek2Global;
@@ -3894,5 +3976,25 @@ const esportaCSVLocale = () => {
 
 :deep(.v-input__details) {
   display: none !important;
+}
+
+@keyframes pulseGlowRow {
+  0% {
+    background-color: rgba(249, 115, 22, 0.4) !important;
+    outline: 2px solid rgba(249, 115, 22, 0.9);
+  }
+  50% {
+    background-color: rgba(249, 115, 22, 0.25) !important;
+    outline: 3px solid rgba(249, 115, 22, 1);
+  }
+  100% {
+    background-color: transparent !important;
+    outline: 2px solid transparent;
+  }
+}
+
+.evidenzia-esercizio-scroll {
+  animation: pulseGlowRow 2.5s ease-in-out forwards !important;
+  transition: all 0.3s ease;
 }
 </style>

@@ -354,6 +354,12 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           if (cur.peso && prev.peso && prev.peso > 0 && !isPercentuale) {
             const incrementoKg = Math.round((cur.peso - prev.peso) * 10) / 10;
             const incrementoPct = Math.round(((cur.peso - prev.peso) / prev.peso) * 100);
+            const hasPerLato = /\b(?:pl|p\.l\.|p\/l|x\s*lato|per\s*lato|a\s*lato|ciascun\s*lato)\b/i.test(cur.raw) || /\b(?:pl|p\.l\.|p\/l|x\s*lato|per\s*lato|a\s*lato|ciascun\s*lato)\b/i.test(prev.raw);
+
+            // Se è presente la notazione per lato (pl) ed è coerente con il peso dimezzato, non è un'anomalia
+            if (hasPerLato && (cur.peso / 2 <= prev.peso * 1.35 || prev.peso / 2 <= cur.peso * 1.35)) {
+              continue;
+            }
 
             // Refuso clamoroso (es. 12 -> 120 kg, incremento > 250%)
             if (incrementoPct >= 250) {
@@ -649,32 +655,37 @@ export const analizzaQualitaScheda = (records, options = {}) => {
 
         // Se il carico W1 della nuova scheda supera di oltre il 40% il massimo storico assoluto
         if (maxStoricoKg > 0 && w1.peso >= maxStoricoKg * 1.45 && w1.peso - maxStoricoKg >= (isManubri ? 6 : 15) && maxStoricoKg > 15) {
-          segnalazioni.push({
-            id: `${ex.id || ex.num_riga}_w1_incoerente_storico`,
-            coordinata,
-            giorno,
-            riga: rigaGiorno,
-            numRiga: ex.num_riga || '',
-            docId: ex.id || '',
-            des_esercizio: nomeEx,
-            des_settore: settore,
-            settimana: 1,
-            settimanaLabel: 'W1',
-            valoreOriginale: w1.raw,
-            caricoEstratto: w1.peso,
-            repsEstratte: w1.reps,
-            isCorpoLibero,
-            haSovraccarico: w1.hasZavorra,
-            prescrizione: w1.prescVal,
-            repsPreviste: w1.repsPresc,
-            seriePreviste: w1.seriePreviste,
-            livello: 'anomalia',
-            tipo: 'incoerenza_storico_recente',
-            titolo: `Carico W1 (${w1.peso}kg) superiore al record storico (${maxStoricoKg}kg)`,
-            spiegazione: `Inserito in W1 ${w1.peso} kg rispetto al record precedente di ${maxStoricoKg} kg in Scheda ${maxStoricoScheda}.`,
-            conseguenza: `Verificare se inteso come carico per lato vs carico totale.`,
-            correzioneConsigliata: `Controllare se il peso corretto era ${Math.round(w1.peso / 2)} kg per lato.`
-          });
+          const hasPerLatoNote = /\b(?:pl|p\.l\.|p\/l|x\s*lato|per\s*lato|a\s*lato|ciascun\s*lato)\b/i.test(w1.raw);
+          const isPerLatoCoerente = hasPerLatoNote && (w1.peso / 2 <= maxStoricoKg * 1.35);
+
+          if (!isPerLatoCoerente) {
+            segnalazioni.push({
+              id: `${ex.id || ex.num_riga}_w1_incoerente_storico`,
+              coordinata,
+              giorno,
+              riga: rigaGiorno,
+              numRiga: ex.num_riga || '',
+              docId: ex.id || '',
+              des_esercizio: nomeEx,
+              des_settore: settore,
+              settimana: 1,
+              settimanaLabel: 'W1',
+              valoreOriginale: w1.raw,
+              caricoEstratto: w1.peso,
+              repsEstratte: w1.reps,
+              isCorpoLibero,
+              haSovraccarico: w1.hasZavorra,
+              prescrizione: w1.prescVal,
+              repsPreviste: w1.repsPresc,
+              seriePreviste: w1.seriePreviste,
+              livello: 'anomalia',
+              tipo: 'incoerenza_storico_recente',
+              titolo: `Carico W1 (${w1.peso}kg) superiore al record storico (${maxStoricoKg}kg)`,
+              spiegazione: `Inserito in W1 ${w1.peso} kg rispetto al record precedente di ${maxStoricoKg} kg in Scheda ${maxStoricoScheda}.`,
+              conseguenza: `Verificare se inteso come carico per lato vs carico totale.`,
+              correzioneConsigliata: `Controllare se il peso corretto era ${Math.round(w1.peso / 2)} kg per lato.`
+            });
+          }
         }
       }
     }

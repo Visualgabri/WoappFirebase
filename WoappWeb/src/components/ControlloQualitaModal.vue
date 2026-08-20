@@ -227,19 +227,19 @@
           </v-btn>
         </div>
 
-        <!-- BANNER FORMATO STANDARD SUGGERITO (DISCRETO E NON ALLARMANTE) -->
-        <div
-          v-if="risultato.totaleFormatiColloquiali > 0"
-          class="format-tip-banner mb-3 px-3 py-2 d-flex align-center gap-2"
-        >
-          <v-icon size="16" color="#38bdf8" class="flex-shrink-0">mdi-lightbulb-outline</v-icon>
-          <div class="text-caption text-slate-300 leading-snug" style="font-size: 0.72rem;">
-            <span class="text-sky-300 font-weight-bold">Consiglio formato:</span> per una lettura ottimale in app, scrivi i carichi come <span class="text-amber-lighten-2 font-weight-bold">3,75 x 15r</span> e il corpo libero solo con le ripetizioni (es. <span class="text-amber-lighten-2 font-weight-bold">12r</span>).
-          </div>
-        </div>
-
         <!-- STATO 3: ELENCO CARD SEGNALAZIONI MOBILE FIRST -->
         <div v-else class="d-flex flex-column gap-3">
+          <!-- BANNER FORMATO STANDARD SUGGERITO (DISCRETO E NON ALLARMANTE) -->
+          <div
+            v-if="risultato.totaleFormatiColloquiali > 0"
+            class="format-tip-banner mb-1 px-3 py-2 d-flex align-center gap-2"
+          >
+            <v-icon size="16" color="#38bdf8" class="flex-shrink-0">mdi-lightbulb-outline</v-icon>
+            <div class="text-caption text-slate-300 leading-snug" style="font-size: 0.72rem;">
+              <span class="text-sky-300 font-weight-bold">Consiglio formato:</span> per una lettura ottimale in app, scrivi i carichi come <span class="text-amber-lighten-2 font-weight-bold">3,75 x 15r</span> e il corpo libero solo con le ripetizioni (es. <span class="text-amber-lighten-2 font-weight-bold">12r</span>).
+            </div>
+          </div>
+
           <div
             v-for="s in segnalazioniFiltrate"
             :key="s.id"

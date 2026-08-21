@@ -587,29 +587,25 @@ export const estraiRepsDaInput = (str, options = {}) => {
 };
 
 /**
- * Calcola l'Estimated 1RM (e1RM) con formula Brzycki smorzata per alte ripetizioni e penalità macchine/cavi.
+ * Calcola l'Estimated 1RM (e1RM) continuo, differenziabile e rigorosamente monotono.
+ * Formula Epley/Baechle universale: 1RM = peso * (1 + reps / 30).
+ * Garantisce: ∀ p > 0, r2 > r1 ⇒ e1rm(p, r2) > e1rm(p, r1).
  * @param {number} peso Carico in kg
  * @param {number} reps Ripetizioni
- * @param {boolean} [isCavoOMacchina=false]
+ * @param {boolean} [isCavoOMacchina=false] (mantenuto per retrocompatibilità di firma)
  * @returns {number} Massimale stimato
  */
 export const calcolaE1RMSmorzato = (peso, reps, isCavoOMacchina = false) => {
   if (!peso || peso <= 0) return 0;
   const r = reps > 0 ? reps : 1;
-  let repsEffettive = r;
-  if (r > 10) {
-    // Decadimento marcato oltre le 10 reps per riflettere la fatica lattacida reale
-    repsEffettive = 10 + (r - 10) * 1.8;
-  }
-  let e1rm = peso * (1 + repsEffettive / 30);
-  if (isCavoOMacchina && r > 8) {
-    e1rm *= 0.82; // Riduzione del 18% per macchine e cavi ad alte reps
-  }
-  return e1rm;
+  return peso * (1 + r / 30);
 };
+
+export const calcolaE1RM = calcolaE1RMSmorzato;
 
 /**
  * Calcola il peso target da un 1RM stimato per un dato numero di ripetizioni.
+ * Formula inversa esatta: peso = e1rm / (1 + targetReps / 30).
  * @param {number} e1rm
  * @param {number} targetReps
  * @param {boolean} [isCavoOMacchina=false]
@@ -618,16 +614,10 @@ export const calcolaE1RMSmorzato = (peso, reps, isCavoOMacchina = false) => {
 export const calcolaPesoDaE1RMSmorzato = (e1rm, targetReps, isCavoOMacchina = false) => {
   if (!e1rm || e1rm <= 0 || !targetReps || targetReps <= 0) return 0;
   const r = targetReps > 0 ? targetReps : 1;
-  let repsTargetEffettive = r;
-  if (r > 10) {
-    repsTargetEffettive = 10 + (r - 10) * 1.8;
-  }
-  let factor = 1 + repsTargetEffettive / 30;
-  if (isCavoOMacchina && r > 8) {
-    factor *= 0.82;
-  }
-  return e1rm / factor;
+  return e1rm / (1 + r / 30);
 };
+
+export const calcolaPesoDaE1RM = calcolaPesoDaE1RMSmorzato;
 
 /**
  * Calcola esattamente quante ripetizioni servono con un dato peso per eguagliare o superare un 1RM target.
@@ -641,31 +631,23 @@ export const calcolaRepsPerE1RMTarget = (peso, targetE1RM, isCavoOMacchina = fal
   if (!peso || peso <= 0 || !targetE1RM || targetE1RM <= 0) {
     return { repsEguaglia: 0, repsSupera: 0, e1rmEguaglia: 0, e1rmSupera: 0, isPossible: false };
   }
-  let repsEguaglia = null;
-  let repsSupera = null;
-
-  for (let r = 1; r <= maxRepsLimit; r++) {
-    const e1 = calcolaE1RMSmorzato(peso, r, isCavoOMacchina);
-    const roundedE1 = Math.round(e1 * 10) / 10;
-    const roundedTarget = Math.round(targetE1RM * 10) / 10;
-
-    if (repsEguaglia === null && (roundedE1 >= roundedTarget || e1 >= targetE1RM)) {
-      repsEguaglia = r;
-    }
-    if (repsSupera === null && (roundedE1 > roundedTarget || e1 > targetE1RM + 0.01)) {
-      repsSupera = r;
-      break;
-    }
+  
+  // Risoluzione analitica continua e rigorosa
+  // e1rm = peso * (1 + r / 30) >= targetE1RM  =>  r >= 30 * (targetE1RM / peso - 1)
+  const rawReps = 30 * ((targetE1RM / peso) - 1);
+  
+  let repsEguaglia = Math.max(1, Math.ceil(rawReps - 0.0001));
+  let repsSupera = Math.max(1, Math.floor(rawReps + 0.0001) + 1);
+  
+  if (repsSupera <= repsEguaglia) {
+    repsSupera = repsEguaglia + 1;
   }
-
-  if (repsEguaglia === null) repsEguaglia = maxRepsLimit + 1;
-  if (repsSupera === null) repsSupera = Math.max(repsEguaglia, maxRepsLimit + 1);
 
   return {
     repsEguaglia,
     repsSupera,
-    e1rmEguaglia: Math.round(calcolaE1RMSmorzato(peso, repsEguaglia, isCavoOMacchina) * 10) / 10,
-    e1rmSupera: Math.round(calcolaE1RMSmorzato(peso, repsSupera, isCavoOMacchina) * 10) / 10,
+    e1rmEguaglia: Math.round(calcolaE1RM(peso, repsEguaglia) * 10) / 10,
+    e1rmSupera: Math.round(calcolaE1RM(peso, repsSupera) * 10) / 10,
     isPossible: repsSupera <= maxRepsLimit
   };
 };
@@ -698,7 +680,7 @@ export const calcolaObiettivoBilanciato1RM = (pesoAttuale, targetE1RM, stepKg = 
     }
   }
 
-  const rawPesoAtMaxReps = calcolaPesoDaE1RMSmorzato(targetE1RM + 0.1, maxReps, isCavoOMacchina);
+  const rawPesoAtMaxReps = calcolaPesoDaE1RM(targetE1RM + 0.1, maxReps);
   const roundedP = Math.ceil(rawPesoAtMaxReps / step) * step;
   const finalP = Math.round(roundedP * 10) / 10;
   const calcFinal = calcolaRepsPerE1RMTarget(finalP, targetE1RM, isCavoOMacchina);
@@ -712,33 +694,152 @@ export const calcolaObiettivoBilanciato1RM = (pesoAttuale, targetE1RM, stepKg = 
 };
 
 /**
- * Calcola la tabella delle reps necessarie con diversi carichi per eguagliare e superare il record assoluto.
+ * Calcola la tabella delle reps necessarie con diversi carichi per eguagliare e superare il record assoluto,
+ * confrontando con le ripetizioni prescritte.
  * @param {number} pesoAttuale 
  * @param {number} targetE1RM 
  * @param {number} [stepKg=2.5] 
- * @param {boolean} [isCavoOMacchina=false] 
+ * @param {boolean} [isCavoOMacchina=false]
  * @param {number} [numPesi=3] 
- * @returns {Array<{ peso: number, isCaricoAttuale: boolean, stepIndex: number, repsEguaglia: number, repsSupera: number, e1rmSupera: number, isRealistico: boolean }>}
+ * @param {number} [targetRepsPrescritte=12]
+ * @returns {Array<{ peso: number, isCaricoAttuale: boolean, stepIndex: number, repsEguaglia: number, repsSupera: number, deltaRepsVsPrescritte: number, labelDisplay: string, e1rmSupera: number, isRealistico: boolean }>}
  */
-export const calcolaTabellaRepsRecordAssoluto = (pesoAttuale, targetE1RM, stepKg = 2.5, isCavoOMacchina = false, numPesi = 3) => {
+export const calcolaTabellaRepsRecordAssoluto = (pesoAttuale, targetE1RM, stepKg = 2.5, isCavoOMacchina = false, numPesi = 3, targetRepsPrescritte = 12) => {
   if (!targetE1RM || targetE1RM <= 0 || !pesoAttuale || pesoAttuale <= 0) return [];
   const step = stepKg > 0 ? stepKg : 2.5;
+  const targetReps = targetRepsPrescritte > 0 ? parseInt(targetRepsPrescritte, 10) : 12;
   const result = [];
 
   for (let i = 0; i < numPesi; i++) {
     const p = Math.round((pesoAttuale + (i * step)) * 100) / 100;
     const calc = calcolaRepsPerE1RMTarget(p, targetE1RM, isCavoOMacchina);
+    const deltaReps = calc.repsSupera - targetReps;
+    let labelDisplay = `${calc.repsSupera} reps`;
+    if (deltaReps > 0) {
+      labelDisplay = `${calc.repsSupera} reps (+${deltaReps} rispetto alle previste)`;
+    } else if (deltaReps === 0) {
+      labelDisplay = `${calc.repsSupera} reps (a target)`;
+    } else {
+      labelDisplay = `${calc.repsSupera} reps (${deltaReps} rispetto alle previste)`;
+    }
+
     result.push({
       peso: p,
       isCaricoAttuale: i === 0,
       stepIndex: i,
       repsEguaglia: calc.repsEguaglia,
       repsSupera: calc.repsSupera,
+      deltaRepsVsPrescritte: deltaReps,
+      labelDisplay,
       e1rmSupera: calc.e1rmSupera,
       isRealistico: calc.repsSupera <= 35
     });
   }
   return result;
+};
+
+/**
+ * Valuta in modo centralizzato e riutilizzabile se la situazione corrente rappresenta
+ * una reale "Opportunità PR".
+ * @param {Object} params
+ * @param {number} params.sett Settimana corrente (1..6)
+ * @param {boolean} params.ghostPRAttackAttivo Flag impostazioni utente
+ * @param {number} params.targetReps Reps prescritte
+ * @param {number} params.prTargetRepsWeight PR attuale a target reps
+ * @param {number} params.currentE1RM 1RM stimato corrente
+ * @param {number} params.max1RM Record 1RM storico assoluto
+ * @param {number} params.smartVal Carico Smart proposto
+ * @param {number} params.sfidanteVal Carico Sfidante proposto
+ * @param {number} params.stepKg Passo incrementale
+ * @param {boolean} params.isCorpoLiberoPuro
+ * @param {boolean} params.hasInfortunio
+ * @returns {{ isOpportunita: boolean, percentuale: number, motivo: string, sfidanteIsProtagonista: boolean, targetNuovoPRKg: number, targetRecordAssolutoKg: number, isMultiObjective: boolean }}
+ */
+export const valutaOpportunitaPR = ({
+  sett,
+  ghostPRAttackAttivo,
+  targetReps = 12,
+  prTargetRepsWeight = 0,
+  currentE1RM = 0,
+  max1RM = 0,
+  smartVal = 0,
+  sfidanteVal = 0,
+  stepKg = 2.5,
+  isCorpoLiberoPuro = false,
+  hasInfortunio = false
+}) => {
+  if (isCorpoLiberoPuro || hasInfortunio || !ghostPRAttackAttivo) {
+    return {
+      isOpportunita: false,
+      percentuale: 0,
+      motivo: '',
+      sfidanteIsProtagonista: false,
+      targetNuovoPRKg: 0,
+      targetRecordAssolutoKg: 0,
+      isMultiObjective: false
+    };
+  }
+
+  // Calcolo carichi necessari a target reps
+  const targetNuovoPRKg = prTargetRepsWeight > 0 
+    ? Math.round((prTargetRepsWeight + stepKg) * 10) / 10 
+    : (smartVal > 0 ? smartVal : stepKg);
+
+  let targetRecordAssolutoKg = targetNuovoPRKg;
+  if (max1RM > 0 && targetReps > 0) {
+    const rawTargetAbs = calcolaPesoDaE1RM(max1RM + 0.05, targetReps);
+    targetRecordAssolutoKg = Math.ceil(rawTargetAbs / stepKg) * stepKg;
+    targetRecordAssolutoKg = Math.round(targetRecordAssolutoKg * 10) / 10;
+  }
+
+  // Verifica multi-obiettivo: se il carico sfidante alle reps prescritte supera ENTRAMBI
+  const e1rmSfidanteTargetReps = (sfidanteVal > 0 && targetReps > 0) ? calcolaE1RM(sfidanteVal, targetReps) : 0;
+  const superaPR = sfidanteVal > prTargetRepsWeight;
+  const supera1RM = max1RM > 0 ? (e1rmSfidanteTargetReps > max1RM) : true;
+  const isMultiObjective = Boolean(superaPR && supera1RM && sfidanteVal > 0);
+
+  // Distanza dal record 1RM
+  let e1rmProximityPct = 0;
+  let diff1RMKg = 0;
+  if (max1RM > 0 && currentE1RM > 0) {
+    e1rmProximityPct = Math.min(100, Math.round((currentE1RM / max1RM) * 1000) / 10);
+    diff1RMKg = Math.max(0, Math.round((max1RM - currentE1RM) * 10) / 10);
+  } else if (max1RM === 0 && currentE1RM > 0) {
+    e1rmProximityPct = 100;
+  }
+
+  // Condizioni per essere considerata Opportunità PR e promuovere Sfidante:
+  // 1. Week 6 (picco del mesociclo)
+  // 2. Attacco record PR attivo
+  // 3. Prossimità al record elevata (≥ 85% o diff ≤ 3.5kg o sfidante raggiunge/supera il record a target reps)
+  // 4. Tentativo realistico (sfidanteVal <= smartVal + 2*stepKg)
+  const isW6 = sett === 6;
+  const isRecordVicino = e1rmProximityPct >= 85 || diff1RMKg <= (stepKg * 2) || sfidanteVal >= targetRecordAssolutoKg || sfidanteVal >= targetNuovoPRKg;
+  const isTentativoRealistico = sfidanteVal > 0 && (sfidanteVal <= (smartVal + (stepKg * 2.5)));
+
+  const isOpportunita = Boolean(isW6 && ghostPRAttackAttivo && isRecordVicino && isTentativoRealistico);
+
+  // Calcolo percentuale opportunità (tra 75% e 96%)
+  let percentuale = 85;
+  if (isOpportunita) {
+    if (e1rmProximityPct > 0) {
+      percentuale = Math.min(96, Math.max(78, Math.round(e1rmProximityPct * 0.95)));
+    } else {
+      percentuale = 89;
+    }
+  }
+
+  const motivo = 'Sei molto vicino al tuo miglior risultato. W6 è il momento ideale per provarci!';
+
+  return {
+    isOpportunita,
+    percentuale,
+    motivo,
+    sfidanteIsProtagonista: isOpportunita,
+    targetNuovoPRKg,
+    targetRecordAssolutoKg,
+    isMultiObjective
+  };
 };
 
 /**

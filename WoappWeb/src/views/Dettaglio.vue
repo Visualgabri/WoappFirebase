@@ -2796,22 +2796,22 @@
             </v-tab>
           </v-tabs>
           
-          <!-- Rigo 2: Subheader WEEK & REPS per Proposta Carico (esattamente come nella cronologia) -->
-          <div v-if="activeTabAnalisi === 0" class="mb-1.5 px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
+          <!-- Rigo 2: Subheader WEEK & REPS per Proposta Carico -->
+          <div v-if="activeTabAnalisi === 0" class="mb-2 px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
             <v-chip size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))', fontSize: '0.65rem', height: '20px', left: '12px' }">
               WEEK {{ aiutoWeek }}
             </v-chip>
-            <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.85rem', letterSpacing: '0.02em' }">
+            <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.90rem', letterSpacing: '0.02em' }">
               {{ String(targetRepsAttive).replace(/r$/i, '') }} REPS
             </span>
             <v-chip
               v-if="ghostPRAttackAttivo"
               size="x-small"
-              class="font-weight-black text-purple-lighten-2 px-2 position-absolute d-none d-sm-inline-flex"
+              class="font-weight-black text-purple-lighten-2 px-1.5 position-absolute"
               variant="outlined"
-              style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.45) !important; font-size: 0.50rem; height: 20px; right: 12px; letter-spacing: 0.02em;"
+              style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.45) !important; font-size: 0.52rem; height: 20px; right: 12px; letter-spacing: 0.02em;"
             >
-              🎯 ATTACCO RECORD PR
+              🎯 ATTACCO PR
             </v-chip>
           </div>
 
@@ -3090,9 +3090,9 @@
             </div>
 
             <template v-else>
-              <!-- 2. BLOCCO RECORD IN ALTO (2 COLONNE: PR A STESSE REPS + e1RM MASSIMO) -->
-              <div v-if="recordOverviewData" class="mb-2 text-left">
-                <div class="d-flex gap-1.5 w-100">
+              <!-- 2. BLOCCO RECORD IN ALTO (2 COLONNE: PR A STESSE REPS + e1RM ATTUALE) -->
+              <div v-if="recordOverviewData" class="mb-2.5 text-left">
+                <div class="d-flex gap-2 w-100 align-stretch">
                   <!-- Colonna 1: PR a Stesse Reps -->
                   <div 
                     class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer position-relative select-none"
@@ -3115,12 +3115,12 @@
                     @touchend="handlePRTouchEnd"
                   >
                     <div>
-                      <div class="d-flex align-center justify-space-between mb-0.5 gap-1">
+                      <div class="d-flex align-center justify-space-between mb-1 gap-1">
                         <div class="d-flex align-center gap-1 text-truncate">
                           <span style="font-size: 0.75rem; line-height: 1;">🏆</span>
                           <span 
                             class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1"
-                            style="font-size: 0.44rem; letter-spacing: 0.02em;"
+                            style="font-size: 0.52rem; letter-spacing: 0.02em;"
                           >
                             PR A {{ String(getRepsPerWeek(aiutoWeek)).replace(/r$/i, '') }} REPS
                           </span>
@@ -3128,7 +3128,7 @@
                         <span 
                           v-if="recordOverviewData.bestReal.isCurrentPR" 
                           class="font-weight-bold text-amber-950 bg-amber-400 rounded text-truncate"
-                          style="font-size: 0.38rem; letter-spacing: 0.01em; padding: 1px 4px;"
+                          style="font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 5px;"
                         >
                           NUOVO PR
                         </span>
@@ -3137,26 +3137,26 @@
                         <span 
                           class="font-weight-black text-truncate" 
                           :class="recordOverviewData.bestReal.isCurrentPR ? 'text-amber-lighten-2' : 'text-white'"
-                          style="font-size: 1.05rem; line-height: 1.15;"
+                          style="font-size: 1.18rem; line-height: 1.15;"
                         >
                           {{ recordOverviewData.bestReal.weightDisplay }}
                         </span>
                         <span 
                           v-if="recordOverviewData.bestReal.repsDisplay"
                           class="text-super-caption font-weight-medium ml-1 text-truncate"
-                          :class="recordOverviewData.bestReal.isCurrentPR ? 'text-amber-lighten-3' : 'text-red-lighten-3'"
-                          style="font-size: 0.54rem;"
+                          :class="recordOverviewData.bestReal.isCurrentPR ? 'text-amber-lighten-3' : 'text-slate-300'"
+                          style="font-size: 0.60rem;"
                         >
                           {{ recordOverviewData.bestReal.repsDisplay }}
                         </span>
                       </div>
                     </div>
                     
-                    <div>
+                    <div class="mt-1">
                       <div 
-                        class="mt-0.5 text-super-caption font-weight-medium text-truncate" 
+                        class="text-super-caption font-weight-medium text-truncate" 
                         :class="recordOverviewData.bestReal.isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
-                        style="font-size: 0.41rem; line-height: 1.2;"
+                        style="font-size: 0.50rem; line-height: 1.2;"
                       >
                         {{ recordOverviewData.bestReal.provenienzaSenzaCoppa }}
                       </div>
@@ -3165,9 +3165,9 @@
                       <div 
                         v-if="recordOverviewData.bestReal.sottoPRText" 
                         class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-regular text-truncate d-flex align-center gap-0.5" 
-                        style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;"
+                        style="font-size: 0.48rem; line-height: 1.1;"
                       >
-                        <v-icon size="9" color="orange-lighten-2">mdi-trending-down</v-icon>
+                        <v-icon size="10" color="orange-lighten-2">mdi-trending-down</v-icon>
                         <span class="text-truncate">{{ recordOverviewData.bestReal.sottoPRText }}</span>
                       </div>
                     </div>
@@ -3189,50 +3189,49 @@
                     @click="recordOverviewData.bestE1RM.id && vaiADettaglioStorico(recordOverviewData.bestE1RM.id)"
                   >
                     <div>
-                      <div class="d-flex align-center justify-space-between mb-0.5 gap-1">
+                      <div class="d-flex align-center justify-space-between mb-1 gap-1">
                         <div class="d-flex align-center gap-1 text-truncate">
-                          <v-icon color="cyan-lighten-2" size="12">{{ recordOverviewData.isCorpoLiberoPuro ? 'mdi-counter' : 'mdi-chart-line' }}</v-icon>
-                          <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.44rem; letter-spacing: 0.02em;">
+                          <v-icon color="cyan-lighten-2" size="13">{{ recordOverviewData.isCorpoLiberoPuro ? 'mdi-counter' : 'mdi-chart-line' }}</v-icon>
+                          <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.02em;">
                             {{ recordOverviewData.isCorpoLiberoPuro ? 'MAX REPS STORICO' : '1RM ATTUALE' }}
                           </span>
                         </div>
                         <span 
                           v-if="recordOverviewData.bestE1RM.isNewPeak"
                           class="font-weight-bold text-cyan-950 bg-cyan-300 rounded"
-                          style="font-size: 0.38rem; letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;"
+                          style="font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 5px; white-space: nowrap;"
                         >
-                          👑 NUOVO RECORD
+                          👑 RECORD
                         </span>
                         <span 
                           v-else-if="recordOverviewData.bestE1RM.calcoloBaseShort"
                           class="font-weight-medium text-cyan-200 rounded"
-                          style="font-size: 0.38rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;"
+                          style="font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;"
                         >
                           {{ recordOverviewData.bestE1RM.calcoloBaseShort }}
                         </span>
                       </div>
-                      <!-- 1RM Attuale o Max Reps in GRANDE -->
-                      <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.05rem; line-height: 1.15;">
+                      <!-- 1RM Attuale in GRANDE -->
+                      <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
                         {{ recordOverviewData.bestE1RM.display }}
                       </div>
                     </div>
 
-                    <div>
-                      <!-- Max Storico & Delta in PICCOLO sotto -->
-                      <div v-if="recordOverviewData.bestE1RM.isNewPeak" class="mt-0.5 text-super-caption font-weight-medium text-cyan-accent-2" style="font-size: 0.41rem; line-height: 1.2; letter-spacing: -0.01em;">
-                        {{ recordOverviewData.isCorpoLiberoPuro ? (recordOverviewData.bestE1RM.maxDeltaText || ('👑 Record: ' + recordOverviewData.bestE1RM.display + ' • W' + (recordOverviewData.bestE1RM.week || aiutoWeek))) : ('👑 Record assoluto: ' + recordOverviewData.bestE1RM.display + ' • W' + (recordOverviewData.bestE1RM.week || aiutoWeek)) }}
+                    <div class="mt-1">
+                      <div v-if="recordOverviewData.bestE1RM.isNewPeak" class="text-super-caption font-weight-medium text-cyan-accent-2" style="font-size: 0.50rem; line-height: 1.2;">
+                        {{ recordOverviewData.isCorpoLiberoPuro ? (recordOverviewData.bestE1RM.maxDeltaText || ('👑 Record: ' + recordOverviewData.bestE1RM.display + ' • W' + (recordOverviewData.bestE1RM.week || aiutoWeek))) : ('👑 Record: ' + recordOverviewData.bestE1RM.display + ' • questa scheda') }}
                       </div>
                       <div v-else>
                         <div 
-                          class="mt-0.5 text-super-caption text-cyan-lighten-3 font-weight-regular text-truncate d-flex align-center gap-0.5" 
-                          style="font-size: 0.42rem; line-height: 1.1; letter-spacing: -0.01em;"
+                          class="text-super-caption text-cyan-lighten-3 font-weight-regular text-truncate d-flex align-center gap-0.5" 
+                          style="font-size: 0.50rem; line-height: 1.1;"
                         >
                           <span class="text-truncate">{{ recordOverviewData.bestE1RM.maxDeltaText }}</span>
                         </div>
 
                         <!-- Progress Bar di Prossimità al Picco Assoluto con etichette -->
                         <div v-if="recordOverviewData.bestE1RM.e1rmProximityPct" class="mt-1">
-                          <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.38rem; line-height: 1;">
+                          <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.45rem; line-height: 1;">
                             <span>{{ recordOverviewData.bestE1RM.e1rmProximityPct }}%</span>
                             <span v-if="recordOverviewData.bestE1RM.maxDeltaKg">-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg</span>
                           </div>
@@ -3252,269 +3251,271 @@
                 </div>
               </div>
 
-              <!-- 3. STRATEGIE (SAFE / SMART / SFIDANTE) - Layout Dinamico con Sfidante Protagonista in W6 / Attacco PR -->
-              <div v-if="strategieAlternativeCards.length > 0" class="mb-2 text-left">
-                <div class="d-flex gap-1.5 w-100 align-stretch">
-                  <div 
-                    v-for="card in strategieAlternativeCards" 
-                    :key="card.tipo" 
-                    class="flex-grow-1"
-                    :style="{
-                      flex: (card.isProtagonista && card.tipo === 'sfidante') ? '1.55 1 0%' : (card.isConsigliato ? '1.1 1 0%' : '0.72 1 0%'),
-                      minWidth: '0'
-                    }"
-                  >
-                    <v-card 
-                      class="pa-1.5 pa-sm-2 rounded-xl border d-flex flex-column justify-space-between fill-height text-center position-relative transition-all overflow-hidden"
+              <!-- 3. STRATEGIE DI CARICO (GERARCHIA DINAMICA: CARD CONSIGLIATA IN EVIDENZA + 2 CARD SECONDARIE SOTTO) -->
+              <div v-if="strategieAlternativeCards.length > 0" class="mb-2.5 text-left">
+                <!-- A. CARD PRINCIPALE CONSIGLIATA DALL'ALGORITMO -->
+                <v-card 
+                  v-if="strategiaConsigliataCard"
+                  class="pa-3 rounded-2xl border mb-2 text-center position-relative transition-all overflow-hidden"
+                  :style="{
+                    borderColor: (strategiaConsigliataCard.tipo === 'sfidante')
+                      ? 'rgba(251, 191, 36, 0.95) !important'
+                      : ((strategiaConsigliataCard.tipo === 'safe')
+                        ? 'rgba(96, 165, 250, 0.85) !important'
+                        : 'rgba(74, 222, 128, 0.85) !important'),
+                    background: (strategiaConsigliataCard.tipo === 'sfidante')
+                      ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%) !important'
+                      : ((strategiaConsigliataCard.tipo === 'safe')
+                        ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%) !important'
+                        : 'linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%) !important'),
+                    boxShadow: (strategiaConsigliataCard.tipo === 'sfidante')
+                      ? '0 0 24px rgba(234, 179, 8, 0.28), 0 4px 16px rgba(0, 0, 0, 0.4)'
+                      : ((strategiaConsigliataCard.tipo === 'safe')
+                        ? '0 0 20px rgba(59, 130, 246, 0.20), 0 4px 16px rgba(0, 0, 0, 0.4)'
+                        : '0 0 20px rgba(74, 222, 128, 0.22), 0 4px 16px rgba(0, 0, 0, 0.4)')
+                  }"
+                  elevation="0"
+                >
+                  <!-- Badge Consigliato -->
+                  <div class="mb-1.5 d-flex justify-center">
+                    <span 
+                      v-if="strategiaConsigliataCard.tipo === 'sfidante' && strategiaConsigliataCard.isProtagonista"
+                      class="font-weight-black uppercase px-2.5 py-0.5 rounded-full text-amber-950 bg-amber-400 text-no-wrap" 
+                      style="font-size: 0.52rem; letter-spacing: 0.04em;"
+                    >
+                      🎯 CONSIGLIATO • ATTACCO PR
+                    </span>
+                    <span 
+                      v-else
+                      class="font-weight-black uppercase px-2 py-0.5 rounded-full text-white text-no-wrap" 
                       :style="{
-                        borderColor: (card.isProtagonista && card.tipo === 'sfidante')
-                          ? 'rgba(251, 191, 36, 0.95) !important'
-                          : (card.isConsigliato 
-                            ? 'rgba(74, 222, 128, 0.85) !important' 
-                            : (card.tipo === 'sfidante' ? 'rgba(249, 115, 22, 0.35) !important' : 'rgba(59, 130, 246, 0.35) !important')),
-                        background: (card.isProtagonista && card.tipo === 'sfidante')
-                          ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(245, 158, 11, 0.03) 100%) !important'
-                          : (card.isConsigliato 
-                            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.04) 100%) !important' 
-                            : (card.tipo === 'sfidante' ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(249, 115, 22, 0.02) 100%) !important' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.02) 100%) !important')),
-                        boxShadow: (card.isProtagonista && card.tipo === 'sfidante')
-                          ? '0 0 20px rgba(234, 179, 8, 0.32), 0 4px 16px rgba(0, 0, 0, 0.3)'
-                          : (card.isConsigliato ? '0 4px 16px rgba(74, 222, 128, 0.20)' : 'none'),
-                        transform: (card.isProtagonista || (card.isConsigliato && !opportunitaPRData?.sfidanteIsProtagonista)) ? 'scale(1.02)' : 'none',
-                        zIndex: card.isProtagonista ? 3 : (card.isConsigliato ? 2 : 1)
+                        background: (strategiaConsigliataCard.tipo === 'sfidante') ? '#d97706' : ((strategiaConsigliataCard.tipo === 'safe') ? '#2563eb' : '#15803d'),
+                        fontSize: '0.52rem',
+                        letterSpacing: '0.04em'
+                      }"
+                    >
+                      ✓ CONSIGLIATO
+                    </span>
+                  </div>
+
+                  <!-- Nome Strategia -->
+                  <div class="mb-2">
+                    <span 
+                      class="font-weight-black uppercase"
+                      :class="(strategiaConsigliataCard.tipo === 'sfidante') ? 'text-amber-accent-2' : ((strategiaConsigliataCard.tipo === 'safe') ? 'text-blue-lighten-2' : 'text-green-accent-3')"
+                      style="font-size: 0.72rem; letter-spacing: 0.04em;"
+                    >
+                      {{ strategiaConsigliataCard.icon }} {{ strategiaConsigliataCard.nome }}
+                    </span>
+                  </div>
+
+                  <!-- CONTENUTO STRATEGIA CONSIGLIATA -->
+                  <!-- Caso 1: SFIDANTE con due bersagli distinti (PR Reps + Record 1RM) -->
+                  <div 
+                    v-if="strategiaConsigliataCard.tipo === 'sfidante' && strategiaConsigliataCard.targetRecordAssolutoKg && strategiaConsigliataCard.targetRecordAssolutoKg > strategiaConsigliataCard.sfidanteVal"
+                    class="d-flex flex-column gap-1.5 my-1"
+                    @click.stop="apriDettaglioSfidantePR(strategiaConsigliataCard.prDetail)"
+                  >
+                    <!-- Bersaglio 1: PR Reps -->
+                    <div class="pa-2 rounded-xl border bg-slate-900/90 text-left cursor-pointer" style="border-color: rgba(245, 158, 11, 0.45) !important;">
+                      <div class="d-flex align-center justify-space-between">
+                        <div>
+                          <span class="font-weight-black text-amber-accent-2" style="font-size: 1.15rem; line-height: 1.1;">
+                            {{ formatWeight(strategiaConsigliataCard.sfidanteVal) }} kg
+                          </span>
+                        </div>
+                        <span class="font-weight-bold text-amber-lighten-2 px-2 py-0.5 rounded bg-amber-500/20 text-no-wrap" style="font-size: 0.55rem;">
+                          🏆 PR {{ strategiaConsigliataCard.targetReps }}r
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Bersaglio 2: Record 1RM -->
+                    <div class="pa-2 rounded-xl border bg-slate-900/90 text-left cursor-pointer" style="border-color: rgba(6, 182, 212, 0.45) !important;">
+                      <div class="d-flex align-center justify-space-between">
+                        <div>
+                          <span class="font-weight-black text-cyan-accent-2" style="font-size: 1.15rem; line-height: 1.1;">
+                            {{ formatWeight(strategiaConsigliataCard.targetRecordAssolutoKg) }} kg
+                          </span>
+                        </div>
+                        <span class="font-weight-bold text-cyan-lighten-2 px-2 py-0.5 rounded bg-cyan-500/20 text-no-wrap" style="font-size: 0.55rem;">
+                          👑 1RM
+                        </span>
+                      </div>
+                      <!-- Alternativa reps se presente -->
+                      <div v-if="strategiaConsigliataCard.altRepsText" class="text-super-caption text-slate-400 mt-1 font-weight-regular" style="font-size: 0.52rem;">
+                        ({{ strategiaConsigliataCard.altRepsText }})
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Caso 2: SFIDANTE Multi-Objective (singolo carico per PR e 1RM) -->
+                  <div 
+                    v-else-if="strategiaConsigliataCard.tipo === 'sfidante' && strategiaConsigliataCard.isMultiObjective"
+                    class="pa-2.5 rounded-xl border bg-slate-900/90 my-1 cursor-pointer text-center"
+                    style="border-color: rgba(245, 158, 11, 0.45) !important;"
+                    @click.stop="apriDettaglioSfidantePR(strategiaConsigliataCard.prDetail)"
+                  >
+                    <div class="font-weight-black text-amber-accent-2" style="font-size: 1.35rem; line-height: 1.15;">
+                      {{ formatWeight(strategiaConsigliataCard.sfidanteVal) }} kg
+                    </div>
+                    <div class="font-weight-bold text-amber-lighten-2 mt-1 text-no-wrap" style="font-size: 0.55rem;">
+                      🏆 PR {{ strategiaConsigliataCard.targetReps }}r + 👑 1RM
+                    </div>
+                    <div v-if="strategiaConsigliataCard.altRepsText" class="text-super-caption text-slate-400 mt-0.5" style="font-size: 0.50rem;">
+                      ({{ strategiaConsigliataCard.altRepsText }})
+                    </div>
+                  </div>
+
+                  <!-- Caso 3: STANDARD (SMART, SAFE o SFIDANTE Singolo Target) -->
+                  <div v-else class="my-1.5">
+                    <div 
+                      class="font-weight-black"
+                      :class="(strategiaConsigliataCard.tipo === 'sfidante') ? 'text-amber-accent-2' : ((strategiaConsigliataCard.tipo === 'safe') ? 'text-blue-lighten-2' : 'text-green-accent-3')"
+                      style="font-size: 1.45rem; line-height: 1.15;"
+                    >
+                      {{ formatCaricoConReps(strategiaConsigliataCard.valoreDisplay || strategiaConsigliataCard.pesoToApply, strategiaConsigliataCard.targetReps) }}
+                    </div>
+
+                    <!-- Sottotitolo -->
+                    <div class="text-super-caption text-slate-300 font-weight-medium mt-1" style="font-size: 0.58rem;">
+                      {{ strategiaConsigliataCard.sottotitolo }}
+                    </div>
+
+                    <!-- Pillola incremento meso se presente -->
+                    <div v-if="strategiaConsigliataCard.mesoPillText" class="mt-1 d-flex justify-center">
+                      <div 
+                        class="d-inline-flex align-center justify-center px-2 py-0.5 rounded-lg border font-weight-bold text-green-accent-3 text-no-wrap"
+                        style="background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(74, 222, 128, 0.45) !important; font-size: 0.50rem; letter-spacing: 0.01em;"
+                      >
+                        ↗ {{ strategiaConsigliataCard.mesoPillText }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Footer e Metriche Card Consigliata -->
+                  <div class="pt-2 mt-2 border-top" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <div class="d-flex align-center justify-space-between text-super-caption px-1 mb-2" style="font-size: 0.52rem;">
+                      <span class="text-slate-400 font-weight-medium">
+                        {{ (strategiaConsigliataCard.tipo === 'sfidante') ? (strategiaConsigliataCard.diffVsSmartText || '+2,5k vs Smart') : (strategiaConsigliataCard.sottotitolo || 'Progressione') }}
+                      </span>
+                      <span 
+                        class="font-weight-bold"
+                        :class="(strategiaConsigliataCard.tipo === 'sfidante') ? 'text-orange-lighten-2' : ((strategiaConsigliataCard.tipo === 'safe') ? 'text-blue-lighten-2' : 'text-green-accent-3')"
+                      >
+                        {{ strategiaConsigliataCard.metricLabel }} {{ strategiaConsigliataCard.metricValue }}
+                      </span>
+                    </div>
+
+                    <!-- Pulsanti Applica Card Consigliata -->
+                    <div v-if="strategiaConsigliataCard.tipo === 'sfidante' && strategiaConsigliataCard.recordAssolutoPesoToApply" class="d-flex gap-2">
+                      <v-btn
+                        size="small"
+                        variant="flat"
+                        class="font-weight-black text-amber-950 text-none flex-grow-1 rounded-xl px-2"
+                        style="font-size: 0.65rem; height: 32px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;"
+                        @click="applicaPropostaCaricoStorico(strategiaConsigliataCard.pesoToApply)"
+                      >
+                        Applica {{ strategiaConsigliataCard.pesoToApply }} kg
+                      </v-btn>
+                      <v-btn
+                        size="small"
+                        variant="flat"
+                        class="font-weight-black text-cyan-950 text-none flex-grow-1 rounded-xl px-2"
+                        style="font-size: 0.65rem; height: 32px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;"
+                        @click="applicaPropostaCaricoStorico(strategiaConsigliataCard.recordAssolutoPesoToApply)"
+                      >
+                        👑 {{ strategiaConsigliataCard.recordAssolutoPesoToApply }} kg
+                      </v-btn>
+                    </div>
+
+                    <v-btn
+                      v-else
+                      size="small"
+                      variant="flat"
+                      class="font-weight-black text-none w-100 rounded-xl"
+                      :style="{
+                        background: (strategiaConsigliataCard.tipo === 'sfidante')
+                          ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important'
+                          : ((strategiaConsigliataCard.tipo === 'safe')
+                            ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important'
+                            : 'linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important'),
+                        color: (strategiaConsigliataCard.tipo === 'sfidante') ? '#451a03 !important' : '#ffffff !important',
+                        fontSize: '0.70rem',
+                        height: '32px'
+                      }"
+                      @click="applicaPropostaCaricoStorico(strategiaConsigliataCard.pesoToApply)"
+                    >
+                      <v-icon start size="14" class="mr-1">
+                        {{ (strategiaConsigliataCard.tipo === 'sfidante') ? 'mdi-rocket-launch' : 'mdi-check' }}
+                      </v-icon>
+                      Applica {{ formatWeight(strategiaConsigliataCard.pesoToApply) }} kg
+                    </v-btn>
+                  </div>
+                </v-card>
+
+                <!-- B. DUE CARD SECONDARIE (NON CONSIGLIATE, AFFIANCATE IN 2 COLONNE COMPATTE) -->
+                <div v-if="strategieSecondarieCards.length > 0" class="d-flex gap-2 w-100 align-stretch">
+                  <div 
+                    v-for="card in strategieSecondarieCards" 
+                    :key="card.tipo"
+                    class="flex-grow-1"
+                    style="flex: 1 1 0%; min-width: 0;"
+                  >
+                    <v-card
+                      class="pa-2.5 rounded-xl border d-flex flex-column justify-space-between fill-height text-center position-relative overflow-hidden"
+                      :style="{
+                        borderColor: (card.tipo === 'sfidante') 
+                          ? 'rgba(249, 115, 22, 0.35) !important' 
+                          : ((card.tipo === 'safe') ? 'rgba(59, 130, 246, 0.35) !important' : 'rgba(74, 222, 128, 0.35) !important'),
+                        background: (card.tipo === 'sfidante')
+                          ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(15, 23, 42, 0.9) 100%) !important'
+                          : ((card.tipo === 'safe')
+                            ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(15, 23, 42, 0.9) 100%) !important'
+                            : 'linear-gradient(135deg, rgba(74, 222, 128, 0.08) 0%, rgba(15, 23, 42, 0.9) 100%) !important')
                       }"
                       elevation="0"
                     >
-                      <!-- Badge Sfidante Protagonista / Consigliato -->
-                      <div v-if="card.isProtagonista && card.tipo === 'sfidante'" class="mb-1 d-flex justify-center">
-                        <span 
-                          class="font-weight-black uppercase px-2 py-0.2 rounded text-amber-950 bg-amber-400 text-no-wrap" 
-                          style="font-size: 0.44rem; letter-spacing: 0.03em; display: inline-block;"
-                        >
-                          🎯 CONSIGLIATO • ATTACCO PR
-                        </span>
-                      </div>
-                      <div v-else-if="card.isConsigliato" class="mb-1 d-flex justify-center">
-                        <span 
-                          class="font-weight-black uppercase px-1.5 py-0.2 rounded text-white text-no-wrap" 
-                          style="background: #15803d; font-size: 0.44rem; letter-spacing: 0.03em; display: inline-block;"
-                        >
-                          ✓ CONSIGLIATO
-                        </span>
-                      </div>
-
-                      <!-- Intestazione Card -->
                       <div>
-                        <div class="d-flex align-center justify-center gap-1">
+                        <!-- Titolo Card Secondaria -->
+                        <div class="mb-1">
                           <span 
                             class="font-weight-bold uppercase text-truncate"
-                            :class="(card.isProtagonista && card.tipo === 'sfidante') ? 'text-amber-accent-2' : (card.isConsigliato ? 'text-green-accent-3' : (card.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-2'))"
-                            style="font-size: 0.52rem; letter-spacing: 0.02em;"
+                            :class="(card.tipo === 'sfidante') ? 'text-orange-lighten-2' : ((card.tipo === 'safe') ? 'text-blue-lighten-2' : 'text-green-lighten-2')"
+                            style="font-size: 0.62rem; letter-spacing: 0.02em;"
                           >
                             {{ card.icon }} {{ card.nome }}
                           </span>
                         </div>
 
-                        <!-- 1. SFIDANTE PROTAGONISTA (Priorità assoluta reps prescritte) -->
-                        <template v-if="card.isProtagonista && card.tipo === 'sfidante'">
-                          <!-- Caso A: Multi-Obiettivo (un solo carico a reps prescritte soddisfa sia PR reps sia Record 1RM) -->
-                          <div 
-                            v-if="card.isMultiObjective" 
-                            class="mt-1 pa-1 rounded-lg border bg-slate-900/90 cursor-pointer text-center"
-                            style="border-color: rgba(245, 158, 11, 0.45) !important;"
-                            @click.stop="apriDettaglioSfidantePR(card.prDetail)"
-                          >
-                            <div class="font-weight-black text-amber-accent-2 text-no-wrap" style="font-size: 0.86rem; line-height: 1.15;">
-                              {{ formatWeight(card.sfidanteVal) }} kg <span class="font-weight-medium" style="font-size: 0.68rem;">× {{ card.targetReps }}r</span>
-                            </div>
-                            <div class="text-super-caption font-weight-medium text-amber-lighten-2 text-no-wrap mt-0.5" style="font-size: 0.42rem; line-height: 1.1;">
-                              🏆 PR {{ card.targetReps }}r + 👑 1RM
-                            </div>
-                            <div v-if="card.altRepsText" class="text-super-caption font-weight-regular text-slate-400 text-no-wrap mt-0.5" style="font-size: 0.38rem; line-height: 1.05;">
-                              ({{ card.altRepsText }})
-                            </div>
-                          </div>
+                        <!-- Valore Carico (Regola reps: se coincidenti con prescrizione, mostra solo il carico) -->
+                        <div 
+                          class="font-weight-black text-white my-0.5 text-truncate"
+                          style="font-size: 0.95rem; line-height: 1.15;"
+                        >
+                          {{ formatCaricoConReps(card.valoreDisplay || card.pesoToApply, card.targetReps) }}
+                        </div>
 
-                          <!-- Caso B: Due Obiettivi Separati su Reps Prescritte (1. PR Reps, 2. Record 1RM) -->
-                          <div 
-                            v-else-if="card.targetRecordAssolutoKg && card.targetRecordAssolutoKg > card.sfidanteVal" 
-                            class="mt-1 d-flex flex-column gap-1 w-100 cursor-pointer"
-                            @click.stop="apriDettaglioSfidantePR(card.prDetail)"
-                          >
-                            <!-- 1. Principale Volume: Carico Sfidante x Reps Prescritte -->
-                            <div class="pa-1 rounded-lg border bg-slate-900/90 text-left" style="border-color: rgba(245, 158, 11, 0.45) !important;">
-                              <div class="d-flex align-baseline justify-space-between">
-                                <span class="font-weight-black text-amber-accent-2 text-no-wrap" style="font-size: 0.78rem; line-height: 1.15;">
-                                  {{ formatWeight(card.sfidanteVal) }} kg <span class="font-weight-medium" style="font-size: 0.62rem;">× {{ card.targetReps }}r</span>
-                                </span>
-                                <span class="text-super-caption font-weight-bold text-amber-lighten-3 text-no-wrap ml-1" style="font-size: 0.42rem; line-height: 1.1;">
-                                  🏆 PR {{ card.targetReps }}r
-                                </span>
-                              </div>
-                            </div>
-
-                            <!-- 2. Principale 1RM: Carico Necessario x Reps Prescritte -->
-                            <div class="pa-1 rounded-lg border bg-slate-900/90 text-left" style="border-color: rgba(6, 182, 212, 0.45) !important;">
-                              <div class="d-flex align-baseline justify-space-between">
-                                <span class="font-weight-black text-cyan-accent-2 text-no-wrap" style="font-size: 0.78rem; line-height: 1.15;">
-                                  {{ formatWeight(card.targetRecordAssolutoKg) }} kg <span class="font-weight-medium" style="font-size: 0.62rem;">× {{ card.targetReps }}r</span>
-                                </span>
-                                <span class="text-super-caption font-weight-bold text-cyan-lighten-3 text-no-wrap ml-1" style="font-size: 0.42rem; line-height: 1.1;">
-                                  👑 1RM
-                                </span>
-                              </div>
-                              <!-- Secondario: alternativa carico Sfidante con più reps -->
-                              <div v-if="card.altRepsText" class="text-super-caption font-weight-regular text-slate-400 text-no-wrap mt-0.5" style="font-size: 0.38rem; line-height: 1.05;">
-                                ({{ card.altRepsText }})
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Caso C: Fallback Volume / Singolo target -->
-                          <div 
-                            v-else 
-                            class="mt-1 pa-1 rounded-lg border bg-slate-900/90 cursor-pointer text-center"
-                            style="border-color: rgba(245, 158, 11, 0.40) !important;"
-                            @click.stop="apriDettaglioSfidantePR(card.prDetail)"
-                          >
-                            <div class="font-weight-black text-amber-accent-2 text-no-wrap" style="font-size: 0.86rem; line-height: 1.15;">
-                              {{ card.valoreDisplay }}
-                            </div>
-                            <div class="text-super-caption font-weight-medium text-amber-lighten-2 text-no-wrap mt-0.5" style="font-size: 0.42rem; line-height: 1.1;">
-                              {{ card.sottotitolo || `🏆 PR ${card.targetReps}r` }}
-                            </div>
-                          </div>
-                        </template>
-
-                        <!-- 2. CARD STANDARD (SAFE / SMART / SFIDANTE NON HERO) -->
-                        <template v-else>
-                          <!-- Valore Peso x Reps -->
-                          <div 
-                            class="font-weight-black text-white mt-0.5 text-no-wrap" 
-                            :class="card.isConsigliato ? 'text-green-accent-3' : (card.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-white')"
-                            :style="{ fontSize: card.valoreDisplay && card.valoreDisplay.length > 8 ? '0.70rem' : (card.isConsigliato ? '0.96rem' : '0.76rem'), lineHeight: '1.15' }"
-                          >
-                            {{ card.valoreDisplay }}
-                          </div>
-
-                          <!-- Sottotitolo Dinamico Sintetico -->
-                          <div class="text-super-caption text-slate-400 font-weight-regular mt-0.5 text-center d-flex align-center justify-center" style="font-size: 0.38rem; line-height: 1.15; min-height: 16px; word-break: break-word;">
-                            {{ card.sottotitolo }}
-                          </div>
-
-                          <!-- Pillola Incremento (Esclusiva della card Consigliata non protagonista) -->
-                          <div v-if="card.isConsigliato && card.mesoPillText" class="mt-1 d-flex justify-center">
-                            <div 
-                              class="d-inline-flex align-center justify-center px-1 py-0.5 rounded-lg border font-weight-bold text-green-accent-3 text-no-wrap"
-                              style="background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(74, 222, 128, 0.45) !important; font-size: 0.42rem; letter-spacing: 0.01em; line-height: 1.1;"
-                            >
-                              ↗ {{ card.mesoPillText }}
-                            </div>
-                          </div>
-
-                          <!-- Pillola PR (Esclusiva della card Sfidante non hero) -->
-                          <div v-else-if="card.prGoalText" class="mt-1 d-flex justify-center">
-                            <div 
-                              class="d-inline-flex align-center justify-center px-1 py-0.5 rounded-lg border font-weight-medium text-amber-accent-2 text-no-wrap cursor-pointer"
-                              style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.40) !important; font-size: 0.40rem; letter-spacing: 0.01em; line-height: 1.1;"
-                              @click.stop="apriDettaglioSfidantePR(card.prDetail)"
-                            >
-                              {{ card.prGoalText }}
-                              <v-icon size="9" color="amber-accent-2" class="ml-0.5">mdi-information-outline</v-icon>
-                            </div>
-                          </div>
-                        </template>
+                        <!-- Sottotitolo sintetico -->
+                        <div class="text-super-caption text-slate-400 font-weight-regular text-truncate" style="font-size: 0.50rem; line-height: 1.2;">
+                          {{ card.sottotitolo }}
+                        </div>
                       </div>
 
-                      <!-- Separatore e Metrica Rischio/Probabilità -->
-                      <div class="pt-1 mt-1 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
-                        <template v-if="card.isProtagonista && card.tipo === 'sfidante'">
-                          <div class="d-flex align-center justify-space-between text-super-caption px-0.5 mb-1" style="font-size: 0.40rem; line-height: 1;">
-                            <span class="text-slate-400 font-weight-medium text-no-wrap">{{ card.diffVsSmartText || '+2k vs Smart' }}</span>
-                            <span class="text-orange-lighten-2 font-weight-medium text-no-wrap">Rischio: <strong class="font-weight-bold text-orange-lighten-1">ALTO</strong></span>
-                          </div>
-                        </template>
-                        <template v-else>
-                          <div class="text-super-caption text-slate-400 font-weight-regular text-no-wrap" style="font-size: 0.38rem;">
-                            {{ card.metricLabel }}
-                          </div>
-                          <div 
-                            class="font-weight-bold text-no-wrap"
-                            :class="card.isConsigliato ? 'text-green-accent-3' : (card.tipo === 'sfidante' ? 'text-orange-lighten-2' : 'text-blue-lighten-2')"
-                            style="font-size: 0.44rem; letter-spacing: 0.02em;"
-                          >
-                            {{ card.metricValue }}
-                          </div>
-                        </template>
+                      <!-- Footer e Tasto Applica Secondario -->
+                      <div class="pt-1.5 mt-1.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                        <div class="text-super-caption text-slate-400 font-weight-regular text-truncate mb-1" style="font-size: 0.46rem;">
+                          {{ card.metricLabel }} <strong :class="(card.tipo === 'sfidante') ? 'text-orange-lighten-2' : ((card.tipo === 'safe') ? 'text-blue-lighten-2' : 'text-green-lighten-2')">{{ card.metricValue }}</strong>
+                        </div>
 
-                        <!-- Tasti Applica Sfidante Protagonista con 2 bersagli -->
-                        <div v-if="card.isProtagonista && card.tipo === 'sfidante' && card.recordAssolutoPesoToApply" class="d-flex gap-1 mt-1">
-                          <v-btn
-                            size="x-small"
-                            variant="flat"
-                            class="font-weight-bold text-amber-950 text-none flex-grow-1 rounded-lg px-1 text-no-wrap"
-                            style="font-size: 0.50rem; height: 24px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;"
-                            @click="applicaPropostaCaricoStorico(card.pesoToApply)"
-                          >
-                            {{ card.pesoToApply }}k
-                          </v-btn>
-                          <v-btn
-                            size="x-small"
-                            variant="flat"
-                            class="font-weight-black text-cyan-950 text-none flex-grow-1 rounded-lg px-1 text-no-wrap"
-                            style="font-size: 0.50rem; height: 24px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;"
-                            @click="applicaPropostaCaricoStorico(card.recordAssolutoPesoToApply)"
-                          >
-                            👑 {{ card.recordAssolutoPesoToApply }}k
-                          </v-btn>
-                        </div>
-                        <!-- Tasti Applica Sfidante Standard con doppio bersaglio -->
-                        <div v-else-if="!card.isProtagonista && card.recordAssolutoPesoToApply" class="d-flex gap-1 mt-1">
-                          <v-btn
-                            color="orange-darken-3"
-                            size="x-small"
-                            variant="tonal"
-                            class="font-weight-bold text-white text-none flex-grow-1 rounded-lg px-1 text-no-wrap"
-                            style="font-size: 0.48rem; height: 21px;"
-                            @click="applicaPropostaCaricoStorico(card.pesoToApply)"
-                          >
-                            {{ card.pesoToApply }}k
-                          </v-btn>
-                          <v-btn
-                            color="amber-darken-3"
-                            size="x-small"
-                            variant="flat"
-                            class="font-weight-black text-white text-none flex-grow-1 rounded-lg px-1 text-no-wrap"
-                            style="font-size: 0.48rem; height: 21px; background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;"
-                            @click="applicaPropostaCaricoStorico(card.recordAssolutoPesoToApply)"
-                          >
-                            👑 {{ card.recordAssolutoPesoToApply }}k
-                          </v-btn>
-                        </div>
-                        <!-- Tasto Applica Sfidante Protagonista Singolo Target -->
                         <v-btn
-                          v-else-if="card.isProtagonista && card.tipo === 'sfidante'"
+                          :color="(card.tipo === 'sfidante') ? 'orange-darken-3' : ((card.tipo === 'safe') ? 'blue-darken-3' : 'green-darken-2')"
                           size="x-small"
-                          variant="flat"
-                          class="font-weight-black text-amber-950 text-none w-100 rounded-lg mt-1 text-no-wrap"
-                          style="font-size: 0.56rem; height: 25px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;"
+                          variant="tonal"
+                          class="font-weight-bold text-white text-none w-100 rounded-lg text-no-wrap"
+                          style="font-size: 0.55rem; height: 24px;"
                           @click="applicaPropostaCaricoStorico(card.pesoToApply)"
                         >
-                          <v-icon start size="12" class="mr-0.5">mdi-rocket-launch</v-icon>
-                          Applica {{ card.pesoToApply }}k
-                        </v-btn>
-                        <!-- Tasto Applica Standard (Safe / Smart) -->
-                        <v-btn
-                          v-else
-                          :color="card.isConsigliato ? 'green-darken-1' : (card.tipo === 'sfidante' ? 'orange-darken-3' : 'blue-darken-3')"
-                          size="x-small"
-                          :variant="card.isConsigliato ? 'flat' : 'tonal'"
-                          class="font-weight-bold text-white text-none w-100 rounded-lg mt-1 text-no-wrap"
-                          :class="{ 'elevation-2': card.isConsigliato }"
-                          :style="{ fontSize: '0.50rem', height: card.isConsigliato ? '23px' : '20px' }"
-                          @click="applicaPropostaCaricoStorico(card.pesoToApply)"
-                        >
-                          <v-icon v-if="card.isConsigliato" start size="10" class="mr-0.5">mdi-check</v-icon>
                           Applica
                         </v-btn>
                       </div>
@@ -3523,46 +3524,44 @@
                 </div>
               </div>
 
-              <!-- 4. BANNER OCCASIONE PR (Compatto per mobile) -->
+              <!-- 4. BANNER OCCASIONE PR (Compatto per smartphone, premium, no overlap) -->
               <div 
                 v-if="opportunitaPRData?.isOpportunita" 
-                class="pa-1.5 px-2 rounded-xl border mb-2 text-left animate-fade-in position-relative overflow-hidden"
-                style="background: linear-gradient(135deg, rgba(88, 28, 135, 0.28) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.2px solid rgba(168, 85, 247, 0.38) !important;"
+                class="pa-2.5 rounded-xl border mb-2.5 text-left animate-fade-in position-relative overflow-hidden"
+                style="background: linear-gradient(135deg, rgba(88, 28, 135, 0.35) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.2px solid rgba(168, 85, 247, 0.45) !important;"
               >
-                <div class="d-flex align-center justify-space-between gap-1.5">
-                  <div class="d-flex align-center gap-1.5" style="max-width: 68%;">
+                <div class="d-flex align-center justify-space-between gap-2">
+                  <div class="d-flex align-center gap-2" style="min-width: 0; flex: 1 1 auto;">
                     <div 
                       class="rounded-circle d-flex align-center justify-center flex-shrink-0"
-                      style="width: 24px; height: 24px; background: rgba(168, 85, 247, 0.22); border: 1px solid rgba(168, 85, 247, 0.45);"
+                      style="width: 28px; height: 28px; background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.5);"
                     >
-                      <span style="font-size: 0.75rem;">🏆</span>
+                      <span style="font-size: 0.85rem;">🏆</span>
                     </div>
-                    <div>
-                      <div class="d-flex align-center gap-1">
-                        <span class="font-weight-black text-amber-accent-2 text-no-wrap" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                          🔥 OCCASIONE PR
-                        </span>
+                    <div style="min-width: 0;">
+                      <div class="font-weight-black text-amber-accent-2 text-truncate" style="font-size: 0.65rem; letter-spacing: 0.02em;">
+                        🔥 OCCASIONE PR
                       </div>
-                      <div class="text-super-caption text-slate-300 font-weight-regular mt-0.2 text-no-wrap" style="font-size: 0.44rem; line-height: 1.15;">
+                      <div class="text-super-caption text-slate-300 font-weight-regular mt-0.5 text-truncate" style="font-size: 0.52rem; line-height: 1.2;">
                         {{ opportunitaPRData.motivo || 'Vicino al record: W6 ideale per il primato!' }}
                       </div>
                     </div>
                   </div>
 
-                  <!-- Badge Percentuale e Info Compatto -->
-                  <div class="d-flex align-center gap-1 flex-shrink-0">
+                  <!-- Badge Percentuale Compatto a destra -->
+                  <div class="d-flex align-center gap-1.5 flex-shrink-0">
                     <div 
                       class="rounded-circle d-flex align-center justify-center border font-weight-black text-amber-accent-2"
-                      style="width: 28px; height: 28px; border-width: 2px !important; border-color: #eab308 !important; background: rgba(0,0,0,0.4); font-size: 0.54rem;"
+                      style="width: 32px; height: 32px; border-width: 2px !important; border-color: #eab308 !important; background: rgba(0,0,0,0.5); font-size: 0.62rem;"
                     >
                       {{ opportunitaPRData.percentuale }}%
                     </div>
                     <div class="text-right">
-                      <div class="text-super-caption font-weight-black text-amber-lighten-2 uppercase text-no-wrap" style="font-size: 0.42rem; letter-spacing: 0.02em;">
+                      <div class="text-super-caption font-weight-black text-amber-lighten-2 uppercase text-no-wrap" style="font-size: 0.46rem; letter-spacing: 0.02em;">
                         SUCCESSO
                       </div>
-                      <div class="text-super-caption text-slate-400 font-weight-medium text-no-wrap" style="font-size: 0.38rem; line-height: 1.1;">
-                        Distanza PR e reps
+                      <div class="text-super-caption text-slate-400 font-weight-medium text-no-wrap" style="font-size: 0.40rem; line-height: 1.1;">
+                        Distanza PR
                       </div>
                     </div>
                   </div>
@@ -8430,9 +8429,10 @@ const recordOverviewData = computed(() => {
     ? `${formatWeight(roundedBestWeight)} kg`
     : `${bestReps} reps`;
 
+  const isDiffReps = bestReps && bestReps !== targetReps;
   const faticaStr = bestFatica ? `(${formatFaticaAbbr(bestFatica)})` : '';
   const repsDisplay = (!isCorpoLibero || roundedBestWeight > 0)
-    ? `x${bestReps}r ${faticaStr}`.trim()
+    ? (isDiffReps ? `x${bestReps}r ${faticaStr}`.trim() : (faticaStr ? `${faticaStr}` : ''))
     : (faticaStr ? `${faticaStr}` : '');
 
   const provenienzaSenzaCoppa = bestIsCurrent
@@ -8852,6 +8852,27 @@ const opportunitaPRData = computed(() => {
   });
 });
 
+// Formattatore dinamico carico per smartphone (regola reps prescritte)
+const formatCaricoConReps = (valore, targetReps) => {
+  if (valore === null || valore === undefined || valore === '') return '-';
+  const strVal = String(valore).trim();
+  if (workout.value && isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
+    const r = estraiRepsDaInput(strVal) || parseInt(strVal, 10) || targetReps;
+    return `${r} reps`;
+  }
+  const p = estraiPesoDaInput(strVal);
+  const r = estraiRepsDaInput(strVal);
+  const pNum = p !== null ? parseFloat(p) : (parseFloat(strVal.replace(',', '.')) || null);
+  
+  if (pNum !== null && !isNaN(pNum)) {
+    if (r !== null && !isNaN(r) && r > 0 && r !== targetReps) {
+      return `${formatWeight(pNum)} kg × ${r}r`;
+    }
+    return `${formatWeight(pNum)} kg`;
+  }
+  return strVal;
+};
+
 // 3. COMPUTED STRATEGIE ALTERNATIVE CARDS (SAFE / SMART / SFIDANTE)
 const strategieAlternativeCards = computed(() => {
   if (!workout.value) return [];
@@ -8991,7 +9012,7 @@ const strategieAlternativeCards = computed(() => {
   let sfidanteValoreDisplay = `${formatWeight(sfidanteVal)} kg`;
   if (String(range.sfidante?.value).includes('r')) {
     sfidanteSottotitolo = '+2 rep (+volume)';
-    sfidanteValoreDisplay = range.sfidante.display;
+    sfidanteValoreDisplay = formatCaricoConReps(range.sfidante.value, targetReps);
   } else if (sfidanteVal > smartVal && smartVal > 0) {
     const diffSfid = Math.round((sfidanteVal - smartVal) * 10) / 10;
     sfidanteSottotitolo = `+${diffSfid}k vs smart`;
@@ -9003,8 +9024,9 @@ const strategieAlternativeCards = computed(() => {
     nome: 'SAFE',
     isConsigliato: !sfidanteIsProtagonista && tipoConsigliato === 'safe',
     isProtagonista: false,
-    valoreDisplay: String(range.prudenziale.value).includes('r') ? range.prudenziale.display : `${formatWeight(safeVal)} kg`,
+    valoreDisplay: formatCaricoConReps(range.prudenziale.value, targetReps),
     pesoToApply: range.prudenziale.value,
+    targetReps,
     sottotitolo: safeSottotitolo,
     mesoPillText: (!sfidanteIsProtagonista && tipoConsigliato === 'safe') ? mesoPillText : null,
     prGoalText: null,
@@ -9019,8 +9041,9 @@ const strategieAlternativeCards = computed(() => {
     nome: 'SMART',
     isConsigliato: !sfidanteIsProtagonista && tipoConsigliato === 'smart',
     isProtagonista: !sfidanteIsProtagonista,
-    valoreDisplay: String(range.consigliato.value).includes('r') ? range.consigliato.display : `${formatWeight(smartVal)} kg`,
+    valoreDisplay: formatCaricoConReps(range.consigliato.value, targetReps),
     pesoToApply: range.consigliato.value,
+    targetReps,
     sottotitolo: smartSottotitolo,
     mesoPillText: !sfidanteIsProtagonista ? mesoPillText : null,
     prGoalText: null,
@@ -9048,19 +9071,27 @@ const strategieAlternativeCards = computed(() => {
     prGoalText: sfidantePRGoalText,
     prDetail: sfidantePRDetail,
     minRepsPR: sfidanteMinRepsPR,
-    altRepsText: (sfidanteMinRepsPR && sfidanteMinRepsPR > targetReps) ? `oppure ${formatWeight(sfidanteVal)} × ${sfidanteMinRepsPR}r` : null,
+    altRepsText: (sfidanteMinRepsPR && sfidanteMinRepsPR > targetReps) ? `oppure ${formatWeight(sfidanteVal)} kg × ${sfidanteMinRepsPR}r` : null,
     metricLabel: 'Rischio:',
-    metricValue: 'PIÙ ALTO',
+    metricValue: 'ALTO',
     themeColor: 'orange'
   };
 
-  // Se Sfidante è protagonista, viene posizionato al centro [SAFE, SFIDANTE, SMART]
-  if (sfidanteIsProtagonista) {
-    return [cardSafe, cardSfidante, cardSmart];
-  }
-
-  // Altrimenti ordine standard [SAFE, SMART, SFIDANTE]
   return [cardSafe, cardSmart, cardSfidante];
+});
+
+// Computed per separare dinamicamente la strategia consigliata da quelle secondarie
+const strategiaConsigliataCard = computed(() => {
+  const cards = strategieAlternativeCards.value;
+  if (!cards || cards.length === 0) return null;
+  return cards.find(c => c.isConsigliato) || cards.find(c => c.tipo === 'smart') || cards[0];
+});
+
+const strategieSecondarieCards = computed(() => {
+  const cards = strategieAlternativeCards.value;
+  if (!cards || cards.length === 0) return [];
+  const consigliata = strategiaConsigliataCard.value;
+  return cards.filter(c => c.tipo !== consigliata?.tipo);
 });
 
 const calcolaRepsTargetPerPeso = (pesoCustom, pesoRef, repsRef) => {

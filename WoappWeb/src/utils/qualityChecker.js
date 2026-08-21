@@ -19,6 +19,7 @@ import {
   isManubriEsercizio,
   isPercentualeEsercizio,
   haSovraccaricoEsplicito,
+  rimuoviContenutoTraParentesi,
   estraiPesoDaInput,
   estraiRepsDaInput,
   estraiRepsDaInputExplicitSingle,
@@ -125,11 +126,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       riepilogoPerGiorno[giorno].total++;
 
       // Stringa ripulita da QUALSIASI contenuto tra parentesi (incluso '+(') per TUTTI i controlli di calcolo, logica e sintassi
-      const withoutParens = rawVal
-        .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-        .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-        .trim();
-      const cleanVal = withoutParens.length > 0 ? withoutParens : rawVal;
+      const cleanVal = rimuoviContenutoTraParentesi(rawVal);
 
       const hasZavorra = haSovraccaricoEsplicito(cleanVal);
       const parsedLoadStr = estraiPesoDaInput(cleanVal, { isCorpoLibero, prescrizione: prescVal });

@@ -261,7 +261,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, getNomeAtleta, layoutEserciziGlobal } from '../authStore.js';
-import { haProgressioneQualitativa } from '../utils/loadParser.js';
+import { haProgressioneQualitativa, rimuoviContenutoTraParentesi } from '../utils/loadParser.js';
 
 // Chart.js e Vue-Chartjs
 import { Bar, Line, Doughnut } from 'vue-chartjs';
@@ -367,7 +367,9 @@ const BORDER_LOWER = {
 // Parser di sicurezza
 const parseWeight = (val) => {
   if (!val) return 0;
-  const clean = String(val).replace(/,/g, '.').trim();
+  let clean = String(val).replace(/,/g, '.').trim();
+  clean = rimuoviContenutoTraParentesi(clean);
+  if (!clean) return 0;
   if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
   const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
   const parts = cleanNum.split(/\s+/);
@@ -377,7 +379,9 @@ const parseWeight = (val) => {
 
 const parseReps = (val) => {
   if (!val) return 0;
-  const clean = String(val).replace(/,/g, '.').trim();
+  let clean = String(val).replace(/,/g, '.').trim();
+  clean = rimuoviContenutoTraParentesi(clean);
+  if (!clean) return 0;
   if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) {
     const num = parseInt(clean);
     return isNaN(num) ? 0 : num;

@@ -251,7 +251,13 @@ export const haRecupero = (val) => {
   if (!val) return false;
   
   // 1. Rimuove QUALSIASI contenuto tra parentesi tonde (...) in modo che note o commenti tra parentesi non attivino mai il recupero
-  const clean = String(val).replace(/\([^)]*\)/g, ' ').trim();
+  let clean = String(val);
+  let prevClean = '';
+  while (clean !== prevClean) {
+    prevClean = clean;
+    clean = clean.replace(/\([^()]*\)/g, ' ');
+  }
+  clean = clean.trim();
   if (!clean) return false;
 
   const str = clean.toLowerCase();

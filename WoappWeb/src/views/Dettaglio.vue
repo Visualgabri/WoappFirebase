@@ -5186,7 +5186,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
-import { haProgressioneQualitativa } from '../utils/loadParser.js';
+import { haProgressioneQualitativa, rimuoviContenutoTraParentesi } from '../utils/loadParser.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -14065,10 +14065,8 @@ function estraiRepsDaInputExplicitSingle(str) {
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per evitare che note o impostazioni influenzino i calcoli
-  clean = clean
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
+  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
+  if (!clean) return null;
 
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
@@ -14189,11 +14187,8 @@ function estraiRepsDaInput(str, defaultOrTargetReps = null) {
   const strVal = String(str);
 
   // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi prima di estrarre delta reps o ripetizioni
-  const withoutParens = strVal
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
-  const cleanStr = withoutParens.length > 0 ? withoutParens : strVal;
+  const cleanStr = rimuoviContenutoTraParentesi(strVal);
+  if (!cleanStr) return defaultOrTargetReps || null;
 
   // Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps")
   // Richiede obbligatoriamente suffisso reps esplicito e non ammette numeri decimali
@@ -14224,13 +14219,8 @@ function estraiPesoDaInput(str) {
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per escludere note ed impostazioni dai calcoli
-  const withoutParens = clean
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
-  if (withoutParens.length > 0) {
-    clean = withoutParens;
-  }
+  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
+  if (!clean) return null;
   
   // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
@@ -14622,10 +14612,7 @@ const estraiNumeroMassimo = (str) => {
     const pNum = parseFloat(peso);
     if (!isNaN(pNum)) return pNum;
   }
-  const withoutParens = String(str)
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
+  const withoutParens = rimuoviContenutoTraParentesi(str);
   if (!withoutParens) return null;
   const cleanStr = withoutParens.replace(/,/g, '.');
   const matches = cleanStr.match(/\b\d+(?:\.\d+)?\b/g);

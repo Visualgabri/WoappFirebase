@@ -72,6 +72,29 @@ export const isCorpoLiberoEsercizio = (ex) => {
 };
 
 /**
+ * Rimuove ricorsivamente QUALSIASI contenuto racchiuso tra parentesi tonde (...),
+ * quadre [...] o graffe {...}, incluse eventuali notazioni con prefisso + come +(1kg) o +[tag].
+ * @param {string} str
+ * @returns {string}
+ */
+export const rimuoviContenutoTraParentesi = (str) => {
+  if (!str) return '';
+  let clean = String(str);
+  let prev = '';
+  while (clean !== prev) {
+    prev = clean;
+    clean = clean
+      .replace(/\+\s*\([^()]*\)/g, ' ')
+      .replace(/\+\s*\[[^[\]]*\]/g, ' ')
+      .replace(/\+\s*\{[^{}]*\}/g, ' ')
+      .replace(/\([^()]*\)/g, ' ')
+      .replace(/\[[^[\]]*\]/g, ' ')
+      .replace(/\{[^{}]*\}/g, ' ');
+  }
+  return clean.trim();
+};
+
+/**
  * Verifica se un testo contiene un sovraccarico/zavorra esplicito (es: "14kg", "14 kg", "+14", "zavorra 10kg").
  * @param {string} str
  * @returns {boolean}
@@ -82,13 +105,8 @@ export const haSovraccaricoEsplicito = (str) => {
   if (!s || s === '-') return false;
 
   // IMPORTANT: Rimuove QUALSIASI contenuto tra parentesi prima di verificare la presenza di sovraccarico esplicito
-  const withoutParens = s
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
-  if (withoutParens.length > 0) {
-    s = withoutParens;
-  }
+  s = rimuoviContenutoTraParentesi(s).toLowerCase();
+  if (!s) return false;
 
   // 1. Cerca suffisso esplicito kg / chili
   if (/\b\d+(?:[.,]\d+)?\s*(?:kg\b|k\b|chili\b|kilo\b|lbs?\b)/i.test(s)) return true;
@@ -223,14 +241,8 @@ export const estraiPesoDaInput = (str, options = {}) => {
   let clean = raw.toLowerCase().replace(/,/g, '.').trim();
 
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
-  // a meno che l'unico dato presente sia tra parentesi
-  const withoutParens = clean
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
-  if (withoutParens.length > 0) {
-    clean = withoutParens;
-  }
+  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
+  if (!clean) return null;
 
   // Rimuove notazioni TUT (es. "TUT323", "TUT 3-2-3", "tut 511")
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
@@ -402,10 +414,8 @@ export function estraiRepsDaInputExplicitSingle(str) {
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
 
   // Rimuove contenuti tra parentesi (inclusi quelli preceduti da +)
-  clean = clean
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
+  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
+  if (!clean) return null;
 
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
@@ -495,11 +505,8 @@ export const estraiRepsDaInput = (str, options = {}) => {
 
   // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
   // per escludere note, stripping, commenti ed impostazioni dai calcoli!
-  const withoutParens = strVal
-    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
-    .trim();
-  const cleanStr = withoutParens.length > 0 ? withoutParens : strVal;
+  const cleanStr = rimuoviContenutoTraParentesi(strVal);
+  if (!cleanStr) return repsPresc || null;
 
   // 0. Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps", "12kg + 1 rep")
   // dove N rappresenta ripetizioni in più rispetto al target prescritto.

@@ -3147,6 +3147,7 @@ import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
+import { rimuoviContenutoTraParentesi } from '../utils/loadParser.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -4591,7 +4592,8 @@ const stalloInSchedaPrecedente = (ex) => {
     if (!val) return 0;
     let clean = String(val).replace(/,/g, '.').trim();
     // Rimuove qualsiasi contenuto tra parentesi (...), quadre [...] o graffe {...}
-    clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+    clean = rimuoviContenutoTraParentesi(clean);
+    if (!clean) return 0;
     if (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(clean) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(clean)) return 0;
     if (/^\s*\d+(?:\.\d+)?\s*[xX]\s*\d+(?:\.\d+)?(?:\s*[rR]?\b)?\s*$/.test(clean)) return 0;
     const cleanNum = clean.replace(/[^\d.]/g, ' ').trim();
@@ -4731,7 +4733,8 @@ function estraiRepsDaInputExplicitSingle(str) {
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi (...), quadre [...] o graffe {...} per evitare che note influenzino i calcoli
-  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
+  if (!clean) return null;
 
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();

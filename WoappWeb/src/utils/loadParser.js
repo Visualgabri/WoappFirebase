@@ -82,7 +82,10 @@ export const haSovraccaricoEsplicito = (str) => {
   if (!s || s === '-') return false;
 
   // IMPORTANT: Rimuove QUALSIASI contenuto tra parentesi prima di verificare la presenza di sovraccarico esplicito
-  const withoutParens = s.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  const withoutParens = s
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
   if (withoutParens.length > 0) {
     s = withoutParens;
   }
@@ -221,7 +224,10 @@ export const estraiPesoDaInput = (str, options = {}) => {
 
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
   // a meno che l'unico dato presente sia tra parentesi
-  const withoutParens = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  const withoutParens = clean
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
   if (withoutParens.length > 0) {
     clean = withoutParens;
   }
@@ -395,8 +401,11 @@ export function estraiRepsDaInputExplicitSingle(str) {
   if (!str) return null;
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
 
-  // Rimuove contenuti tra parentesi
-  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  // Rimuove contenuti tra parentesi (inclusi quelli preceduti da +)
+  clean = clean
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
 
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
@@ -486,12 +495,17 @@ export const estraiRepsDaInput = (str, options = {}) => {
 
   // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
   // per escludere note, stripping, commenti ed impostazioni dai calcoli!
-  const withoutParens = strVal.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  const withoutParens = strVal
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
   const cleanStr = withoutParens.length > 0 ? withoutParens : strVal;
 
   // 0. Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps", "12kg + 1 rep")
-  // dove N rappresenta ripetizioni in più rispetto al target prescritto!
-  const matchDeltaReps = cleanStr.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
+  // dove N rappresenta ripetizioni in più rispetto al target prescritto.
+  // IMPORTANTE: Deve avere OBBLIGATORIAMENTE un suffisso reps esplicito (r, rep, reps, rip, colpi)
+  // e non deve trattarsi di numeri decimali (es. +22,5).
+  const matchDeltaReps = cleanStr.match(/(?:^|\s)\+\s*(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
   if (matchDeltaReps) {
     const delta = parseInt(matchDeltaReps[1], 10);
     if (!isNaN(delta) && delta > 0 && delta <= 30) {

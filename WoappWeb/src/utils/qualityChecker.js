@@ -124,8 +124,11 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       totaleValoriControllati++;
       riepilogoPerGiorno[giorno].total++;
 
-      // Stringa ripulita da QUALSIASI contenuto tra parentesi per TUTTI i controlli di calcolo, logica e sintassi
-      const withoutParens = rawVal.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+      // Stringa ripulita da QUALSIASI contenuto tra parentesi (incluso '+(') per TUTTI i controlli di calcolo, logica e sintassi
+      const withoutParens = rawVal
+        .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+        .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+        .trim();
       const cleanVal = withoutParens.length > 0 ? withoutParens : rawVal;
 
       const hasZavorra = haSovraccaricoEsplicito(cleanVal);
@@ -350,10 +353,43 @@ export const analizzaQualitaScheda = (records, options = {}) => {
         };
       }
 
-      // --- CHECK SINTATTICO 6: Notazione delta '+N rep' (es. '7,5 +2' o '14 +1 rep') FUORI dalle parentesi ---
-      if (!segnalazioneW && /\+\s*\d+/i.test(cleanVal) && parsedLoad && parsedReps) {
+      // --- CHECK SINTATTICO: Notazione '+' prima delle parentesi (es. '+(1kg)', '+ (2kg)', '+ (2r)') ---
+      const matchPlusBeforeParens = rawVal.match(/\+\s*[\(\[\{]([^\)\]\}]+)[\)\]\}]/);
+      if (!segnalazioneW && matchPlusBeforeParens) {
+        const insideParens = matchPlusBeforeParens[1].trim();
+        segnalazioneW = {
+          id: `${ex.id || ex.num_riga}_w${w}_plus_parentesi_info`,
+          coordinata,
+          giorno,
+          riga: rigaGiorno,
+          numRiga: ex.num_riga || '',
+          docId: ex.id || '',
+          des_esercizio: nomeEx,
+          des_settore: settore,
+          settimana: w,
+          settimanaLabel: `W${w}`,
+          valoreOriginale: rawVal,
+          caricoEstratto: parsedLoad,
+          repsEstratte: parsedReps,
+          isCorpoLibero,
+          haSovraccarico: hasZavorra,
+          prescrizione: prescVal,
+          repsPreviste: repsPresc,
+          seriePreviste: seriePresc,
+          livello: 'anomalia',
+          tipo: 'plus_parentesi_da_verificare',
+          titolo: `Notazione '+(${insideParens})' da verificare`,
+          spiegazione: `Inserito "${rawVal}" con un '+' prima della parentesi. Il contenuto tra parentesi ("${insideParens}") potrebbe indicare un significato aggiuntivo legato alla serie, al carico (es. microcarico) o alle ripetizioni.`,
+          conseguenza: `Come da regola, il testo tra parentesi è escluso dai calcoli automatici (carico base: ${parsedLoad !== null ? parsedLoad + ' kg' : 'n.d.'}${parsedReps ? ' x' + parsedReps + 'r' : ''}). Chiedere all'utente di chiarire prima di includerlo nei calcoli.`,
+          correzioneConsigliata: `Chiedere all'atleta se intendeva un carico effettivo maggiore (es. inserire direttamente il totale dei kg) o chiarire la notazione.`
+        };
+      }
+
+      // --- CHECK SINTATTICO 6: Notazione delta '+N rep' (es. '7,5 +2r' o '14 +1 rep') FUORI dalle parentesi ---
+      const matchExplicitDeltaInClean = cleanVal.match(/(?:^|\s)\+\s*(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+      if (!segnalazioneW && matchExplicitDeltaInClean && parsedLoad && parsedReps) {
+        const deltaVal = parseInt(matchExplicitDeltaInClean[1], 10);
         const pesoFmt = String(parsedLoad).replace('.', ',');
-        const delta = repsPresc ? Math.max(1, parsedReps - repsPresc) : 1;
         segnalazioneW = {
           id: `${ex.id || ex.num_riga}_w${w}_delta_reps_info`,
           coordinata,
@@ -375,8 +411,8 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           seriePreviste: seriePresc,
           livello: 'anomalia',
           tipo: 'delta_reps_info',
-          titolo: `Notazione '+${delta} rep' interpretata come ${parsedReps}r`,
-          spiegazione: `Inserito "${rawVal}" a fronte di prescrizione ${prescVal || (repsPresc + 'r')}. Significa che l'atleta ha eseguito ${delta} ripetizioni in più (${parsedReps}r con carico prescritto) e non solo ${delta} reps.`,
+          titolo: `Notazione '+${deltaVal} rep' interpretata come ${parsedReps}r`,
+          spiegazione: `Inserito "${rawVal}" a fronte di prescrizione ${prescVal || (repsPresc + 'r')}. Significa che l'atleta ha eseguito ${deltaVal} ripetizioni in più (${parsedReps}r con carico prescritto) e non solo ${deltaVal} reps.`,
           conseguenza: `Interpretato correttamente come ${parsedLoad} kg x ${parsedReps}r.`,
           correzioneConsigliata: `Formato consigliato per ${parsedReps} reps completate: doveva scrivere "${pesoFmt} x ${parsedReps}r" (o "${pesoFmt}x${parsedReps}r").`
         };

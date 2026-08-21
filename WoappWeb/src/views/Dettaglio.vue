@@ -13941,7 +13941,10 @@ function estraiRepsDaInputExplicitSingle(str) {
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per evitare che note o impostazioni influenzino i calcoli
-  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  clean = clean
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
 
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
@@ -14062,11 +14065,15 @@ function estraiRepsDaInput(str, defaultOrTargetReps = null) {
   const strVal = String(str);
 
   // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi prima di estrarre delta reps o ripetizioni
-  const withoutParens = strVal.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  const withoutParens = strVal
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
   const cleanStr = withoutParens.length > 0 ? withoutParens : strVal;
 
   // Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps")
-  const matchDeltaReps = cleanStr.match(/\+\s*(\d+)\s*(?:r\b|reps?|rip(?:etizioni)?|colpi)?/i);
+  // Richiede obbligatoriamente suffisso reps esplicito e non ammette numeri decimali
+  const matchDeltaReps = cleanStr.match(/(?:^|\s)\+\s*(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
   if (matchDeltaReps) {
     const delta = parseInt(matchDeltaReps[1], 10);
     if (!isNaN(delta) && delta > 0 && delta <= 30) {
@@ -14093,7 +14100,13 @@ function estraiPesoDaInput(str) {
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per escludere note ed impostazioni dai calcoli
-  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').trim();
+  const withoutParens = clean
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
+  if (withoutParens.length > 0) {
+    clean = withoutParens;
+  }
   
   // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();

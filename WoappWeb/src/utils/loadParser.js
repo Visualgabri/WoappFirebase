@@ -846,7 +846,7 @@ export const valutaOpportunitaPR = ({
     }
   }
 
-  const motivo = 'Sei molto vicino al tuo miglior risultato. W6 è il momento ideale per provarci!';
+  const motivo = 'Vicino al record: W6 è ideale per il primato!';
 
   return {
     isOpportunita,

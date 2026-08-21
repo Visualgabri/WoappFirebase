@@ -327,25 +327,32 @@
               </div>
             </div>
 
-            <!-- RIGA 4: CONTENUTO DIAGNOSTICO COMPATTO E FINE (SECONDARIO) -->
-            <div class="diagnostic-block mb-1.5">
-              <div class="diagnostic-title d-flex align-center">
+            <!-- RIGA 4: CONTENUTO DIAGNOSTICO AD ALTA VISIBILITÀ -->
+            <div
+              class="diagnostic-block my-2"
+              :class="{
+                'diag-error': s.livello === 'errore',
+                'diag-warning': s.livello === 'anomalia',
+                'diag-info': s.livello === 'particolare'
+              }"
+            >
+              <div class="diagnostic-title d-flex align-center gap-1.5">
                 <v-icon
-                  size="12"
-                  class="mr-1 flex-shrink-0"
+                  :size="isMobile ? 18 : 20"
+                  class="flex-shrink-0"
                   :color="s.livello === 'errore' ? '#ef4444' : (s.livello === 'anomalia' ? '#f59e0b' : '#3b82f6')"
                 >
                   {{ s.livello === 'errore' ? 'mdi-alert-circle' : (s.livello === 'anomalia' ? 'mdi-alert' : 'mdi-information') }}
                 </v-icon>
-                <span>{{ s.titolo }}</span>
+                <span class="diagnostic-title-text">{{ s.titolo }}</span>
               </div>
               
-              <div class="diagnostic-desc mt-0.5 ml-3.5">
+              <div class="diagnostic-desc mt-1">
                 {{ s.spiegazione }}
               </div>
 
               <!-- Impatto sintetico -->
-              <div v-if="s.conseguenza" class="diagnostic-impact mt-0.5 ml-3.5 d-flex align-start gap-1">
+              <div v-if="s.conseguenza" class="diagnostic-impact mt-1 d-flex align-start gap-1">
                 <span class="impact-badge flex-shrink-0">⚡ Impatto:</span>
                 <span class="impact-text">{{ s.conseguenza }}</span>
               </div>
@@ -354,8 +361,8 @@
             <!-- RIGA 5: UNIFIED ACTION BOX (SUGGERIMENTO + PULSANTE CORREGGI) -->
             <div class="action-box">
               <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-                <div class="suggestion-text d-flex align-start gap-1 flex-grow-1 min-width-0">
-                  <v-icon size="12" color="#22c55e" class="mt-0.5 flex-shrink-0">mdi-lightbulb-on</v-icon>
+                <div class="suggestion-text d-flex align-start gap-1.5 flex-grow-1 min-width-0">
+                  <v-icon size="15" color="#22c55e" class="mt-0.5 flex-shrink-0">mdi-lightbulb-on</v-icon>
                   <span class="leading-tight">
                     {{ s.correzioneConsigliata }}
                   </span>
@@ -1308,70 +1315,105 @@ const chiudi = () => {
   font-weight: 600;
 }
 
-/* DIAGNOSTIC BLOCK (SECONDARIO, MOLTO PIÙ PICCOLO E FINO) */
+/* DIAGNOSTIC BLOCK (AD ALTA VISIBILITÀ, TITOLO CON TRIANGOLO/ICONA GRANDE E BEN EVIDENTE) */
 .diagnostic-block {
-  padding: 1px 2px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.diagnostic-block.diag-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-left: 4px solid #ef4444;
+}
+
+.diagnostic-block.diag-warning {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-left: 4px solid #f59e0b;
+}
+
+.diagnostic-block.diag-info {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-left: 4px solid #3b82f6;
 }
 
 .diagnostic-title {
-  font-size: 0.68rem; /* ~11px */
-  font-weight: 500;   /* Fino */
-  color: #e2e8f0;
+  font-size: 0.88rem; /* ~14px - Molto più grande e visibile! */
+  font-weight: 800;   /* Extra bold per attirare subito l'attenzione */
+  line-height: 1.25;
   letter-spacing: -0.01em;
 }
 
+.diag-error .diagnostic-title-text {
+  color: #fca5a5;
+}
+
+.diag-warning .diagnostic-title-text {
+  color: #fde047; /* Giallo ambra acceso ad altissima visibilità */
+}
+
+.diag-info .diagnostic-title-text {
+  color: #93c5fd;
+}
+
 .diagnostic-desc {
-  font-size: 0.62rem; /* ~10px */
-  font-weight: 400;   /* Fino/Regular */
-  color: #94a3b8;
-  line-height: 1.25;
+  font-size: 0.74rem; /* ~12px */
+  font-weight: 500;
+  color: #cbd5e1;
+  line-height: 1.35;
 }
 
 .diagnostic-impact {
-  font-size: 0.60rem; /* ~9.5px */
-  line-height: 1.2;
+  font-size: 0.70rem; /* ~11px */
+  line-height: 1.3;
 }
 
 .impact-badge {
-  font-size: 0.58rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 800;
   color: #fb923c;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .impact-text {
   color: #fdba74;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 /* ACTION BOX */
 .action-box {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 6px 9px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  padding: 8px 10px;
 }
 
 .suggestion-text {
-  font-size: 0.64rem; /* ~10px */
-  font-weight: 400;   /* Fino */
-  color: #86efac;
+  font-size: 0.75rem; /* ~12px */
+  font-weight: 600;
+  color: #86efac;     /* Verde brillante e leggibile */
+  line-height: 1.35;
 }
 
 .btn-correggi-action {
-  background: rgba(249, 115, 22, 0.16);
-  border: 1px solid rgba(249, 115, 22, 0.4);
-  color: #fb923c;
-  padding: 6px 14px;
+  background: rgba(249, 115, 22, 0.18);
+  border: 1px solid rgba(249, 115, 22, 0.45);
+  color: #fdba74;
+  padding: 5px 12px;
   border-radius: 7px;
-  font-size: 0.75rem; /* ~12px */
-  font-weight: 700;
+  font-size: 0.74rem;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  min-height: 36px;
+  min-height: 34px;
   white-space: nowrap;
 }
 

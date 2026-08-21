@@ -191,10 +191,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           seriePreviste: seriePresc,
           livello: 'errore',
           tipo: 'testo_non_interpretabile',
-          titolo: 'Testo non interpretabile',
-          spiegazione: `Inserita la nota "${rawVal}" senza alcun carico o ripetizione numerica valida.`,
-          conseguenza: `I calcoli automatici per le settimane successive non avranno dati su cui basarsi.`,
-          correzioneConsigliata: `Inserire il valore numerico (es. "45" o "45kg").`
+          titolo: 'Testo non riconosciuto: nessun carico o reps',
+          spiegazione: `Hai scritto una nota senza indicare un peso numerico o ripetizioni valide.`,
+          conseguenza: `Gli algoritmi non possono calcolare le progressioni future.`,
+          correzioneConsigliata: `Inserisci il carico o le ripetizioni (es. "45kg" o "12r").`
         };
       }
 
@@ -233,10 +233,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             seriePreviste: seriePresc,
             livello: 'errore',
             tipo: 'amrap_mancano_reps',
-            titolo: `Ripetizioni AMRAP mancanti ("${rawVal}")`,
-            spiegazione: `Inserito solo il carico "${rawVal}" a fronte di serie AMRAP / Test Massime Ripetizioni ("${prescVal || ex.des_estesa_end || 'Test W6'}"). È fondamentale specificare le ripetizioni massime completate.`,
-            conseguenza: `Senza il numero di ripetizioni non è possibile calcolare il nuovo massimale stimato né la progressione.`,
-            correzioneConsigliata: `Specificare le reps eseguite (es. "${pesoFmt} x 8r" o "${pesoFmt} x 10r").`
+            titolo: 'Mancano le reps della serie a cedimento (AMRAP)',
+            spiegazione: `Hai inserito solo il peso su una serie a cedimento/AMRAP: servono le ripetizioni massime completate.`,
+            conseguenza: `Impossibile calcolare il nuovo massimale stimato e la progressione.`,
+            correzioneConsigliata: `Indica le ripetizioni eseguite (es. "${pesoFmt} x 10r").`
           };
         }
       }
@@ -270,10 +270,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             seriePreviste: seriePreviste,
             livello: 'errore',
             tipo: 'formato_ambiguo_sxr',
-            titolo: 'Formato ambiguo: Serie x Reps senza kg',
-            spiegazione: `"${rawVal}" viene interpretato come "${p1} serie da ${p2} ripetizioni" senza indicazione del carico in kg.`,
-            conseguenza: `Carico mancante per l'aggiornamento dei massimali e delle progressioni.`,
-            correzioneConsigliata: `Specificare i kg (es. "${p2}kg x${p1}s" o "${p1}x${p2} 50kg").`
+            titolo: 'Formato ambiguo: mancano i kg del carico',
+            spiegazione: `Hai scritto "${rawVal}" senza indicare l'unità kg (viene letto come ${p1} serie da ${p2} reps).`,
+            conseguenza: `Carico mancante per l'aggiornamento dei massimali e dei target.`,
+            correzioneConsigliata: `Specifica i kg utilizzati (es. "${p2}kg x${p1}s" oppure "50kg").`
           };
         }
       }
@@ -314,10 +314,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
               repsPreviste: repsPresc,
               livello: 'anomalia',
               tipo: 'volume_ridotto_xN',
-              titolo: `Notazione '${molt}x' con serie ridotte (${rawVal})`,
-              spiegazione: `Inserito "${rawVal}" a fronte di prescrizione "${prescVal || (seriePresc + 'x' + repsPresc)}". L'indicazione "${molt}x" rappresenta ${molt} serie eseguite invece delle ${totSerie} previste.`,
-              conseguenza: `Volume ridotto che può alterare il calcolo dei carichi consigliati successivi.`,
-              correzioneConsigliata: `Specificare il carico per tutte le serie (es. "${pesoVal} ${pesoVal} ${pesoVal} ${pesoVal}").`
+              titolo: `Volume ridotto: eseguite solo ${molt} serie su ${totSerie}`,
+              spiegazione: `Hai indicato "${molt}x", registrando solo ${molt} serie rispetto alle ${totSerie} prescritte.`,
+              conseguenza: `Volume ridotto che può alterare le proposte di carico successive.`,
+              correzioneConsigliata: `Se hai fatto tutte le serie, scrivi il carico ripetuto (es. "${pesoVal} ${pesoVal} ${pesoVal}").`
             };
           }
         }
@@ -346,10 +346,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           seriePreviste: seriePresc,
           livello: 'anomalia',
           tipo: 'reps_sotto_target',
-          titolo: `Ripetizioni (${parsedReps}r) inferiori al target (${repsPresc}r)`,
-          spiegazione: `Registrate ${parsedReps} reps rispetto alle ${repsPresc} previste (${prescVal}).`,
-          conseguenza: `Possibile cedimento precoce o carico eccessivo sul range target.`,
-          correzioneConsigliata: `Verificare se il carico era troppo pesante o se indicava le serie completate.`
+          titolo: `Ripetizioni chiuse (${parsedReps}r) inferiori al target (${repsPresc}r)`,
+          spiegazione: `Hai registrato solo ${parsedReps} reps rispetto alle ${repsPresc} previste dalla scheda.`,
+          conseguenza: `Possibile carico troppo pesante o serie interrotta prima del target.`,
+          correzioneConsigliata: `Verifica se il carico era eccessivo o se intendevi il numero di serie (es. "x${parsedReps}s").`
         };
       }
 
@@ -379,9 +379,9 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           livello: 'anomalia',
           tipo: 'plus_parentesi_da_verificare',
           titolo: `Notazione '+(${insideParens})' da verificare`,
-          spiegazione: `Inserito "${rawVal}" con un '+' prima della parentesi. Il contenuto tra parentesi ("${insideParens}") potrebbe indicare un significato aggiuntivo legato alla serie, al carico (es. microcarico) o alle ripetizioni.`,
-          conseguenza: `Come da regola, il testo tra parentesi è escluso dai calcoli automatici (carico base: ${parsedLoad !== null ? parsedLoad + ' kg' : 'n.d.'}${parsedReps ? ' x' + parsedReps + 'r' : ''}). Chiedere all'utente di chiarire prima di includerlo nei calcoli.`,
-          correzioneConsigliata: `Chiedere all'atleta se intendeva un carico effettivo maggiore (es. inserire direttamente il totale dei kg) o chiarire la notazione.`
+          spiegazione: `La parentesi preceduta da '+' potrebbe indicare un microcarico o reps extra, ma non viene sommata in automatico.`,
+          conseguenza: `Carico base calcolato su ${parsedLoad !== null ? parsedLoad + ' kg' : 'n.d.'}${parsedReps ? ' x' + parsedReps + 'r' : ''} senza considerare la parentesi.`,
+          correzioneConsigliata: `Se intendevi un carico maggiore, inserisci direttamente il totale complessivo dei kg.`
         };
       }
 
@@ -411,10 +411,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
           seriePreviste: seriePresc,
           livello: 'anomalia',
           tipo: 'delta_reps_info',
-          titolo: `Notazione '+${deltaVal} rep' interpretata come ${parsedReps}r`,
-          spiegazione: `Inserito "${rawVal}" a fronte di prescrizione ${prescVal || (repsPresc + 'r')}. Significa che l'atleta ha eseguito ${deltaVal} ripetizioni in più (${parsedReps}r con carico prescritto) e non solo ${deltaVal} reps.`,
-          conseguenza: `Interpretato correttamente come ${parsedLoad} kg x ${parsedReps}r.`,
-          correzioneConsigliata: `Formato consigliato per ${parsedReps} reps completate: doveva scrivere "${pesoFmt} x ${parsedReps}r" (o "${pesoFmt}x${parsedReps}r").`
+          titolo: `Reps extra: '+${deltaVal}' calcolato come ${parsedReps} reps totali`,
+          spiegazione: `Hai eseguito ${deltaVal} reps in più rispetto al target prescritto (${parsedReps}r con carico previsto).`,
+          conseguenza: `Calcolato regolarmente come ${parsedLoad} kg x ${parsedReps}r.`,
+          correzioneConsigliata: `In futuro puoi scrivere direttamente "${pesoFmt} x ${parsedReps}r".`
         };
       }
 
@@ -453,10 +453,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             seriePreviste: cur.seriePresc,
             livello: 'errore',
             tipo: 'carico_fuori_scala_manubri',
-            titolo: 'Carico manubri fuori scala (Possibile typo)',
-            spiegazione: `Registrato ${cur.peso} kg su esercizio con manubri. Probabile refuso (digitato 120 al posto di 12 o peso sommato).`,
-            conseguenza: `Falsa l'1RM stimato e genera proposte errate nel mesociclo successivo.`,
-            correzioneConsigliata: `Verificare se il peso reale era ${cur.peso > 100 ? cur.peso / 10 : cur.peso / 2} kg.`
+            titolo: `Carico manubri fuori scala (${cur.peso} kg): possibile refuso`,
+            spiegazione: `Hai registrato ${cur.peso} kg con i manubri (probabile refuso di battitura o peso sommato dei due manubri).`,
+            conseguenza: `Altera il massimale stimato e i suggerimenti per la prossima scheda.`,
+            correzioneConsigliata: `Inserisci il peso del singolo manubrio (es. "${cur.peso > 100 ? cur.peso / 10 : Math.round(cur.peso / 2)} kg").`
           });
         }
       }
@@ -508,10 +508,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
                 seriePreviste: cur.seriePreviste,
                 livello: 'errore',
                 tipo: 'salto_abnorme_typo',
-                titolo: `Possibile refuso: Salto di carico (+${incrementoPct}%)`,
-                spiegazione: `Il carico passa da ${prev.peso} kg (W${prevWNum}) a ${cur.peso} kg in W${w} (+${incrementoKg} kg). Salto non plausibile.`,
-                conseguenza: `Alterazione del massimale stimato e delle proposte di progressione.`,
-                correzioneConsigliata: `Correggere il valore in W${w} eliminando la cifra digitata per errore.`
+                titolo: `Salto di carico anomalo: da ${prev.peso} a ${cur.peso} kg (+${incrementoPct}%)`,
+                spiegazione: `Il carico è passato da ${prev.peso} kg a ${cur.peso} kg in una sola settimana (+${incrementoKg} kg).`,
+                conseguenza: `Sballa il massimale e le progressioni del mesociclo.`,
+                correzioneConsigliata: `Correggi il valore eliminando la cifra digitata per errore.`
               });
             }
             // Incremento importante (> 40% e > 8kg su carichi medi > 15kg)
@@ -543,10 +543,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
                     seriePreviste: cur.seriePreviste,
                     livello: 'anomalia',
                     tipo: 'macchina_diversa_parentesi',
-                    titolo: `Carico con macchina/palestra diversa (+${incrementoPct}%)`,
-                    spiegazione: `Inserito "${cur.raw}" con cambio macchina rispetto a ${prev.peso} kg in W${prevWNum}.`,
-                    conseguenza: `I carichi di macchine o palestre diverse sfasano i massimali e le stime future.`,
-                    correzioneConsigliata: `Se si cambia palestra o macchina sporadicamente e non tornano i carichi, scrivi carico e note tra parentesi: "(${cur.raw})" per non alterare gli algoritmi.`
+                    titolo: `Cambio macchina/palestra: metti la nota tra parentesi`,
+                    spiegazione: `Hai registrato un cambio macchina/palestra rispetto a ${prev.peso} kg della settimana precedente.`,
+                    conseguenza: `I carichi di macchine diverse sfasano i massimali storici e le stime future.`,
+                    correzioneConsigliata: `Metti carico e nota tra parentesi (es. "(${cur.raw})") per non inquinare gli algoritmi.`
                   });
                 } else {
                   segnalazioni.push({
@@ -570,10 +570,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
                     seriePreviste: cur.seriePreviste,
                     livello: 'anomalia',
                     tipo: 'aumento_eccessivo',
-                    titolo: `Aumento di carico notevole (+${incrementoPct}%)`,
-                    spiegazione: `Incremento da ${prev.peso} kg (W${prevWNum}) a ${cur.peso} kg in W${w} (+${incrementoKg} kg) a parità di ripetizioni.`,
-                    conseguenza: `Verificare la sostenibilità del carico per l'atleta.`,
-                    correzioneConsigliata: `Controllare se il carico era reale o parziale.`
+                    titolo: `Aumento carico marcato (+${incrementoPct}%): da ${prev.peso} a ${cur.peso} kg`,
+                    spiegazione: `Sei salito da ${prev.peso} kg a ${cur.peso} kg (+${incrementoKg} kg) mantenendo lo stesso target di reps.`,
+                    conseguenza: `Verificare la sostenibilità e la corretta esecuzione del carico.`,
+                    correzioneConsigliata: `Verifica se il carico era effettivo o se hai sommato entrambi i lati.`
                   });
                 }
               } else {
@@ -598,10 +598,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
                   seriePreviste: cur.seriePreviste,
                   livello: 'particolare',
                   tipo: 'salto_intensificazione_giustificato',
-                  titolo: `Aumento carico coerente con intensificazione`,
-                  spiegazione: `Salita da ${prev.peso} kg a ${cur.peso} kg (+${incrementoKg} kg), giustificata dal drop da ${prev.reps || prev.repsPresc}r a ${cur.reps || cur.repsPresc}r.`,
-                  conseguenza: `Dato coerente con la curva di forza.`,
-                  correzioneConsigliata: `Nessuna correzione necessaria.`
+                  titolo: `Aumento di carico coerente con la riduzione di reps`,
+                  spiegazione: `L'aumento da ${prev.peso} a ${cur.peso} kg è coerente con la riduzione delle reps richieste.`,
+                  conseguenza: `Progressione regolare e coerente con la curva di forza.`,
+                  correzioneConsigliata: `Dato corretto, non devi modificare nulla.`
                 });
               }
             }
@@ -631,10 +631,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
                   seriePreviste: cur.seriePreviste,
                   livello: 'anomalia',
                   tipo: 'calo_inspiegabile',
-                  titolo: `Calo di carico improvviso (${incrementoPct}%)`,
-                  spiegazione: `Il carico scende da ${prev.peso} kg (W${prevWNum}) a ${cur.peso} kg in W${w} senza aumento di ripetizioni.`,
-                  conseguenza: `Possibile seduta di recupero o dato digitato erroneamente.`,
-                  correzioneConsigliata: `Verificare con l'atleta il motivo del calo.`
+                  titolo: `Calo improvviso di carico: da ${prev.peso} a ${cur.peso} kg (${incrementoPct}%)`,
+                  spiegazione: `Il carico è sceso da ${prev.peso} a ${cur.peso} kg senza un aumento di ripetizioni a compensare.`,
+                  conseguenza: `Possibile seduta di scarico/recupero o errore di digitazione.`,
+                  correzioneConsigliata: `Se non si tratta di un refuso, metti una nota esplicativa tra parentesi.`
                 });
               }
             }
@@ -664,10 +664,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
                 seriePreviste: cur.seriePreviste,
                 livello: 'anomalia',
                 tipo: 'calo_reps_corpolibero',
-                titolo: `Flessione ripetizioni corpo libero (${prev.reps}r → ${cur.reps}r)`,
-                spiegazione: `Ripetizioni passate da ${prev.reps} in W${prevWNum} a ${cur.reps} in W${w} (-${prev.reps - cur.reps} reps).`,
-                conseguenza: `Verificare se registrata solo l'ultima serie.`,
-                correzioneConsigliata: `Controllare il conteggio delle ripetizioni.`
+                titolo: `Flessione reps a corpo libero: da ${prev.reps}r a ${cur.reps}r`,
+                spiegazione: `Hai registrato ${cur.reps} reps rispetto alle ${prev.reps} della settimana precedente (-${prev.reps - cur.reps} reps).`,
+                conseguenza: `Verificare se hai segnato solo l'ultima serie invece del totale/media.`,
+                correzioneConsigliata: `Verifica se le reps inserite si riferiscono a tutte le serie o solo all'ultima.`
               });
             }
           }
@@ -702,10 +702,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             seriePreviste: cur.seriePreviste,
             livello: 'anomalia',
             tipo: 'scarico_non_rispettato',
-            titolo: 'Carico in Scarico W4 superiore a W3',
-            spiegazione: `In Week 4 (scarico) registrato ${cur.peso} kg, valore superiore a Week 3 (${w3.peso} kg).`,
-            conseguenza: `Mancato scarico neuromuscolare programmato.`,
-            correzioneConsigliata: `In Week 4 è consigliato utilizzare il carico di W2 (${w2?.peso || 'W2'} kg) o inferiore.`
+            titolo: `Carico in Scarico W4 (${cur.peso} kg) superiore a W3 (${w3.peso} kg)`,
+            spiegazione: `In W4 (settimana di scarico) hai usato ${cur.peso} kg, più pesante di W3 (${w3.peso} kg).`,
+            conseguenza: `Mancato recupero neuromuscolare programmato per il test di W6.`,
+            correzioneConsigliata: `In W4 usa un carico ridotto (consigliato: ${w2?.peso || 'W2'} kg di Week 2 o meno).`
           });
         }
       }
@@ -714,8 +714,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
       if (w === 6 && cur.compilato) {
         const numIns6 = ex.num_ins6 !== undefined && ex.num_ins6 !== null ? String(ex.num_ins6).trim() : '';
 
-        // 1. Ha compilato ins_week6 ma manca num_ins6 (SOLO per esercizi con carico NON a percentuali fisse e NON a corpo libero)
-        if (!isPercentuale && !isCorpoLibero && (!numIns6 || numIns6 === '-')) {
+        // 1. Ha compilato ins_week6 con un peso valido ma manca num_ins6 (SOLO per esercizi con carico NON a percentuali fisse e NON a corpo libero)
+        const hasValidLoadInW6 = cur.peso && cur.peso > 0;
+        const isNoteOnlyNonFatto = /\b(?:non\s*fatto|non\s*eseguito|saltato|assente|infortunio|no)\b/i.test(cur.raw);
+        if (!isPercentuale && !isCorpoLibero && hasValidLoadInW6 && !isNoteOnlyNonFatto && (!numIns6 || numIns6 === '-')) {
           segnalazioni.push({
             id: `${ex.id || ex.num_riga}_w6_manca_miglior_carico`,
             coordinata,
@@ -737,10 +739,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             seriePreviste: cur.seriePreviste,
             livello: 'anomalia',
             tipo: 'w6_manca_num_ins6',
-            titolo: 'Week 6: Manca il campo Miglior Carico (num_ins6)',
-            spiegazione: `Presente nota in W6 ("${cur.raw}") ma non è stato compilato il campo dedicato 'Miglior Carico' (num_ins6).`,
-            conseguenza: `Il calcolo carichi per la prossima scheda userà una stima basata su W5.`,
-            correzioneConsigliata: `Salvare il carico numerico top nel campo num_ins6 (es. "${cur.peso || ''}").`
+            titolo: `Week 6: Compila il campo 'Miglior Carico' (num_ins6)`,
+            spiegazione: `Hai registrato il carico (${cur.peso} kg) ma non hai compilato il campo dedicato 'Miglior Carico'.`,
+            conseguenza: `Il calcolo per la nuova scheda userà una stima di fallback su W5.`,
+            correzioneConsigliata: `Salva il carico top nel campo Miglior Carico (es. "${cur.peso}kg").`
           });
         }
 
@@ -773,10 +775,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
               seriePreviste: cur.seriePreviste,
               livello: 'anomalia',
               tipo: 'stallo_fine_mesociclo',
-              titolo: 'Stallo: Carico W6 non superiore a Week 1',
-              spiegazione: `Chiusura in W6 a ${cur.peso} kg (vs ${w1.peso} kg in W1). Nessun incremento registrato nel mesociclo.`,
-              conseguenza: `Possibile stallo neuromuscolare sull'esercizio.`,
-              correzioneConsigliata: `Valutare variazione stimolo o carico limite per il prossimo mesociclo.`
+              titolo: `Stallo mesociclo: nessun incremento tra W1 (${w1.peso} kg) e W6 (${cur.peso} kg)`,
+              spiegazione: `Hai chiuso la W6 a ${cur.peso} kg, pari o inferiore a W1 (${w1.peso} kg) a parità di ripetizioni.`,
+              conseguenza: `Segnale di stallo sui carichi o adattamento esaurito.`,
+              correzioneConsigliata: `Valuta con il coach un cambio stimolo o imposta un carico limite per la prossima scheda.`
             });
           }
         }
@@ -835,10 +837,10 @@ export const analizzaQualitaScheda = (records, options = {}) => {
               seriePreviste: w1.seriePreviste,
               livello: 'anomalia',
               tipo: 'incoerenza_storico_recente',
-              titolo: `Carico W1 (${w1.peso}kg) superiore al record storico (${maxStoricoKg}kg)`,
-              spiegazione: `Inserito in W1 ${w1.peso} kg rispetto al record precedente di ${maxStoricoKg} kg in Scheda ${maxStoricoScheda}.`,
-              conseguenza: `Verificare se inteso come carico per lato vs carico totale.`,
-              correzioneConsigliata: `Controllare se il peso corretto era ${Math.round(w1.peso / 2)} kg per lato.`
+              titolo: `Carico W1 (${w1.peso} kg) molto superiore al record storico (${maxStoricoKg} kg)`,
+              spiegazione: `Hai inserito ${w1.peso} kg in W1 rispetto al record precedente di ${maxStoricoKg} kg (Scheda ${maxStoricoScheda}).`,
+              conseguenza: `Verificare se hai registrato il peso complessivo o per lato.`,
+              correzioneConsigliata: `Se intendevi il peso per lato, scrivi "${Math.round(w1.peso / 2)} kg pl" o "${Math.round(w1.peso / 2)} kg".`
             });
           }
         }

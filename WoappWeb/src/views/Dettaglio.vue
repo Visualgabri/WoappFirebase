@@ -3865,7 +3865,7 @@
                     <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
                       {{ formatta1RMW6Prescritto(prevEx) }}
                     </td>
-                    <td class="body-cell text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.peso_corporeo || '-' }}</td>
+                    <td class="body-cell text-center" style="font-size: 0.75rem; word-wrap: break-word;">{{ formattaPesoCorporeo(prevEx) }}</td>
                     <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</td>
                     <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_attrezzo || ''">{{ prevEx.des_note_attrezzo || '-' }}</td>
                     <td class="body-cell text-left note-cell" style="font-size: 0.68rem; word-wrap: break-word;" :title="prevEx.des_note_gen_attr || ''">{{ prevEx.des_note_gen_attr || '-' }}</td>
@@ -16143,6 +16143,94 @@ const getInsWeekTextStyle = (prevEx, w) => {
   return { color: isLight ? '#475569 !important' : '#475569' };
 };
 
+const workoutTPesiMap = ref({});
+
+const estraiValorePesoDaDato = (valRaw) => {
+  if (valRaw === undefined || valRaw === null) return null;
+  const str = String(valRaw).trim();
+  if (!str || str === '0' || str === '0.0' || str === '0,0' || str === '-' || str === 'null' || str === 'undefined') return null;
+  const cleanNumStr = str.replace(',', '.').replace(/[^\d.]/g, '');
+  const n = parseFloat(cleanNumStr);
+  if (!isNaN(n) && n > 0) {
+    return `${formatWeight(n)} kg`;
+  }
+  return null;
+};
+
+const estraiPesoCorporeoDaWorkoutT = (wtData) => {
+  if (!wtData) return null;
+  
+  // 1. Cerca prima nel campo "peso atleta" (num_peso_WT, peso_atleta, "peso atleta", ecc.)
+  const pesoAtletaRaw = wtData.num_peso_WT ?? wtData.peso_atleta ?? wtData['peso atleta'] ?? wtData['Peso Atleta'] ?? wtData.pesoAtleta ?? wtData.num_peso ?? wtData.peso;
+  const pesoAtletaVal = estraiValorePesoDaDato(pesoAtletaRaw);
+  if (pesoAtletaVal) {
+    return pesoAtletaVal;
+  }
+
+  // 2. Se non presente o 0, fallback sul campo "% compl." (num_perc_compl, perc_compl, "% compl.", ecc.)
+  const percComplRaw = wtData.num_perc_compl ?? wtData.perc_compl ?? wtData['% compl.'] ?? wtData['% compl'] ?? wtData['% Compl.'] ?? wtData['% Compl'] ?? wtData.num_compl ?? wtData.percCompl ?? wtData.compl;
+  const percComplVal = estraiValorePesoDaDato(percComplRaw);
+  if (percComplVal) {
+    return percComplVal;
+  }
+
+  return null;
+};
+
+const estraiPesoCorporeoDaOggetto = (obj) => {
+  if (!obj) return '';
+  return estraiPesoCorporeoDaWorkoutT(obj) || (obj.peso_corporeo ? String(obj.peso_corporeo) : '');
+};
+
+const caricaPesiWorkoutT = async (atletaId) => {
+  if (!atletaId) return;
+  try {
+    const map = {};
+    const athleteIdStr = String(atletaId).trim();
+    const athleteIdNum = Number(atletaId);
+
+    let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr)));
+    snap.forEach(d => {
+      const data = d.data();
+      const sNum = String(data.num_scheda || '').trim();
+      const peso = estraiPesoCorporeoDaWorkoutT(data);
+      if (sNum && peso) {
+        map[sNum] = peso;
+      }
+    });
+
+    if (!isNaN(athleteIdNum) && snap.empty) {
+      let snapNum = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
+      snapNum.forEach(d => {
+        const data = d.data();
+        const sNum = String(data.num_scheda || '').trim();
+        const peso = estraiPesoCorporeoDaWorkoutT(data);
+        if (sNum && peso && !map[sNum]) {
+          map[sNum] = peso;
+        }
+      });
+    }
+
+    workoutTPesiMap.value = { ...workoutTPesiMap.value, ...map };
+  } catch (err) {
+    console.warn("Errore durante caricaPesiWorkoutT:", err);
+  }
+};
+
+const formattaPesoCorporeo = (prevEx) => {
+  if (!prevEx) return '-';
+  const sNum = String(prevEx.num_scheda || '').trim();
+  if (sNum && workoutTPesiMap.value[sNum]) {
+    return workoutTPesiMap.value[sNum];
+  }
+  if (prevEx.peso_corporeo) {
+    const val = estraiValorePesoDaDato(prevEx.peso_corporeo);
+    if (val) return val;
+    return String(prevEx.peso_corporeo);
+  }
+  return '-';
+};
+
 // Funzione unificata per caricamento dati storico e proposta
 const caricaDatiAnalisi = async (sett) => {
   aiutoWeek.value = sett || settimanaAttiva.value;
@@ -16161,6 +16249,8 @@ const caricaDatiAnalisi = async (sett) => {
       caricandoAiutoCarico.value = false;
       return;
     }
+
+    await caricaPesiWorkoutT(atletaId);
     
     const q = query(
       collection(db, 'STORYBOARD'),
@@ -16174,7 +16264,9 @@ const caricaDatiAnalisi = async (sett) => {
       const sNum = parseInt(d.num_scheda);
       if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
         const itemId = doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
-        list.push({ ...d, id: itemId });
+        const sNumStr = String(d.num_scheda || '').trim();
+        const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
+        list.push({ ...d, id: itemId, peso_corporeo: pesoCorp });
       }
     });
     list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
@@ -16190,6 +16282,8 @@ const caricaDatiAnalisi = async (sett) => {
       });
       matched.forEach(b => {
         b.id = `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+        const sNumStr = String(b.num_scheda || '').trim();
+        b.peso_corporeo = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(b);
       });
       matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
       storicoEsercizio.value = matched;

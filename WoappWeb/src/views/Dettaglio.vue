@@ -2798,105 +2798,142 @@
             </span>
           </div>
 
-          <!-- Rigo 3: Hero Banner dei Due Record Assoluti & Obiettivo W -->
-          <div v-if="activeTabAnalisi === 1 && suggerimentoRecord" class="px-3 py-2 border-top text-left" :style="{ background: 'var(--card-bg-dark, #000000)', borderColor: 'var(--card-border, rgba(249, 115, 22, 0.2))' }">
+          <!-- Rigo 3: Hero Banner dei Due Record Assoluti & Obiettivo W (Spazioso, Dettagliato, Aria) -->
+          <div v-if="activeTabAnalisi === 1 && suggerimentoRecord" class="px-3 py-2.5 border-top text-left" :style="{ background: 'var(--card-bg-dark, #000000)', borderColor: 'var(--card-border, rgba(249, 115, 22, 0.2))' }">
             
             <!-- HERO BANNER PR: RECORD ASSOLUTO GENERALE -->
             <div 
               v-if="suggerimentoRecord.recordAbsolute > 0" 
               class="record-hero-pr-assoluto pa-2.5 rounded-xl border mb-2 text-left transition-colors" 
-              style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important; cursor: pointer;"
+              style="background: #021a29; border: 1.5px solid #0098a6 !important; cursor: pointer;"
               @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
             >
-              <div class="d-flex align-center justify-space-between mb-0.5">
+              <div class="d-flex align-center justify-space-between mb-1">
                 <div class="d-flex align-center gap-1">
-                  <v-icon color="cyan-lighten-2" size="13">mdi-fire</v-icon>
-                  <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
+                  <v-icon color="#00bcd4" size="16">mdi-fire</v-icon>
+                  <span class="font-weight-black uppercase" style="color: #00bcd4; font-size: 0.74rem; letter-spacing: 0.03em;">
                     RECORD ASSOLUTO ESERCIZIO
                   </span>
                 </div>
-                <v-chip color="cyan-darken-2" size="x-small" class="font-weight-black text-white" variant="flat" style="font-size: 0.5rem; height: 16px; padding: 0 6px;">
+                <span class="font-weight-black text-white" style="background: #00838f; font-size: 0.62rem; padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.02em; line-height: 1.2;">
                   PR ASSOLUTO
-                </v-chip>
+                </span>
               </div>
 
-              <div class="d-flex align-baseline gap-1.5">
-                <span class="record-hero-num text-subtitle-1 font-weight-black" style="font-size: 1.05rem; line-height: 1.1;">
+              <div class="d-flex align-baseline">
+                <span class="record-hero-num font-weight-black text-white" style="font-size: 1.38rem; line-height: 1.2;">
                   <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordAbsoluteHasWeight">
-                    {{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute) }}
+                    {{ String(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute).replace(/r$/i, '') }}r
                   </template>
                   <template v-else>
                     {{ formatWeight(suggerimentoRecord.recordAbsolute) }} kg
                   </template>
                 </span>
-                <span v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" class="text-caption font-weight-black ml-2" :style="{ color: 'var(--theme-primary-light, #38bdf8)' }" style="font-size: 0.72rem;">
-                  &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordAbsoluteReps) }}
+                <span 
+                  v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" 
+                  class="font-weight-black" 
+                  style="color: #facc15; font-size: 1.05rem; line-height: 1.2; margin-left: 10px;"
+                >
+                  x{{ String(suggerimentoRecord.recordAbsoluteReps).replace(/r$/i, '') }}r
+                </span>
+                <span 
+                  v-if="suggerimentoRecord.recordAbsoluteFatica" 
+                  class="font-weight-bold text-truncate" 
+                  :style="getColoreFaticaStyle(suggerimentoRecord.recordAbsoluteFatica)" 
+                  style="font-size: 0.85rem; margin-left: 6px;"
+                >
+                  ({{ formatFaticaAbbr(suggerimentoRecord.recordAbsoluteFatica) }})
                 </span>
               </div>
 
-              <div class="text-super-caption font-weight-bold mt-0.5 d-flex align-center gap-1 flex-wrap" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.53rem; line-height: 1.2;">
-                <span>📍 Sch. {{ suggerimentoRecord.recordAbsoluteSheet || '-' }}{{ suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '' }}{{ (suggerimentoRecord.recordAbsoluteRow !== null && suggerimentoRecord.recordAbsoluteRow !== undefined) ? suggerimentoRecord.recordAbsoluteRow : '' }}</span>
-                <span> 🗓️ {{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}</span>
-                <span v-if="tempoTrascorso(suggerimentoRecord.recordAbsoluteDate)" class="ml-1" :style="{ color: 'var(--theme-primary-light, #0284c7)' }">({{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) }})</span>
+              <div class="font-weight-bold mt-1 d-flex align-center gap-2 flex-wrap" style="font-size: 0.75rem; line-height: 1.3; color: #cbd5e1;">
+                <span class="d-inline-flex align-center gap-1">
+                  <span style="font-size: 0.82rem;">📍</span>
+                  <span>Sch. {{ suggerimentoRecord.recordAbsoluteSheet || '-' }}{{ suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '' }}{{ (suggerimentoRecord.recordAbsoluteRow !== null && suggerimentoRecord.recordAbsoluteRow !== undefined && suggerimentoRecord.recordAbsoluteRow !== '') ? '' + suggerimentoRecord.recordAbsoluteRow : '' }}</span>
+                </span>
+                <span class="d-inline-flex align-center gap-1">
+                  <span style="font-size: 0.82rem;">🗓️</span>
+                  <span>{{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'N.D.' }}</span>
+                </span>
+                <span v-if="tempoTrascorso(suggerimentoRecord.recordAbsoluteDate)" class="font-weight-black" style="color: #facc15;">
+                  ({{ tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) }})
+                </span>
               </div>
             </div>
 
             <!-- RIGA INFERIORE: RECORD A STESSE REPS + OBIETTIVO W -->
-            <div class="d-flex align-stretch gap-1.5 w-100 min-width-0">
+            <div class="d-flex align-stretch gap-2 w-100 min-width-0">
               <!-- Card 1: Record a Stesse Reps -->
               <div 
                 v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
-                class="record-hero-reps pa-2 rounded-xl border text-left d-flex flex-column justify-center transition-colors overflow-hidden" 
-                style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important; cursor: pointer; flex: 1 1 0%; min-width: 0;"
+                class="record-hero-reps pa-2.5 rounded-xl border text-left d-flex flex-column justify-center transition-colors overflow-hidden" 
+                style="background: #17120e; border: 1.5px solid #6b4012 !important; cursor: pointer; flex: 1 1 0%; min-width: 0;"
                 @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
               >
-                <div class="d-flex align-center justify-space-between mb-0.5">
-                  <div class="d-flex align-center gap-1 text-truncate">
-                    <v-icon color="amber-lighten-1" size="12">mdi-trophy</v-icon>
-                    <span class="text-super-caption font-weight-black uppercase text-truncate" :style="{ color: 'var(--theme-primary-light, #d97706)' }" style="font-size: 0.55rem; letter-spacing: 0.03em;">
-                      RECORD A {{ getRepsPerWeek(settimanaAttiva) }} REPS
-                    </span>
-                  </div>
+                <div class="d-flex align-center gap-1 mb-1 text-truncate">
+                  <span style="font-size: 0.82rem;">🏆</span>
+                  <span class="font-weight-black uppercase text-truncate" style="color: #facc15; font-size: 0.72rem; letter-spacing: 0.03em;">
+                    RECORD A {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
+                  </span>
                 </div>
 
-                <div class="d-flex align-baseline gap-1 text-truncate">
-                  <span class="record-hero-num text-subtitle-2 font-weight-black" style="font-size: 0.95rem; line-height: 1.1;">
+                <div class="d-flex align-baseline text-truncate">
+                  <span class="record-hero-num font-weight-black text-white" style="font-size: 1.28rem; line-height: 1.2;">
                     <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
-                      {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record) }}
+                      {{ String(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record).replace(/r$/i, '') }}r
                     </template>
                     <template v-else>
                       {{ formatWeight(suggerimentoRecord.record) }} kg
                     </template>
                   </span>
-                  <span v-if="suggerimentoRecord.recordRepsValue && suggerimentoRecord.recordRepsValue > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" class="text-super-caption font-weight-bold text-truncate ml-2" :class="suggerimentoRecord.recordRepsFatica ? '' : 'text-amber-lighten-2'" :style="suggerimentoRecord.recordRepsFatica ? getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica) : {}" style="font-size: 0.62rem;">
-                    &nbsp;x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }} {{ suggerimentoRecord.recordRepsFatica ? '(' + formatFaticaAbbr(suggerimentoRecord.recordRepsFatica) + ')' : '' }}
+                  <span 
+                    v-if="suggerimentoRecord.recordRepsValue && suggerimentoRecord.recordRepsValue > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" 
+                    class="font-weight-black" 
+                    style="color: #facc15; font-size: 0.95rem; line-height: 1.2; margin-left: 8px;"
+                  >
+                    x{{ String(suggerimentoRecord.recordRepsValue).replace(/r$/i, '') }}r
+                  </span>
+                  <span 
+                    v-if="suggerimentoRecord.recordRepsFatica" 
+                    class="font-weight-bold text-truncate" 
+                    style="color: #fbbf24; font-size: 0.82rem; margin-left: 5px;"
+                  >
+                    ({{ formatFaticaAbbr(suggerimentoRecord.recordRepsFatica) }})
                   </span>
                 </div>
 
-                <div class="text-super-caption font-weight-bold mt-0.5 text-truncate" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.51rem; line-height: 1.15; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                <div class="font-weight-bold mt-1 text-truncate" style="color: #94a3b8; font-size: 0.74rem; line-height: 1.25;">
                   <span v-if="suggerimentoRecord.recordRepsSheet">
-                    Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }} • 
+                    Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }}{{ (suggerimentoRecord.recordRepsRow !== null && suggerimentoRecord.recordRepsRow !== undefined && suggerimentoRecord.recordRepsRow !== '') ? '' + suggerimentoRecord.recordRepsRow : '' }} • 
                   </span>
-                  {{ formattaDataStorico(suggerimentoRecord.recordRepsDate) || 'N.D.' }}
+                  <span>{{ formattaDataStorico(suggerimentoRecord.recordRepsDate) || 'N.D.' }}</span>
                 </div>
               </div>
 
               <!-- Card 2: Obiettivo W Attiva -->
-              <div v-if="suggerimentoRecord.target > 0 || suggerimentoRecord.isScarico" class="record-hero-target pa-2 rounded-xl border text-left d-flex flex-column justify-center overflow-hidden" style="background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.3) !important; flex: 1 1 0%; min-width: 0;">
-                <div class="d-flex align-center gap-1 mb-0.5 text-truncate">
-                  <v-icon color="orange-lighten-2" size="12">mdi-target</v-icon>
-                  <span class="text-super-caption font-weight-black uppercase text-truncate" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.55rem; letter-spacing: 0.03em;">
-                    <span v-if="suggerimentoRecord.isScarico">SCARICO W{{settimanaAttiva}}</span>
-                    <span v-else>OBIETTIVO W{{settimanaAttiva}}</span>
+              <div 
+                v-if="suggerimentoRecord.target > 0 || suggerimentoRecord.isScarico" 
+                class="record-hero-target pa-2.5 rounded-xl border text-left d-flex flex-column justify-center overflow-hidden" 
+                style="background: #17120e; border: 1.5px solid #6b4012 !important; flex: 1 1 0%; min-width: 0;"
+              >
+                <div class="d-flex align-center gap-1 mb-1 text-truncate">
+                  <span style="font-size: 0.82rem;">🎯</span>
+                  <span class="font-weight-black uppercase text-truncate" style="color: #facc15; font-size: 0.72rem; letter-spacing: 0.03em;">
+                    <span v-if="suggerimentoRecord.isScarico">SCARICO W{{ settimanaAttiva }}</span>
+                    <span v-else>OBIETTIVO W{{ settimanaAttiva }}</span>
                   </span>
                 </div>
 
-                <div class="record-hero-num text-subtitle-2 font-weight-black text-truncate" style="font-size: 0.95rem; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                  <span v-if="suggerimentoRecord.isScarico">{{ estraiPesoDaInput(suggerimentoRecord.pesoWeek2) ? formatWeight(estraiPesoDaInput(suggerimentoRecord.pesoWeek2)) + (isCorpoLiberoEsercizio(workout) ? 'r' : ' kg') : 'Scarico' }}</span>
-                  <span v-else>{{ suggerimentoRecord.targetDisplay || (isCorpoLiberoEsercizio(workout) ? getRepsPerWeek(settimanaAttiva) + 'r' : suggerimentoRecord.target + ' kg') }}</span>
+                <div class="record-hero-num font-weight-black text-white text-truncate" style="font-size: 1.28rem; line-height: 1.2;">
+                  <span v-if="suggerimentoRecord.isScarico">
+                    {{ estraiPesoDaInput(suggerimentoRecord.pesoWeek2) ? formatWeight(estraiPesoDaInput(suggerimentoRecord.pesoWeek2)) + (isCorpoLiberoEsercizio(workout) ? 'r' : ' kg') : 'Scarico' }}
+                  </span>
+                  <span v-else>
+                    {{ suggerimentoRecord.target ? (formatWeight(suggerimentoRecord.target) + ' kg') : (suggerimentoRecord.targetDisplay || (isCorpoLiberoEsercizio(workout) ? String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') + 'r' : '-')) }}
+                  </span>
                 </div>
-                <div class="text-super-caption font-weight-bold text-truncate" :style="{ color: 'var(--text-slate, #64748b)' }" style="font-size: 0.51rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                  {{ suggerimentoRecord.targetSubtext || ('a ' + getRepsPerWeek(settimanaAttiva) + ' reps target') }}
+                <div class="font-weight-bold mt-1 text-truncate" style="color: #94a3b8; font-size: 0.74rem; line-height: 1.25;">
+                  {{ suggerimentoRecord.targetSubtext || ('a ' + String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') + ' reps target') }}
                 </div>
               </div>
             </div>
@@ -2904,19 +2941,22 @@
 
           <!-- Rigo 4: Controlli Visualizzazione (Solo per Cronologia) -->
           <div v-if="activeTabAnalisi === 1" class="px-3 py-2 border-top d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)', borderColor: 'var(--card-border, rgba(255,255,255,0.05))' }">
-            <v-btn
-              :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
-              variant="flat"
-              size="x-small"
-              class="font-weight-black text-none"
-              style="height: 28px; font-size: 0.68rem;"
-              @click="toggleFiltroCorrispondenti"
-            >
-              <v-icon size="14" class="mr-1">
-                {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
-              </v-icon>
-              Solo Stessi Reps ({{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : 'N.D.' }})
-            </v-btn>
+            <div>
+              <v-btn
+                v-if="stileStorico !== 'grafico'"
+                :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
+                variant="flat"
+                size="x-small"
+                class="font-weight-black text-none px-2.5 rounded-lg"
+                style="height: 28px; font-size: 0.65rem;"
+                @click="toggleFiltroCorrispondenti"
+              >
+                <v-icon size="13" class="mr-1">
+                  {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
+                </v-icon>
+                Solo stesse reps ({{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r' }})
+              </v-btn>
+            </div>
             
             <v-btn-toggle
               v-model="stileStorico"
@@ -2927,17 +2967,17 @@
               class="card-glass border"
               style="height: 28px;"
             >
-              <!-- TABELLA PRIMO -->
-              <v-btn value="tabella" class="px-2" style="min-width: 40px; height: 28px;" title="Vista a Tabella">
-                <v-icon size="18">mdi-table</v-icon>
+              <!-- TABELLA -->
+              <v-btn value="tabella" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Tabella">
+                <v-icon size="17">mdi-table</v-icon>
               </v-btn>
-              <!-- TIMELINE SECONDO -->
-              <v-btn value="timeline" class="px-2" style="min-width: 40px; height: 28px;" title="Vista a Lista">
-                <v-icon size="18">mdi-view-sequential</v-icon>
+              <!-- CARDS / LISTA -->
+              <v-btn value="timeline" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Card">
+                <v-icon size="17">mdi-view-sequential</v-icon>
               </v-btn>
-              <!-- GRAFICO TERZO -->
-              <v-btn value="grafico" class="px-2" style="min-width: 40px; height: 28px;" title="Vista Grafico">
-                <v-icon size="18">mdi-chart-line</v-icon>
+              <!-- GRAFICO -->
+              <v-btn value="grafico" class="px-2" style="min-width: 38px; height: 28px;" title="Vista Grafico" @click="passaAVistaGrafico">
+                <v-icon size="17">mdi-chart-line</v-icon>
               </v-btn>
             </v-btn-toggle>
           </div>
@@ -3835,66 +3875,69 @@
             </div>
 
             <!-- LAYOUT 3: GRAFICO DELLE PROGRESSIONI -->
-            <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'grafico'" class="d-flex flex-column gap-3 py-1">
-              <!-- Se l'esercizio NON è V%, mostra i selettori standard A/B/C/1RM_W6 e Raggruppamento Reps -->
+            <div 
+              v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'grafico'" 
+              ref="graficoContainerRef"
+              class="d-flex flex-column gap-2 py-1"
+            >
+              <!-- Se l'esercizio NON è V%, mostra i selettori standard 1RM_W6/A/B/C e Raggruppamento Reps -->
               <template v-if="!isEsercizioVPercentuale">
-                <!-- Selettore Modalità Grafico -->
-                <div class="text-left">
-                  <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">Modalità Grafico</span>
+                <!-- Selettore Modalità Grafico: 1RM W6 prima scelta a sinistra -->
+                <div class="text-left" ref="graficoHeaderRef">
                   <v-btn-toggle
                     v-model="modeGraficoStorico"
                     mandatory
                     selected-class="bg-orange-darken-3 text-white"
                     density="compact"
-                    rounded="xl"
+                    rounded="lg"
                     class="card-glass border w-100"
-                    style="height: 32px;"
+                    style="height: 28px;"
                   >
-                    <v-btn value="A" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.60rem; min-height: 30px;">
-                      A: Linee + 1RM
-                    </v-btn>
-                    <v-btn value="B" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.60rem; min-height: 30px;">
-                      B: Punti + 1RM
-                    </v-btn>
-                    <v-btn value="C" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.60rem; min-height: 30px;">
-                      C: Linea Unica
-                    </v-btn>
-                    <v-btn value="1RM_W6" class="flex-grow-1 font-weight-black text-none px-1 text-cyan-accent-2" style="font-size: 0.60rem; min-height: 30px;">
+                    <v-btn value="1RM_W6" class="flex-grow-1 font-weight-black text-none px-1 text-cyan-accent-2" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
                       ⚡ 1RM W6
+                    </v-btn>
+                    <v-btn value="A" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
+                      Linee + 1RM
+                    </v-btn>
+                    <v-btn value="B" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
+                      Punti + 1RM
+                    </v-btn>
+                    <v-btn value="C" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
+                      Linea Unica
                     </v-btn>
                   </v-btn-toggle>
                 </div>
 
                 <!-- Info Card per 1RM W6 -->
-                <div v-if="modeGraficoStorico === '1RM_W6'" class="pa-2.5 rounded-xl border text-left" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important;">
-                  <div class="d-flex align-center gap-1.5 mb-1 text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.62rem;">
-                    <v-icon color="cyan-lighten-2" size="14">mdi-fire</v-icon>
-                    Progressione Massimale Week 6 (1RM Peak)
+                <div v-if="modeGraficoStorico === '1RM_W6'" class="px-2.5 py-1 rounded-lg border text-left d-flex align-center justify-space-between" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important;">
+                  <div class="d-flex align-center gap-1 text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.60rem;">
+                    <span>📈</span>
+                    <span>PROGRESSIONE 1RM W6</span>
                   </div>
-                  <div class="text-slate-300" style="font-size: 0.60rem; line-height: 1.35;">
-                    Visualizza il trend del <strong>Massimale Stimato (1RM)</strong> raggiunto in Week 6 confrontato con il carico effettivo sollevato nelle diverse schede.
-                  </div>
+                  <span class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.50rem;">
+                    1RM stimato e carico W6 nel tempo
+                  </span>
                 </div>
 
                 <!-- Selettore Raggruppamento Reps (mostrato solo in modalità A, B, C) -->
                 <div v-if="modeGraficoStorico !== '1RM_W6'" class="text-left">
-                  <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1.5" style="font-size: 0.55rem; letter-spacing: 0.05em;">Raggruppamento Reps</span>
+                  <span class="text-super-caption text-muted font-weight-black uppercase d-block mb-1" style="font-size: 0.52rem; letter-spacing: 0.05em;">Raggruppamento Reps</span>
                   <v-btn-toggle
                     v-model="raggruppamentoReps"
                     mandatory
                     selected-class="bg-orange-darken-3 text-white"
                     density="compact"
-                    rounded="xl"
+                    rounded="lg"
                     class="card-glass border w-100"
-                    style="height: 32px;"
+                    style="height: 28px;"
                   >
-                    <v-btn value="esatto" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    <v-btn value="esatto" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.60rem; min-height: 28px;">
                       Esatto
                     </v-btn>
-                    <v-btn value="zone" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    <v-btn value="zone" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.60rem; min-height: 28px;">
                       Zone
                     </v-btn>
-                    <v-btn value="fasce" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.65rem; min-height: 30px;">
+                    <v-btn value="fasce" class="flex-grow-1 font-weight-black text-none" style="font-size: 0.60rem; min-height: 28px;">
                       Fasce (3r)
                     </v-btn>
                   </v-btn-toggle>
@@ -3902,27 +3945,27 @@
 
                 <!-- Filtro Reps (Multi-selezione) -->
                 <div v-if="modeGraficoStorico !== '1RM_W6' && availableBuckets.length > 0" class="text-left">
-                  <div class="d-flex align-center justify-space-between mb-1.5">
-                    <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.55rem; letter-spacing: 0.05em;">Filtra Reps</span>
+                  <div class="d-flex align-center justify-space-between mb-1">
+                    <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.05em;">Filtra Reps</span>
                     <v-btn 
                       variant="text" 
                       color="orange-lighten-2" 
                       class="px-1 py-0 text-none font-weight-black" 
-                      style="font-size: 0.58rem; height: 16px; min-width: auto;"
+                      style="font-size: 0.55rem; height: 16px; min-width: auto;"
                       @click="toggleAllBuckets"
                     >
                       {{ selectedBuckets.length === availableBuckets.length ? 'Deseleziona Tutti' : 'Seleziona Tutti' }}
                     </v-btn>
                   </div>
-                  <div class="d-flex align-center gap-1.5 overflow-x-auto pb-1 scrollbar-hidden" style="white-space: nowrap;">
+                  <div class="d-flex align-center gap-1 overflow-x-auto pb-0.5 scrollbar-hidden" style="white-space: nowrap;">
                     <v-chip
                       v-for="b in availableBuckets"
                       :key="b"
                       :color="selectedBuckets.includes(b) ? 'orange-darken-3' : 'grey-lighten-1'"
                       :variant="selectedBuckets.includes(b) ? 'flat' : 'tonal'"
                       size="x-small"
-                      class="font-weight-black px-2 py-0.5"
-                      style="cursor: pointer; height: 22px; font-size: 0.62rem;"
+                      class="font-weight-black px-1.5 py-0.5"
+                      style="cursor: pointer; height: 20px; font-size: 0.58rem;"
                       @click="toggleBucketFilter(b)"
                     >
                       {{ b }}
@@ -3933,48 +3976,48 @@
 
               <!-- Se l'esercizio È V%, mostra scheda esplicativa dedicata Reale vs Teorico -->
               <template v-else>
-                <div class="pa-3 rounded-xl border text-left position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.14) 0%, rgba(6, 182, 212, 0.08) 100%); border-color: rgba(249, 115, 22, 0.3) !important;">
+                <div class="pa-2.5 rounded-xl border text-left position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.14) 0%, rgba(6, 182, 212, 0.08) 100%); border-color: rgba(249, 115, 22, 0.3) !important;">
                   <div class="d-flex align-center justify-space-between mb-1">
-                    <div class="d-flex align-center gap-1.5">
-                      <v-icon color="orange-lighten-2" size="18">mdi-chart-bell-curve-cumulative</v-icon>
-                      <span class="text-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.72rem; letter-spacing: 0.03em;">
-                        GRAFICO PROGRESSIONE V%: REALE vs TEORICO
+                    <div class="d-flex align-center gap-1">
+                      <v-icon color="orange-lighten-2" size="16">mdi-chart-bell-curve-cumulative</v-icon>
+                      <span class="text-caption font-weight-black text-orange-lighten-2 uppercase" style="font-size: 0.68rem; letter-spacing: 0.03em;">
+                        PROGRESSIONE V%: REALE vs TEORICO
                       </span>
                     </div>
-                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-2" variant="flat" style="font-size: 0.58rem; height: 18px;">
-                      V% PERCENTUALE
+                    <v-chip color="orange-darken-3" size="x-small" class="font-weight-black text-white px-1.5" variant="flat" style="font-size: 0.52rem; height: 16px;">
+                      V%
                     </v-chip>
                   </div>
-                  <p class="text-super-caption text-slate-300 font-weight-medium mb-2" style="font-size: 0.64rem; line-height: 1.35;">
-                    Esercizio a percentuale con progressioni prescritte. Il grafico mette in confronto diretto il <strong>Massimale Teorico Target (1RMT)</strong> di partenza con il <strong>Massimale Reale Effettivo (e1RM)</strong> raggiunto nelle sessioni.
+                  <p class="text-super-caption text-slate-300 font-weight-medium mb-1.5" style="font-size: 0.58rem; line-height: 1.25;">
+                    Confronto tra <strong>1RMT Teorico</strong> e <strong>e1RM Reale</strong> raggiunto nelle sessioni.
                   </p>
 
                   <!-- Micro Statistiche V% -->
-                  <div v-if="vPercStats" class="d-flex align-center gap-2 pt-1 border-top" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-                    <div class="pa-1.5 rounded-lg bg-black/40 flex-grow-1 border border-cyan-500/20 text-center">
-                      <span class="text-super-caption text-cyan-lighten-3 font-weight-bold d-block uppercase" style="font-size: 0.52rem;">1RM Teorico Target</span>
-                      <span class="text-caption font-weight-black text-cyan-lighten-2" style="font-size: 0.82rem;">{{ vPercStats.rmtBase }} kg</span>
+                  <div v-if="vPercStats" class="d-flex align-center gap-1.5 pt-1 border-top" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <div class="pa-1 rounded bg-black/40 flex-grow-1 border border-cyan-500/20 text-center">
+                      <span class="text-super-caption text-cyan-lighten-3 font-weight-bold d-block uppercase" style="font-size: 0.48rem;">1RM Target</span>
+                      <span class="text-caption font-weight-black text-cyan-lighten-2" style="font-size: 0.78rem;">{{ vPercStats.rmtBase }} kg</span>
                     </div>
-                    <div class="pa-1.5 rounded-lg bg-black/40 flex-grow-1 border border-orange-500/20 text-center">
-                      <span class="text-super-caption text-orange-lighten-3 font-weight-bold d-block uppercase" style="font-size: 0.52rem;">1RM Reale Massimo</span>
-                      <span class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.82rem;">{{ vPercStats.bestReale }} kg</span>
+                    <div class="pa-1 rounded bg-black/40 flex-grow-1 border border-orange-500/20 text-center">
+                      <span class="text-super-caption text-orange-lighten-3 font-weight-bold d-block uppercase" style="font-size: 0.48rem;">1RM Max</span>
+                      <span class="text-caption font-weight-black text-orange-lighten-2" style="font-size: 0.78rem;">{{ vPercStats.bestReale }} kg</span>
                     </div>
-                    <div class="pa-1.5 rounded-lg bg-black/40 flex-grow-1 border text-center" :class="String(vPercStats.diffKg).startsWith('+') ? 'border-green-500/20' : 'border-red-500/20'">
-                      <span class="text-super-caption font-weight-bold d-block uppercase" :class="String(vPercStats.diffKg).startsWith('+') ? 'text-green-lighten-3' : 'text-red-lighten-3'" style="font-size: 0.52rem;">Scostamento</span>
-                      <span class="text-caption font-weight-black" :class="String(vPercStats.diffKg).startsWith('+') ? 'text-green-accent-3' : 'text-red-lighten-2'" style="font-size: 0.82rem;">{{ vPercStats.diffKg }} kg ({{ vPercStats.diffPct }}%)</span>
+                    <div class="pa-1 rounded bg-black/40 flex-grow-1 border text-center" :class="String(vPercStats.diffKg).startsWith('+') ? 'border-green-500/20' : 'border-red-500/20'">
+                      <span class="text-super-caption font-weight-bold d-block uppercase" :class="String(vPercStats.diffKg).startsWith('+') ? 'text-green-lighten-3' : 'text-red-lighten-3'" style="font-size: 0.48rem;">Scostamento</span>
+                      <span class="text-caption font-weight-black" :class="String(vPercStats.diffKg).startsWith('+') ? 'text-green-accent-3' : 'text-red-lighten-2'" style="font-size: 0.78rem;">{{ vPercStats.diffKg }} kg</span>
                     </div>
                   </div>
                 </div>
               </template>
 
               <!-- Contenitore Grafico Line -->
-              <div class="bg-slate-950 border border-soft rounded-xl pa-3" style="background-color: var(--card-bg-soft) !important;">
-                <div v-if="storicoChartReady" style="position: relative; height: 280px; width: 100%;">
+              <div class="bg-slate-950 border border-soft rounded-xl pa-2" style="background-color: var(--card-bg-soft) !important;">
+                <div v-if="storicoChartReady" style="position: relative; height: 260px; width: 100%;">
                   <Line :data="storicoChartData" :options="storicoChartOptions" />
                 </div>
-                <div v-else class="text-center py-12 text-muted text-caption">
-                  <v-progress-circular indeterminate color="orange" size="24" class="mb-2"></v-progress-circular>
-                  <p class="mb-0">Elaborazione dati del grafico in corso...</p>
+                <div v-else class="text-center py-8 text-muted text-caption">
+                  <v-progress-circular indeterminate color="orange" size="22" class="mb-1"></v-progress-circular>
+                  <p class="mb-0 text-super-caption">Elaborazione grafico...</p>
                 </div>
               </div>
 
@@ -4044,75 +4087,57 @@
                 </div>
               </v-expand-transition>
 
-              <!-- Analisi Andamento e Consigli Tecnici -->
+              <!-- Analisi Andamento e Consigli Tecnici (Sintetica, compatta, badge + numeri grandi) -->
               <div v-if="analisiAndamentoEsercizio">
                 <v-card class="card-glass border text-left" :style="{ background: 'var(--card-bg-soft, #0f172a)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08)) !important', borderRadius: '12px !important' }">
                   <div 
                     class="d-flex align-center justify-space-between px-3 py-2 clickable-item" 
-                    style="cursor: pointer; min-height: 36px;"
+                    style="cursor: pointer; min-height: 32px;"
                     :style="{ background: 'var(--card-bg-soft, #0f172a)' }"
                     @click="showAnalisiAndamento = !showAnalisiAndamento"
                   >
-                    <div class="d-flex align-center gap-2">
-                      <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="16">mdi-google-analytics</v-icon>
-                      <span class="text-caption font-weight-black dialog-text-primary uppercase" style="font-size: 0.72rem !important; letter-spacing: 0.02em;">
-                        Analisi Progressioni & Consigli
+                    <div class="d-flex align-center gap-1.5">
+                      <span style="font-size: 0.85rem;">📊</span>
+                      <span class="text-caption font-weight-black dialog-text-primary uppercase" style="font-size: 0.70rem !important; letter-spacing: 0.02em;">
+                        ANALISI
                       </span>
                     </div>
-                    <div class="d-flex align-center gap-2">
+                    <div class="d-flex align-center gap-1.5">
                       <v-chip 
                         :color="analisiAndamentoEsercizio.badgeColor" 
                         size="x-small" 
                         class="font-weight-black text-white uppercase px-1.5"
-                        style="height: 18px; font-size: 0.55rem; border-radius: 4px;"
+                        style="height: 18px; font-size: 0.52rem; border-radius: 4px;"
                         variant="flat"
                       >
                         {{ analisiAndamentoEsercizio.badgeText }}
                       </v-chip>
-                      <v-icon size="16" color="grey">{{ showAnalisiAndamento ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                      <v-icon size="14" color="grey">{{ showAnalisiAndamento ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                     </div>
                   </div>
                   
                   <v-expand-transition>
-                    <div v-show="showAnalisiAndamento" class="pa-3 border-top-soft" style="font-size: 0.72rem; line-height: 1.45;">
-                      <!-- Giudizio -->
-                      <div class="mb-3 d-flex align-start gap-2">
-                        <span style="font-size: 1.15rem; line-height: 1;">📊</span>
-                        <div>
-                          <strong class="dialog-text-primary">Giudizio sull'Andamento:</strong>
-                          <p class="mb-0 mt-0.5" :style="{ color: 'var(--text-slate, #64748b)' }" v-html="renderMarkdownBold(analisiAndamentoEsercizio.giudizio)"></p>
+                    <div v-show="showAnalisiAndamento" class="pa-2.5 border-top-soft" style="font-size: 0.68rem; line-height: 1.35;">
+                      <!-- Variazione 1RM sintetica -->
+                      <div class="d-flex align-center justify-space-between pa-1.5 rounded-lg mb-2 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <div class="d-flex align-center gap-1">
+                          <span class="font-weight-black" :class="analisiAndamentoEsercizio.pctDiff > 0 ? 'text-green-accent-3' : (analisiAndamentoEsercizio.pctDiff < 0 ? 'text-red-lighten-2' : 'text-amber-lighten-2')" style="font-size: 0.90rem;">
+                            {{ analisiAndamentoEsercizio.pctDiff >= 0 ? '+' : '' }}{{ analisiAndamentoEsercizio.pctDiff }}% 1RM
+                          </span>
+                        </div>
+                        <div v-if="analisiAndamentoEsercizio.firstPt && analisiAndamentoEsercizio.lastPt" class="text-super-caption font-weight-bold text-slate-300" style="font-size: 0.65rem;">
+                          {{ analisiAndamentoEsercizio.firstPt.e1rm }} → {{ analisiAndamentoEsercizio.lastPt.e1rm }} kg
                         </div>
                       </div>
                       
-                      <!-- Consigli -->
-                      <div class="mb-3 d-flex align-start gap-2">
-                        <span style="font-size: 1.15rem; line-height: 1;">💡</span>
+                      <!-- Consiglio sintetico -->
+                      <div class="d-flex align-start gap-1.5">
+                        <span style="font-size: 0.85rem; line-height: 1.2;">💡</span>
                         <div>
-                          <strong :style="{ color: 'var(--theme-primary, #f97316)' }">Consigli Tecnici:</strong>
-                          <p class="mb-0 mt-0.5" :style="{ color: 'var(--text-slate, #64748b)' }">{{ analisiAndamentoEsercizio.consigli }}</p>
-                        </div>
-                      </div>
-                      
-                      <!-- Record per fascia -->
-                      <div v-if="analisiAndamentoEsercizio.records.length > 0" class="pt-2.5 border-top-soft">
-                        <strong class="dialog-text-primary uppercase font-weight-black d-block mb-2" style="font-size: 0.58rem; letter-spacing: 0.05em;">
-                          Migliori Prestazioni Registrate per Fascia:
-                        </strong>
-                        <div class="d-flex flex-column gap-1.5">
-                          <div 
-                            v-for="rec in analisiAndamentoEsercizio.records" 
-                            :key="rec.bucket"
-                            class="d-flex align-center justify-space-between rounded px-2.5 py-1.5 border border-soft"
-                            :style="{ background: 'var(--card-bg-glass, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.05))' }"
-                          >
-                            <div>
-                              <span class="font-weight-black" :style="{ color: 'var(--theme-primary, #f97316)' }">{{ rec.bucket }}</span>
-                              <span class="text-super-caption ml-2 font-weight-bold" :style="{ color: 'var(--text-slate, #64748b)' }">({{ rec.label }})</span>
-                            </div>
-                            <div class="font-weight-black dialog-text-primary">
-                              {{ rec.maxPeso }} kg <span class="text-super-caption font-weight-bold" :style="{ color: 'var(--text-slate, #64748b)' }" v-if="rec.date">• {{ tempoTrascorso(rec.date) }}</span>
-                            </div>
-                          </div>
+                          <strong class="text-amber-lighten-2" style="font-size: 0.65rem;">Consiglio:</strong>
+                          <p class="mb-0 mt-0.5 text-slate-300" style="font-size: 0.62rem; line-height: 1.3;">
+                            {{ analisiAndamentoEsercizio.consigliSintetico || analisiAndamentoEsercizio.consigli }}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -5687,6 +5712,8 @@ const storicoEsercizioPerAiuto = ref([]);
 
 watch(activeTabAnalisi, (newVal) => {
   if (newVal === 1) {
+    stileStorico.value = 'tabella';
+    soloCorrispondenti.value = true;
     eseguiScrollStorico();
   }
 });
@@ -9472,7 +9499,7 @@ const applicaPropostaCaricoStorico = (peso) => {
 
 
 // Grafico Storico Esercizio
-const modeGraficoStorico = ref('A'); // 'A', 'B', 'C'
+const modeGraficoStorico = ref('1RM_W6'); // '1RM_W6', 'A', 'B', 'C'
 const raggruppamentoReps = ref('esatto'); // 'esatto', 'zone', 'fasce'
 const availableBuckets = ref([]);
 const selectedBuckets = ref([]);
@@ -9481,6 +9508,8 @@ const storicoChartReady = ref(false);
 const rawPointsLocal = ref([]);
 const selectedPointDetails = ref(null);
 const showAnalisiAndamento = ref(true);
+const graficoContainerRef = ref(null);
+const graficoHeaderRef = ref(null);
 
 const getBucketLabel = (reps, mode) => {
   if (mode === 'zone') {
@@ -11259,8 +11288,13 @@ const currentAtletaId = computed(() => {
 watch(stileStorico, (nuovoValore) => {
   vibraTattile(8);
   const atletaId = currentAtletaId.value;
-  if (atletaId) {
+  if (atletaId && nuovoValore !== 'grafico') {
     localStorage.setItem('stileStorico_' + atletaId, nuovoValore);
+  }
+  if (nuovoValore === 'grafico') {
+    modeGraficoStorico.value = '1RM_W6';
+    soloCorrispondenti.value = false;
+    scrollAlGrafico();
   }
 });
 
@@ -11421,6 +11455,39 @@ const toggleFiltroCorrispondenti = () => {
 
 const soloCorrispondentiAndToggle = () => {
   soloCorrispondenti.value = !soloCorrispondenti.value;
+};
+
+const scrollAlGrafico = () => {
+  nextTick(() => {
+    setTimeout(() => {
+      if (storicoScrollContainer.value) {
+        const scrollEl = storicoScrollContainer.value.$el || storicoScrollContainer.value;
+        const targetEl = graficoContainerRef.value?.$el || graficoContainerRef.value || graficoHeaderRef.value?.$el || graficoHeaderRef.value;
+        if (scrollEl && targetEl) {
+          const scrollElRect = scrollEl.getBoundingClientRect();
+          const targetElRect = targetEl.getBoundingClientRect();
+          const topOffset = targetElRect.top - scrollElRect.top + scrollEl.scrollTop;
+          scrollEl.scrollTo({
+            top: Math.max(0, topOffset - 6),
+            behavior: 'smooth'
+          });
+        } else if (scrollEl) {
+          scrollEl.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }, 60);
+  });
+};
+
+const passaAVistaGrafico = () => {
+  vibraTattile(10);
+  stileStorico.value = 'grafico';
+  modeGraficoStorico.value = '1RM_W6';
+  soloCorrispondenti.value = false;
+  scrollAlGrafico();
 };
 
 const haSettimanaCorrispondente = (prevEx) => {
@@ -14881,6 +14948,7 @@ const suggerimentoRecord = computed(() => {
   let absGenDay = null;
   let absGenRow = null;
   let absGenDate = null;
+  let absGenFatica = null;
   let absGenId = null;
   let absGenItem = null;
   let absGenHasWeight = false;
@@ -14939,6 +15007,7 @@ const suggerimentoRecord = computed(() => {
           absGenDay = prevEx.des_giorno;
           absGenRow = prevEx.num_riga_giorno;
           absGenDate = dateVal;
+          absGenFatica = prevEx.num_faticaw6 || null;
           absGenId = prevEx.id || prevEx.num_riga;
           absGenItem = prevEx;
         }
@@ -14996,6 +15065,7 @@ const suggerimentoRecord = computed(() => {
             absGenDay = prevEx.des_giorno;
             absGenRow = prevEx.num_riga_giorno;
             absGenDate = dateVal;
+            absGenFatica = (i === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : null;
             absGenId = prevEx.id || prevEx.num_riga;
             absGenItem = prevEx;
           }
@@ -15095,6 +15165,7 @@ const suggerimentoRecord = computed(() => {
     recordAbsoluteDay: absGenDay,
     recordAbsoluteRow: absGenRow,
     recordAbsoluteDate: absGenDate,
+    recordAbsoluteFatica: absGenFatica,
     recordAbsoluteId: absGenId,
     recordAbsoluteItem: absGenItem,
 
@@ -16323,7 +16394,7 @@ const rigeneraGraficoStorico = () => {
     rawPointsLocal.value = customPoints;
 
     datasets.push({
-      label: '1RM W6 (Massimale Stimato)',
+      label: '1RM stimato',
       data: data1RM,
       borderColor: isLight ? '#0284c7' : '#38bdf8',
       backgroundColor: isLight ? 'rgba(2, 132, 199, 0.15)' : 'rgba(56, 189, 248, 0.12)',
@@ -16337,7 +16408,7 @@ const rigeneraGraficoStorico = () => {
     });
 
     datasets.push({
-      label: 'Carico Week 6 (kg)',
+      label: 'Carico W6',
       data: dataCarico,
       borderColor: isLight ? '#d97706' : '#f59e0b',
       backgroundColor: 'transparent',
@@ -16682,22 +16753,26 @@ const analisiAndamentoEsercizio = computed(() => {
   let badgeText = 'Stabile';
   let giudizio = '';
   let consigli = '';
+  let consigliSintetico = '';
   
   if (pctDiff > 5) {
     badgeColor = 'green-darken-2';
     badgeText = 'Progressione Eccellente';
-    giudizio = `Incremento del Massimale Teorico del **+${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg). Stai progredendo molto bene con il sovraccarico progressivo.`;
-    consigli = "Continua così! Se completi le ripetizioni target con facilità, aumenta gradualmente il carico mantendo stabile il TUT (Tempo Sotto Tensione).";
+    giudizio = `Incremento del Massimale del **+${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg).`;
+    consigli = "Continua la progressione. Se completi le ripetizioni target con facilità, aumenta gradualmente il carico mantendo stabile il TUT.";
+    consigliSintetico = "Continua la progressione. Se chiudi facilmente le reps target, aumenta gradualmente il carico.";
   } else if (pctDiff >= -3 && pctDiff <= 5) {
     badgeColor = 'amber-darken-3';
-    badgeText = 'Fase di Stallo / Consolidamento';
-    giudizio = `Massimale Teorico stabile con variazione del **${pctDiff >= 0 ? '+' : ''}${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg). Ottimo per consolidare la forza.`;
-    consigli = "Se sei bloccato da diverse settimane, prova ad applicare una progressione di volume (più reps a parità di peso) prima di salire col carico, oppure effettua uno scarico mirato.";
+    badgeText = 'Fase di Consolidamento';
+    giudizio = `Massimale stabile con variazione del **${pctDiff >= 0 ? '+' : ''}${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg).`;
+    consigli = "Se sei in stallo da diverse settimane, prova ad aumentare il volume o effettua uno scarico mirato.";
+    consigliSintetico = "Se sei in stallo da diverse settimane, prova ad aumentare il volume o effettua uno scarico mirato.";
   } else {
     badgeColor = 'red-darken-3';
     badgeText = 'Flessione del Carico';
-    giudizio = `Flessione del Massimale Teorico del **${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg).`;
-    consigli = "Un calo della forza stimata può essere causato da stanchezza sistemica (necessità di scarico), da una tecnica di esecuzione più rigida e controllata, o da variazioni nel ROM. Cura il riposo.";
+    giudizio = `Flessione del Massimale del **${pctDiff}%** (da ${firstPt.e1rm} kg a ${lastPt.e1rm} kg).`;
+    consigli = "Possibile stanchezza o variazione di tecnica/ROM. Cura il riposo e considera uno scarico.";
+    consigliSintetico = "Possibile stanchezza o variazione di tecnica/ROM. Cura il riposo e considera uno scarico.";
   }
   
   const recordPerFascia = [];
@@ -16722,6 +16797,7 @@ const analisiAndamentoEsercizio = computed(() => {
     badgeText,
     giudizio,
     consigli,
+    consigliSintetico,
     firstPt,
     lastPt,
     records: recordPerFascia
@@ -16769,6 +16845,7 @@ const apriStoricoEsercizio = async () => {
   vibraTattile(10);
   activeTabAnalisi.value = 1; // Tab Cronologia
   dialogStorico.value = true;
+  stileStorico.value = 'tabella';
   soloCorrispondenti.value = true;
   await caricaDatiAnalisi(settimanaAttiva.value);
   eseguiScrollStorico();

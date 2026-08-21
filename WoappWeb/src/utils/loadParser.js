@@ -780,3 +780,82 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
 
   return bestPerf;
 };
+
+/**
+ * Determina se un testo di input (ins_week) contiene un tag o indicatore accreditato di Progressione Qualitativa.
+ * Segue rigorosamente le regole del Controllo Qualità:
+ * 1. Esclude QUALSIASI nota libera o commento racchiuso tra parentesi tonde (...) o graffe {...}.
+ * 2. Verifica se il testo residuo (inclusi i tag racchiusi tra parentesi quadre [...]) contiene indicatori qualitativi.
+ * 3. Esclude esplicitamente stati di mantenimento / nessuno.
+ * 4. Usa confini di parola (word-boundary) per evitare falsi positivi su parole del dizionario (es. "tutte", "promemoria").
+ *
+ * @param {string} strVal Testo inserito dall'utente (es. "75 75 77,5 [Eccentrica più lenta (TUT)]", "60 🌟")
+ * @returns {boolean}
+ */
+export const haProgressioneQualitativa = (strVal) => {
+  if (!strVal) return false;
+  const raw = String(strVal).trim();
+  if (!raw || raw === '-') return false;
+
+  const lowerRaw = raw.toLowerCase();
+
+  // Esclusione esplicita di stati neutri / mantenimento
+  if (lowerRaw.includes('mantenimento') || lowerRaw.includes('nessuno')) return false;
+
+  // Se contiene l'emoji stella di progressione qualitativa
+  if (raw.includes('🌟')) return true;
+
+  // 1. Controllo se ci sono tag specifici racchiusi tra parentesi quadre [...] (es. inseriti dai chip dell'app)
+  const bracketMatches = lowerRaw.match(/\[([^\]]+)\]/g);
+  if (bracketMatches) {
+    for (const b of bracketMatches) {
+      const bContent = b.replace(/[\[\]]/g, '').trim();
+      if (
+        bContent.includes('eccentrica') ||
+        bContent.includes('tut') ||
+        bContent.includes('rom') ||
+        bContent.includes('controllo') ||
+        bContent.includes('rir') ||
+        bContent.includes('pausa') ||
+        bContent.includes('recupero') ||
+        bContent.includes('qualitat') ||
+        bContent.includes('fermo') ||
+        bContent.includes('+1') ||
+        bContent.includes('+2') ||
+        bContent.includes('+3') ||
+        bContent.includes('extra') ||
+        bContent.includes('reps in più') ||
+        bContent.includes('più reps') ||
+        bContent.includes('rep extra')
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // 2. Rimuove QUALSIASI commento/nota libera tra parentesi tonde (...) o graffe {...} e quadre [...]
+  // per verificare l'eventuale presenza di keyword tecniche digitate a testo libero fuori dalle parentesi
+  const cleanOutside = raw
+    .replace(/\+\s*\([^\)]*\)/g, ' ')
+    .replace(/\([^\)]*\)/g, ' ')
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\{[^\}]*\}/g, ' ')
+    .trim();
+
+  if (!cleanOutside) return false;
+
+  // 3. Controllo con Word Boundary (\b) sul testo libero fuori parentesi
+  return (
+    /\b(?:eccentrica|eccentriche)\b/i.test(cleanOutside) ||
+    /\b(?:tut|t\.u\.t\.)\b/i.test(cleanOutside) ||
+    /\b(?:rom|r\.o\.m\.)\b/i.test(cleanOutside) ||
+    /\b(?:controllo|frenata|isometria|isometrica)\b/i.test(cleanOutside) ||
+    /\b(?:rir|r\.i\.r\.)\b/i.test(cleanOutside) ||
+    /\b(?:pausa|fermo|fermo\s+al\s+petto|fermo\s+in\s+buca)\b/i.test(cleanOutside) ||
+    /\b(?:recupero\s+ridotto|densità)\b/i.test(cleanOutside) ||
+    /\b(?:qualitativ[ao]|qualità)\b/i.test(cleanOutside) ||
+    /\b(?:reps?\s+in\s+più|più\s+reps?|rep\s+extra|reps\s+extra)\b/i.test(cleanOutside) ||
+    /\+(?:1|2|3)\s*(?:rep|colpo|reps)?\b/i.test(cleanOutside)
+  );
+};
+

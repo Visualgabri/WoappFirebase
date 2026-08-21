@@ -261,6 +261,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, getNomeAtleta, layoutEserciziGlobal } from '../authStore.js';
+import { haProgressioneQualitativa } from '../utils/loadParser.js';
 
 // Chart.js e Vue-Chartjs
 import { Bar, Line, Doughnut } from 'vue-chartjs';
@@ -679,19 +680,7 @@ const rigeneraGraficoEsercizio = () => {
           reps = estraiRepsDaPrescrizione(w[`des_week${wNum}`]);
         }
 
-        const rawLower = String(rawIns || '').toLowerCase();
-        const hasQualitativeTag = rawIns && (
-          rawLower.includes('eccentrica') ||
-          rawLower.includes('tut') ||
-          rawLower.includes('rom') ||
-          rawLower.includes('controllo') ||
-          rawLower.includes('rir') ||
-          rawLower.includes('pausa') ||
-          rawLower.includes('recupero') ||
-          rawLower.includes('qualitat') ||
-          rawLower.includes('fermo') ||
-          String(rawIns).includes('🌟')
-        );
+        const hasQualitativeTag = haProgressioneQualitativa(rawIns);
 
         if (reps > 0) {
           const e1rm = parseFloat((peso * (1 + reps / 30)).toFixed(1));

@@ -5136,6 +5136,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
+import { haProgressioneQualitativa } from '../utils/loadParser.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -5694,28 +5695,7 @@ const chipProgressioneQualitativa = [
 
 const haDriverQualitativoAccreditato = (sett) => {
   const val = inputSettimane.value[sett]?.ins || '';
-  if (!val) return false;
-  const lower = String(val).toLowerCase();
-  if (lower.includes('mantenimento') || lower.includes('nessuno')) return false;
-  return (
-    lower.includes('eccentrica') ||
-    lower.includes('tut') ||
-    lower.includes('rom') ||
-    lower.includes('controllo') ||
-    lower.includes('rir') ||
-    lower.includes('pausa') ||
-    lower.includes('recupero') ||
-    lower.includes('qualitat') ||
-    lower.includes('fermo') ||
-    lower.includes('+1') ||
-    lower.includes('+2') ||
-    lower.includes('+3') ||
-    lower.includes('extra') ||
-    lower.includes('reps in più') ||
-    lower.includes('più reps') ||
-    lower.includes('rep extra') ||
-    val.includes('🌟')
-  );
+  return haProgressioneQualitativa(val);
 };
 
 const isStagnazioneSettimana = (sett) => {

@@ -5082,11 +5082,19 @@
               style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(15, 23, 42, 0.75) 100%); border-color: rgba(6, 182, 212, 0.35) !important; flex: 1 1 0%; min-width: 0; min-height: 96px;"
             >
               <div>
-                <div class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase text-truncate" style="font-size: 0.50rem; letter-spacing: 0.03em;">
-                  {{ resocontoCoachPR?.isCorpoLiberoPuro ? '📈 MAX REPS STORICO' : '📈 1RM ATTUALE' }}
+                <div class="d-flex align-center justify-space-between mb-0.5">
+                  <span class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase text-truncate" style="font-size: 0.50rem; letter-spacing: 0.03em;">
+                    {{ resocontoCoachPR?.isCorpoLiberoPuro ? '📈 MAX REPS STORICO' : '📈 1RM ATTUALE' }}
+                  </span>
+                  <span v-if="!resocontoCoachPR?.isCorpoLiberoPuro && resocontoCoachPR?.baseCalcoloDisplay" class="text-super-caption text-cyan-200 rounded px-1" style="font-size: 0.44rem; background: rgba(6, 182, 212, 0.2);">
+                    {{ resocontoCoachPR.baseCalcoloDisplay }}
+                  </span>
                 </div>
-                <div class="font-weight-black text-cyan-lighten-2 mt-1 text-truncate" style="font-size: 1.12rem; line-height: 1.15;">
+                <div class="font-weight-black text-cyan-lighten-2 mt-0.5 text-truncate" style="font-size: 1.12rem; line-height: 1.15;">
                   {{ resocontoCoachPR?.isCorpoLiberoPuro ? resocontoCoachPR?.bestHistoricalRepsDisplay : resocontoCoachPR?.currentE1rmDisplay }}
+                </div>
+                <div v-if="!resocontoCoachPR?.isCorpoLiberoPuro" class="text-super-caption text-cyan-lighten-4 mt-0.5 font-weight-regular" style="font-size: 0.42rem; line-height: 1.1;">
+                  Stima forza su 1 rep
                 </div>
               </div>
               <div>
@@ -5125,7 +5133,7 @@
             <div class="d-flex align-center justify-space-between mb-1.5 px-0.5">
               <span class="text-super-caption text-amber-lighten-2 font-weight-black uppercase d-flex align-center gap-1" style="font-size: 0.52rem; letter-spacing: 0.03em;">
                 <v-icon size="11" color="amber-lighten-2">mdi-format-list-bulleted-type</v-icon>
-                Reps per il Record Assoluto ({{ resocontoCoachPR?.bestE1rmDisplay }})
+                Come battere il Record Assoluto ({{ resocontoCoachPR?.bestE1rmDisplay }})
               </span>
               <span class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.48rem;">
                 -{{ resocontoCoachPR?.diff1RMKg }} kg (-{{ resocontoCoachPR?.diff1RMPct }}%)
@@ -5692,15 +5700,15 @@ const apriResocontoCoachPR = () => {
   if (isCurrentPR && isAbsolute1RMPeak) {
     testoResoconto = `Nuovo PR sulle **${cleanTargetReps} reps** e nuovo picco assoluto di 1RM di sempre!\nSei al massimo livello su ogni fronte: consolida questo stimolo prima di impostare nuovi incrementi di carico.`;
   } else if (isCurrentPR && !isAbsolute1RMPeak) {
-    testoResoconto = `Nuovo PR sulle **${cleanTargetReps} reps**! Ottimo progresso sul volume, ma il record assoluto di forza è ancora distante del **${diff1RMPct}%** (-${formatWeight(diff1RMKg)} kg).\nIl prossimo step è aumentare gradualmente il carico mantenendo le ${cleanTargetReps} reps.`;
+    testoResoconto = `Il tuo **1RM Attuale (${formatWeight(Math.round(currentE1RM * 10) / 10)} kg)** è la forza teorica stimata oggi da ${pesoRecente} kg × ${repsRecente}r. Il tuo **Record Assoluto di sempre è ${formatWeight(Math.round(bestE1rmVal * 10) / 10)} kg** (Sch. ${bestE1rmSheet || '-'}).\n${isMultiObjective ? `Con **${formatWeight(targetRecordAssolutoKg)} kg alle ${cleanTargetReps} reps previste** stabilisci sia il nuovo PR che il nuovo Record Assoluto!` : `Con **${formatWeight(targetRecordAssolutoKg)} kg × ${cleanTargetReps} reps** superi il Record Storico.`}`;
   } else if (statoGap === 'sotto_pr') {
     if (repsRecente >= minRepsPR) {
       testoResoconto = `Ottimo sovraccarico di volume: con le ripetizioni attuali hai pareggiato la forza del record storico!\nContinua la progressione per convertire questo volume in un nuovo carico massimale.`;
     } else {
-      testoResoconto = `Attualmente sei al **${e1rmProximityPct}%** del tuo miglior 1RM storico (-${formatWeight(diff1RMKg)} kg).\nSegui la progressione programmata per incrementare il carico fino a riagganciare e superare il record.`;
+      testoResoconto = `Il tuo **1RM Attuale (${formatWeight(Math.round(currentE1RM * 10) / 10)} kg)** è stimato da ${pesoRecente} kg × ${repsRecente}r (${e1rmProximityPct}% del Record Storico di ${formatWeight(Math.round(bestE1rmVal * 10) / 10)} kg).\nSegui la progressione programmata per incrementare il carico fino a superare il primato.`;
     }
   } else {
-    testoResoconto = `Carico e volume sono perfettamente allineati al tuo miglior livello storico.\nContinua con la progressione programmata per stabilire un nuovo primato personale.`;
+    testoResoconto = `Il tuo **1RM Attuale (${formatWeight(Math.round(currentE1RM * 10) / 10)} kg)** è la forza teorica odierna stimata da ${pesoRecente} kg × ${repsRecente}r. Il tuo **Record Storico è ${formatWeight(Math.round(bestE1rmVal * 10) / 10)} kg** (Sch. ${bestE1rmSheet || '-'}).\n${isMultiObjective ? `Con **${formatWeight(targetRecordAssolutoKg)} kg alle ${cleanTargetReps} reps previste** stabilisci sia il nuovo PR che il nuovo Record Assoluto!` : `Continua con la progressione programmata per stabilire un nuovo primato personale.`}`;
   }
   
   resocontoCoachPR.value = {
@@ -5714,6 +5722,7 @@ const apriResocontoCoachPR = () => {
     isCurrentPR,
     pesoRecente: formatWeight(pesoRecente),
     weekRecente,
+    baseCalcoloDisplay: `${formatWeight(pesoRecente)} × ${repsRecente}r`,
     currentE1rmDisplay: `${formatWeight(Math.round(currentE1RM * 10) / 10)} kg`,
     bestE1rmDisplay: `${formatWeight(Math.round(bestE1rmVal * 10) / 10)} kg`,
     bestE1rmVal,

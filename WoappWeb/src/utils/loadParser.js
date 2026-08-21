@@ -655,12 +655,8 @@ export const calcolaRepsPerE1RMTarget = (peso, targetE1RM, isCavoOMacchina = fal
   // e1rm = peso * (1 + r / 30) >= targetE1RM  =>  r >= 30 * (targetE1RM / peso - 1)
   const rawReps = 30 * ((targetE1RM / peso) - 1);
   
-  let repsEguaglia = Math.max(1, Math.ceil(rawReps - 0.0001));
-  let repsSupera = Math.max(1, Math.floor(rawReps + 0.0001) + 1);
-  
-  if (repsSupera <= repsEguaglia) {
-    repsSupera = repsEguaglia + 1;
-  }
+  const repsEguaglia = Math.max(1, Math.ceil(rawReps - 0.0001));
+  const repsSupera = Math.max(1, Math.floor(rawReps + 0.0001) + 1);
 
   return {
     repsEguaglia,

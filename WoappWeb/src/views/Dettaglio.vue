@@ -2842,9 +2842,14 @@
                     RECORD ASSOLUTO ESERCIZIO
                   </span>
                 </div>
-                <span class="font-weight-black text-white" style="background: #00838f; font-size: 0.62rem; padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.02em; line-height: 1.2;">
-                  PR ASSOLUTO
-                </span>
+                <div class="d-flex align-center gap-1">
+                  <span v-if="suggerimentoRecord.recordAbsoluteE1RM" class="font-weight-bold text-cyan-200" style="background: rgba(6, 182, 212, 0.22); border: 1px solid rgba(6, 182, 212, 0.45); font-size: 0.55rem; padding: 1px 6px; border-radius: 9999px; white-space: nowrap;">
+                    1RM: {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }} kg
+                  </span>
+                  <span class="font-weight-black text-white" style="background: #00838f; font-size: 0.60rem; padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.02em; line-height: 1.2; white-space: nowrap;">
+                    PR ASSOLUTO
+                  </span>
+                </div>
               </div>
 
               <div class="d-flex align-baseline">
@@ -8667,7 +8672,12 @@ const recordOverviewData = computed(() => {
     maxDeltaKg = Math.round((roundedE1rm - roundedCurrentE1RM) * 10) / 10;
     if (maxDeltaKg > 0) {
       const diff1RMPct = Math.round((maxDeltaKg / roundedE1rm) * 100);
-      maxDeltaText = `🏆 Max: ${formatWeight(roundedE1rm)}kg (-${formatWeight(maxDeltaKg)}kg • S.${bestE1rmSheet || '-'})`;
+      const rawBestStr = (massimalePuroInfo.bestSource && massimalePuroInfo.bestSource.peso > 0 && massimalePuroInfo.bestSource.reps > 0)
+        ? `${formatWeight(massimalePuroInfo.bestSource.peso)}k×${massimalePuroInfo.bestSource.reps}r`
+        : null;
+      maxDeltaText = rawBestStr
+        ? `🏆 Max: ${formatWeight(roundedE1rm)}kg (${rawBestStr} • S.${bestE1rmSheet || '-'})`
+        : `🏆 Max: ${formatWeight(roundedE1rm)}kg (-${formatWeight(maxDeltaKg)}kg • S.${bestE1rmSheet || '-'})`;
       e1rmProximityPct = Math.min(100, Math.round((roundedCurrentE1RM / roundedE1rm) * 1000) / 10);
     }
   }
@@ -15441,6 +15451,7 @@ const suggerimentoRecord = computed(() => {
     recordAbsolute: absGenWeight,
     recordAbsoluteWeek: absGenWeek,
     recordAbsoluteReps: absGenReps,
+    recordAbsoluteE1RM: (absGenWeight > 0 && absGenReps > 0 && !isCorpoLibero) ? Math.round(calcolaE1RMSmorzato(absGenWeight, absGenReps, isCavoOMacchinaEsercizio(workout.value)) * 10) / 10 : 0,
     recordAbsoluteHasWeight: absGenHasWeight,
     recordAbsoluteSheet: absGenSheet,
     recordAbsoluteDay: absGenDay,

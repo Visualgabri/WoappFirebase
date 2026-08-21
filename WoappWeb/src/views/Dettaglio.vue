@@ -452,34 +452,31 @@
 
           <v-row dense class="align-center">
             <v-col cols="6" class="border-right-soft">
-              <div class="text-center">
+              <div class="text-center d-flex flex-column align-center justify-center">
                 <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
-                <span class="font-weight-black text-cyan-lighten-2" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                <span class="font-weight-black text-cyan-lighten-2 d-inline-flex align-center justify-center gap-0.5" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
                   <template v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
                     <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
                       {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
                     </template>
                     <template v-else>
-                      {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="recordMaxAssolutoInfo.reps && recordMaxAssolutoInfo.reps > 0" class="text-super-caption text-cyan-lighten-3 ml-1" style="font-size: 0.60rem;">
-                        x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
-                      </span>
-                      <span v-if="recordMaxAssolutoInfo.isCurrentMeso" class="text-super-caption text-green-lighten-3 ml-1 font-weight-regular" style="font-size: 0.52rem; opacity: 0.9; white-space: nowrap;">
-                        (questa scheda)
-                      </span>
-                      <span v-else-if="recordMaxAssolutoInfo.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-super-caption text-cyan-lighten-4 font-weight-regular ml-1" style="font-size: 0.52rem; opacity: 0.85; white-space: nowrap;">
-                        ({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})
-                      </span>
+                      {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                     </template>
                   </template>
                   <template v-else>
                     --
                   </template>
                 </span>
+                <!-- Sottotitolo Dettaglio Max Assoluto -->
+                <div v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
+                  <span v-if="recordMaxAssolutoInfo.reps && recordMaxAssolutoInfo.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
+                  <span v-if="recordMaxAssolutoInfo.isCurrentMeso" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                  <span v-else-if="recordMaxAssolutoInfo.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
+                </div>
               </div>
             </v-col>
             <v-col cols="6">
-              <div class="text-center">
+              <div class="text-center d-flex flex-column align-center justify-center">
                 <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">
                   <template v-if="recordOverviewData?.bestReal?.weight > 0">
                     Record {{ getRepsPerWeek(settimanaAttiva) }} Reps
@@ -497,19 +494,13 @@
                     Target {{ getRepsPerWeek(settimanaAttiva) }} Reps
                   </template>
                 </span>
-                <span class="font-weight-black" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordOverviewData?.bestReal?.isCurrentPR || recordMaxRepsInfo?.isCurrentMeso || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
+                <span class="font-weight-black d-inline-flex align-center justify-center gap-0.5" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordOverviewData?.bestReal?.isCurrentPR || recordMaxRepsInfo?.isCurrentMeso || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
                   <template v-if="recordOverviewData?.bestReal?.weight > 0">
                     <template v-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
                       {{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}
                     </template>
                     <template v-else>
-                      {{ formatWeight(recordOverviewData.bestReal.weight) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="recordOverviewData.bestReal.isCurrentPR" class="text-super-caption text-green-lighten-3 ml-1 font-weight-regular" style="font-size: 0.52rem; opacity: 0.9; white-space: nowrap;">
-                        (questa scheda)
-                      </span>
-                      <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-super-caption text-amber-lighten-3 font-weight-regular ml-1" style="font-size: 0.52rem; opacity: 0.85; white-space: nowrap;">
-                        ({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})
-                      </span>
+                      {{ formatWeight(recordOverviewData.bestReal.weight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                     </template>
                   </template>
                   <template v-else-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
@@ -517,10 +508,7 @@
                       {{ formatRepsDisplay(recordMaxRepsInfo.maxReps) }}
                     </template>
                     <template v-else>
-                      {{ formatWeight(recordMaxRepsInfo.peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span class="text-super-caption text-green-lighten-3 ml-1 font-weight-regular" style="font-size: 0.52rem; opacity: 0.9; white-space: nowrap;">
-                        {{ recordMaxRepsInfo.isCurrentMeso ? '(questa scheda)' : '' }}
-                      </span>
+                      {{ formatWeight(recordMaxRepsInfo.peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                     </template>
                   </template>
                   <template v-else-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
@@ -528,29 +516,39 @@
                       {{ formatRepsDisplay(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record) }}
                     </template>
                     <template v-else>
-                      {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                      <span v-if="suggerimentoRecord.recordRepsValue" class="text-super-caption text-amber-lighten-2 ml-1" style="font-size: 0.60rem;">
-                        x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}
-                      </span>
-                      <span v-if="suggerimentoRecord.recordRepsDate && tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate)" class="text-super-caption text-amber-lighten-3 font-weight-regular ml-1" style="font-size: 0.52rem; opacity: 0.85; white-space: nowrap;">
-                        ({{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) }})
-                      </span>
+                      {{ formatWeight(suggerimentoRecord.record) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                     </template>
                   </template>
                   <template v-else-if="currentWeekLoggedWeight">
-                    {{ formatWeight(currentWeekLoggedWeight) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
-                    <span class="text-super-caption text-green-lighten-3 ml-1 font-weight-regular" style="font-size: 0.52rem; opacity: 0.9; white-space: nowrap;">(questa scheda)</span>
+                    {{ formatWeight(currentWeekLoggedWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                   </template>
                   <template v-else-if="isCorpoLiberoEsercizio(workout) && (!suggerimentoRecord || !suggerimentoRecord.recordHasWeight)">
                     🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
                   </template>
                   <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted ml-0.5">kg</span>
+                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                   </template>
                   <template v-else>
                     --
                   </template>
                 </span>
+                <!-- Sottotitolo Dettaglio Record Reps -->
+                <div class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
+                  <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                    <span v-if="recordOverviewData.bestReal.isCurrentPR" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                    <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})</span>
+                  </template>
+                  <template v-else-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
+                    <span v-if="recordMaxRepsInfo.isCurrentMeso" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                  </template>
+                  <template v-else-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
+                    <span v-if="suggerimentoRecord.recordRepsValue" class="text-amber-lighten-2 font-weight-bold">x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}</span>
+                    <span v-if="suggerimentoRecord.recordRepsDate && tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) }})</span>
+                  </template>
+                  <template v-else-if="currentWeekLoggedWeight">
+                    <span class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                  </template>
+                </div>
               </div>
             </v-col>
           </v-row>
@@ -560,19 +558,28 @@
             v-if="recordOverviewData?.bestE1RM && !recordOverviewData?.isCorpoLiberoPuro && recordOverviewData.bestE1RM.max1RM > 0" 
             class="mt-2 pt-1.5 border-top-soft px-1"
           >
-            <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                <v-icon size="11" color="cyan-lighten-2" class="mr-0.5">mdi-chart-line</v-icon>
-                Verso il tuo miglior 1RM: {{ recordOverviewData.bestE1RM.display }} / {{ recordOverviewData.bestE1RM.maxDisplay }}
-              </span>
-              <span class="text-super-caption font-weight-black" :class="recordOverviewData.bestE1RM.isNewPeak ? 'text-green-accent-3' : 'text-cyan-accent-2'" style="font-size: 0.52rem;">
-                <template v-if="recordOverviewData.bestE1RM.isNewPeak">👑 Record battuto!</template>
-                <template v-else>{{ recordOverviewData.bestE1RM.e1rmProximityPct }}% (-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg)</template>
-              </span>
-            </div>
+            <template v-if="recordOverviewData.bestE1RM.isNewPeak">
+              <div class="d-flex align-center justify-center text-center mb-1">
+                <span class="text-super-caption font-weight-black text-green-accent-3 uppercase d-flex align-center justify-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                  <span>👑 Record battuto!</span>
+                  <span class="text-white font-weight-bold ml-1">(1RM: {{ recordOverviewData.bestE1RM.display }})</span>
+                </span>
+              </div>
+            </template>
+            <template v-else>
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                  <v-icon size="11" color="cyan-lighten-2" class="mr-0.5">mdi-chart-line</v-icon>
+                  Verso il tuo miglior 1RM: {{ recordOverviewData.bestE1RM.display }}/{{ recordOverviewData.bestE1RM.maxDisplay }}
+                </span>
+                <span class="text-super-caption font-weight-black text-cyan-accent-2" style="font-size: 0.52rem;">
+                  {{ recordOverviewData.bestE1RM.e1rmProximityPct }}% (-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg)
+                </span>
+              </div>
+            </template>
             <v-progress-linear
               :model-value="recordOverviewData.bestE1RM.e1rmProximityPct"
-              color="cyan-lighten-1"
+              :color="recordOverviewData.bestE1RM.isNewPeak ? 'green-accent-3' : 'cyan-lighten-1'"
               bg-color="rgba(255, 255, 255, 0.08)"
               height="3.5"
               rounded
@@ -5542,6 +5549,12 @@ const onBlurWeek = (sett, val) => {
         if (!numFaticaw6Val.value) {
           dialogAvvisoFaticaW6.value = true;
         }
+      } else {
+        numIns6Val.value = '';
+        numIns6ModificatoManualmente.value = false;
+        salvaDatoGenerale('num_ins6', '');
+        numFaticaw6Val.value = '';
+        salvaDatoGenerale('num_faticaw6', '');
       }
     }
   }
@@ -5629,6 +5642,12 @@ const confermaEditorEspanso = () => {
           if (!numFaticaw6Val.value) {
             dialogAvvisoFaticaW6.value = true;
           }
+        } else {
+          numIns6Val.value = '';
+          numIns6ModificatoManualmente.value = false;
+          salvaDatoGenerale('num_ins6', '');
+          numFaticaw6Val.value = '';
+          salvaDatoGenerale('num_faticaw6', '');
         }
       }
     }
@@ -14478,7 +14497,12 @@ const estraiNumeroMassimo = (str) => {
     const pNum = parseFloat(peso);
     if (!isNaN(pNum)) return pNum;
   }
-  const cleanStr = String(str).replace(/,/g, '.');
+  const withoutParens = String(str)
+    .replace(/\+\s*[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, ' ')
+    .trim();
+  if (!withoutParens) return null;
+  const cleanStr = withoutParens.replace(/,/g, '.');
   const matches = cleanStr.match(/\b\d+(?:\.\d+)?\b/g);
   if (matches && matches.length > 0) {
     const nums = matches.map(n => parseFloat(n)).filter(n => !isNaN(n));
@@ -14514,10 +14538,17 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
             numIns6Val.value = String(estratto);
             updates.num_ins6 = String(estratto);
           }
-        }
-        // Se l'utente inserisce un peso ma non ha ancora scelto la fatica, mostra la modale
-        if (!numFaticaw6Val.value) {
-          dialogAvvisoFaticaW6.value = true;
+          // Se l'utente inserisce un peso ma non ha ancora scelto la fatica, mostra la modale
+          if (!numFaticaw6Val.value) {
+            dialogAvvisoFaticaW6.value = true;
+          }
+        } else if (!numIns6ModificatoManualmente.value) {
+          // Se nel campo non c'è nessun carico valido/estratto, azzera miglior carico e sforzo percepito
+          numIns6Val.value = '';
+          updates.num_ins6 = '';
+          numFaticaw6Val.value = '';
+          updates.num_faticaw6 = '';
+          numIns6ModificatoManualmente.value = false;
         }
       } else {
         // Se l'utente cancella tutto nel campo ins_ in W6, cancella SEMPRE anche miglior carico (insw6) e sforzo percepito
@@ -15362,7 +15393,7 @@ const valutazioneProgressione = computed(() => {
       const perc = recReps > 0 ? Math.round((diffReps / recReps) * 100) : 0;
       const diffRepsDisplay = diffReps > 0 ? `+${diffReps} r` : `0 r`;
       return {
-        testo: `In miglioramento (${diffRepsDisplay} / +${perc}%)`,
+        testo: `In miglioramento (${diffRepsDisplay}/+${perc}%)`,
         colore: 'text-green-lighten-2',
         icona: 'mdi-trending-up'
       };
@@ -15376,7 +15407,7 @@ const valutazioneProgressione = computed(() => {
       const diffRepsAbs = Math.abs(diffReps);
       const percAbs = recReps > 0 ? Math.round((diffRepsAbs / recReps) * 100) : 0;
       return {
-        testo: `Sotto al picco storico (-${diffRepsAbs} r / -${percAbs}%)`,
+        testo: `Sotto al picco storico (-${diffRepsAbs} r/-${percAbs}%)`,
         colore: 'text-orange-lighten-2',
         icona: 'mdi-trending-down'
       };
@@ -15517,7 +15548,7 @@ const valutazioneProgressione = computed(() => {
     const rawDiff = diffKg > 0 ? diffKg : Math.max(diffE1RM / 1.2, 0.5);
     const diffKgDisplay = formatWeight(Math.round(rawDiff * 10) / 10);
     return {
-      testo: `In miglioramento (+${diffKgDisplay} kg / +${perc}%)`,
+      testo: `In miglioramento (+${diffKgDisplay} kg/+${perc}%)`,
       colore: 'text-green-lighten-2',
       icona: 'mdi-trending-up'
     };
@@ -15531,7 +15562,7 @@ const valutazioneProgressione = computed(() => {
     const diffKgAbs = Math.abs(diffKg);
     const percAbs = e1rmHistoric > 0 ? Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100) : 0;
     return {
-      testo: `Sotto al PR a ${recReps}r (-${formatWeight(diffKgAbs)} kg / -${percAbs}%)`,
+      testo: `Sotto al PR a ${recReps}r (-${formatWeight(diffKgAbs)} kg/-${percAbs}%)`,
       colore: 'text-orange-lighten-2',
       icona: 'mdi-trending-down'
     };
@@ -16991,6 +17022,12 @@ const salvaModifichePendenti = async () => {
           if (estratto !== null) {
             numIns6Val.value = String(estratto);
             updates.num_ins6 = String(estratto);
+          } else {
+            numIns6Val.value = '';
+            updates.num_ins6 = '';
+            numFaticaw6Val.value = '';
+            updates.num_faticaw6 = '';
+            numIns6ModificatoManualmente.value = false;
           }
         }
       }

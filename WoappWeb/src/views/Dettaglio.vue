@@ -2888,19 +2888,10 @@
                 @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
               >
                 <div>
-                  <div class="d-flex align-center justify-space-between mb-1 gap-1">
-                    <div class="d-flex align-center gap-1 text-truncate">
-                      <v-icon color="#00bcd4" size="13">mdi-fire</v-icon>
-                      <span class="text-super-caption font-weight-bold uppercase text-truncate text-cyan-lighten-2" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                        RECORD ASSOLUTO
-                      </span>
-                    </div>
-                    <span 
-                      v-if="suggerimentoRecord.recordAbsoluteE1RM" 
-                      class="font-weight-bold text-cyan-200 rounded text-truncate" 
-                      style="background: rgba(6, 182, 212, 0.25); font-size: 0.44rem; padding: 1px 4px; white-space: nowrap;"
-                    >
-                      1RM {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }}k
+                  <div class="d-flex align-center gap-1 mb-1 text-truncate">
+                    <v-icon color="#00bcd4" size="13">mdi-fire</v-icon>
+                    <span class="text-super-caption font-weight-bold uppercase text-truncate text-cyan-lighten-2" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                      RECORD ASSOLUTO
                     </span>
                   </div>
 
@@ -2931,11 +2922,17 @@
                   </div>
                 </div>
 
-                <div class="font-weight-medium mt-1 text-truncate text-cyan-lighten-3" style="font-size: 0.50rem; line-height: 1.2;">
-                  <span v-if="suggerimentoRecord.recordAbsoluteSheet">
-                    Sch. {{ suggerimentoRecord.recordAbsoluteSheet }}{{ suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '' }} • 
+                <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-cyan-lighten-3" style="font-size: 0.50rem; line-height: 1.2;">
+                  <span class="text-truncate">
+                    {{ (suggerimentoRecord.recordAbsoluteSheet ? ('Sch. ' + suggerimentoRecord.recordAbsoluteSheet + (suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '')) : (formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'Storico')) }}
                   </span>
-                  <span>{{ formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'Storico' }}</span>
+                  <span 
+                    v-if="suggerimentoRecord.recordAbsoluteE1RM" 
+                    class="font-weight-bold text-cyan-200 rounded px-1 ml-1" 
+                    style="background: rgba(6, 182, 212, 0.25); font-size: 0.50rem; white-space: nowrap;"
+                  >
+                    1RM: {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }} kg
+                  </span>
                 </div>
               </div>
             </div>
@@ -3172,18 +3169,12 @@
                           </span>
                         </div>
                         <span 
-                          v-if="recordOverviewData.bestE1RM.isNewPeak"
-                          class="font-weight-bold text-cyan-950 bg-cyan-300 rounded"
-                          style="font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 5px; white-space: nowrap;"
+                          v-if="recordOverviewData.bestE1RM.calcoloBaseShort"
+                          class="font-weight-bold rounded"
+                          :class="recordOverviewData.bestE1RM.isNewPeak ? 'text-cyan-950 bg-cyan-300' : 'text-cyan-200'"
+                          :style="recordOverviewData.bestE1RM.isNewPeak ? 'font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 5px; white-space: nowrap;' : 'font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;'"
                         >
-                          👑 RECORD
-                        </span>
-                        <span 
-                          v-else-if="recordOverviewData.bestE1RM.calcoloBaseShort"
-                          class="font-weight-medium text-cyan-200 rounded"
-                          style="font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;"
-                        >
-                          {{ recordOverviewData.bestE1RM.calcoloBaseShort }}
+                          da {{ recordOverviewData.bestE1RM.calcoloBaseShort }}
                         </span>
                       </div>
                       <!-- 1RM Attuale in GRANDE -->
@@ -3194,7 +3185,7 @@
 
                     <div class="mt-1">
                       <div v-if="recordOverviewData.bestE1RM.isNewPeak" class="text-super-caption font-weight-medium text-cyan-accent-2" style="font-size: 0.50rem; line-height: 1.2;">
-                        {{ recordOverviewData.isCorpoLiberoPuro ? (recordOverviewData.bestE1RM.maxDeltaText || ('👑 Record: ' + recordOverviewData.bestE1RM.display + ' • W' + (recordOverviewData.bestE1RM.week || aiutoWeek))) : ('👑 Record: ' + recordOverviewData.bestE1RM.display + ' • questa scheda') }}
+                        👑 Record assoluto (questa scheda)
                       </div>
                       <div v-else>
                         <div 

@@ -3144,7 +3144,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo } from '../authStore.js';
+import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 
@@ -5774,45 +5774,6 @@ const controllaEChiudiGiornoAutomatico = async () => {
   return;
 };
 
-const haEserciziDaFare = computed(() => {
-  if (eserciziFiltrati.value.length === 0) return false;
-  const w = settimanaAttivaGiorno.value;
-  return eserciziFiltrati.value.some(ex => {
-    const val = ex['ins_week' + w];
-    return !val || val.trim() === '';
-  });
-});
-
-const determinaGiornoAttivo = () => {
-  const w = settimanaAttivaGiorno.value;
-  for (const g of listaGiorniDisponibili.value) {
-    const header = listaAllenamenti.value.find(
-      item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(item.num_riga_giorno) === 0
-    );
-    const completato = header ? isCmpTrue(header['cmp' + w]) : false;
-    if (!completato) {
-      return g;
-    }
-  }
-  return listaGiorniDisponibili.value[0] || 'A';
-};
-
-const isGiornoSelezionatoIniziato = () => {
-  const w = settimanaAttivaGiorno.value;
-  return eserciziFiltrati.value.some(ex => {
-    const val = ex['ins_week' + w];
-    return val && val.trim() !== '';
-  });
-};
-
-watch(haEserciziDaFare, (newVal) => {
-  setGlobalHaEserciziDaFare(newVal);
-}, { immediate: true });
-
-watch(mostraPromemoriaChiusura, (newVal) => {
-  setGlobalSettimanaDaChiudere(newVal);
-}, { immediate: true });
-
 // Cerca il primo esercizio incompleto in una specifica settimana,
 // seguendo sempre l'ordine sequenziale naturale dei giorni (A -> B -> C -> D)
 // e saltando i giorni il cui allenamento è già stato chiuso per quella settimana.
@@ -5836,10 +5797,10 @@ const trovaPrimoIncompletoInSettimana = (w) => {
     );
     eserciziDelGiorno.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
 
-    // Cerca il primo esercizio non ancora compilato nel primo giorno aperto in ordine sequenziale
+    // Cerca il primo esercizio non ancora compilato o da recuperare nel primo giorno aperto in ordine sequenziale
     const primoIncompleto = eserciziDelGiorno.find(ex => {
       const val = ex['ins_week' + w];
-      return !val || val.trim() === '';
+      return !val || val.trim() === '' || haRecupero(val);
     });
     
     if (primoIncompleto) {
@@ -5870,6 +5831,51 @@ const trovaProssimoEsercizioDaFareGlobale = () => {
   
   return null;
 };
+
+const haEserciziDaFare = computed(() => {
+  // 1. Controllo prioritario globale: ci sono esercizi da fare o recuperare in qualsiasi giorno o settimana?
+  if (trovaProssimoEsercizioDaFareGlobale() !== null) return true;
+  
+  // 2. Fallback sul giorno attualmente visualizzato
+  if (eserciziFiltrati.value.length === 0) return false;
+  const w = settimanaAttivaGiorno.value;
+  return eserciziFiltrati.value.some(ex => {
+    const val = ex['ins_week' + w];
+    return !val || val.trim() === '' || haRecupero(val);
+  });
+});
+
+const determinaGiornoAttivo = () => {
+  const w = settimanaAttivaGiorno.value;
+  for (const g of listaGiorniDisponibili.value) {
+    const header = listaAllenamenti.value.find(
+      item => (item.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(item.num_riga_giorno) === 0
+    );
+    const completato = header ? isCmpTrue(header['cmp' + w]) : false;
+    if (!completato) {
+      return g;
+    }
+  }
+  return listaGiorniDisponibili.value[0] || 'A';
+};
+
+const isGiornoSelezionatoIniziato = () => {
+  const w = settimanaAttivaGiorno.value;
+  return eserciziFiltrati.value.some(ex => {
+    const val = ex['ins_week' + w];
+    return val && val.trim() !== '';
+  });
+};
+
+watch(haEserciziDaFare, (newVal) => {
+  setGlobalHaEserciziDaFare(newVal);
+}, { immediate: true });
+
+watch(mostraPromemoriaChiusura, (newVal) => {
+  if (newVal) {
+    setGlobalSettimanaDaChiudere(true);
+  }
+}, { immediate: true });
 
 watch(() => playClickTrigger.value, () => {
   console.log('[Play - Workouts.vue] playClickTrigger watcher fired. Current value:', playClickTrigger.value);
@@ -7092,69 +7098,6 @@ const recuperoAccordionAperto = ref(null);
 
 const toggleRecuperoAccordion = (giorno) => {
   recuperoAccordionAperto.value = recuperoAccordionAperto.value === giorno ? null : giorno;
-};
-
-const haRecupero = (val) => {
-  if (!val) return false;
-  
-  // 1. Rimuove QUALSIASI contenuto tra parentesi tonde (...) in modo che note o commenti tra parentesi non attivino mai il recupero
-  const clean = String(val).replace(/\([^)]*\)/g, ' ').trim();
-  if (!clean) return false;
-
-  const str = clean.toLowerCase();
-  
-  // Se la frase contiene una negazione esplicita (es. "non è più da fare", "non da fare"), NON è un recupero!
-  if (str.includes('non è più da fare') || str.includes('non piu da fare') || str.includes('non è da fare') || str.includes('non da fare') || str.includes('da non fare')) {
-    return false;
-  }
-
-  // Se è stato marcato come recuperato (esplicitamente o implicitamente), non richiede più recupero
-  if (str.includes('[recuperato]') || str.includes('recuperato') || str.includes('recuperata') || str.includes('recuperati')) {
-    return false;
-  }
-  
-  // Se contiene il tag manuale inserito dal sistema
-  if (str.includes('[recupera]')) {
-    return true;
-  }
-  
-  // Parole chiave comuni utilizzate dagli utenti per indicare esercizi incompleti o da recuperare
-  const keywords = [
-    'da finire',
-    'da fare',
-    'manca una serie',
-    'mancano serie',
-    'serie mancante',
-    'manca',
-    'mancano',
-    'saltato',
-    'saltata',
-    'saltati',
-    'incompleto',
-    'incompleta',
-    'incompleti',
-    'prossima volta',
-    'prox volta',
-    'altra serie',
-    'altre serie',
-    'da completare',
-    'recupera',
-    'recuperare',
-    'non fatto',
-    'non fatta',
-    'non fatti',
-    'fatto solo',
-    'fatta solo',
-    'fatte solo',
-    'solo 1',
-    'solo 2',
-    'solo 3',
-    'solo una',
-    'solo due',
-    'solo tre'
-  ];
-  
-  return keywords.some(kw => str.includes(kw));
 };
 
 const impostaRecuperoValore = (valoreAttuale, attivo) => {

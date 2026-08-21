@@ -1404,6 +1404,9 @@
                   type="button"
                   class="w6-fatica-pill"
                   :class="{ 'active-media': numFaticaw6Val === 'Media' }"
+                  @pointerdown="segnalaClickFatica"
+                  @mousedown="segnalaClickFatica"
+                  @touchstart.passive="segnalaClickFatica"
                   @click="salvaFatica('Media')"
                   id="btn-fatica-media"
                 >
@@ -1415,6 +1418,9 @@
                   type="button"
                   class="w6-fatica-pill"
                   :class="{ 'active-pesante': numFaticaw6Val === 'Pesante' }"
+                  @pointerdown="segnalaClickFatica"
+                  @mousedown="segnalaClickFatica"
+                  @touchstart.passive="segnalaClickFatica"
                   @click="salvaFatica('Pesante')"
                   id="btn-fatica-pesante"
                 >
@@ -1426,6 +1432,9 @@
                   type="button"
                   class="w6-fatica-pill"
                   :class="{ 'active-devastante': numFaticaw6Val === 'Devastante' }"
+                  @pointerdown="segnalaClickFatica"
+                  @mousedown="segnalaClickFatica"
+                  @touchstart.passive="segnalaClickFatica"
                   @click="salvaFatica('Devastante')"
                   id="btn-fatica-devastante"
                 >
@@ -2116,6 +2125,9 @@
                         type="button"
                         class="w6-fatica-pill"
                         :class="{ 'active-media': numFaticaw6ValPrecedente === 'Media' }"
+                        @pointerdown="segnalaClickFatica"
+                        @mousedown="segnalaClickFatica"
+                        @touchstart.passive="segnalaClickFatica"
                         @click="salvaFaticaPrecedente('Media')"
                       >
                         <span class="pill-icon">🙂</span>
@@ -2126,6 +2138,9 @@
                         type="button"
                         class="w6-fatica-pill"
                         :class="{ 'active-pesante': numFaticaw6ValPrecedente === 'Pesante' }"
+                        @pointerdown="segnalaClickFatica"
+                        @mousedown="segnalaClickFatica"
+                        @touchstart.passive="segnalaClickFatica"
                         @click="salvaFaticaPrecedente('Pesante')"
                       >
                         <span class="pill-icon">🔥</span>
@@ -2136,6 +2151,9 @@
                         type="button"
                         class="w6-fatica-pill"
                         :class="{ 'active-devastante': numFaticaw6ValPrecedente === 'Devastante' }"
+                        @pointerdown="segnalaClickFatica"
+                        @mousedown="segnalaClickFatica"
+                        @touchstart.passive="segnalaClickFatica"
                         @click="salvaFaticaPrecedente('Devastante')"
                       >
                         <span class="pill-icon">💀</span>
@@ -5566,13 +5584,15 @@ const onBlurWeek = (sett, val) => {
       salvaDatoGenerale('num_ins6', '');
       numFaticaw6Val.value = '';
       salvaDatoGenerale('num_faticaw6', '');
+      annullaAvvisoFaticaW6();
+      dialogAvvisoFaticaW6.value = false;
     } else if (!numIns6ModificatoManualmente.value) {
       const estratto = estraiNumeroMassimo(valStr);
       if (estratto !== null) {
         numIns6Val.value = String(estratto);
         salvaDatoGenerale('num_ins6', String(estratto));
         if (!numFaticaw6Val.value) {
-          dialogAvvisoFaticaW6.value = true;
+          richiediAvvisoFaticaW6();
         }
       } else {
         numIns6Val.value = '';
@@ -5580,6 +5600,8 @@ const onBlurWeek = (sett, val) => {
         salvaDatoGenerale('num_ins6', '');
         numFaticaw6Val.value = '';
         salvaDatoGenerale('num_faticaw6', '');
+        annullaAvvisoFaticaW6();
+        dialogAvvisoFaticaW6.value = false;
       }
     }
   }
@@ -5659,13 +5681,15 @@ const confermaEditorEspanso = () => {
         salvaDatoGenerale('num_ins6', '');
         numFaticaw6Val.value = '';
         salvaDatoGenerale('num_faticaw6', '');
+        annullaAvvisoFaticaW6();
+        dialogAvvisoFaticaW6.value = false;
       } else if (!numIns6ModificatoManualmente.value) {
         const estratto = estraiNumeroMassimo(valStr);
         if (estratto !== null) {
           numIns6Val.value = String(estratto);
           salvaDatoGenerale('num_ins6', String(estratto));
           if (!numFaticaw6Val.value) {
-            dialogAvvisoFaticaW6.value = true;
+            richiediAvvisoFaticaW6();
           }
         } else {
           numIns6Val.value = '';
@@ -5673,6 +5697,8 @@ const confermaEditorEspanso = () => {
           salvaDatoGenerale('num_ins6', '');
           numFaticaw6Val.value = '';
           salvaDatoGenerale('num_faticaw6', '');
+          annullaAvvisoFaticaW6();
+          dialogAvvisoFaticaW6.value = false;
         }
       }
     }
@@ -5705,6 +5731,36 @@ const inizializzaParametriProposta = (atletaId) => {
 // Help Dialog & Calcolo Carico Storico States
 const dialogAiutoCarico = ref(false);
 const dialogAvvisoFaticaW6 = ref(false);
+const isCliccandoFatica = ref(false);
+let timerClickFatica = null;
+let timerAvvisoFaticaW6 = null;
+
+const annullaAvvisoFaticaW6 = () => {
+  if (timerAvvisoFaticaW6) {
+    clearTimeout(timerAvvisoFaticaW6);
+    timerAvvisoFaticaW6 = null;
+  }
+};
+
+const segnalaClickFatica = () => {
+  isCliccandoFatica.value = true;
+  annullaAvvisoFaticaW6();
+  dialogAvvisoFaticaW6.value = false;
+  if (timerClickFatica) clearTimeout(timerClickFatica);
+  timerClickFatica = setTimeout(() => {
+    isCliccandoFatica.value = false;
+  }, 700);
+};
+
+const richiediAvvisoFaticaW6 = (delay = 280) => {
+  annullaAvvisoFaticaW6();
+  if (isCliccandoFatica.value || (numFaticaw6Val && numFaticaw6Val.value)) return;
+  timerAvvisoFaticaW6 = setTimeout(() => {
+    if (!numFaticaw6Val.value && !isCliccandoFatica.value) {
+      dialogAvvisoFaticaW6.value = true;
+    }
+  }, delay);
+};
 const activeTabAnalisi = ref(0);
 const caricandoAiutoCarico = ref(false);
 const aiutoWeek = ref(1);
@@ -12355,6 +12411,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  annullaAvvisoFaticaW6();
+  if (timerClickFatica) clearTimeout(timerClickFatica);
   window.removeEventListener('touchstart', handleTouchStart);
   window.removeEventListener('touchend', handleTouchEnd);
 });
@@ -14605,9 +14663,9 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
             numIns6Val.value = String(estratto);
             updates.num_ins6 = String(estratto);
           }
-          // Se l'utente inserisce un peso ma non ha ancora scelto la fatica, mostra la modale
+          // Se l'utente inserisce un peso ma non ha ancora scelto la fatica, mostra la modale (con debounce)
           if (!numFaticaw6Val.value) {
-            dialogAvvisoFaticaW6.value = true;
+            richiediAvvisoFaticaW6();
           }
         } else if (!numIns6ModificatoManualmente.value) {
           // Se nel campo non c'è nessun carico valido/estratto, azzera miglior carico e sforzo percepito
@@ -14616,6 +14674,8 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
           numFaticaw6Val.value = '';
           updates.num_faticaw6 = '';
           numIns6ModificatoManualmente.value = false;
+          annullaAvvisoFaticaW6();
+          dialogAvvisoFaticaW6.value = false;
         }
       } else {
         // Se l'utente cancella tutto nel campo ins_ in W6, cancella SEMPRE anche miglior carico (insw6) e sforzo percepito
@@ -14624,6 +14684,8 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
         numFaticaw6Val.value = '';
         updates.num_faticaw6 = '';
         numIns6ModificatoManualmente.value = false;
+        annullaAvvisoFaticaW6();
+        dialogAvvisoFaticaW6.value = false;
       }
     }
     
@@ -14677,15 +14739,19 @@ const salvaKgUnico = async () => {
   numIns6ModificatoManualmente.value = true;
   if (!numIns6Val.value || String(numIns6Val.value).trim() === '') {
     await salvaDatoGenerale('num_ins6', '');
+    annullaAvvisoFaticaW6();
+    dialogAvvisoFaticaW6.value = false;
   } else {
     await salvaDatoGenerale('num_ins6', numIns6Val.value);
     if (!numFaticaw6Val.value) {
-      dialogAvvisoFaticaW6.value = true;
+      richiediAvvisoFaticaW6();
     }
   }
 };
 
 const salvaFatica = async (fatica) => {
+  annullaAvvisoFaticaW6();
+  dialogAvvisoFaticaW6.value = false;
   vibraTattile(15);
   if (numFaticaw6Val.value === fatica) {
     numFaticaw6Val.value = '';
@@ -14813,6 +14879,8 @@ const decrementaKgUnicoPrecedente = () => {
 };
 
 const salvaFaticaPrecedente = async (fatica) => {
+  annullaAvvisoFaticaW6();
+  dialogAvvisoFaticaW6.value = false;
   vibraTattile(15);
   if (numFaticaw6ValPrecedente.value === fatica) {
     numFaticaw6ValPrecedente.value = '';

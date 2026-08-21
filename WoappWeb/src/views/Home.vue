@@ -1081,7 +1081,8 @@ import {
   MAPPA_CLIENTI_DINAMICI,
   impostaNomeAtletaDinamico,
   caricaNomiAtletiDinamici,
-  temaHeaderGiornoGlobal
+  temaHeaderGiornoGlobal,
+  haRecupero
 } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
@@ -3157,14 +3158,24 @@ const selezionaGiornoRapido = (giorno) => {
 
 const haEserciziDaFareGiornoAttivo = computed(() => {
   if (!allExercises.value || allExercises.value.length === 0) return false;
-  const g = giornoAttivo.value;
   const w = settimanaAttiva.value;
+  
+  // 1. Controllo globale: ci sono esercizi incompleti o da recuperare tra tutti i giorni per la settimana attiva?
+  const tuttiEsercizi = allExercises.value.filter(e => parseInt(e.num_riga_giorno) > 0);
+  const haIncompletiGlobale = tuttiEsercizi.some(ex => {
+    const val = ex['ins_week' + w];
+    return !val || val.trim() === '' || val.trim() === '-' || haRecupero(val);
+  });
+  if (haIncompletiGlobale) return true;
+
+  // 2. Controllo specifico del giorno attivo
+  const g = giornoAttivo.value;
   const exDelGiorno = allExercises.value.filter(
     e => (e.des_giorno || '').trim().toUpperCase() === g.toUpperCase() && parseInt(e.num_riga_giorno) > 0
   );
   return exDelGiorno.some(ex => {
     const val = ex['ins_week' + w];
-    return !val || val.trim() === '' || val.trim() === '-';
+    return !val || val.trim() === '' || val.trim() === '-' || haRecupero(val);
   });
 });
 
@@ -3201,7 +3212,9 @@ watch(haEserciziDaFareGiornoAttivo, (newVal) => {
 }, { immediate: true });
 
 watch(settimanaDaChiudereGiornoAttivo, (newVal) => {
-  setGlobalSettimanaDaChiudere(newVal);
+  if (newVal) {
+    setGlobalSettimanaDaChiudere(true);
+  }
 }, { immediate: true });
 
 onMounted(async () => {

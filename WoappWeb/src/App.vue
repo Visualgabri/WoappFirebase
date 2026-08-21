@@ -634,7 +634,7 @@ import { useTheme } from 'vuetify';
 import JulieEasterEgg from './components/JulieEasterEgg.vue';
 import PannemenEasterEgg from './components/PannemenEasterEgg.vue';
 import GuidaFlexCoachModal from './components/GuidaFlexCoachModal.vue';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, setGlobalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero } from './authStore.js';
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
@@ -1001,7 +1001,52 @@ const getGiornoDaChiudereGlobale = () => {
   return null;
 };
 
-// Watcher per tenere sincronizzato lo stato globale di settimana da chiudere
+const getHaEserciziDaFareGlobaleApp = () => {
+  const athlete = selectedAthlete.value;
+  const sheet = selectedSheet.value;
+  if (!athlete || !sheet || !globalStoryboard.value || globalStoryboard.value.length === 0) return false;
+
+  const isCmpTrue = (val) => String(val).toLowerCase() === 'true';
+
+  // Raccogli tutti i giorni della scheda (riga 0)
+  const headers = globalStoryboard.value.filter(item => {
+    const riga = parseInt(item.num_riga_giorno);
+    const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    return riga === 0 &&
+           String(item[keyIdCliente]) === String(athlete) &&
+           String(item.num_scheda) === String(sheet);
+  });
+
+  const giorni = headers.map(h => (h.des_giorno || '').trim().toUpperCase()).filter(Boolean);
+
+  for (let w = 1; w <= 6; w++) {
+    for (const g of giorni) {
+      const header = headers.find(h => (h.des_giorno || '').trim().toUpperCase() === g);
+      const isChiuso = header && isCmpTrue(header['cmp' + w]);
+      if (isChiuso) continue;
+
+      const eserciziDelGiorno = globalStoryboard.value.filter(item => {
+        const riga = parseInt(item.num_riga_giorno);
+        const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+        return riga > 0 &&
+               (item.des_giorno || '').trim().toUpperCase() === g &&
+               String(item[keyIdCliente]) === String(athlete) &&
+               String(item.num_scheda) === String(sheet);
+      });
+
+      const haIncompleti = eserciziDelGiorno.some(ex => {
+        const val = ex['ins_week' + w];
+        return !val || val.trim() === '' || haRecupero(val);
+      });
+
+      if (haIncompleti) return true;
+    }
+  }
+
+  return false;
+};
+
+// Watcher per tenere sincronizzato lo stato globale di settimana da chiudere ed esercizi da fare
 watch([globalStoryboard, selectedAthlete, selectedSheet], () => {
   const daChiudere = getGiornoDaChiudereGlobale();
   if (daChiudere) {
@@ -1009,6 +1054,9 @@ watch([globalStoryboard, selectedAthlete, selectedSheet], () => {
   } else {
     setGlobalSettimanaDaChiudere(false);
   }
+
+  const daFare = getHaEserciziDaFareGlobaleApp();
+  setGlobalHaEserciziDaFare(daFare);
 }, { deep: true, immediate: true });
 
 const cliccaPlayGlobale = () => {

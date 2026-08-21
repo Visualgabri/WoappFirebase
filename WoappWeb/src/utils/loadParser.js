@@ -620,6 +620,25 @@ export const calcolaPesoDaE1RMSmorzato = (e1rm, targetReps, isCavoOMacchina = fa
 export const calcolaPesoDaE1RM = calcolaPesoDaE1RMSmorzato;
 
 /**
+ * Calcola il carico necessario con le ripetizioni prescritte (targetReps) per superare
+ * l'1RM target/storico, applicando lo step di arrotondamento corretto.
+ * Formula rigorosa condivisa: e1rm = peso * (1 + targetReps / 30) >= targetE1RM + delta
+ * @param {number} targetE1RM Record 1RM storico da superare
+ * @param {number} targetReps Ripetizioni prescritte per la settimana
+ * @param {number} [stepKg=2.5] Passo di carico consentito per l'esercizio
+ * @param {boolean} [isCavoOMacchina=false]
+ * @returns {number} Carico arrotondato necessario
+ */
+export const calcolaCaricoTargetRecord1RM = (targetE1RM, targetReps, stepKg = 2.5, isCavoOMacchina = false) => {
+  if (!targetE1RM || targetE1RM <= 0 || !targetReps || targetReps <= 0) return 0;
+  const step = stepKg > 0 ? stepKg : 2.5;
+  const rawTargetAbs = calcolaPesoDaE1RMSmorzato(targetE1RM + 0.05, targetReps, isCavoOMacchina);
+  if (rawTargetAbs <= 0) return 0;
+  let targetKg = Math.ceil(rawTargetAbs / step) * step;
+  return Math.round(targetKg * 10) / 10;
+};
+
+/**
  * Calcola esattamente quante ripetizioni servono con un dato peso per eguagliare o superare un 1RM target.
  * @param {number} peso 
  * @param {number} targetE1RM 
@@ -787,9 +806,7 @@ export const valutaOpportunitaPR = ({
 
   let targetRecordAssolutoKg = targetNuovoPRKg;
   if (max1RM > 0 && targetReps > 0) {
-    const rawTargetAbs = calcolaPesoDaE1RM(max1RM + 0.05, targetReps);
-    targetRecordAssolutoKg = Math.ceil(rawTargetAbs / stepKg) * stepKg;
-    targetRecordAssolutoKg = Math.round(targetRecordAssolutoKg * 10) / 10;
+    targetRecordAssolutoKg = calcolaCaricoTargetRecord1RM(max1RM, targetReps, stepKg);
   }
 
   // Verifica multi-obiettivo: se il carico sfidante alle reps prescritte supera ENTRAMBI

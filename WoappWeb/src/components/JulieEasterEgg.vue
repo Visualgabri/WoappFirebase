@@ -76,6 +76,35 @@ const dialogVisible = ref(false);
 const isMuted = ref(true);
 const videoRef = ref(null);
 
+const stopVideo = () => {
+  if (videoRef.value) {
+    videoRef.value.pause();
+    videoRef.value.currentTime = 0;
+  }
+  isMuted.value = true;
+};
+
+const toggleAudio = () => {
+  isMuted.value = !isMuted.value;
+  if (videoRef.value) {
+    videoRef.value.muted = isMuted.value;
+    if (!isMuted.value) {
+      videoRef.value.play().catch((e) => console.warn('Errore riproduzione audio:', e));
+    }
+  }
+};
+
+const onVideoLoaded = () => {
+  if (videoRef.value && dialogVisible.value) {
+    videoRef.value.muted = isMuted.value;
+    videoRef.value.play().catch(() => {});
+  }
+};
+
+const chiudiModal = () => {
+  dialogVisible.value = false;
+};
+
 watch(
   () => props.modelValue,
   (newVal) => {
@@ -103,35 +132,6 @@ watch(dialogVisible, (val) => {
     stopVideo();
   }
 });
-
-const toggleAudio = () => {
-  isMuted.value = !isMuted.value;
-  if (videoRef.value) {
-    videoRef.value.muted = isMuted.value;
-    if (!isMuted.value) {
-      videoRef.value.play().catch((e) => console.warn('Errore riproduzione audio:', e));
-    }
-  }
-};
-
-const onVideoLoaded = () => {
-  if (videoRef.value && dialogVisible.value) {
-    videoRef.value.muted = isMuted.value;
-    videoRef.value.play().catch(() => {});
-  }
-};
-
-const stopVideo = () => {
-  if (videoRef.value) {
-    videoRef.value.pause();
-    videoRef.value.currentTime = 0;
-  }
-  isMuted.value = true;
-};
-
-const chiudiModal = () => {
-  dialogVisible.value = false;
-};
 </script>
 
 <style scoped>

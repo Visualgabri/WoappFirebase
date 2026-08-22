@@ -2765,9 +2765,16 @@
 
     <!-- Dialog 3: Riepilogo Storico Esercizi (Cronologia) -->
     <!-- Dialog 3: Riepilogo Storico e Proposta Carico Unificati (Analisi Esercizio) -->
-    <v-dialog v-model="dialogStorico" :max-width="activeTabAnalisi === 0 ? 550 : (stileStorico === 'tabella' ? 1200 : (stileStorico === 'grafico' ? 700 : 650))" scrollable>
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important' }">
-        <v-card-title class="pa-0 border-bottom" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
+    <v-dialog 
+      v-model="dialogStorico" 
+      :width="isMobileScreen ? '100%' : 750"
+      :max-width="isMobileScreen ? '100%' : 750" 
+      :fullscreen="isMobileScreen"
+      scrollable
+      class="dialog-storico-unified"
+    >
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important', width: isMobileScreen ? '100%' : '750px', height: isMobileScreen ? '100%' : '88vh', maxHeight: isMobileScreen ? '100%' : '88vh' }">
+        <v-card-title class="pa-0 border-bottom flex-shrink-0" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
           <!-- Rigo 1: Titolo e Chiudi -->
           <div class="px-3 py-2 d-flex align-center justify-space-between" style="min-height: 40px;">
             <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
@@ -2779,7 +2786,7 @@
               </span>
             </div>
             <!-- Pulsante X più piccolo -->
-            <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogStorico = false">
+            <v-btn icon variant="text" width="24" height="24" color="grey" @click="chiudiDialogStorico">
               <v-icon size="18">mdi-close</v-icon>
             </v-btn>
           </div>
@@ -2796,16 +2803,16 @@
             </v-tab>
           </v-tabs>
           
-          <!-- Rigo 2: Subheader WEEK & REPS per Proposta Carico -->
-          <div v-if="activeTabAnalisi === 0" class="mb-2 px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
+          <!-- Rigo 2: Subheader WEEK & REPS unificato per entrambi i tab -->
+          <div class="px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
             <v-chip size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))', fontSize: '0.65rem', height: '20px', left: '12px' }">
-              WEEK {{ aiutoWeek }}
+              WEEK {{ activeTabAnalisi === 0 ? aiutoWeek : settimanaAttiva }}
             </v-chip>
             <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.90rem', letterSpacing: '0.02em' }">
-              {{ String(targetRepsAttive).replace(/r$/i, '') }} REPS
+              {{ activeTabAnalisi === 0 ? String(targetRepsAttive).replace(/r$/i, '') : String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
             </span>
             <v-chip
-              v-if="ghostPRAttackAttivo"
+              v-if="activeTabAnalisi === 0 && ghostPRAttackAttivo"
               size="x-small"
               class="font-weight-black text-purple-lighten-2 px-1.5 position-absolute"
               variant="outlined"
@@ -2814,175 +2821,9 @@
               🎯 ATTACCO PR
             </v-chip>
           </div>
-
-          <!-- Rigo 2: Target Reps Settimana Attiva (per Cronologia) -->
-          <div v-if="activeTabAnalisi === 1" class="mb-1.5 px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
-            <v-chip size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))', fontSize: '0.65rem', height: '20px', left: '12px' }">
-              WEEK {{ settimanaAttiva }}
-            </v-chip>
-            <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.85rem', letterSpacing: '0.02em' }">
-              {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
-            </span>
-          </div>
-
-          <!-- Rigo 3: Due Record Assoluti per Cronologia (2 Colonne Pulite Mobile-First) -->
-          <div v-if="activeTabAnalisi === 1 && suggerimentoRecord" class="px-3 py-2 border-top text-left" :style="{ background: 'var(--card-bg-dark, #000000)', borderColor: 'var(--card-border, rgba(249, 115, 22, 0.2))' }">
-            <div class="d-flex align-stretch gap-2 w-100 min-width-0">
-              <!-- Colonna 1: Record a Stesse Reps -->
-              <div 
-                v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
-                class="pa-2.5 rounded-xl border text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none" 
-                style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.05) 100%); border: 1.2px solid rgba(245, 158, 11, 0.5) !important; flex: 1 1 0%; min-width: 0;"
-                @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
-              >
-                <div>
-                  <div class="d-flex align-center justify-space-between mb-1 gap-1">
-                    <div class="d-flex align-center gap-1 text-truncate">
-                      <span style="font-size: 0.75rem; line-height: 1;">🏆</span>
-                      <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                        PR A {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="d-flex align-baseline text-truncate">
-                    <span class="font-weight-black text-white text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
-                      <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
-                        {{ String(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record).replace(/r$/i, '') }}r
-                      </template>
-                      <template v-else>
-                        {{ formatWeight(suggerimentoRecord.record) }} kg
-                      </template>
-                    </span>
-                    <span 
-                      v-if="suggerimentoRecord.recordRepsValue && suggerimentoRecord.recordRepsValue > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" 
-                      class="text-super-caption font-weight-bold ml-1 text-truncate" 
-                      style="color: #facc15; font-size: 0.60rem;"
-                    >
-                      x{{ String(suggerimentoRecord.recordRepsValue).replace(/r$/i, '') }}r
-                    </span>
-                    <span 
-                      v-if="suggerimentoRecord.recordRepsFatica" 
-                      class="text-super-caption font-weight-bold text-truncate ml-0.5" 
-                      :style="getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica)" 
-                      style="font-size: 0.52rem;"
-                    >
-                      ({{ formatFaticaAbbr(suggerimentoRecord.recordRepsFatica) }})
-                    </span>
-                  </div>
-                </div>
-
-                <div class="font-weight-medium mt-1 text-truncate text-slate-400" style="font-size: 0.50rem; line-height: 1.2;">
-                  <span v-if="suggerimentoRecord.recordRepsSheet">
-                    Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }} • 
-                  </span>
-                  <span>{{ formattaDataStorico(suggerimentoRecord.recordRepsDate) || 'Storico' }}</span>
-                </div>
-              </div>
-
-              <!-- Colonna 2: Record Assoluto di Sempre -->
-              <div 
-                v-if="suggerimentoRecord.recordAbsolute > 0" 
-                class="pa-2.5 rounded-xl border text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none" 
-                style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.16) 0%, rgba(6, 182, 212, 0.04) 100%); border: 1.2px solid rgba(6, 182, 212, 0.5) !important; flex: 1 1 0%; min-width: 0;"
-                @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
-              >
-                <div>
-                  <div class="d-flex align-center gap-1 mb-1 text-truncate">
-                    <v-icon color="#00bcd4" size="13">mdi-fire</v-icon>
-                    <span class="text-super-caption font-weight-bold uppercase text-truncate text-cyan-lighten-2" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                      RECORD ASSOLUTO
-                    </span>
-                  </div>
-
-                  <div class="d-flex align-baseline text-truncate">
-                    <span class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
-                      <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordAbsoluteHasWeight">
-                        {{ String(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute).replace(/r$/i, '') }}r
-                      </template>
-                      <template v-else>
-                        {{ formatWeight(suggerimentoRecord.recordAbsolute) }} kg
-                      </template>
-                    </span>
-                    <span 
-                      v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" 
-                      class="text-super-caption font-weight-bold ml-1 text-truncate" 
-                      style="color: #facc15; font-size: 0.60rem;"
-                    >
-                      x{{ String(suggerimentoRecord.recordAbsoluteReps).replace(/r$/i, '') }}r
-                    </span>
-                    <span 
-                      v-if="suggerimentoRecord.recordAbsoluteFatica" 
-                      class="text-super-caption font-weight-bold text-truncate ml-0.5" 
-                      :style="getColoreFaticaStyle(suggerimentoRecord.recordAbsoluteFatica)" 
-                      style="font-size: 0.52rem;"
-                    >
-                      ({{ formatFaticaAbbr(suggerimentoRecord.recordAbsoluteFatica) }})
-                    </span>
-                  </div>
-                </div>
-
-                <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-cyan-lighten-3" style="font-size: 0.50rem; line-height: 1.2;">
-                  <span class="text-truncate">
-                    {{ (suggerimentoRecord.recordAbsoluteSheet ? ('Sch. ' + suggerimentoRecord.recordAbsoluteSheet + (suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '')) : (formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'Storico')) }}
-                  </span>
-                  <span 
-                    v-if="suggerimentoRecord.recordAbsoluteE1RM" 
-                    class="font-weight-bold text-cyan-200 rounded px-1 ml-1" 
-                    style="background: rgba(6, 182, 212, 0.25); font-size: 0.50rem; white-space: nowrap;"
-                  >
-                    1RM: {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }} kg
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rigo 4: Controlli Visualizzazione (Solo per Cronologia) -->
-          <div v-if="activeTabAnalisi === 1" class="px-3 py-2 border-top d-flex align-center justify-space-between" :style="{ background: 'var(--card-bg-soft, #0f172a)', borderColor: 'var(--card-border, rgba(255,255,255,0.05))' }">
-            <div>
-              <v-btn
-                v-if="stileStorico !== 'grafico'"
-                :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
-                variant="flat"
-                size="x-small"
-                class="font-weight-black text-none px-2.5 rounded-lg"
-                style="height: 28px; font-size: 0.65rem;"
-                @click="toggleFiltroCorrispondenti"
-              >
-                <v-icon size="13" class="mr-1">
-                  {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
-                </v-icon>
-                Solo stesse reps ({{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r' }})
-              </v-btn>
-            </div>
-            
-            <v-btn-toggle
-              v-model="stileStorico"
-              mandatory
-              selected-class="bg-orange-darken-3 text-white"
-              density="compact"
-              rounded="lg"
-              class="card-glass border"
-              style="height: 28px;"
-            >
-              <!-- TABELLA -->
-              <v-btn value="tabella" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Tabella">
-                <v-icon size="17">mdi-table</v-icon>
-              </v-btn>
-              <!-- CARDS / LISTA -->
-              <v-btn value="timeline" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Card">
-                <v-icon size="17">mdi-view-sequential</v-icon>
-              </v-btn>
-              <!-- GRAFICO -->
-              <v-btn value="grafico" class="px-2" style="min-width: 38px; height: 28px;" title="Vista Grafico" @click="passaAVistaGrafico">
-                <v-icon size="17">mdi-chart-line</v-icon>
-              </v-btn>
-            </v-btn-toggle>
-          </div>
         </v-card-title>
         
-        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-3 scrollbar-custom" style="max-height: 85vh;">
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-3 scrollbar-custom flex-grow-1" style="overflow-y: auto;">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0" class="pt-0">
@@ -3062,160 +2903,14 @@
             </div>
 
             <template v-else>
-              <!-- 2. BLOCCO RECORD IN ALTO (2 COLONNE: PR A STESSE REPS + e1RM ATTUALE) -->
-              <div v-if="recordOverviewData" class="mb-2.5 text-left">
-                <div class="d-flex gap-2 w-100 align-stretch">
-                  <!-- Colonna 1: PR a Stesse Reps -->
-                  <div 
-                    class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer position-relative select-none"
-                    :style="{
-                      background: recordOverviewData.bestReal.isCurrentPR 
-                        ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.28) 0%, rgba(217, 119, 6, 0.14) 100%)' 
-                        : 'rgba(255, 255, 255, 0.03)',
-                      borderColor: recordOverviewData.bestReal.isCurrentPR 
-                        ? 'rgba(245, 158, 11, 0.75) !important' 
-                        : 'rgba(255, 255, 255, 0.10) !important',
-                      boxShadow: recordOverviewData.bestReal.isCurrentPR 
-                        ? '0 4px 18px rgba(245, 158, 11, 0.20)' 
-                        : 'none',
-                      flex: '1 1 0%',
-                      minWidth: '0'
-                    }"
-                    @click="apriResocontoCoachPR"
-                    @contextmenu.prevent="apriResocontoCoachPR"
-                    @touchstart="handlePRTouchStart"
-                    @touchend="handlePRTouchEnd"
-                  >
-                    <div>
-                      <div class="d-flex align-center justify-space-between mb-1 gap-1">
-                        <div class="d-flex align-center gap-1 text-truncate">
-                          <span style="font-size: 0.75rem; line-height: 1;">🏆</span>
-                          <span 
-                            class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1"
-                            style="font-size: 0.52rem; letter-spacing: 0.02em;"
-                          >
-                            PR A {{ String(getRepsPerWeek(aiutoWeek)).replace(/r$/i, '') }} REPS
-                          </span>
-                        </div>
-                        <span 
-                          v-if="recordOverviewData.bestReal.isCurrentPR" 
-                          class="font-weight-bold text-amber-950 bg-amber-400 rounded text-truncate"
-                          style="font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 5px;"
-                        >
-                          NUOVO PR
-                        </span>
-                      </div>
-                      <div class="d-flex align-baseline gap-1 text-truncate">
-                        <span 
-                          class="font-weight-black text-truncate" 
-                          :class="recordOverviewData.bestReal.isCurrentPR ? 'text-amber-lighten-2' : 'text-white'"
-                          style="font-size: 1.18rem; line-height: 1.15;"
-                        >
-                          {{ recordOverviewData.bestReal.weightDisplay }}
-                        </span>
-                        <span 
-                          v-if="recordOverviewData.bestReal.repsDisplay"
-                          class="text-super-caption font-weight-medium ml-1 text-truncate"
-                          :class="recordOverviewData.bestReal.isCurrentPR ? 'text-amber-lighten-3' : 'text-slate-300'"
-                          style="font-size: 0.60rem;"
-                        >
-                          {{ recordOverviewData.bestReal.repsDisplay }}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div class="mt-1">
-                      <div 
-                        class="text-super-caption font-weight-medium text-truncate" 
-                        :class="recordOverviewData.bestReal.isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
-                        style="font-size: 0.50rem; line-height: 1.2;"
-                      >
-                        {{ recordOverviewData.bestReal.provenienzaSenzaCoppa }}
-                      </div>
-                      
-                      <!-- Sotto al PR (se da scheda passata ed inferiore) -->
-                      <div 
-                        v-if="recordOverviewData.bestReal.sottoPRText" 
-                        class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-regular text-truncate d-flex align-center gap-0.5" 
-                        style="font-size: 0.48rem; line-height: 1.1;"
-                      >
-                        <v-icon size="10" color="orange-lighten-2">mdi-trending-down</v-icon>
-                        <span class="text-truncate">{{ recordOverviewData.bestReal.sottoPRText }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Colonna 2: 1RM ATTUALE (in grande) & Max Storico (in piccolo sotto) -->
-                  <div 
-                    class="pa-2.5 rounded-xl border flex-grow-1 d-flex flex-column justify-space-between transition-colors cursor-pointer"
-                    :style="{
-                      background: recordOverviewData.bestE1RM.isNewPeak
-                        ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.22) 0%, rgba(6, 182, 212, 0.05) 100%)'
-                        : 'linear-gradient(135deg, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 100%)',
-                      borderColor: recordOverviewData.bestE1RM.isNewPeak
-                        ? 'rgba(6, 182, 212, 0.65) !important'
-                        : 'rgba(6, 182, 212, 0.30) !important',
-                      flex: '1 1 0%',
-                      minWidth: '0'
-                    }"
-                    @click="recordOverviewData.bestE1RM.id && vaiADettaglioStorico(recordOverviewData.bestE1RM.id)"
-                  >
-                    <div>
-                      <div class="d-flex align-center justify-space-between mb-1 gap-1">
-                        <div class="d-flex align-center gap-1 text-truncate">
-                          <v-icon color="cyan-lighten-2" size="13">{{ recordOverviewData.isCorpoLiberoPuro ? 'mdi-counter' : 'mdi-chart-line' }}</v-icon>
-                          <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                            {{ recordOverviewData.isCorpoLiberoPuro ? 'MAX REPS STORICO' : '1RM ATTUALE' }}
-                          </span>
-                        </div>
-                        <span 
-                          v-if="recordOverviewData.bestE1RM.calcoloBaseShort"
-                          class="font-weight-bold rounded"
-                          :class="recordOverviewData.bestE1RM.isNewPeak ? 'text-cyan-950 bg-cyan-300' : 'text-cyan-200'"
-                          :style="recordOverviewData.bestE1RM.isNewPeak ? 'font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 5px; white-space: nowrap;' : 'font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;'"
-                        >
-                          da {{ recordOverviewData.bestE1RM.calcoloBaseShort }}
-                        </span>
-                      </div>
-                      <!-- 1RM Attuale in GRANDE -->
-                      <div class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
-                        {{ recordOverviewData.bestE1RM.display }}
-                      </div>
-                    </div>
-
-                    <div class="mt-1">
-                      <div v-if="recordOverviewData.bestE1RM.isNewPeak" class="text-super-caption font-weight-medium text-cyan-accent-2" style="font-size: 0.50rem; line-height: 1.2;">
-                        👑 Record assoluto (questa scheda)
-                      </div>
-                      <div v-else>
-                        <div 
-                          class="text-super-caption text-cyan-lighten-3 font-weight-regular text-truncate d-flex align-center gap-0.5" 
-                          style="font-size: 0.50rem; line-height: 1.1;"
-                        >
-                          <span class="text-truncate">{{ recordOverviewData.bestE1RM.maxDeltaText }}</span>
-                        </div>
-
-                        <!-- Progress Bar di Prossimità al Picco Assoluto con etichette -->
-                        <div v-if="recordOverviewData.bestE1RM.e1rmProximityPct" class="mt-1">
-                          <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.45rem; line-height: 1;">
-                            <span>{{ recordOverviewData.bestE1RM.e1rmProximityPct }}%</span>
-                            <span v-if="recordOverviewData.bestE1RM.maxDeltaKg">-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg</span>
-                          </div>
-                          <div 
-                            class="w-100 rounded-pill overflow-hidden" 
-                            style="height: 3px; background: rgba(255, 255, 255, 0.08);"
-                          >
-                            <div 
-                              class="h-100 rounded-pill transition-all" 
-                              :style="{ width: recordOverviewData.bestE1RM.e1rmProximityPct + '%', background: 'linear-gradient(90deg, #06b6d4, #22d3ee)' }"
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <!-- 1. BLOCCO RECORD IN ALTO CENTRALIZZATO (PR A STESSE REPS + 1RM ATTUALE) -->
+              <PrOverviewCards 
+                :overview-data="recordOverviewData" 
+                :workout="workout" 
+                :target-reps="targetRepsAttive" 
+                @click-pr="apriResocontoCoachPR" 
+                @click-e1rm="onOverviewE1RMClick" 
+              />
 
               <!-- 3. STRATEGIE DI CARICO (GERARCHIA DINAMICA: CARD CONSIGLIATA IN EVIDENZA + 2 CARD SECONDARIE SOTTO) -->
               <div v-if="strategieAlternativeCards.length > 0" class="mb-2.5 text-left">
@@ -3896,6 +3591,58 @@
 
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
           <div v-show="activeTabAnalisi === 1" class="d-flex flex-column fill-height">
+            
+            <!-- 1. BLOCCO RECORD IN ALTO CENTRALIZZATO (PR A STESSE REPS + 1RM ATTUALE) -->
+            <PrOverviewCards 
+              :overview-data="recordOverviewData" 
+              :workout="workout" 
+              :target-reps="getRepsPerWeek(settimanaAttiva)" 
+              @click-pr="apriResocontoCoachPR" 
+              @click-e1rm="onOverviewE1RMClick" 
+            />
+
+            <!-- Controlli Visualizzazione Cronologia (Filtro corrispondenti + Toggle Vista) -->
+            <div class="mb-2.5 px-2 py-1.5 rounded-xl border d-flex align-center justify-space-between flex-shrink-0" :style="{ background: 'var(--card-bg-soft, #0f172a)', borderColor: 'var(--card-border, rgba(255,255,255,0.06))' }">
+              <div>
+                <v-btn
+                  v-if="stileStorico !== 'grafico'"
+                  :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
+                  variant="flat"
+                  size="x-small"
+                  class="font-weight-black text-none px-2.5 rounded-lg"
+                  style="height: 28px; font-size: 0.65rem;"
+                  @click="toggleFiltroCorrispondenti"
+                >
+                  <v-icon size="13" class="mr-1">
+                    {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
+                  </v-icon>
+                  Solo stesse reps ({{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r' }})
+                </v-btn>
+              </div>
+              
+              <v-btn-toggle
+                v-model="stileStorico"
+                mandatory
+                selected-class="bg-orange-darken-3 text-white"
+                density="compact"
+                rounded="lg"
+                class="card-glass border"
+                style="height: 28px;"
+              >
+                <!-- TABELLA -->
+                <v-btn value="tabella" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Tabella">
+                  <v-icon size="17">mdi-table</v-icon>
+                </v-btn>
+                <!-- CARDS / LISTA -->
+                <v-btn value="timeline" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Card">
+                  <v-icon size="17">mdi-view-sequential</v-icon>
+                </v-btn>
+                <!-- GRAFICO -->
+                <v-btn value="grafico" class="px-2" style="min-width: 38px; height: 28px;" title="Vista Grafico" @click="passaAVistaGrafico">
+                  <v-icon size="17">mdi-chart-line</v-icon>
+                </v-btn>
+              </v-btn-toggle>
+            </div>
             <!-- Loader caricamento storico -->
             <div v-if="caricandoStorico" class="text-center py-8">
               <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
@@ -5362,6 +5109,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
+import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
@@ -5426,6 +5174,9 @@ const risaltoNumeriInsWeek = risaltoNumeriInsWeekGlobal;
 // Dialog Resoconto Coach Intelligente su PR & Andamento
 const dialogResocontoCoachPR = ref(false);
 const resocontoCoachPR = ref(null);
+const dialogStorico = ref(false);
+const dialogProgressioniPrecedente = ref(false);
+const dialogSettore = ref(false);
 
 // Dialog Dettaglio Strategia Sfidante & Obiettivi Record
 const dialogDettaglioSfidantePR = ref(false);
@@ -5957,8 +5708,67 @@ const caricandoAiutoCarico = ref(false);
 const aiutoWeek = ref(1);
 const storicoEsercizioPerAiuto = ref([]);
 
-watch(activeTabAnalisi, (newVal) => {
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024);
+const onWindowResize = () => {
+  windowWidth.value = typeof window !== 'undefined' ? window.innerWidth : 1024;
+};
+const isMobileScreen = computed(() => windowWidth.value <= 640);
+
+const chiudiDialogStorico = () => {
+  dialogStorico.value = false;
+};
+
+const onOverviewE1RMClick = (idOrItem) => {
+  if (!idOrItem) return;
+  const target = typeof idOrItem === 'object' ? (idOrItem.id || idOrItem.num_riga || idOrItem) : idOrItem;
+  if (target) {
+    vaiADettaglioStorico(target);
+  }
+};
+
+// Gestione tasto indietro (popstate / back) per le modali
+const onPopStateModalHandler = () => {
+  if (dialogProgressioniPrecedente.value) {
+    dialogProgressioniPrecedente.value = false;
+    return;
+  }
+  if (dialogResocontoCoachPR.value) {
+    dialogResocontoCoachPR.value = false;
+    return;
+  }
+  if (dialogSettore.value) {
+    dialogSettore.value = false;
+    return;
+  }
+  if (dialogStorico.value) {
+    dialogStorico.value = false;
+    return;
+  }
+};
+
+watch(dialogStorico, (newVal, oldVal) => {
+  if (newVal && !oldVal) {
+    try {
+      window.history.pushState({ modal: 'dialogStorico' }, '');
+    } catch (e) {}
+  }
+});
+
+watch(dialogProgressioniPrecedente, (newVal, oldVal) => {
+  if (newVal && !oldVal) {
+    try {
+      window.history.pushState({ modal: 'dialogProgressioniPrecedente' }, '');
+    } catch (e) {}
+  }
+});
+
+watch(activeTabAnalisi, async (newVal) => {
   if (newVal === 1) {
+    if (!storicoEsercizio.value || storicoEsercizio.value.length === 0) {
+      try {
+        await caricaDatiAnalisi(settimanaAttiva.value);
+      } catch (e) {}
+    }
     stileStorico.value = 'tabella';
     soloCorrispondenti.value = true;
     eseguiScrollStorico();
@@ -7842,7 +7652,7 @@ const getGhostRenderInfo = (sett) => {
     color = isLight ? '#c2410c' : '#ffb74d';
     
     if (isAttaccoPRProtagonista) {
-      label = sett === 6 ? 'Consigliato (Attacco PR W6):' : 'Consigliato (Attacco PR):';
+      label = sett === 6 ? 'Consigliato (Attacco PR):' : 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
     } else if (sensibilitaFaticaGhost.value === 'conservativa') {
@@ -7886,7 +7696,7 @@ const getGhostRenderInfo = (sett) => {
     color = isLight ? '#c2410c' : '#ffb74d';
     
     if (isAttaccoPRProtagonista) {
-      label = sett === 6 ? 'Consigliato (Attacco PR W6):' : 'Consigliato (Attacco PR):';
+      label = sett === 6 ? 'Consigliato (Attacco PR):' : 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
     } else if (sensibilitaFaticaGhost.value === 'conservativa') {
@@ -7943,7 +7753,7 @@ const getGhostRenderInfo = (sett) => {
     color = isLight ? '#c2410c' : '#ffb74d';
     
     if (isAttaccoPRProtagonista) {
-      label = sett === 6 ? 'Consigliato (Attacco PR W6):' : 'Consigliato (Attacco PR):';
+      label = sett === 6 ? 'Consigliato (Attacco PR):' : 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
     } else if (sensibilitaFaticaGhost.value === 'conservativa') {
@@ -8161,7 +7971,6 @@ const showStoricoCompleto = ref(false);
 const showCambioPalestra = ref(false);
 
 // Dialogs and States
-const dialogProgressioniPrecedente = ref(false);
 const dialogElimina = ref(false);
 const dialogModifica = ref(false);
 const modificandoEsercizio = ref(false);
@@ -8184,7 +7993,6 @@ const modificaForm = ref({
   des_week5: '',
   des_week6: ''
 });
-const dialogStorico = ref(false);
 
 // Valore Consigliato Hero Dialog
 const valoreConsigliatoHeroDialog = computed(() => {
@@ -12605,6 +12413,8 @@ onMounted(() => {
   }
   window.addEventListener('touchstart', handleTouchStart, { passive: true });
   window.addEventListener('touchend', handleTouchEnd, { passive: true });
+  window.addEventListener('popstate', onPopStateModalHandler);
+  window.addEventListener('resize', onWindowResize);
 });
 
 onBeforeUnmount(() => {
@@ -12612,6 +12422,8 @@ onBeforeUnmount(() => {
   if (timerClickFatica) clearTimeout(timerClickFatica);
   window.removeEventListener('touchstart', handleTouchStart);
   window.removeEventListener('touchend', handleTouchEnd);
+  window.removeEventListener('popstate', onPopStateModalHandler);
+  window.removeEventListener('resize', onWindowResize);
 });
 
 const pulisciParentesiQuadre = (str) => {
@@ -17486,7 +17298,6 @@ onBeforeRouteUpdate(async (to, from) => {
   await salvaModifichePendenti();
 });
 
-const dialogSettore = ref(false);
 const caricandoSettore = ref(false);
 const eserciziSettore = ref([]);
 const settoreSelezionatoNome = ref('');
@@ -18972,6 +18783,25 @@ th.sticky-col {
   100% {
     box-shadow: 0 0 0 rgba(249, 115, 22, 0);
     transform: scale(1);
+  }
+}
+
+/* --- UNIFIED MODAL DIALOG STORICO & PROPOSTA CARICO --- */
+.dialog-storico-unified :deep(.v-overlay__content) {
+  margin: 12px !important;
+  max-height: calc(100% - 24px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+@media (max-width: 640px) {
+  .dialog-storico-unified :deep(.v-overlay__content) {
+    margin: 0 !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
   }
 }
 

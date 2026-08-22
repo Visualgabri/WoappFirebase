@@ -2823,7 +2823,7 @@
           </div>
         </v-card-title>
         
-        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-3 scrollbar-custom flex-grow-1" style="overflow-y: auto;">
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: activeTabAnalisi === 1 && stileStorico === 'tabella' ? 'hidden' : 'auto' }">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0" class="pt-0">
@@ -3701,7 +3701,7 @@
 
                   <div class="font-weight-medium mt-1.5 d-flex align-center justify-space-between text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
                     <span class="text-truncate">
-                      Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) || (suggerimentoRecord.recordAbsoluteDate ? tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) : 'Storico') }}
+                    Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) || (suggerimentoRecord.recordAbsoluteDate ? tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) : 'Storico') }}
                     </span>
                     <span 
                       v-if="suggerimentoRecord.recordAbsoluteE1RM" 
@@ -3715,26 +3715,26 @@
               </div>
             </div>
 
-            <!-- Controlli Visualizzazione Cronologia (Toolbar Snella e Moderna) -->
-            <div class="mt-1 mb-3.5 d-flex align-center justify-space-between gap-2 flex-shrink-0 min-width-0">
+            <!-- Controlli Visualizzazione Cronologia (Toolbar Snella e Moderna con bottoni ampi) -->
+            <div class="mt-2 mb-4 d-flex align-center justify-space-between gap-2 flex-shrink-0 min-width-0">
               <!-- Chip Pill Filtro Stesse Reps -->
               <div class="min-width-0">
                 <v-btn
                   v-if="stileStorico !== 'grafico'"
                   variant="flat"
-                  size="x-small"
-                  class="font-weight-black text-none px-2.5 rounded-pill transition-all"
-                  :style="soloCorrispondenti ? 'background: rgba(239, 68, 68, 0.22); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.45); height: 26px; font-size: 0.62rem;' : 'background: rgba(255, 255, 255, 0.06); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.10); height: 26px; font-size: 0.62rem;'"
+                  size="small"
+                  class="font-weight-black text-none px-3.5 rounded-pill transition-all"
+                  :style="soloCorrispondenti ? 'background: rgba(239, 68, 68, 0.22); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.45); height: 34px; font-size: 0.70rem;' : 'background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.14); height: 34px; font-size: 0.70rem;'"
                   @click="toggleFiltroCorrispondenti"
                 >
-                  <v-icon size="12" class="mr-1" :color="soloCorrispondenti ? 'red-lighten-2' : 'slate-400'">
+                  <v-icon size="15" class="mr-1.5" :color="soloCorrispondenti ? 'red-lighten-2' : 'slate-300'">
                     {{ soloCorrispondenti ? 'mdi-filter-check' : 'mdi-filter-outline' }}
                   </v-icon>
                   <span>Solo {{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r' }}</span>
                 </v-btn>
               </div>
               
-              <!-- Selettore Viste Compatto a Pillola -->
+              <!-- Selettore Viste Più Lungo e Comodo per il Tocco (38px larghezza minima per bottone) -->
               <v-btn-toggle
                 v-model="stileStorico"
                 mandatory
@@ -3742,22 +3742,23 @@
                 density="compact"
                 rounded="pill"
                 class="border"
-                style="height: 26px; background: rgba(15, 23, 42, 0.8); border-color: rgba(255, 255, 255, 0.10) !important;"
+                style="height: 34px; background: rgba(15, 23, 42, 0.85); border-color: rgba(255, 255, 255, 0.14) !important;"
               >
                 <!-- TABELLA -->
-                <v-btn value="tabella" class="px-2" style="min-width: 32px; height: 24px;" title="Vista a Tabella">
-                  <v-icon size="14">mdi-table</v-icon>
+                <v-btn value="tabella" class="px-3.5" style="min-width: 48px; height: 32px;" title="Vista a Tabella">
+                  <v-icon size="17">mdi-table</v-icon>
                 </v-btn>
                 <!-- CARDS / LISTA -->
-                <v-btn value="timeline" class="px-2" style="min-width: 32px; height: 24px;" title="Vista a Card">
-                  <v-icon size="14">mdi-view-sequential</v-icon>
+                <v-btn value="timeline" class="px-3.5" style="min-width: 48px; height: 32px;" title="Vista a Card">
+                  <v-icon size="17">mdi-view-sequential</v-icon>
                 </v-btn>
                 <!-- GRAFICO -->
-                <v-btn value="grafico" class="px-2" style="min-width: 32px; height: 24px;" title="Vista Grafico" @click="passaAVistaGrafico">
-                  <v-icon size="14">mdi-chart-line</v-icon>
+                <v-btn value="grafico" class="px-3.5" style="min-width: 48px; height: 32px;" title="Vista Grafico" @click="passaAVistaGrafico">
+                  <v-icon size="17">mdi-chart-line</v-icon>
                 </v-btn>
               </v-btn-toggle>
             </div>
+
             <!-- Loader caricamento storico -->
             <div v-if="caricandoStorico" class="text-center py-8">
               <v-progress-circular indeterminate color="orange" size="36"></v-progress-circular>
@@ -3770,7 +3771,7 @@
             </div>
 
             <!-- LAYOUT 1: TIMELINE (Mobile-first Cards) -->
-            <div v-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'timeline'" class="d-flex flex-column gap-2.5">
+            <div v-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'timeline'" class="d-flex flex-column gap-2.5 flex-grow-1">
               <div 
                 v-for="prevEx in storicoFiltrato" 
                 :key="prevEx.id" 
@@ -3810,13 +3811,40 @@
                   <span v-if="(prevEx.des_note_attrezzo || prevEx.des_note) && String(prevEx.des_note_attrezzo || prevEx.des_note).trim()">
                     • Note: {{ prevEx.des_note_attrezzo || prevEx.des_note }}
                   </span>
+                  <span v-if="prevEx.des_note_gen_attr && String(prevEx.des_note_gen_attr).trim()" class="ml-1">
+                    • Setup: {{ prevEx.des_note_gen_attr }}
+                  </span>
                 </div>
 
-                <!-- Griglia dei carichi -->
-                <v-row dense class="mt-1 bg-slate-900 rounded-lg pa-1.5 mx-0 align-center text-center">
-                  <v-col v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" cols="4" class="py-0.5">
+                <!-- Griglia Settimane (W1..W6) in 2 Righe da 3 -->
+                <v-row no-gutters class="rounded overflow-hidden border">
+                  <!-- RIGA 1: W1, W2, W3 -->
+                  <v-col v-for="w in [1, 2, 3]" :key="w" cols="4" class="pa-1 text-center bg-slate-900 border-bottom" :style="w !== 3 ? 'border-right: 1px solid rgba(255,255,255,0.06);' : ''">
                     <div 
-                      class="border-soft rounded py-0.5 px-0.5" 
+                      class="py-1 rounded" 
+                      :class="{
+                        'border-right': w !== 3,
+                        'timeline-red-cell': isMatchingReps(prevEx, w)
+                      }"
+                      :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
+                    >
+                      <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
+                      <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
+                        {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
+                      </span>
+                      <strong 
+                        class="font-weight-black d-block mt-1" 
+                        style="font-size: 0.95rem; line-height: 1;" 
+                        :style="getInsWeekTextStyle(prevEx, w)"
+                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
+                      ></strong>
+                    </div>
+                  </v-col>
+                  
+                  <!-- RIGA 2: W4, W5, W6 -->
+                  <v-col v-for="w in [4, 5, 6]" :key="w" cols="4" class="pa-1 text-center bg-slate-900" :style="w !== 6 ? 'border-right: 1px solid rgba(255,255,255,0.06);' : ''">
+                    <div 
+                      class="py-1 rounded" 
                       :class="{
                         'border-right': w !== 3 && w !== 6,
                         'timeline-red-cell': isMatchingReps(prevEx, w)
@@ -3843,8 +3871,13 @@
               </div>
             </div>
 
-            <!-- LAYOUT 2: TABELLA MATRICE -->
-            <div v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'tabella'" ref="storicoTableContainer" class="table-responsive-wrapper rounded-xl border border-soft overflow-x-auto scrollbar-hidden">
+            <!-- LAYOUT 2: TABELLA MATRICE (Fissa nello schermo, scroll interno sia verticale che orizzontale) -->
+            <div 
+              v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'tabella'" 
+              ref="storicoTableContainer" 
+              class="table-responsive-wrapper rounded-xl border border-soft scrollbar-hidden flex-grow-1 min-h-0 w-100"
+              style="height: 0; min-height: 0;"
+            >
               <table class="premium-storico-table" style="width: 1825px; table-layout: fixed; border-collapse: collapse;">
                 <thead>
                   <tr>
@@ -17973,9 +18006,11 @@ const tornaIndietro = () => {
 
 .table-responsive-wrapper {
   max-width: 100%;
-  max-height: 50vh; /* Forza lo scroll verticale interno alla tabella */
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   overflow-x: auto;
-  overflow-y: auto; /* Abilita lo scroll verticale qui dentro */
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: var(--card-bg-soft);
   position: relative;

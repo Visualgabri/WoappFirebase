@@ -8062,11 +8062,10 @@ const valoreConsigliatoHeroDialog = computed(() => {
 });
 
 // 1. COMPUTED RECORD OVERVIEW (Record a Stesse Reps + e1RM Massimo + Nuovo PR)
-const recordOverviewData = computed(() => {
+const calcolaRecordOverviewData = (sett) => {
   if (!workout.value) return null;
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const currentNumScheda = parseInt(workout.value.num_scheda);
-  const sett = aiutoWeek.value;
   const targetReps = getRepsPerWeek(sett);
   const cleanTargetReps = String(targetReps).replace(/r$/i, '');
   const rawW1 = inputSettimane.value ? (inputSettimane.value[1]?.ins || '') : (workout.value ? (workout.value.ins_week1 || workout.value.num_ins1 || '') : '');
@@ -8347,19 +8346,6 @@ const recordOverviewData = computed(() => {
     bestE1rmIsCurrent = true;
   }
 
-  // Se l'e1RM della proposta corrente supera il max storico, aggiorna
-  const ghostRender = getGhostRenderInfo(sett);
-  const proposedNum = ghostRender ? parseFloat(String(ghostRender.valueText).replace(',', '.')) : (caricoConsigliatoViaDiMezzo.value || 0);
-  if (proposedNum > 0 && targetReps > 0) {
-    const e1rmProposed = calcolaE1RMSmorzato(proposedNum, targetReps, isCavoOMacchinaEsercizio(workout.value));
-    if (e1rmProposed > bestE1rmVal) {
-      bestE1rmVal = e1rmProposed;
-      bestE1rmIsCurrent = true;
-      bestE1rmWeek = sett;
-      bestE1rmTempo = 'questa scheda';
-    }
-  }
-
   const roundedE1rm = Math.round(bestE1rmVal * 10) / 10;
   const e1rmDisplay = roundedE1rm > 0 ? `${formatWeight(roundedE1rm)} kg` : 'N.D.';
   const e1rmProvenienza = bestE1rmIsCurrent
@@ -8434,7 +8420,7 @@ const recordOverviewData = computed(() => {
     ? `${formatWeight(pesoRecenteMesociclo)}×${repsRecenteMesociclo}r`
     : '';
 
-  // Confronto con Picco 1RM Assoluto (bestE1rmVal, es. 34.1 kg)
+  // Confronto con Picco 1RM Assoluto (bestE1rmVal)
   const isNewPeak = Boolean(bestE1rmIsCurrent || (roundedCurrentE1RM >= roundedE1rm && roundedCurrentE1RM > 0));
   let maxDeltaText = null;
   let maxDeltaKg = 0;
@@ -8442,7 +8428,6 @@ const recordOverviewData = computed(() => {
   if (!isNewPeak && roundedE1rm > 0 && roundedCurrentE1RM > 0 && roundedCurrentE1RM < roundedE1rm) {
     maxDeltaKg = Math.round((roundedE1rm - roundedCurrentE1RM) * 10) / 10;
     if (maxDeltaKg > 0) {
-      const diff1RMPct = Math.round((maxDeltaKg / roundedE1rm) * 100);
       const rawBestStr = (massimalePuroInfo.bestSource && massimalePuroInfo.bestSource.peso > 0 && massimalePuroInfo.bestSource.reps > 0)
         ? `${formatWeight(massimalePuroInfo.bestSource.peso)}k×${massimalePuroInfo.bestSource.reps}r`
         : null;
@@ -8472,7 +8457,6 @@ const recordOverviewData = computed(() => {
     progressioneVsPRPrec = 'Primo record registrato';
   }
 
-  // Progressione nel mesociclo vs W1
   let progressioneMesociclo = '';
   if (pW1 > 0 && bestWeight > 0) {
     const diffMeso = Math.round((bestWeight - pW1) * 10) / 10;
@@ -8495,7 +8479,7 @@ const recordOverviewData = computed(() => {
     sottoPRText = `-${formatWeight(diffKg)}kg (-${diffPct}%) vs PR ${cleanTargetReps}r`;
   }
 
-  // 5. NUOVO PR EVALUATION (Coppa & Oro solo se Nuovo PR ottenuto in QUESTA scheda)
+  // 5. NUOVO PR EVALUATION
   let isNuovoPR = isCurrentPR;
   let prBadgeText = isCurrentPR ? `NUOVO PR ${cleanTargetReps} REPS` : '';
   let prDeltaText = progressioneVsPRPrec || `Nuovo primato personale`;
@@ -8541,12 +8525,14 @@ const recordOverviewData = computed(() => {
       badgeText: prBadgeText,
       deltaText: prDeltaText
     },
+    isCorpoLiberoPuro,
     progressioneMesociclo,
     progressioneVsPRPrec
   };
-});
+};
 
-// 2. COMPUTED HERO PROPOSAL DATA
+const recordOverviewData = computed(() => calcolaRecordOverviewData(aiutoWeek.value));
+const recordCronologiaOverviewData = computed(() => calcolaRecordOverviewData(settimanaAttiva.value));
 const heroProposalData = computed(() => {
   if (!workout.value) return null;
   const sett = aiutoWeek.value;
@@ -15242,81 +15228,7 @@ const suggerimentoRecord = computed(() => {
   };
 });
 
-// Computed per overview card nel tab Cronologia (derivato direttamente da suggerimentoRecord)
-const recordCronologiaOverviewData = computed(() => {
-  if (!suggerimentoRecord.value || !workout.value) return null;
-  const sug = suggerimentoRecord.value;
-  const currentNumScheda = parseInt(workout.value?.num_scheda);
-  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
-  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
-  const targetReps = getRepsPerWeek(settimanaAttiva.value);
-  const cleanTargetReps = String(targetReps).replace(/r$/i, '');
 
-  // 1. BEST REAL (PR a stesse reps per settimanaAttiva)
-  const isCurrentPR = sug.recordRepsSheet && parseInt(sug.recordRepsSheet) === currentNumScheda;
-  const prWeight = sug.record || 0;
-  const prReps = sug.recordRepsValue || targetReps;
-  
-  let prWeightDisplay = '0 kg';
-  if (isCorpoLiberoPuro && !sug.recordHasWeight) {
-    prWeightDisplay = `${prReps}r`;
-  } else {
-    prWeightDisplay = `${formatWeight(prWeight)} kg`;
-  }
-  
-  let prRepsDisplay = (prReps && (!isCorpoLiberoPuro || sug.recordHasWeight)) ? `x${String(prReps).replace(/r$/i, '')}r` : '';
-  let dExPR = sug.recordRepsDate;
-  let tempoTrascorsoPR = dExPR ? tempoTrascorsoBreve(dExPR) : (isCurrentPR ? 'questa scheda' : 'Storico');
-  
-  // 2. BEST E1RM / RECORD ASSOLUTO
-  const isNewPeak = sug.recordAbsoluteSheet && parseInt(sug.recordAbsoluteSheet) === currentNumScheda;
-  const absWeight = sug.recordAbsolute || 0;
-  const absReps = sug.recordAbsoluteReps || 0;
-  const absE1RM = sug.recordAbsoluteE1RM || (absWeight > 0 && absReps > 0 && !isCorpoLiberoPuro ? Math.round(calcolaE1RMSmorzato(absWeight, absReps, isCavoOMacchinaEsercizio(workout.value)) * 10) / 10 : 0);
-  
-  let e1rmDisplay = '';
-  if (isCorpoLiberoPuro && !sug.recordAbsoluteHasWeight) {
-    e1rmDisplay = `${absReps || absWeight}r`;
-  } else {
-    e1rmDisplay = `${formatWeight(absWeight)} kg`;
-  }
-
-  let calcoloBaseShort = (absWeight > 0 && absReps > 0) ? `${formatWeight(absWeight)}×${String(absReps).replace(/r$/i, '')}r` : '';
-  let dExAbs = sug.recordAbsoluteDate;
-  let tempoTrascorsoAbs = dExAbs ? tempoTrascorsoBreve(dExAbs) : (isNewPeak ? 'questa scheda' : 'Storico');
-
-  return {
-    isCorpoLiberoPuro,
-    bestReal: {
-      weight: prWeight,
-      weightDisplay: prWeightDisplay,
-      reps: prReps,
-      repsDisplay: prRepsDisplay,
-      fatica: sug.recordRepsFatica,
-      sheet: sug.recordRepsSheet,
-      day: sug.recordRepsDay,
-      date: sug.recordRepsDate,
-      tempoTrascorso: tempoTrascorsoPR,
-      isCurrentPR: Boolean(isCurrentPR),
-      id: sug.recordRepsId,
-      item: sug.recordRepsItem
-    },
-    bestE1RM: {
-      display: e1rmDisplay,
-      max1RM: absE1RM || absWeight,
-      calcoloBaseShort,
-      fatica: sug.recordAbsoluteFatica,
-      sheet: sug.recordAbsoluteSheet,
-      day: sug.recordAbsoluteDay,
-      date: sug.recordAbsoluteDate,
-      tempoTrascorso: tempoTrascorsoAbs,
-      isNewPeak: Boolean(isNewPeak),
-      e1rmProximityPct: null,
-      id: sug.recordAbsoluteId,
-      item: sug.recordAbsoluteItem
-    }
-  };
-});
 
 const dialogStrategiaCoach = ref(false);
 

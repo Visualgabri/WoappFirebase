@@ -88,12 +88,12 @@
             <!-- Sinistra: Titolo -->
             <div class="d-flex align-center gap-1 text-truncate min-width-0">
               <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                {{ isCorpoLiberoPuro ? 'MAX REPS STORICO' : (mode === 'cronologia' ? 'RECORD ASSOLUTO' : '1RM ATTUALE') }}
+                {{ isCorpoLiberoPuro ? 'MAX REPS STORICO' : '1RM ATTUALE' }}
               </span>
             </div>
             <!-- Destra: 👑 (se presente record) + 📋 (se scheda attuale) + Carico 1RM -->
             <div class="d-flex align-center gap-1 text-no-wrap flex-shrink-0 font-weight-black text-cyan-lighten-2" style="font-size: 0.82rem; line-height: 1;">
-              <span v-if="mode === 'cronologia' || hasAbsoluteRecord || isNewPeak" style="font-size: 0.74rem; line-height: 1;">👑</span>
+              <span v-if="hasAbsoluteRecord || isNewPeak" style="font-size: 0.74rem; line-height: 1;">👑</span>
               <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.68rem; line-height: 1;">📋</span>
               <span class="font-weight-black text-cyan-lighten-2 ml-0.5" style="font-size: 0.88rem; line-height: 1;">
                 {{ e1rmDisplay }}
@@ -122,13 +122,13 @@
                 ({{ e1rmFaticaLetter }})
               </span>
             </div>
-            <span v-if="isNewPeak && mode !== 'cronologia'" class="text-super-caption font-weight-bold text-green-accent-3 text-no-wrap" style="font-size: 0.46rem;">
+            <span v-if="isNewPeak" class="text-super-caption font-weight-bold text-green-accent-3 text-no-wrap" style="font-size: 0.46rem;">
               Picco assoluto
             </span>
           </div>
 
-          <!-- Barra Progresso verso il Record Assoluto (solo per proposta carico) -->
-          <div v-if="mode === 'proposta' && bestE1RM?.e1rmProximityPct" class="mt-1">
+          <!-- Barra Progresso verso il Record Assoluto -->
+          <div v-if="bestE1RM?.e1rmProximityPct" class="mt-1">
             <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.45rem; line-height: 1;">
               <span>{{ bestE1RM.e1rmProximityPct }}%</span>
               <span v-if="!isNewPeak && bestE1RM.maxDeltaKg">-{{ bestE1RM.maxDeltaKg }} kg</span>

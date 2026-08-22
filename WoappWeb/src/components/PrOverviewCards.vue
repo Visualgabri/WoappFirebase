@@ -219,8 +219,8 @@ const prRepsDisplay = computed(() => {
   if (!bestReal.value) return '';
   const r = bestReal.value.reps;
   if (!r) return '';
-  const isDiff = String(r).replace(/r$/i, '') !== cleanTargetReps.value;
-  return isDiff ? `x${String(r).replace(/r$/i, '')}r` : `x${r}r`;
+  const rStr = String(r).replace(/r$/i, '');
+  return `x${rStr}r`;
 });
 
 // Helper Fatica
@@ -256,11 +256,23 @@ const e1rmDisplay = computed(() => {
   return bestE1RM.value.display || '-';
 });
 
-// Formattazione tempo trascorso abbreviato
-const formatTimeAgo = (dateStr) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return '';
+// Formattazione tempo trascorso abbreviato (supporta Firestore Timestamp, Date, stringhe)
+const formatTimeAgo = (dateVal) => {
+  if (!dateVal) return '';
+  let d = null;
+  if (dateVal instanceof Date) {
+    d = dateVal;
+  } else if (dateVal && typeof dateVal.toDate === 'function') {
+    d = dateVal.toDate();
+  } else if (dateVal && typeof dateVal.seconds === 'number') {
+    d = new Date(dateVal.seconds * 1000);
+  } else {
+    d = new Date(dateVal);
+  }
+  if (!d || isNaN(d.getTime())) {
+    if (typeof dateVal === 'string') return dateVal;
+    return '';
+  }
   const now = new Date();
   const diffMs = now - d;
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -269,7 +281,7 @@ const formatTimeAgo = (dateStr) => {
   if (diffDays === 1) return '1g fa';
   if (diffDays < 7) return `${diffDays}g fa`;
   const diffWeeks = Math.floor(diffDays / 7);
-  if (diffWeeks < 4) return `${diffWeeks}set fa`;
+  if (diffWeeks < 4) return `${diffWeeks}w fa`;
   const diffMonths = Math.floor(diffDays / 30.4375);
   if (diffMonths < 12) return `${diffMonths}m fa`;
   const diffYears = Math.floor(diffDays / 365.25);

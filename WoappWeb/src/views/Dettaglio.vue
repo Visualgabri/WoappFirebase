@@ -561,8 +561,8 @@
             <template v-if="recordOverviewData.bestE1RM.isNewPeak">
               <div class="d-flex align-center justify-center text-center mb-1">
                 <span class="text-super-caption font-weight-black text-green-accent-3 uppercase d-flex align-center justify-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                  <span>👑 Record battuto!</span>
-                  <span class="text-white font-weight-bold ml-1">(1RM: {{ recordOverviewData.bestE1RM.display }})</span>
+                  <span v-if="recordOverviewData.bestE1RM.isFirstCycle">1RM STIMATO: {{ recordOverviewData.bestE1RM.display }}</span>
+                  <span v-else>NUOVO RECORD 1RM: {{ recordOverviewData.bestE1RM.display }}</span>
                 </span>
               </div>
             </template>
@@ -590,7 +590,7 @@
           <!-- Status Linea Trend Progressione / Suggerimento Target -->
           <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft d-flex align-center justify-center px-1">
             <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.62rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.3;">
-              <v-icon size="12" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
+              <v-icon v-if="valutazioneProgressione.icona" size="12" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
               {{ valutazioneProgressione.testo }}
             </span>
           </div>
@@ -2823,7 +2823,7 @@
           </div>
         </v-card-title>
         
-        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: activeTabAnalisi === 1 && stileStorico === 'tabella' ? 'hidden' : 'auto' }">
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: activeTabAnalisi === 1 && stileStorico === 'tabella' ? 'auto' : 'auto', minHeight: 0 }">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0" class="pt-0">
@@ -3791,6 +3791,16 @@
                     >
                       ⚡ 1RM W6: {{ formatta1RMW6Prescritto(prevEx) }}
                     </v-chip>
+                    <v-chip
+                      v-if="formattaPesoCorporeo(prevEx) && formattaPesoCorporeo(prevEx) !== '-'"
+                      size="x-small"
+                      density="compact"
+                      class="font-weight-bold text-amber-lighten-2 px-1.5"
+                      variant="tonal"
+                      style="font-size: 0.54rem; height: 18px; border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.10);"
+                    >
+                      ⚖️ {{ formattaPesoCorporeo(prevEx) }}
+                    </v-chip>
                   </div>
                   <div class="d-flex align-center gap-1.5">
                     <span v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">
@@ -3869,8 +3879,8 @@
             <div 
               v-else-if="!caricandoStorico && storicoFiltrato.length > 0 && stileStorico === 'tabella'" 
               ref="storicoTableContainer" 
-              class="table-responsive-wrapper rounded-xl border border-soft scrollbar-hidden flex-grow-1 min-h-0 w-100"
-              style="height: 0; min-height: 0;"
+              class="table-responsive-wrapper rounded-xl border border-soft scrollbar-hidden flex-grow-1 w-100"
+              style="min-height: 300px; flex: 1 1 auto;"
             >
               <table class="premium-storico-table" style="width: 1825px; table-layout: fixed; border-collapse: collapse;">
                 <thead>
@@ -8561,6 +8571,7 @@ const calcolaRecordOverviewData = (sett) => {
     : '';
 
   // Confronto con Picco 1RM Assoluto (bestE1rmVal)
+  const isFirstCycle = Boolean(!massimalePuroInfo.bestSource || massimalePuroInfo.bestSource.tempoTrascorso === 'questa scheda' || String(massimalePuroInfo.bestSource.numScheda) === String(workout.value.num_scheda));
   const isNewPeak = Boolean(bestE1rmIsCurrent || (roundedCurrentE1RM >= roundedE1rm && roundedCurrentE1RM > 0));
   let maxDeltaText = null;
   let maxDeltaKg = 0;
@@ -8572,8 +8583,8 @@ const calcolaRecordOverviewData = (sett) => {
         ? `${formatWeight(massimalePuroInfo.bestSource.peso)}k×${massimalePuroInfo.bestSource.reps}r`
         : null;
       maxDeltaText = rawBestStr
-        ? `🏆 Max: ${formatWeight(roundedE1rm)}kg (${rawBestStr} • S.${bestE1rmSheet || '-'})`
-        : `🏆 Max: ${formatWeight(roundedE1rm)}kg (-${formatWeight(maxDeltaKg)}kg • S.${bestE1rmSheet || '-'})`;
+        ? `Max: ${formatWeight(roundedE1rm)}kg (${rawBestStr} • S.${bestE1rmSheet || '-'})`
+        : `Max: ${formatWeight(roundedE1rm)}kg (-${formatWeight(maxDeltaKg)}kg • S.${bestE1rmSheet || '-'})`;
       e1rmProximityPct = Math.min(100, Math.round((roundedCurrentE1RM / roundedE1rm) * 1000) / 10);
     }
   }
@@ -8659,6 +8670,7 @@ const calcolaRecordOverviewData = (sett) => {
       targetLoadDisplay: targetLoadForNewPeak > 0 ? `${formatWeight(targetLoadForNewPeak)} kg` : currentE1rmDisplay,
       isCurrent: bestE1rmIsCurrent,
       isNewPeak: isNewPeak,
+      isFirstCycle: isFirstCycle,
       currentE1RM: roundedCurrentE1RM,
       max1RM: roundedE1rm,
       maxDisplay: `${formatWeight(roundedE1rm)} kg`,
@@ -15616,17 +15628,10 @@ const valutazioneProgressione = computed(() => {
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
 
   if (!suggerimentoRecord.value) {
-    if (recordMaxAssolutoInfo.value && recordMaxAssolutoInfo.value.peso > 0) {
-      return {
-        testo: `Primo ciclo di allenamento • Max: ${formatWeight(recordMaxAssolutoInfo.value.peso)} kg (${recordMaxAssolutoInfo.value.reps}r)`,
-        colore: 'text-amber-lighten-2',
-        icona: 'mdi-sparkles'
-      };
-    }
     return {
       testo: 'Primo ciclo di allenamento',
       colore: 'text-amber-lighten-2',
-      icona: 'mdi-sparkles'
+      icona: null
     };
   }
 
@@ -15639,7 +15644,7 @@ const valutazioneProgressione = computed(() => {
       return {
         testo: 'Primo ciclo di allenamento',
         colore: 'text-amber-lighten-2',
-        icona: 'mdi-sparkles'
+        icona: null
       };
     }
 
@@ -15661,34 +15666,34 @@ const valutazioneProgressione = computed(() => {
 
     if (!currentLogged || bestCurrentReps === 0) {
       return {
-        testo: `Obiettivo W${w}: ${getRepsPerWeek(w)}r (PR ${recReps}r)`,
+        testo: `Obiettivo W${w}: ${getRepsPerWeek(w)} reps`,
         colore: 'text-cyan-lighten-2',
-        icona: 'mdi-target'
+        icona: null
       };
     }
 
     const diffReps = bestCurrentReps - recReps;
     if (bestCurrentReps >= recReps) {
       const perc = recReps > 0 ? Math.round((diffReps / recReps) * 100) : 0;
-      const diffRepsDisplay = diffReps > 0 ? `+${diffReps} r` : `0 r`;
+      const diffRepsDisplay = diffReps > 0 ? `+${diffReps} reps` : `0 reps`;
       return {
         testo: `In miglioramento (${diffRepsDisplay}/+${perc}%)`,
         colore: 'text-green-lighten-2',
-        icona: 'mdi-trending-up'
+        icona: null
       };
     } else if (bestCurrentReps >= recReps - 1) {
       return {
-        testo: 'Reps in linea col tuo PR storico',
+        testo: 'In linea col tuo record storico',
         colore: 'text-cyan-lighten-2',
-        icona: 'mdi-minus-circle-outline'
+        icona: null
       };
     } else {
       const diffRepsAbs = Math.abs(diffReps);
       const percAbs = recReps > 0 ? Math.round((diffRepsAbs / recReps) * 100) : 0;
       return {
-        testo: `Sotto al picco storico (-${diffRepsAbs} r/-${percAbs}%)`,
+        testo: `Sotto al picco storico (-${diffRepsAbs} reps/-${percAbs}%)`,
         colore: 'text-orange-lighten-2',
-        icona: 'mdi-trending-down'
+        icona: null
       };
     }
   }
@@ -15702,7 +15707,7 @@ const valutazioneProgressione = computed(() => {
     return {
       testo: 'Primo ciclo di allenamento',
       colore: 'text-amber-lighten-2',
-      icona: 'mdi-sparkles'
+      icona: null
     };
   }
 
@@ -15736,16 +15741,14 @@ const valutazioneProgressione = computed(() => {
     
     // Se non ha ancora inserito carichi nella scheda corrente
     if (!currentLogged || bestCurrentWeight === 0) {
-      const recInfo = (recWeight > 0 && recReps > 0) ? ` • Calibrato su ${formatWeight(recWeight)}kg×${recReps}r` : '';
       return {
-        testo: `Target ${targetRepsWeek} reps: ${formatWeight(targetWeight)} kg${recInfo}`,
+        testo: `Target W${w} (${targetRepsWeek} reps): ${formatWeight(targetWeight)} kg`,
         colore: 'text-cyan-lighten-2',
-        icona: 'mdi-target'
+        icona: null
       };
     }
 
-    // L'atleta ha registrato un carico (es. 57 kg a 18 reps)
-    // Cerchiamo l'incremento rispetto alle settimane precedenti del mesociclo (W1, W2, W3...)
+    // L'atleta ha registrato un carico
     let w1Weight = 0;
     let w1Reps = 0;
     let prevWeekWeight = 0;
@@ -15774,36 +15777,35 @@ const valutazioneProgressione = computed(() => {
       const maxR = recordMaxRepsInfo.value.maxReps;
       const maxP = recordMaxRepsInfo.value.peso;
       return {
-        testo: `Record ${maxR} reps stabilito (${formatWeight(maxP)} kg) • Top ${formatWeight(bestCurrentWeight)} kg x${bestCurrentReps}r`,
+        testo: `Record a ${maxR} reps stabilito (${formatWeight(maxP)} kg)`,
         colore: 'text-green-lighten-2',
-        icona: 'mdi-trophy'
+        icona: null
       };
     } else if (deltaMeso > 0) {
       return {
-        testo: `Nuovo PR ${bestCurrentReps} reps (${formatWeight(bestCurrentWeight)} kg) • +${formatWeight(deltaMeso)} kg nel mesociclo`,
+        testo: `+${formatWeight(deltaMeso)} kg nel mesociclo`,
         colore: 'text-green-lighten-2',
-        icona: 'mdi-trophy'
+        icona: null
       };
     } else if (deltaMeso === 0 && deltaRepsMeso > 0) {
       return {
-        testo: `Nuovo PR ${bestCurrentReps} reps (${formatWeight(bestCurrentWeight)} kg) • +${deltaRepsMeso} reps nel mesociclo`,
+        testo: `+${deltaRepsMeso} reps nel mesociclo`,
         colore: 'text-green-lighten-2',
-        icona: 'mdi-trophy'
+        icona: null
       };
     } else if (bestCurrentWeight >= targetWeight && targetWeight > 0) {
       const extraTarget = Math.round((bestCurrentWeight - targetWeight) * 10) / 10;
       const extraTxt = extraTarget > 0 ? ` (+${formatWeight(extraTarget)} kg sul target)` : '';
       return {
-        testo: `Record ${bestCurrentReps} reps stabilito (${formatWeight(bestCurrentWeight)} kg)${extraTxt}`,
+        testo: `Record a ${bestCurrentReps} reps stabilito (${formatWeight(bestCurrentWeight)} kg)${extraTxt}`,
         colore: 'text-green-lighten-2',
-        icona: 'mdi-trophy'
+        icona: null
       };
     } else {
-      const recInfo = (recWeight > 0 && recReps > 0) ? ` • Calibrato su ${formatWeight(recWeight)}kg×${recReps}r` : '';
       return {
-        testo: `Record ${bestCurrentReps} reps stabilito (${formatWeight(bestCurrentWeight)} kg)${recInfo}`,
+        testo: `Record a ${bestCurrentReps} reps stabilito (${formatWeight(bestCurrentWeight)} kg)`,
         colore: 'text-cyan-lighten-2',
-        icona: 'mdi-trophy'
+        icona: null
       };
     }
   }
@@ -15812,9 +15814,9 @@ const valutazioneProgressione = computed(() => {
   if (!currentLogged || bestCurrentE1RM === 0) {
     const targetWeight = suggerimentoRecord.value.target;
     return {
-      testo: `Obiettivo W${w}: ${formatWeight(targetWeight)} kg (PR ${formatWeight(recWeight)}kg)`,
+      testo: `Obiettivo W${w}: ${formatWeight(targetWeight)} kg (PR ${formatWeight(recWeight)} kg)`,
       colore: 'text-cyan-lighten-2',
-      icona: 'mdi-target'
+      icona: null
     };
   }
 
@@ -15829,21 +15831,21 @@ const valutazioneProgressione = computed(() => {
     return {
       testo: `In miglioramento (+${diffKgDisplay} kg/+${perc}%)`,
       colore: 'text-green-lighten-2',
-      icona: 'mdi-trending-up'
+      icona: null
     };
   } else if (bestCurrentWeight >= 0.95 * recWeight || bestCurrentE1RM >= 0.95 * e1rmHistoric) {
     return {
-      testo: `Carico in linea col tuo PR storico a ${recReps}r`,
+      testo: `Carico in linea col tuo record storico a ${recReps} reps`,
       colore: 'text-cyan-lighten-2',
-      icona: 'mdi-minus-circle-outline'
+      icona: null
     };
   } else {
     const diffKgAbs = Math.abs(diffKg);
     const percAbs = e1rmHistoric > 0 ? Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100) : 0;
     return {
-      testo: `Sotto al PR a ${recReps}r (-${formatWeight(diffKgAbs)} kg/-${percAbs}%)`,
+      testo: `Sotto al record a ${recReps} reps (-${formatWeight(diffKgAbs)} kg/-${percAbs}%)`,
       colore: 'text-orange-lighten-2',
-      icona: 'mdi-trending-down'
+      icona: null
     };
   }
 });

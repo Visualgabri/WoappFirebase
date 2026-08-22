@@ -1562,6 +1562,7 @@ export const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAut
 export const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + curAtletaId) === 'true');
 export const sensibilitaFaticaGhost = ref(localStorage.getItem('sensibilitaFaticaGhost_' + curAtletaId) || 'bilanciata');
 export const ghostAnalisiNoteAttiva = ref(localStorage.getItem('ghostAnalisiNoteAttiva_' + curAtletaId) === 'true');
+export const arrotondamentoCarichiRealisticiGlobal = ref(localStorage.getItem('arrotondamentoCarichiRealistici_' + curAtletaId) !== 'false');
 
 export const defaultBilanciereGlobal = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
 export const vibrazioneAttivaGlobal = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
@@ -1593,7 +1594,8 @@ export const salvaClienteConfigFirestore = () => {
           autoregolazioneRepsAttiva: ghostAutoregolazioneRepsAttiva.value,
           sfidaRecordWeek1: sfidaRecordWeek1.value,
           sensibilitaFatica: sensibilitaFaticaGhost.value,
-          analisiNoteAttiva: ghostAnalisiNoteAttiva.value
+          analisiNoteAttiva: ghostAnalisiNoteAttiva.value,
+          arrotondamentoCarichiRealistici: arrotondamentoCarichiRealisticiGlobal.value
         },
         uiSettings: {
           userTheme: currentTheme.value,
@@ -1638,6 +1640,7 @@ export const syncClienteConfigListener = () => {
   sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
   sensibilitaFaticaGhost.value = localStorage.getItem('sensibilitaFaticaGhost_' + atletaId) || 'bilanciata';
   ghostAnalisiNoteAttiva.value = localStorage.getItem('ghostAnalisiNoteAttiva_' + atletaId) === 'true';
+  arrotondamentoCarichiRealisticiGlobal.value = localStorage.getItem('arrotondamentoCarichiRealistici_' + atletaId) !== 'false';
 
   const docRef = doc(db, 'UTENTI_CONFIG', String(atletaId));
 
@@ -1676,6 +1679,10 @@ export const syncClienteConfigListener = () => {
       if (ghost.analisiNoteAttiva !== undefined) {
         ghostAnalisiNoteAttiva.value = ghost.analisiNoteAttiva === true;
         localStorage.setItem('ghostAnalisiNoteAttiva_' + atletaId, String(ghost.analisiNoteAttiva));
+      }
+      if (ghost.arrotondamentoCarichiRealistici !== undefined) {
+        arrotondamentoCarichiRealisticiGlobal.value = ghost.arrotondamentoCarichiRealistici !== false;
+        localStorage.setItem('arrotondamentoCarichiRealistici_' + atletaId, String(ghost.arrotondamentoCarichiRealistici));
       }
 
       if (ui.userTheme !== undefined && ui.userTheme !== currentTheme.value) {
@@ -1769,6 +1776,7 @@ watch([
   sfidaRecordWeek1,
   sensibilitaFaticaGhost,
   ghostAnalisiNoteAttiva,
+  arrotondamentoCarichiRealisticiGlobal,
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
   defaultTimerRecGlobal,
@@ -1783,6 +1791,7 @@ watch([
     localStorage.setItem('sfidaRecordWeek1_' + atletaId, String(sfidaRecordWeek1.value));
     localStorage.setItem('sensibilitaFaticaGhost_' + atletaId, sensibilitaFaticaGhost.value);
     localStorage.setItem('ghostAnalisiNoteAttiva_' + atletaId, String(ghostAnalisiNoteAttiva.value));
+    localStorage.setItem('arrotondamentoCarichiRealistici_' + atletaId, String(arrotondamentoCarichiRealisticiGlobal.value));
     localStorage.setItem('woapp_default_bilanciere', String(defaultBilanciereGlobal.value));
     localStorage.setItem('woapp_vibrazione_attiva', String(vibrazioneAttivaGlobal.value));
     localStorage.setItem('woapp_default_timer_rec', String(defaultTimerRecGlobal.value));

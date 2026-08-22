@@ -5264,7 +5264,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -7713,7 +7713,9 @@ const calcolaAvvisoFaticaConsigliato = (sett, numConsigliato, repsTarget, repsPr
 
   // Se l'1RM stimato del carico proposto eccede significativamente (> 3.5kg) l'1RM precedentemente dimostrato
   if (e1rmConsigliato > (e1rmPrev + 3.5)) {
-    return `⚠️ Con ${formatWeight(numConsigliato)}kg sarà difficile chiudere ${repsTarget} rep di fila. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x4+2r RP) o Stripping.`;
+    const r1 = repsTarget <= 5 ? Math.max(1, repsTarget - 1) : Math.max(1, Math.round(repsTarget * 0.75));
+    const r2 = repsTarget - r1;
+    return `⚠️ Difficile a ${repsTarget} rep. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x${r1}+${r2}r RP).`;
   }
   return '';
 };
@@ -13532,14 +13534,32 @@ const METODI_ALLENAMENTO = {
   }
 };
 
-// Helper to format numbers with comma as decimal separator (Italian locale)
+// Helper to format numbers with comma as decimal separator (Italian locale) and realistic gym increments
 function formatWeight(val) {
   if (val === null || val === undefined || val === '') return '';
   const num = typeof val === 'number' ? val : parseFloat(String(val).replace(',', '.'));
   if (isNaN(num)) return String(val).replace('.', ',');
-  // Arrotonda a max 1 decimale (es. 86.25 -> 86.3, 0.899999 -> 0.9)
-  const rounded = Math.round(num * 10) / 10;
-  return String(rounded).replace('.', ',');
+  if (num <= 0) return '0';
+
+  // Se l'utente ha disattivato l'arrotondamento realistico, usa il comportamento classico a 1 decimale
+  if (arrotondamentoCarichiRealisticiGlobal && arrotondamentoCarichiRealisticiGlobal.value === false) {
+    const rounded = Math.round(num * 10) / 10;
+    return String(rounded).replace('.', ',');
+  }
+
+  const distIntero = Math.abs(num - Math.round(num));
+
+  // 1. Se è vicinissimo all'intero (entro 0.15 kg, es. 48.1 o 47.9) e carico non microscopico (>= 4kg) -> vince l'intero pieno
+  let result;
+  if (num >= 4 && distIntero <= 0.15) {
+    result = Math.round(num);
+  } else {
+    // 2. Altrimenti snap al multiplo di 0.25 / 1.25 più vicino (.0, .25, .5, .75)
+    result = Math.round(num * 4) / 4;
+  }
+
+  // Formatta in stringa evitando zeri superflui (es. 48, 48.5, 48.25)
+  return String(result).replace('.', ',');
 }
 
 // Helper to format repetitions with 'r' suffix (using comma for decimals)

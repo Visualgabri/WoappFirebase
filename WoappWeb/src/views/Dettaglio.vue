@@ -2795,11 +2795,11 @@
           <v-tabs v-model="activeTabAnalisi" color="orange-darken-3" grow class="border-top" style="border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)) !important; height: 36px;">
             <v-tab :value="0" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 0 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.72rem; height: 36px;">
               <v-icon start size="14" class="mr-1">mdi-lightbulb-on-outline</v-icon>
-              Proposta Carico (W{{ aiutoWeek }})
+              Cosa faccio oggi
             </v-tab>
             <v-tab :value="1" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 1 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.72rem; height: 36px;">
               <v-icon start size="14" class="mr-1">mdi-history</v-icon>
-              Cronologia
+              Cosa ho fatto prima
             </v-tab>
           </v-tabs>
           
@@ -3593,28 +3593,31 @@
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
           <div v-show="activeTabAnalisi === 1" class="d-flex flex-column fill-height">
             
-            <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (2 Colonne Pulite Mobile-First) -->
-            <div v-if="suggerimentoRecord" class="mb-2.5 text-left">
-              <div class="d-flex align-stretch gap-2 w-100 min-width-0">
-                <!-- Colonna 1: Record a Stesse Reps -->
+            <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (Segmented Hero Card Unificata a 2 Colonne) -->
+            <div v-if="suggerimentoRecord" class="my-2 text-left">
+              <div 
+                class="rounded-xl border overflow-hidden d-flex align-stretch w-100 min-width-0 position-relative"
+                style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(2, 6, 23, 0.95) 100%); border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);"
+              >
+                <!-- Colonna 1: Record a Stesse Reps (Ambra) -->
                 <div 
                   v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
-                  class="pa-2.5 rounded-xl border text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none" 
-                  style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.05) 100%); border: 1.2px solid rgba(245, 158, 11, 0.5) !important; flex: 1 1 0%; min-width: 0;"
+                  class="pa-2.5 text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0" 
+                  style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.04) 100%); border-right: 1px solid rgba(255, 255, 255, 0.08); flex: 1 1 0%;"
                   @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
                 >
                   <div>
-                    <div class="d-flex align-center justify-space-between mb-1 gap-1">
+                    <div class="d-flex align-center justify-space-between mb-1 gap-1 min-width-0">
                       <div class="d-flex align-center gap-1 text-truncate">
-                        <span style="font-size: 0.75rem; line-height: 1;">🏆</span>
-                        <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                        <span style="font-size: 0.70rem; line-height: 1;">🏆</span>
+                        <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.50rem; letter-spacing: 0.02em;">
                           PR A {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
                         </span>
                       </div>
                     </div>
 
                     <div class="d-flex align-baseline text-truncate">
-                      <span class="font-weight-black text-white text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
+                      <span class="font-weight-black text-white text-truncate" style="font-size: 1.12rem; line-height: 1.15;">
                         <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
                           {{ String(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record).replace(/r$/i, '') }}r
                         </template>
@@ -3625,7 +3628,7 @@
                       <span 
                         v-if="suggerimentoRecord.recordRepsValue && suggerimentoRecord.recordRepsValue > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" 
                         class="text-super-caption font-weight-bold ml-1 text-truncate" 
-                        style="color: #facc15; font-size: 0.60rem;"
+                        style="color: #facc15; font-size: 0.58rem;"
                       >
                         x{{ String(suggerimentoRecord.recordRepsValue).replace(/r$/i, '') }}r
                       </span>
@@ -3633,44 +3636,44 @@
                         v-if="suggerimentoRecord.recordRepsFatica" 
                         class="text-super-caption font-weight-bold text-truncate ml-0.5" 
                         :style="getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica)" 
-                        style="font-size: 0.52rem;"
+                        style="font-size: 0.50rem;"
                       >
                         ({{ formatFaticaAbbr(suggerimentoRecord.recordRepsFatica) }})
                       </span>
                     </div>
                   </div>
 
-                  <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-slate-400 min-width-0" style="font-size: 0.50rem; line-height: 1.2;">
+                  <div class="font-weight-medium mt-1.5 d-flex align-center justify-space-between text-slate-400 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
                     <span class="text-truncate">
                       Sch. {{ (String(suggerimentoRecord.recordRepsSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) || (suggerimentoRecord.recordRepsDate ? tempoTrascorso(suggerimentoRecord.recordRepsDate) : 'Storico') }}
                     </span>
                     <span 
                       v-if="suggerimentoRecord.recordRepsE1RM" 
                       class="font-weight-bold text-amber-200 rounded px-1 ml-1 flex-shrink-0" 
-                      style="background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.50rem; white-space: nowrap;"
+                      style="background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.46rem; white-space: nowrap; padding: 1px 3px;"
                     >
                       1RM: {{ formatWeight(suggerimentoRecord.recordRepsE1RM) }} kg
                     </span>
                   </div>
                 </div>
 
-                <!-- Colonna 2: Record Assoluto di Sempre -->
+                <!-- Colonna 2: Record Assoluto di Sempre (Ciano) -->
                 <div 
                   v-if="suggerimentoRecord.recordAbsolute > 0" 
-                  class="pa-2.5 rounded-xl border text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none" 
-                  style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.16) 0%, rgba(6, 182, 212, 0.04) 100%); border: 1.2px solid rgba(6, 182, 212, 0.5) !important; flex: 1 1 0%; min-width: 0;"
+                  class="pa-2.5 text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0" 
+                  style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.14) 0%, rgba(6, 182, 212, 0.03) 100%); flex: 1 1 0%;"
                   @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
                 >
                   <div>
-                    <div class="d-flex align-center gap-1 mb-1 text-truncate">
-                      <v-icon color="#00bcd4" size="13">mdi-fire</v-icon>
-                      <span class="text-super-caption font-weight-bold uppercase text-truncate text-cyan-lighten-2" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                    <div class="d-flex align-center gap-1 mb-1 text-truncate min-width-0">
+                      <v-icon color="#00bcd4" size="12">mdi-fire</v-icon>
+                      <span class="text-super-caption font-weight-bold uppercase text-truncate text-cyan-lighten-2" style="font-size: 0.50rem; letter-spacing: 0.02em;">
                         RECORD ASSOLUTO
                       </span>
                     </div>
 
                     <div class="d-flex align-baseline text-truncate">
-                      <span class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
+                      <span class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.12rem; line-height: 1.15;">
                         <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordAbsoluteHasWeight">
                           {{ String(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute).replace(/r$/i, '') }}r
                         </template>
@@ -3681,7 +3684,7 @@
                       <span 
                         v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" 
                         class="text-super-caption font-weight-bold ml-1 text-truncate" 
-                        style="color: #facc15; font-size: 0.60rem;"
+                        style="color: #facc15; font-size: 0.58rem;"
                       >
                         x{{ String(suggerimentoRecord.recordAbsoluteReps).replace(/r$/i, '') }}r
                       </span>
@@ -3689,21 +3692,21 @@
                         v-if="suggerimentoRecord.recordAbsoluteFatica" 
                         class="text-super-caption font-weight-bold text-truncate ml-0.5" 
                         :style="getColoreFaticaStyle(suggerimentoRecord.recordAbsoluteFatica)" 
-                        style="font-size: 0.52rem;"
+                        style="font-size: 0.50rem;"
                       >
                         ({{ formatFaticaAbbr(suggerimentoRecord.recordAbsoluteFatica) }})
                       </span>
                     </div>
                   </div>
 
-                  <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-cyan-lighten-3 min-width-0" style="font-size: 0.50rem; line-height: 1.2;">
+                  <div class="font-weight-medium mt-1.5 d-flex align-center justify-space-between text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
                     <span class="text-truncate">
                       Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) || (suggerimentoRecord.recordAbsoluteDate ? tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) : 'Storico') }}
                     </span>
                     <span 
                       v-if="suggerimentoRecord.recordAbsoluteE1RM" 
                       class="font-weight-bold text-cyan-200 rounded px-1 ml-1 flex-shrink-0" 
-                      style="background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.35); font-size: 0.50rem; white-space: nowrap;"
+                      style="background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.35); font-size: 0.46rem; white-space: nowrap; padding: 1px 3px;"
                     >
                       1RM: {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }} kg
                     </span>
@@ -3712,45 +3715,46 @@
               </div>
             </div>
 
-            <!-- Controlli Visualizzazione Cronologia (Filtro corrispondenti + Toggle Vista) -->
-            <div class="mb-2.5 px-2 py-1.5 rounded-xl border d-flex align-center justify-space-between flex-shrink-0" :style="{ background: 'var(--card-bg-soft, #0f172a)', borderColor: 'var(--card-border, rgba(255,255,255,0.06))' }">
-              <div>
+            <!-- Controlli Visualizzazione Cronologia (Toolbar Snella e Moderna) -->
+            <div class="mt-1 mb-3.5 d-flex align-center justify-space-between gap-2 flex-shrink-0 min-width-0">
+              <!-- Chip Pill Filtro Stesse Reps -->
+              <div class="min-width-0">
                 <v-btn
                   v-if="stileStorico !== 'grafico'"
-                  :color="soloCorrispondenti ? 'red-darken-3' : 'grey-darken-3'"
                   variant="flat"
                   size="x-small"
-                  class="font-weight-black text-none px-2.5 rounded-lg"
-                  style="height: 28px; font-size: 0.65rem;"
+                  class="font-weight-black text-none px-2.5 rounded-pill transition-all"
+                  :style="soloCorrispondenti ? 'background: rgba(239, 68, 68, 0.22); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.45); height: 26px; font-size: 0.62rem;' : 'background: rgba(255, 255, 255, 0.06); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.10); height: 26px; font-size: 0.62rem;'"
                   @click="toggleFiltroCorrispondenti"
                 >
-                  <v-icon size="13" class="mr-1">
-                    {{ soloCorrispondenti ? 'mdi-filter-remove' : 'mdi-filter' }}
+                  <v-icon size="12" class="mr-1" :color="soloCorrispondenti ? 'red-lighten-2' : 'slate-400'">
+                    {{ soloCorrispondenti ? 'mdi-filter-check' : 'mdi-filter-outline' }}
                   </v-icon>
-                  Solo stesse reps ({{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r' }})
+                  <span>Solo {{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r' }}</span>
                 </v-btn>
               </div>
               
+              <!-- Selettore Viste Compatto a Pillola -->
               <v-btn-toggle
                 v-model="stileStorico"
                 mandatory
-                selected-class="bg-orange-darken-3 text-white"
+                selected-class="bg-amber-darken-3 text-white font-weight-black"
                 density="compact"
-                rounded="lg"
-                class="card-glass border"
-                style="height: 28px;"
+                rounded="pill"
+                class="border"
+                style="height: 26px; background: rgba(15, 23, 42, 0.8); border-color: rgba(255, 255, 255, 0.10) !important;"
               >
                 <!-- TABELLA -->
-                <v-btn value="tabella" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Tabella">
-                  <v-icon size="17">mdi-table</v-icon>
+                <v-btn value="tabella" class="px-2" style="min-width: 32px; height: 24px;" title="Vista a Tabella">
+                  <v-icon size="14">mdi-table</v-icon>
                 </v-btn>
                 <!-- CARDS / LISTA -->
-                <v-btn value="timeline" class="px-2" style="min-width: 38px; height: 28px;" title="Vista a Card">
-                  <v-icon size="17">mdi-view-sequential</v-icon>
+                <v-btn value="timeline" class="px-2" style="min-width: 32px; height: 24px;" title="Vista a Card">
+                  <v-icon size="14">mdi-view-sequential</v-icon>
                 </v-btn>
                 <!-- GRAFICO -->
-                <v-btn value="grafico" class="px-2" style="min-width: 38px; height: 28px;" title="Vista Grafico" @click="passaAVistaGrafico">
-                  <v-icon size="17">mdi-chart-line</v-icon>
+                <v-btn value="grafico" class="px-2" style="min-width: 32px; height: 24px;" title="Vista Grafico" @click="passaAVistaGrafico">
+                  <v-icon size="14">mdi-chart-line</v-icon>
                 </v-btn>
               </v-btn-toggle>
             </div>

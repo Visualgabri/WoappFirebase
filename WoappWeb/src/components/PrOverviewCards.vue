@@ -1,10 +1,13 @@
 <template>
   <div v-if="overviewData" class="pr-overview-cards-wrapper w-100 min-width-0">
-    <div class="d-flex align-stretch gap-2 w-100 min-width-0">
+    <div 
+      class="rounded-xl border overflow-hidden d-flex align-stretch w-100 min-width-0 position-relative"
+      style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(2, 6, 23, 0.95) 100%); border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);"
+    >
       
-      <!-- CARD 1: PR A X REPS -->
+      <!-- COLONNA 1: PR A X REPS -->
       <div 
-        class="pr-overview-card pa-2.5 rounded-xl border d-flex flex-column justify-space-between transition-all cursor-pointer position-relative select-none"
+        class="pa-2.5 text-left d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
         :class="{ 'card-glow-pr': isCurrentPR }"
         :style="card1Style"
         @click="$emit('click-pr', bestReal)"
@@ -16,15 +19,15 @@
           <div class="d-flex align-center justify-space-between mb-1 gap-1 min-width-0">
             <!-- Sinistra: Titolo -->
             <div class="d-flex align-center gap-1 text-truncate min-width-0">
-              <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+              <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.50rem; letter-spacing: 0.02em;">
                 PR A {{ cleanTargetReps }} REPS
               </span>
             </div>
             <!-- Destra: 🏆 + 📋 (se scheda attuale) + Carico -->
             <div class="d-flex align-center gap-1 text-no-wrap flex-shrink-0 font-weight-black text-amber-lighten-2" style="font-size: 0.82rem; line-height: 1;">
-              <span style="font-size: 0.74rem; line-height: 1;">🏆</span>
-              <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.68rem; line-height: 1;">📋</span>
-              <span class="font-weight-black text-white ml-0.5" style="font-size: 0.88rem; line-height: 1;">
+              <span style="font-size: 0.72rem; line-height: 1;">🏆</span>
+              <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.66rem; line-height: 1;">📋</span>
+              <span class="font-weight-black text-white ml-0.5" style="font-size: 0.86rem; line-height: 1;">
                 {{ prWeightDisplay }}
               </span>
             </div>
@@ -36,7 +39,7 @@
               v-if="prRepsDisplay"
               class="text-super-caption font-weight-bold text-truncate" 
               :class="isCurrentPR ? 'text-amber-lighten-3' : 'text-slate-300'"
-              style="font-size: 0.62rem;"
+              style="font-size: 0.60rem;"
             >
               {{ prRepsDisplay }}
             </span>
@@ -44,7 +47,7 @@
               v-if="faticaLetter"
               class="text-super-caption font-weight-bold text-truncate" 
               :style="{ color: faticaColor + ' !important' }"
-              style="font-size: 0.58rem;"
+              style="font-size: 0.56rem;"
               :title="'Sforzo: ' + (bestReal?.fatica || '')"
             >
               ({{ faticaLetter }})
@@ -55,19 +58,19 @@
           <div 
             v-if="bestReal?.sottoPRText" 
             class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-regular text-truncate d-flex align-center gap-0.5" 
-            style="font-size: 0.48rem; line-height: 1.1;"
+            style="font-size: 0.46rem; line-height: 1.1;"
           >
-            <v-icon size="10" color="orange-lighten-2">mdi-trending-down</v-icon>
+            <v-icon size="9" color="orange-lighten-2">mdi-trending-down</v-icon>
             <span class="text-truncate">{{ bestReal.sottoPRText }}</span>
           </div>
         </div>
 
         <!-- Rigo Inferiore: Angolo in basso a sinistra (Sch. [numero] · [tempo trascorso]) e Angolo in basso a destra (1RM stimato) -->
-        <div class="mt-1 d-flex align-end justify-space-between gap-1 min-width-0">
+        <div class="mt-1.5 d-flex align-end justify-space-between gap-1 min-width-0">
           <span 
             class="text-super-caption font-weight-medium text-truncate" 
             :class="isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
-            style="font-size: 0.50rem; line-height: 1.2;"
+            style="font-size: 0.48rem; line-height: 1.2;"
           >
             {{ card1ProvenienzaFormatted }}
           </span>
@@ -77,7 +80,7 @@
             v-if="prE1rmDisplay"
             class="text-super-caption font-weight-bold rounded px-1 text-no-wrap flex-shrink-0"
             :class="isCurrentPR ? 'text-amber-300' : 'text-amber-200'"
-            style="font-size: 0.44rem; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.3); letter-spacing: 0.01em; padding: 1px 4px; line-height: 1.2;"
+            style="font-size: 0.44rem; background: rgba(245, 158, 11, 0.20); border: 1px solid rgba(245, 158, 11, 0.35); letter-spacing: 0.01em; padding: 1px 3px; line-height: 1.2;"
             title="1RM stimato corrispondente"
           >
             1RM ~{{ prE1rmDisplay }}
@@ -85,9 +88,9 @@
         </div>
       </div>
 
-      <!-- CARD 2: 1RM ATTUALE / RECORD ASSOLUTO -->
+      <!-- COLONNA 2: 1RM ATTUALE / RECORD ASSOLUTO -->
       <div 
-        class="pr-overview-card pa-2.5 rounded-xl border d-flex flex-column justify-space-between transition-all cursor-pointer position-relative select-none"
+        class="pa-2.5 text-left d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
         :class="{ 'card-glow-1rm': isNewPeak }"
         :style="card2Style"
         @click="$emit('click-e1rm', bestE1RM?.id || bestE1RM)"
@@ -98,15 +101,15 @@
           <div class="d-flex align-center justify-space-between mb-1 gap-1 min-width-0">
             <!-- Sinistra: Titolo -->
             <div class="d-flex align-center gap-1 text-truncate min-width-0">
-              <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+              <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.50rem; letter-spacing: 0.02em;">
                 {{ isCorpoLiberoPuro ? 'MAX REPS STORICO' : '1RM ATTUALE' }}
               </span>
             </div>
             <!-- Destra: 👑 (se presente record) + 📋 (se scheda attuale) + Carico 1RM -->
             <div class="d-flex align-center gap-1 text-no-wrap flex-shrink-0 font-weight-black text-cyan-lighten-2" style="font-size: 0.82rem; line-height: 1;">
-              <span v-if="hasAbsoluteRecord || isNewPeak" style="font-size: 0.74rem; line-height: 1;">👑</span>
-              <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.68rem; line-height: 1;">📋</span>
-              <span class="font-weight-black text-cyan-lighten-2 ml-0.5" style="font-size: 0.88rem; line-height: 1;">
+              <span v-if="hasAbsoluteRecord || isNewPeak" style="font-size: 0.72rem; line-height: 1;">👑</span>
+              <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.66rem; line-height: 1;">📋</span>
+              <span class="font-weight-black text-cyan-lighten-2 ml-0.5" style="font-size: 0.86rem; line-height: 1;">
                 {{ e1rmDisplay }}
               </span>
             </div>
@@ -119,7 +122,7 @@
                 v-if="bestE1RM?.calcoloBaseShort"
                 class="text-super-caption font-weight-bold rounded px-1 text-truncate"
                 :class="isNewPeak ? 'text-cyan-950 bg-cyan-300' : 'text-cyan-200'"
-                :style="isNewPeak ? 'font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;' : 'font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;'"
+                :style="isNewPeak ? 'font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 3px; white-space: nowrap;' : 'font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 3px; white-space: nowrap;'"
               >
                 da {{ bestE1RM.calcoloBaseShort }}
               </span>
@@ -127,20 +130,20 @@
                 v-if="e1rmFaticaLetter"
                 class="text-super-caption font-weight-bold text-truncate" 
                 :style="{ color: e1rmFaticaColor + ' !important' }"
-                style="font-size: 0.54rem;"
+                style="font-size: 0.52rem;"
                 :title="'Sforzo: ' + (bestE1RM?.fatica || '')"
               >
                 ({{ e1rmFaticaLetter }})
               </span>
             </div>
-            <span v-if="isNewPeak" class="text-super-caption font-weight-bold text-green-accent-3 text-no-wrap" style="font-size: 0.46rem;">
+            <span v-if="isNewPeak" class="text-super-caption font-weight-bold text-green-accent-3 text-no-wrap" style="font-size: 0.44rem;">
               Picco assoluto
             </span>
           </div>
 
           <!-- Barra Progresso verso il Record Assoluto -->
           <div v-if="bestE1RM?.e1rmProximityPct" class="mt-1">
-            <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.45rem; line-height: 1;">
+            <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.44rem; line-height: 1;">
               <span>{{ bestE1RM.e1rmProximityPct }}%</span>
               <span v-if="!isNewPeak && bestE1RM.maxDeltaKg">-{{ bestE1RM.maxDeltaKg }} kg</span>
               <span v-else-if="isNewPeak" class="text-green-accent-3 font-weight-black">100%</span>
@@ -161,11 +164,11 @@
         </div>
 
         <!-- Rigo Inferiore: Angolo in basso a sinistra nel formato: Sch. [numero] · [tempo trascorso] -->
-        <div class="mt-1 text-truncate">
+        <div class="mt-1.5 text-truncate">
           <span 
             class="text-super-caption font-weight-medium text-truncate" 
             :class="isNewPeak ? 'text-green-accent-3' : 'text-cyan-lighten-3'" 
-            style="font-size: 0.50rem; line-height: 1.2;"
+            style="font-size: 0.48rem; line-height: 1.2;"
           >
             {{ card2ProvenienzaFormatted }}
           </span>
@@ -359,15 +362,15 @@ const card1Style = computed(() => {
   if (isCurrentPR.value) {
     return {
       background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.10) 100%) !important',
-      borderColor: 'rgba(245, 158, 11, 0.70) !important',
-      boxShadow: '0 0 16px rgba(245, 158, 11, 0.22), inset 0 0 12px rgba(245, 158, 11, 0.06)',
+      borderRight: '1px solid rgba(255, 255, 255, 0.10)',
+      boxShadow: 'inset 0 0 14px rgba(245, 158, 11, 0.15)',
       flex: '1 1 0%',
       minWidth: '0'
     };
   }
   return {
-    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important',
-    borderColor: 'rgba(245, 158, 11, 0.35) !important',
+    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.10) 0%, rgba(217, 119, 6, 0.02) 100%) !important',
+    borderRight: '1px solid rgba(255, 255, 255, 0.08)',
     flex: '1 1 0%',
     minWidth: '0'
   };
@@ -377,15 +380,13 @@ const card2Style = computed(() => {
   if (isNewPeak.value) {
     return {
       background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.22) 0%, rgba(6, 182, 212, 0.08) 100%) !important',
-      borderColor: 'rgba(6, 182, 212, 0.70) !important',
-      boxShadow: '0 0 16px rgba(6, 182, 212, 0.22), inset 0 0 12px rgba(6, 182, 212, 0.06)',
+      boxShadow: 'inset 0 0 14px rgba(6, 182, 212, 0.15)',
       flex: '1 1 0%',
       minWidth: '0'
     };
   }
   return {
-    background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important',
-    borderColor: 'rgba(6, 182, 212, 0.35) !important',
+    background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 100%) !important',
     flex: '1 1 0%',
     minWidth: '0'
   };
@@ -394,7 +395,8 @@ const card2Style = computed(() => {
 
 <style scoped>
 .pr-overview-cards-wrapper {
-  margin-bottom: 10px;
+  margin-top: 6px;
+  margin-bottom: 14px;
 }
 
 .pr-overview-card {

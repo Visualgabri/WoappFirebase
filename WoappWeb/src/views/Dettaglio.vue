@@ -3593,15 +3593,118 @@
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
           <div v-show="activeTabAnalisi === 1" class="d-flex flex-column fill-height">
             
-            <!-- 1. BLOCCO RECORD IN ALTO CENTRALIZZATO (PR A STESSE REPS + RECORD ASSOLUTO CRONOLOGIA) -->
-            <PrOverviewCards 
-              :overview-data="recordCronologiaOverviewData" 
-              :workout="workout" 
-              :target-reps="getRepsPerWeek(settimanaAttiva)" 
-              mode="cronologia"
-              @click-pr="vaiADettaglioStorico(suggerimentoRecord?.recordRepsItem || suggerimentoRecord?.recordRepsId)" 
-              @click-e1rm="vaiADettaglioStorico(suggerimentoRecord?.recordAbsoluteItem || suggerimentoRecord?.recordAbsoluteId)" 
-            />
+            <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (2 Colonne Pulite Mobile-First) -->
+            <div v-if="suggerimentoRecord" class="mb-2.5 text-left">
+              <div class="d-flex align-stretch gap-2 w-100 min-width-0">
+                <!-- Colonna 1: Record a Stesse Reps -->
+                <div 
+                  v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
+                  class="pa-2.5 rounded-xl border text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none" 
+                  style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.05) 100%); border: 1.2px solid rgba(245, 158, 11, 0.5) !important; flex: 1 1 0%; min-width: 0;"
+                  @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
+                >
+                  <div>
+                    <div class="d-flex align-center justify-space-between mb-1 gap-1">
+                      <div class="d-flex align-center gap-1 text-truncate">
+                        <span style="font-size: 0.75rem; line-height: 1;">🏆</span>
+                        <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                          PR A {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="d-flex align-baseline text-truncate">
+                      <span class="font-weight-black text-white text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
+                        <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordHasWeight">
+                          {{ String(suggerimentoRecord.recordRepsValue || suggerimentoRecord.record).replace(/r$/i, '') }}r
+                        </template>
+                        <template v-else>
+                          {{ formatWeight(suggerimentoRecord.record) }} kg
+                        </template>
+                      </span>
+                      <span 
+                        v-if="suggerimentoRecord.recordRepsValue && suggerimentoRecord.recordRepsValue > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordHasWeight)" 
+                        class="text-super-caption font-weight-bold ml-1 text-truncate" 
+                        style="color: #facc15; font-size: 0.60rem;"
+                      >
+                        x{{ String(suggerimentoRecord.recordRepsValue).replace(/r$/i, '') }}r
+                      </span>
+                      <span 
+                        v-if="suggerimentoRecord.recordRepsFatica" 
+                        class="text-super-caption font-weight-bold text-truncate ml-0.5" 
+                        :style="getColoreFaticaStyle(suggerimentoRecord.recordRepsFatica)" 
+                        style="font-size: 0.52rem;"
+                      >
+                        ({{ formatFaticaAbbr(suggerimentoRecord.recordRepsFatica) }})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="font-weight-medium mt-1 text-truncate text-slate-400" style="font-size: 0.50rem; line-height: 1.2;">
+                    <span v-if="suggerimentoRecord.recordRepsSheet">
+                      Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }} • 
+                    </span>
+                    <span>{{ formattaDataStorico(suggerimentoRecord.recordRepsDate) || 'Storico' }}</span>
+                  </div>
+                </div>
+
+                <!-- Colonna 2: Record Assoluto di Sempre -->
+                <div 
+                  v-if="suggerimentoRecord.recordAbsolute > 0" 
+                  class="pa-2.5 rounded-xl border text-left d-flex flex-column justify-space-between transition-colors cursor-pointer select-none" 
+                  style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.16) 0%, rgba(6, 182, 212, 0.04) 100%); border: 1.2px solid rgba(6, 182, 212, 0.5) !important; flex: 1 1 0%; min-width: 0;"
+                  @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
+                >
+                  <div>
+                    <div class="d-flex align-center gap-1 mb-1 text-truncate">
+                      <v-icon color="#00bcd4" size="13">mdi-fire</v-icon>
+                      <span class="text-super-caption font-weight-bold uppercase text-truncate text-cyan-lighten-2" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                        RECORD ASSOLUTO
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-baseline text-truncate">
+                      <span class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.18rem; line-height: 1.15;">
+                        <template v-if="isCorpoLiberoEsercizio(workout) && !suggerimentoRecord.recordAbsoluteHasWeight">
+                          {{ String(suggerimentoRecord.recordAbsoluteReps || suggerimentoRecord.recordAbsolute).replace(/r$/i, '') }}r
+                        </template>
+                        <template v-else>
+                          {{ formatWeight(suggerimentoRecord.recordAbsolute) }} kg
+                        </template>
+                      </span>
+                      <span 
+                        v-if="suggerimentoRecord.recordAbsoluteReps && suggerimentoRecord.recordAbsoluteReps > 0 && (!isCorpoLiberoEsercizio(workout) || suggerimentoRecord.recordAbsoluteHasWeight)" 
+                        class="text-super-caption font-weight-bold ml-1 text-truncate" 
+                        style="color: #facc15; font-size: 0.60rem;"
+                      >
+                        x{{ String(suggerimentoRecord.recordAbsoluteReps).replace(/r$/i, '') }}r
+                      </span>
+                      <span 
+                        v-if="suggerimentoRecord.recordAbsoluteFatica" 
+                        class="text-super-caption font-weight-bold text-truncate ml-0.5" 
+                        :style="getColoreFaticaStyle(suggerimentoRecord.recordAbsoluteFatica)" 
+                        style="font-size: 0.52rem;"
+                      >
+                        ({{ formatFaticaAbbr(suggerimentoRecord.recordAbsoluteFatica) }})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-cyan-lighten-3" style="font-size: 0.50rem; line-height: 1.2;">
+                    <span class="text-truncate">
+                      {{ (suggerimentoRecord.recordAbsoluteSheet ? ('Sch. ' + suggerimentoRecord.recordAbsoluteSheet + (suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '')) : (formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'Storico')) }}
+                    </span>
+                    <span 
+                      v-if="suggerimentoRecord.recordAbsoluteE1RM" 
+                      class="font-weight-bold text-cyan-200 rounded px-1 ml-1" 
+                      style="background: rgba(6, 182, 212, 0.25); font-size: 0.50rem; white-space: nowrap;"
+                    >
+                      1RM: {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }} kg
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <!-- Controlli Visualizzazione Cronologia (Filtro corrispondenti + Toggle Vista) -->
             <div class="mb-2.5 px-2 py-1.5 rounded-xl border d-flex align-center justify-space-between flex-shrink-0" :style="{ background: 'var(--card-bg-soft, #0f172a)', borderColor: 'var(--card-border, rgba(255,255,255,0.06))' }">

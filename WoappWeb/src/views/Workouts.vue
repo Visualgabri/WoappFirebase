@@ -253,43 +253,53 @@
       </div>
 
       <div v-else>
-        <!-- Banner Celebrativo Mesociclo Completato -->
+        <!-- Banner Celebrativo Mesociclo Completato Premium -->
         <v-card
           v-if="mesocicloCompletato"
-          class="py-4 px-5 mb-5 text-left border position-relative overflow-hidden"
-          style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.05)) !important; border: 1.5px solid rgba(16, 185, 129, 0.4) !important; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15) !important; border-radius: 16px !important;"
+          class="mesociclo-completed-banner py-4 px-4 px-sm-5 mb-5 text-left border position-relative overflow-hidden"
+          elevation="3"
         >
-          <div class="d-flex align-start">
-            <v-icon color="green-accent-4" class="mr-3 mt-1 flex-shrink-0 animate-bounce" size="32">mdi-trophy</v-icon>
-            <div class="flex-grow-1">
-              <h3 class="text-subtitle-1 font-weight-black text-green-lighten-2 mb-1" style="font-size: 1.05rem;">
-                🎉 Congratulazioni! Mesociclo Completato!
-              </h3>
-              <p class="text-slate font-weight-medium mb-3" style="font-size: 0.75rem; line-height: 1.45; color: #cbd5e1 !important;">
-                Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda. Ottimo lavoro!
-              </p>
+          <div class="banner-ambient-glow"></div>
+          <div class="position-relative z-index-1">
+            <div class="d-flex align-center justify-space-between flex-wrap gap-2 mb-1.5">
+              <div class="d-flex align-center gap-2 min-width-0">
+                <v-icon color="amber-accent-3" size="24" class="trophy-inline-icon flex-shrink-0">mdi-trophy-award</v-icon>
+                <h3 class="text-subtitle-1 font-weight-black banner-meso-title text-truncate" style="font-size: 1.05rem;">
+                  Mesociclo Completato
+                </h3>
+              </div>
+              <v-chip size="x-small" color="emerald-darken-3" variant="flat" class="font-weight-black text-white px-2 py-0" style="font-size: 0.62rem; height: 20px; background: rgba(16, 185, 129, 0.25); border: 1px solid rgba(52, 211, 153, 0.4);">
+                100% COMPLETATO
+              </v-chip>
+            </div>
+            <p class="text-slate font-weight-medium mb-3" style="font-size: 0.75rem; line-height: 1.45; color: #cbd5e1 !important;">
+              Hai chiuso con successo tutte le 6 settimane di allenamento per tutti i giorni della scheda. Ottimo lavoro!
+            </p>
               <div class="d-flex gap-2 flex-wrap align-center">
                 <v-btn
-                  to="/ricerca"
+                  variant="flat"
+                  color="green-darken-2"
+                  size="small"
+                  class="font-weight-black text-none text-white btn-meso-action shadow-sm"
+                  rounded="lg"
+                  :loading="caricamentoProssimaScheda"
+                  @click="gestisciProssimaScheda"
+                  id="btn-prossima-scheda"
+                >
+                  <v-icon start size="16" class="mr-1">mdi-arrow-right-circle</v-icon>
+                  Prossima Scheda
+                </v-btn>
+                <v-btn
                   variant="outlined"
                   color="green-lighten-3"
                   size="small"
-                  class="font-weight-black text-none card-glass"
-                  rounded="lg"
-                  id="btn-prossima-scheda"
-                >
-                  📋 Prossima Scheda
-                </v-btn>
-                <v-btn
-                  variant="flat"
-                  color="green-darken-3"
-                  size="small"
-                  class="font-weight-black text-none text-white"
+                  class="font-weight-black text-none card-glass btn-meso-action"
                   rounded="lg"
                   @click="dialogProgressioni = true"
                   id="btn-riepilogo-progressioni"
                 >
-                  📈 Riepilogo Progressioni
+                  <v-icon start size="16" class="mr-1">mdi-chart-line</v-icon>
+                  Riepilogo Progressioni
                 </v-btn>
                 <!-- Pulsante Inserisci Gradimenti Mancanti o Riepilogo Gradimenti -->
                 <v-btn
@@ -297,24 +307,26 @@
                   variant="flat"
                   color="amber-darken-3"
                   size="small"
-                  class="font-weight-black text-none text-white animate-pulse"
+                  class="font-weight-black text-none text-white animate-pulse btn-meso-action"
                   rounded="lg"
                   @click="apriDialogGradimenti('mancanti')"
                   id="btn-gradimenti-mancanti-banner"
                 >
-                  ⭐ Inserisci {{ eserciziSenzaGradimento.length }} Gradimenti Mancanti
+                  <v-icon start size="16" class="mr-1">mdi-star</v-icon>
+                  Inserisci {{ eserciziSenzaGradimento.length }} Gradimenti
                 </v-btn>
                 <v-btn
                   v-else
                   variant="outlined"
                   color="amber-lighten-2"
                   size="small"
-                  class="font-weight-black text-none card-glass"
+                  class="font-weight-black text-none card-glass btn-meso-action"
                   rounded="lg"
                   @click="apriDialogGradimenti('tutti')"
                   id="btn-gradimenti-tutti-banner"
                 >
-                  ⭐ Gradimenti (Media: {{ mediaGradimenti }}/5)
+                  <v-icon start size="16" class="mr-1">mdi-star</v-icon>
+                  Gradimenti (Media: {{ mediaGradimenti }}/5)
                 </v-btn>
                 <!-- Pulsante Verifica Ins W6 & Fatica -->
                 <v-btn
@@ -322,24 +334,26 @@
                   variant="flat"
                   color="deep-orange-darken-3"
                   size="small"
-                  class="font-weight-black text-none text-white"
+                  class="font-weight-black text-none text-white btn-meso-action"
                   rounded="lg"
                   @click="apriDialogInsW6Fatica('incompleti')"
                   id="btn-insw6-fatica-mancanti-banner"
                 >
-                  ⚡ {{ eserciziIncompletiW6.length }} Ins W6 & Fatica Mancanti
+                  <v-icon start size="16" class="mr-1">mdi-lightning-bolt</v-icon>
+                  {{ eserciziIncompletiW6.length }} Ins W6 & Fatica Mancanti
                 </v-btn>
                 <v-btn
                   v-else
                   variant="outlined"
                   color="deep-orange-lighten-2"
                   size="small"
-                  class="font-weight-black text-none card-glass"
+                  class="font-weight-black text-none card-glass btn-meso-action"
                   rounded="lg"
                   @click="apriDialogInsW6Fatica('tutti')"
                   id="btn-insw6-fatica-tutti-banner"
                 >
-                  ⚡ Ins W6 & Fatica (100% Completi 🎉)
+                  <v-icon start size="16" class="mr-1">mdi-lightning-bolt</v-icon>
+                  Ins W6 & Fatica (100% Completi)
                 </v-btn>
               </div>
 
@@ -352,7 +366,6 @@
                 <v-icon size="14" color="deep-orange-lighten-2">mdi-lightning-bolt</v-icon>
                 <span>Mancano ancora {{ eserciziIncompletiW6.length }} registrazioni di Ins W6 / Sforzo percepito prima di chiudere il mesociclo.</span>
               </div>
-            </div>
           </div>
         </v-card>
 
@@ -3136,6 +3149,80 @@
       @seleziona-esercizio="gestisciSelezionaEsercizioDaControllo"
     />
 
+    <!-- MODALE PROSSIMA SCHEDA NON DISPONIBILE / CONTATTA COACH -->
+    <v-dialog v-model="dialogProssimaSchedaNonPronta" max-width="480px" persistent>
+      <v-card class="rounded-2xl border card-glass text-left overflow-hidden bg-slate-900 elevation-12" style="border: 1px solid rgba(249, 115, 22, 0.35) !important;">
+        <!-- Header Dialog -->
+        <v-card-title class="pa-4 pb-3 border-bottom d-flex align-center justify-space-between" style="background: rgba(15, 23, 42, 0.85);">
+          <div class="d-flex align-center gap-2.5 min-width-0 flex-grow-1 mr-2">
+            <v-avatar color="orange-darken-3" size="32" class="elevation-2 flex-shrink-0">
+              <v-icon size="18" color="white">mdi-clipboard-clock-outline</v-icon>
+            </v-avatar>
+            <div class="min-width-0 flex-grow-1">
+              <span class="text-subtitle-1 font-weight-black text-white d-block leading-tight text-truncate" style="font-size: 0.95rem !important;">
+                Prossima Scheda
+              </span>
+              <span class="text-super-caption text-orange-lighten-2 font-weight-bold d-block text-truncate" style="font-size: 0.65rem;">
+                Scheda {{ schedaSelezionata || selectedSheet || '' }} Completata
+              </span>
+            </div>
+          </div>
+          <v-btn icon variant="text" width="28" height="28" color="grey-lighten-1" class="flex-shrink-0" @click="dialogProssimaSchedaNonPronta = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <!-- Body -->
+        <v-card-text class="pa-4 pt-4">
+          <div class="pa-3.5 rounded-xl border mb-3.5" style="background: rgba(234, 88, 12, 0.08); border-color: rgba(249, 115, 22, 0.25) !important;">
+            <div class="d-flex align-start gap-2.5 mb-2">
+              <v-icon color="orange-lighten-2" size="20" class="mt-0.5 flex-shrink-0">mdi-information-outline</v-icon>
+              <div class="text-caption font-weight-bold text-white" style="font-size: 0.85rem; line-height: 1.35;">
+                Nessuna nuova scheda trovata
+              </div>
+            </div>
+            <p class="text-slate font-weight-medium mb-0" style="font-size: 0.76rem; line-height: 1.45; color: #cbd5e1 !important;">
+              La scheda successiva non è ancora presente in app. 
+              <br><br>
+              • Se il tuo Coach Gabriele Belmonte l'ha già preparata, tocca <strong>"Aggiorna Schede"</strong> per sincronizzarla.
+              <br>
+              • Altrimenti, inviagli subito un messaggio su WhatsApp per richiederla!
+            </p>
+          </div>
+
+          <div class="d-flex flex-column gap-2.5 pt-1">
+            <v-btn
+              color="green-darken-2"
+              size="large"
+              class="font-weight-black text-none text-white rounded-xl elevation-3"
+              prepend-icon="mdi-whatsapp"
+              block
+              @click="inviaWhatsAppRichiestaScheda"
+              id="btn-invia-whatsapp-coach"
+              style="height: 44px; font-size: 0.88rem;"
+            >
+              Invia Messaggio su WhatsApp
+            </v-btn>
+
+            <v-btn
+              variant="outlined"
+              color="orange-lighten-2"
+              size="large"
+              class="font-weight-black text-none card-glass rounded-xl"
+              prepend-icon="mdi-sync"
+              block
+              :loading="caricamentoProssimaScheda"
+              @click="aggiornaERicontrollaSchede"
+              id="btn-aggiorna-schede-dialog"
+              style="height: 40px; font-size: 0.82rem;"
+            >
+              Aggiorna Schede
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -3144,7 +3231,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero } from '../authStore.js';
+import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 import { rimuoviContenutoTraParentesi } from '../utils/loadParser.js';
@@ -3721,6 +3808,109 @@ const getGifUrl = (url) => {
 const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
 const giornoSelezionato = ref('A');
+
+// Stato Prossima Scheda e WhatsApp Coach
+const dialogProssimaSchedaNonPronta = ref(false);
+const caricamentoProssimaScheda = ref(false);
+
+const ottieniSchedeAtleta = async () => {
+  const currentAthlete = selectedAthlete.value || atletaSelezionato.value;
+  if (!currentAthlete) return [];
+
+  let schedeSet = new Set();
+  try {
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where('ID_cliente', '==', String(currentAthlete))
+    );
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.num_scheda) {
+        schedeSet.add(String(data.num_scheda).trim());
+      }
+    });
+  } catch (err) {
+    console.warn("Recupero schede Firestore fallito, provo con backup locale:", err);
+  }
+
+  // Se Firestore è vuoto o fallisce, controlla nel backup offline e in globalStoryboard
+  if (schedeSet.size === 0) {
+    try {
+      const allData = await getStoryboardBackup();
+      if (allData && Array.isArray(allData)) {
+        allData.filter(item => String(item.ID_cliente) === String(currentAthlete)).forEach(item => {
+          if (item.num_scheda) schedeSet.add(String(item.num_scheda).trim());
+        });
+      }
+    } catch (e) {
+      console.warn("Errore lettura backup offline:", e);
+    }
+  }
+
+  if (globalStoryboard.value && Array.isArray(globalStoryboard.value)) {
+    globalStoryboard.value.filter(item => String(item.ID_cliente) === String(currentAthlete)).forEach(item => {
+      if (item.num_scheda) schedeSet.add(String(item.num_scheda).trim());
+    });
+  }
+
+  return Array.from(schedeSet).sort((a, b) => Number(a) - Number(b));
+};
+
+const gestisciProssimaScheda = async () => {
+  vibraTattile(14);
+  caricamentoProssimaScheda.value = true;
+  try {
+    const schede = await ottieniSchedeAtleta();
+    const currentSheet = String(selectedSheet.value || schedaSelezionata.value || '').trim();
+    
+    // Trova l'indice della scheda attuale o cerca la prima con numero superiore
+    let nextSheet = null;
+    const currentIdx = schede.indexOf(currentSheet);
+
+    if (currentIdx !== -1 && currentIdx < schede.length - 1) {
+      nextSheet = schede[currentIdx + 1];
+    } else {
+      const currentNum = Number(currentSheet);
+      if (!isNaN(currentNum)) {
+        const higherSheets = schede.filter(s => Number(s) > currentNum);
+        if (higherSheets.length > 0) {
+          nextSheet = higherSheets[0];
+        }
+      }
+    }
+
+    if (nextSheet) {
+      // Se la scheda successiva è presente, selezionala e naviga alla Home
+      setSelectedSheet(nextSheet);
+      schedaSelezionata.value = nextSheet;
+      router.push('/home');
+    } else {
+      // Se non esiste, mostra il dialog per contattare il coach o aggiornare
+      dialogProssimaSchedaNonPronta.value = true;
+    }
+  } catch (err) {
+    console.error("Errore verifica prossima scheda:", err);
+    dialogProssimaSchedaNonPronta.value = true;
+  } finally {
+    caricamentoProssimaScheda.value = false;
+  }
+};
+
+const inviaWhatsAppRichiestaScheda = () => {
+  vibraTattile(12);
+  const numeroCoach = '393495525181'; // Coach Gabriele Belmonte
+  const nScheda = selectedSheet.value || schedaSelezionata.value || '';
+  const nomeAtleta = getNomeAtleta(selectedAthlete.value || atletaSelezionato.value) || '';
+  const salutoAtleta = nomeAtleta ? ` (${nomeAtleta})` : '';
+  const messaggio = `Ciao Coach Gabriele${salutoAtleta}, ho completato tutte le 6 settimane del mesociclo (Scheda ${nScheda}). Posso chiederti se è pronta la prossima scheda di allenamento? Grazie!`;
+  const url = `https://wa.me/${numeroCoach}?text=${encodeURIComponent(messaggio)}`;
+  window.open(url, '_blank');
+};
+
+const aggiornaERicontrollaSchede = async () => {
+  await gestisciProssimaScheda();
+};
 
 // Stato Controllo Qualità Scheda per Coach
 const mostraDialogControlloQualita = ref(false);
@@ -9110,5 +9300,76 @@ const recuperiRaggruppati = computed(() => {
   animation: pulseGlowExercise 2.5s ease-in-out forwards !important;
   transition: all 0.3s ease;
   z-index: 20 !important;
+}
+
+/* ═══════════════════════════════════════════
+   STILI BANNER MESOCICLO COMPLETATO PREMIUM
+   ═══════════════════════════════════════════ */
+.mesociclo-completed-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(6, 78, 59, 0.22) 50%, rgba(15, 23, 42, 0.5) 100%) !important;
+  border: 1.5px solid rgba(52, 211, 153, 0.45) !important;
+  box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-theme="light"] .mesociclo-completed-banner {
+  background: linear-gradient(135deg, rgba(209, 250, 229, 0.9) 0%, rgba(240, 253, 244, 0.95) 100%) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.25) !important;
+}
+
+.banner-ambient-glow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.25) 0%, rgba(16, 185, 129, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.trophy-inline-icon {
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.65));
+  animation: trophyInlineAnim 2.8s infinite ease-in-out;
+}
+
+@keyframes trophyInlineAnim {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.5));
+  }
+  50% {
+    transform: scale(1.1) rotate(6deg);
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.95)) drop-shadow(0 0 4px rgba(52, 211, 153, 0.6));
+  }
+}
+
+.banner-meso-title {
+  background: linear-gradient(90deg, #6ee7b7 0%, #34d399 50%, #fde047 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.01em;
+}
+
+[data-theme="light"] .banner-meso-title {
+  background: linear-gradient(90deg, #065f46 0%, #047857 60%, #b45309 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-meso-action {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  letter-spacing: -0.01em;
+}
+
+.btn-meso-action:hover {
+  transform: translateY(-1.5px);
+}
+
+.btn-meso-action:active {
+  transform: translateY(0.5px);
 }
 </style>

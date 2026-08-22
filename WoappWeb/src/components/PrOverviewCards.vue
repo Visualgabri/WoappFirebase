@@ -5,9 +5,9 @@
       style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(2, 6, 23, 0.95) 100%); border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);"
     >
       
-      <!-- COLONNA 1: PR A X REPS -->
+      <!-- COLONNA 1: PR A REPS TARGET (Ambra - Centrato) -->
       <div 
-        class="pa-2.5 text-left d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
+        class="pa-2.5 text-center d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
         :class="{ 'card-glow-pr': isCurrentPR }"
         :style="card1Style"
         @click="$emit('click-pr', bestReal)"
@@ -15,49 +15,25 @@
         title="Visualizza dettaglio PR"
       >
         <div>
-          <!-- Rigo Superiore: Titolo a sinistra, Icone + Carico in alto a destra -->
-          <div class="d-flex align-center justify-space-between mb-1 gap-1 min-width-0">
-            <!-- Sinistra: Titolo -->
-            <div class="d-flex align-center gap-1 text-truncate min-width-0">
-              <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.50rem; letter-spacing: 0.02em;">
-                PR A {{ cleanTargetReps }} REPS
-              </span>
-            </div>
-            <!-- Destra: 🏆 + 📋 (se scheda attuale) + Carico -->
-            <div class="d-flex align-center gap-1 text-no-wrap flex-shrink-0 font-weight-black text-amber-lighten-2" style="font-size: 0.82rem; line-height: 1;">
-              <span style="font-size: 0.72rem; line-height: 1;">🏆</span>
-              <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.66rem; line-height: 1;">📋</span>
-              <span class="font-weight-black text-white ml-0.5" style="font-size: 0.86rem; line-height: 1;">
-                {{ prWeightDisplay }}
-              </span>
-            </div>
+          <!-- Titolo Centrato -->
+          <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
+            <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+              🏆 PR ATTUALE
+            </span>
+            <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
           </div>
 
-          <!-- Rigo Centrale: Reps effettive + Livello di Sforzo con lettera (es. (P)) -->
-          <div class="d-flex align-baseline gap-1 text-truncate my-0.5">
-            <span 
-              v-if="prRepsDisplay"
-              class="text-super-caption font-weight-bold text-truncate" 
-              :class="isCurrentPR ? 'text-amber-lighten-3' : 'text-slate-300'"
-              style="font-size: 0.60rem;"
-            >
-              {{ prRepsDisplay }}
-            </span>
-            <span 
-              v-if="faticaLetter"
-              class="text-super-caption font-weight-bold text-truncate" 
-              :style="{ color: faticaColor + ' !important' }"
-              style="font-size: 0.56rem;"
-              :title="'Sforzo: ' + (bestReal?.fatica || '')"
-            >
-              ({{ faticaLetter }})
+          <!-- Valore Principale Carico Centrato -->
+          <div class="d-flex align-center justify-center my-0.5 min-width-0">
+            <span class="font-weight-black text-white" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
+              {{ prWeightDisplay }}
             </span>
           </div>
 
-          <!-- Sotto al PR se presente (es. prestazione inferiore da scheda passata) -->
+          <!-- Dettaglio Sotto-Carico se presente -->
           <div 
             v-if="bestReal?.sottoPRText" 
-            class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-regular text-truncate d-flex align-center gap-0.5" 
+            class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-medium text-truncate d-flex align-center justify-center gap-0.5" 
             style="font-size: 0.46rem; line-height: 1.1;"
           >
             <v-icon size="9" color="orange-lighten-2">mdi-trending-down</v-icon>
@@ -65,8 +41,8 @@
           </div>
         </div>
 
-        <!-- Rigo Inferiore: Angolo in basso a sinistra (Sch. [numero] · [tempo trascorso]) e Angolo in basso a destra (1RM stimato) -->
-        <div class="mt-1.5 d-flex align-end justify-space-between gap-1 min-width-0">
+        <!-- Rigo Inferiore Centrato: Sch. [num] · [tempo] -->
+        <div class="mt-2 d-flex align-center justify-center gap-1.5 flex-wrap min-width-0">
           <span 
             class="text-super-caption font-weight-medium text-truncate" 
             :class="isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
@@ -75,7 +51,7 @@
             {{ card1ProvenienzaFormatted }}
           </span>
 
-          <!-- Riquadro 1RM corrispondente nell'angolino in basso -->
+          <!-- 1RM Stimato corrispondente -->
           <div 
             v-if="prE1rmDisplay"
             class="text-super-caption font-weight-bold rounded px-1 text-no-wrap flex-shrink-0"
@@ -88,83 +64,39 @@
         </div>
       </div>
 
-      <!-- COLONNA 2: 1RM ATTUALE / RECORD ASSOLUTO -->
+      <!-- COLONNA 2: ATTACCO PICCO ASSOLUTO (Ciano - Centrato) -->
       <div 
-        class="pa-2.5 text-left d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
+        class="pa-2.5 text-center d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
         :class="{ 'card-glow-1rm': isNewPeak }"
         :style="card2Style"
         @click="$emit('click-e1rm', bestE1RM?.id || bestE1RM)"
         title="Visualizza storico 1RM"
       >
         <div>
-          <!-- Rigo Superiore: Titolo a sinistra, Icone + Carico 1RM in alto a destra -->
-          <div class="d-flex align-center justify-space-between mb-1 gap-1 min-width-0">
-            <!-- Sinistra: Titolo -->
-            <div class="d-flex align-center gap-1 text-truncate min-width-0">
-              <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.50rem; letter-spacing: 0.02em;">
-                {{ isCorpoLiberoPuro ? 'MAX REPS STORICO' : '1RM ATTUALE' }}
-              </span>
-            </div>
-            <!-- Destra: 👑 (se presente record) + 📋 (se scheda attuale) + Carico 1RM -->
-            <div class="d-flex align-center gap-1 text-no-wrap flex-shrink-0 font-weight-black text-cyan-lighten-2" style="font-size: 0.82rem; line-height: 1;">
-              <span v-if="hasAbsoluteRecord || isNewPeak" style="font-size: 0.72rem; line-height: 1;">👑</span>
-              <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.66rem; line-height: 1;">📋</span>
-              <span class="font-weight-black text-cyan-lighten-2 ml-0.5" style="font-size: 0.86rem; line-height: 1;">
-                {{ e1rmDisplay }}
-              </span>
-            </div>
+          <!-- Titolo Centrato -->
+          <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
+            <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+              ⚡ {{ isCorpoLiberoPuro ? 'MAX REPS' : 'ATTACCO PICCO' }}
+            </span>
+            <span v-if="hasAbsoluteRecord || isNewPeak" style="font-size: 0.65rem; line-height: 1;">👑</span>
+            <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
           </div>
 
-          <!-- Rigo Centrale: Origine Calcolo + Fatica + Badge Picco -->
-          <div class="d-flex align-center justify-space-between gap-1 text-truncate my-0.5">
-            <div class="d-flex align-center gap-1 text-truncate">
-              <span 
-                v-if="bestE1RM?.calcoloBaseShort"
-                class="text-super-caption font-weight-bold rounded px-1 text-truncate"
-                :class="isNewPeak ? 'text-cyan-950 bg-cyan-300' : 'text-cyan-200'"
-                :style="isNewPeak ? 'font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 3px; white-space: nowrap;' : 'font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 3px; white-space: nowrap;'"
-              >
-                da {{ bestE1RM.calcoloBaseShort }}
-              </span>
-              <span 
-                v-if="e1rmFaticaLetter"
-                class="text-super-caption font-weight-bold text-truncate" 
-                :style="{ color: e1rmFaticaColor + ' !important' }"
-                style="font-size: 0.52rem;"
-                :title="'Sforzo: ' + (bestE1RM?.fatica || '')"
-              >
-                ({{ e1rmFaticaLetter }})
-              </span>
-            </div>
-            <span v-if="isNewPeak" class="text-super-caption font-weight-bold text-green-accent-3 text-no-wrap" style="font-size: 0.44rem;">
-              Picco assoluto
+          <!-- Valore Principale Carico per Battuta Record Centrato -->
+          <div class="d-flex align-center justify-center my-0.5 min-width-0">
+            <span class="font-weight-black text-cyan-lighten-2" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
+              {{ peakTargetLoadDisplay }}
             </span>
           </div>
 
-          <!-- Barra Progresso verso il Record Assoluto -->
-          <div v-if="bestE1RM?.e1rmProximityPct" class="mt-1">
-            <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.44rem; line-height: 1;">
-              <span>{{ bestE1RM.e1rmProximityPct }}%</span>
-              <span v-if="!isNewPeak && bestE1RM.maxDeltaKg">-{{ bestE1RM.maxDeltaKg }} kg</span>
-              <span v-else-if="isNewPeak" class="text-green-accent-3 font-weight-black">100%</span>
-            </div>
-            <div 
-              class="w-100 rounded-pill overflow-hidden" 
-              style="height: 3px; background: rgba(255, 255, 255, 0.08);"
-            >
-              <div 
-                class="h-100 rounded-pill transition-all" 
-                :style="{ 
-                  width: bestE1RM.e1rmProximityPct + '%', 
-                  background: isNewPeak ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #06b6d4, #22d3ee)' 
-                }"
-              ></div>
-            </div>
+          <!-- Dettaglio Piccolo su 1RM Storico da battere -->
+          <div v-if="bestE1RM?.maxDisplay && !isCorpoLiberoPuro" class="text-super-caption text-cyan-200/80 font-weight-medium text-truncate mt-0.5" style="font-size: 0.46rem; line-height: 1.1;">
+            {{ isNewPeak ? 'Picco assoluto eguagliato' : `per superare ${bestE1RM.maxDisplay} 1RM` }}
           </div>
         </div>
 
-        <!-- Rigo Inferiore: Angolo in basso a sinistra nel formato: Sch. [numero] · [tempo trascorso] -->
-        <div class="mt-1.5 text-truncate">
+        <!-- Rigo Inferiore Centrato: Origine Record Storico (Sch. [num] · [tempo]) -->
+        <div class="mt-2 d-flex align-center justify-center gap-1.5 flex-wrap min-width-0">
           <span 
             class="text-super-caption font-weight-medium text-truncate" 
             :class="isNewPeak ? 'text-green-accent-3' : 'text-cyan-lighten-3'" 
@@ -226,6 +158,20 @@ const hasAbsoluteRecord = computed(() => {
 const prWeightDisplay = computed(() => {
   if (!bestReal.value) return '-';
   return bestReal.value.weightDisplay || (bestReal.value.weight > 0 ? `${bestReal.value.weight} kg` : `${bestReal.value.reps || cleanTargetReps.value}r`);
+});
+
+// Carico Target per Attacco Picco 1RM (Card 2)
+const peakTargetLoadDisplay = computed(() => {
+  if (isCorpoLiberoPuro.value) {
+    return bestE1RM.value?.display || '-';
+  }
+  if (bestE1RM.value?.targetLoadDisplay) {
+    return bestE1RM.value.targetLoadDisplay;
+  }
+  if (bestE1RM.value?.targetLoadForNewPeak > 0) {
+    return `${bestE1RM.value.targetLoadForNewPeak} kg`;
+  }
+  return bestE1RM.value?.display || '-';
 });
 
 // Reps PR

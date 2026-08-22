@@ -3640,11 +3640,17 @@
                     </div>
                   </div>
 
-                  <div class="font-weight-medium mt-1 text-truncate text-slate-400" style="font-size: 0.50rem; line-height: 1.2;">
-                    <span v-if="suggerimentoRecord.recordRepsSheet">
-                      Sch. {{ suggerimentoRecord.recordRepsSheet }}{{ suggerimentoRecord.recordRepsDay ? ' ' + suggerimentoRecord.recordRepsDay : '' }} • 
+                  <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-slate-400 min-width-0" style="font-size: 0.50rem; line-height: 1.2;">
+                    <span class="text-truncate">
+                      Sch. {{ (String(suggerimentoRecord.recordRepsSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) || (suggerimentoRecord.recordRepsDate ? tempoTrascorso(suggerimentoRecord.recordRepsDate) : 'Storico') }}
                     </span>
-                    <span>{{ formattaDataStorico(suggerimentoRecord.recordRepsDate) || 'Storico' }}</span>
+                    <span 
+                      v-if="suggerimentoRecord.recordRepsE1RM" 
+                      class="font-weight-bold text-amber-200 rounded px-1 ml-1 flex-shrink-0" 
+                      style="background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.50rem; white-space: nowrap;"
+                    >
+                      1RM: {{ formatWeight(suggerimentoRecord.recordRepsE1RM) }} kg
+                    </span>
                   </div>
                 </div>
 
@@ -3690,14 +3696,14 @@
                     </div>
                   </div>
 
-                  <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-cyan-lighten-3" style="font-size: 0.50rem; line-height: 1.2;">
+                  <div class="font-weight-medium mt-1 d-flex align-center justify-space-between text-cyan-lighten-3 min-width-0" style="font-size: 0.50rem; line-height: 1.2;">
                     <span class="text-truncate">
-                      {{ (suggerimentoRecord.recordAbsoluteSheet ? ('Sch. ' + suggerimentoRecord.recordAbsoluteSheet + (suggerimentoRecord.recordAbsoluteDay ? ' ' + suggerimentoRecord.recordAbsoluteDay : '')) : (formattaDataStorico(suggerimentoRecord.recordAbsoluteDate) || 'Storico')) }}
+                      Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) || (suggerimentoRecord.recordAbsoluteDate ? tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) : 'Storico') }}
                     </span>
                     <span 
                       v-if="suggerimentoRecord.recordAbsoluteE1RM" 
-                      class="font-weight-bold text-cyan-200 rounded px-1 ml-1" 
-                      style="background: rgba(6, 182, 212, 0.25); font-size: 0.50rem; white-space: nowrap;"
+                      class="font-weight-bold text-cyan-200 rounded px-1 ml-1 flex-shrink-0" 
+                      style="background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.35); font-size: 0.50rem; white-space: nowrap;"
                     >
                       1RM: {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }} kg
                     </span>
@@ -8601,6 +8607,8 @@ const calcolaRecordOverviewData = (sett) => {
       week: bestWeek,
       date: bestDate,
       sottoPRText,
+      e1rm: (!isCorpoLiberoPuro && roundedBestWeight > 0) ? Math.round(calcolaE1RMSmorzato(roundedBestWeight, bestReps || targetReps, isCavo) * 10) / 10 : 0,
+      e1rmDisplay: (!isCorpoLiberoPuro && roundedBestWeight > 0) ? `${formatWeight(Math.round(calcolaE1RMSmorzato(roundedBestWeight, bestReps || targetReps, isCavo) * 10) / 10)} kg` : '',
       provenienza: realProvenienza,
       provenienzaSenzaCoppa: provenienzaSenzaCoppa,
       id: bestId
@@ -15308,6 +15316,7 @@ const suggerimentoRecord = computed(() => {
     recordRepsFatica: absRepsFatica,
     recordRepsId: absRepsId,
     recordRepsItem: absRepsItem,
+    recordRepsE1RM: (absRepsWeight > 0 && absRepsReps > 0 && !isCorpoLibero) ? Math.round(calcolaE1RMSmorzato(absRepsWeight, absRepsReps, isCavoOMacchinaEsercizio(workout.value)) * 10) / 10 : 0,
     target: targetWeight,
     targetDisplay: targetDisplay || (isCorpoLibero ? getRepsPerWeek(w) + 'r' : targetWeight + ' kg'),
     targetSubtext: targetSubtext || `a ${getRepsPerWeek(w)} reps target`,

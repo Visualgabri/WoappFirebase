@@ -62,8 +62,8 @@
           </div>
         </div>
 
-        <!-- Rigo Inferiore: Angolo in basso a sinistra nel formato: Sch. [numero] · [tempo trascorso] -->
-        <div class="mt-1 text-truncate">
+        <!-- Rigo Inferiore: Angolo in basso a sinistra (Sch. [numero] · [tempo trascorso]) e Angolo in basso a destra (1RM stimato) -->
+        <div class="mt-1 d-flex align-end justify-space-between gap-1 min-width-0">
           <span 
             class="text-super-caption font-weight-medium text-truncate" 
             :class="isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
@@ -71,6 +71,17 @@
           >
             {{ card1ProvenienzaFormatted }}
           </span>
+
+          <!-- Riquadro 1RM corrispondente nell'angolino in basso -->
+          <div 
+            v-if="prE1rmDisplay"
+            class="text-super-caption font-weight-bold rounded px-1 text-no-wrap flex-shrink-0"
+            :class="isCurrentPR ? 'text-amber-300' : 'text-amber-200'"
+            style="font-size: 0.44rem; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.3); letter-spacing: 0.01em; padding: 1px 4px; line-height: 1.2;"
+            title="1RM stimato corrispondente"
+          >
+            1RM ~{{ prE1rmDisplay }}
+          </div>
         </div>
       </div>
 
@@ -250,11 +261,31 @@ const faticaColor = computed(() => parseFaticaColor(bestReal.value?.fatica));
 const e1rmFaticaLetter = computed(() => parseFaticaLetter(bestE1RM.value?.fatica));
 const e1rmFaticaColor = computed(() => parseFaticaColor(bestE1RM.value?.fatica));
 
-// 1RM Carico Display
+// 1RM Carico Display Card 2
 const e1rmDisplay = computed(() => {
   if (!bestE1RM.value) return '-';
   return bestE1RM.value.display || '-';
 });
+
+// 1RM Stimato corrispondente al PR (Card 1)
+const prE1rmDisplay = computed(() => {
+  if (isCorpoLiberoPuro.value || !bestReal.value) return '';
+  if (bestReal.value.e1rmDisplay) return bestReal.value.e1rmDisplay;
+  if (bestReal.value.e1rm && bestReal.value.e1rm > 0) return `${bestReal.value.e1rm} kg`;
+  const w = parseFloat(bestReal.value.weight);
+  const r = parseInt(bestReal.value.reps || cleanTargetReps.value, 10);
+  if (!w || isNaN(w) || w <= 0 || !r || isNaN(r) || r <= 0) return '';
+  // Calcolo di fallback se non presente a monte
+  const e1 = Math.round((w * (1 + r / 30)) * 10) / 10;
+  return `${e1} kg`;
+});
+
+// Estrai solo il numero intero della scheda escludendo lettere (es. "12A" -> "12", "Scheda 5" -> "5")
+const extractCleanSheetNum = (sheetVal) => {
+  if (!sheetVal) return '';
+  const match = String(sheetVal).match(/\d+/);
+  return match ? match[0] : '';
+};
 
 // Formattazione tempo trascorso abbreviato (supporta Firestore Timestamp, Date, stringhe)
 const formatTimeAgo = (dateVal) => {
@@ -270,7 +301,11 @@ const formatTimeAgo = (dateVal) => {
     d = new Date(dateVal);
   }
   if (!d || isNaN(d.getTime())) {
-    if (typeof dateVal === 'string') return dateVal;
+    if (typeof dateVal === 'string') {
+      const s = dateVal.trim();
+      if (s.toLowerCase().includes('questa scheda')) return 'questa scheda';
+      return s;
+    }
     return '';
   }
   const now = new Date();
@@ -288,33 +323,35 @@ const formatTimeAgo = (dateVal) => {
   return `${diffYears}a fa`;
 };
 
-// Formato standard: Sch. [numero] · [tempo trascorso abbreviato]
+// Formato standard: Sch. [numero] · [tempo trascorso abbreviato] (mostra solo il numero senza lettere e solo tempo trascorso)
 const card1ProvenienzaFormatted = computed(() => {
   if (!bestReal.value) return 'Storico';
-  const sNum = isCurrentPR.value ? (props.workout?.num_scheda || bestReal.value.sheet) : bestReal.value.sheet;
-  const sNumStr = sNum ? `Sch. ${sNum}` : 'Sch. -';
+  const rawSheet = isCurrentPR.value ? (props.workout?.num_scheda || bestReal.value.sheet) : bestReal.value.sheet;
+  const cleanNum = extractCleanSheetNum(rawSheet);
+  const sNumStr = cleanNum ? `Sch. ${cleanNum}` : 'Sch. -';
   
   if (isCurrentPR.value) {
     const timeAgo = bestReal.value.date ? formatTimeAgo(bestReal.value.date) : '';
     return timeAgo && timeAgo !== 'oggi' ? `${sNumStr} · ${timeAgo}` : `${sNumStr} · questa scheda`;
   }
   
-  const timeAgo = bestReal.value.date ? formatTimeAgo(bestReal.value.date) : (bestReal.value.tempoTrascorso || 'Storico');
-  return `${sNumStr} · ${timeAgo}`;
+  const timeAgo = bestReal.value.date ? formatTimeAgo(bestReal.value.date) : formatTimeAgo(bestReal.value.tempoTrascorso);
+  return timeAgo ? `${sNumStr} · ${timeAgo}` : `${sNumStr} · Storico`;
 });
 
 const card2ProvenienzaFormatted = computed(() => {
   if (!bestE1RM.value) return 'Storico';
-  const sNum = isNewPeak.value ? (props.workout?.num_scheda || bestE1RM.value.sheet) : bestE1RM.value.sheet;
-  const sNumStr = sNum ? `Sch. ${sNum}` : 'Sch. -';
+  const rawSheet = isNewPeak.value ? (props.workout?.num_scheda || bestE1RM.value.sheet) : bestE1RM.value.sheet;
+  const cleanNum = extractCleanSheetNum(rawSheet);
+  const sNumStr = cleanNum ? `Sch. ${cleanNum}` : 'Sch. -';
   
   if (isNewPeak.value) {
     const timeAgo = bestE1RM.value.date ? formatTimeAgo(bestE1RM.value.date) : '';
     return timeAgo && timeAgo !== 'oggi' ? `${sNumStr} · ${timeAgo}` : `${sNumStr} · questa scheda`;
   }
   
-  const timeAgo = bestE1RM.value.date ? formatTimeAgo(bestE1RM.value.date) : (bestE1RM.value.tempoTrascorso || 'Storico');
-  return `${sNumStr} · ${timeAgo}`;
+  const timeAgo = bestE1RM.value.date ? formatTimeAgo(bestE1RM.value.date) : formatTimeAgo(bestE1RM.value.tempoTrascorso);
+  return timeAgo ? `${sNumStr} · ${timeAgo}` : `${sNumStr} · Storico`;
 });
 
 // Stili dinamici e Glow elegante

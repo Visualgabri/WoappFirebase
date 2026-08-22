@@ -2979,33 +2979,29 @@
                     @click.stop="apriDettaglioSfidantePR(strategiaConsigliataCard.prDetail)"
                   >
                     <!-- Bersaglio 1: PR Reps -->
-                    <div class="pa-2 rounded-xl border bg-slate-900/90 text-left cursor-pointer" style="border-color: rgba(245, 158, 11, 0.45) !important;">
-                      <div class="d-flex align-center justify-space-between">
-                        <div>
-                          <span class="font-weight-black text-amber-accent-2" style="font-size: 1.15rem; line-height: 1.1;">
-                            {{ formatWeight(strategiaConsigliataCard.sfidanteVal) }} kg
-                          </span>
-                        </div>
-                        <span class="font-weight-bold text-amber-lighten-2 px-2 py-0.5 rounded bg-amber-500/20 text-no-wrap" style="font-size: 0.55rem;">
+                    <div class="pa-2 rounded-xl border bg-slate-900/90 text-center cursor-pointer position-relative" style="border-color: rgba(245, 158, 11, 0.45) !important;">
+                      <div class="d-flex align-center justify-center position-relative">
+                        <span class="font-weight-black text-amber-accent-2" style="font-size: 1.25rem; line-height: 1.1;">
+                          {{ formatWeight(strategiaConsigliataCard.sfidanteVal) }} kg
+                        </span>
+                        <span class="font-weight-bold text-amber-lighten-2 px-2 py-0.5 rounded bg-amber-500/20 text-no-wrap position-absolute" style="font-size: 0.55rem; right: 4px;">
                           🏆 PR {{ strategiaConsigliataCard.targetReps }}r
                         </span>
                       </div>
                     </div>
 
                     <!-- Bersaglio 2: Record 1RM -->
-                    <div class="pa-2 rounded-xl border bg-slate-900/90 text-left cursor-pointer" style="border-color: rgba(6, 182, 212, 0.45) !important;">
-                      <div class="d-flex align-center justify-space-between">
-                        <div>
-                          <span class="font-weight-black text-cyan-accent-2" style="font-size: 1.15rem; line-height: 1.1;">
-                            {{ formatWeight(strategiaConsigliataCard.targetRecordAssolutoKg) }} kg
-                          </span>
-                        </div>
-                        <span class="font-weight-bold text-cyan-lighten-2 px-2 py-0.5 rounded bg-cyan-500/20 text-no-wrap" style="font-size: 0.55rem;">
+                    <div class="pa-2 rounded-xl border bg-slate-900/90 text-center cursor-pointer position-relative" style="border-color: rgba(6, 182, 212, 0.45) !important;">
+                      <div class="d-flex align-center justify-center position-relative">
+                        <span class="font-weight-black text-cyan-accent-2" style="font-size: 1.25rem; line-height: 1.1;">
+                          {{ formatWeight(strategiaConsigliataCard.targetRecordAssolutoKg) }} kg
+                        </span>
+                        <span class="font-weight-bold text-cyan-lighten-2 px-2 py-0.5 rounded bg-cyan-500/20 text-no-wrap position-absolute" style="font-size: 0.55rem; right: 4px;">
                           👑 1RM
                         </span>
                       </div>
                       <!-- Alternativa reps se presente -->
-                      <div v-if="strategiaConsigliataCard.altRepsText" class="text-super-caption text-slate-400 mt-1 font-weight-regular" style="font-size: 0.52rem;">
+                      <div v-if="strategiaConsigliataCard.altRepsText" class="text-super-caption text-slate-400 mt-1 font-weight-regular text-center" style="font-size: 0.52rem;">
                         ({{ strategiaConsigliataCard.altRepsText }})
                       </div>
                     </div>

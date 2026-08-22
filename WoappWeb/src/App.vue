@@ -10,7 +10,7 @@
     >
       <v-app-bar-title class="text-slate-dark" style="line-height: 1.15;">
         <div class="d-flex flex-column text-left">
-          <div class="font-weight-black d-flex align-center cursor-pointer" style="font-size: 1.05rem !important; line-height: 1.1;" @click="gestisciClickLogo" title="FlexCoach">
+          <div class="font-weight-black d-flex align-center" style="font-size: 1.05rem !important; line-height: 1.1;" title="FlexCoach">
             <v-icon color="primary" class="mr-1.5 text-theme-primary" size="18">mdi-dumbbell</v-icon>
             FlexCoach<span class="orange-dot">.</span>
           </div>
@@ -645,10 +645,33 @@ const mostraPannemenEasterEgg = ref(false);
 
 // Gestione Easter Egg per parole chiave "profiamma" e "pannemen" (Desktop + Smartphone)
 let typedKeysBuffer = '';
+let bufferResetTimeout = null;
+
+const resetBufferTimeout = () => {
+  if (bufferResetTimeout) clearTimeout(bufferResetTimeout);
+  bufferResetTimeout = setTimeout(() => {
+    typedKeysBuffer = '';
+  }, 2500); // 2.5s di inattività azzerano il buffer
+};
+
 const handleGlobalKeydown = (event) => {
   if (event.ctrlKey || event.altKey || event.metaKey) return;
+  
+  if (event.key === 'Backspace') {
+    typedKeysBuffer = typedKeysBuffer.slice(0, -1);
+    resetBufferTimeout();
+    return;
+  }
+  
+  if (event.key === 'Escape') {
+    typedKeysBuffer = '';
+    if (bufferResetTimeout) clearTimeout(bufferResetTimeout);
+    return;
+  }
+
   if (event.key && event.key.length === 1) {
     typedKeysBuffer += event.key.toLowerCase();
+    resetBufferTimeout();
     if (typedKeysBuffer.length > 20) {
       typedKeysBuffer = typedKeysBuffer.slice(-20);
     }
@@ -665,28 +688,13 @@ const handleGlobalKeydown = (event) => {
 const handleGlobalInput = (event) => {
   const val = event?.target?.value;
   if (val && typeof val === 'string') {
-    const lower = val.toLowerCase();
-    if (lower.includes('profiamma')) {
+    const trimmed = val.trim().toLowerCase();
+    // Trigger solo se il valore digitato nel campo è esattamente la parola chiave o termina con essa
+    if (trimmed === 'profiamma' || /(?:^|\s)profiamma$/i.test(val)) {
       mostraJulieEasterEgg.value = true;
-    }
-    if (lower.includes('pannemen')) {
+    } else if (trimmed === 'pannemen' || /(?:^|\s)pannemen$/i.test(val)) {
       mostraPannemenEasterEgg.value = true;
     }
-  }
-};
-
-let countLogoClick = 0;
-let timerLogoClick = null;
-const gestisciClickLogo = () => {
-  countLogoClick++;
-  if (timerLogoClick) clearTimeout(timerLogoClick);
-  if (countLogoClick >= 3) {
-    mostraJulieEasterEgg.value = true;
-    countLogoClick = 0;
-  } else {
-    timerLogoClick = setTimeout(() => {
-      countLogoClick = 0;
-    }, 1800);
   }
 };
 

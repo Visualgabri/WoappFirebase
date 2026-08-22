@@ -453,30 +453,6 @@
           <v-row dense class="align-center">
             <v-col cols="6" class="border-right-soft">
               <div class="text-center d-flex flex-column align-center justify-center">
-                <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
-                <span class="font-weight-black text-cyan-lighten-2 d-inline-flex align-center justify-center gap-0.5" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
-                  <template v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
-                    <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
-                      {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
-                    </template>
-                    <template v-else>
-                      {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                    </template>
-                  </template>
-                  <template v-else>
-                    --
-                  </template>
-                </span>
-                <!-- Sottotitolo Dettaglio Max Assoluto -->
-                <div v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
-                  <span v-if="recordMaxAssolutoInfo.reps && recordMaxAssolutoInfo.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
-                  <span v-if="recordMaxAssolutoInfo.isCurrentMeso" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
-                  <span v-else-if="recordMaxAssolutoInfo.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
-                </div>
-              </div>
-            </v-col>
-            <v-col cols="6">
-              <div class="text-center d-flex flex-column align-center justify-center">
                 <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">
                   <template v-if="recordOverviewData?.bestReal?.weight > 0">
                     Record {{ getRepsPerWeek(settimanaAttiva) }} Reps
@@ -548,6 +524,30 @@
                   <template v-else-if="currentWeekLoggedWeight">
                     <span class="text-green-lighten-3 text-truncate">(questa scheda)</span>
                   </template>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-center d-flex flex-column align-center justify-center">
+                <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
+                <span class="font-weight-black text-cyan-lighten-2 d-inline-flex align-center justify-center gap-0.5" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                  <template v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
+                    <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
+                      {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
+                    </template>
+                    <template v-else>
+                      {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+                    </template>
+                  </template>
+                  <template v-else>
+                    --
+                  </template>
+                </span>
+                <!-- Sottotitolo Dettaglio Max Assoluto -->
+                <div v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
+                  <span v-if="recordMaxAssolutoInfo.reps && recordMaxAssolutoInfo.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
+                  <span v-if="recordMaxAssolutoInfo.isCurrentMeso" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                  <span v-else-if="recordMaxAssolutoInfo.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
                 </div>
               </div>
             </v-col>

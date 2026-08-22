@@ -88,12 +88,12 @@
             <!-- Sinistra: Titolo -->
             <div class="d-flex align-center gap-1 text-truncate min-width-0">
               <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                {{ isCorpoLiberoPuro ? 'MAX REPS STORICO' : '1RM ATTUALE' }}
+                {{ isCorpoLiberoPuro ? 'MAX REPS STORICO' : (mode === 'cronologia' ? 'RECORD ASSOLUTO' : '1RM ATTUALE') }}
               </span>
             </div>
             <!-- Destra: 👑 (se presente record) + 📋 (se scheda attuale) + Carico 1RM -->
             <div class="d-flex align-center gap-1 text-no-wrap flex-shrink-0 font-weight-black text-cyan-lighten-2" style="font-size: 0.82rem; line-height: 1;">
-              <span v-if="hasAbsoluteRecord" style="font-size: 0.74rem; line-height: 1;">👑</span>
+              <span v-if="mode === 'cronologia' || hasAbsoluteRecord || isNewPeak" style="font-size: 0.74rem; line-height: 1;">👑</span>
               <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.68rem; line-height: 1;">📋</span>
               <span class="font-weight-black text-cyan-lighten-2 ml-0.5" style="font-size: 0.88rem; line-height: 1;">
                 {{ e1rmDisplay }}
@@ -101,23 +101,34 @@
             </div>
           </div>
 
-          <!-- Rigo Centrale: Origine Calcolo + Badge Picco -->
+          <!-- Rigo Centrale: Origine Calcolo + Fatica + Badge Picco -->
           <div class="d-flex align-center justify-space-between gap-1 text-truncate my-0.5">
-            <span 
-              v-if="bestE1RM?.calcoloBaseShort"
-              class="text-super-caption font-weight-bold rounded px-1 text-truncate"
-              :class="isNewPeak ? 'text-cyan-950 bg-cyan-300' : 'text-cyan-200'"
-              :style="isNewPeak ? 'font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;' : 'font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;'"
-            >
-              da {{ bestE1RM.calcoloBaseShort }}
-            </span>
-            <span v-if="isNewPeak" class="text-super-caption font-weight-bold text-green-accent-3 text-no-wrap" style="font-size: 0.46rem;">
+            <div class="d-flex align-center gap-1 text-truncate">
+              <span 
+                v-if="bestE1RM?.calcoloBaseShort"
+                class="text-super-caption font-weight-bold rounded px-1 text-truncate"
+                :class="isNewPeak ? 'text-cyan-950 bg-cyan-300' : 'text-cyan-200'"
+                :style="isNewPeak ? 'font-size: 0.44rem; letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;' : 'font-size: 0.44rem; background: rgba(6, 182, 212, 0.2); letter-spacing: 0.01em; padding: 1px 4px; white-space: nowrap;'"
+              >
+                da {{ bestE1RM.calcoloBaseShort }}
+              </span>
+              <span 
+                v-if="e1rmFaticaLetter"
+                class="text-super-caption font-weight-bold text-truncate" 
+                :style="{ color: e1rmFaticaColor + ' !important' }"
+                style="font-size: 0.54rem;"
+                :title="'Sforzo: ' + (bestE1RM?.fatica || '')"
+              >
+                ({{ e1rmFaticaLetter }})
+              </span>
+            </div>
+            <span v-if="isNewPeak && mode !== 'cronologia'" class="text-super-caption font-weight-bold text-green-accent-3 text-no-wrap" style="font-size: 0.46rem;">
               Picco assoluto
             </span>
           </div>
 
-          <!-- Barra Progresso verso il Record Assoluto -->
-          <div v-if="bestE1RM?.e1rmProximityPct" class="mt-1">
+          <!-- Barra Progresso verso il Record Assoluto (solo per proposta carico) -->
+          <div v-if="mode === 'proposta' && bestE1RM?.e1rmProximityPct" class="mt-1">
             <div class="d-flex align-center justify-space-between text-super-caption font-weight-bold text-cyan-lighten-3 mb-0.5" style="font-size: 0.45rem; line-height: 1;">
               <span>{{ bestE1RM.e1rmProximityPct }}%</span>
               <span v-if="!isNewPeak && bestE1RM.maxDeltaKg">-{{ bestE1RM.maxDeltaKg }} kg</span>
@@ -169,6 +180,10 @@ const props = defineProps({
   targetReps: {
     type: [Number, String],
     default: 10
+  },
+  mode: {
+    type: String,
+    default: 'proposta' // 'proposta' | 'cronologia'
   }
 });
 
@@ -208,26 +223,32 @@ const prRepsDisplay = computed(() => {
   return isDiff ? `x${String(r).replace(/r$/i, '')}r` : `x${r}r`;
 });
 
-// Livello di sforzo / Fatica con lettera (P, M, D)
-const faticaLetter = computed(() => {
-  const f = bestReal.value?.fatica;
+// Helper Fatica
+const parseFaticaLetter = (f) => {
   if (!f) return '';
   const fStr = String(f).trim().toLowerCase();
   if (fStr.startsWith('m')) return 'M';
   if (fStr.startsWith('p')) return 'P';
   if (fStr.startsWith('d')) return 'D';
   return String(f).trim().charAt(0).toUpperCase();
-});
+};
 
-const faticaColor = computed(() => {
-  const f = bestReal.value?.fatica;
+const parseFaticaColor = (f) => {
   if (!f) return '#94a3b8';
   const fStr = String(f).trim().toLowerCase();
   if (fStr === 'media' || fStr === 'm') return '#81c784'; // Verde
   if (fStr === 'pesante' || fStr === 'p') return '#ffb74d'; // Ambra
   if (fStr === 'devastante' || fStr === 'd') return '#ef4444'; // Rosso
   return '#fbbf24';
-});
+};
+
+// Livello di sforzo / Fatica PR
+const faticaLetter = computed(() => parseFaticaLetter(bestReal.value?.fatica));
+const faticaColor = computed(() => parseFaticaColor(bestReal.value?.fatica));
+
+// Livello di sforzo / Fatica 1RM
+const e1rmFaticaLetter = computed(() => parseFaticaLetter(bestE1RM.value?.fatica));
+const e1rmFaticaColor = computed(() => parseFaticaColor(bestE1RM.value?.fatica));
 
 // 1RM Carico Display
 const e1rmDisplay = computed(() => {

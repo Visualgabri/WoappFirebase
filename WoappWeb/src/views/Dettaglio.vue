@@ -2908,6 +2908,7 @@
                 :overview-data="recordOverviewData" 
                 :workout="workout" 
                 :target-reps="targetRepsAttive" 
+                mode="proposta"
                 @click-pr="apriResocontoCoachPR" 
                 @click-e1rm="onOverviewE1RMClick" 
               />
@@ -3592,13 +3593,14 @@
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
           <div v-show="activeTabAnalisi === 1" class="d-flex flex-column fill-height">
             
-            <!-- 1. BLOCCO RECORD IN ALTO CENTRALIZZATO (PR A STESSE REPS + 1RM ATTUALE) -->
+            <!-- 1. BLOCCO RECORD IN ALTO CENTRALIZZATO (PR A STESSE REPS + RECORD ASSOLUTO CRONOLOGIA) -->
             <PrOverviewCards 
-              :overview-data="recordOverviewData" 
+              :overview-data="recordCronologiaOverviewData" 
               :workout="workout" 
               :target-reps="getRepsPerWeek(settimanaAttiva)" 
-              @click-pr="apriResocontoCoachPR" 
-              @click-e1rm="onOverviewE1RMClick" 
+              mode="cronologia"
+              @click-pr="vaiADettaglioStorico(suggerimentoRecord?.recordRepsItem || suggerimentoRecord?.recordRepsId)" 
+              @click-e1rm="vaiADettaglioStorico(suggerimentoRecord?.recordAbsoluteItem || suggerimentoRecord?.recordAbsoluteId)" 
             />
 
             <!-- Controlli Visualizzazione Cronologia (Filtro corrispondenti + Toggle Vista) -->
@@ -15237,6 +15239,82 @@ const suggerimentoRecord = computed(() => {
     target: targetWeight,
     isScarico,
     pesoWeek2: pesoW2
+  };
+});
+
+// Computed per overview card nel tab Cronologia (derivato direttamente da suggerimentoRecord)
+const recordCronologiaOverviewData = computed(() => {
+  if (!suggerimentoRecord.value || !workout.value) return null;
+  const sug = suggerimentoRecord.value;
+  const currentNumScheda = parseInt(workout.value?.num_scheda);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
+  const targetReps = getRepsPerWeek(settimanaAttiva.value);
+  const cleanTargetReps = String(targetReps).replace(/r$/i, '');
+
+  // 1. BEST REAL (PR a stesse reps per settimanaAttiva)
+  const isCurrentPR = sug.recordRepsSheet && parseInt(sug.recordRepsSheet) === currentNumScheda;
+  const prWeight = sug.record || 0;
+  const prReps = sug.recordRepsValue || targetReps;
+  
+  let prWeightDisplay = '0 kg';
+  if (isCorpoLiberoPuro && !sug.recordHasWeight) {
+    prWeightDisplay = `${prReps}r`;
+  } else {
+    prWeightDisplay = `${formatWeight(prWeight)} kg`;
+  }
+  
+  let prRepsDisplay = (prReps && (!isCorpoLiberoPuro || sug.recordHasWeight)) ? `x${String(prReps).replace(/r$/i, '')}r` : '';
+  let dExPR = sug.recordRepsDate;
+  let tempoTrascorsoPR = dExPR ? tempoTrascorsoBreve(dExPR) : (isCurrentPR ? 'questa scheda' : 'Storico');
+  
+  // 2. BEST E1RM / RECORD ASSOLUTO
+  const isNewPeak = sug.recordAbsoluteSheet && parseInt(sug.recordAbsoluteSheet) === currentNumScheda;
+  const absWeight = sug.recordAbsolute || 0;
+  const absReps = sug.recordAbsoluteReps || 0;
+  const absE1RM = sug.recordAbsoluteE1RM || (absWeight > 0 && absReps > 0 && !isCorpoLiberoPuro ? Math.round(calcolaE1RMSmorzato(absWeight, absReps, isCavoOMacchinaEsercizio(workout.value)) * 10) / 10 : 0);
+  
+  let e1rmDisplay = '';
+  if (isCorpoLiberoPuro && !sug.recordAbsoluteHasWeight) {
+    e1rmDisplay = `${absReps || absWeight}r`;
+  } else {
+    e1rmDisplay = `${formatWeight(absWeight)} kg`;
+  }
+
+  let calcoloBaseShort = (absWeight > 0 && absReps > 0) ? `${formatWeight(absWeight)}×${String(absReps).replace(/r$/i, '')}r` : '';
+  let dExAbs = sug.recordAbsoluteDate;
+  let tempoTrascorsoAbs = dExAbs ? tempoTrascorsoBreve(dExAbs) : (isNewPeak ? 'questa scheda' : 'Storico');
+
+  return {
+    isCorpoLiberoPuro,
+    bestReal: {
+      weight: prWeight,
+      weightDisplay: prWeightDisplay,
+      reps: prReps,
+      repsDisplay: prRepsDisplay,
+      fatica: sug.recordRepsFatica,
+      sheet: sug.recordRepsSheet,
+      day: sug.recordRepsDay,
+      date: sug.recordRepsDate,
+      tempoTrascorso: tempoTrascorsoPR,
+      isCurrentPR: Boolean(isCurrentPR),
+      id: sug.recordRepsId,
+      item: sug.recordRepsItem
+    },
+    bestE1RM: {
+      display: e1rmDisplay,
+      max1RM: absE1RM || absWeight,
+      calcoloBaseShort,
+      fatica: sug.recordAbsoluteFatica,
+      sheet: sug.recordAbsoluteSheet,
+      day: sug.recordAbsoluteDay,
+      date: sug.recordAbsoluteDate,
+      tempoTrascorso: tempoTrascorsoAbs,
+      isNewPeak: Boolean(isNewPeak),
+      e1rmProximityPct: null,
+      id: sug.recordAbsoluteId,
+      item: sug.recordAbsoluteItem
+    }
   };
 });
 

@@ -570,7 +570,9 @@
               <div class="d-flex align-center justify-space-between mb-1">
                 <span class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
                   <v-icon size="11" color="cyan-lighten-2" class="mr-0.5">mdi-chart-line</v-icon>
-                  Verso il tuo miglior 1RM: {{ recordOverviewData.bestE1RM.display }}/{{ recordOverviewData.bestE1RM.maxDisplay }}
+                  <span v-if="recordOverviewData.bestE1RM.isBasedOnProposal" class="text-amber-lighten-2 mr-1">Proposta ({{ recordOverviewData.bestE1RM.proposalLoad }}kg):</span>
+                  <span v-else>Verso il tuo miglior 1RM:</span>
+                  {{ recordOverviewData.bestE1RM.display }}/{{ recordOverviewData.bestE1RM.maxDisplay }}
                 </span>
                 <span class="text-super-caption font-weight-black text-cyan-accent-2" style="font-size: 0.52rem;">
                   {{ recordOverviewData.bestE1RM.e1rmProximityPct }}% (-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg)
@@ -579,7 +581,7 @@
             </template>
             <v-progress-linear
               :model-value="recordOverviewData.bestE1RM.e1rmProximityPct"
-              :color="recordOverviewData.bestE1RM.isNewPeak ? 'green-accent-3' : 'cyan-lighten-1'"
+              :color="recordOverviewData.bestE1RM.isNewPeak ? 'green-accent-3' : (recordOverviewData.bestE1RM.isBasedOnProposal ? 'cyan-accent-3' : 'cyan-lighten-1')"
               bg-color="rgba(255, 255, 255, 0.08)"
               height="3.5"
               rounded
@@ -8695,46 +8697,61 @@ const calcolaRecordOverviewData = (sett) => {
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
   let pesoRecenteMesociclo = 0;
   let repsRecenteMesociclo = targetReps;
+  let isBasedOnProposal = false;
+  let proposalLoad = 0;
   
   const currIns = inputSettimane.value ? inputSettimane.value[sett]?.ins : null;
   const pCurr = currIns ? parseFloat(estraiPesoDaInput(currIns)) : 0;
   if (pCurr > 0) {
     pesoRecenteMesociclo = pCurr;
     repsRecenteMesociclo = estraiRepsDaInput(currIns) || targetReps;
-  } else if (inputSettimane.value) {
-    for (let w = sett - 1; w >= 1; w--) {
-      const ins = inputSettimane.value[w]?.ins;
-      if (ins) {
-        const p = parseFloat(estraiPesoDaInput(ins));
-        if (p > 0) {
-          pesoRecenteMesociclo = p;
-          repsRecenteMesociclo = estraiRepsDaInput(ins) || getRepsPerWeek(w);
-          break;
+  } else {
+    // Se non è stato inserito un peso nella settimana corrente, verifica se ci sono settimane precedenti
+    let pesoDaPrecedenti = 0;
+    let repsDaPrecedenti = targetReps;
+    if (inputSettimane.value) {
+      for (let w = sett - 1; w >= 1; w--) {
+        const ins = inputSettimane.value[w]?.ins;
+        if (ins) {
+          const p = parseFloat(estraiPesoDaInput(ins));
+          if (p > 0) {
+            pesoDaPrecedenti = p;
+            repsDaPrecedenti = estraiRepsDaInput(ins) || getRepsPerWeek(w);
+            break;
+          }
         }
       }
     }
-  }
-  if (pesoRecenteMesociclo === 0) {
-    const infoBase = getBaseWeekInfo(sett);
-    if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
-      pesoRecenteMesociclo = infoBase.pesoBase;
-      repsRecenteMesociclo = infoBase.repsBase || targetReps;
+    
+    if (pesoDaPrecedenti > 0) {
+      pesoRecenteMesociclo = pesoDaPrecedenti;
+      repsRecenteMesociclo = repsDaPrecedenti;
+    } else {
+      // Casella vuota e nessuna settimana precedente compilata: usa la proposta consigliata della settimana
+      const proposta = getCaricoConsigliatoViaDiMezzoForWeek(sett) || 0;
+      if (proposta > 0) {
+        pesoRecenteMesociclo = proposta;
+        repsRecenteMesociclo = targetReps;
+        isBasedOnProposal = true;
+        proposalLoad = proposta;
+      } else {
+        const infoBase = getBaseWeekInfo(sett);
+        if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
+          pesoRecenteMesociclo = infoBase.pesoBase;
+          repsRecenteMesociclo = infoBase.repsBase || targetReps;
+          isBasedOnProposal = true;
+          proposalLoad = infoBase.pesoBase;
+        }
+      }
     }
-  }
-  if (pesoRecenteMesociclo === 0 && currentRepsWeight > 0) {
-    pesoRecenteMesociclo = currentRepsWeight;
-    repsRecenteMesociclo = currentRepsReps;
-  } else if (pesoRecenteMesociclo === 0 && pW1 > 0) {
-    pesoRecenteMesociclo = pW1;
-    repsRecenteMesociclo = getRepsPerWeek(1);
   }
 
   let currentE1RM = (pesoRecenteMesociclo > 0 && repsRecenteMesociclo > 0)
     ? calcolaE1RMSmorzato(pesoRecenteMesociclo, repsRecenteMesociclo, isCavo)
     : 0;
 
-  // Se c'è una prestazione top con e1RM massimo nel mesociclo corrente
-  if (inputSettimane.value) {
+  // Se c'è una prestazione con e1RM registrata nel mesociclo corrente superiore
+  if (inputSettimane.value && !isBasedOnProposal) {
     for (let w = 1; w <= 6; w++) {
       const ins = inputSettimane.value[w]?.ins;
       if (ins) {
@@ -8761,20 +8778,25 @@ const calcolaRecordOverviewData = (sett) => {
 
   // Confronto con Picco 1RM Assoluto (bestE1rmVal)
   const isFirstCycle = Boolean(!massimalePuroInfo.bestSource || massimalePuroInfo.bestSource.tempoTrascorso === 'questa scheda' || String(massimalePuroInfo.bestSource.numScheda) === String(workout.value.num_scheda));
-  const isNewPeak = Boolean(bestE1rmIsCurrent || (roundedCurrentE1RM >= roundedE1rm && roundedCurrentE1RM > 0));
+  const isNewPeak = Boolean(bestE1rmIsCurrent || (roundedCurrentE1RM >= roundedE1rm && roundedCurrentE1RM > 0 && !isBasedOnProposal));
   let maxDeltaText = null;
   let maxDeltaKg = 0;
-  let e1rmProximityPct = 100;
-  if (!isNewPeak && roundedE1rm > 0 && roundedCurrentE1RM > 0 && roundedCurrentE1RM < roundedE1rm) {
-    maxDeltaKg = Math.round((roundedE1rm - roundedCurrentE1RM) * 10) / 10;
-    if (maxDeltaKg > 0) {
-      const rawBestStr = (massimalePuroInfo.bestSource && massimalePuroInfo.bestSource.peso > 0 && massimalePuroInfo.bestSource.reps > 0)
-        ? `${formatWeight(massimalePuroInfo.bestSource.peso)}k×${massimalePuroInfo.bestSource.reps}r`
-        : null;
-      maxDeltaText = rawBestStr
-        ? `Max: ${formatWeight(roundedE1rm)}kg (${rawBestStr} • S.${bestE1rmSheet || '-'})`
-        : `Max: ${formatWeight(roundedE1rm)}kg (-${formatWeight(maxDeltaKg)}kg • S.${bestE1rmSheet || '-'})`;
+  let e1rmProximityPct = 0;
+  if (roundedE1rm > 0 && roundedCurrentE1RM > 0) {
+    if (roundedCurrentE1RM < roundedE1rm) {
+      maxDeltaKg = Math.round((roundedE1rm - roundedCurrentE1RM) * 10) / 10;
+      if (maxDeltaKg > 0) {
+        const rawBestStr = (massimalePuroInfo.bestSource && massimalePuroInfo.bestSource.peso > 0 && massimalePuroInfo.bestSource.reps > 0)
+          ? `${formatWeight(massimalePuroInfo.bestSource.peso)}k×${massimalePuroInfo.bestSource.reps}r`
+          : null;
+        maxDeltaText = rawBestStr
+          ? `Max: ${formatWeight(roundedE1rm)}kg (${rawBestStr} • S.${bestE1rmSheet || '-'})`
+          : `Max: ${formatWeight(roundedE1rm)}kg (-${formatWeight(maxDeltaKg)}kg • S.${bestE1rmSheet || '-'})`;
+      }
       e1rmProximityPct = Math.min(100, Math.round((roundedCurrentE1RM / roundedE1rm) * 1000) / 10);
+    } else {
+      e1rmProximityPct = 100;
+      maxDeltaKg = 0;
     }
   }
 
@@ -8874,6 +8896,8 @@ const calcolaRecordOverviewData = (sett) => {
       rawFatica: massimalePuroInfo.bestSource?.fatica || null,
       calcoloBase: calcoloBase,
       calcoloBaseShort: calcoloBaseShort,
+      isBasedOnProposal: isBasedOnProposal,
+      proposalLoad: proposalLoad,
       provenienza: e1rmProvenienza,
       id: bestE1rmId
     },
@@ -12515,6 +12539,7 @@ const caricaDatiEsercizio = async () => {
       inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
       inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
       localEditingIns.value[w] = inputSettimane.value[w].ins;
+      localEditingRaw[w] = inputSettimane.value[w].ins;
     }
     noteAttrezzo.value = workout.value.des_note_attrezzo || '';
     noteEsercizio.value = workout.value.ins_esercizio || '';
@@ -12629,6 +12654,7 @@ const caricaDatiEsercizio = async () => {
         inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
         inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
         localEditingIns.value[w] = inputSettimane.value[w].ins;
+        localEditingRaw[w] = inputSettimane.value[w].ins;
       }
       
       noteAttrezzo.value = workout.value.des_note_attrezzo || '';
@@ -12701,6 +12727,7 @@ const caricaEsercizioDaBackup = async () => {
         inputSettimane.value[w].ins = workout.value['ins_week' + w] || '';
         inputSettimane.value[w].reps = workout.value['reps_week' + w] || '';
         localEditingIns.value[w] = inputSettimane.value[w].ins;
+        localEditingRaw[w] = inputSettimane.value[w].ins;
       }
       
       noteAttrezzo.value = workout.value.des_note_attrezzo || '';

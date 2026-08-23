@@ -7258,13 +7258,43 @@ const getGhostLiftSmart = (sett) => {
 
 const getGhostWeightsRangeForWeek = (sett) => {
   if (!workout.value) return null;
+
+  // Se è a corpo libero puro (rep exercise senza sovraccarico), genera SEMPRE un range dedicato basato su ripetizioni
+  if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
+    const info = getBaseWeekInfo(sett);
+    const targetRepsPrescritto = info ? info.repsTarget : getRepsPerWeek(sett);
+    const baseRepsVal = (info && info.repsBase) ? info.repsBase : targetRepsPrescritto;
+    
+    // Per Week 6 se c'è una progressione verso il picco o se le reps aumentano:
+    const safeReps = (sett === 1 || baseRepsVal <= 0) ? targetRepsPrescritto : Math.max(1, Math.min(targetRepsPrescritto, baseRepsVal));
+    const smartReps = targetRepsPrescritto;
+    const sfidanteReps = Math.max(targetRepsPrescritto + 1, baseRepsVal + 1);
+
+    return {
+      prudenziale: {
+        value: `${safeReps}r`,
+        display: `${safeReps} reps`,
+        label: 'Prudenziale (Base)'
+      },
+      consigliato: {
+        value: `${smartReps}r`,
+        display: `${smartReps} reps`,
+        label: sett === 6 ? 'Consigliato (Target W6)' : 'Consigliato (Target)'
+      },
+      sfidante: {
+        value: `${sfidanteReps}r`,
+        display: `${sfidanteReps} reps`,
+        label: `Sfidante (+${sfidanteReps - smartReps}r)`
+      }
+    };
+  }
+
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
   
   if (ghost.isWeek2Scritta || ghost.isCoachSet) return null;
   
-  // Se è a corpo libero puro (rep exercise senza sovraccarico), genera un range dedicato basato su ripetizioni
-  if (ghost.isRepExercise || (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value)) {
+  if (ghost.isRepExercise) {
     const info = getBaseWeekInfo(sett);
     const targetRepsPrescritto = info ? info.repsTarget : getRepsPerWeek(sett);
     const baseRepsVal = (info && info.repsBase) ? info.repsBase : (ghost.reps || targetRepsPrescritto);
@@ -14447,9 +14477,13 @@ function estraiRepsDaInput(str, defaultOrTargetReps = null) {
   return Math.max(...results.map(v => v.val));
 }
 
-function estraiPesoDaInput(str) {
+function estraiPesoDaInput(str, options = {}) {
   if (!str) return null;
   
+  const isCorpoLibero = options.isCorpoLibero !== undefined 
+    ? options.isCorpoLibero 
+    : (typeof workout !== 'undefined' && workout.value ? isCorpoLiberoEsercizio(workout.value) : false);
+
   let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
   
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per escludere note ed impostazioni dai calcoli
@@ -14497,6 +14531,10 @@ function estraiPesoDaInput(str) {
   if (matchSxR) {
     const num1 = parseFloat(matchSxR[1]);
     const isExplicitKg = /kg|kgs|kgb|lbs|\+/i.test(clean);
+    // Se è corpo libero e non ha kg esplicito, "2x17" o "1x14" indica serie e reps, non peso!
+    if (isCorpoLibero && !isExplicitKg) {
+      return null;
+    }
     // Se è un numero intero piccolo (es. 1, 2, 3, 4) senza indicazione esplicita di kg,
     // in 1x13, 2x15, 3x12, 4x10 la prima cifra indica il numero di serie (sets), non i kg!
     if (isExplicitKg || num1 >= 5 || String(matchSxR[1]).includes('.')) {
@@ -14553,7 +14591,7 @@ function estraiPesoDaInput(str) {
     // 1. Analisi del Suffisso (quello che segue il numero)
     const suffixStr = clean.substring(endIdx);
     const suffixClean = suffixStr.trim();
-    const isExplicitKg = suffixClean.toLowerCase().startsWith('k');
+    const isExplicitKg = suffixClean.toLowerCase().startsWith('k') || /^(?:kg|kgs|kgb|lbs|zavorr)/i.test(suffixClean);
     const insideParens = isInsideParentheses(clean, startIdx);
     
     // Se c'è esplicitamente "kg" dopo il numero (es. "10kg", "10 kg", "10 k"), lo accettiamo sempre come peso
@@ -14624,6 +14662,11 @@ function estraiPesoDaInput(str) {
     const withKg = validWeights.filter(w => w.hasKg);
     if (withKg.length > 0) {
       return String(Math.max(...withKg.map(w => w.val)));
+    }
+
+    // Se l'esercizio è a corpo libero e NESSUN peso ha 'kg'/'zavorra' esplicito, non estrarre peso (sono reps/set/note)
+    if (isCorpoLibero) {
+      return null;
     }
 
     // 2. Se ci sono pesi fuori dalle parentesi, ignoriamo quelli dentro le parentesi
@@ -15266,11 +15309,14 @@ const suggerimentoRecord = computed(() => {
     // Priorità 1: Miglior Carico W6 (num_ins6 / ins_week6) se presente per le stesse reps target
     const rawInsW6 = prevEx.ins_week6 || prevEx.num_ins6;
     if (rawInsW6) {
-      const extractedW6 = parseFloat(estraiPesoDaInput(rawInsW6)) || 0;
+      const extractedW6 = parseFloat(estraiPesoDaInput(rawInsW6, { isCorpoLibero })) || 0;
       let pesoW6Num = 0;
       let repsW6Num = estraiRepsEsercizioWeek(prevEx, 6, targetReps);
 
-      if (!isCorpoLibero && extractedW6 > 0) {
+      if (isCorpoLibero && !haPesoEsercizio.value) {
+        pesoW6Num = 0;
+        repsW6Num = estraiRepsDaInput(rawInsW6) || parseFloat(rawInsW6) || repsW6Num || 0;
+      } else if (!isCorpoLibero && extractedW6 > 0) {
         pesoW6Num = extractedW6;
       } else if (isCorpoLibero && extractedW6 === 0) {
         pesoW6Num = 0;
@@ -15280,8 +15326,8 @@ const suggerimentoRecord = computed(() => {
       }
 
       if (pesoW6Num > 0 || (isCorpoLibero && repsW6Num > 0)) {
-        const valToCompare = pesoW6Num > 0 ? pesoW6Num : repsW6Num;
-        const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
+        const valToCompare = (isCorpoLibero && !haPesoEsercizio.value) ? repsW6Num : (pesoW6Num > 0 ? pesoW6Num : repsW6Num);
+        const currentGenVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absGenReps || 0) : (absGenWeight > 0 ? absGenWeight : (absGenReps || 0));
 
         if (pesoW6Num > absW6Weight && (repsW6Num >= targetReps - 2 || isMatchingReps(prevEx, 6))) {
           absW6Weight = pesoW6Num;
@@ -15301,7 +15347,7 @@ const suggerimentoRecord = computed(() => {
           absGenItem = prevEx;
         }
         if (isMatchingReps(prevEx, 6)) {
-          const currentRepsVal = absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0);
+          const currentRepsVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absRepsReps || 0) : (absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0));
           if (valToCompare >= currentRepsVal) {
             absRepsWeight = pesoW6Num;
             absRepsReps = repsW6Num;
@@ -15323,11 +15369,14 @@ const suggerimentoRecord = computed(() => {
     for (let i = 1; i <= 6; i++) {
       const val = prevEx['ins_week' + i];
       if (val) {
-        const extractedVal = parseFloat(estraiPesoDaInput(val)) || 0;
+        const extractedVal = parseFloat(estraiPesoDaInput(val, { isCorpoLibero })) || 0;
         let pesoNum = 0;
         let repsNum = estraiRepsEsercizioWeek(prevEx, i, targetReps);
 
-        if (!isCorpoLibero && extractedVal > 0) {
+        if (isCorpoLibero && !haPesoEsercizio.value) {
+          pesoNum = 0;
+          repsNum = estraiRepsDaInput(val) || parseFloat(val) || repsNum || 0;
+        } else if (!isCorpoLibero && extractedVal > 0) {
           pesoNum = extractedVal;
         } else if (isCorpoLibero && extractedVal === 0) {
           pesoNum = 0;
@@ -15337,8 +15386,8 @@ const suggerimentoRecord = computed(() => {
         }
 
         if (pesoNum > 0 || (isCorpoLibero && repsNum > 0)) {
-          const valToCompare = pesoNum > 0 ? pesoNum : repsNum;
-          const currentGenVal = absGenWeight > 0 ? absGenWeight : (absGenReps || 0);
+          const valToCompare = (isCorpoLibero && !haPesoEsercizio.value) ? repsNum : (pesoNum > 0 ? pesoNum : repsNum);
+          const currentGenVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absGenReps || 0) : (absGenWeight > 0 ? absGenWeight : (absGenReps || 0));
 
           if (i === 6 && pesoNum > absW6Weight && (repsNum >= targetReps - 2 || isMatchingReps(prevEx, 6))) {
             absW6Weight = pesoNum;
@@ -15361,11 +15410,11 @@ const suggerimentoRecord = computed(() => {
 
           // Controllo PR a Stesse Reps (isMatchingReps)
           if (isMatchingReps(prevEx, i)) {
-            const currentRepsVal = absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0);
+            const currentRepsVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absRepsReps || 0) : (absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0));
             // Sanity check: L'e1RM di un record a stesse reps non può essere >15% superiore all'e1RM del Max Assoluto (evita anomalie/refusi da vecchie schede)
             const e1rmRecord = calcE1RM(pesoNum, repsNum);
             const e1rmMaxGen = absGenWeight > 0 ? calcE1RM(absGenWeight, absGenReps || 1) : 0;
-            const isAnomalo = e1rmMaxGen > 0 && e1rmRecord > e1rmMaxGen * 1.15;
+            const isAnomalo = !isCorpoLibero && e1rmMaxGen > 0 && e1rmRecord > e1rmMaxGen * 1.15;
 
             if (valToCompare > currentRepsVal && !isAnomalo) {
               absRepsWeight = pesoNum;
@@ -15608,7 +15657,18 @@ const recordMaxAssolutoInfo = computed(() => {
         const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
         const r = (explicitReps && explicitReps > 0) ? explicitReps : getRepsPerWeek(w);
 
-        if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
+        if (isCorpoLibero && !haPesoEsercizio.value) {
+          if (r > repsAtMaxWeight) {
+            maxWeight = 0;
+            repsAtMaxWeight = r;
+            weekAtMaxWeight = w;
+            sheetAtMaxWeight = workout.value.num_scheda;
+            dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+            isCurrentMeso = true;
+            idAtMaxWeight = workout.value.id;
+            itemAtMaxWeight = workout.value;
+          }
+        } else if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
           maxWeight = p;
           repsAtMaxWeight = r;
           weekAtMaxWeight = w;
@@ -15642,13 +15702,24 @@ const recordMaxAssolutoInfo = computed(() => {
           lines.forEach(line => {
             const l = line.trim();
             if (!l) return;
-            const pStr = estraiPesoDaInput(l);
+            const pStr = estraiPesoDaInput(l, { isCorpoLibero });
             const p = pStr ? parseFloat(pStr) : 0;
             const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
             const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
             const r = (explicitReps && explicitReps > 0) ? explicitReps : estraiRepsEsercizioWeek(prevEx, w, 10);
 
-            if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
+            if (isCorpoLibero && !haPesoEsercizio.value) {
+              if (r > repsAtMaxWeight) {
+                maxWeight = 0;
+                repsAtMaxWeight = r;
+                weekAtMaxWeight = w;
+                sheetAtMaxWeight = prevEx.num_scheda;
+                dateAtMaxWeight = dEx;
+                isCurrentMeso = false;
+                idAtMaxWeight = prevEx.id || prevEx.num_riga;
+                itemAtMaxWeight = prevEx;
+              }
+            } else if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
               maxWeight = p;
               repsAtMaxWeight = r;
               weekAtMaxWeight = w;
@@ -15671,7 +15742,18 @@ const recordMaxAssolutoInfo = computed(() => {
   }
 
   // 3. Fallback da suggerimentoRecord se disponibile
-  if (maxWeight === 0 && suggerimentoRecord.value?.recordAbsolute > 0) {
+  if (isCorpoLibero && !haPesoEsercizio.value) {
+    if (repsAtMaxWeight === 0 && (suggerimentoRecord.value?.recordAbsoluteReps > 0 || suggerimentoRecord.value?.recordRepsValue > 0)) {
+      maxWeight = 0;
+      repsAtMaxWeight = suggerimentoRecord.value.recordAbsoluteReps || suggerimentoRecord.value.recordRepsValue;
+      weekAtMaxWeight = suggerimentoRecord.value.recordAbsoluteWeek;
+      sheetAtMaxWeight = suggerimentoRecord.value.recordAbsoluteSheet;
+      dateAtMaxWeight = suggerimentoRecord.value.recordAbsoluteDate;
+      isCurrentMeso = false;
+      idAtMaxWeight = suggerimentoRecord.value.recordAbsoluteId;
+      itemAtMaxWeight = suggerimentoRecord.value.recordAbsoluteItem;
+    }
+  } else if (maxWeight === 0 && suggerimentoRecord.value?.recordAbsolute > 0) {
     maxWeight = suggerimentoRecord.value.recordAbsolute;
     repsAtMaxWeight = suggerimentoRecord.value.recordAbsoluteReps || 0;
     weekAtMaxWeight = suggerimentoRecord.value.recordAbsoluteWeek;
@@ -15685,7 +15767,7 @@ const recordMaxAssolutoInfo = computed(() => {
   if (maxWeight <= 0 && (!isCorpoLibero || repsAtMaxWeight <= 0)) return null;
 
   return {
-    peso: maxWeight,
+    peso: (isCorpoLibero && !haPesoEsercizio.value) ? 0 : maxWeight,
     reps: repsAtMaxWeight,
     week: weekAtMaxWeight,
     sheet: sheetAtMaxWeight,
@@ -16572,6 +16654,7 @@ const caricaDatiAnalisi = async (sett) => {
           if (!isNaN(currentNumScheda) && !isSchedaPassata.value && sNum > currentNumScheda) return;
           const itemId = docSnap.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
           const sNumStr = String(d.num_scheda || '').trim();
+          const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
           mappaSchede.set(sNumStr, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
         }
       });

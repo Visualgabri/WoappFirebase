@@ -3694,8 +3694,16 @@
                   </div>
 
                   <div class="font-weight-medium mt-2 d-flex align-center justify-center gap-1.5 flex-wrap text-slate-400 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
-                    <span class="text-truncate">
-                      Sch. {{ (String(suggerimentoRecord.recordRepsSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) || (suggerimentoRecord.recordRepsDate ? tempoTrascorso(suggerimentoRecord.recordRepsDate) : 'Storico') }}
+                    <span 
+                      class="text-truncate"
+                      :class="String(suggerimentoRecord.recordRepsSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '') ? 'text-green-accent-3 font-weight-bold' : ''"
+                    >
+                      <template v-if="String(suggerimentoRecord.recordRepsSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '')">
+                        Sch. {{ (String(suggerimentoRecord.recordRepsSheet || '').match(/\d+/) || ['-'])[0] }} · questa scheda
+                      </template>
+                      <template v-else>
+                        Sch. {{ (String(suggerimentoRecord.recordRepsSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) || (suggerimentoRecord.recordRepsDate ? tempoTrascorso(suggerimentoRecord.recordRepsDate) : 'Storico') }}
+                      </template>
                     </span>
                     <span 
                       v-if="suggerimentoRecord.recordRepsE1RM" 
@@ -3750,8 +3758,16 @@
                   </div>
 
                   <div class="font-weight-medium mt-2 d-flex align-center justify-center gap-1.5 flex-wrap text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
-                    <span class="text-truncate">
-                    Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) || (suggerimentoRecord.recordAbsoluteDate ? tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) : 'Storico') }}
+                    <span 
+                      class="text-truncate"
+                      :class="String(suggerimentoRecord.recordAbsoluteSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '') ? 'text-green-accent-3 font-weight-bold' : ''"
+                    >
+                      <template v-if="String(suggerimentoRecord.recordAbsoluteSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '')">
+                        Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · questa scheda
+                      </template>
+                      <template v-else>
+                        Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(suggerimentoRecord.recordAbsoluteDate) || (suggerimentoRecord.recordAbsoluteDate ? tempoTrascorso(suggerimentoRecord.recordAbsoluteDate) : 'Storico') }}
+                      </template>
                     </span>
                     <span 
                       v-if="suggerimentoRecord.recordAbsoluteE1RM" 

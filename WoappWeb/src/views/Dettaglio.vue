@@ -8498,7 +8498,7 @@ const calcolaRecordOverviewData = (sett) => {
   let bestIsCurrent = false;
 
   const recAnalisi = analizzaRecordSettimana(sett);
-  if (currentRepsWeight > 0 && (pastRepsWeight === 0 || currentRepsWeight > pastRepsWeight)) {
+  if (currentRepsWeight > 0 && (pastRepsWeight === 0 || currentRepsWeight >= pastRepsWeight)) {
     isCurrentPR = true;
     bestIsCurrent = true;
     bestWeight = currentRepsWeight;
@@ -8852,6 +8852,10 @@ const calcolaRecordOverviewData = (sett) => {
       e1rmProximityPct: e1rmProximityPct,
       sheet: bestE1rmSheet,
       week: bestE1rmWeek,
+      date: massimalePuroInfo.bestSource?.date || null,
+      rawWeight: massimalePuroInfo.bestSource?.peso || 0,
+      rawReps: massimalePuroInfo.bestSource?.reps || 0,
+      rawFatica: massimalePuroInfo.bestSource?.fatica || null,
       calcoloBase: calcoloBase,
       calcoloBaseShort: calcoloBaseShort,
       provenienza: e1rmProvenienza,

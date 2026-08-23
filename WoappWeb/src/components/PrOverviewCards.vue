@@ -1,110 +1,174 @@
 <template>
   <div v-if="overviewData" class="pr-overview-cards-wrapper w-100 min-width-0">
     <div 
-      class="rounded-xl border overflow-hidden d-flex align-stretch w-100 min-width-0 position-relative"
+      class="rounded-xl border overflow-hidden d-flex flex-column w-100 min-width-0 position-relative"
       style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(2, 6, 23, 0.95) 100%); border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);"
     >
       
-      <!-- COLONNA 1: PR A REPS TARGET (Ambra - Centrato) -->
-      <div 
-        class="pa-2.5 text-center d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
-        :class="{ 'card-glow-pr': isCurrentPR }"
-        :style="card1Style"
-        @click="$emit('click-pr', bestReal)"
-        @contextmenu.prevent="$emit('click-pr', bestReal)"
-        title="Visualizza dettaglio PR"
-      >
-        <div>
-          <!-- Titolo Centrato -->
-          <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
-            <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.03em;">
-              🏆 PR ATTUALE
-            </span>
-            <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
+      <!-- RIGO PRINCIPALE A DUE COLONNE SIMMETRICHE -->
+      <div class="d-flex align-stretch w-100 min-width-0">
+        <!-- COLONNA 1: PR A REPS TARGET (Ambra - Centrato) -->
+        <div 
+          class="pa-2.5 text-center d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
+          :class="{ 'card-glow-pr': isCurrentPR }"
+          :style="card1Style"
+          @click="$emit('click-pr', bestReal)"
+          @contextmenu.prevent="$emit('click-pr', bestReal)"
+          title="Visualizza dettaglio PR"
+        >
+          <div>
+            <!-- Titolo Centrato -->
+            <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
+              <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+                🏆 {{ `RECORD ${cleanTargetReps} REPS` }}
+              </span>
+              <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
+            </div>
+
+            <!-- Valore Principale: Peso Reale + Reps + Fatica -->
+            <div class="d-flex align-center justify-center my-0.5 min-width-0">
+              <span class="font-weight-black text-white" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
+                {{ prWeightDisplay }}
+              </span>
+              <span 
+                v-if="prRepsDisplay && !isCorpoLiberoPuro" 
+                class="text-super-caption font-weight-bold ml-1 text-truncate text-amber-200/90" 
+                style="font-size: 0.62rem;"
+              >
+                {{ prRepsDisplay }}
+              </span>
+              <span 
+                v-if="faticaLetter" 
+                class="text-super-caption font-weight-bold ml-0.5 text-truncate" 
+                :style="{ color: faticaColor, fontSize: '0.62rem' }"
+                :title="`Fatica: ${bestReal?.fatica || faticaLetter}`"
+              >
+                ({{ faticaLetter }})
+              </span>
+            </div>
+
+            <!-- Dettaglio 1RM Stimato Corrispondente -->
+            <div v-if="prE1rmDisplay" class="text-super-caption text-amber-300 font-weight-bold text-truncate mt-0.5" style="font-size: 0.54rem; line-height: 1.1;">
+              1RM ~{{ prE1rmDisplay }}
+            </div>
           </div>
 
-          <!-- Valore Principale Carico Centrato -->
-          <div class="d-flex align-center justify-center my-0.5 min-width-0">
-            <span class="font-weight-black text-white" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
-              {{ prWeightDisplay }}
+          <!-- Rigo Inferiore Centrato: Sch. [num] · [tempo] -->
+          <div class="mt-2 d-flex align-center justify-center gap-1.5 flex-wrap min-width-0">
+            <span 
+              class="text-super-caption font-weight-medium text-truncate" 
+              :class="isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
+              style="font-size: 0.48rem; line-height: 1.2;"
+            >
+              {{ card1ProvenienzaFormatted }}
             </span>
-          </div>
-
-          <!-- Dettaglio Sotto-Carico se presente -->
-          <div 
-            v-if="bestReal?.sottoPRText" 
-            class="mt-0.5 text-super-caption text-orange-lighten-2 font-weight-medium text-truncate d-flex align-center justify-center gap-0.5" 
-            style="font-size: 0.46rem; line-height: 1.1;"
-          >
-            <v-icon size="9" color="orange-lighten-2">mdi-trending-down</v-icon>
-            <span class="text-truncate">{{ bestReal.sottoPRText }}</span>
           </div>
         </div>
 
-        <!-- Rigo Inferiore Centrato: Sch. [num] · [tempo] -->
-        <div class="mt-2 d-flex align-center justify-center gap-1.5 flex-wrap min-width-0">
-          <span 
-            class="text-super-caption font-weight-medium text-truncate" 
-            :class="isCurrentPR ? 'text-green-accent-3' : 'text-slate-400'" 
-            style="font-size: 0.48rem; line-height: 1.2;"
-          >
-            {{ card1ProvenienzaFormatted }}
-          </span>
+        <!-- COLONNA 2: MAX ASSOLUTO STORICO (Ciano - Centrato) -->
+        <div 
+          class="pa-2.5 text-center d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
+          :class="{ 'card-glow-1rm': isNewPeak }"
+          :style="card2Style"
+          @click="$emit('click-e1rm', bestE1RM?.id || bestE1RM)"
+          title="Visualizza storico 1RM"
+        >
+          <div>
+            <!-- Titolo Centrato -->
+            <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
+              <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.03em;">
+                ⚡ {{ isCorpoLiberoPuro ? 'MAX REPS ASSOLUTO' : 'MAX ASSOLUTO' }}
+              </span>
+              <span v-if="hasAbsoluteRecord || isNewPeak" style="font-size: 0.65rem; line-height: 1;">👑</span>
+              <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
+            </div>
 
-          <!-- 1RM Stimato corrispondente -->
-          <div 
-            v-if="prE1rmDisplay"
-            class="text-super-caption font-weight-bold rounded px-1 text-no-wrap flex-shrink-0"
-            :class="isCurrentPR ? 'text-amber-300' : 'text-amber-200'"
-            style="font-size: 0.44rem; background: rgba(245, 158, 11, 0.20); border: 1px solid rgba(245, 158, 11, 0.35); letter-spacing: 0.01em; padding: 1px 3px; line-height: 1.2;"
-            title="1RM stimato corrispondente"
-          >
-            1RM ~{{ prE1rmDisplay }}
+            <!-- Valore Principale: Carico Reale Max Storico + Reps + Fatica -->
+            <div class="d-flex align-center justify-center my-0.5 min-width-0">
+              <span class="font-weight-black text-cyan-lighten-2" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
+                {{ maxAbsoluteWeightDisplay }}
+              </span>
+              <span 
+                v-if="maxAbsoluteRepsDisplay" 
+                class="text-super-caption font-weight-bold ml-1 text-truncate text-cyan-200/90" 
+                style="font-size: 0.62rem;"
+              >
+                {{ maxAbsoluteRepsDisplay }}
+              </span>
+              <span 
+                v-if="e1rmFaticaLetter" 
+                class="text-super-caption font-weight-bold ml-0.5 text-truncate" 
+                :style="{ color: e1rmFaticaColor, fontSize: '0.62rem' }"
+                :title="`Fatica: ${e1rmFaticaLetter}`"
+              >
+                ({{ e1rmFaticaLetter }})
+              </span>
+            </div>
+
+            <!-- Dettaglio 1RM Storico -->
+            <div v-if="bestE1RM?.maxDisplay && !isCorpoLiberoPuro" class="text-super-caption text-cyan-200 font-weight-bold text-truncate mt-0.5" style="font-size: 0.54rem; line-height: 1.1;">
+              {{ isNewPeak ? 'Picco eguagliato (1RM: ' + bestE1RM.maxDisplay + ')' : '1RM: ' + bestE1RM.maxDisplay }}
+            </div>
+          </div>
+
+          <!-- Rigo Inferiore Centrato: Origine Record Storico (Sch. [num] · [tempo]) -->
+          <div class="mt-2 d-flex align-center justify-center gap-1.5 flex-wrap min-width-0">
+            <span 
+              class="text-super-caption font-weight-medium text-truncate" 
+              :class="isNewPeak ? 'text-green-accent-3' : 'text-cyan-lighten-3'" 
+              style="font-size: 0.48rem; line-height: 1.2;"
+            >
+              {{ card2ProvenienzaFormatted }}
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- COLONNA 2: ATTACCO PICCO ASSOLUTO (Ciano - Centrato) -->
+      <!-- BARRA PROGRESSO VERSO IL MIGLIOR 1RM STORICO (SENZA TESTI LUNGHI, CON % E KG IN EVIDENZA) -->
       <div 
-        class="pa-2.5 text-center d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
-        :class="{ 'card-glow-1rm': isNewPeak }"
-        :style="card2Style"
-        @click="$emit('click-e1rm', bestE1RM?.id || bestE1RM)"
-        title="Visualizza storico 1RM"
+        v-if="bestE1RM && !isCorpoLiberoPuro && bestE1RM.max1RM > 0" 
+        class="px-3 py-1.5 border-top d-flex flex-column gap-1"
+        style="background: rgba(2, 6, 23, 0.75); border-color: rgba(255, 255, 255, 0.08) !important;"
       >
-        <div>
-          <!-- Titolo Centrato -->
-          <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
-            <span class="text-super-caption font-weight-bold text-cyan-lighten-2 uppercase text-truncate" style="font-size: 0.52rem; letter-spacing: 0.03em;">
-              ⚡ {{ isCorpoLiberoPuro ? 'MAX REPS' : 'ATTACCO PICCO' }}
-            </span>
-            <span v-if="hasAbsoluteRecord || isNewPeak" style="font-size: 0.65rem; line-height: 1;">👑</span>
-            <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
-          </div>
-
-          <!-- Valore Principale Carico per Battuta Record Centrato -->
-          <div class="d-flex align-center justify-center my-0.5 min-width-0">
-            <span class="font-weight-black text-cyan-lighten-2" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
-              {{ peakTargetLoadDisplay }}
+        <div class="d-flex align-center justify-space-between w-100">
+          <!-- Percentuale a sinistra -->
+          <div class="d-flex align-center gap-1">
+            <v-icon size="13" :color="isNewPeak ? 'green-accent-3' : 'cyan-accent-2'">mdi-chart-timeline-variant</v-icon>
+            <span 
+              class="font-weight-black text-truncate" 
+              :class="isNewPeak ? 'text-green-accent-3' : 'text-cyan-accent-2'"
+              style="font-size: 0.72rem; letter-spacing: 0.02em;"
+            >
+              {{ isNewPeak ? '100% RECORD RAGGIUNTO' : `${bestE1RM.e1rmProximityPct}% DEL PICCO 1RM` }}
             </span>
           </div>
 
-          <!-- Dettaglio Piccolo su 1RM Storico da battere -->
-          <div v-if="bestE1RM?.maxDisplay && !isCorpoLiberoPuro" class="text-super-caption text-cyan-200/80 font-weight-medium text-truncate mt-0.5" style="font-size: 0.46rem; line-height: 1.1;">
-            {{ isNewPeak ? 'Picco assoluto eguagliato' : `per superare ${bestE1RM.maxDisplay} 1RM` }}
+          <!-- KG mancanti / nuovo record a destra ben in grande -->
+          <div>
+            <span 
+              v-if="isNewPeak" 
+              class="font-weight-black text-green-accent-3 px-1.5 py-0.5 rounded" 
+              style="font-size: 0.68rem; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35);"
+            >
+              👑 NUOVO PICCO
+            </span>
+            <span 
+              v-else-if="bestE1RM.maxDeltaKg" 
+              class="font-weight-black text-cyan-lighten-1 px-1.5 py-0.5 rounded" 
+              style="font-size: 0.70rem; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35);"
+            >
+              🎯 -{{ bestE1RM.maxDeltaKg }} kg
+            </span>
           </div>
         </div>
 
-        <!-- Rigo Inferiore Centrato: Origine Record Storico (Sch. [num] · [tempo]) -->
-        <div class="mt-2 d-flex align-center justify-center gap-1.5 flex-wrap min-width-0">
-          <span 
-            class="text-super-caption font-weight-medium text-truncate" 
-            :class="isNewPeak ? 'text-green-accent-3' : 'text-cyan-lighten-3'" 
-            style="font-size: 0.48rem; line-height: 1.2;"
-          >
-            {{ card2ProvenienzaFormatted }}
-          </span>
-        </div>
+        <v-progress-linear
+          :model-value="isNewPeak ? 100 : bestE1RM.e1rmProximityPct"
+          :color="isNewPeak ? 'green-accent-3' : 'cyan-lighten-1'"
+          bg-color="rgba(255, 255, 255, 0.10)"
+          height="3.5"
+          rounded
+        ></v-progress-linear>
       </div>
 
     </div>
@@ -160,18 +224,27 @@ const prWeightDisplay = computed(() => {
   return bestReal.value.weightDisplay || (bestReal.value.weight > 0 ? `${bestReal.value.weight} kg` : `${bestReal.value.reps || cleanTargetReps.value}r`);
 });
 
-// Carico Target per Attacco Picco 1RM (Card 2)
-const peakTargetLoadDisplay = computed(() => {
+// Carico Reale Max Assoluto (Card 2)
+const maxAbsoluteWeightDisplay = computed(() => {
   if (isCorpoLiberoPuro.value) {
     return bestE1RM.value?.display || '-';
   }
-  if (bestE1RM.value?.targetLoadDisplay) {
-    return bestE1RM.value.targetLoadDisplay;
+  if (bestE1RM.value?.rawWeight > 0) {
+    return `${bestE1RM.value.rawWeight} kg`;
   }
-  if (bestE1RM.value?.targetLoadForNewPeak > 0) {
-    return `${bestE1RM.value.targetLoadForNewPeak} kg`;
+  if (bestE1RM.value?.max1RM > 0) {
+    return `${bestE1RM.value.max1RM} kg`;
   }
   return bestE1RM.value?.display || '-';
+});
+
+// Reps Reali Max Assoluto
+const maxAbsoluteRepsDisplay = computed(() => {
+  if (isCorpoLiberoPuro.value) return '';
+  const r = bestE1RM.value?.rawReps;
+  if (!r) return '';
+  const rStr = String(r).replace(/r$/i, '');
+  return `x${rStr}r`;
 });
 
 // Reps PR
@@ -207,8 +280,8 @@ const faticaLetter = computed(() => parseFaticaLetter(bestReal.value?.fatica));
 const faticaColor = computed(() => parseFaticaColor(bestReal.value?.fatica));
 
 // Livello di sforzo / Fatica 1RM
-const e1rmFaticaLetter = computed(() => parseFaticaLetter(bestE1RM.value?.fatica));
-const e1rmFaticaColor = computed(() => parseFaticaColor(bestE1RM.value?.fatica));
+const e1rmFaticaLetter = computed(() => parseFaticaLetter(bestE1RM.value?.rawFatica || bestE1RM.value?.fatica));
+const e1rmFaticaColor = computed(() => parseFaticaColor(bestE1RM.value?.rawFatica || bestE1RM.value?.fatica));
 
 // 1RM Carico Display Card 2
 const e1rmDisplay = computed(() => {
@@ -246,14 +319,24 @@ const formatTimeAgo = (dateVal) => {
     d = dateVal.toDate();
   } else if (dateVal && typeof dateVal.seconds === 'number') {
     d = new Date(dateVal.seconds * 1000);
+  } else if (typeof dateVal === 'string') {
+    const s = dateVal.trim();
+    if (s.toLowerCase().includes('questa scheda')) return 'questa scheda';
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+      const parts = s.split(' ')[0].split('/');
+      d = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+    } else if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+      const parts = s.substring(0, 10).split('-');
+      d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    } else {
+      d = new Date(s);
+    }
   } else {
     d = new Date(dateVal);
   }
   if (!d || isNaN(d.getTime())) {
     if (typeof dateVal === 'string') {
-      const s = dateVal.trim();
-      if (s.toLowerCase().includes('questa scheda')) return 'questa scheda';
-      return s;
+      return dateVal.trim();
     }
     return '';
   }
@@ -280,8 +363,7 @@ const card1ProvenienzaFormatted = computed(() => {
   const sNumStr = cleanNum ? `Sch. ${cleanNum}` : 'Sch. -';
   
   if (isCurrentPR.value) {
-    const timeAgo = bestReal.value.date ? formatTimeAgo(bestReal.value.date) : '';
-    return timeAgo && timeAgo !== 'oggi' ? `${sNumStr} · ${timeAgo}` : `${sNumStr} · questa scheda`;
+    return `${sNumStr} · questa scheda`;
   }
   
   const timeAgo = bestReal.value.date ? formatTimeAgo(bestReal.value.date) : formatTimeAgo(bestReal.value.tempoTrascorso);
@@ -295,8 +377,7 @@ const card2ProvenienzaFormatted = computed(() => {
   const sNumStr = cleanNum ? `Sch. ${cleanNum}` : 'Sch. -';
   
   if (isNewPeak.value) {
-    const timeAgo = bestE1RM.value.date ? formatTimeAgo(bestE1RM.value.date) : '';
-    return timeAgo && timeAgo !== 'oggi' ? `${sNumStr} · ${timeAgo}` : `${sNumStr} · questa scheda`;
+    return `${sNumStr} · questa scheda`;
   }
   
   const timeAgo = bestE1RM.value.date ? formatTimeAgo(bestE1RM.value.date) : formatTimeAgo(bestE1RM.value.tempoTrascorso);

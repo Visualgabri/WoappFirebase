@@ -2773,7 +2773,7 @@
       scrollable
       class="dialog-storico-unified"
     >
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important', width: isMobileScreen ? '100%' : '750px', height: isMobileScreen ? '100%' : '88vh', maxHeight: isMobileScreen ? '100%' : '88vh' }">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important', width: isMobileScreen ? '100%' : '750px', height: isMobileScreen ? '100%' : '88vh', minHeight: isMobileScreen ? '100%' : '520px', maxHeight: isMobileScreen ? '100%' : '88vh' }">
         <v-card-title class="pa-0 border-bottom flex-shrink-0" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
           <!-- Rigo 1: Titolo e Chiudi -->
           <div class="px-3 py-2 d-flex align-center justify-space-between" style="min-height: 40px;">
@@ -2823,7 +2823,7 @@
           </div>
         </v-card-title>
         
-        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: activeTabAnalisi === 1 && stileStorico === 'tabella' ? 'auto' : 'auto', minHeight: 0 }">
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: 'auto', minHeight: '300px' }">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0" class="pt-0">
@@ -3107,7 +3107,7 @@
                       <v-icon start size="14" class="mr-1">
                         {{ (strategiaConsigliataCard.tipo === 'sfidante') ? 'mdi-rocket-launch' : 'mdi-check' }}
                       </v-icon>
-                      Applica {{ formatWeight(strategiaConsigliataCard.pesoToApply) }} kg
+                      Applica {{ (workout && isCorpoLiberoEsercizio(workout) && !haPesoEsercizio) ? (String(strategiaConsigliataCard.pesoToApply).endsWith('r') ? strategiaConsigliataCard.pesoToApply : strategiaConsigliataCard.pesoToApply + ' reps') : (formatWeight(strategiaConsigliataCard.pesoToApply) + ' kg') }}
                     </v-btn>
                   </div>
                 </v-card>
@@ -3587,7 +3587,7 @@
           </div>
 
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
-          <div v-show="activeTabAnalisi === 1" class="d-flex flex-column fill-height">
+          <div v-show="activeTabAnalisi === 1" class="d-flex flex-column w-100 flex-grow-1">
             
             <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (Segmented Hero Card Unificata a 2 Colonne - Centrata) -->
             <div v-if="suggerimentoRecord" class="my-2 text-center">
@@ -3653,7 +3653,7 @@
 
                 <!-- Colonna 2: Record Assoluto di Sempre (Ciano - Centrato) -->
                 <div 
-                  v-if="suggerimentoRecord.recordAbsolute > 0" 
+                  v-if="suggerimentoRecord.recordAbsolute > 0 || (isCorpoLiberoEsercizio(workout) && (suggerimentoRecord.recordAbsoluteReps > 0 || suggerimentoRecord.recordRepsValue > 0))" 
                   class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0" 
                   style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.14) 0%, rgba(6, 182, 212, 0.03) 100%); flex: 1 1 0%;"
                   @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
@@ -5922,7 +5922,7 @@ watch(activeTabAnalisi, async (newVal) => {
       } catch (e) {}
     }
     stileStorico.value = 'tabella';
-    soloCorrispondenti.value = true;
+    soloCorrispondenti.value = (workout.value && isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) ? false : true;
     eseguiScrollStorico();
   }
 });
@@ -7251,8 +7251,34 @@ const getGhostWeightsRangeForWeek = (sett) => {
   
   if (ghost.isWeek2Scritta || ghost.isCoachSet) return null;
   
-  // Se è a corpo libero (rep exercise) o a percentuali, non ha senso proporre un range di pesi
-  if (ghost.isRepExercise) return null;
+  // Se è a corpo libero puro (rep exercise senza sovraccarico), genera un range dedicato basato su ripetizioni
+  if (ghost.isRepExercise || (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value)) {
+    const info = getBaseWeekInfo(sett);
+    const targetRepsPrescritto = info ? info.repsTarget : getRepsPerWeek(sett);
+    const baseRepsVal = (info && info.repsBase) ? info.repsBase : (ghost.reps || targetRepsPrescritto);
+    
+    const safeReps = (sett === 1 || baseRepsVal <= 0) ? targetRepsPrescritto : Math.max(1, Math.min(targetRepsPrescritto, baseRepsVal));
+    const smartReps = targetRepsPrescritto;
+    const sfidanteReps = Math.max(targetRepsPrescritto + 1, baseRepsVal + 1);
+
+    return {
+      prudenziale: {
+        value: `${safeReps}r`,
+        display: `${safeReps} reps`,
+        label: 'Prudenziale (Base)'
+      },
+      consigliato: {
+        value: `${smartReps}r`,
+        display: `${smartReps} reps`,
+        label: sett === 6 ? 'Consigliato (Target W6)' : 'Consigliato (Target)'
+      },
+      sfidante: {
+        value: `${sfidanteReps}r`,
+        display: `${sfidanteReps} reps`,
+        label: `Sfidante (+${sfidanteReps - smartReps}r)`
+      }
+    };
+  }
   
   const info = getBaseWeekInfo(sett);
   const repsTarget = info ? info.repsTarget : getRepsPerWeek(sett);
@@ -8925,7 +8951,9 @@ const strategieAlternativeCards = computed(() => {
 
   // 1. SAFE (testo breve e fine)
   let safeSottotitolo = 'Stesso peso';
-  if (range.prudenziale?.label && (range.prudenziale.label.includes('Consolida') || range.prudenziale.label.includes('base'))) {
+  if (isCorpoLiberoPuro) {
+    safeSottotitolo = 'Consolida volume';
+  } else if (range.prudenziale?.label && (range.prudenziale.label.includes('Consolida') || range.prudenziale.label.includes('base'))) {
     safeSottotitolo = 'Consolida volume';
   } else if (String(range.prudenziale?.value).includes('r')) {
     safeSottotitolo = '+1 rep (+volume)';
@@ -8942,7 +8970,9 @@ const strategieAlternativeCards = computed(() => {
 
   // 2. SMART (testo breve e fine)
   let smartSottotitolo = 'Progressione ideale';
-  if (String(range.consigliato?.value).includes('r')) {
+  if (isCorpoLiberoPuro) {
+    smartSottotitolo = sett === 6 ? 'Target picco W6' : 'Target di settimana';
+  } else if (String(range.consigliato?.value).includes('r')) {
     smartSottotitolo = '+1 rep (+volume)';
   } else if (smartVal > pesoBase && pesoBase > 0) {
     const diffSmart = Math.round((smartVal - pesoBase) * 10) / 10;
@@ -8951,8 +8981,11 @@ const strategieAlternativeCards = computed(() => {
 
   // 3. SFIDANTE (testo breve e fine)
   let sfidanteSottotitolo = 'Spinta PR';
-  let sfidanteValoreDisplay = `${formatWeight(sfidanteVal)} kg`;
-  if (String(range.sfidante?.value).includes('r')) {
+  let sfidanteValoreDisplay = isCorpoLiberoPuro ? formatCaricoConReps(range.sfidante?.value, targetReps) : `${formatWeight(sfidanteVal)} kg`;
+  if (isCorpoLiberoPuro) {
+    sfidanteSottotitolo = '+1 rep (+volume / PR)';
+    diffVsSmartText = '+1r vs Smart';
+  } else if (String(range.sfidante?.value).includes('r')) {
     sfidanteSottotitolo = '+2 rep (+volume)';
     sfidanteValoreDisplay = formatCaricoConReps(range.sfidante.value, targetReps);
   } else if (sfidanteVal > smartVal && smartVal > 0) {
@@ -8967,7 +9000,7 @@ const strategieAlternativeCards = computed(() => {
     isConsigliato: !sfidanteIsProtagonista && tipoConsigliato === 'safe',
     isProtagonista: false,
     valoreDisplay: formatCaricoConReps(range.prudenziale.value, targetReps),
-    pesoToApply: range.prudenziale.value,
+    pesoToApply: isCorpoLiberoPuro ? range.prudenziale.value : (range.prudenziale.value || safeVal),
     targetReps,
     sottotitolo: safeSottotitolo,
     mesoPillText: (!sfidanteIsProtagonista && tipoConsigliato === 'safe') ? mesoPillText : null,
@@ -8984,7 +9017,7 @@ const strategieAlternativeCards = computed(() => {
     isConsigliato: !sfidanteIsProtagonista && tipoConsigliato === 'smart',
     isProtagonista: !sfidanteIsProtagonista,
     valoreDisplay: formatCaricoConReps(range.consigliato.value, targetReps),
-    pesoToApply: range.consigliato.value,
+    pesoToApply: isCorpoLiberoPuro ? range.consigliato.value : (range.consigliato.value || smartVal),
     targetReps,
     sottotitolo: smartSottotitolo,
     mesoPillText: !sfidanteIsProtagonista ? mesoPillText : null,
@@ -9002,20 +9035,20 @@ const strategieAlternativeCards = computed(() => {
     isProtagonista: sfidanteIsProtagonista,
     valoreDisplay: sfidanteValoreDisplay,
     sfidanteVal,
-    targetRecordAssolutoKg,
+    targetRecordAssolutoKg: isCorpoLiberoPuro ? null : targetRecordAssolutoKg,
     targetReps,
-    isMultiObjective: isMultiObj,
-    pesoToApply: sfidanteVal,
-    recordAssolutoPesoToApply: (targetRecordAssolutoKg && targetRecordAssolutoKg > sfidanteVal) ? targetRecordAssolutoKg : null,
+    isMultiObjective: isCorpoLiberoPuro ? false : isMultiObj,
+    pesoToApply: isCorpoLiberoPuro ? range.sfidante.value : sfidanteVal,
+    recordAssolutoPesoToApply: (!isCorpoLiberoPuro && targetRecordAssolutoKg && targetRecordAssolutoKg > sfidanteVal) ? targetRecordAssolutoKg : null,
     sottotitolo: sfidanteSottotitolo,
     diffVsSmartText,
     mesoPillText: (sfidanteIsProtagonista || tipoConsigliato === 'sfidante') ? mesoPillText : null,
-    prGoalText: sfidantePRGoalText,
-    prDetail: sfidantePRDetail,
+    prGoalText: isCorpoLiberoPuro ? `🎯 Target ${targetReps + 1} reps` : sfidantePRGoalText,
+    prDetail: isCorpoLiberoPuro ? null : sfidantePRDetail,
     minRepsPR: sfidanteMinRepsPR,
-    altRepsText: (sfidanteMinRepsPR && sfidanteMinRepsPR > targetReps) ? `oppure ${formatWeight(sfidanteVal)} kg × ${sfidanteMinRepsPR}r` : null,
-    metricLabel: 'Rischio:',
-    metricValue: 'ALTO',
+    altRepsText: (!isCorpoLiberoPuro && sfidanteMinRepsPR && sfidanteMinRepsPR > targetReps) ? `oppure ${formatWeight(sfidanteVal)} kg × ${sfidanteMinRepsPR}r` : null,
+    metricLabel: isCorpoLiberoPuro ? 'Intensità:' : 'Rischio:',
+    metricValue: isCorpoLiberoPuro ? 'MEDIA' : 'ALTO',
     themeColor: 'orange'
   };
 
@@ -9694,13 +9727,21 @@ const applicaPropostaCaricoStorico = (peso) => {
   vibraTattile(12);
   const targetInput = inputSettimane.value[aiutoWeek.value];
   if (targetInput) {
-    const pesoFormattato = String(peso).replace('.', ',');
+    let pesoFormattato;
+    if (workout.value && isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
+      const cleanR = String(peso).replace(/[^\d]/g, '');
+      pesoFormattato = cleanR ? `${cleanR}r` : String(peso);
+    } else {
+      pesoFormattato = String(peso).replace('.', ',');
+    }
     targetInput.ins = pesoFormattato;
     salvaDatoSettimanale(aiutoWeek.value, 'ins');
     dialogStorico.value = false;
     
     // Mostra snackbar di successo
-    snackbarMessaggio.value = `Applicato carico ${pesoFormattato} per W${aiutoWeek.value}!`;
+    snackbarMessaggio.value = (workout.value && isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value)
+      ? `Applicato target ${pesoFormattato} per W${aiutoWeek.value}!`
+      : `Applicato carico ${pesoFormattato} kg per W${aiutoWeek.value}!`;
     snackbarSalvataggio.value = true;
   }
 };
@@ -16471,8 +16512,9 @@ const caricaDatiAnalisi = async (sett) => {
   
   try {
     const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
-    const desEsercizio = workout.value.des_esercizio;
-    const currentNumScheda = parseInt(workout.value.num_scheda);
+    const desEsercizio = String(workout.value?.des_esercizio || '').trim();
+    const desEsercizioClean = desEsercizio.toLowerCase();
+    const currentNumScheda = parseInt(workout.value?.num_scheda);
     
     if (!atletaId || !desEsercizio || isNaN(currentNumScheda)) {
       caricandoStorico.value = false;
@@ -16482,31 +16524,52 @@ const caricaDatiAnalisi = async (sett) => {
 
     await caricaPesiWorkoutT(atletaId);
     
-    const q = query(
-      collection(db, 'STORYBOARD'),
-      where(keyIdCliente, '==', atletaId),
-      where('des_esercizio', '==', desEsercizio)
-    );
-    const snap = await getDocs(q);
-    const list = [];
-    snap.forEach((doc) => {
-      const d = doc.data();
-      const sNum = parseInt(d.num_scheda);
-      if (sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
-        const itemId = doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
+    // 1. Prova prima con globalStoryboard in memoria
+    let list = [];
+    if (globalStoryboard.value && globalStoryboard.value.length > 0) {
+      list = globalStoryboard.value.filter(d => {
+        const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
+        const dNome = String(d.des_esercizio || '').trim().toLowerCase();
+        return String(dAtletaId) === String(atletaId) &&
+               dNome === desEsercizioClean &&
+               parseInt(d.num_scheda) <= currentNumScheda &&
+               parseInt(d.num_riga_giorno) > 0;
+      }).map(d => {
+        const itemId = d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
         const sNumStr = String(d.num_scheda || '').trim();
         const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
-        list.push({ ...d, id: itemId, peso_corporeo: pesoCorp });
-      }
-    });
-    list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
-    
+        return { ...d, id: itemId, peso_corporeo: pesoCorp };
+      });
+    }
+
+    // 2. Se non presente in memoria, interroga Firestore
+    if (list.length === 0) {
+      const q = query(
+        collection(db, 'STORYBOARD'),
+        where(keyIdCliente, 'in', [atletaId, !isNaN(Number(atletaId)) ? Number(atletaId) : atletaId])
+      );
+      const snap = await getDocs(q);
+      snap.forEach((doc) => {
+        const d = doc.data();
+        const dNome = String(d.des_esercizio || '').trim().toLowerCase();
+        const sNum = parseInt(d.num_scheda);
+        if (dNome === desEsercizioClean && sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
+          const itemId = doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
+          const sNumStr = String(d.num_scheda || '').trim();
+          const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
+          list.push({ ...d, id: itemId, peso_corporeo: pesoCorp });
+        }
+      });
+    }
+
+    // 3. Fallback di backup se ancora vuoto
     if (list.length === 0) {
       const allData = await getStoryboardBackup();
-      const matched = allData.filter(b => {
+      const matched = (allData || []).filter(b => {
         const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        const bNome = String(b.des_esercizio || '').trim().toLowerCase();
         return String(bAtletaId) === String(atletaId) &&
-               String(b.des_esercizio).trim() === String(desEsercizio).trim() &&
+               bNome === desEsercizioClean &&
                parseInt(b.num_scheda) <= currentNumScheda &&
                parseInt(b.num_riga_giorno) > 0;
       });
@@ -16515,13 +16578,12 @@ const caricaDatiAnalisi = async (sett) => {
         const sNumStr = String(b.num_scheda || '').trim();
         b.peso_corporeo = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(b);
       });
-      matched.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
-      storicoEsercizio.value = matched;
-      storicoEsercizioPerAiuto.value = matched;
-    } else {
-      storicoEsercizio.value = list;
-      storicoEsercizioPerAiuto.value = list;
+      list = matched;
     }
+
+    list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
+    storicoEsercizio.value = list;
+    storicoEsercizioPerAiuto.value = list;
   } catch (err) {
     console.error("Errore caricamento dati analisi:", err);
   } finally {
@@ -16540,32 +16602,35 @@ const rigeneraGraficoStorico = () => {
   }
   
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const isCL = isCorpoLiberoEsercizio(workout.value);
   const dataPoints = [];
   
   storicoFiltrato.value.forEach(prevEx => {
     const numScheda = String(prevEx.num_scheda || '').trim();
     for (let wNum = 1; wNum <= 6; wNum++) {
       const rawIns = prevEx[`ins_week${wNum}`];
-      const peso = parseWeightLocal(rawIns);
-      if (peso > 0) {
-        let reps = 0;
-        if (prevEx[`reps_week${wNum}`]) {
-          reps = parseRepsLocal(prevEx[`reps_week${wNum}`]);
-        } else if (prevEx[`des_week${wNum}`]) {
-          reps = estraiRepsDaPrescrizione(prevEx[`des_week${wNum}`]);
-        }
-        
-        if (reps > 0) {
-          const e1rm = parseFloat((peso * (1 + reps / 30)).toFixed(1));
-          dataPoints.push({
-            label: `S.${numScheda}-W${wNum}`,
-            peso: peso,
-            reps: reps,
-            e1rm: e1rm,
-            bucket: getBucketLabel(reps, raggruppamentoReps.value),
-            date: getExecutionDate(prevEx, storicoEsercizio.value, workout.value) || ''
-          });
-        }
+      const peso = parseWeightLocal(rawIns) || 0;
+      
+      let reps = 0;
+      if (prevEx[`reps_week${wNum}`]) {
+        reps = parseRepsLocal(prevEx[`reps_week${wNum}`]);
+      } else if (rawIns) {
+        reps = estraiRepsDaInput(rawIns);
+      }
+      if (!reps && prevEx[`des_week${wNum}`]) {
+        reps = estraiRepsDaPrescrizione(prevEx[`des_week${wNum}`]);
+      }
+      
+      if (reps > 0) {
+        const e1rm = peso > 0 ? parseFloat((peso * (1 + reps / 30)).toFixed(1)) : reps;
+        dataPoints.push({
+          label: `S.${numScheda}-W${wNum}`,
+          peso: peso,
+          reps: reps,
+          e1rm: e1rm,
+          bucket: getBucketLabel(reps, raggruppamentoReps.value),
+          date: getExecutionDate(prevEx, storicoEsercizio.value, workout.value) || ''
+        });
       }
     }
   });
@@ -16686,25 +16751,34 @@ const rigeneraGraficoStorico = () => {
         if (pesoStr) peso = parseFloat(pesoStr);
       }
 
-      let reps = estraiRepsDaPrescrizione(prevEx.des_week6);
-      if (!reps && prevEx.reps_week6) reps = parseInt(prevEx.reps_week6, 10);
-      if (!reps && parsedPrescription(prevEx.des_week6)?.reps) reps = estraiRepsDaPrescrizione(parsedPrescription(prevEx.des_week6).reps);
+      let reps = 0;
+      if (prevEx.reps_week6) {
+        reps = parseRepsLocal(prevEx.reps_week6);
+      } else if (rawW6) {
+        reps = estraiRepsDaInput(rawW6);
+      }
+      if (!reps && prevEx.des_week6) {
+        reps = estraiRepsDaPrescrizione(prevEx.des_week6);
+      }
+      if (!reps && parsedPrescription(prevEx.des_week6)?.reps) {
+        reps = estraiRepsDaPrescrizione(parsedPrescription(prevEx.des_week6).reps);
+      }
       if (!reps) reps = 1;
 
       const date = getExecutionDate(prevEx, storicoEsercizio.value, workout.value) || '';
 
-      if (val1RM !== null || peso !== null) {
+      if (val1RM !== null || peso !== null || (isCL && reps > 0)) {
         const label = `S.${sNum}`;
         labels.push(label);
-        data1RM.push(val1RM);
-        dataCarico.push(peso);
+        data1RM.push(val1RM !== null ? val1RM : reps);
+        dataCarico.push(peso !== null ? peso : reps);
         customPoints.push({
           label: `${label} (Week 6)`,
           scheda: sNum,
           week: '6',
           peso: peso || 0,
           reps: reps,
-          e1rm: val1RM || 0,
+          e1rm: val1RM || reps,
           date: date,
           giorno: prevEx.des_giorno || '',
           note: prevEx.des_note || '',
@@ -16718,7 +16792,7 @@ const rigeneraGraficoStorico = () => {
     rawPointsLocal.value = customPoints;
 
     datasets.push({
-      label: '1RM stimato',
+      label: isCL ? 'Ripetizioni W6' : '1RM stimato',
       data: data1RM,
       borderColor: isLight ? '#0284c7' : '#38bdf8',
       backgroundColor: isLight ? 'rgba(2, 132, 199, 0.15)' : 'rgba(56, 189, 248, 0.12)',
@@ -16731,19 +16805,21 @@ const rigeneraGraficoStorico = () => {
       tension: 0.15
     });
 
-    datasets.push({
-      label: 'Carico W6',
-      data: dataCarico,
-      borderColor: isLight ? '#d97706' : '#f59e0b',
-      backgroundColor: 'transparent',
-      borderWidth: 2,
-      borderDash: [5, 5],
-      pointBackgroundColor: isLight ? '#d97706' : '#f59e0b',
-      pointBorderColor: isLight ? '#0f172a' : '#ffffff',
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      fill: false
-    });
+    if (!isCL) {
+      datasets.push({
+        label: 'Carico W6',
+        data: dataCarico,
+        borderColor: isLight ? '#d97706' : '#f59e0b',
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        pointBackgroundColor: isLight ? '#d97706' : '#f59e0b',
+        pointBorderColor: isLight ? '#0f172a' : '#ffffff',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false
+      });
+    }
 
     storicoChartData.value = {
       labels: labels,
@@ -16762,12 +16838,11 @@ const rigeneraGraficoStorico = () => {
       const data = labels.map(lbl => {
         const pts = dataPoints.filter(p => p.label === lbl && p.bucket === b);
         if (pts.length === 0) return null;
-        // Take the max weight to represent the best set in this range
-        return Math.max(...pts.map(p => p.peso));
+        return isCL ? Math.max(...pts.map(p => p.reps)) : Math.max(...pts.map(p => p.peso));
       });
       const color = colors[idx % colors.length];
       datasets.push({
-        label: b,
+        label: isCL ? `${b}` : b,
         data: data,
         borderColor: color,
         backgroundColor: color + '15',
@@ -16782,15 +16857,15 @@ const rigeneraGraficoStorico = () => {
       });
     });
     
-    // Estimated 1RM of the selected active sets for each session
+    // Estimated 1RM / Max Reps
     const data1RM = labels.map(lbl => {
       const pts = dataPoints.filter(p => p.label === lbl && selectedBuckets.value.includes(p.bucket));
       if (pts.length === 0) return null;
-      return Math.max(...pts.map(p => p.e1rm));
+      return isCL ? Math.max(...pts.map(p => p.reps)) : Math.max(...pts.map(p => p.e1rm));
     });
     
     datasets.push({
-      label: 'Massimale stimato (1RM)',
+      label: isCL ? 'Max Reps' : 'Massimale stimato (1RM)',
       data: data1RM,
       borderColor: isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.4)',
       backgroundColor: 'transparent',
@@ -16811,7 +16886,7 @@ const rigeneraGraficoStorico = () => {
       const data = labels.map(lbl => {
         const pts = dataPoints.filter(p => p.label === lbl && p.bucket === b);
         if (pts.length === 0) return null;
-        return Math.max(...pts.map(p => p.peso));
+        return isCL ? Math.max(...pts.map(p => p.reps)) : Math.max(...pts.map(p => p.peso));
       });
       const color = colors[idx % colors.length];
       datasets.push({
@@ -16829,15 +16904,15 @@ const rigeneraGraficoStorico = () => {
       });
     });
     
-    // Estimated 1RM of the selected active sets for each session
+    // Estimated 1RM / Max Reps
     const data1RM = labels.map(lbl => {
       const pts = dataPoints.filter(p => p.label === lbl && selectedBuckets.value.includes(p.bucket));
       if (pts.length === 0) return null;
-      return Math.max(...pts.map(p => p.e1rm));
+      return isCL ? Math.max(...pts.map(p => p.reps)) : Math.max(...pts.map(p => p.e1rm));
     });
     
     datasets.push({
-      label: 'Massimale stimato (1RM)',
+      label: isCL ? 'Max Reps' : 'Massimale stimato (1RM)',
       data: data1RM,
       borderColor: isLight ? '#047857' : '#22c55e',
       backgroundColor: isLight ? 'rgba(4, 120, 87, 0.08)' : 'rgba(34, 197, 94, 0.05)',
@@ -16853,10 +16928,10 @@ const rigeneraGraficoStorico = () => {
   } else if (modeGraficoStorico.value === 'C') {
     const activePoints = dataPoints.filter(p => selectedBuckets.value.includes(p.bucket));
     const labelsWithReps = activePoints.map(p => `${p.label} (${p.reps}r)`);
-    const dataCarico = activePoints.map(p => p.peso);
+    const dataCarico = activePoints.map(p => isCL ? p.reps : p.peso);
     
     datasets.push({
-      label: 'Carico sollevato',
+      label: isCL ? 'Ripetizioni eseguite' : 'Carico sollevato',
       data: dataCarico,
       borderColor: isLight ? '#ea580c' : '#f97316',
       backgroundColor: isLight ? 'rgba(234, 88, 12, 0.15)' : 'rgba(249, 115, 22, 0.1)',
@@ -16916,6 +16991,7 @@ const getChartOptions = (isLight) => ({
           if (val === null) return null;
           
           let dateInfo = '';
+          const isCL = isCorpoLiberoEsercizio(workout.value);
           
           if (modeGraficoStorico.value === '1RM_W6') {
             const pt = rawPointsLocal.value[index];
@@ -16924,6 +17000,9 @@ const getChartOptions = (isLight) => ({
                 dateInfo = ` | Data: ${formattaDataStorico(pt.date)} (${tempoTrascorso(pt.date)})`;
               }
               const faticaText = pt.fatica ? ` | Fatica: ${pt.fatica}` : '';
+              if (isCL) {
+                return ` Ripetizioni W6: ${pt.reps} reps${faticaText}${dateInfo}`;
+              }
               if (label.includes('1RM')) {
                 return ` 1RM Stimato: ${val} kg (${pt.peso}kg x${pt.reps}r)${faticaText}${dateInfo}`;
               } else {
@@ -16937,6 +17016,9 @@ const getChartOptions = (isLight) => ({
               if (pt.date) {
                 dateInfo = ` | Data: ${formattaDataStorico(pt.date)} (${tempoTrascorso(pt.date)})`;
               }
+              if (isCL) {
+                return ` Ripetizioni: ${pt.reps} reps${dateInfo}`;
+              }
               return ` Peso: ${pt.peso} kg (${pt.reps} reps) | 1RM: ${pt.e1rm} kg${dateInfo}`;
             }
           } else {
@@ -16949,13 +17031,16 @@ const getChartOptions = (isLight) => ({
               }
             }
             
+            if (isCL) {
+              return ` ${label}: ${val} reps${dateInfo}`;
+            }
             if (label.includes('1RM') || label.includes('Massimale')) {
               return ` 1RM Stimato: ${val} kg${dateInfo}`;
             } else {
               return ` Carico (${label}): ${val} kg${dateInfo}`;
             }
           }
-          return ` ${label}: ${val} kg`;
+          return ` ${label}: ${val} ${isCL ? 'reps' : 'kg'}`;
         }
       }
     }
@@ -16973,7 +17058,7 @@ const getChartOptions = (isLight) => ({
       ticks: {
         color: isLight ? '#334155' : '#94a3b8',
         callback: function(value) {
-          return value + ' kg';
+          return isCorpoLiberoEsercizio(workout.value) ? value + ' reps' : value + ' kg';
         }
       }
     }
@@ -17141,27 +17226,27 @@ watch([stileStorico, modeGraficoStorico, raggruppamentoReps, selectedBuckets, st
 // Funzione scroll per lo storico
 function eseguiScrollStorico() {
   setTimeout(() => {
-    // 1. Scroll della Tabella (Modalità Tabella)
+    // 1. Scroll orizzontale della Tabella per posizionarsi sulla settimana attiva
     if (storicoTableContainer.value) {
       const colWidth = 110; 
-      const scrollPosHoriz = (settimanaAttiva.value - 1) * colWidth + 17;
+      const scrollPosHoriz = Math.max(0, (settimanaAttiva.value - 1) * colWidth - 40);
       
       storicoTableContainer.value.scrollTo({
         left: scrollPosHoriz,
-        top: storicoTableContainer.value.scrollHeight + 1000,
+        top: 0,
         behavior: 'smooth'
       });
     }
 
-    // 2. Scroll generale del Dialog (necessario per Modalità Timeline)
+    // 2. Assicura che il contenitore verticale sia posizionato in cima (top: 0)
     if (storicoScrollContainer.value) {
       const scrollEl = storicoScrollContainer.value.$el || storicoScrollContainer.value;
       scrollEl.scrollTo({
-        top: scrollEl.scrollHeight + 1000,
+        top: 0,
         behavior: 'smooth'
       });
     }
-  }, 450);
+  }, 300);
 }
 
 // Funzione Riepilogo Storico Esercizi (freccia con orologio)
@@ -17170,7 +17255,7 @@ const apriStoricoEsercizio = async () => {
   activeTabAnalisi.value = 1; // Tab Cronologia
   dialogStorico.value = true;
   stileStorico.value = 'tabella';
-  soloCorrispondenti.value = true;
+  soloCorrispondenti.value = (workout.value && isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) ? false : true;
   await caricaDatiAnalisi(settimanaAttiva.value);
   eseguiScrollStorico();
 };
@@ -18962,12 +19047,24 @@ th.sticky-col {
   justify-content: center !important;
 }
 
+.dialog-storico-unified :deep(.v-card) {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 88vh !important;
+  min-height: 520px !important;
+}
+
 @media (max-width: 640px) {
   .dialog-storico-unified :deep(.v-overlay__content) {
     margin: 0 !important;
     max-height: 100% !important;
     width: 100% !important;
     height: 100% !important;
+    border-radius: 0 !important;
+  }
+  .dialog-storico-unified :deep(.v-card) {
+    height: 100% !important;
+    min-height: 100% !important;
     border-radius: 0 !important;
   }
 }

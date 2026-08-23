@@ -1,7 +1,7 @@
 <template>
   <v-container class="px-3 pt-1 pb-4 max-width-container bg-slate-50 min-height-screen pb-12">
     <!-- Header Sticky Wrapper -->
-    <div class="sticky-detail-header">
+    <div class="sticky-detail-header" :class="{ 'evidenzia-esercizio-scroll': isEvidenziato }">
       <!-- Barra Superiore con pulsante indietro stile AppSheet -->
       <div class="d-flex align-center justify-space-between appsheet-top-bar mb-0">
         <v-btn
@@ -2770,8 +2770,7 @@
     <v-dialog 
       v-model="dialogStorico" 
       :width="isMobileScreen ? '100%' : 750"
-      :max-width="isMobileScreen ? '100%' : 750" 
-      :fullscreen="isMobileScreen"
+      :max-width="isMobileScreen ? '100%' : 750"
       scrollable
       :class="['dialog-storico-unified', activeTabAnalisi === 1 ? 'tab-cronologia' : 'tab-proposta']"
     >
@@ -2781,36 +2780,81 @@
           backdropFilter: 'blur(25px)', 
           background: 'var(--card-bg-dark, #0f172a) !important', 
           width: isMobileScreen ? '100%' : '750px', 
-          height: isMobileScreen ? '100%' : (activeTabAnalisi === 1 ? '88vh' : 'auto'), 
-          minHeight: isMobileScreen ? '100%' : (activeTabAnalisi === 1 ? '520px' : 'auto'), 
-          maxHeight: isMobileScreen ? '100%' : '90vh' 
+          maxWidth: '750px',
+          height: activeTabAnalisi === 1 ? (isMobileScreen ? '92vh' : '88vh') : 'auto', 
+          minHeight: activeTabAnalisi === 1 ? (isMobileScreen ? 'auto' : '520px') : 'auto', 
+          maxHeight: isMobileScreen ? '92vh' : '90vh' 
         }"
+        @touchstart="handleTouchStartAnalisi"
+        @touchend="handleTouchEndAnalisi"
       >
         <v-card-title class="pa-0 border-bottom flex-shrink-0" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
-          <!-- Rigo 1: Titolo e Chiudi -->
-          <div class="px-3 py-2 d-flex align-center justify-space-between" style="min-height: 40px;">
-            <div class="d-flex align-center gap-2 text-truncate" style="max-width: 85%;">
-              <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="18">
+          <!-- Rigo 1: Navigazione Esercizi (Precedente < | Titolo + Posizione | Successivo >) e Chiudi -->
+          <div class="px-2 py-2 d-flex align-center justify-space-between" style="min-height: 44px;">
+            <!-- Freccia Esercizio Precedente -->
+            <v-btn 
+              icon 
+              variant="text" 
+              width="32" 
+              height="32" 
+              color="orange-darken-3" 
+              :disabled="indexCorrenteGiornoSoloEsercizi <= 0"
+              @click="vaiAdEsercizioPrecedenteAnalisi"
+              title="Esercizio precedente"
+            >
+              <v-icon size="22">mdi-chevron-left</v-icon>
+            </v-btn>
+
+            <!-- Titolo Esercizio e Posizione -->
+            <div class="d-flex align-center justify-center gap-1.5 text-truncate px-1" style="max-width: calc(100% - 110px); flex: 1;">
+              <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" size="16" class="flex-shrink-0">
                 {{ activeTabAnalisi === 0 ? 'mdi-lightbulb-on' : 'mdi-history' }}
               </v-icon>
-              <span class="dialog-header-title font-weight-black text-truncate" style="font-size: 0.82rem; letter-spacing: 0.02em;">
+              <span class="dialog-header-title font-weight-black text-truncate" style="font-size: 0.84rem; letter-spacing: 0.02em;">
                 {{ activeTabAnalisi === 0 ? '' : 'Storico: ' }}{{ workout?.des_esercizio }}
               </span>
+              <v-chip 
+                v-if="totaleEserciziGiorno > 0 && indexCorrenteGiornoSoloEsercizi >= 0" 
+                size="x-small" 
+                variant="tonal" 
+                color="orange-darken-3"
+                class="font-weight-black ml-1 px-1.5 flex-shrink-0"
+                style="height: 18px; font-size: 0.58rem;"
+              >
+                {{ indexCorrenteGiornoSoloEsercizi + 1 }}/{{ totaleEserciziGiorno }}
+              </v-chip>
             </div>
-            <!-- Pulsante X più piccolo -->
-            <v-btn icon variant="text" width="24" height="24" color="grey" @click="chiudiDialogStorico">
-              <v-icon size="18">mdi-close</v-icon>
-            </v-btn>
+
+            <div class="d-flex align-center gap-1">
+              <!-- Freccia Esercizio Successivo -->
+              <v-btn 
+                icon 
+                variant="text" 
+                width="32" 
+                height="32" 
+                color="orange-darken-3" 
+                :disabled="indexCorrenteGiornoSoloEsercizi === -1 || indexCorrenteGiornoSoloEsercizi >= totaleEserciziGiorno - 1"
+                @click="vaiAdEsercizioSuccessivoAnalisi"
+                title="Esercizio successivo"
+              >
+                <v-icon size="22">mdi-chevron-right</v-icon>
+              </v-btn>
+
+              <!-- Pulsante X Chiudi -->
+              <v-btn icon variant="text" width="28" height="28" color="grey-lighten-1" @click="chiudiDialogStorico" title="Chiudi">
+                <v-icon size="20">mdi-close</v-icon>
+              </v-btn>
+            </div>
           </div>
           
           <!-- Tabs Unificati -->
-          <v-tabs v-model="activeTabAnalisi" color="orange-darken-3" grow class="border-top" style="border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)) !important; height: 36px;">
-            <v-tab :value="0" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 0 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.72rem; height: 36px;">
-              <v-icon start size="14" class="mr-1">mdi-lightbulb-on-outline</v-icon>
+          <v-tabs v-model="activeTabAnalisi" color="orange-darken-3" grow class="border-top" style="border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)) !important; height: 38px;">
+            <v-tab :value="0" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 0 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.75rem; height: 38px;">
+              <v-icon start size="15" class="mr-1">mdi-lightbulb-on-outline</v-icon>
               Cosa faccio oggi
             </v-tab>
-            <v-tab :value="1" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 1 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.72rem; height: 36px;">
-              <v-icon start size="14" class="mr-1">mdi-history</v-icon>
+            <v-tab :value="1" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 1 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.75rem; height: 38px;">
+              <v-icon start size="15" class="mr-1">mdi-history</v-icon>
               Cosa ho fatto prima
             </v-tab>
           </v-tabs>
@@ -2835,7 +2879,7 @@
           </div>
         </v-card-title>
         
-        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: 'auto', minHeight: activeTabAnalisi === 1 ? '300px' : 'auto' }">
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" style="overflow-y: auto;">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0" class="pt-0">
@@ -4226,8 +4270,8 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-3 border-top gap-2" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
-          <v-btn variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important' }" @click="dialogStorico = false">
+        <v-card-actions class="pa-3 border-top gap-2 flex-shrink-0" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
+          <v-btn variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316)) !important' }" @click="chiudiDialogStorico">
             Chiudi
           </v-btn>
         </v-card-actions>
@@ -5878,8 +5922,93 @@ const onWindowResize = () => {
 };
 const isMobileScreen = computed(() => windowWidth.value <= 640);
 
+// Evidenziazione Esercizio al ritorno dalla schermata di analisi
+const isEvidenziato = ref(false);
+let timerEvidenziazione = null;
+const attivaEvidenziazioneEsercizio = () => {
+  isEvidenziato.value = true;
+  if (timerEvidenziazione) clearTimeout(timerEvidenziazione);
+  timerEvidenziazione = setTimeout(() => {
+    isEvidenziato.value = false;
+  }, 2600);
+};
+
 const chiudiDialogStorico = () => {
   dialogStorico.value = false;
+  attivaEvidenziazioneEsercizio();
+};
+
+// Navigazione Rapida Esercizi nella Vista Analisi / Fullscreen
+const indexCorrenteGiornoSoloEsercizi = computed(() => {
+  if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) return -1;
+  const listaSoloEx = tuttiEserciziGiorno.value.filter(item => parseInt(item.num_riga_giorno) > 0);
+  return listaSoloEx.findIndex(item => String(item.id) === String(routeIdLocal.value));
+});
+
+const totaleEserciziGiorno = computed(() => {
+  if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) return 0;
+  return tuttiEserciziGiorno.value.filter(item => parseInt(item.num_riga_giorno) > 0).length;
+});
+
+const cambiaEsercizioInAnalisi = async (targetEx) => {
+  if (!targetEx) return;
+  vibraTattile(15);
+  routeIdLocal.value = targetEx.id;
+  workout.value = applicaModificheLocali({ ...targetEx });
+  localStorage.setItem('ultimoEsercizioDettaglio', targetEx.id);
+  router.replace({ name: 'DettaglioWorkout', params: { id: targetEx.id } });
+  
+  await caricaDatiEsercizio();
+  await caricaDatiAnalisi(activeTabAnalisi.value === 0 ? aiutoWeek.value : settimanaAttiva.value);
+  if (activeTabAnalisi.value === 1) {
+    eseguiScrollStorico();
+  }
+};
+
+const vaiAdEsercizioPrecedenteAnalisi = async () => {
+  const listaSoloEx = tuttiEserciziGiorno.value.filter(item => parseInt(item.num_riga_giorno) > 0);
+  const idx = listaSoloEx.findIndex(item => String(item.id) === String(routeIdLocal.value));
+  if (idx <= 0) return;
+  const prevEx = listaSoloEx[idx - 1];
+  await cambiaEsercizioInAnalisi(prevEx);
+};
+
+const vaiAdEsercizioSuccessivoAnalisi = async () => {
+  const listaSoloEx = tuttiEserciziGiorno.value.filter(item => parseInt(item.num_riga_giorno) > 0);
+  const idx = listaSoloEx.findIndex(item => String(item.id) === String(routeIdLocal.value));
+  if (idx === -1 || idx >= listaSoloEx.length - 1) return;
+  const nextEx = listaSoloEx[idx + 1];
+  await cambiaEsercizioInAnalisi(nextEx);
+};
+
+// Gesture di swipe touch per la schermata di analisi
+let touchStartXAnalisi = 0;
+let touchStartYAnalisi = 0;
+
+const handleTouchStartAnalisi = (e) => {
+  if (!e.touches || e.touches.length === 0) return;
+  touchStartXAnalisi = e.touches[0].clientX;
+  touchStartYAnalisi = e.touches[0].clientY;
+};
+
+const handleTouchEndAnalisi = (e) => {
+  if (!e.changedTouches || e.changedTouches.length === 0) return;
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  
+  const diffX = touchEndX - touchStartXAnalisi;
+  const diffY = touchEndY - touchStartYAnalisi;
+  
+  // Controllo swipe orizzontale significativo (> 70px) e non diagonale (< 60px verticale)
+  if (Math.abs(diffX) > 70 && Math.abs(diffY) < 60) {
+    if (diffX < 0) {
+      // Swipe verso sinistra -> Successivo
+      vaiAdEsercizioSuccessivoAnalisi();
+    } else {
+      // Swipe verso destra -> Precedente
+      vaiAdEsercizioPrecedenteAnalisi();
+    }
+  }
 };
 
 const onOverviewE1RMClick = (idOrItem) => {
@@ -5906,6 +6035,7 @@ const onPopStateModalHandler = () => {
   }
   if (dialogStorico.value) {
     dialogStorico.value = false;
+    attivaEvidenziazioneEsercizio();
     return;
   }
 };
@@ -5915,6 +6045,8 @@ watch(dialogStorico, (newVal, oldVal) => {
     try {
       window.history.pushState({ modal: 'dialogStorico' }, '');
     } catch (e) {}
+  } else if (!newVal && oldVal) {
+    attivaEvidenziazioneEsercizio();
   }
 });
 
@@ -19127,10 +19259,12 @@ th.sticky-col {
   }
 }
 
-/* --- UNIFIED MODAL DIALOG STORICO & PROPOSTA CARICO --- */
+/* --- DIALOG STORICO & PROPOSTA CARICO (ADATTIVO & COMPATTO) --- */
 .dialog-storico-unified :deep(.v-overlay__content) {
-  margin: 12px !important;
-  max-height: calc(100% - 24px) !important;
+  margin: 12px auto !important;
+  max-width: 750px !important;
+  width: calc(100% - 24px) !important;
+  max-height: calc(100dvh - 24px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -19139,6 +19273,8 @@ th.sticky-col {
 .dialog-storico-unified :deep(.v-card) {
   display: flex !important;
   flex-direction: column !important;
+  width: 100% !important;
+  max-width: 750px !important;
   max-height: 90vh !important;
 }
 
@@ -19147,18 +19283,28 @@ th.sticky-col {
   min-height: 520px !important;
 }
 
+.dialog-storico-unified :deep(.v-card-text) {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
 @media (max-width: 640px) {
   .dialog-storico-unified :deep(.v-overlay__content) {
-    margin: 0 !important;
-    max-height: 100% !important;
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 0 !important;
+    margin: 6px auto !important;
+    width: calc(100% - 12px) !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - 12px) !important;
   }
+  
   .dialog-storico-unified :deep(.v-card) {
-    height: 100% !important;
-    min-height: 100% !important;
-    border-radius: 0 !important;
+    width: 100% !important;
+    max-height: 92vh !important;
+    border-radius: 16px !important;
+  }
+
+  .dialog-storico-unified.tab-cronologia :deep(.v-card) {
+    height: 92vh !important;
+    min-height: auto !important;
   }
 }
 

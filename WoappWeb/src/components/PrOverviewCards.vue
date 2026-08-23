@@ -25,31 +25,36 @@
               <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
             </div>
 
-            <!-- Valore Principale: Peso Reale + Reps + Fatica -->
+            <!-- Valore Principale: 1RM Stimato in Grande -->
             <div class="d-flex align-center justify-center my-0.5 min-width-0">
-              <span class="font-weight-black text-white" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
+              <span class="font-weight-black text-amber-300" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
+                {{ isCorpoLiberoPuro ? prWeightDisplay : (prE1rmDisplay ? `${prE1rmDisplay}` : prWeightDisplay) }}
+              </span>
+              <span v-if="!isCorpoLiberoPuro && prE1rmDisplay" class="text-super-caption font-weight-bold ml-1 text-amber-200/80" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                1RM
+              </span>
+            </div>
+
+            <!-- Dettaglio Sotto: Peso Reale + Reps + Fatica -->
+            <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-0.5" style="line-height: 1.1;">
+              <span class="text-super-caption font-weight-bold text-white text-truncate" style="font-size: 0.60rem;">
                 {{ prWeightDisplay }}
               </span>
               <span 
                 v-if="prRepsDisplay && !isCorpoLiberoPuro" 
-                class="text-super-caption font-weight-bold ml-1 text-truncate text-amber-200/90" 
-                style="font-size: 0.62rem;"
+                class="text-super-caption font-weight-bold text-truncate text-amber-200/90" 
+                style="font-size: 0.58rem;"
               >
                 {{ prRepsDisplay }}
               </span>
               <span 
                 v-if="faticaLetter" 
-                class="text-super-caption font-weight-bold ml-0.5 text-truncate" 
-                :style="{ color: faticaColor, fontSize: '0.62rem' }"
+                class="text-super-caption font-weight-bold text-truncate" 
+                :style="{ color: faticaColor, fontSize: '0.58rem' }"
                 :title="`Fatica: ${bestReal?.fatica || faticaLetter}`"
               >
                 ({{ faticaLetter }})
               </span>
-            </div>
-
-            <!-- Dettaglio 1RM Stimato Corrispondente -->
-            <div v-if="prE1rmDisplay" class="text-super-caption text-amber-300 font-weight-bold text-truncate mt-0.5" style="font-size: 0.54rem; line-height: 1.1;">
-              1RM ~{{ prE1rmDisplay }}
             </div>
           </div>
 
@@ -83,31 +88,36 @@
               <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
             </div>
 
-            <!-- Valore Principale: Carico Reale Max Storico + Reps + Fatica -->
+            <!-- Valore Principale: 1RM Storico in Grande -->
             <div class="d-flex align-center justify-center my-0.5 min-width-0">
               <span class="font-weight-black text-cyan-lighten-2" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
+                {{ isCorpoLiberoPuro ? maxAbsoluteWeightDisplay : (bestE1RM?.maxDisplay || maxAbsoluteWeightDisplay) }}
+              </span>
+              <span v-if="!isCorpoLiberoPuro" class="text-super-caption font-weight-bold ml-1 text-cyan-200/80" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                1RM
+              </span>
+            </div>
+
+            <!-- Dettaglio Sotto: Peso Reale Max Storico + Reps + Fatica -->
+            <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-0.5" style="line-height: 1.1;">
+              <span class="text-super-caption font-weight-bold text-white text-truncate" style="font-size: 0.60rem;">
                 {{ maxAbsoluteWeightDisplay }}
               </span>
               <span 
                 v-if="maxAbsoluteRepsDisplay" 
-                class="text-super-caption font-weight-bold ml-1 text-truncate text-cyan-200/90" 
-                style="font-size: 0.62rem;"
+                class="text-super-caption font-weight-bold text-truncate text-cyan-200/90" 
+                style="font-size: 0.58rem;"
               >
                 {{ maxAbsoluteRepsDisplay }}
               </span>
               <span 
                 v-if="e1rmFaticaLetter" 
-                class="text-super-caption font-weight-bold ml-0.5 text-truncate" 
-                :style="{ color: e1rmFaticaColor, fontSize: '0.62rem' }"
+                class="text-super-caption font-weight-bold text-truncate" 
+                :style="{ color: e1rmFaticaColor, fontSize: '0.58rem' }"
                 :title="`Fatica: ${e1rmFaticaLetter}`"
               >
                 ({{ e1rmFaticaLetter }})
               </span>
-            </div>
-
-            <!-- Dettaglio 1RM Storico -->
-            <div v-if="bestE1RM?.maxDisplay && !isCorpoLiberoPuro" class="text-super-caption text-cyan-200 font-weight-bold text-truncate mt-0.5" style="font-size: 0.54rem; line-height: 1.1;">
-              {{ isNewPeak ? 'Picco eguagliato (1RM: ' + bestE1RM.maxDisplay + ')' : '1RM: ' + bestE1RM.maxDisplay }}
             </div>
           </div>
 

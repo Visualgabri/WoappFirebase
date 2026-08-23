@@ -2772,18 +2772,18 @@
       :width="isMobileScreen ? '100%' : 750"
       :max-width="isMobileScreen ? '100%' : 750"
       scrollable
-      :class="['dialog-storico-unified', activeTabAnalisi === 1 ? 'tab-cronologia' : 'tab-proposta']"
+      class="dialog-storico-unified"
     >
       <v-card 
-        class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" 
+        class="dialog-storico-root-card card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" 
         :style="{ 
           backdropFilter: 'blur(25px)', 
           background: 'var(--card-bg-dark, #0f172a) !important', 
           width: isMobileScreen ? '100%' : '750px', 
           maxWidth: '750px',
-          height: activeTabAnalisi === 1 ? (isMobileScreen ? '92vh' : '88vh') : 'auto', 
-          minHeight: activeTabAnalisi === 1 ? (isMobileScreen ? 'auto' : '520px') : 'auto', 
-          maxHeight: isMobileScreen ? '92vh' : '90vh' 
+          height: isMobileScreen ? '92vh' : '88vh', 
+          minHeight: isMobileScreen ? '92vh' : '540px', 
+          maxHeight: isMobileScreen ? '92vh' : '88vh' 
         }"
         @touchstart="handleTouchStartAnalisi"
         @touchend="handleTouchEndAnalisi"
@@ -2879,7 +2879,7 @@
           </div>
         </v-card-title>
         
-        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" style="overflow-y: auto;">
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1" style="overflow-y: auto;">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0" class="pt-0">
@@ -2976,6 +2976,8 @@
                   v-if="strategiaConsigliataCard"
                   class="pa-3 rounded-2xl border mb-2 text-center position-relative transition-all overflow-hidden"
                   :style="{
+                    height: 'auto !important',
+                    flexGrow: '0 !important',
                     borderColor: (strategiaConsigliataCard.tipo === 'sfidante')
                       ? 'rgba(251, 191, 36, 0.95) !important'
                       : ((strategiaConsigliataCard.tipo === 'safe')
@@ -19259,7 +19261,7 @@ th.sticky-col {
   }
 }
 
-/* --- DIALOG STORICO & PROPOSTA CARICO (ADATTIVO & COMPATTO) --- */
+/* --- DIALOG STORICO & PROPOSTA CARICO (DIMENSIONI FISSE SULLA SOLA CARD ROOT) --- */
 .dialog-storico-unified :deep(.v-overlay__content) {
   margin: 12px auto !important;
   max-width: 750px !important;
@@ -19270,17 +19272,21 @@ th.sticky-col {
   justify-content: center !important;
 }
 
-.dialog-storico-unified :deep(.v-card) {
+.dialog-storico-unified :deep(.dialog-storico-root-card) {
   display: flex !important;
   flex-direction: column !important;
   width: 100% !important;
   max-width: 750px !important;
-  max-height: 90vh !important;
+  height: 88vh !important;
+  min-height: 540px !important;
+  max-height: 88vh !important;
 }
 
-.dialog-storico-unified.tab-cronologia :deep(.v-card) {
-  height: 88vh !important;
-  min-height: 520px !important;
+.dialog-storico-unified :deep(.v-card:not(.dialog-storico-root-card)) {
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  flex-grow: 0 !important;
 }
 
 .dialog-storico-unified :deep(.v-card-text) {
@@ -19296,15 +19302,12 @@ th.sticky-col {
     max-height: calc(100dvh - 12px) !important;
   }
   
-  .dialog-storico-unified :deep(.v-card) {
+  .dialog-storico-unified :deep(.dialog-storico-root-card) {
     width: 100% !important;
+    height: 92vh !important;
+    min-height: 92vh !important;
     max-height: 92vh !important;
     border-radius: 16px !important;
-  }
-
-  .dialog-storico-unified.tab-cronologia :deep(.v-card) {
-    height: 92vh !important;
-    min-height: auto !important;
   }
 }
 

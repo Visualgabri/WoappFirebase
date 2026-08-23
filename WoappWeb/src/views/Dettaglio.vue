@@ -2785,8 +2785,6 @@
           minHeight: isMobileScreen ? '92vh' : '540px', 
           maxHeight: isMobileScreen ? '92vh' : '88vh' 
         }"
-        @touchstart="handleTouchStartAnalisi"
-        @touchend="handleTouchEndAnalisi"
       >
         <v-card-title class="pa-0 border-bottom flex-shrink-0" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
           <!-- Rigo 1: Navigazione Esercizi (Precedente < | Titolo + Posizione | Successivo >) e Chiudi -->
@@ -5983,35 +5981,6 @@ const vaiAdEsercizioSuccessivoAnalisi = async () => {
   await cambiaEsercizioInAnalisi(nextEx);
 };
 
-// Gesture di swipe touch per la schermata di analisi
-let touchStartXAnalisi = 0;
-let touchStartYAnalisi = 0;
-
-const handleTouchStartAnalisi = (e) => {
-  if (!e.touches || e.touches.length === 0) return;
-  touchStartXAnalisi = e.touches[0].clientX;
-  touchStartYAnalisi = e.touches[0].clientY;
-};
-
-const handleTouchEndAnalisi = (e) => {
-  if (!e.changedTouches || e.changedTouches.length === 0) return;
-  const touchEndX = e.changedTouches[0].clientX;
-  const touchEndY = e.changedTouches[0].clientY;
-  
-  const diffX = touchEndX - touchStartXAnalisi;
-  const diffY = touchEndY - touchStartYAnalisi;
-  
-  // Controllo swipe orizzontale significativo (> 70px) e non diagonale (< 60px verticale)
-  if (Math.abs(diffX) > 70 && Math.abs(diffY) < 60) {
-    if (diffX < 0) {
-      // Swipe verso sinistra -> Successivo
-      vaiAdEsercizioSuccessivoAnalisi();
-    } else {
-      // Swipe verso destra -> Precedente
-      vaiAdEsercizioPrecedenteAnalisi();
-    }
-  }
-};
 
 const onOverviewE1RMClick = (idOrItem) => {
   if (!idOrItem) return;

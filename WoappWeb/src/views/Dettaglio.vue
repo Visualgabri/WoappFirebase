@@ -833,16 +833,26 @@
 
             <!-- Tag di Stato (Etichetta informativa non cliccabile) -->
             <v-chip
-              v-if="sett === settimanaAttiva || haRecupero(inputSettimane[sett].ins)"
-              :color="haRecupero(inputSettimane[sett].ins) ? 'red-lighten-2' : ((isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-')) ? 'green-lighten-2' : 'orange-lighten-2')"
+              v-if="haRecupero(inputSettimane[sett].ins)"
+              color="red-lighten-2"
               size="x-small"
               class="font-weight-black px-1.5 week-active-chip"
               :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
               variant="tonal"
             >
-              {{ haRecupero(inputSettimane[sett].ins) ? 'DA COMPLETARE' : ((isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-')) ? '✓ COMPLETATA' : 'ATTIVA') }}
+              DA COMPLETARE
             </v-chip>
-            <v-chip v-else-if="modalitaSettimane === 'dinamica'" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5 week-altre-chip" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
+            <v-chip
+              v-else-if="sett === settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))"
+              color="orange-lighten-2"
+              size="x-small"
+              class="font-weight-black px-1.5 week-active-chip"
+              :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
+              variant="tonal"
+            >
+              ATTIVA
+            </v-chip>
+            <v-chip v-else-if="modalitaSettimane === 'dinamica' && sett !== settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5 week-altre-chip" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
@@ -1325,21 +1335,21 @@
             }"
           >
             <!-- Header Box W6 -->
-            <div class="d-flex align-center justify-space-between mb-2">
-              <div class="d-flex align-center gap-1.5">
+            <div class="d-flex align-center justify-center gap-2 mb-2 text-center flex-wrap">
+              <div class="d-flex align-center justify-center gap-1.5">
                 <v-icon color="amber-lighten-2" size="17">mdi-trophy-award</v-icon>
                 <span class="text-caption font-weight-black text-amber-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">
                   Feedback Week 6
                 </span>
               </div>
               <span class="text-super-caption font-weight-bold text-slate" style="font-size: 0.58rem; letter-spacing: 0.05em;">
-                RIFERIMENTO PROX MESO
+                • RIFERIMENTO PROX MESO
               </span>
             </div>
 
             <!-- Riga 1: Miglior Carico W6 (Stepper Premium Vetro & Glow) -->
             <div class="d-flex align-center justify-space-between w-100 mb-2.5 pa-1.5 rounded-xl stepper-row-glass border-soft">
-              <div class="d-flex flex-column text-left pl-1">
+              <div class="d-flex flex-column text-center flex-grow-1 pl-1">
                 <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.68rem; line-height: 1.1;">
                   Max Raggiunto
                 </span>
@@ -1389,13 +1399,10 @@
             </div>
 
             <!-- Riga 2: Sforzo Percepito (Pill Segments Responsive) -->
-            <div class="d-flex flex-column gap-1.5 w-100 text-left">
-              <div class="d-flex align-center justify-space-between">
+            <div class="d-flex flex-column gap-1.5 w-100 text-center">
+              <div class="d-flex align-center justify-center text-center">
                 <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.65rem;">
                   ⚡ Sforzo Percepito
-                </span>
-                <span v-if="numFaticaw6Val" class="text-super-caption font-weight-black" :style="getColoreFaticaStyle(numFaticaw6Val)">
-                  {{ numFaticaw6Val }}
                 </span>
               </div>
 
@@ -2055,18 +2062,16 @@
                   class="w6-feedback-premium-box mt-3 pt-3 pb-2.5 px-3 rounded-2xl border"
                 >
                   <!-- Header Box W6 Precedente -->
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <div class="d-flex align-center gap-1.5">
-                      <v-icon color="amber-lighten-2" size="16">mdi-trophy-award</v-icon>
-                      <span class="text-caption font-weight-black text-amber-lighten-2 uppercase tracking-wide" style="font-size: 0.70rem;">
-                        Picco W6 Mesociclo Scorso
-                      </span>
-                    </div>
+                  <div class="d-flex align-center justify-center gap-1.5 mb-2 text-center">
+                    <v-icon color="amber-lighten-2" size="16">mdi-trophy-award</v-icon>
+                    <span class="text-caption font-weight-black text-amber-lighten-2 uppercase tracking-wide" style="font-size: 0.70rem;">
+                      Picco W6 Mesociclo Scorso
+                    </span>
                   </div>
 
                   <!-- Riga 1: Miglior Carico W6 Precedente -->
                   <div class="d-flex align-center justify-space-between w-100 mb-2.5 pa-1.5 rounded-xl stepper-row-glass border-soft">
-                    <div class="d-flex flex-column text-left pl-1">
+                    <div class="d-flex flex-column text-center flex-grow-1 pl-1">
                       <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.68rem; line-height: 1.1;">
                         Max Raggiunto
                       </span>
@@ -2110,13 +2115,10 @@
                   </div>
 
                   <!-- Riga 2: Sforzo Percepito W6 Precedente -->
-                  <div class="d-flex flex-column gap-1.5 w-100 text-left">
-                    <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex flex-column gap-1.5 w-100 text-center">
+                    <div class="d-flex align-center justify-center text-center">
                       <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.65rem;">
                         ⚡ Sforzo Percepito
-                      </span>
-                      <span v-if="numFaticaw6ValPrecedente" class="text-super-caption font-weight-black" :style="getColoreFaticaStyle(numFaticaw6ValPrecedente)">
-                        {{ numFaticaw6ValPrecedente }}
                       </span>
                     </div>
 
@@ -2771,9 +2773,19 @@
       :max-width="isMobileScreen ? '100%' : 750" 
       :fullscreen="isMobileScreen"
       scrollable
-      class="dialog-storico-unified"
+      :class="['dialog-storico-unified', activeTabAnalisi === 1 ? 'tab-cronologia' : 'tab-proposta']"
     >
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" :style="{ backdropFilter: 'blur(25px)', background: 'var(--card-bg-dark, #0f172a) !important', width: isMobileScreen ? '100%' : '750px', height: isMobileScreen ? '100%' : '88vh', minHeight: isMobileScreen ? '100%' : '520px', maxHeight: isMobileScreen ? '100%' : '88vh' }">
+      <v-card 
+        class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" 
+        :style="{ 
+          backdropFilter: 'blur(25px)', 
+          background: 'var(--card-bg-dark, #0f172a) !important', 
+          width: isMobileScreen ? '100%' : '750px', 
+          height: isMobileScreen ? '100%' : (activeTabAnalisi === 1 ? '88vh' : 'auto'), 
+          minHeight: isMobileScreen ? '100%' : (activeTabAnalisi === 1 ? '520px' : 'auto'), 
+          maxHeight: isMobileScreen ? '100%' : '90vh' 
+        }"
+      >
         <v-card-title class="pa-0 border-bottom flex-shrink-0" :style="{ background: 'var(--card-bg-dark, #0f172a)' }">
           <!-- Rigo 1: Titolo e Chiudi -->
           <div class="px-3 py-2 d-flex align-center justify-space-between" style="min-height: 40px;">
@@ -2823,7 +2835,7 @@
           </div>
         </v-card-title>
         
-        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: 'auto', minHeight: '300px' }">
+        <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1 d-flex flex-column" :style="{ overflowY: 'auto', minHeight: activeTabAnalisi === 1 ? '300px' : 'auto' }">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0" class="pt-0">
@@ -15248,7 +15260,7 @@ const suggerimentoRecord = computed(() => {
 
   storicoEsercizio.value.forEach(prevEx => {
     const sNum = parseInt(prevEx.num_scheda);
-    if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+    if (!isNaN(sNum) && sNum > currentNumScheda) return;
     const dateVal = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
 
     // Priorità 1: Miglior Carico W6 (num_ins6 / ins_week6) se presente per le stesse reps target
@@ -15506,7 +15518,7 @@ const recordMaxRepsInfo = computed(() => {
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
-      if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+      if (!isNaN(sNum) && sNum > currentNumScheda) return;
       for (let w = 1; w <= 6; w++) {
         const ins = prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null);
         if (ins) {
@@ -16524,63 +16536,57 @@ const caricaDatiAnalisi = async (sett) => {
 
     await caricaPesiWorkoutT(atletaId);
     
-    // 1. Prova prima con globalStoryboard in memoria
-    let list = [];
-    if (globalStoryboard.value && globalStoryboard.value.length > 0) {
-      list = globalStoryboard.value.filter(d => {
-        const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
-        const dNome = String(d.des_esercizio || '').trim().toLowerCase();
-        return String(dAtletaId) === String(atletaId) &&
-               dNome === desEsercizioClean &&
-               parseInt(d.num_scheda) <= currentNumScheda &&
-               parseInt(d.num_riga_giorno) > 0;
-      }).map(d => {
-        const itemId = d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
-        const sNumStr = String(d.num_scheda || '').trim();
-        const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
-        return { ...d, id: itemId, peso_corporeo: pesoCorp };
+    const mappaSchede = new Map();
+
+    // 1. Carica dallo storyboard_backup.json locale (tutte le schede passate dell'atleta)
+    try {
+      const allData = await getStoryboardBackup();
+      (allData || []).forEach(b => {
+        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        const bNome = String(b.des_esercizio || '').trim().toLowerCase();
+        if (String(bAtletaId) === String(atletaId) && bNome === desEsercizioClean && parseInt(b.num_riga_giorno) > 0) {
+          const sNum = parseInt(b.num_scheda);
+          if (!isNaN(currentNumScheda) && !isSchedaPassata.value && sNum > currentNumScheda) return;
+          const sNumStr = String(b.num_scheda || '').trim();
+          const itemId = b.id || `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+          const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(b);
+          mappaSchede.set(sNumStr, applicaModificheLocali({ ...b, id: itemId, peso_corporeo: pesoCorp }));
+        }
       });
+    } catch (errBackup) {
+      console.warn("Errore backup in caricaDatiAnalisi:", errBackup);
     }
 
-    // 2. Se non presente in memoria, interroga Firestore
-    if (list.length === 0) {
+    // 2. Interroga Firestore per le schede salvate/aggiornate online
+    try {
       const q = query(
         collection(db, 'STORYBOARD'),
         where(keyIdCliente, 'in', [atletaId, !isNaN(Number(atletaId)) ? Number(atletaId) : atletaId])
       );
       const snap = await getDocs(q);
-      snap.forEach((doc) => {
-        const d = doc.data();
+      snap.forEach((docSnap) => {
+        const d = docSnap.data();
         const dNome = String(d.des_esercizio || '').trim().toLowerCase();
         const sNum = parseInt(d.num_scheda);
-        if (dNome === desEsercizioClean && sNum <= currentNumScheda && parseInt(d.num_riga_giorno) > 0) {
-          const itemId = doc.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
+        if (dNome === desEsercizioClean && parseInt(d.num_riga_giorno) > 0) {
+          if (!isNaN(currentNumScheda) && !isSchedaPassata.value && sNum > currentNumScheda) return;
+          const itemId = docSnap.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
           const sNumStr = String(d.num_scheda || '').trim();
-          const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
-          list.push({ ...d, id: itemId, peso_corporeo: pesoCorp });
+          mappaSchede.set(sNumStr, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
+    } catch (errFirestore) {
+      console.warn("Errore query Firestore in caricaDatiAnalisi:", errFirestore);
     }
 
-    // 3. Fallback di backup se ancora vuoto
-    if (list.length === 0) {
-      const allData = await getStoryboardBackup();
-      const matched = (allData || []).filter(b => {
-        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
-        const bNome = String(b.des_esercizio || '').trim().toLowerCase();
-        return String(bAtletaId) === String(atletaId) &&
-               bNome === desEsercizioClean &&
-               parseInt(b.num_scheda) <= currentNumScheda &&
-               parseInt(b.num_riga_giorno) > 0;
-      });
-      matched.forEach(b => {
-        b.id = `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
-        const sNumStr = String(b.num_scheda || '').trim();
-        b.peso_corporeo = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(b);
-      });
-      list = matched;
+    // 3. Sovrascrivi/Integra la scheda corrente da workout.value (per avere gli ultimissimi input inseriti)
+    if (workout.value && workout.value.num_scheda) {
+      const sNumStr = String(workout.value.num_scheda || '').trim();
+      const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(workout.value);
+      mappaSchede.set(sNumStr, applicaModificheLocali({ ...workout.value, peso_corporeo: pesoCorp }));
     }
 
+    const list = Array.from(mappaSchede.values());
     list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
     storicoEsercizio.value = list;
     storicoEsercizioPerAiuto.value = list;
@@ -19050,6 +19056,10 @@ th.sticky-col {
 .dialog-storico-unified :deep(.v-card) {
   display: flex !important;
   flex-direction: column !important;
+  max-height: 90vh !important;
+}
+
+.dialog-storico-unified.tab-cronologia :deep(.v-card) {
   height: 88vh !important;
   min-height: 520px !important;
 }

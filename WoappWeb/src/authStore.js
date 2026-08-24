@@ -1574,7 +1574,9 @@ export const getCustomExerciseStep = (exerciseName) => {
   if (!exerciseName) return null;
   const key = String(exerciseName).trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
   const val = userCustomExerciseSteps.value[key];
-  return (val && parseFloat(val) > 0) ? parseFloat(val) : null;
+  if (!val) return null;
+  const num = typeof val === 'object' && val !== null ? parseFloat(val.step) : parseFloat(val);
+  return (!isNaN(num) && num > 0) ? num : null;
 };
 
 export const setCustomExerciseStep = async (exerciseName, stepKg) => {

@@ -922,18 +922,6 @@
 
                   <!-- Action Button -->
                   <div class="flex-shrink-0 d-flex align-center gap-1">
-                    <v-btn
-                      color="green-darken-3"
-                      size="x-small"
-                      variant="flat"
-                      class="font-weight-black text-none text-white rounded px-1.5"
-                      style="height: 20px; font-size: 0.55rem !important; min-width: auto;"
-                      title="Segna come completato"
-                      @click.stop="concludiRecuperoRapido(block)"
-                    >
-                      <v-icon size="11" class="mr-0.5">mdi-check</v-icon>
-                      Fatto
-                    </v-btn>
                     <v-icon size="14" color="slate-dark" class="opacity-50">mdi-chevron-right</v-icon>
                   </div>
                 </div>
@@ -1002,7 +990,7 @@
                   <!-- Riga 3: Badge Origine Giorno/Week + Complessità + Selettore Posizione -->
                   <div class="d-flex align-center flex-wrap gap-1 mt-0.5" style="padding-right: 64px;">
                     <v-chip 
-                      color="primary" 
+                      color="orange-darken-3" 
                       size="x-small" 
                       variant="flat" 
                       class="font-weight-black text-white px-1.5 flex-shrink-0" 
@@ -1068,19 +1056,18 @@
                   </div>
                 </div>
 
-                <!-- Pulsante Azione Rapido sulla destra -->
-                <div class="position-absolute d-flex align-center justify-end" style="right: 6px; top: 50%; transform: translateY(-50%); z-index: 10;">
-                  <v-btn
-                    color="green-darken-3"
-                    size="small"
-                    variant="flat"
-                    class="font-weight-black text-none text-white rounded-lg px-2.5 shadow-sm"
-                    style="height: 24px; font-size: 0.60rem !important;"
-                    @click.stop="concludiRecuperoRapido(block)"
+                <!-- Pulsante Azione Registra sulla destra -->
+                <div class="position-absolute d-flex align-center justify-end" style="right: 4px; top: 50%; transform: translateY(-50%); z-index: 10;">
+                  <v-chip 
+                    size="small" 
+                    variant="outlined" 
+                    color="primary" 
+                    class="font-weight-black px-1.5 py-0 text-none bg-slate-darken-4 theme-registra-chip"
+                    style="height: 22px; font-size: 0.60rem; border-radius: 5px;"
+                    @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
-                    <v-icon size="12" class="mr-0.5">mdi-check</v-icon>
-                    Fatto
-                  </v-btn>
+                    + Registra
+                  </v-chip>
                 </div>
               </template>
 
@@ -1093,7 +1080,7 @@
                       class="position-absolute d-flex align-center justify-center font-weight-black text-white"
                       style="top: -6px; left: -6px; min-width: 26px; height: 26px; font-size: 0.76rem; background: var(--theme-primary, #c85a17); z-index: 10; border-radius: 8px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);"
                     >
-                      🔄
+                      <v-icon size="14">mdi-restore</v-icon>
                     </div>
 
                     <div class="rounded-xl overflow-hidden shadow-sm" style="width: 84px; height: 84px; border: 1px solid var(--card-border);">
@@ -1121,7 +1108,7 @@
                     variant="flat"
                     style="font-size: 0.58rem; height: 18px; border-radius: 4px; padding: 0 6px; width: 100%; justify-content: center;"
                   >
-                    DA G.{{ block.exercise.des_giorno }}
+                    DA G.{{ block.exercise.des_giorno }} • W{{ block.week }}
                   </v-chip>
                 </div>
 
@@ -1146,8 +1133,8 @@
 
                   <!-- Metadata Chips Standard -->
                   <div class="d-flex align-center flex-wrap gap-1.5 mb-1.5">
-                    <v-chip color="primary" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.54rem; height: 18px;">
-                      RECUPERO DA G.{{ block.exercise.des_giorno }} • W{{ block.week }}
+                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.54rem; height: 18px;">
+                      🔄 DA RECUPERARE • G.{{ block.exercise.des_giorno }} W{{ block.week }}
                     </v-chip>
                     <v-chip 
                       size="x-small" 
@@ -1206,19 +1193,18 @@
                   </div>
                 </div>
 
-                <!-- Pulsante Fatto Standard -->
+                <!-- Pulsante Azione Registra Standard -->
                 <div class="d-flex align-center justify-end pl-2 flex-shrink-0">
-                  <v-btn
-                    color="green-darken-3"
-                    size="small"
-                    variant="flat"
-                    class="font-weight-black text-none text-white rounded-lg px-3 shadow-sm"
-                    style="height: 28px; font-size: 0.68rem !important;"
-                    @click.stop="concludiRecuperoRapido(block)"
+                  <v-chip 
+                    size="small" 
+                    variant="outlined" 
+                    color="primary" 
+                    class="font-weight-black px-2 py-0 text-none bg-slate-darken-4 theme-registra-chip"
+                    style="height: 24px; font-size: 0.65rem; border-radius: 6px;"
+                    @click.stop="vaiAlDettaglio(block.exercise.id)"
                   >
-                    <v-icon size="14" class="mr-1">mdi-check</v-icon>
-                    Fatto
-                  </v-btn>
+                    + Registra
+                  </v-chip>
                 </div>
               </template>
             </v-card>

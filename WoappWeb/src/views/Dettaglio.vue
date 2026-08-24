@@ -92,53 +92,82 @@
                   <v-icon size="20">mdi-dots-vertical</v-icon>
                 </v-btn>
               </template>
-              <v-list class="bg-slate-900 border border-slate-700 py-1" density="compact" width="210">
+              <v-list class="bg-slate-900 border border-slate-700 py-1" density="compact" width="220" style="backdrop-filter: blur(20px);">
+                <!-- Step Incremento Carico (Nuovo) -->
+                <v-list-item
+                  @click="apriDialogStepEsercizio"
+                  class="px-2.5 py-1 min-h-0"
+                  id="btn-menu-step-carico"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="cyan-lighten-2" size="17" class="mr-2 flex-shrink-0">mdi-scale</v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    Step Incremento
+                  </v-list-item-title>
+                  <template v-slot:append>
+                    <v-chip size="x-small" color="cyan-darken-3" class="px-1 py-0 font-weight-black text-white ml-1" style="height: 16px; font-size: 0.55rem;">
+                      {{ stepCaricoEsercizioEffettivo }}kg
+                    </v-chip>
+                  </template>
+                </v-list-item>
+
+                <v-divider class="my-0.5 border-slate-700"></v-divider>
+
                 <!-- Modifica Esercizio (Coach) -->
                 <v-list-item
                   v-if="ruolo === 'coach'"
                   @click="apriDialogModifica"
-                  class="px-3"
+                  class="px-2.5 py-1 min-h-0"
                 >
                   <template v-slot:prepend>
-                    <v-icon color="amber-lighten-2" size="20" class="mr-2">mdi-pencil</v-icon>
+                    <v-icon color="amber-lighten-2" size="17" class="mr-2 flex-shrink-0">mdi-pencil</v-icon>
                   </template>
-                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Modifica Esercizio</v-list-item-title>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    Modifica Esercizio
+                  </v-list-item-title>
                 </v-list-item>
 
                 <!-- Elimina Esercizio (Coach) -->
                 <v-list-item
                   v-if="ruolo === 'coach'"
                   @click="dialogElimina = true"
-                  class="px-3"
+                  class="px-2.5 py-1 min-h-0"
                 >
                   <template v-slot:prepend>
-                    <v-icon color="red-lighten-2" size="20" class="mr-2">mdi-delete</v-icon>
+                    <v-icon color="red-lighten-2" size="17" class="mr-2 flex-shrink-0">mdi-delete</v-icon>
                   </template>
-                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Elimina Esercizio</v-list-item-title>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    Elimina Esercizio
+                  </v-list-item-title>
                 </v-list-item>
 
-                <v-divider v-if="ruolo === 'coach'" class="my-1 border-slate-700"></v-divider>
+                <v-divider v-if="ruolo === 'coach'" class="my-0.5 border-slate-700"></v-divider>
 
                 <!-- Invia Video WhatsApp -->
                 <v-list-item
                   @click="inviaVideoWhatsApp"
-                  class="px-3"
+                  class="px-2.5 py-1 min-h-0"
                 >
                   <template v-slot:prepend>
-                    <v-icon color="green-accent-3" size="20" class="mr-2">mdi-whatsapp</v-icon>
+                    <v-icon color="green-accent-3" size="17" class="mr-2 flex-shrink-0">mdi-whatsapp</v-icon>
                   </template>
-                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Invia Video WhatsApp</v-list-item-title>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    Invia Video WhatsApp
+                  </v-list-item-title>
                 </v-list-item>
 
                 <!-- Cerca Esercizio -->
                 <v-list-item
                   @click="dialogRicercaRapida = true"
-                  class="px-3"
+                  class="px-2.5 py-1 min-h-0"
                 >
                   <template v-slot:prepend>
-                    <v-icon color="orange-darken-3" size="20" class="mr-2">mdi-magnify</v-icon>
+                    <v-icon color="orange-darken-3" size="17" class="mr-2 flex-shrink-0">mdi-magnify</v-icon>
                   </template>
-                  <v-list-item-title class="font-weight-bold text-caption text-slate-100">Cerca Esercizio</v-list-item-title>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    Cerca Esercizio
+                  </v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -2481,6 +2510,72 @@
             Elimina
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Impostazione Step Incremento Esercizio -->
+    <v-dialog v-model="dialogStepEsercizio" max-width="360">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-center" style="backdrop-filter: blur(25px); background: #0b111e !important; border: 1.5px solid rgba(6, 182, 212, 0.4) !important;">
+        <v-card-title class="pa-3.5 pb-2 d-flex align-center justify-space-between bg-slate-900 border-bottom">
+          <div class="d-flex align-center gap-1.5 text-truncate" style="max-width: 85%;">
+            <v-icon color="cyan-accent-3" size="20">mdi-scale</v-icon>
+            <span class="text-subtitle-2 font-weight-black text-white text-truncate">Step Incremento</span>
+          </div>
+          <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogStepEsercizio = false">
+            <v-icon size="16">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3.5 text-left">
+          <div class="text-super-caption text-slate-300 mb-2.5 font-weight-medium" style="font-size: 0.72rem; line-height: 1.35;">
+            Personalizza il salto di peso minimo per <strong class="text-amber-lighten-2">{{ workout?.des_esercizio }}</strong>. 
+            <span class="d-block text-cyan-lighten-3 mt-1" style="font-size: 0.64rem;">⚡ Verrà ricordato automaticamente per le prossime schede.</span>
+          </div>
+
+          <!-- Opzioni Rapide Step -->
+          <div class="d-flex flex-wrap gap-1.5 justify-center mb-3">
+            <v-btn
+              v-for="st in opzioniStepRapidi"
+              :key="st.val"
+              size="small"
+              :variant="stepCaricoEsercizioEffettivo === st.val ? 'flat' : 'outlined'"
+              :color="stepCaricoEsercizioEffettivo === st.val ? 'cyan-darken-2' : 'slate-600'"
+              class="font-weight-black text-white px-2 rounded-lg"
+              :class="{ 'border-cyan': stepCaricoEsercizioEffettivo === st.val }"
+              style="min-width: 58px; height: 34px; font-size: 0.75rem;"
+              @click="selezionaStepEsercizio(st.val)"
+            >
+              {{ st.label }}
+            </v-btn>
+          </div>
+
+          <!-- Input Valore Personalizzato -->
+          <div class="d-flex align-center gap-2 mt-2 pt-2 border-top-soft">
+            <v-text-field
+              v-model="inputStepCustom"
+              placeholder="Altro step (es. 1.5)"
+              type="number"
+              step="0.25"
+              density="compact"
+              variant="outlined"
+              color="cyan-accent-3"
+              hide-details
+              class="flex-grow-1"
+              style="font-size: 0.78rem;"
+            ></v-text-field>
+            <v-btn
+              color="cyan-darken-2"
+              variant="flat"
+              size="small"
+              class="font-weight-bold text-none px-3 text-white rounded-lg"
+              style="height: 38px; font-size: 0.75rem;"
+              :disabled="!inputStepCustom || parseFloat(inputStepCustom) <= 0"
+              @click="selezionaStepEsercizio(parseFloat(inputStepCustom))"
+            >
+              Salva
+            </v-btn>
+          </div>
+        </v-card-text>
       </v-card>
     </v-dialog>
 
@@ -5338,7 +5433,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -5605,7 +5700,7 @@ const apriResocontoCoachPR = () => {
   }
   
   // Cosa serve concretamente per superarlo (calcolo matematico reps e carichi necessari)
-  const stepKg = isManubri ? 1.0 : (isCavo ? 1.25 : 2.5);
+  const stepKg = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? 1.0 : (isCavo ? 1.25 : 2.5));
   const targetNuovoPRKg = Math.round((prWeight + stepKg) * 10) / 10;
   
   // Calcolo matematico del carico a target reps necessario per superare il Record Assoluto storico di 1RM
@@ -6010,6 +6105,10 @@ const onOverviewE1RMClick = (idOrItem) => {
 
 // Gestione tasto indietro (popstate / back) per le modali
 const onPopStateModalHandler = () => {
+  if (dialogStepEsercizio.value) {
+    dialogStepEsercizio.value = false;
+    return;
+  }
   if (dialogProgressioniPrecedente.value) {
     dialogProgressioniPrecedente.value = false;
     return;
@@ -6376,12 +6475,88 @@ const stimaRecordStoricoPerReps = (targetReps) => {
   return null;
 };
 
-const arrotondaAStep125 = (val) => {
+// --- GESTIONE STEP INCREMENTO CARICO PERSONALIZZATO PER ESERCIZIO ---
+const dialogStepEsercizio = ref(false);
+const inputStepCustom = ref('');
+const opzioniStepRapidi = [
+  { val: 0.5, label: '0.5 kg' },
+  { val: 1.0, label: '1.0 kg' },
+  { val: 1.25, label: '1.25 kg' },
+  { val: 2.0, label: '2.0 kg' },
+  { val: 2.5, label: '2.5 kg' },
+  { val: 5.0, label: '5.0 kg' },
+];
+
+const getNormalizedExerciseKey = (nome) => {
+  if (!nome) return '';
+  return String(nome).trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+};
+
+const stepPersonalizzatoEsercizio = computed(() => {
+  if (!workout.value) return null;
+  const exName = workout.value.des_esercizio;
+  if (!exName) return null;
+  const custom = getCustomExerciseStep(exName);
+  if (custom && custom > 0) return custom;
+  if (workout.value.step_kg && parseFloat(workout.value.step_kg) > 0) {
+    return parseFloat(workout.value.step_kg);
+  }
+  return null;
+});
+
+const caricaStepPersonalizzato = () => {
+  // Gestito dinamicamente dalla computed reattiva stepPersonalizzatoEsercizio
+};
+
+const stepCaricoEsercizioEffettivo = computed(() => {
+  if (stepPersonalizzatoEsercizio.value && stepPersonalizzatoEsercizio.value > 0) {
+    return stepPersonalizzatoEsercizio.value;
+  }
+  if (!workout.value) return 2.5;
+  const isManubri = isManubriEsercizio(workout.value);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  if (isManubri) return 1.0;
+  if (isCavo) return 1.25;
+  return 2.5;
+});
+
+const apriDialogStepEsercizio = () => {
+  inputStepCustom.value = stepCaricoEsercizioEffettivo.value ? String(stepCaricoEsercizioEffettivo.value) : '';
+  dialogStepEsercizio.value = true;
+};
+
+const selezionaStepEsercizio = async (nuovoStep) => {
+  const stepVal = parseFloat(nuovoStep);
+  if (isNaN(stepVal) || stepVal <= 0) return;
+  
+  vibraTattile(15);
+  
+  if (workout.value && workout.value.des_esercizio) {
+    workout.value.step_kg = stepVal;
+    await setCustomExerciseStep(workout.value.des_esercizio, stepVal);
+    
+    // Salva anche nel documento Firestore dell'esercizio se presente ID
+    if (workout.value.id) {
+      try {
+        const docRef = doc(db, 'esercizi', String(workout.value.id));
+        await updateDoc(docRef, { step_kg: stepVal });
+      } catch (err) {
+        console.warn('Errore salvataggio step_kg su Firestore:', err);
+      }
+    }
+  }
+  
+  dialogStepEsercizio.value = false;
+};
+
+const arrotondaAStepEsercizio = (val) => {
   if (val === null || val === undefined || isNaN(val) || val <= 0) return null;
-  const step = 1.25;
+  const isManubri = isManubriEsercizio(workout.value);
+  const step = getWeightStep(isManubri, val);
   const rounded = Math.round(val / step) * step;
   return Math.round(rounded * 100) / 100;
 };
+const arrotondaAStep125 = arrotondaAStepEsercizio;
 
 const calcolaDettaglioMassimale1RMPuro = () => {
   if (!workout.value) return { best1RM: 0, bestSource: null };
@@ -7458,28 +7633,26 @@ const getGhostWeightsRangeForWeek = (sett) => {
     let defaultPeso = ghost.suggerito || ghost.peso || 0;
     if (isManubri) defaultPeso = arrotondaManubrioCommerciale(defaultPeso);
     if (defaultPeso <= 0) return null;
-    let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.round((defaultPeso * 0.95) / step) * step;
+    let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
     let medio = defaultPeso;
     let max = 0;
     
     // Evita il collasso delle opzioni (Prudenziale uguale a Consigliato)
     if (min === medio && defaultPeso - step > 0) {
-      min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : defaultPeso - step;
+      min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
     }
     
     const recordVal = sfidaRecordWeek1.value ? ghost.recordVal : null;
     if (recordVal && recordVal > 0) {
-      if (recordVal >= defaultPeso) {
-        if (recordVal <= defaultPeso * 1.25) {
-          max = isManubri ? getDumbbellSequenceWeight(recordVal, 'up') : Math.round((recordVal + step) / step) * step;
-        } else {
-          max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.10) / step) * step;
-        }
+      if (recordVal > defaultPeso) {
+        max = isManubri ? getDumbbellSequenceWeight(recordVal, 'up') : Math.round((recordVal + step) / step) * step;
+      } else if (recordVal === defaultPeso) {
+        max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
       } else {
         max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
       }
     } else {
-      max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.05) / step) * step;
+      max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
     }
     
     // Evita il collasso delle opzioni (Sfidante uguale a Consigliato)
@@ -8847,7 +9020,7 @@ const calcolaRecordOverviewData = (sett) => {
   let prDeltaText = progressioneVsPRPrec || `Nuovo primato personale`;
 
   // Carico da proporre sul bilanciere per battere il Picco 1RM Assoluto alle reps attuali
-  const stepKg = typeof stepCaricoEsercizio !== 'undefined' && stepCaricoEsercizio?.value ? stepCaricoEsercizio.value : (isCavo ? 1.25 : 2.5);
+  const stepKg = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? 1.0 : (isCavo ? 1.25 : 2.5));
   const target1RMBreak = roundedE1rm > 0 ? roundedE1rm : (roundedCurrentE1RM > 0 ? roundedCurrentE1RM : 0);
   let targetLoadForNewPeak = 0;
   if (target1RMBreak > 0 && targetReps > 0 && !isCorpoLiberoPuro) {
@@ -9051,11 +9224,11 @@ const strategieAlternativeCards = computed(() => {
   const rawSmart = parseFloat(String(range.consigliato.value).replace(',', '.')) || 0;
   const rawSafe = parseFloat(String(range.prudenziale.value).replace(',', '.')) || 0;
   const rawSfidante = parseFloat(String(range.sfidante.value).replace(',', '.')) || 0;
-  const step = getWeightStep(isManubri, rawSmart || pesoBase);
+  const step = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : getWeightStep(isManubri, rawSmart || pesoBase);
 
-  const smartVal = rawSmart > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSmart) : Math.round(rawSmart / step) * step) : 0;
-  const safeVal = rawSafe > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSafe) : Math.round(rawSafe / step) * step) : 0;
-  const sfidanteVal = rawSfidante > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSfidante) : Math.round(rawSfidante / step) * step) : 0;
+  const smartVal = rawSmart > 0 ? (isManubri && !stepCaricoEsercizioEffettivo?.value ? arrotondaManubrioCommerciale(rawSmart) : Math.round(rawSmart / step) * step) : 0;
+  const safeVal = rawSafe > 0 ? (isManubri && !stepCaricoEsercizioEffettivo?.value ? arrotondaManubrioCommerciale(rawSafe) : Math.round(rawSafe / step) * step) : 0;
+  const sfidanteVal = rawSfidante > 0 ? (isManubri && !stepCaricoEsercizioEffettivo?.value ? arrotondaManubrioCommerciale(rawSfidante) : Math.round(rawSfidante / step) * step) : 0;
 
   // Determina se c'è opportunità PR attiva e se Sfidante deve essere protagonista
   const oppPR = opportunitaPRData.value;
@@ -10978,8 +11151,13 @@ const isCavoOMacchinaEsercizio = (ex) => {
   );
 };
 
-// ✅ NUOVA LOGICA CON STEP 1,25 KG PER CAVI E PICCOLI CARICHI:
+// ✅ NUOVA LOGICA CON STEP PERSONALIZZATO E FALLBACK
 const getWeightStep = (isManubri, baseWeight) => {
+  // 0. Priorità assoluta allo step configurato per questo specifico esercizio
+  if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
+    return stepCaricoEsercizioEffettivo.value;
+  }
+
   const p = parseFloat(baseWeight) || 0;
 
   // 1. Manubri (Step 1kg sotto i 10kg, Step 2kg sopra)
@@ -11225,9 +11403,9 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
   const r1 = currW1Reps ? parseInt(currW1Reps, 10) : 10;
   const rirBase = baseRIR !== null ? baseRIR : 0;
   
-  // Determinazione del passo di arrotondamento (1.0 per manubri, 1.25 per bilancieri)
+  // Determinazione del passo di arrotondamento (dinamico con supporto step personalizzato)
   const isManubri = workout.value ? isManubriEsercizio(workout.value) : false;
-  const step = isManubri ? 1.0 : 1.25;
+  const step = getWeightStep(isManubri, wBase);
 
   // FASE 1: Stima 1RM
   const repsBaseTotali = rBase + rirBase;
@@ -11471,12 +11649,12 @@ const propostaWeek1 = computed(() => {
   }
 
   const isManubri = isManubriEsercizio(workout.value);
-  const step = isManubri ? 1.0 : 1.25;
+  const step = getWeightStep(isManubri, proposta || 0);
   const defaultPeso = proposta || 0;
   
   const recordVal = sfidaRecordWeek1.value ? ottieniRecordStoricoPerReps(currW1Reps) : null;
   
-  let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.round((defaultPeso * 0.95) / step) * step;
+  let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
   let medio = defaultPeso;
   let max = 0;
   
@@ -11493,7 +11671,7 @@ const propostaWeek1 = computed(() => {
       if (recordVal <= defaultPeso * 1.25) {
         max = isManubri ? getDumbbellSequenceWeight(recordVal, 'up') : Math.round((recordVal + step) / step) * step;
       } else {
-        max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.10) / step) * step;
+        max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso + step) / step) * step;
       }
     } else {
       max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
@@ -11513,7 +11691,7 @@ const propostaWeek1 = computed(() => {
       sfidanteLabel = `Sfidante (Record: ${formatWeight(recordVal)}kg)`;
     }
   } else {
-    max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : Math.round((defaultPeso * 1.05) / step) * step;
+    max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
     if (max === medio) {
       max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
     }
@@ -16251,10 +16429,10 @@ const strategiaCoachData = computed(() => {
   }
 
   // Costruzione Roadmap W1 -> W6 basata su reps prescritte
-  const step = isManubri ? 1.0 : 2.5;
-  const getStepFor = (w) => isManubri ? (w >= 10 ? 2.0 : 1.0) : 2.5;
+  const step = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? 1.0 : 2.5);
+  const getStepFor = (w) => stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? (w >= 10 ? 2.0 : 1.0) : 2.5);
 
-  const adjustDumbbell = (w) => isManubri ? arrotondaManubrioCommerciale(w) : w;
+  const adjustDumbbell = (w) => (isManubri && !stepCaricoEsercizioEffettivo?.value) ? arrotondaManubrioCommerciale(w) : w;
 
   const calcWeightForReps = (targetE1RM, targetReps) => {
     if (targetE1RM <= 0) return isManubri ? 10 : 20;

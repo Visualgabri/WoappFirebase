@@ -1568,6 +1568,55 @@ export const defaultBilanciereGlobal = ref(parseFloat(localStorage.getItem('woap
 export const vibrazioneAttivaGlobal = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
 export const defaultTimerRecGlobal = ref(parseInt(localStorage.getItem('woapp_default_timer_rec') || '90', 10));
 
+export const userCustomExerciseSteps = ref({});
+
+export const getCustomExerciseStep = (exerciseName) => {
+  if (!exerciseName) return null;
+  const key = String(exerciseName).trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const val = userCustomExerciseSteps.value[key];
+  return (val && parseFloat(val) > 0) ? parseFloat(val) : null;
+};
+
+export const setCustomExerciseStep = async (exerciseName, stepKg) => {
+  if (!exerciseName) return;
+  const key = String(exerciseName).trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const val = parseFloat(stepKg);
+  const atletaId = getActiveAtletaId();
+  
+  if (isNaN(val) || val <= 0) {
+    const updated = { ...userCustomExerciseSteps.value };
+    delete updated[key];
+    userCustomExerciseSteps.value = updated;
+  } else {
+    userCustomExerciseSteps.value = {
+      ...userCustomExerciseSteps.value,
+      [key]: {
+        name: String(exerciseName).trim(),
+        step: val,
+        updatedAt: new Date().toISOString()
+      }
+    };
+  }
+
+  if (atletaId) {
+    localStorage.setItem('userExerciseCustomSteps_' + atletaId, JSON.stringify(userCustomExerciseSteps.value));
+    localStorage.setItem('userExerciseCustomSteps', JSON.stringify(userCustomExerciseSteps.value));
+  }
+  salvaClienteConfigFirestore();
+};
+
+export const removeCustomExerciseStep = async (exerciseKey) => {
+  const atletaId = getActiveAtletaId();
+  const updated = { ...userCustomExerciseSteps.value };
+  delete updated[exerciseKey];
+  userCustomExerciseSteps.value = updated;
+  if (atletaId) {
+    localStorage.setItem('userExerciseCustomSteps_' + atletaId, JSON.stringify(updated));
+    localStorage.setItem('userExerciseCustomSteps', JSON.stringify(updated));
+  }
+  salvaClienteConfigFirestore();
+};
+
 let isSyncingClienteConfigFromFirestore = false;
 let clienteConfigDebounceTimeout = null;
 let clienteConfigUnsubscribe = null;
@@ -1587,6 +1636,7 @@ export const salvaClienteConfigFirestore = () => {
       const payload = {
         atletaId: String(atletaId),
         updatedAt: new Date().toISOString(),
+        customExerciseSteps: userCustomExerciseSteps.value,
         ghostSettings: {
           stileVisualizzazione: stileVisualizzazioneGhost.value,
           modalitaIncremento: modalitaIncrementoGhost.value,
@@ -1633,6 +1683,13 @@ export const syncClienteConfigListener = () => {
   if (!atletaId) return;
 
   // Pre-carica cache locale per l'atleta attivo prima dell'arrivo del doc Firestore
+  try {
+    const rawLocalSteps = localStorage.getItem('userExerciseCustomSteps_' + atletaId) || localStorage.getItem('userExerciseCustomSteps') || '{}';
+    userCustomExerciseSteps.value = JSON.parse(rawLocalSteps);
+  } catch (e) {
+    userCustomExerciseSteps.value = {};
+  }
+
   stileVisualizzazioneGhost.value = localStorage.getItem('stileVisualizzazioneGhost_' + atletaId) || 'range';
   modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
   ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
@@ -1651,6 +1708,12 @@ export const syncClienteConfigListener = () => {
       const ghost = data.ghostSettings || {};
       const ui = data.uiSettings || {};
       const wo = data.workoutSettings || {};
+
+      if (data.customExerciseSteps && typeof data.customExerciseSteps === 'object') {
+        userCustomExerciseSteps.value = data.customExerciseSteps;
+        localStorage.setItem('userExerciseCustomSteps_' + atletaId, JSON.stringify(data.customExerciseSteps));
+        localStorage.setItem('userExerciseCustomSteps', JSON.stringify(data.customExerciseSteps));
+      }
 
       if (ghost.stileVisualizzazione !== undefined) {
         stileVisualizzazioneGhost.value = ghost.stileVisualizzazione;

@@ -461,6 +461,110 @@
       </div>
     </v-card>
 
+    <!-- SEZIONE 4.1: ELENCO STEP INCREMENTO PERSONALIZZATI (Nuova Schermata/Card Dedicata) -->
+    <v-card 
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
+      elevation="1"
+    >
+      <div class="d-flex align-center justify-space-between mb-2">
+        <div class="d-flex align-center">
+          <v-icon color="cyan-lighten-2" class="mr-2" size="18">mdi-scale</v-icon>
+          <span class="text-subtitle-2 font-weight-black text-cyan-lighten-2 uppercase tracking-wide" style="font-size: 0.72rem;">Step Incremento Personalizzati</span>
+        </div>
+        <v-chip size="x-small" color="cyan-darken-3" class="font-weight-black text-white px-1.5" style="height: 18px; font-size: 0.60rem;">
+          {{ listaEserciziStepPersonalizzati.length }} salvati
+        </v-chip>
+      </div>
+
+      <div class="text-super-caption text-slate-300 mb-2.5 font-weight-medium" style="font-size: 0.65rem; line-height: 1.35;">
+        Elenco di tutti gli esercizi per i quali hai modificato il salto di carico rispetto ai valori standard.
+      </div>
+
+      <!-- Lista degli esercizi con Step Personalizzato -->
+      <div v-if="listaEserciziStepPersonalizzati.length > 0" class="d-flex flex-column gap-1.5">
+        <div 
+          v-for="item in listaEserciziStepPersonalizzati" 
+          :key="item.key"
+          class="d-flex align-center justify-space-between pa-2 rounded-lg bg-slate-900 border border-slate-700"
+        >
+          <div class="min-width-0 pr-2">
+            <div class="text-caption font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+              {{ item.name }}
+            </div>
+            <div class="text-super-caption text-slate-400" style="font-size: 0.55rem;">
+              Step minimo: <strong class="text-cyan-lighten-2">{{ item.step }} kg</strong>
+            </div>
+          </div>
+
+          <div class="d-flex align-center gap-1 flex-shrink-0">
+            <v-chip 
+              size="x-small" 
+              color="cyan-darken-2" 
+              class="font-weight-black text-white px-1.5 cursor-pointer"
+              style="height: 22px; font-size: 0.65rem;"
+              @click="apriModificaStepDaImpostazioni(item)"
+              title="Modifica Step"
+            >
+              ✏️ {{ item.step }}kg
+            </v-chip>
+            <v-btn
+              icon
+              size="x-small"
+              variant="text"
+              color="red-lighten-2"
+              style="width: 24px; height: 24px;"
+              @click="eliminaStepDaImpostazioni(item.key)"
+              title="Ripristina step standard"
+            >
+              <v-icon size="15">mdi-delete-outline</v-icon>
+            </v-btn>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messaggio se nessun esercizio è personalizzato -->
+      <div v-else class="text-center pa-3 rounded-lg border-soft text-slate-400" style="font-size: 0.68rem;">
+        <v-icon size="20" color="slate-500" class="mb-1 d-block mx-auto">mdi-information-outline</v-icon>
+        Nessun esercizio personalizzato. Tutti gli esercizi usano gli step standard (1.25kg macchine/cavi, 1.0kg manubri, 2.5kg bilancieri).
+      </div>
+    </v-card>
+
+    <!-- Dialog Rapido Modifica Step da Impostazioni -->
+    <v-dialog v-model="dialogModificaStepImp" max-width="360">
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: #0b111e !important; border: 1.5px solid rgba(6, 182, 212, 0.4) !important;">
+        <v-card-title class="pa-3 pb-2 d-flex align-center justify-space-between bg-slate-900 border-bottom">
+          <div class="d-flex align-center gap-1.5">
+            <v-icon color="cyan-lighten-2" size="18">mdi-scale</v-icon>
+            <span class="text-subtitle-2 font-weight-black text-white" style="font-size: 0.82rem;">Modifica Step</span>
+          </div>
+          <v-btn icon size="x-small" variant="text" color="grey" @click="dialogModificaStepImp = false">
+            <v-icon size="16">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 text-left">
+          <div class="text-caption text-slate-200 mb-2.5 font-weight-medium" style="font-size: 0.72rem;">
+            Imposta lo step per <strong class="text-cyan-lighten-2">{{ esercizioInModificaStep?.name }}</strong>:
+          </div>
+
+          <div class="d-flex flex-wrap gap-1.5 justify-center mb-3">
+            <v-btn
+              v-for="st in [0.5, 1.0, 1.25, 2.0, 2.5, 5.0]"
+              :key="st"
+              size="small"
+              :variant="esercizioInModificaStep?.step === st ? 'flat' : 'outlined'"
+              :color="esercizioInModificaStep?.step === st ? 'cyan-darken-2' : 'slate-600'"
+              class="font-weight-black text-white px-2 rounded-lg"
+              style="min-width: 52px; height: 32px; font-size: 0.72rem;"
+              @click="salvaNuovoStepDaImpostazioni(st)"
+            >
+              {{ st }} kg
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <!-- SEZIONE 5: NOTIFICA DEPLOY / MESSAGGIO (SOLO COACH) -->
     <v-card 
       v-if="ruolo === 'coach'"
@@ -816,13 +920,47 @@ import {
   ORDINE_ORIGINALE_ATLETI,
   MAPPA_CLIENTI,
   MAPPA_CLIENTI_DINAMICI,
-  caricaNomiAtletiDinamici
+  caricaNomiAtletiDinamici,
+  userCustomExerciseSteps,
+  setCustomExerciseStep,
+  removeCustomExerciseStep
 } from '../authStore.js';
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
 const selectedTheme = ref(currentTheme.value);
 const selectedLightStyle = ref(currentLightStyle.value);
+
+// Gestione Sezione Step Incremento Personalizzati
+const dialogModificaStepImp = ref(false);
+const esercizioInModificaStep = ref(null);
+
+const listaEserciziStepPersonalizzati = computed(() => {
+  if (!userCustomExerciseSteps.value) return [];
+  const entries = Object.entries(userCustomExerciseSteps.value);
+  return entries.map(([key, val]) => {
+    const isObj = typeof val === 'object' && val !== null;
+    const name = isObj ? (val.name || key) : key;
+    const step = isObj ? parseFloat(val.step || 0) : parseFloat(val || 0);
+    return { key, name, step };
+  }).filter(item => item.step > 0);
+});
+
+const apriModificaStepDaImpostazioni = (item) => {
+  esercizioInModificaStep.value = { ...item };
+  dialogModificaStepImp.value = true;
+};
+
+const salvaNuovoStepDaImpostazioni = async (nuovoStep) => {
+  if (!esercizioInModificaStep.value) return;
+  const { name, key } = esercizioInModificaStep.value;
+  await setCustomExerciseStep(name || key, nuovoStep);
+  dialogModificaStepImp.value = false;
+};
+
+const eliminaStepDaImpostazioni = async (key) => {
+  await removeCustomExerciseStep(key);
+};
 
 watch(currentTheme, (val) => {
   selectedTheme.value = val;

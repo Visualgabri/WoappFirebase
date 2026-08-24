@@ -996,7 +996,7 @@
                       class="font-weight-black text-white px-1.5 flex-shrink-0" 
                       style="height: 16px; font-size: 0.48rem; border-radius: 3px;"
                     >
-                      DA G.{{ block.exercise.des_giorno }} • W{{ block.week }}
+                      Da recuperare da giorno {{ block.exercise.des_giorno }} • W{{ block.week }}
                     </v-chip>
                     <v-chip 
                       size="x-small" 
@@ -1108,7 +1108,7 @@
                     variant="flat"
                     style="font-size: 0.58rem; height: 18px; border-radius: 4px; padding: 0 6px; width: 100%; justify-content: center;"
                   >
-                    DA G.{{ block.exercise.des_giorno }} • W{{ block.week }}
+                    Da recuperare da giorno {{ block.exercise.des_giorno }} • W{{ block.week }}
                   </v-chip>
                 </div>
 

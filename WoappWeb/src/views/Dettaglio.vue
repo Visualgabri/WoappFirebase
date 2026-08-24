@@ -6320,6 +6320,13 @@ const auditStalloW6 = computed(() => {
 const isStalledInPreviousMesocycle = computed(() => {
   if (!workout.value || !previousWorkout.value) return false;
   
+  // Se è un esercizio di forza con carichi impostati dal coach, non mostrare il warning di stallo
+  const isStrengthEx = !!parsedRmt(workout.value.des_esercizio_2);
+  const prescrizioneW1 = String(workout.value.des_week1 || '');
+  if (isStrengthEx && hasCoachLoad(prescrizioneW1)) {
+    return false;
+  }
+
   const parsePesoLocalInternal = (val) => {
     if (!val) return 0;
     const pStr = estraiPesoDaInput(val);

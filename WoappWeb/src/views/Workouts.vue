@@ -4757,6 +4757,13 @@ const esisteInSchedaPrecedente = (ex) => {
 const stalloInSchedaPrecedente = (ex) => {
   if (!ex || !allExercisesBackup.value.length) return false;
   
+  // Se è un esercizio di forza con carichi impostati dal coach, non segnalare stallo
+  const isStrengthEx = !!parseRmtString(ex.des_esercizio_2);
+  const prescrizioneW1 = parsePrescription(ex.des_week1);
+  if (isStrengthEx && prescrizioneW1 && prescrizioneW1.total) {
+    return false;
+  }
+
   const currentNumScheda = parseInt(ex.num_scheda);
   if (isNaN(currentNumScheda) || currentNumScheda <= 1) return false;
   

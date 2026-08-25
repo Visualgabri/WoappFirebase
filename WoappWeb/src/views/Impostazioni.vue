@@ -400,6 +400,24 @@
             </div>
 
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
+
+            <!-- Analisi Predittiva & Rotta PR (W1 -> W6) -->
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+              <div>
+                <span class="text-caption font-weight-bold text-amber-accent-2 d-block" style="font-size: 0.72rem;">Analisi Predittiva & Rotta PR (W1 → W6)</span>
+                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Valuta se W1 porta al superamento del PR e stima la week di attacco record</span>
+              </div>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="previsioneStrategicaAttiva"
+                  color="amber-darken-2"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
+            </div>
+
+            <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Ottimizza Digitazione Note -->
             <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
@@ -908,6 +926,7 @@ import {
   sensibilitaFaticaGhost,
   ghostAnalisiNoteAttiva,
   arrotondamentoCarichiRealisticiGlobal,
+  previsioneStrategicaAttiva,
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
   defaultTimerRecGlobal,

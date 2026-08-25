@@ -2682,10 +2682,85 @@
             </p>
           </div>
 
+          <!-- SEZIONE ROTTA STRATEGICA PREDITTIVA (W1 -> W6 & ATTACCO PR) -->
+          <div v-if="previsioneStrategicaAttiva && strategiaCoachData.rottaPredittiva" class="mb-3">
+            <div class="pa-3 rounded-xl border" :style="{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%)', borderColor: 'rgba(245, 158, 11, 0.35)' }">
+              <div class="d-flex align-center justify-space-between mb-1.5">
+                <div class="d-flex align-center gap-1.5">
+                  <v-icon :color="strategiaCoachData.rottaPredittiva.badgeColor" size="18">
+                    {{ strategiaCoachData.rottaPredittiva.badgeIcon }}
+                  </v-icon>
+                  <span class="font-weight-black text-caption uppercase" :class="'text-' + strategiaCoachData.rottaPredittiva.badgeColor" style="font-size: 0.72rem; letter-spacing: 0.04em;">
+                    Rotta: {{ strategiaCoachData.rottaPredittiva.profilo }}
+                  </span>
+                </div>
+                <v-chip 
+                  v-if="strategiaCoachData.rottaPredittiva.weekSfidaPR" 
+                  color="green-darken-2" 
+                  size="x-small" 
+                  class="font-weight-black text-white px-2"
+                  style="font-size: 0.58rem; height: 20px;"
+                >
+                  🏆 Attacco PR: W{{ strategiaCoachData.rottaPredittiva.weekSfidaPR }}
+                </v-chip>
+                <v-chip 
+                  v-else 
+                  color="amber-darken-3" 
+                  size="x-small" 
+                  class="font-weight-black text-white px-2"
+                  style="font-size: 0.58rem; height: 20px;"
+                >
+                  🛡️ Profilo Conservativo
+                </v-chip>
+              </div>
+
+              <p class="text-caption text-slate-light mb-2" style="font-size: 0.68rem; line-height: 1.35;">
+                {{ strategiaCoachData.rottaPredittiva.motivazione }}
+              </p>
+
+              <!-- Proiezione Tabellare Sintetica Curve W1->W6 -->
+              <div class="d-flex align-center justify-space-between gap-1 pa-1.5 rounded-lg border-soft text-center" style="background: rgba(0,0,0,0.25);">
+                <div 
+                  v-for="stepC in strategiaCoachData.rottaPredittiva.curvaProiettata" 
+                  :key="'curva-' + stepC.week"
+                  class="flex-grow-1 px-0.5"
+                  :style="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'background: rgba(34, 197, 94, 0.2); border-radius: 6px;' : ''"
+                >
+                  <span class="text-super-caption d-block font-weight-bold" :class="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'text-green-accent-3' : 'text-muted'" style="font-size: 0.52rem;">
+                    W{{ stepC.week }}
+                  </span>
+                  <span class="font-weight-black d-block" :class="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'text-green-accent-3' : 'dialog-text-primary'" style="font-size: 0.68rem;">
+                    {{ formatWeight(stepC.peso) }}<span style="font-size: 0.50rem;">k</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Avviso Disarmonie / Salti Anomali -->
+              <div v-if="strategiaCoachData.disarmonie && strategiaCoachData.disarmonie.length > 0" class="mt-2 pa-2 rounded-lg border" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.35);">
+                <div class="d-flex align-center gap-1 text-red-lighten-2 font-weight-black text-super-caption uppercase mb-1" style="font-size: 0.60rem;">
+                  <v-icon size="12" color="red-lighten-2">mdi-alert-octagon</v-icon>
+                  Disarmonie Rilevate tra le Settimane
+                </div>
+                <ul class="pl-3 mb-0 text-super-caption text-slate-300" style="font-size: 0.58rem; line-height: 1.3;">
+                  <li v-for="(dis, dIdx) in strategiaCoachData.disarmonie" :key="'dis-' + dIdx">{{ dis }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <!-- BARRA STATO PRESTAZIONALE E SPUNTI -->
           <div class="mb-3 text-left">
-            <div class="text-super-caption text-slate-light uppercase font-weight-black mb-1.5" style="font-size: 0.58rem; letter-spacing: 0.04em;">
-              {{ strategiaCoachData.isCorpoLiberoPuro ? '📊 CONFRONTO RECORD RIPETIZIONI' : '📊 CONFRONTO MASSIMALE STIMATO (E1RM)' }}
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <span class="text-super-caption text-slate-light uppercase font-weight-black" style="font-size: 0.58rem; letter-spacing: 0.04em;">
+                {{ strategiaCoachData.isCorpoLiberoPuro ? '📊 CONFRONTO RECORD RIPETIZIONI' : '📊 CONFRONTO MASSIMALE STIMATO (E1RM)' }}
+              </span>
+              <!-- Toggle Rapido Analisi Predittiva -->
+              <div class="d-flex align-center gap-1 cursor-pointer" @click="previsioneStrategicaAttiva = !previsioneStrategicaAttiva">
+                <v-icon size="12" :color="previsioneStrategicaAttiva ? 'amber-accent-2' : 'grey'">mdi-chart-timeline-variant-shimmer</v-icon>
+                <span class="text-super-caption font-weight-bold" :class="previsioneStrategicaAttiva ? 'text-amber-accent-2' : 'text-muted'" style="font-size: 0.55rem;">
+                  {{ previsioneStrategicaAttiva ? 'Analisi Predittiva ON' : 'Analisi Predittiva OFF' }}
+                </span>
+              </div>
             </div>
 
             <v-row dense class="mb-2">
@@ -5433,7 +5508,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -16105,6 +16180,111 @@ const recordMaxAssolutoInfo = computed(() => {
   };
 });
 
+// Helper globale per analisi predittiva rotta W1 -> W6
+const analizzaRottaProgressione = ({
+  w1Weight,
+  w1Reps,
+  prWeight,
+  prReps,
+  e1rmStorico,
+  isCavo,
+  isManubri,
+  stepKg,
+  r1, r2, r3, r4, r5, r6
+}) => {
+  if (!w1Weight || w1Weight <= 0 || !prWeight || prWeight <= 0 || !e1rmStorico || e1rmStorico <= 0) {
+    return null;
+  }
+
+  const step = stepKg > 0 ? stepKg : (isManubri ? 1.0 : 2.5);
+  const getStepForVal = (val) => stepKg > 0 ? stepKg : (isManubri ? (val >= 10 ? 2.0 : 1.0) : 2.5);
+  const adjustVal = (val) => (isManubri && !stepKg) ? arrotondaManubrioCommerciale(val) : val;
+
+  // Costruzione curva ideale dal carico W1
+  const p1 = w1Weight;
+  const p2 = adjustVal(p1 + getStepForVal(p1));
+  const p3 = adjustVal(p2 + getStepForVal(p2));
+  const p4 = adjustVal(p2); // Scarico neurale W4 pari a W2 o ridotto
+  const p5 = adjustVal(p3 + getStepForVal(p3));
+  const p6 = adjustVal(p5 + getStepForVal(p5));
+
+  const e1rmW1 = calcolaE1RMSmorzato(p1, r1, isCavo);
+  const e1rmW2 = calcolaE1RMSmorzato(p2, r2, isCavo);
+  const e1rmW3 = calcolaE1RMSmorzato(p3, r3, isCavo);
+  const e1rmW4 = calcolaE1RMSmorzato(p4, r4, isCavo);
+  const e1rmW5 = calcolaE1RMSmorzato(p5, r5, isCavo);
+  const e1rmW6 = calcolaE1RMSmorzato(p6, r6, isCavo);
+
+  const curve = [
+    { week: 1, peso: p1, reps: r1, e1rm: e1rmW1 },
+    { week: 2, peso: p2, reps: r2, e1rm: e1rmW2 },
+    { week: 3, peso: p3, reps: r3, e1rm: e1rmW3 },
+    { week: 4, peso: p4, reps: r4, e1rm: e1rmW4 },
+    { week: 5, peso: p5, reps: r5, e1rm: e1rmW5 },
+    { week: 6, peso: p6, reps: r6, e1rm: e1rmW6 }
+  ];
+
+  // Trova la prima settimana in cui la progressione eguaglia o supera il PR storico
+  let weekSfidaPR = null;
+  let pesoSfidaPR = null;
+  let repsSfidaPR = null;
+  let tipoSfida = null; // 'PAREGGIO' o 'SUPERAMENTO'
+
+  for (const stepObj of curve) {
+    if (stepObj.e1rm >= e1rmStorico || (stepObj.reps === prReps && stepObj.peso >= prWeight)) {
+      weekSfidaPR = stepObj.week;
+      pesoSfidaPR = stepObj.peso;
+      repsSfidaPR = stepObj.reps;
+      tipoSfida = (stepObj.e1rm > e1rmStorico * 1.01 || stepObj.peso > prWeight) ? 'SUPERAMENTO' : 'PAREGGIO';
+      break;
+    }
+  }
+
+  // Profilo rotta
+  let profilo = 'BILANCIATA'; // 'CONSERVATIVA' | 'BILANCIATA' | 'AGGRESSIVA'
+  let motivazione = '';
+  let badgeColor = 'green-lighten-2';
+  let badgeIcon = 'mdi-scale-balance';
+
+  // Calcolo W1 consigliato per rotta bilanciata ideale (attacco W5 / W6)
+  const rawW1Ideale = (e1rmStorico * 0.85) / (1 + r1 / 30);
+  const w1Consigliato = adjustVal(Math.max(Math.round(rawW1Ideale / step) * step, isManubri ? 4 : 10));
+
+  if (!weekSfidaPR) {
+    // In nessuna delle 6 week si raggiunge il PR
+    profilo = 'CONSERVATIVA';
+    badgeColor = 'amber-lighten-2';
+    badgeIcon = 'mdi-shield-check';
+    const gapW6 = Math.round((e1rmStorico - e1rmW6) * 10) / 10;
+    motivazione = `Progressione prudente: partendo da ${formatWeight(p1)}kg, a W6 il picco stimato (${formatWeight(p6)}kg) resterebbe sotto al PR storico di ~${formatWeight(gapW6)}kg. Suggerito W1 per attaccare il PR: ${formatWeight(w1Consigliato)}kg.`;
+  } else if (weekSfidaPR <= 2) {
+    // Attacco precoce già in W1 o W2
+    profilo = 'AGGRESSIVA';
+    badgeColor = 'deep-orange-lighten-2';
+    badgeIcon = 'mdi-fire';
+    motivazione = `Progressione aggressiva: carico W1 elevato che sfida il PR già in W${weekSfidaPR} (${formatWeight(pesoSfidaPR)}kg). Rischio elevato di RPE massimale e stallo prima della W5.`;
+  } else {
+    // Bilanciata (W3 pareggio, W5 o W6 attacco PR)
+    profilo = 'BILANCIATA';
+    badgeColor = 'green-lighten-2';
+    badgeIcon = 'mdi-trending-up';
+    motivazione = `Progressione armonica: partenza controllata in W1 (${formatWeight(p1)}kg), pareggio in W3 e attacco al nuovo record stimato in W${weekSfidaPR} (${formatWeight(pesoSfidaPR)}kg × ${repsSfidaPR}r).`;
+  }
+
+  return {
+    profilo,
+    badgeColor,
+    badgeIcon,
+    weekSfidaPR,
+    pesoSfidaPR,
+    repsSfidaPR,
+    tipoSfida,
+    w1Consigliato,
+    motivazione,
+    curvaProiettata: curve
+  };
+};
+
 const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
@@ -16316,12 +16496,76 @@ const valutazioneProgressione = computed(() => {
       icona: null
     };
   } else if (bestCurrentWeight >= 0.95 * recWeight || bestCurrentE1RM >= 0.95 * e1rmHistoric) {
+    // Se la previsione strategica è attiva ed è W1 (o inizio scheda), forniamo l'analisi di rotta
+    if (previsioneStrategicaAttiva.value && (w === 1 || bestCurrentWeight > 0)) {
+      const stepVal = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
+      const rotta = analizzaRottaProgressione({
+        w1Weight: bestCurrentWeight,
+        w1Reps: bestCurrentReps,
+        prWeight: recWeight,
+        prReps: recReps,
+        e1rmStorico: e1rmHistoric,
+        isCavo,
+        isManubri: isManubriEsercizio(workout.value),
+        stepKg: stepVal,
+        r1: getRepsPerWeek(1),
+        r2: getRepsPerWeek(2),
+        r3: getRepsPerWeek(3),
+        r4: getRepsPerWeek(4),
+        r5: getRepsPerWeek(5),
+        r6: getRepsPerWeek(6)
+      });
+
+      if (rotta && rotta.weekSfidaPR) {
+        return {
+          testo: `🎯 Rotta PR: attacco record stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
+          colore: 'text-green-accent-3',
+          icona: 'mdi-flag-checkered'
+        };
+      } else if (rotta && rotta.profilo === 'CONSERVATIVA') {
+        return {
+          testo: `⚠️ W1 prudente: a W6 rimani sotto al PR (consigliato: ${formatWeight(rotta.w1Consigliato)} kg)`,
+          colore: 'text-amber-lighten-2',
+          icona: 'mdi-shield-alert'
+        };
+      }
+    }
+
     return {
       testo: `Carico in linea col tuo record storico a ${recReps} reps`,
       colore: 'text-cyan-lighten-2',
       icona: null
     };
   } else {
+    // Se la previsione strategica è attiva e siamo sotto al 95% del record
+    if (previsioneStrategicaAttiva.value) {
+      const stepVal = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
+      const rotta = analizzaRottaProgressione({
+        w1Weight: bestCurrentWeight,
+        w1Reps: bestCurrentReps,
+        prWeight: recWeight,
+        prReps: recReps,
+        e1rmStorico: e1rmHistoric,
+        isCavo,
+        isManubri: isManubriEsercizio(workout.value),
+        stepKg: stepVal,
+        r1: getRepsPerWeek(1),
+        r2: getRepsPerWeek(2),
+        r3: getRepsPerWeek(3),
+        r4: getRepsPerWeek(4),
+        r5: getRepsPerWeek(5),
+        r6: getRepsPerWeek(6)
+      });
+
+      if (rotta && rotta.profilo === 'CONSERVATIVA') {
+        return {
+          testo: `⚠️ W1 conservativo: non raggiunge il PR a W6 (target W1: ${formatWeight(rotta.w1Consigliato)} kg)`,
+          colore: 'text-orange-lighten-2',
+          icona: 'mdi-alert-outline'
+        };
+      }
+    }
+
     const diffKgAbs = Math.abs(diffKg);
     const percAbs = e1rmHistoric > 0 ? Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100) : 0;
     return {
@@ -16486,6 +16730,43 @@ const strategiaCoachData = computed(() => {
     }
   }
 
+  // Analisi predittiva rotta W1 -> W6
+  const w1InputVal = workout.value?.['ins_week1'];
+  const w1LogPeso = w1InputVal ? parseFloat(estraiPesoDaInput(w1InputVal)) : (bestCurrentWeight > 0 ? bestCurrentWeight : w1Target);
+  const w1LogReps = w1InputVal ? (estraiRepsDaInput(w1InputVal) || r1) : (bestCurrentReps > 0 ? bestCurrentReps : r1);
+
+  const rottaPredittiva = analizzaRottaProgressione({
+    w1Weight: w1LogPeso,
+    w1Reps: w1LogReps,
+    prWeight,
+    prReps,
+    e1rmStorico,
+    isCavo,
+    isManubri,
+    stepKg: step,
+    r1, r2, r3, r4, r5, r6
+  });
+
+  // Rilevamento disarmonie tra settimane inserite
+  const disarmonie = [];
+  for (let w = 2; w <= 6; w++) {
+    const vPrev = workout.value?.['ins_week' + (w - 1)];
+    const vCurr = workout.value?.['ins_week' + w];
+    if (vPrev && vCurr) {
+      const pPrev = parseFloat(estraiPesoDaInput(vPrev));
+      const pCurr = parseFloat(estraiPesoDaInput(vCurr));
+      if (!isNaN(pPrev) && !isNaN(pCurr) && pPrev > 0 && pCurr > 0) {
+        const delta = pCurr - pPrev;
+        const maxStepConsentito = (isManubri ? 2.5 : 5.0);
+        if (w !== 4 && delta > maxStepConsentito) {
+          disarmonie.push(`Salto eccessivo (+${formatWeight(delta)}kg) da W${w - 1} a W${w}`);
+        } else if (w !== 4 && delta < 0) {
+          disarmonie.push(`Calo anomalo di peso (-${formatWeight(Math.abs(delta))}kg) da W${w - 1} a W${w}`);
+        }
+      }
+    }
+  }
+
   const buildStepData = (w, fase, color, rpe, note, targetPeso, targetRepsStr) => {
     const val = workout.value?.['ins_week' + w];
     let isLogged = false;
@@ -16614,7 +16895,9 @@ const strategiaCoachData = computed(() => {
     stato,
     diffKg,
     diffPerc,
-    roadmap
+    roadmap,
+    rottaPredittiva,
+    disarmonie
   };
 });
 

@@ -7640,31 +7640,34 @@ const getGhostWeightsRangeForWeek = (sett) => {
     let defaultPeso = ghost.suggerito || ghost.peso || 0;
     if (isManubri) defaultPeso = arrotondaManubrioCommerciale(defaultPeso);
     if (defaultPeso <= 0) return null;
-    let min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
-    let medio = defaultPeso;
-    let max = 0;
-    
-    // Evita il collasso delle opzioni (Prudenziale uguale a Consigliato)
-    if (min === medio && defaultPeso - step > 0) {
-      min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
-    }
-    
     const recordVal = sfidaRecordWeek1.value ? ghost.recordVal : null;
+    let min = 0;
+    let medio = 0;
+    let max = 0;
+    let sfidanteLabel = 'Sfidante';
+
     if (recordVal && recordVal > 0) {
-      if (recordVal > defaultPeso) {
-        max = isManubri ? getDumbbellSequenceWeight(recordVal, 'up') : Math.round((recordVal + step) / step) * step;
-      } else if (recordVal === defaultPeso) {
-        max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
-      } else {
-        max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
-      }
+      // Se l'utente vuole sfidare il record in W1:
+      // Consigliato = Eguaglia Record
+      medio = recordVal;
+      // Prudenziale = Avvicinamento / Sicurezza (-1 step)
+      min = isManubri ? getDumbbellSequenceWeight(recordVal, 'down') : Math.max(step, recordVal - step);
+      // Sfidante = Supera Record (+1 step)
+      max = isManubri ? getDumbbellSequenceWeight(recordVal, 'up') : Math.round((recordVal + step) / step) * step;
+
+      sfidanteLabel = `🏆 Supera Record (${formatWeight(recordVal)}kg)`;
     } else {
+      medio = defaultPeso;
+      min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
       max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
-    }
-    
-    // Evita il collasso delle opzioni (Sfidante uguale a Consigliato)
-    if (max === medio) {
-      max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
+
+      // Evita il collasso delle opzioni
+      if (min === medio && defaultPeso - step > 0) {
+        min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
+      }
+      if (max === medio) {
+        max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
+      }
     }
     
     if (isManubri) {
@@ -7672,28 +7675,17 @@ const getGhostWeightsRangeForWeek = (sett) => {
       medio = arrotondaManubrioCommerciale(medio);
       max = arrotondaManubrioCommerciale(max);
     }
-    
-    let sfidanteLabel = 'Sfidante';
-    if (recordVal && recordVal > 0) {
-      if (max > recordVal) {
-        sfidanteLabel = `🏆 Supera Record (${formatWeight(recordVal)}kg)`;
-      } else if (max === recordVal) {
-        sfidanteLabel = `🏆 Eguaglia Record (${formatWeight(recordVal)}kg)`;
-      } else {
-        sfidanteLabel = `Sfidante (Record: ${formatWeight(recordVal)}kg)`;
-      }
-    }
 
     return {
       prudenziale: {
         value: String(min),
         display: `${formatWeight(min)} kg`,
-        label: 'Prudenziale'
+        label: recordVal && recordVal > 0 ? 'Prudenziale (Safe)' : 'Prudenziale'
       },
       consigliato: {
         value: String(medio),
         display: `${formatWeight(medio)} kg`,
-        label: 'Consigliato'
+        label: recordVal && recordVal > 0 ? `Consigliato (Eguaglia ${formatWeight(recordVal)}kg)` : 'Consigliato'
       },
       sfidante: {
         value: String(max),

@@ -11477,11 +11477,11 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
       repsGapFactor = Math.max(0.5, 1.0 - (excessReps * repsGapRate));
     }
 
-    // B. Dampener per Esercizi di Isolamento / Cavi ad alte reps
+    // B. Dampener per Esercizi di Isolamento / Cavi SOLO in caso di sbalzo di ripetizioni a range alto
     let isolationFactor = 1.0;
-    const isCavoOAlzate = /cavo|alzate|alzata|croci|curl|estensioni|pushdown|kickback|fly|lateral/i.test(workout.value?.des_esercizio || '');
+    const isCavoOAlzate = /cavo|alzate|alzata|curl|estensioni|pushdown|kickback|lateral/i.test(workout.value?.des_esercizio || '');
     const isIsolamento = ['Spalle', 'Bicipiti', 'Tricipiti', 'Polpacci'].includes(workout.value?.des_settore || '') || isCavoOAlzate;
-    if (isIsolamento && r1 > 12) {
+    if (isIsolamento && r1 > 12 && repsDiff > 0) {
       isolationFactor = isolationRate;
     }
 
@@ -11618,8 +11618,8 @@ const propostaWeek1 = computed(() => {
   }
   
   const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 10;
-  const dataUltimaEx = getExecutionDate(previousWorkout.value, storicoEsercizio.value, workout.value);
-  const giorniTrascorsi = calcolaGiorniTrascorsi(dataUltimaEx);
+  // Poiché l'esercizio proviene direttamente dalla scheda precedente, non si applica deallenamento da fermo prolungato (giorniTrascorsi = 0)
+  const giorniTrascorsi = 0;
   
   let proposta = calcolaPropostaCaricoDinamico(basePeso, baseReps, baseRIR, currW1Reps, fatica, giorniTrascorsi);
   if (proposta === null) return null;

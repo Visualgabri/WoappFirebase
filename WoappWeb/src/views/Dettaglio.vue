@@ -1022,7 +1022,7 @@
                     <span v-if="getGhostLiftSmart(sett).reps">
                       <span v-if="parseFloat(getGhostLiftSmart(sett).text) > 0">x</span><strong :class="getColoreRepsPrecedentiClass(sett, getGhostLiftSmart(sett).reps)">{{ getGhostLiftSmart(sett).reps }}</strong>r
                     </span>
-                    <span v-if="getInfoRepsDiscrepanzaW6(previousWorkout)" class="text-amber-lighten-3 font-weight-bold ml-1">
+                    <span v-if="getInfoRepsDiscrepanzaW6(previousWorkout)">
                       [target: {{ getInfoRepsDiscrepanzaW6(previousWorkout).repsPrescritte }}r]
                     </span>
                     <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'">
@@ -11503,16 +11503,17 @@ const getInfoRepsDiscrepanzaW6 = (ex) => {
   const p = pStr ? parseFloat(pStr) : 0;
   
   const insW6 = ex.ins_week6 || '';
-  const isCavo = isCavoOMacchinaEsercizio(ex);
-  const perf = estraiMigliorPrestazioneInput(insW6, 10, isCavo);
-  const explicitReps = (perf && perf.reps > 0) ? perf.reps : estraiRepsDaInput(insW6);
-  
   const prescritteReps = parseInt(ex.reps_week6, 10) || estraiRepsDaPrescrizione(ex.des_week6) || 10;
   
+  // Cerca SOLO se l'utente ha scritto esplicitamente reps (es. "57x18r", "fatte 18", "18 reps")
+  const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(insW6);
+  if (!hasExplicitReps) return null;
+  
+  const explicitReps = estraiRepsDaInput(insW6);
   if (explicitReps && explicitReps > 0 && explicitReps !== prescritteReps) {
     return {
       hasDiscrepancy: true,
-      peso: p > 0 ? p : (perf ? perf.peso : 0),
+      peso: p > 0 ? p : (parseFloat(estraiPesoDaInput(insW6)) || 0),
       repsEseguite: explicitReps,
       repsPrescritte: prescritteReps
     };

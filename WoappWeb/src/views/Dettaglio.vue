@@ -6711,30 +6711,76 @@ const isStalledInPreviousMesocycle = computed(() => {
     return false;
   }
 
-  const parsePesoLocalInternal = (val) => {
-    if (!val) return 0;
-    const pStr = estraiPesoDaInput(val);
-    return pStr ? parseFloat(pStr) : 0;
-  };
+  const useRep = isCorpoLiberoEsercizio(previousWorkout.value) && !haPesoEsercizio.value;
+  const isCavo = isCavoOMacchinaEsercizio(previousWorkout.value);
 
-  const estraiRepsInternal = (str) => {
-    if (!str) return null;
-    return estraiRepsDaInput(str);
-  };
+  // Prestazione di partenza in W1 dello scorso mesociclo
+  const w1Ins = previousWorkout.value.ins_week1 || '';
+  const w1PrescReps = estraiRepsDaPrescrizione(previousWorkout.value.des_week1) || 10;
+  const w1Perf = estraiMigliorPrestazioneInput(w1Ins, w1PrescReps, isCavo, useRep);
+  const w1Weight = w1Perf ? w1Perf.peso : (parseFloat(estraiPesoDaInput(w1Ins)) || 0);
+  const w1Reps = w1Perf ? w1Perf.reps : (estraiRepsDaInput(w1Ins) || w1PrescReps);
+  const w1E1RM = w1Perf ? w1Perf.e1rm : (w1Weight > 0 ? calcolaE1RMSmorzato(w1Weight, w1Reps, isCavo) : 0);
 
-  const useRep = isCorpoLiberoEsercizio(previousWorkout.value);
-  const w1Val = useRep ? (estraiRepsInternal(previousWorkout.value.ins_week1) || 0) : parsePesoLocalInternal(previousWorkout.value.ins_week1);
-  
-  let latestVal = 0;
-  for (let w = 6; w >= 1; w--) {
-    const val = useRep ? (estraiRepsInternal(previousWorkout.value['ins_week' + w]) || 0) : parsePesoLocalInternal(previousWorkout.value['ins_week' + w]);
-    if (val > 0) {
-      latestVal = val;
-      break;
+  if (useRep) {
+    if (!w1Reps || w1Reps <= 0) return false;
+    // Cerca il miglior numero di ripetizioni tra W2 e W6
+    let maxRepsLater = 0;
+    for (let w = 2; w <= 6; w++) {
+      const val = previousWorkout.value['ins_week' + w];
+      if (val) {
+        const r = estraiRepsDaInput(val) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 0;
+        if (r > maxRepsLater) maxRepsLater = r;
+      }
+    }
+    return maxRepsLater > 0 && maxRepsLater <= w1Reps;
+  }
+
+  // Se è con sovraccarico
+  if (w1Weight <= 0 && w1E1RM <= 0) return false;
+
+  // Cerca la miglior prestazione (e1rm e peso) tra W2 e W6
+  let bestE1RMLater = 0;
+  let bestWeightLater = 0;
+
+  for (let w = 2; w <= 6; w++) {
+    const val = previousWorkout.value['ins_week' + w];
+    if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
+      const prescReps = estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+      const perf = estraiMigliorPrestazioneInput(val, prescReps, isCavo, false);
+      if (perf) {
+        if (perf.e1rm > bestE1RMLater) bestE1RMLater = perf.e1rm;
+        if (perf.peso > bestWeightLater) bestWeightLater = perf.peso;
+      } else {
+        const p = parseFloat(estraiPesoDaInput(val));
+        if (!isNaN(p) && p > bestWeightLater) {
+          bestWeightLater = p;
+          const e = calcolaE1RMSmorzato(p, prescReps, isCavo);
+          if (e > bestE1RMLater) bestE1RMLater = e;
+        }
+      }
     }
   }
 
-  return (w1Val > 0 && latestVal <= w1Val);
+  // Controlla anche num_ins6 (miglior carico archiviato per W6)
+  if (previousWorkout.value.num_ins6) {
+    const num6 = parseFloat(String(previousWorkout.value.num_ins6).replace(',', '.'));
+    if (!isNaN(num6) && num6 > bestWeightLater) {
+      bestWeightLater = num6;
+      const prescReps6 = estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10;
+      const e6 = calcolaE1RMSmorzato(num6, prescReps6, isCavo);
+      if (e6 > bestE1RMLater) bestE1RMLater = e6;
+    }
+  }
+
+  // Se dopo W1 non c'è alcun dato registrato, non è uno stallo accertato
+  if (bestWeightLater === 0 && bestE1RMLater === 0) return false;
+
+  // C'è stata progressione se il carico o l'1RM stimato finale ha superato quello di partenza in W1
+  const haProgreditoPeso = bestWeightLater > (w1Weight + 0.1);
+  const haProgreditoE1RM = bestE1RMLater > (w1E1RM + 0.2);
+
+  return (!haProgreditoPeso && !haProgreditoE1RM);
 });
 
 const impostaCaricoLimite = () => {

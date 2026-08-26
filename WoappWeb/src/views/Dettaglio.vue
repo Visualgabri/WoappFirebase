@@ -2213,6 +2213,190 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog 1-B: Progressione Scheda Selezionata dallo Storico (Isolata) -->
+    <v-dialog v-model="dialogProgressioniStoricoSingolo" max-width="650" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <v-card-title class="px-3 py-2 border-bottom d-flex align-center justify-space-between bg-slate-900" style="min-height: 40px;">
+          <div class="d-flex align-center gap-2">
+            <v-icon color="orange-darken-3" size="18">mdi-history</v-icon>
+            <span class="font-weight-black text-slate-dark" style="font-size: 0.82rem !important; letter-spacing: 0.02em;">Dettaglio Storico Scheda</span>
+          </div>
+          <v-btn icon variant="text" width="24" height="24" color="grey" @click="dialogProgressioniStoricoSingolo = false">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <!-- Info Esercizio Storico (Fisso in primo piano nello scroll) -->
+        <div v-if="selectedStoricoWorkout" class="px-3 py-2 border-bottom bg-slate-900 text-left" style="line-height: 1.1; flex-shrink: 0;">
+          <h4 class="font-weight-black text-slate-dark mt-0" style="font-size: 0.82rem !important; margin-bottom: 2px;">{{ selectedStoricoWorkout.des_esercizio }}</h4>
+          <div class="text-orange-lighten-2 font-weight-black uppercase d-flex align-center flex-wrap gap-1" style="font-size: 0.58rem !important; letter-spacing: 0.02em;">
+            <span>Scheda {{ selectedStoricoWorkout.num_scheda }} • Giorno {{ selectedStoricoWorkout.des_giorno }}{{ selectedStoricoWorkout.num_riga_giorno }}</span>
+            <template v-if="getExecutionDate(selectedStoricoWorkout, storicoEsercizio, workout)">
+              <span>•</span>
+              <span class="text-slate-dark">🗓️ {{ formattaDataStorico(getExecutionDate(selectedStoricoWorkout, storicoEsercizio, workout)) }}</span>
+              <span v-if="tempoTrascorso(getExecutionDate(selectedStoricoWorkout, storicoEsercizio, workout))" class="text-slate-light font-weight-bold ml-1"> ({{ tempoTrascorso(getExecutionDate(selectedStoricoWorkout, storicoEsercizio, workout)) }})</span>
+            </template>
+          </div>
+        </div>
+
+        <v-card-text class="px-3 pt-2 pb-3 scrollbar-custom" style="max-height: 85vh;">
+          <div v-if="!selectedStoricoWorkout" class="text-center py-6">
+            <v-icon size="36" color="orange-darken-1" class="mb-2">mdi-alert-circle-outline</v-icon>
+            <p class="text-caption text-muted">Nessun dato trovato per questa scheda.</p>
+          </div>
+          <div v-else>
+            <!-- Lista delle 6 settimane delle progressioni dello storico -->
+            <div class="d-flex flex-column gap-2 mb-3">
+              <div v-for="w in [6, 5, 4, 3, 2, 1]" :key="w" class="rounded-xl border border-soft card-glass-dark pa-2 text-left">
+                <!-- Settimana + Prescrizione -->
+                <div class="d-flex align-center justify-space-between mb-1.5" style="line-height: 1.1;">
+                  <div class="font-weight-black text-slate-dark uppercase d-flex align-center gap-1" style="font-size: 0.72rem !important; letter-spacing: 0.03em;">
+                    <span>Week {{ w }}</span>
+                    <span class="text-orange-lighten-2 font-weight-black ml-1" style="font-size: 1.05rem !important; text-transform: none;">
+                      ({{ selectedStoricoWorkout['des_week' + w] ? pulisciParentesiQuadre(selectedStoricoWorkout['des_week' + w]) : 'N.D.' }})
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Carico -->
+                <div class="w-100">
+                  <div
+                    v-if="risaltoNumeriInsWeek && activeEditingWeekStoricoSingolo !== w && inputSettimaneStoricoSingolo[w]?.ins && String(inputSettimaneStoricoSingolo[w].ins).trim()"
+                    class="custom-prev-ins-field cursor-text w-100 font-weight-medium transition-all"
+                    :class="getGhostFieldClassPrecedente(w)"
+                    style="padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; white-space: pre-wrap; word-break: break-word; font-size: 0.92rem; line-height: 1.45; box-sizing: border-box;"
+                    @click="activeEditingWeekStoricoSingolo = w"
+                    v-html="formattaInsWeekHtml(inputSettimaneStoricoSingolo[w].ins)"
+                  ></div>
+
+                  <textarea
+                    v-else
+                    :id="'input-storico-peso-w' + w"
+                    v-model="inputSettimaneStoricoSingolo[w].ins"
+                    placeholder="Carico (es. 45 kg)"
+                    class="custom-prev-ins-field font-weight-black w-100 transition-all"
+                    :class="getGhostFieldClassPrecedente(w)"
+                    rows="1"
+                    style="width: 100%; outline: none; font-size: 0.92rem; padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; height: auto; field-sizing: content; resize: vertical; line-height: 1.35; box-sizing: border-box;"
+                    @focus="activeEditingWeekStoricoSingolo = w"
+                    @blur="salvaDatoSettimanaleStoricoSingolo(w, 'ins'); activeEditingWeekStoricoSingolo = null"
+                  ></textarea>
+                </div>
+
+                <!-- Card Feedback e Miglior Carico W6 Storico -->
+                <div 
+                  v-if="w === 6 && isEsercizioEligibileW6(selectedStoricoWorkout)" 
+                  class="w6-feedback-premium-box mt-3 pt-3 pb-2.5 px-3 rounded-2xl border"
+                >
+                  <div class="d-flex align-center justify-center gap-1.5 mb-2 text-center">
+                    <v-icon color="amber-lighten-2" size="16">mdi-trophy-award</v-icon>
+                    <span class="text-caption font-weight-black text-amber-lighten-2 uppercase tracking-wide" style="font-size: 0.70rem;">
+                      Picco W6 Mesociclo
+                    </span>
+                  </div>
+
+                  <div class="d-flex align-center justify-space-between w-100 mb-2.5 pa-1.5 rounded-xl stepper-row-glass border-soft">
+                    <div class="d-flex flex-column text-center flex-grow-1 pl-1">
+                      <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.68rem; line-height: 1.1;">
+                        Max Raggiunto
+                      </span>
+                      <span class="text-super-caption text-slate" style="font-size: 0.54rem;">
+                        Carico top archiviato
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-center w6-stepper-container rounded-xl px-1 py-0.5 border">
+                      <v-btn
+                        icon
+                        size="28px"
+                        variant="flat"
+                        color="transparent"
+                        class="stepper-btn text-orange-lighten-2"
+                        @click="decrementaKgUnicoStoricoSingolo"
+                      >
+                        <v-icon size="16">mdi-minus</v-icon>
+                      </v-btn>
+                      <div class="d-flex align-center justify-center px-1">
+                        <input
+                          v-model="numIns6ValStoricoSingolo"
+                          type="text"
+                          class="text-center font-weight-black text-slate-dark w6-stepper-input"
+                          @blur="salvaKgUnicoStoricoSingolo"
+                          placeholder="--"
+                        />
+                        <span class="text-super-caption font-weight-black text-orange-lighten-3 ml-0.5" style="font-size: 0.60rem;">KG</span>
+                      </div>
+                      <v-btn
+                        icon
+                        size="28px"
+                        variant="flat"
+                        color="transparent"
+                        class="stepper-btn text-orange-lighten-2"
+                        @click="incrementaKgUnicoStoricoSingolo"
+                      >
+                        <v-icon size="16">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
+
+                  <div class="d-flex flex-column gap-1.5 w-100 text-center">
+                    <div class="d-flex align-center justify-center text-center">
+                      <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.65rem;">
+                        ⚡ Sforzo Percepito
+                      </span>
+                    </div>
+
+                    <div class="w6-fatica-grid">
+                      <button
+                        type="button"
+                        class="w6-fatica-pill"
+                        :class="{ 'active-media': numFaticaw6ValStoricoSingolo === 'Media' }"
+                        @click="salvaFaticaStoricoSingolo('Media')"
+                      >
+                        <span class="pill-icon">🙂</span>
+                        <span class="pill-text">Media</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="w6-fatica-pill"
+                        :class="{ 'active-pesante': numFaticaw6ValStoricoSingolo === 'Pesante' }"
+                        @click="salvaFaticaStoricoSingolo('Pesante')"
+                      >
+                        <span class="pill-icon">🔥</span>
+                        <span class="pill-text">Pesante</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="w6-fatica-pill"
+                        :class="{ 'active-devastante': numFaticaw6ValStoricoSingolo === 'Devastante' }"
+                        @click="salvaFaticaStoricoSingolo('Devastante')"
+                      >
+                        <span class="pill-icon">💀</span>
+                        <span class="pill-text">Devastante</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="selectedStoricoWorkout.des_note_attrezzo" class="mt-4 pa-3 rounded-lg bg-slate-900 border-soft text-left">
+              <span class="text-super-caption text-muted font-weight-bold uppercase d-block mb-1" style="font-size: 0.6rem;">Note Coach:</span>
+              <p class="text-caption text-slate-dark mb-0 font-weight-medium" style="line-height: 1.35;">{{ selectedStoricoWorkout.des_note_attrezzo }}</p>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-3 border-top bg-slate-900 gap-2">
+          <v-btn color="orange-darken-3" variant="flat" block rounded="lg" size="small" class="font-weight-bold text-white" @click="dialogProgressioniStoricoSingolo = false">
+            Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Dialog Ricerca Rapida Esercizio (Tutta la Scheda Raggruppata) -->
     <v-dialog v-model="dialogRicercaRapida" max-width="550" scrollable>
       <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px);">
@@ -4013,18 +4197,50 @@
               <div 
                 v-for="prevEx in storicoFiltrato" 
                 :key="prevEx.id" 
-                class="rounded-xl border border-soft bg-slate-950 p-2.5 text-left position-relative" 
-                style="cursor: pointer;" 
+                class="rounded-xl border bg-slate-950 p-2.5 text-left position-relative" 
+                :class="{
+                  'border-emerald-500 shadow-emerald': String(prevEx.num_scheda) === String(workout?.num_scheda),
+                  'border-soft': String(prevEx.num_scheda) !== String(workout?.num_scheda)
+                }"
+                :style="{
+                  cursor: 'pointer',
+                  borderColor: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'rgba(34, 197, 94, 0.55)' : '',
+                  boxShadow: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '0 0 12px rgba(34, 197, 94, 0.18)' : ''
+                }"
                 @click="vaiADettaglioStorico(prevEx)"
               >
                 <div 
                   class="d-flex align-center justify-space-between mb-1 px-1.5 py-1 rounded sticky-timeline-header"
-                  :class="{'red-scheda-header': !soloCorrispondenti && haSettimanaCorrispondente(prevEx), 'bg-slate-900': soloCorrispondenti || !haSettimanaCorrispondente(prevEx)}"
+                  :class="{
+                    'current-scheda-header': String(prevEx.num_scheda) === String(workout?.num_scheda),
+                    'red-scheda-header': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !soloCorrispondenti && haSettimanaCorrispondente(prevEx),
+                    'bg-slate-900': String(prevEx.num_scheda) !== String(workout?.num_scheda) && (soloCorrispondenti || !haSettimanaCorrispondente(prevEx))
+                  }"
+                  :style="{
+                    background: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.28), rgba(15, 23, 42, 0.95))' : ''
+                  }"
                 >
                   <div class="d-flex align-center gap-1.5 flex-wrap">
-                    <span class="text-caption font-weight-black text-slate-dark uppercase" style="font-size: 0.72rem !important;">
+                    <span 
+                      class="text-caption font-weight-black uppercase" 
+                      :class="String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'text-emerald-400' : 'text-slate-dark'"
+                      :style="{
+                        fontSize: '0.72rem !important',
+                        color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80 !important' : ''
+                      }"
+                    >
                       Scheda {{ prevEx.num_scheda }}
                     </span>
+                    <v-chip
+                      v-if="String(prevEx.num_scheda) === String(workout?.num_scheda)"
+                      size="x-small"
+                      density="compact"
+                      class="font-weight-black text-emerald-300 px-1.5"
+                      variant="flat"
+                      style="font-size: 0.54rem; height: 18px; background: rgba(34, 197, 94, 0.25); color: #4ade80 !important; border: 1px solid rgba(34, 197, 94, 0.5);"
+                    >
+                      🟢 SCHEDA ATTUALE
+                    </v-chip>
                     <v-chip
                       v-if="calcola1RMW6Prescritto(prevEx)"
                       size="x-small"
@@ -4047,8 +4263,20 @@
                     </v-chip>
                   </div>
                   <div class="d-flex align-center gap-1.5">
-                    <span v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">
-                      {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }} <span class="text-orange-lighten-2 ml-1">({{ tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }})</span>
+                    <span 
+                      v-if="getExecutionDate(prevEx, storicoEsercizio, workout) || prevEx.dat_scheda_ult_ex || prevEx.timestamp" 
+                      class="text-super-caption font-weight-bold" 
+                      :class="String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'text-emerald-300' : 'text-muted'"
+                      :style="{ fontSize: '0.58rem', color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#86efac' : '' }"
+                    >
+                      {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }} 
+                      <span 
+                        class="ml-1"
+                        :class="String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'text-emerald-400 font-weight-black' : 'text-orange-lighten-2'"
+                        :style="{ color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80' : '' }"
+                      >
+                        {{ String(prevEx.num_scheda) === String(workout?.num_scheda) ? '(in corso)' : `(${tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout))})` }}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -4115,7 +4343,6 @@
                     </div>
                   </v-col>
                 </v-row>
-
               </div>
             </div>
 
@@ -4143,14 +4370,66 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="prevEx in storicoFiltrato" :key="prevEx.id" class="table-row" style="cursor: pointer;" @click="vaiADettaglioStorico(prevEx)">
-                    <td class="sticky-col body-cell text-left" :class="{'red-scheda-cell': !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}">
-                      <div class="table-scheda-title font-weight-black" style="font-size: 0.75rem; line-height: 1.15;">S. {{ prevEx.num_scheda }}</div>
-                      <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-super-caption text-muted" style="font-size: 0.55rem; white-space: nowrap; line-height: 1.15; margin-top: 1px;">
+                  <tr 
+                    v-for="prevEx in storicoFiltrato" 
+                    :key="prevEx.id" 
+                    class="table-row" 
+                    style="cursor: pointer;" 
+                    @click="vaiADettaglioStorico(prevEx)"
+                  >
+                    <td 
+                      class="sticky-col body-cell text-left" 
+                      :class="{'red-scheda-cell': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}"
+                      :style="{
+                        background: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'rgba(34, 197, 94, 0.16) !important' : '',
+                        borderLeft: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '3.5px solid #22c55e !important' : ''
+                      }"
+                    >
+                      <div class="d-flex align-center gap-1">
+                        <div 
+                          class="table-scheda-title font-weight-black" 
+                          :style="{
+                            fontSize: '0.75rem',
+                            lineHeight: '1.15',
+                            color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80 !important' : ''
+                          }"
+                        >
+                          S. {{ prevEx.num_scheda }}
+                        </div>
+                        <span 
+                          v-if="String(prevEx.num_scheda) === String(workout?.num_scheda)" 
+                          class="font-weight-black uppercase px-1 py-0.2 rounded" 
+                          style="font-size: 0.50rem; line-height: 1; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4);"
+                        >
+                          ATTUALE
+                        </span>
+                      </div>
+                      <div 
+                        v-if="getExecutionDate(prevEx, storicoEsercizio, workout) || prevEx.dat_scheda_ult_ex || prevEx.timestamp" 
+                        class="text-super-caption font-weight-medium" 
+                        :style="{
+                          fontSize: '0.55rem',
+                          whiteSpace: 'nowrap',
+                          lineHeight: '1.15',
+                          marginTop: '1px',
+                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#86efac !important' : ''
+                        }"
+                      >
                         {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
                       </div>
-                      <div v-if="prevEx.dat_scheda_ult_ex || prevEx.timestamp" class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.52rem; white-space: nowrap; line-height: 1.1; margin-top: 1px;">
-                        {{ tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
+                      <div 
+                        v-if="getExecutionDate(prevEx, storicoEsercizio, workout) || prevEx.dat_scheda_ult_ex || prevEx.timestamp" 
+                        class="font-weight-bold" 
+                        :class="String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'text-emerald-400' : 'text-orange-lighten-2'"
+                        :style="{
+                          fontSize: '0.52rem',
+                          whiteSpace: 'nowrap',
+                          lineHeight: '1.1',
+                          marginTop: '1px',
+                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80 !important' : ''
+                        }"
+                      >
+                        {{ String(prevEx.num_scheda) === String(workout?.num_scheda) ? '(in corso)' : tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
                       </div>
                     </td>
                     
@@ -5572,6 +5851,7 @@ const dialogResocontoCoachPR = ref(false);
 const resocontoCoachPR = ref(null);
 const dialogStorico = ref(false);
 const dialogProgressioniPrecedente = ref(false);
+const dialogProgressioniStoricoSingolo = ref(false);
 const dialogSettore = ref(false);
 
 // Dialog Dettaglio Strategia Sfidante & Obiettivi Record
@@ -6188,6 +6468,10 @@ const onPopStateModalHandler = () => {
     dialogProgressioniPrecedente.value = false;
     return;
   }
+  if (dialogProgressioniStoricoSingolo.value) {
+    dialogProgressioniStoricoSingolo.value = false;
+    return;
+  }
   if (dialogResocontoCoachPR.value) {
     dialogResocontoCoachPR.value = false;
     return;
@@ -6217,6 +6501,14 @@ watch(dialogProgressioniPrecedente, (newVal, oldVal) => {
   if (newVal && !oldVal) {
     try {
       window.history.pushState({ modal: 'dialogProgressioniPrecedente' }, '');
+    } catch (e) {}
+  }
+});
+
+watch(dialogProgressioniStoricoSingolo, (newVal, oldVal) => {
+  if (newVal && !oldVal) {
+    try {
+      window.history.pushState({ modal: 'dialogProgressioniStoricoSingolo' }, '');
     } catch (e) {}
   }
 });
@@ -10680,6 +10972,18 @@ const numFaticaw6Val = ref('');
 const indRepsStartVal = ref('');
 
 const previousWorkout = ref(null);
+const selectedStoricoWorkout = ref(null);
+const inputSettimaneStoricoSingolo = ref({
+  1: { ins: '', reps: '' },
+  2: { ins: '', reps: '' },
+  3: { ins: '', reps: '' },
+  4: { ins: '', reps: '' },
+  5: { ins: '', reps: '' },
+  6: { ins: '', reps: '' }
+});
+const numIns6ValStoricoSingolo = ref('');
+const numFaticaw6ValStoricoSingolo = ref('');
+const activeEditingWeekStoricoSingolo = ref(null);
 
 // Gestione Comfort Articolare e Infortuni
 const ghostSbloccato = ref(false);
@@ -11852,19 +12156,24 @@ const haPesoEsercizio = computed(() => {
   return false;
 });
 
+const normalizzaNomeEsercizio = (nome) => {
+  if (!nome) return '';
+  return String(nome).trim().toLowerCase().replace(/\s+/g, ' ');
+};
+
 const applicaEsercizioPrecedenteSincrono = (wObj) => {
   if (!wObj) return false;
   const { key: keyIdCliente, id: atletaId } = getAtletaInfo(wObj);
   const currentNumScheda = parseInt(wObj.num_scheda);
-  const desEsercizio = String(wObj.des_esercizio || '').trim().toLowerCase();
+  const desEsercizioNorm = normalizzaNomeEsercizio(wObj.des_esercizio);
   
-  if (!atletaId || isNaN(currentNumScheda) || !desEsercizio) return false;
+  if (!atletaId || isNaN(currentNumScheda) || !desEsercizioNorm) return false;
 
   let bestPrev = null;
   if (globalStoryboard.value && globalStoryboard.value.length > 0) {
     globalStoryboard.value.forEach(d => {
       const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
-      if (String(dAtletaId) === String(atletaId) && String(d.des_esercizio || '').trim().toLowerCase() === desEsercizio) {
+      if (String(dAtletaId) === String(atletaId) && normalizzaNomeEsercizio(d.des_esercizio) === desEsercizioNorm) {
         const sNum = parseInt(d.num_scheda);
         if (sNum < currentNumScheda && (parseInt(d.num_riga_giorno) > 0 || !d.num_riga_giorno)) {
           if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
@@ -11895,65 +12204,86 @@ const caricaEsercizioPrecedente = async () => {
   const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
   const currentNumScheda = workout.value.num_scheda;
   const desEsercizio = workout.value.des_esercizio;
+  const desEsercizioNorm = normalizzaNomeEsercizio(desEsercizio);
   
-  if (!atletaId || !currentNumScheda || !desEsercizio) return;
+  if (!atletaId || !currentNumScheda || !desEsercizioNorm) return;
   
   try {
     const currentSchedaNum = parseInt(currentNumScheda);
     if (isNaN(currentSchedaNum)) return;
 
-    // Se già trovato e applicato sincronicamente, evitiamo query se non necessario
-    if (previousWorkout.value && String(previousWorkout.value.des_esercizio || '').trim().toLowerCase() === String(desEsercizio).trim().toLowerCase()) {
+    // Se già trovato per lo STESSO esercizio, evitiamo query
+    if (previousWorkout.value && normalizzaNomeEsercizio(previousWorkout.value.des_esercizio) === desEsercizioNorm) {
       return;
     }
     
-    const q = query(
-      collection(db, 'STORYBOARD'),
-      where(keyIdCliente, '==', atletaId),
-      where('des_esercizio', '==', desEsercizio)
-    );
-    const snap = await getDocs(q);
-    
+    // Se non corrisponde, resettiamo a null prima di cercare
+    previousWorkout.value = null;
+    for (let w = 1; w <= 6; w++) {
+      inputSettimanePrecedente.value[w].ins = '';
+      inputSettimanePrecedente.value[w].reps = '';
+    }
+    numIns6ValPrecedente.value = '';
+    numFaticaw6ValPrecedente.value = '';
+
     let bestPrev = null;
-    snap.forEach((doc) => {
-      const d = doc.data();
-      const sNum = parseInt(d.num_scheda);
-      if (sNum < currentSchedaNum) {
-        if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
-          const itemId = doc.id || d.id || d.num_riga;
-          bestPrev = { ...d, id: itemId };
+
+    // 1. Cerca da Firestore per atletaId (senza filtro case-sensitive)
+    try {
+      const q = query(
+        collection(db, 'STORYBOARD'),
+        where(keyIdCliente, 'in', [atletaId, !isNaN(Number(atletaId)) ? Number(atletaId) : atletaId])
+      );
+      const snap = await getDocs(q);
+      snap.forEach((docSnap) => {
+        const d = docSnap.data();
+        const dNorm = normalizzaNomeEsercizio(d.des_esercizio);
+        const sNum = parseInt(d.num_scheda);
+        if (dNorm === desEsercizioNorm && sNum < currentSchedaNum && (parseInt(d.num_riga_giorno) > 0 || !d.num_riga_giorno)) {
+          if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+            const itemId = docSnap.id || d.id || d.num_riga;
+            bestPrev = { ...d, id: itemId };
+          }
         }
-      }
-    });
-    
-    if (bestPrev) {
-      previousWorkout.value = applicaModificheLocali(bestPrev);
-    } else {
-      const allData = await getStoryboardBackup();
-      const matched = allData.filter(b => {
-        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
-        return String(bAtletaId) === String(atletaId) &&
-               String(b.des_esercizio).trim() === String(desEsercizio).trim() &&
-               parseInt(b.num_scheda) < currentSchedaNum;
       });
-      if (matched.length > 0) {
-        matched.sort((a, b) => parseInt(b.num_scheda) - parseInt(a.num_scheda));
-        const item = matched[0];
-        if (!item.id && item.num_riga) item.id = String(item.num_riga);
-        previousWorkout.value = applicaModificheLocali(item);
+    } catch (eFs) {
+      console.warn("Errore query Firestore in caricaEsercizioPrecedente:", eFs);
+    }
+    
+    // 2. Cerca dallo storyboard_backup.json locale
+    if (!bestPrev) {
+      try {
+        const allData = await getStoryboardBackup();
+        (allData || []).forEach(b => {
+          const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+          const bNorm = normalizzaNomeEsercizio(b.des_esercizio);
+          const sNum = parseInt(b.num_scheda);
+          if (String(bAtletaId) === String(atletaId) && bNorm === desEsercizioNorm && sNum < currentSchedaNum) {
+            if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+              const itemId = b.id || b.num_riga || `PREV_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+              bestPrev = { ...b, id: itemId };
+            }
+          }
+        });
+      } catch (eBk) {
+        console.warn("Errore backup in caricaEsercizioPrecedente:", eBk);
       }
     }
 
-    if (previousWorkout.value) {
+    if (bestPrev) {
+      previousWorkout.value = applicaModificheLocali(bestPrev);
       for (let w = 1; w <= 6; w++) {
         inputSettimanePrecedente.value[w].ins = previousWorkout.value['ins_week' + w] || '';
         inputSettimanePrecedente.value[w].reps = previousWorkout.value['reps_week' + w] || '';
       }
       numIns6ValPrecedente.value = previousWorkout.value.num_ins6 || '';
       numFaticaw6ValPrecedente.value = previousWorkout.value.num_faticaw6 || '';
+    } else {
+      previousWorkout.value = null;
     }
   } catch (error) {
     console.error("Errore caricamento esercizio precedente:", error);
+    previousWorkout.value = null;
   }
 };
 
@@ -12044,20 +12374,15 @@ const isMatchingReps = (prevEx, w) => {
   return reps === target;
 };
 
+const workoutTPesiMap = ref({});
+const workoutTDateMap = ref({});
+
 const getExecutionDate = (prevEx, list, currWorkout) => {
   if (!prevEx) return null;
-  const sNum = parseInt(prevEx.num_scheda);
-  if (isNaN(sNum)) return prevEx.dat_scheda_ult_ex || prevEx.timestamp;
-
-  const nextEx = (list || []).find(ex => parseInt(ex.num_scheda) > sNum);
-  if (nextEx) {
-    return nextEx.dat_scheda_ult_ex || nextEx.timestamp;
+  const sNum = String(prevEx.num_scheda || '').trim();
+  if (sNum && workoutTDateMap.value[sNum]) {
+    return workoutTDateMap.value[sNum];
   }
-
-  if (currWorkout && parseInt(currWorkout.num_scheda) > sNum) {
-    return currWorkout.dat_scheda_ult_ex || currWorkout.timestamp;
-  }
-
   return prevEx.dat_scheda_ult_ex || prevEx.timestamp;
 };
 
@@ -15556,6 +15881,118 @@ const salvaFaticaPrecedente = async (fatica) => {
   await salvaDatoGeneralePrecedente('num_faticaw6', numFaticaw6ValPrecedente.value);
 };
 
+// Funzioni dedicate per la modifica e il salvataggio di un elemento aperto dallo Storico (senza toccare previousWorkout)
+const aggiornaDatoStoricoSingoloECommit = async (updates) => {
+  if (!selectedStoricoWorkout.value) return;
+  try {
+    const docRef = doc(db, 'STORYBOARD', selectedStoricoWorkout.value.id);
+    const timestamp = Date.now();
+    const timestampUte = getTimestampUte();
+    
+    selectedStoricoWorkout.value = { ...selectedStoricoWorkout.value, ...updates, timestamp, timestamp_ute: timestampUte };
+    
+    const key1 = `offline_storyboard_${selectedStoricoWorkout.value.id}`;
+    const currentUpdates = JSON.parse(localStorage.getItem(key1) || '{}');
+    Object.assign(currentUpdates, updates, { timestamp, timestamp_ute: timestampUte });
+    localStorage.setItem(key1, JSON.stringify(currentUpdates));
+    
+    if (selectedStoricoWorkout.value.num_riga) {
+      const key2 = `offline_storyboard_${selectedStoricoWorkout.value.num_riga}`;
+      localStorage.setItem(key2, JSON.stringify(currentUpdates));
+    }
+
+    if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+      const targetIdStr = String(selectedStoricoWorkout.value.id || selectedStoricoWorkout.value.num_riga || '');
+      const idx = storicoEsercizio.value.findIndex(ex => 
+        (ex.id && String(ex.id) === targetIdStr) || 
+        (ex.num_riga && String(ex.num_riga) === targetIdStr) ||
+        (ex.num_scheda && String(ex.num_scheda) === String(selectedStoricoWorkout.value.num_scheda))
+      );
+      if (idx !== -1) {
+        storicoEsercizio.value[idx] = applicaModificheLocali({ ...storicoEsercizio.value[idx], ...updates, timestamp, timestamp_ute: timestampUte });
+        storicoEsercizio.value = [...storicoEsercizio.value];
+      }
+    }
+
+    // Se l'elemento corrisponde anche a previousWorkout, aggiorniamo anche previousWorkout
+    if (previousWorkout.value && String(previousWorkout.value.id) === String(selectedStoricoWorkout.value.id)) {
+      previousWorkout.value = { ...previousWorkout.value, ...updates, timestamp, timestamp_ute: timestampUte };
+    }
+
+    await updateDoc(docRef, { ...updates, timestamp, timestamp_ute: timestampUte });
+    snackbarMessaggio.value = "Modifica storico salvata!";
+    snackbarSalvataggio.value = true;
+  } catch (error) {
+    console.error("Errore salvataggio storico singolo:", error);
+  }
+};
+
+const salvaDatoSettimanaleStoricoSingolo = async (settimana, tipo) => {
+  if (!selectedStoricoWorkout.value) return;
+  const campo = `${tipo}_week${settimana}`;
+  const valoreOriginale = selectedStoricoWorkout.value[campo] || '';
+  const valoreNuovo = inputSettimaneStoricoSingolo.value[settimana][tipo];
+
+  if (valoreOriginale !== valoreNuovo) {
+    const updates = { [campo]: valoreNuovo };
+    if (settimana === 6 && tipo === 'ins' && valoreNuovo) {
+      const estratto = estraiNumeroMassimo(valoreNuovo);
+      if (estratto !== null) {
+        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
+        if (!numIns6ValStoricoSingolo.value || (vecchioEstratto !== null && parseFloat(numIns6ValStoricoSingolo.value) === vecchioEstratto)) {
+          numIns6ValStoricoSingolo.value = String(estratto);
+          updates.num_ins6 = String(estratto);
+        }
+      }
+    }
+    await aggiornaDatoStoricoSingoloECommit(updates);
+  }
+};
+
+const salvaDatoGeneraleStoricoSingolo = async (campo, valore) => {
+  if (!selectedStoricoWorkout.value) return;
+  const valoreOriginale = selectedStoricoWorkout.value[campo] || '';
+  if (valoreOriginale !== valore) {
+    await aggiornaDatoStoricoSingoloECommit({ [campo]: valore });
+  }
+};
+
+const salvaKgUnicoStoricoSingolo = async () => {
+  await salvaDatoGeneraleStoricoSingolo('num_ins6', numIns6ValStoricoSingolo.value);
+};
+
+const incrementaKgUnicoStoricoSingolo = () => {
+  vibraTattile(10);
+  const isManubri = isManubriEsercizio(selectedStoricoWorkout.value);
+  let current = parseKg(numIns6ValStoricoSingolo.value);
+  const step = getWeightStep(isManubri, current);
+  current += step;
+  numIns6ValStoricoSingolo.value = String(parseFloat(current.toFixed(2)));
+  salvaKgUnicoStoricoSingolo();
+};
+
+const decrementaKgUnicoStoricoSingolo = () => {
+  vibraTattile(10);
+  const isManubri = isManubriEsercizio(selectedStoricoWorkout.value);
+  let current = parseKg(numIns6ValStoricoSingolo.value);
+  if (current > 0) {
+    const step = getWeightStep(isManubri, current);
+    current = Math.max(0, current - step);
+    numIns6ValStoricoSingolo.value = String(parseFloat(current.toFixed(2)));
+    salvaKgUnicoStoricoSingolo();
+  }
+};
+
+const salvaFaticaStoricoSingolo = async (fatica) => {
+  vibraTattile(15);
+  if (numFaticaw6ValStoricoSingolo.value === fatica) {
+    numFaticaw6ValStoricoSingolo.value = '';
+  } else {
+    numFaticaw6ValStoricoSingolo.value = fatica;
+  }
+  await salvaDatoGeneraleStoricoSingolo('num_faticaw6', numFaticaw6ValStoricoSingolo.value);
+};
+
 // Funzione WhatsApp (Aereo)
 const inviaVideoWhatsApp = () => {
   vibraTattile(12);
@@ -17118,8 +17555,6 @@ const getInsWeekTextStyle = (prevEx, w) => {
   return { color: isLight ? '#475569 !important' : '#475569' };
 };
 
-const workoutTPesiMap = ref({});
-
 const estraiValorePesoDaDato = (valRaw) => {
   if (valRaw === undefined || valRaw === null) return null;
   const str = String(valRaw).trim();
@@ -17160,7 +17595,8 @@ const estraiPesoCorporeoDaOggetto = (obj) => {
 const caricaPesiWorkoutT = async (atletaId) => {
   if (!atletaId) return;
   try {
-    const map = {};
+    const mapPesi = {};
+    const mapDate = {};
     const athleteIdStr = String(atletaId).trim();
     const athleteIdNum = Number(atletaId);
 
@@ -17170,7 +17606,10 @@ const caricaPesiWorkoutT = async (atletaId) => {
       const sNum = String(data.num_scheda || '').trim();
       const peso = estraiPesoCorporeoDaWorkoutT(data);
       if (sNum && peso) {
-        map[sNum] = peso;
+        mapPesi[sNum] = peso;
+      }
+      if (sNum && data.dat_data) {
+        mapDate[sNum] = data.dat_data;
       }
     });
 
@@ -17180,13 +17619,17 @@ const caricaPesiWorkoutT = async (atletaId) => {
         const data = d.data();
         const sNum = String(data.num_scheda || '').trim();
         const peso = estraiPesoCorporeoDaWorkoutT(data);
-        if (sNum && peso && !map[sNum]) {
-          map[sNum] = peso;
+        if (sNum && peso && !mapPesi[sNum]) {
+          mapPesi[sNum] = peso;
+        }
+        if (sNum && data.dat_data && !mapDate[sNum]) {
+          mapDate[sNum] = data.dat_data;
         }
       });
     }
 
-    workoutTPesiMap.value = { ...workoutTPesiMap.value, ...map };
+    workoutTPesiMap.value = { ...workoutTPesiMap.value, ...mapPesi };
+    workoutTDateMap.value = { ...workoutTDateMap.value, ...mapDate };
   } catch (err) {
     console.warn("Errore durante caricaPesiWorkoutT:", err);
   }
@@ -17990,15 +18433,15 @@ const vaiADettaglioStorico = (prevExIdOrObj) => {
   }
 
   if (targetItem) {
-    previousWorkout.value = applicaModificheLocali({ ...targetItem });
+    selectedStoricoWorkout.value = applicaModificheLocali({ ...targetItem });
     for (let w = 1; w <= 6; w++) {
-      inputSettimanePrecedente.value[w].ins = previousWorkout.value['ins_week' + w] || '';
-      inputSettimanePrecedente.value[w].reps = previousWorkout.value['reps_week' + w] || '';
+      inputSettimaneStoricoSingolo.value[w].ins = selectedStoricoWorkout.value['ins_week' + w] || '';
+      inputSettimaneStoricoSingolo.value[w].reps = selectedStoricoWorkout.value['reps_week' + w] || '';
     }
-    numIns6ValPrecedente.value = previousWorkout.value.num_ins6 || '';
-    numFaticaw6ValPrecedente.value = previousWorkout.value.num_faticaw6 || '';
+    numIns6ValStoricoSingolo.value = selectedStoricoWorkout.value.num_ins6 || '';
+    numFaticaw6ValStoricoSingolo.value = selectedStoricoWorkout.value.num_faticaw6 || '';
     
-    dialogProgressioniPrecedente.value = true;
+    dialogProgressioniStoricoSingolo.value = true;
   } else {
     dialogStorico.value = false;
     dialogAiutoProposta.value = false;

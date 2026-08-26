@@ -2653,9 +2653,9 @@ const itemsAtleti = computed(() => {
     return posA - posB;
   });
   return ordinati.map(id => {
-    const c = MAPPA_CLIENTI[id];
+    const nome = getNomeAtleta(id);
     return {
-      title: c ? `${c.nome} ${c.cognome} (ID: ${id})` : `Atleta ID: ${id}`,
+      title: nome ? `${nome} (ID: ${id})` : `Atleta ID: ${id}`,
       value: id
     };
   });
@@ -3064,14 +3064,27 @@ const segnaModificatoInfortuni = (row) => {
 // Crea anagrafica cliente default
 const creaSchedaClienteDefault = () => {
   const c = MAPPA_CLIENTI[String(atletaSelezionato.value)];
+  let nomeDefault = c?.nome || '';
+  let cognomeDefault = c?.cognome || '';
+  
+  if (!nomeDefault) {
+    // Prova a recuperare il nome da WORKOUT_T o da getNomeAtleta
+    const nomeCompleto = workoutTRecords.value[0]?.NomeCognomeTM || getNomeAtleta(atletaSelezionato.value) || '';
+    if (nomeCompleto) {
+      const parti = nomeCompleto.trim().split(/\s+/);
+      nomeDefault = parti[0] || '';
+      cognomeDefault = parti.slice(1).join(' ') || '';
+    }
+  }
+
   clienteRecord.value = {
     isDirty: true,
     ID_cliente: String(atletaSelezionato.value),
-    Nome: c?.nome || '',
-    Cognome: c?.cognome || '',
+    Nome: nomeDefault,
+    Cognome: cognomeDefault,
     des_email: c?.email || '',
     des_email_woapp: '',
-    flg_sesso: 'M',
+    flg_sesso: c?.sesso || 'M',
     dat_data_nascita: '',
     num_altezza: '',
     SchedaSelezionata: schedaSelezionata.value || '1',

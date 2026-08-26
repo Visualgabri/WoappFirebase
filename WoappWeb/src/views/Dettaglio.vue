@@ -14407,25 +14407,6 @@ const getGhostLift = (sett) => {
     }
   }
 
-  // 1. Controlla se c'è un metodo attivo configurato in des_estesa_start
-  if (workout.value.des_estesa_start) {
-    const startDesc = String(workout.value.des_estesa_start).trim().toLowerCase();
-    let matchingMetodo = null;
-    
-    for (const [key, metodo] of Object.entries(METODI_ALLENAMENTO)) {
-      const cleanDesc = metodo.desc.trim().toLowerCase();
-      if (startDesc.includes(cleanDesc) || cleanDesc.includes(startDesc)) {
-        matchingMetodo = metodo;
-        break;
-      }
-    }
-    
-    if (matchingMetodo) {
-      const ghostStandard = getGhostLiftStandard(sett);
-      return matchingMetodo.calcolaProposta(sett, ghostStandard, inputSettimane, workout);
-    }
-  }
-
   return getGhostLiftStandard(sett);
 };
 

@@ -1022,6 +1022,9 @@
                     <span v-if="getGhostLiftSmart(sett).reps">
                       <span v-if="parseFloat(getGhostLiftSmart(sett).text) > 0">x</span><strong :class="getColoreRepsPrecedentiClass(sett, getGhostLiftSmart(sett).reps)">{{ getGhostLiftSmart(sett).reps }}</strong>r
                     </span>
+                    <span v-if="getInfoRepsDiscrepanzaW6(previousWorkout)" class="text-amber-lighten-3 font-weight-bold ml-1">
+                      [target: {{ getInfoRepsDiscrepanzaW6(previousWorkout).repsPrescritte }}r]
+                    </span>
                     <span v-if="getGhostLiftSmart(sett).fatica && getGhostLiftSmart(sett).fatica !== 'Non specificata'">
                       - sforzo: <span :style="getColoreFaticaStyle(getGhostLiftSmart(sett).fatica)" class="font-weight-black">{{ getGhostLiftSmart(sett).fatica.trim().charAt(0).toUpperCase() }}</span>
                     </span>)
@@ -1427,6 +1430,13 @@
                   <v-icon size="16">mdi-plus</v-icon>
                 </v-btn>
               </div>
+            </div>
+
+            <!-- Badge Informativo Discrepanza Reps W6 -->
+            <div v-if="getInfoRepsDiscrepanzaW6(workout)" class="mb-2 text-center">
+              <v-chip size="x-small" color="cyan-lighten-2" variant="tonal" class="font-weight-bold px-2 text-wrap" style="font-size: 0.58rem; height: auto; padding: 4px 8px; line-height: 1.2;">
+                🎯 Prestazione reale: {{ getInfoRepsDiscrepanzaW6(workout).peso > 0 ? getInfoRepsDiscrepanzaW6(workout).peso + 'kg × ' : '' }}{{ getInfoRepsDiscrepanzaW6(workout).repsEseguite }}r (prescrizione W6: {{ getInfoRepsDiscrepanzaW6(workout).repsPrescritte }}r)
+              </v-chip>
             </div>
 
             <!-- Riga 2: Sforzo Percepito (Pill Segments Responsive) -->
@@ -2143,6 +2153,13 @@
                         <v-icon size="16">mdi-plus</v-icon>
                       </v-btn>
                     </div>
+                  </div>
+
+                  <!-- Badge Informativo Discrepanza Reps W6 Precedente -->
+                  <div v-if="getInfoRepsDiscrepanzaW6(previousWorkout)" class="mb-2 text-center">
+                    <v-chip size="x-small" color="cyan-lighten-2" variant="tonal" class="font-weight-bold px-2 text-wrap" style="font-size: 0.58rem; height: auto; padding: 4px 8px; line-height: 1.2;">
+                      🎯 Prestazione reale: {{ getInfoRepsDiscrepanzaW6(previousWorkout).peso > 0 ? getInfoRepsDiscrepanzaW6(previousWorkout).peso + 'kg × ' : '' }}{{ getInfoRepsDiscrepanzaW6(previousWorkout).repsEseguite }}r (prescrizione W6: {{ getInfoRepsDiscrepanzaW6(previousWorkout).repsPrescritte }}r)
+                    </v-chip>
                   </div>
 
                   <!-- Riga 2: Sforzo Percepito W6 Precedente -->
@@ -11480,6 +11497,29 @@ function estraiRepsEsercizioWeek(ex, w, fallbackReps = 10) {
   return fallbackReps > 0 ? fallbackReps : 10;
 }
 
+const getInfoRepsDiscrepanzaW6 = (ex) => {
+  if (!ex) return null;
+  const pStr = (ex.ins_week6 ? estraiPesoDaInput(ex.ins_week6) : null) || (ex.num_ins6 ? String(ex.num_ins6) : null);
+  const p = pStr ? parseFloat(pStr) : 0;
+  
+  const insW6 = ex.ins_week6 || '';
+  const isCavo = isCavoOMacchinaEsercizio(ex);
+  const perf = estraiMigliorPrestazioneInput(insW6, 10, isCavo);
+  const explicitReps = (perf && perf.reps > 0) ? perf.reps : estraiRepsDaInput(insW6);
+  
+  const prescritteReps = parseInt(ex.reps_week6, 10) || estraiRepsDaPrescrizione(ex.des_week6) || 10;
+  
+  if (explicitReps && explicitReps > 0 && explicitReps !== prescritteReps) {
+    return {
+      hasDiscrepancy: true,
+      peso: p > 0 ? p : (perf ? perf.peso : 0),
+      repsEseguite: explicitReps,
+      repsPrescritte: prescritteReps
+    };
+  }
+  return null;
+};
+
 const isManubriEsercizio = (ex) => {
   if (!ex) return false;
   const name = String(ex.des_esercizio || '').toLowerCase();
@@ -11821,15 +11861,7 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
   // Helper per calcolare e arrotondare il peso per un certo RIR target
   const calcolaPesoConRIR = (rirVal) => {
     const repsW1Totali = r1 + rirVal;
-    let weightCalc;
-    if (repsW1Totali <= 10) {
-      // Epley per <= 10 reps
-      weightCalc = estimated1RM / (1 + repsW1Totali / 30);
-    } else {
-      // NSCA per > 10 reps
-      weightCalc = estimated1RM * getNSCAPercentage(repsW1Totali);
-    }
-    weightCalc = weightCalc * dateFactor;
+    let weightCalc = (estimated1RM / (1 + repsW1Totali / 30)) * dateFactor;
 
     // A. Penalizzazione per Sbalzo di Ripetizioni (Reps Gap Penalty)
     let repsGapFactor = 1.0;
@@ -11838,7 +11870,6 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
     // Rilevamento instabilità esercizio (cavo, manubri, elastico)
     const isInstabile = /cavo|manubri|elastico/i.test(workout.value?.des_esercizio || '');
     const repsGapRate = 0.02; // Standard 2% per rep di sbalzo
-    const isolationRate = 0.80; // Standard 20% per isolamento
     const maxPenaltyPct = isInstabile
       ? (penalitaMaxInstabiliPctGlobal.value !== undefined ? penalitaMaxInstabiliPctGlobal.value : 64.0)
       : (penalitaMaxStabiliPctGlobal.value !== undefined ? penalitaMaxStabiliPctGlobal.value : 14.0);
@@ -11848,17 +11879,8 @@ const calcolaPropostaCaricoDinamico = (baseWeight, baseReps, baseRIR, currW1Reps
       repsGapFactor = Math.max(0.5, 1.0 - (excessReps * repsGapRate));
     }
 
-    // B. Dampener per Esercizi di Isolamento / Cavi SOLO in caso di sbalzo di ripetizioni a range alto
-    let isolationFactor = 1.0;
-    const isCavoOAlzate = /cavo|alzate|alzata|curl|estensioni|pushdown|kickback|lateral/i.test(workout.value?.des_esercizio || '');
-    const isIsolamento = ['Spalle', 'Bicipiti', 'Tricipiti', 'Polpacci'].includes(workout.value?.des_settore || '') || isCavoOAlzate;
-    if (isIsolamento && r1 > 12 && repsDiff > 0) {
-      isolationFactor = isolationRate;
-    }
-
-    // Cap combined penalty dynamically based on exercise stability
     const capFactor = 1.0 - (maxPenaltyPct / 100);
-    const combinedPenaltyFactor = Math.max(capFactor, repsGapFactor * isolationFactor);
+    const combinedPenaltyFactor = Math.max(capFactor, repsGapFactor);
     weightCalc = weightCalc * combinedPenaltyFactor;
     
     if (isManubri) {
@@ -11931,13 +11953,19 @@ const propostaWeek1 = computed(() => {
   
   // 1. Controlla prima la Week 6 (Miglior Carico num_ins6)
   const prevW6Weight = previousWorkout.value.num_ins6;
+  const w6InsText = previousWorkout.value.ins_week6 || '';
+  const isCavo = isCavoOMacchinaEsercizio(previousWorkout.value);
+  const w6Perf = estraiMigliorPrestazioneInput(w6InsText, estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10, isCavo, isRepEx);
+
   if (prevW6Weight && !isNaN(parseFloat(String(prevW6Weight).replace(',', '.')))) {
     const w6Val = parseFloat(String(prevW6Weight).replace(',', '.'));
-    const w6InsText = previousWorkout.value.ins_week6 || '';
     const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(w6InsText);
     
     basePeso = isRepEx && !haPesoEsplicito ? 0 : w6Val;
-    baseReps = parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10;
+    
+    // Se nelle note W6 sono specificate reps esplicite (es. "57x18r"), usa quelle! Altrimenti fallback su prescrizione
+    const explicitW6Reps = (w6Perf && w6Perf.reps > 0) ? w6Perf.reps : estraiRepsDaInput(w6InsText);
+    baseReps = (explicitW6Reps && explicitW6Reps > 0 && explicitW6Reps <= 100) ? explicitW6Reps : (parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10);
     baseRIR = estraiRIRDaPrescrizione(previousWorkout.value.des_week6) !== null ? estraiRIRDaPrescrizione(previousWorkout.value.des_week6) : 0;
     fatica = previousWorkout.value.num_faticaw6 || '';
     baseWeekNum = 6;
@@ -11948,16 +11976,18 @@ const propostaWeek1 = computed(() => {
       if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
         const pesoStr = estraiPesoDaInput(val);
         const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(val);
+        const perfW = estraiMigliorPrestazioneInput(val, estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10, isCavoOMacchinaEsercizio(previousWorkout.value), isRepEx);
+        const explicitReps = (perfW && perfW.reps > 0) ? perfW.reps : estraiRepsDaInput(val);
         
         if (pesoStr && (!isRepEx || haPesoEsplicito)) {
           basePeso = parseFloat(pesoStr);
-          baseReps = parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : (parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10);
           baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
           baseWeekNum = w;
           break;
         } else if (isRepEx) {
           basePeso = 0;
-          baseReps = estraiRepsDaInput(val) || parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : (parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10);
           baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
           baseWeekNum = w;
           break;

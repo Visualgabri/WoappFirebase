@@ -6796,8 +6796,7 @@ const ottieniDettaglioRecordStoricoPerReps = (targetReps) => {
         if (weightStr) {
           const weight = parseFloat(weightStr);
           if (!isNaN(weight) && weight > 0) {
-            const repsVal = prevEx['reps_week' + w];
-            let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+            let repsNum = estraiRepsDaPrescrizione(prevEx['des_week' + w]);
             const inputReps = estraiRepsDaInput(insVal);
             if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
               repsNum = inputReps;
@@ -6969,8 +6968,7 @@ const calcolaDettaglioMassimale1RMPuro = () => {
       if (pesoW6Str) {
         const weight = parseFloat(pesoW6Str);
         if (!isNaN(weight) && weight > 0) {
-          const repsVal = prevEx.reps_week6;
-          let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx.des_week6);
+          let repsNum = estraiRepsDaPrescrizione(prevEx.des_week6);
           const inputReps = estraiRepsDaInput(prevEx.ins_week6);
           if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
             repsNum = inputReps;
@@ -7007,8 +7005,7 @@ const calcolaDettaglioMassimale1RMPuro = () => {
             if (pesoStr) {
               const weight = parseFloat(pesoStr);
               if (!isNaN(weight) && weight > 0) {
-                const repsVal = prevEx['reps_week' + w];
-                let repsNum = repsVal ? parseInt(repsVal, 10) : estraiRepsDaPrescrizione(prevEx['des_week' + w]);
+                let repsNum = estraiRepsDaPrescrizione(prevEx['des_week' + w]);
                 const inputReps = estraiRepsDaInput(val);
                 if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
                   repsNum = inputReps;
@@ -7391,7 +7388,7 @@ const getBaseWeekInfo = (sett) => {
         const pStr = estraiPesoDaInput(baseInsText);
         pesoBase = pStr ? parseFloat(pStr) : null;
       }
-      const prevW6Reps = previousWorkout.value.reps_week6 || estraiRepsDaPrescrizione(previousWorkout.value.des_week6);
+      const prevW6Reps = estraiRepsDaPrescrizione(previousWorkout.value.des_week6);
       repsBase = prevW6Reps ? parseInt(prevW6Reps, 10) : 10;
       noteText = previousWorkout.value.des_note || '';
       faticaText = previousWorkout.value.des_fatica || '';
@@ -7409,17 +7406,14 @@ const getBaseWeekInfo = (sett) => {
       if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 50) {
         repsBase = repsEseguite;
       } else {
-        const repsVal = workout.value['reps_week' + baseWNum];
-        repsBase = repsVal ? parseInt(repsVal, 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
+        repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
       }
     } else {
-      const repsVal = workout.value['reps_week' + baseWNum];
-      repsBase = repsVal ? parseInt(repsVal, 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
+      repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
     }
   }
 
-  const repsTargetVal = workout.value['reps_week' + sett];
-  const repsTarget = repsTargetVal ? parseInt(repsTargetVal, 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + sett]) || 10);
+  const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + sett]) || 10;
 
   return {
     baseWNum,
@@ -7437,8 +7431,6 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
   if (!workout.value) return [];
   
   const targetReps = (() => {
-    const reps = workout.value['reps_week' + targetW];
-    if (reps) return parseInt(reps, 10);
     const presc = workout.value['des_week' + targetW];
     return estraiRepsDaPrescrizione(presc) || 10;
   })();
@@ -8202,7 +8194,7 @@ const getGhostWeightsRangeForWeek = (sett) => {
   }
 
   // Standard weeks (2, 3, 5, 6)
-  const repsBaseTarget = info ? (workout.value['reps_week' + info.baseWNum] ? parseInt(workout.value['reps_week' + info.baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + info.baseWNum]) || 10)) : 10;
+  const repsBaseTarget = info ? (estraiRepsDaPrescrizione(workout.value['des_week' + info.baseWNum]) || 10) : 10;
   const isTargetCompletato = repsBaseVal >= repsTarget;
   const isEsuberoReps = repsBaseVal >= repsTarget + 2;
   const isRepsIncomplete = repsBaseVal < repsBaseTarget;
@@ -11368,10 +11360,6 @@ const estraiSerieDaPrescrizione = (prescrizioneStr) => {
 
 const getPrescriptionReps = (ex, w) => {
   if (!ex) return null;
-  const repsVal = ex['reps_week' + w];
-  if (repsVal && !isNaN(parseInt(repsVal, 10))) {
-    return parseInt(repsVal, 10);
-  }
   return estraiRepsDaPrescrizione(ex['des_week' + w]);
 };
 
@@ -11466,34 +11454,26 @@ function isEsercizioEligibileW6(ex) {
 function estraiRepsEsercizioWeek(ex, w, fallbackReps = 10) {
   if (!ex) return fallbackReps > 0 ? fallbackReps : 10;
   
-  // 1. Controlla campo reps_week specifico (se > 0)
-  const rVal = ex['reps_week' + w];
-  if (rVal && parseInt(rVal, 10) > 0) {
-    return parseInt(rVal, 10);
-  }
-  
-  // 2. Controlla prescrizione des_week specifico (se > 0)
+  // 1. Controlla prescrizione des_week specifico (es. 3x20 -> 20 reps)
   const pReps = estraiRepsDaPrescrizione(ex['des_week' + w]);
   if (pReps && pReps > 0) {
     return pReps;
   }
   
-  // 3. Se la settimana è la 6 (es. AMRAP o test) o non ha reps esplicite, cerca a ritroso nelle altre settimane della stessa scheda (W5..W1)
+  // 2. Se la settimana corrente non ha reps esplicite (es. W6 AMRAP), cerca a ritroso nelle altre settimane (W5..W1)
   for (let pw = 5; pw >= 1; pw--) {
-    const pwR = ex['reps_week' + pw];
-    if (pwR && parseInt(pwR, 10) > 0) return parseInt(pwR, 10);
     const pwP = estraiRepsDaPrescrizione(ex['des_week' + pw]);
     if (pwP && pwP > 0) return pwP;
   }
 
-  // 4. Se non c'è alcuna prescrizione nel mesociclo, fallback alle reps scritte dall'utente nella nota
+  // 3. Se non c'è alcuna prescrizione nel mesociclo, fallback alle reps scritte dall'utente nella nota
   const insVal = ex['ins_week' + w];
   if (insVal) {
     const perf = estraiMigliorPrestazioneInput(insVal, fallbackReps);
     if (perf && perf.reps > 0) return perf.reps;
   }
   
-  // 5. Fallback
+  // 4. Fallback standard
   return fallbackReps > 0 ? fallbackReps : 10;
 }
 
@@ -11619,22 +11599,51 @@ const arrotondaManubrioCommerciale = (peso) => {
 
 const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return null;
-  const part = String(prescrizioneStr).split('|')[0].trim();
+  const rawStr = String(prescrizioneStr).trim();
+  const part = rawStr.split('|')[0].trim();
+  
+  // 1. Cerca prima pattern "NxM" (es. "3x20", "3x20 52", "(3x20 52)", "4X15")
+  const matchX = part.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  if (matchX) {
+    const r = parseInt(matchX[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+
+  // 2. Cerca nel testo senza parentesi
   const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
   
-  const matchX = cleanPart.match(/\d+\s*[xX]\s*(\d+)/);
-  if (matchX) {
-    return parseInt(matchX[1], 10);
+  const matchCleanX = cleanPart.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  if (matchCleanX) {
+    const r = parseInt(matchCleanX[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
   }
   
   const matchNum = cleanPart.match(/^(\d+)$/);
   if (matchNum) {
-    return parseInt(matchNum[1], 10);
+    const r = parseInt(matchNum[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
   }
   
-  const matchFirstNum = cleanPart.match(/(\d+)/);
+  const matchRepsSuffix = cleanPart.match(/\b(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+  if (matchRepsSuffix) {
+    const r = parseInt(matchRepsSuffix[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+
+  const matchFirstNum = cleanPart.match(/\b(\d+)\b/);
   if (matchFirstNum) {
-    return parseInt(matchFirstNum[1], 10);
+    const r = parseInt(matchFirstNum[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
   }
   
   return null;
@@ -11711,9 +11720,9 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   
   let repsBase = estraiRepsDaInput(baseInsText);
   if (repsBase === null || isNaN(repsBase) || repsBase <= 0) {
-    repsBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
+    repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10;
   }
-  const repsTarget = workout.value['reps_week' + targetWeek] ? parseInt(workout.value['reps_week' + targetWeek], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10);
+  const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10;
   
   // Estrai RIR della settimana base
   const rirBaseStr = estraiRIRDaPrescrizione(workout.value['des_week' + baseWeekNum]);
@@ -11737,7 +11746,7 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   
   // Calcolo del Mix Ratio per Ibrido Autoregolato
   let ratioDinamico = 0.5; // Default 50-50 per ibrido
-  const repsTargetPrescritteBase = workout.value['reps_week' + baseWeekNum] ? parseInt(workout.value['reps_week' + baseWeekNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10);
+  const repsTargetPrescritteBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10;
   
   if (ghostAutoregolazioneRepsAttiva.value && repsBase !== repsTargetPrescritteBase) {
     if (repsBase > repsTargetPrescritteBase) {
@@ -11952,21 +11961,30 @@ const propostaWeek1 = computed(() => {
   
   const isRepEx = isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value;
   
-  // 1. Controlla prima la Week 6 (Miglior Carico num_ins6)
+  // 1. Controlla prima la Week 6 (Miglior Carico num_ins6 o ins_week6)
   const prevW6Weight = previousWorkout.value.num_ins6;
   const w6InsText = previousWorkout.value.ins_week6 || '';
   const isCavo = isCavoOMacchinaEsercizio(previousWorkout.value);
   const w6Perf = estraiMigliorPrestazioneInput(w6InsText, estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10, isCavo, isRepEx);
 
+  let w6PesoCandidate = null;
   if (prevW6Weight && !isNaN(parseFloat(String(prevW6Weight).replace(',', '.')))) {
-    const w6Val = parseFloat(String(prevW6Weight).replace(',', '.'));
+    w6PesoCandidate = parseFloat(String(prevW6Weight).replace(',', '.'));
+  } else if (w6Perf && w6Perf.peso > 0) {
+    w6PesoCandidate = w6Perf.peso;
+  } else if (w6InsText) {
+    const pExt = parseFloat(estraiPesoDaInput(w6InsText));
+    if (!isNaN(pExt) && pExt > 0) w6PesoCandidate = pExt;
+  }
+
+  if (w6PesoCandidate !== null && w6PesoCandidate > 0) {
     const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(w6InsText);
     
-    basePeso = isRepEx && !haPesoEsplicito ? 0 : w6Val;
+    basePeso = isRepEx && !haPesoEsplicito ? 0 : w6PesoCandidate;
     
     // Se nelle note W6 sono specificate reps esplicite (es. "57x18r"), usa quelle! Altrimenti fallback su prescrizione
     const explicitW6Reps = (w6Perf && w6Perf.reps > 0) ? w6Perf.reps : estraiRepsDaInput(w6InsText);
-    baseReps = (explicitW6Reps && explicitW6Reps > 0 && explicitW6Reps <= 100) ? explicitW6Reps : (parseInt(previousWorkout.value.reps_week6) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10);
+    baseReps = (explicitW6Reps && explicitW6Reps > 0 && explicitW6Reps <= 100) ? explicitW6Reps : (estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10);
     baseRIR = estraiRIRDaPrescrizione(previousWorkout.value.des_week6) !== null ? estraiRIRDaPrescrizione(previousWorkout.value.des_week6) : 0;
     fatica = previousWorkout.value.num_faticaw6 || '';
     baseWeekNum = 6;
@@ -11982,13 +12000,13 @@ const propostaWeek1 = computed(() => {
         
         if (pesoStr && (!isRepEx || haPesoEsplicito)) {
           basePeso = parseFloat(pesoStr);
-          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : (parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10);
+          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : (estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10);
           baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
           baseWeekNum = w;
           break;
         } else if (isRepEx) {
           basePeso = 0;
-          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : (parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10);
+          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : (estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10);
           baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
           baseWeekNum = w;
           break;
@@ -12003,7 +12021,7 @@ const propostaWeek1 = computed(() => {
       const val = previousWorkout.value['ins_week' + w];
       if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
         basePeso = 0;
-        baseReps = estraiRepsDaInput(val) || parseInt(previousWorkout.value['reps_week' + w]) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+        baseReps = estraiRepsDaInput(val) || estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
         baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
         baseWeekNum = w;
         break;
@@ -12019,7 +12037,7 @@ const propostaWeek1 = computed(() => {
     return { erroreCarichi: true };
   }
   
-  const currW1Reps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 10;
+  const currW1Reps = estraiRepsDaPrescrizione(workout.value.des_week1) || 10;
   // Poiché l'esercizio proviene direttamente dalla scheda precedente, non si applica deallenamento da fermo prolungato (giorniTrascorsi = 0)
   const giorniTrascorsi = 0;
   
@@ -14417,12 +14435,12 @@ const getGhostLift = (sett) => {
 
   // Se è un esercizio a corpo libero con reps in aumento, senza onda e senza scarico in W4, ed è SENZA PESO, il Ghost non consiglia nulla
   if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
-    const r1 = getRepsForWeek(1);
-    const r2 = getRepsForWeek(2);
-    const r3 = getRepsForWeek(3);
-    const r4 = getRepsForWeek(4);
-    const r5 = getRepsForWeek(5);
-    const r6 = getRepsForWeek(6);
+    const r1 = getRepsPerWeek(1);
+    const r2 = getRepsPerWeek(2);
+    const r3 = getRepsPerWeek(3);
+    const r4 = getRepsPerWeek(4);
+    const r5 = getRepsPerWeek(5);
+    const r6 = getRepsPerWeek(6);
     
     const repsInAumento = (r2 !== null && r1 !== null && r2 > r1) ||
                           (r3 !== null && r2 !== null && r3 > r2) ||
@@ -14752,8 +14770,8 @@ const getGhostLiftStandard = (sett) => {
         }
         
         // Se a corpo libero e le reps salgono tra la base e W5, non proponiamo aumento peso post-scarico (isPostScarico: false)
-        const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
-        const repsTarget = workout.value['reps_week' + 5] ? parseInt(workout.value['reps_week' + 5], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 5]) || 10);
+        const repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
+        const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + 5]) || 10;
         
         if (isRepEx && repsTarget > repsBase) {
           return {
@@ -14827,7 +14845,7 @@ const getGhostLiftStandard = (sett) => {
 
       // Attacco al Record Storico su W6
       if (ghostPRAttackAttivo.value) {
-        const repsTarget = workout.value['reps_week6'] ? parseInt(workout.value['reps_week6'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week6']) || 10);
+        const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week6']) || 10;
         const recordVal = ottieniRecordStoricoPerReps(repsTarget);
         if (recordVal && recordVal > 0) {
           if (pesoProposto < recordVal && (pesoProposto >= recordVal * 0.95 || pesoProposto >= recordVal - 2.5)) {
@@ -14845,8 +14863,8 @@ const getGhostLiftStandard = (sett) => {
       }
       
       // Se a corpo libero e le reps salgono tra la base e W6, non proponiamo aumento peso (isPostScarico: false)
-      const repsBase = workout.value['reps_week' + baseWNum] ? parseInt(workout.value['reps_week' + baseWNum], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10);
-      const repsTarget = workout.value['reps_week' + 6] ? parseInt(workout.value['reps_week' + 6], 10) : (estraiRepsDaPrescrizione(workout.value['des_week' + 6]) || 10);
+      const repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
+      const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + 6]) || 10;
       
       if (isRepEx && repsTarget > repsBase) {
         return {

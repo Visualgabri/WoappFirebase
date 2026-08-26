@@ -394,22 +394,51 @@ const parseReps = (val) => {
 
 const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return 0;
-  const part = String(prescrizioneStr).split('|')[0].trim();
+  const rawStr = String(prescrizioneStr).trim();
+  const part = rawStr.split('|')[0].trim();
+  
+  // 1. Cerca prima pattern "NxM" (es. "3x20", "3x20 52", "(3x20 52)", "4X15")
+  const matchX = part.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  if (matchX) {
+    const r = parseInt(matchX[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+
+  // 2. Cerca nel testo senza parentesi
   const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
   
-  const matchX = cleanPart.match(/\d+\s*[xX]\s*(\d+)/);
-  if (matchX) {
-    return parseInt(matchX[1], 10);
+  const matchCleanX = cleanPart.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  if (matchCleanX) {
+    const r = parseInt(matchCleanX[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
   }
   
   const matchNum = cleanPart.match(/^(\d+)$/);
   if (matchNum) {
-    return parseInt(matchNum[1], 10);
+    const r = parseInt(matchNum[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
   }
   
-  const matchFirstNum = cleanPart.match(/(\d+)/);
+  const matchRepsSuffix = cleanPart.match(/\b(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+  if (matchRepsSuffix) {
+    const r = parseInt(matchRepsSuffix[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+
+  const matchFirstNum = cleanPart.match(/\b(\d+)\b/);
   if (matchFirstNum) {
-    return parseInt(matchFirstNum[1], 10);
+    const r = parseInt(matchFirstNum[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
   }
   
   return 0;

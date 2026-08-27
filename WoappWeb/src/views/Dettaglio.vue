@@ -11740,8 +11740,8 @@ const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   const rawStr = String(prescrizioneStr).trim();
   const part = rawStr.split('|')[0].trim();
   
-  // 1. Cerca prima pattern "NxM" (es. "3x20", "3x20 52", "(3x20 52)", "4X15")
-  const matchX = part.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  // 1. Cerca prima pattern "NxM" con o senza suffissi tecnici (es. "4x13RP++", "3x20", "3x20 52", "(3x20 52)", "4X15")
+  const matchX = part.match(/\b\d+\s*[xX]\s*(\d+)/);
   if (matchX) {
     const r = parseInt(matchX[1], 10);
     if (!isNaN(r) && r > 0 && r <= 100) {
@@ -11752,7 +11752,7 @@ const estraiRepsDaPrescrizione = (prescrizioneStr) => {
   // 2. Cerca nel testo senza parentesi
   const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
   
-  const matchCleanX = cleanPart.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  const matchCleanX = cleanPart.match(/\b\d+\s*[xX]\s*(\d+)/);
   if (matchCleanX) {
     const r = parseInt(matchCleanX[1], 10);
     if (!isNaN(r) && r > 0 && r <= 100) {
@@ -16850,6 +16850,10 @@ const analizzaRottaProgressione = ({
   let weekPareggioKg = null;
   let pesoPareggioKg = null;
 
+  // Se W1 ha già eguagliato o superato il record storico (es. 52kg su 52kg),
+  // l'obiettivo della rotta futura è il SUPERAMENTO nelle settimane successive (W2..W6)
+  const isW1GiaInQuotaPR = (p1 >= prWeight || e1rmW1 >= (e1rmStorico * 0.995));
+
   for (const stepObj of curve) {
     if (stepObj.peso >= prWeight && !weekPareggioKg && !stepObj.isScarico) {
       weekPareggioKg = stepObj.week;
@@ -16861,19 +16865,31 @@ const analizzaRottaProgressione = ({
       const isSuperamentoRepsSpecifiche = (stepObj.peso > prWeight);
       const isPareggioPRCompleto = (stepObj.peso >= prWeight) || Math.abs(stepObj.e1rm - e1rmStorico) <= (e1rmStorico * 0.015);
 
-      if (isSuperamentoE1RM || isSuperamentoRepsSpecifiche) {
-        if (!weekSfidaPR) {
-          weekSfidaPR = stepObj.week;
-          pesoSfidaPR = stepObj.peso;
-          repsSfidaPR = stepObj.reps;
-          tipoSfida = 'SUPERAMENTO';
+      if (isW1GiaInQuotaPR) {
+        // Se partiamo già al record, cerchiamo il primo SUPERAMENTO futuro (settimane > 1)
+        if (stepObj.week > 1 && (isSuperamentoE1RM || isSuperamentoRepsSpecifiche)) {
+          if (!weekSfidaPR) {
+            weekSfidaPR = stepObj.week;
+            pesoSfidaPR = stepObj.peso;
+            repsSfidaPR = stepObj.reps;
+            tipoSfida = 'SUPERAMENTO';
+          }
         }
-      } else if (isPareggioPRCompleto) {
-        if (!weekSfidaPR) {
-          weekSfidaPR = stepObj.week;
-          pesoSfidaPR = stepObj.peso;
-          repsSfidaPR = stepObj.reps;
-          tipoSfida = 'PAREGGIO';
+      } else {
+        if (isSuperamentoE1RM || isSuperamentoRepsSpecifiche) {
+          if (!weekSfidaPR) {
+            weekSfidaPR = stepObj.week;
+            pesoSfidaPR = stepObj.peso;
+            repsSfidaPR = stepObj.reps;
+            tipoSfida = 'SUPERAMENTO';
+          }
+        } else if (isPareggioPRCompleto) {
+          if (!weekSfidaPR) {
+            weekSfidaPR = stepObj.week;
+            pesoSfidaPR = stepObj.peso;
+            repsSfidaPR = stepObj.reps;
+            tipoSfida = 'PAREGGIO';
+          }
         }
       }
     }
@@ -17159,8 +17175,9 @@ const valutazioneProgressione = computed(() => {
     });
 
     if (rotta && rotta.weekSfidaPR) {
+      const azione = rotta.tipoSfida === 'SUPERAMENTO' ? 'superamento' : 'attacco';
       return {
-        testo: `🎯 Rotta PR: attacco record stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
+        testo: `🎯 Rotta PR: ${azione} record stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
         colore: 'text-green-accent-3',
         icona: 'mdi-flag-checkered'
       };

@@ -3079,7 +3079,14 @@
                   <v-row dense class="mb-2" v-if="!step.isLogged">
                     <v-col cols="4" class="text-center">
                       <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">PRUDENZIALE</div>
-                      <div class="text-caption font-weight-black text-cyan-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) - 1) }} kg</div>
+                      <div class="text-caption font-weight-black text-cyan-lighten-2">
+                        <template v-if="strategiaCoachData.isCorpoLiberoPuro">
+                          {{ Math.max(1, (step.numericTargetReps || 1) - 1) }} reps
+                        </template>
+                        <template v-else>
+                          {{ formatWeight(parseFloat(step.caricoTeorico) - 1) }} kg
+                        </template>
+                      </div>
                     </v-col>
                     <v-col cols="4" class="text-center border-left-soft border-right-soft">
                       <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">CONSIGLIATO</div>
@@ -3087,7 +3094,14 @@
                     </v-col>
                     <v-col cols="4" class="text-center">
                       <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">SFIDANTE</div>
-                      <div class="text-caption font-weight-black text-purple-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) + 1) }} kg</div>
+                      <div class="text-caption font-weight-black text-purple-lighten-2">
+                        <template v-if="strategiaCoachData.isCorpoLiberoPuro">
+                          {{ (step.numericTargetReps || 1) + 1 }} reps
+                        </template>
+                        <template v-else>
+                          {{ formatWeight(parseFloat(step.caricoTeorico) + 1) }} kg
+                        </template>
+                      </div>
                     </v-col>
                   </v-row>
                   
@@ -3102,7 +3116,14 @@
                     </v-col>
                     <v-col cols="4" class="text-center">
                       <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">SFIDANTE</div>
-                      <div class="text-caption font-weight-black text-purple-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) + 1) }} kg</div>
+                      <div class="text-caption font-weight-black text-purple-lighten-2">
+                        <template v-if="strategiaCoachData.isCorpoLiberoPuro">
+                          {{ (step.numericTargetReps || 1) + 1 }} reps
+                        </template>
+                        <template v-else>
+                          {{ formatWeight(parseFloat(step.caricoTeorico) + 1) }} kg
+                        </template>
+                      </div>
                     </v-col>
                   </v-row>
                   
@@ -3120,16 +3141,16 @@
                       <span class="font-weight-black text-slate-100" style="font-size: 0.85rem;">WEEK {{ step.week }} <span class="text-slate-400 font-weight-medium text-caption">({{ step.repsTeoriche }})</span></span>
                     </div>
                     
-                    <template v-if="step.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto">
+                    <template v-if="step.week === strategiaCoachData.rottaPredittiva?.weekNuovoE1RMAssoluto">
                       <v-chip color="purple-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2"><v-icon size="12" class="mr-1">mdi-crown</v-icon> NUOVO RECORD ASSOLUTO</v-chip>
                     </template>
-                    <template v-else-if="step.week === 4">
+                    <template v-else-if="step.isScarico">
                       <v-chip color="grey-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">SCARICO</v-chip>
                     </template>
-                    <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekSfidaPR">
+                    <template v-else-if="step.week === strategiaCoachData.rottaPredittiva?.weekSfidaPR">
                       <v-chip color="green-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">ATTACCO PR</v-chip>
                     </template>
-                    <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekPareggioKg">
+                    <template v-else-if="step.week === strategiaCoachData.rottaPredittiva?.weekPareggioKg">
                       <v-chip color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">RITORNO CARICO PR</v-chip>
                     </template>
                     <template v-else-if="step.week === 2">
@@ -3139,25 +3160,31 @@
                   
                   <div class="d-flex justify-space-between align-end">
                     <div>
-                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">{{ step.isLogged ? 'ESEGUITO' : (step.week === 4 ? 'SCARICO' : (step.week === 6 ? 'PROIEZIONE TEST' : 'PROIEZIONE')) }}</div>
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">{{ step.isLogged ? 'ESEGUITO' : (step.isScarico ? 'SCARICO' : (step.week === 6 ? 'PROIEZIONE TEST' : 'PROIEZIONE')) }}</div>
                       <div class="text-subtitle-2 font-weight-black" :class="step.color ? 'text-' + step.color + '-lighten-2' : 'text-amber-lighten-1'" style="font-size: 0.95rem;">
                         {{ step.isLogged ? step.caricoReale : step.caricoTeorico }} <span class="text-super-caption font-weight-bold text-slate-300">x{{ step.isLogged ? step.repsReali : step.repsTeoriche.replace('3x', '') }}</span>
                       </div>
                     </div>
                     <div class="text-right">
-                      <template v-if="step.week === 4">
+                      <template v-if="step.isScarico">
                         <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Volume, recupero, tecnica</div>
                       </template>
-                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto">
+                      <template v-else-if="step.week === 4 && strategiaCoachData.isCorpoLiberoPuro">
+                        <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Salita progressiva</div>
+                      </template>
+                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva?.weekNuovoE1RMAssoluto && !strategiaCoachData.isCorpoLiberoPuro">
                         <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">e1RM stimato record<br><strong class="text-purple-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) / (1.0278 - 0.0278 * parseInt(step.repsTeoriche.split('x')[1].split('-')[0]))) }} kg</strong></div>
                       </template>
-                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekSfidaPR">
+                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva?.weekSfidaPR">
                         <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Superamento PR possibile</div>
                       </template>
-                      <template v-else-if="step.week === 6">
+                      <template v-else-if="step.week === 6 && !strategiaCoachData.isCorpoLiberoPuro">
                         <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">e1RM finale<br><strong class="text-slate-200">{{ formatWeight(parseFloat(step.caricoTeorico) / (1.0278 - 0.0278 * parseInt(step.repsTeoriche.split('x')[1].split('-')[0]))) }} kg</strong></div>
                       </template>
-                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekPareggioKg">
+                      <template v-else-if="step.week === 6 && strategiaCoachData.isCorpoLiberoPuro">
+                        <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Obiettivo finale reps</div>
+                      </template>
+                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva?.weekPareggioKg">
                         <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Stesso carico del PR ({{ strategiaCoachData.prWeight }}kg)</div>
                       </template>
                       <template v-else-if="step.week === 2">
@@ -17682,18 +17709,30 @@ const strategiaCoachData = computed(() => {
     let repsRealiText = '';
 
     if (isCorpoLiberoPuro) {
+      const isScaricoDefinito = r4 <= r3;
+      let finalTeorico = targetRepsStr;
       if (isLogged) {
         caricoRealeText = formatRepsDisplay(repsRealiVal);
       } else {
-        if (w === 4 && lastLoggedRepsPreScarico > 0) {
-          const scaricoReps = Math.round(lastLoggedRepsPreScarico * 0.70);
-          caricoRealeText = `3x${scaricoReps} reps`;
-        } else if (w === 5 && lastLoggedRepsPreScarico > 0) {
-          const targetW6Reps = r6;
-          const piccoReps = Math.round(lastLoggedRepsPreScarico + (targetW6Reps - lastLoggedRepsPreScarico) * 0.5);
-          caricoRealeText = `3x${Math.max(piccoReps - 1, 1)}-${piccoReps + 1} reps`;
-        } else {
-          caricoRealeText = targetRepsStr;
+        if (lastLoggedRepsPreScarico > 0) {
+          if (w === 4) {
+            if (isScaricoDefinito) {
+              const scaricoReps = Math.round(lastLoggedRepsPreScarico * 0.70);
+              finalTeorico = `3x${scaricoReps} reps`;
+            } else {
+              const targetW6Reps = r6;
+              const stepW4 = Math.round(lastLoggedRepsPreScarico + (targetW6Reps - lastLoggedRepsPreScarico) * 0.33);
+              finalTeorico = `3x${Math.max(stepW4, 1)} reps`;
+            }
+          } else if (w === 5) {
+            const targetW6Reps = r6;
+            const factor = isScaricoDefinito ? 0.5 : 0.66;
+            const stepW5 = Math.round(lastLoggedRepsPreScarico + (targetW6Reps - lastLoggedRepsPreScarico) * factor);
+            finalTeorico = `3x${Math.max(stepW5 - 1, 1)}-${stepW5 + 1} reps`;
+          } else if (w === 2 || w === 3) {
+            const bump = w === 2 ? 1 : 2;
+            finalTeorico = `3x${lastLoggedRepsPreScarico + bump} reps`;
+          }
         }
       }
       return {
@@ -17702,11 +17741,13 @@ const strategiaCoachData = computed(() => {
         color,
         rpe,
         note,
-        caricoTeorico: targetRepsStr,
+        caricoTeorico: finalTeorico,
         repsTeoriche: '',
         isLogged,
         caricoReale: caricoRealeText,
-        repsReali: ''
+        repsReali: '',
+        numericTargetReps: getRepsPerWeek(w),
+        isScarico: (w === 4 && isScaricoDefinito)
       };
     }
 
@@ -17750,7 +17791,8 @@ const strategiaCoachData = computed(() => {
       repsTeoriche: targetRepsStr,
       isLogged,
       caricoReale: caricoRealeText,
-      repsReali: repsRealiText
+      repsReali: repsRealiText,
+      isScarico: (w === 4)
     };
   };
 

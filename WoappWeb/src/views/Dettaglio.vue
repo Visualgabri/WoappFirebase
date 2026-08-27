@@ -595,6 +595,13 @@
                 </span>
               </div>
             </template>
+            <template v-else-if="recordOverviewData.bestE1RM.isEqualedPeak">
+              <div class="d-flex align-center justify-center text-center mb-1">
+                <span class="text-super-caption font-weight-black text-cyan-accent-2 uppercase d-flex align-center justify-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                  <span>RECORD 1RM EGUAGLIATO: {{ recordOverviewData.bestE1RM.display }} (Sch. {{ recordOverviewData.bestE1RM.sheet }})</span>
+                </span>
+              </div>
+            </template>
             <template v-else>
               <div class="d-flex align-center justify-space-between mb-1">
                 <span class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
@@ -9189,7 +9196,7 @@ const calcolaRecordOverviewData = (sett) => {
   let bestIsCurrent = false;
 
   const recAnalisi = analizzaRecordSettimana(sett);
-  if (currentRepsWeight > 0 && (pastRepsWeight === 0 || currentRepsWeight >= pastRepsWeight)) {
+  if (currentRepsWeight > 0 && (pastRepsWeight === 0 || currentRepsWeight > pastRepsWeight)) {
     isCurrentPR = true;
     bestIsCurrent = true;
     bestWeight = currentRepsWeight;
@@ -9451,7 +9458,18 @@ const calcolaRecordOverviewData = (sett) => {
 
   // Confronto con Picco 1RM Assoluto (bestE1rmVal)
   const isFirstCycle = Boolean(!massimalePuroInfo.bestSource || massimalePuroInfo.bestSource.tempoTrascorso === 'questa scheda' || String(massimalePuroInfo.bestSource.numScheda) === String(workout.value.num_scheda));
-  const isNewPeak = Boolean(bestE1rmIsCurrent || (roundedCurrentE1RM >= roundedE1rm && roundedCurrentE1RM > 0 && !isBasedOnProposal));
+  const isNewPeak = Boolean(
+    !isFirstCycle && 
+    roundedCurrentE1RM > roundedE1rm && 
+    roundedCurrentE1RM > 0 && 
+    !isBasedOnProposal
+  );
+  const isEqualedPeak = Boolean(
+    !isFirstCycle && 
+    roundedCurrentE1RM === roundedE1rm && 
+    roundedCurrentE1RM > 0 && 
+    !isBasedOnProposal
+  );
   let maxDeltaText = null;
   let maxDeltaKg = 0;
   let e1rmProximityPct = 0;
@@ -9554,6 +9572,7 @@ const calcolaRecordOverviewData = (sett) => {
       targetLoadDisplay: targetLoadForNewPeak > 0 ? `${formatWeight(targetLoadForNewPeak)} kg` : currentE1rmDisplay,
       isCurrent: bestE1rmIsCurrent,
       isNewPeak: isNewPeak,
+      isEqualedPeak: isEqualedPeak,
       isFirstCycle: isFirstCycle,
       currentE1RM: roundedCurrentE1RM,
       max1RM: roundedE1rm,
@@ -16650,52 +16669,7 @@ const recordMaxAssolutoInfo = computed(() => {
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const currentNumScheda = parseInt(workout.value?.num_scheda);
 
-  // 1. Cerca nel mesociclo corrente W1-W6
-  for (let w = 1; w <= 6; w++) {
-    const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
-    if (ins) {
-      const lines = String(ins).split(/[\n;\r]+/);
-      lines.forEach(line => {
-        const l = line.trim();
-        if (!l) return;
-        const pStr = estraiPesoDaInput(l);
-        const p = pStr ? parseFloat(pStr) : 0;
-        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
-        const r = (explicitReps && explicitReps > 0) ? explicitReps : getRepsPerWeek(w);
-
-        if (isCorpoLibero && !haPesoEsercizio.value) {
-          if (r > repsAtMaxWeight) {
-            maxWeight = 0;
-            repsAtMaxWeight = r;
-            weekAtMaxWeight = w;
-            sheetAtMaxWeight = workout.value.num_scheda;
-            dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
-            isCurrentMeso = true;
-            idAtMaxWeight = workout.value.id;
-            itemAtMaxWeight = workout.value;
-          }
-        } else if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
-          maxWeight = p;
-          repsAtMaxWeight = r;
-          weekAtMaxWeight = w;
-          sheetAtMaxWeight = workout.value.num_scheda;
-          dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
-          isCurrentMeso = true;
-          idAtMaxWeight = workout.value.id;
-          itemAtMaxWeight = workout.value;
-        } else if (isCorpoLibero && p === 0 && r > repsAtMaxWeight && maxWeight === 0) {
-          repsAtMaxWeight = r;
-          weekAtMaxWeight = w;
-          sheetAtMaxWeight = workout.value.num_scheda;
-          dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
-          isCurrentMeso = true;
-        }
-      });
-    }
-  }
-
-  // 2. Cerca nello storico delle schede passate
+  // 1. Cerca prima nello storico delle schede passate
   if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
@@ -16748,7 +16722,7 @@ const recordMaxAssolutoInfo = computed(() => {
     });
   }
 
-  // 3. Fallback da suggerimentoRecord se disponibile
+  // 2. Fallback da suggerimentoRecord per lo storico passato se non trovato direttamente
   if (isCorpoLibero && !haPesoEsercizio.value) {
     if (repsAtMaxWeight === 0 && (suggerimentoRecord.value?.recordAbsoluteReps > 0 || suggerimentoRecord.value?.recordRepsValue > 0)) {
       maxWeight = 0;
@@ -16769,6 +16743,45 @@ const recordMaxAssolutoInfo = computed(() => {
     isCurrentMeso = false;
     idAtMaxWeight = suggerimentoRecord.value.recordAbsoluteId;
     itemAtMaxWeight = suggerimentoRecord.value.recordAbsoluteItem;
+  }
+
+  // 3. Cerca nel mesociclo corrente W1-W6: assegna "questa scheda" SOLO SE supera strettamente lo storico
+  for (let w = 1; w <= 6; w++) {
+    const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
+    if (ins) {
+      const lines = String(ins).split(/[\n;\r]+/);
+      lines.forEach(line => {
+        const l = line.trim();
+        if (!l) return;
+        const pStr = estraiPesoDaInput(l);
+        const p = pStr ? parseFloat(pStr) : 0;
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
+        const r = (explicitReps && explicitReps > 0) ? explicitReps : getRepsPerWeek(w);
+
+        if (isCorpoLibero && !haPesoEsercizio.value) {
+          if (r > repsAtMaxWeight) {
+            maxWeight = 0;
+            repsAtMaxWeight = r;
+            weekAtMaxWeight = w;
+            sheetAtMaxWeight = workout.value.num_scheda;
+            dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+            isCurrentMeso = true;
+            idAtMaxWeight = workout.value.id;
+            itemAtMaxWeight = workout.value;
+          }
+        } else if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
+          maxWeight = p;
+          repsAtMaxWeight = r;
+          weekAtMaxWeight = w;
+          sheetAtMaxWeight = workout.value.num_scheda;
+          dateAtMaxWeight = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+          isCurrentMeso = true;
+          idAtMaxWeight = workout.value.id;
+          itemAtMaxWeight = workout.value;
+        }
+      });
+    }
   }
 
   if (maxWeight <= 0 && (!isCorpoLibero || repsAtMaxWeight <= 0)) return null;

@@ -603,26 +603,41 @@
               </div>
             </template>
             <template v-else>
-              <div class="d-flex align-center justify-space-between mb-1">
-                <span class="text-super-caption text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                  <v-icon size="11" color="cyan-lighten-2" class="mr-0.5">mdi-chart-line</v-icon>
-                  <span v-if="recordOverviewData.bestE1RM.isBasedOnProposal" class="text-amber-lighten-2 mr-1">Proposta ({{ recordOverviewData.bestE1RM.proposalLoad }}kg):</span>
-                  <span v-else>Verso il tuo miglior 1RM:</span>
-                  {{ recordOverviewData.bestE1RM.display }}/{{ recordOverviewData.bestE1RM.maxDisplay }}
-                </span>
-                <span class="text-super-caption font-weight-black text-cyan-accent-2" style="font-size: 0.52rem;">
-                  {{ recordOverviewData.bestE1RM.e1rmProximityPct }}% (-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg)
-                </span>
+              <div class="d-flex align-end justify-space-between mb-1">
+                <div class="d-flex flex-column text-left">
+                  <span class="text-super-caption text-slate-300 font-weight-bold uppercase mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">
+                    e1RM ATTUALE
+                  </span>
+                  <span class="font-weight-black text-cyan-accent-2" style="font-size: 0.75rem;">
+                    {{ recordOverviewData.bestE1RM.display }} <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg</span> <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ Math.max(0, 100 - recordOverviewData.bestE1RM.e1rmProximityPct) }}%</span>
+                  </span>
+                </div>
+                <div class="d-flex flex-column text-right">
+                  <span class="text-super-caption font-weight-black text-cyan-accent-2" style="font-size: 0.65rem;">
+                    {{ recordOverviewData.bestE1RM.e1rmProximityPct }}%
+                  </span>
+                  <span class="text-muted font-weight-medium d-block text-right" style="font-size: 0.50rem;">del tuo 1RM</span>
+                </div>
               </div>
             </template>
-            <v-progress-linear
-              :model-value="recordOverviewData.bestE1RM.e1rmProximityPct"
-              :color="recordOverviewData.bestE1RM.isNewPeak ? 'green-accent-3' : (recordOverviewData.bestE1RM.isBasedOnProposal ? 'cyan-accent-3' : 'cyan-lighten-1')"
-              bg-color="rgba(255, 255, 255, 0.08)"
-              height="3.5"
-              rounded
-              class="elevation-1"
-            ></v-progress-linear>
+            <div class="position-relative mt-1">
+              <v-progress-linear
+                :model-value="100"
+                color="rgba(255, 255, 255, 0.08)"
+                height="4"
+                rounded
+                class="elevation-0 position-absolute w-100"
+              ></v-progress-linear>
+              <v-progress-linear
+                :model-value="recordOverviewData.bestE1RM.e1rmProximityPct"
+                :color="recordOverviewData.bestE1RM.isNewPeak ? 'green-accent-3' : (recordOverviewData.bestE1RM.isBasedOnProposal ? 'cyan-accent-3' : 'cyan-accent-3')"
+                bg-color="transparent"
+                height="4"
+                rounded
+                class="elevation-1 position-relative"
+                style="z-index: 1"
+              ></v-progress-linear>
+            </div>
           </div>
 
           <!-- Status Linea Trend Progressione / Suggerimento Target -->
@@ -3042,15 +3057,6 @@
 
           <!-- ROADMAP PROGETTATA A 6 SETTIMANE -->
           <div class="mb-3">
-            <div class="d-flex align-center justify-space-between mb-2 gap-2">
-              <span class="text-super-caption font-weight-black dialog-text-primary uppercase text-truncate" style="font-size: 0.65rem; letter-spacing: 0.05em;">
-                🗺️ Roadmap di Progressione (W1 - W6)
-              </span>
-              <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white px-2 flex-shrink-0" style="font-size: 0.55rem; height: 20px; white-space: nowrap;">
-                {{ meAttrezzoLabel(strategiaCoachData.isManubri, strategiaCoachData.isCorpoLiberoPuro, strategiaCoachData.isComfortAttivo, strategiaCoachData.percentualeInfortunio) }}
-              </v-chip>
-            </div>
-
             <div class="d-flex flex-column gap-2">
               <div 
                 v-for="step in strategiaCoachData.roadmap" 
@@ -3058,90 +3064,101 @@
                 class="pa-2.5 rounded-xl border text-left position-relative"
                 :style="getStepCardStyle(step)"
               >
-                <!-- Intestazione Settimana & Fase -->
-                <div class="d-flex align-center justify-space-between mb-1.5">
-                  <div class="d-flex align-center gap-1.5">
-                    <v-chip 
-                      :color="step.color + '-darken-2'" 
-                      size="x-small" 
-                      variant="flat" 
-                      class="font-weight-black text-white px-1.5 mr-2 flex-shrink-0" 
-                      style="font-size: 0.58rem; height: 18px;"
-                    >
-                      W{{ step.week }}
-                    </v-chip>
-                    <span class="font-weight-black dialog-text-primary text-caption" style="font-size: 0.75rem;">
-                      {{ step.fase }}
-                    </span>
+                <!-- UI MOCKUP PER W1 -->
+                <template v-if="step.week === 1">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center gap-2">
+                      <v-avatar size="24" :color="step.isLogged ? 'green-darken-2' : 'amber-darken-3'" class="font-weight-black text-white text-caption">1</v-avatar>
+                      <span class="font-weight-black text-slate-100" style="font-size: 0.85rem;">WEEK 1 <span class="text-slate-400 font-weight-medium text-caption">({{ step.repsTeoriche }})</span></span>
+                    </div>
+                    <v-chip v-if="step.isLogged" color="green-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">COMPLETATA</v-chip>
+                    <v-chip v-else color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">ATTIVA ORA</v-chip>
                   </div>
-                  <div class="d-flex align-center gap-1">
-                    <v-chip 
-                      v-if="step.isLogged" 
-                      color="green-darken-2" 
-                      size="x-small" 
-                      variant="flat"
-                      class="font-weight-black text-white px-1.5" 
-                      style="font-size: 0.50rem; height: 16px;"
-                    >
-                      ✓ ESEGUITO
-                    </v-chip>
-                    <v-chip 
-                      v-if="step.week === settimanaAttiva" 
-                      color="amber-darken-3" 
-                      size="x-small" 
-                      variant="flat"
-                      class="font-weight-black text-white animate-pulse px-2" 
-                      style="font-size: 0.55rem; height: 18px; letter-spacing: 0.03em;"
-                    >
-                      ⚡ ATTIVA ORA
-                    </v-chip>
+                  
+                  <v-row dense class="mb-2" v-if="!step.isLogged">
+                    <v-col cols="4" class="text-center">
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">PRUDENZIALE</div>
+                      <div class="text-caption font-weight-black text-cyan-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) - 1) }} kg</div>
+                    </v-col>
+                    <v-col cols="4" class="text-center border-left-soft border-right-soft">
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">CONSIGLIATO</div>
+                      <div class="text-caption font-weight-black text-amber-lighten-1">{{ step.caricoTeorico }}</div>
+                    </v-col>
+                    <v-col cols="4" class="text-center">
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">SFIDANTE</div>
+                      <div class="text-caption font-weight-black text-purple-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) + 1) }} kg</div>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row dense class="mb-2" v-else>
+                    <v-col cols="4" class="text-center border-right-soft">
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">ESEGUITO</div>
+                      <div class="text-caption font-weight-black text-green-accent-3">{{ step.caricoReale }} <span class="text-super-caption">{{ step.repsReali }}</span></div>
+                    </v-col>
+                    <v-col cols="4" class="text-center border-right-soft">
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">CONSIGLIATO</div>
+                      <div class="text-caption font-weight-black text-amber-lighten-1">{{ step.caricoTeorico }}</div>
+                    </v-col>
+                    <v-col cols="4" class="text-center">
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">SFIDANTE</div>
+                      <div class="text-caption font-weight-black text-purple-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) + 1) }} kg</div>
+                    </v-col>
+                  </v-row>
+                  
+                  <div v-if="step.isLogged" class="text-super-caption font-weight-bold text-green-lighten-2 d-flex align-center gap-1">
+                    <v-icon size="12" color="green-lighten-2">mdi-check-circle-outline</v-icon>
+                    Partenza registrata: {{ step.caricoReale }} x {{ step.repsReali }}
                   </div>
-                </div>
-
-                <!-- BOX A DOPPIO INDICATORE (REALE / RICALIBRATO + TARGET TEORICO PR) -->
-                <div class="pa-2 rounded-lg d-flex align-center justify-space-between gap-1 inner-indicator-box">
-                  <!-- Indicatore 1: Dato Reale Sollevato o Proiezione Reale -->
-                  <div>
-                    <span class="text-super-caption font-weight-black uppercase d-block" :class="step.isLogged ? 'text-green-lighten-2' : 'text-amber-lighten-2'" style="font-size: 0.53rem; letter-spacing: 0.03em;">
-                      {{ step.isLogged ? '⚡ Reale:' : '⚡ Proiezione:' }}
-                    </span>
-                    <div class="d-flex align-baseline gap-1 mt-0.5">
-                      <span class="text-subtitle-2 font-weight-black" :class="step.isLogged ? 'text-green-accent-3' : 'text-amber-lighten-1'" style="font-size: 0.95rem; line-height: 1;">
-                        {{ step.caricoReale }}
-                      </span>
-                      <span v-if="step.repsReali" class="text-super-caption font-weight-bold ml-1" :class="step.isLogged ? 'text-green-lighten-3' : 'text-slate-300'" style="font-size: 0.65rem;">
-                        ({{ step.repsReali }})
-                      </span>
+                </template>
+                
+                <!-- UI MOCKUP PER W2-W6 -->
+                <template v-else>
+                  <div class="d-flex align-center justify-space-between mb-1.5">
+                    <div class="d-flex align-center gap-2">
+                      <v-avatar size="24" :color="step.color + '-darken-2'" class="font-weight-black text-white text-caption">{{ step.week }}</v-avatar>
+                      <span class="font-weight-black text-slate-100" style="font-size: 0.85rem;">WEEK {{ step.week }} <span class="text-slate-400 font-weight-medium text-caption">({{ step.repsTeoriche }})</span></span>
+                    </div>
+                    
+                    <v-chip v-if="step.week === 2" color="blue-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">{{ step.caricoTeorico !== strategiaCoachData.roadmap[0].caricoReale ? '+' + formatWeight(parseFloat(step.caricoTeorico) - parseFloat(strategiaCoachData.roadmap[0].caricoReale)) + ' kg' : 'Stesso carico' }}</v-chip>
+                    <v-chip v-else-if="step.week === 3" color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">RITORNO CARICO PR</v-chip>
+                    <v-chip v-else-if="step.week === 4" color="grey-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">SCARICO</v-chip>
+                    <v-chip v-else-if="step.week === 5" color="purple-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">ATTACCO e1RM</v-chip>
+                    <v-chip v-else-if="step.week === 6" color="green-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">NUOVO RECORD</v-chip>
+                  </div>
+                  
+                  <div class="d-flex justify-space-between align-end">
+                    <div>
+                      <div class="text-super-caption text-slate-400 font-weight-bold uppercase mb-0.5">{{ step.isLogged ? 'ESEGUITO' : (step.week === 4 ? 'SCARICO' : (step.week === 6 ? 'PROIEZIONE TEST' : 'PROIEZIONE')) }}</div>
+                      <div class="text-subtitle-2 font-weight-black" :class="step.color ? 'text-' + step.color + '-lighten-2' : 'text-amber-lighten-1'" style="font-size: 0.95rem;">
+                        {{ step.isLogged ? step.caricoReale : step.caricoTeorico }} <span class="text-super-caption font-weight-bold text-slate-300">x{{ step.isLogged ? step.repsReali : step.repsTeoriche.replace('3x', '') }}</span>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div v-if="step.week === 2" class="text-super-caption text-slate-400">Rispetto a W1</div>
+                      <div v-else-if="step.week === 3" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Stesso carico del PR ({{ strategiaCoachData.prWeight }}kg)</div>
+                      <div v-else-if="step.week === 4" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Volume, recupero, tecnica</div>
+                      <div v-else-if="step.week === 5" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Superamento e1RM possibile</div>
+                      <div v-else-if="step.week === 6" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">e1RM stimato<br><strong class="text-slate-200">{{ formatWeight(parseFloat(step.caricoTeorico) / (1.0278 - 0.0278 * parseInt(step.repsTeoriche.split('x')[1].split('-')[0]))) }} kg</strong></div>
                     </div>
                   </div>
-
-                  <!-- Indicatore 2: Target Teorico PR Storico / Target Comfort -->
-                  <div class="text-right pl-2" style="border-left: 1px solid var(--card-border);">
-                    <span class="text-super-caption font-weight-bold text-cyan-lighten-3 uppercase d-block" style="font-size: 0.52rem; letter-spacing: 0.02em; white-space: nowrap;">
-                      {{ strategiaCoachData.isComfortAttivo ? '🎯 Target Comfort' : '🎯 Target PR' }}
-                    </span>
-                    <div class="d-flex align-baseline justify-end gap-1 mt-0.5">
-                      <span class="text-caption font-weight-black text-cyan-lighten-2" style="font-size: 0.78rem; line-height: 1;">
-                        {{ step.caricoTeorico }}
-                      </span>
-                      <span v-if="step.repsTeoriche" class="text-super-caption text-cyan-lighten-4 opacity-80 ml-1" style="font-size: 0.58rem;">
-                        ({{ step.repsTeoriche }})
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Note & RPE (Senza text-truncate per mostrare tutto il testo senza puntini) -->
-                <div class="d-flex align-start justify-space-between mt-1.5 px-0.5 gap-2">
-                  <p class="text-super-caption text-slate-light mb-0" style="font-size: 0.60rem; line-height: 1.35; white-space: normal; word-break: break-word; flex: 1;">
-                    {{ step.note }}
-                  </p>
-                  <span class="text-super-caption font-weight-black text-purple-lighten-3 flex-shrink-0 mt-0.5" style="font-size: 0.60rem;">
-                    {{ step.rpe }}
-                  </span>
-                </div>
+                </template>
               </div>
             </div>
+          </div>
+
+          <!-- STRATEGIA IN SINTESI -->
+          <div class="pa-2.5 rounded-xl border card-tactical-box mb-3" style="background: rgba(15, 23, 42, 0.4); border-color: rgba(255, 255, 255, 0.05);">
+            <div class="d-flex align-center gap-1.5 mb-1.5">
+              <v-icon color="amber-lighten-2" size="16">mdi-lightning-bolt</v-icon>
+              <span class="text-caption font-weight-black text-slate-100 uppercase" style="font-size: 0.70rem;">
+                STRATEGIA IN SINTESI
+              </span>
+            </div>
+            <ul class="text-super-caption text-slate-300 pl-4 mb-0" style="font-size: 0.65rem; line-height: 1.45;">
+              <li class="mb-1">Progressione lineare e bilanciata.</li>
+              <li v-if="strategiaCoachData.rottaPredittiva?.weekPareggioKg" class="mb-1">Ritorno al carico del PR in W{{ strategiaCoachData.rottaPredittiva.weekPareggioKg }}.</li>
+              <li v-if="strategiaCoachData.rottaPredittiva?.weekSfidaPR && strategiaCoachData.rottaPredittiva?.tipoSfida === 'SUPERAMENTO'">Nuovo record e1RM previsto in W{{ strategiaCoachData.rottaPredittiva.weekSfidaPR }}.</li>
+            </ul>
           </div>
 
           <!-- TACTICAL TIPS -->
@@ -17057,7 +17074,6 @@ const analizzaRottaProgressione = ({
       const isPareggioPRCompleto = (stepObj.peso >= prWeight) || Math.abs(stepObj.e1rm - e1rmStorico) <= (e1rmStorico * 0.015);
 
       if (isW1GiaInQuotaPR) {
-        // Se partiamo già al record, cerchiamo il primo SUPERAMENTO futuro (settimane > 1)
         if (stepObj.week > 1 && (isSuperamentoE1RM || isSuperamentoRepsSpecifiche)) {
           if (!weekSfidaPR) {
             weekSfidaPR = stepObj.week;
@@ -17073,13 +17089,6 @@ const analizzaRottaProgressione = ({
             pesoSfidaPR = stepObj.peso;
             repsSfidaPR = stepObj.reps;
             tipoSfida = 'SUPERAMENTO';
-          }
-        } else if (isPareggioPRCompleto) {
-          if (!weekSfidaPR) {
-            weekSfidaPR = stepObj.week;
-            pesoSfidaPR = stepObj.peso;
-            repsSfidaPR = stepObj.reps;
-            tipoSfida = 'PAREGGIO';
           }
         }
       }
@@ -17379,7 +17388,7 @@ const valutazioneProgressione = computed(() => {
       }
 
       return {
-        testo: `Rotta PR: ${descAzione} stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
+        testo: `ROTTA PR: nuovo record stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
         colore: 'text-green-accent-3',
         icona: 'mdi-flag-checkered'
       };

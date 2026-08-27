@@ -885,7 +885,7 @@
             </div>
 
             <div class="d-flex align-center gap-2">
-              <span v-if="!getGhostRenderInfo(sett)" class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Strategia">
+              <span v-if="!getGhostRenderInfo(sett) && !isEsercizioVPercentuale" class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Strategia">
                 💡
               </span>
 
@@ -1035,7 +1035,7 @@
                       {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
                     </span>
 
-                    <span class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
+                    <span v-if="!isEsercizioVPercentuale" class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
                       💡
                     </span>
                   </div>

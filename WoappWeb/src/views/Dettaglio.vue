@@ -17175,9 +17175,20 @@ const valutazioneProgressione = computed(() => {
     });
 
     if (rotta && rotta.weekSfidaPR) {
-      const azione = rotta.tipoSfida === 'SUPERAMENTO' ? 'superamento' : 'attacco';
+      const isRecordDaQuestaScheda = Boolean(suggerimentoRecord.value?.recordIsCurrent || (recordOverviewData.value?.bestReal?.isCurrentPR || recordOverviewData.value?.bestReal?.isCurrent));
+      const targetRepsDest = getRepsPerWeek(rotta.weekSfidaPR);
+      let descAzione = '';
+      
+      if (isRecordDaQuestaScheda) {
+        descAzione = `nuovo picco (${targetRepsDest}r)`;
+      } else if (rotta.tipoSfida === 'SUPERAMENTO') {
+        descAzione = `superamento PR (${targetRepsDest}r)`;
+      } else {
+        descAzione = `attacco PR (${targetRepsDest}r)`;
+      }
+
       return {
-        testo: `🎯 Rotta PR: ${azione} record stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
+        testo: `Rotta PR: ${descAzione} stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
         colore: 'text-green-accent-3',
         icona: 'mdi-flag-checkered'
       };

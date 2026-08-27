@@ -2363,6 +2363,13 @@
                     </div>
                   </div>
 
+                  <!-- Badge Informativo Discrepanza Reps W6 Storico Singolo -->
+                  <div v-if="getInfoRepsDiscrepanzaW6(selectedStoricoWorkout)" class="mb-2 text-center">
+                    <v-chip size="x-small" color="cyan-lighten-2" variant="tonal" class="font-weight-bold px-2 text-wrap" style="font-size: 0.58rem; height: auto; padding: 4px 8px; line-height: 1.2;">
+                      🎯 Prestazione reale: {{ getInfoRepsDiscrepanzaW6(selectedStoricoWorkout).peso > 0 ? getInfoRepsDiscrepanzaW6(selectedStoricoWorkout).peso + 'kg × ' : '' }}{{ getInfoRepsDiscrepanzaW6(selectedStoricoWorkout).repsEseguite }}r (prescrizione W6: {{ getInfoRepsDiscrepanzaW6(selectedStoricoWorkout).repsPrescritte }}r)
+                    </v-chip>
+                  </div>
+
                   <div class="d-flex flex-column gap-1.5 w-100 text-center">
                     <div class="d-flex align-center justify-center text-center">
                       <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.65rem;">
@@ -7011,81 +7018,38 @@ const calcolaDettaglioMassimale1RMPuro = () => {
   let best1RM = 0;
   let bestSource = null;
 
-  if (storicoEsercizio.value && storicoEsercizio.value.length) {
-    // 1. Priorità: miglior carico numerico registrato nella week 6 (num_ins6 / ins_week6)
+    // 1. Cerca il miglior 1RM su tutte le schede precedenti (W1-W6), dando priorità alle reps reali eseguite
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
       if (!isNaN(sNum) && sNum >= currentNumScheda) return;
+      const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
 
-      const pesoW6Str = (prevEx.ins_week6 ? estraiPesoDaInput(prevEx.ins_week6) : null) || (prevEx.num_ins6 ? estraiPesoDaInput(prevEx.num_ins6) : null);
-      if (pesoW6Str) {
-        const weight = parseFloat(pesoW6Str);
-        if (!isNaN(weight) && weight > 0) {
-          let repsNum = estraiRepsDaPrescrizione(prevEx.des_week6);
-          const inputReps = estraiRepsDaInput(prevEx.ins_week6);
-          if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
-            repsNum = inputReps;
-          }
-          if (!repsNum) repsNum = 6;
-
-          const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
-          if (e1rm > best1RM) {
-            best1RM = e1rm;
-            const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
-            bestSource = {
-              id: prevEx.id || prevEx.num_riga,
-              peso: weight,
-              reps: repsNum,
-              fatica: prevEx.num_faticaw6 || null,
-              numScheda: prevEx.num_scheda,
-              date: dEx,
-              tempoTrascorso: tempoTrascorsoBreve(dEx)
-            };
-          }
-        }
-      }
-    });
-
-    // 2. Fallback: se in Week 6 non c'è nulla, cerca il miglior 1RM tra tutte le settimane W1-W6 delle schede precedenti
-    if (best1RM === 0) {
-      storicoEsercizio.value.forEach(prevEx => {
-        const sNum = parseInt(prevEx.num_scheda);
-        if (!isNaN(sNum) && sNum >= currentNumScheda) return;
-        for (let w = 1; w <= 6; w++) {
-          const val = prevEx['ins_week' + w];
-          if (val) {
-            const pesoStr = estraiPesoDaInput(val);
-            if (pesoStr) {
-              const weight = parseFloat(pesoStr);
-              if (!isNaN(weight) && weight > 0) {
-                let repsNum = estraiRepsDaPrescrizione(prevEx['des_week' + w]);
-                const inputReps = estraiRepsDaInput(val);
-                if (inputReps !== null && !isNaN(inputReps) && inputReps > 0) {
-                  repsNum = inputReps;
-                }
-                if (!repsNum) repsNum = 6;
-
-                const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
-                if (e1rm > best1RM) {
-                  best1RM = e1rm;
-                  const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
-                  bestSource = {
-                    id: prevEx.id || prevEx.num_riga,
-                    peso: weight,
-                    reps: repsNum,
-                    fatica: prevEx['num_faticaw' + w] || null,
-                    numScheda: prevEx.num_scheda,
-                    date: dEx,
-                    tempoTrascorso: tempoTrascorsoBreve(dEx)
-                  };
-                }
+      for (let w = 1; w <= 6; w++) {
+        const val = prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null);
+        if (val) {
+          const pesoStr = estraiPesoDaInput(val);
+          if (pesoStr) {
+            const weight = parseFloat(pesoStr);
+            if (!isNaN(weight) && weight > 0) {
+              const repsNum = estraiRepsEsercizioWeek(prevEx, w, 6);
+              const e1rm = calcolaE1RMSmorzato(weight, repsNum, isCavo);
+              if (e1rm > best1RM) {
+                best1RM = e1rm;
+                bestSource = {
+                  id: prevEx.id || prevEx.num_riga,
+                  peso: weight,
+                  reps: repsNum,
+                  fatica: (w === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : (prevEx['num_faticaw' + w] || null),
+                  numScheda: prevEx.num_scheda,
+                  date: dEx,
+                  tempoTrascorso: tempoTrascorsoBreve(dEx)
+                };
               }
             }
           }
         }
-      });
-    }
-  }
+      }
+    });
 
   // Se la scheda corrente ha un caricamento registrato in week 6
   if (inputSettimane.value && inputSettimane.value[6]) {
@@ -11600,39 +11564,56 @@ function isEsercizioEligibileW6(ex) {
 function estraiRepsEsercizioWeek(ex, w, fallbackReps = 10) {
   if (!ex) return fallbackReps > 0 ? fallbackReps : 10;
   
-  // 1. Controlla prescrizione des_week specifico (es. 3x20 -> 20 reps)
+  // 1. Priorità assoluta alle ripetizioni reali scritte dall'utente nell'input (es. "26r", "16 x26r", "12 x13r", "fatte 26")
+  const insVal = ex['ins_week' + w] || (w === 6 ? ex.num_ins6 : null);
+  if (insVal) {
+    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(insVal));
+    if (hasExplicitReps) {
+      const explicitReps = estraiRepsDaInput(insVal);
+      if (explicitReps && explicitReps > 0) return explicitReps;
+    }
+  }
+
+  // 2. Controlla prescrizione des_week specifico (es. 3x20 -> 20 reps)
   const pReps = estraiRepsDaPrescrizione(ex['des_week' + w]);
   if (pReps && pReps > 0) {
     return pReps;
   }
   
-  // 2. Se la settimana corrente non ha reps esplicite (es. W6 AMRAP), cerca a ritroso nelle altre settimane (W5..W1)
+  // 3. Se la settimana corrente non ha reps esplicite (es. W6 AMRAP), cerca a ritroso nelle altre settimane (W5..W1)
   for (let pw = 5; pw >= 1; pw--) {
     const pwP = estraiRepsDaPrescrizione(ex['des_week' + pw]);
     if (pwP && pwP > 0) return pwP;
   }
 
-  // 3. Se non c'è alcuna prescrizione nel mesociclo, fallback alle reps scritte dall'utente nella nota
-  const insVal = ex['ins_week' + w];
+  // 4. Fallback da prestazione se presente
   if (insVal) {
     const perf = estraiMigliorPrestazioneInput(insVal, fallbackReps);
     if (perf && perf.reps > 0) return perf.reps;
   }
   
-  // 4. Fallback standard
+  // 5. Fallback standard
   return fallbackReps > 0 ? fallbackReps : 10;
 }
 
 const getInfoRepsDiscrepanzaW6 = (ex) => {
   if (!ex) return null;
-  const pStr = (ex.ins_week6 ? estraiPesoDaInput(ex.ins_week6) : null) || (ex.num_ins6 ? String(ex.num_ins6) : null);
+  
+  // Controlla il campo input Week 6 (ins_week6, num_ins6, oppure dallo stato reattivo dello storico se attivo)
+  let insW6 = ex.ins_week6 || ex.num_ins6 || '';
+  if (typeof selectedStoricoWorkout !== 'undefined' && selectedStoricoWorkout.value && (ex.id === selectedStoricoWorkout.value.id || ex.num_scheda === selectedStoricoWorkout.value.num_scheda)) {
+    if (typeof inputSettimaneStoricoSingolo !== 'undefined' && inputSettimaneStoricoSingolo.value?.[6]?.ins) {
+      insW6 = inputSettimaneStoricoSingolo.value[6].ins;
+    }
+  }
+
+  const pStr = estraiPesoDaInput(insW6) || (ex.num_ins6 ? String(ex.num_ins6) : null);
   const p = pStr ? parseFloat(pStr) : 0;
   
-  const insW6 = ex.ins_week6 || '';
   const prescritteReps = parseInt(ex.reps_week6, 10) || estraiRepsDaPrescrizione(ex.des_week6) || 10;
   
-  // Cerca SOLO se l'utente ha scritto esplicitamente reps (es. "57x18r", "fatte 18", "18 reps")
-  const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(insW6);
+  // Cerca se l'utente ha scritto esplicitamente reps (es. "16x26r", "57x18r", "fatte 18", "26r")
+  const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(insW6));
   if (!hasExplicitReps) return null;
   
   const explicitReps = estraiRepsDaInput(insW6);

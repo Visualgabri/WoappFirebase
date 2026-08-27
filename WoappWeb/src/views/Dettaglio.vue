@@ -609,7 +609,7 @@
                     e1RM ATTUALE
                   </span>
                   <span class="font-weight-black text-cyan-accent-2" style="font-size: 0.75rem;">
-                    {{ recordOverviewData.bestE1RM.display }} <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ recordOverviewData.bestE1RM.maxDeltaKg }} kg</span> <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ Math.max(0, 100 - recordOverviewData.bestE1RM.e1rmProximityPct) }}%</span>
+                    {{ recordOverviewData.bestE1RM.display }} <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ Math.round(parseFloat(recordOverviewData.bestE1RM.maxDeltaKg) * 10) / 10 }} kg</span> <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ (Math.max(0, 100 - recordOverviewData.bestE1RM.e1rmProximityPct)).toFixed(1).replace('.', ',') }}%</span>
                   </span>
                 </div>
                 <div class="d-flex flex-column text-right">
@@ -2975,13 +2975,14 @@
                 <div 
                   v-for="stepC in strategiaCoachData.rottaPredittiva.curvaProiettata" 
                   :key="'curva-' + stepC.week"
-                  class="flex-grow-1 px-0.5"
-                  :style="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'background: rgba(34, 197, 94, 0.2); border-radius: 6px;' : ''"
+                  class="flex-grow-1 px-0.5 position-relative"
+                  :style="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'background: rgba(34, 197, 94, 0.2); border-radius: 6px;' : (stepC.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto ? 'background: rgba(192, 132, 252, 0.2); border-radius: 6px;' : '')"
                 >
-                  <span class="text-super-caption d-block font-weight-bold" :class="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'text-green-accent-3' : 'text-muted'" style="font-size: 0.52rem;">
+                  <span class="text-super-caption d-block font-weight-bold" :class="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'text-green-accent-3' : (stepC.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto ? 'text-purple-accent-2' : 'text-muted')" style="font-size: 0.52rem;">
                     W{{ stepC.week }}
+                    <v-icon v-if="stepC.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto" color="purple-accent-2" size="10" class="position-absolute" style="top: -2px; right: 2px;">mdi-crown</v-icon>
                   </span>
-                  <span class="font-weight-black d-block" :class="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'text-green-accent-3' : 'dialog-text-primary'" style="font-size: 0.68rem;">
+                  <span class="font-weight-black d-block" :class="stepC.week === strategiaCoachData.rottaPredittiva.weekSfidaPR ? 'text-green-accent-3' : (stepC.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto ? 'text-purple-accent-2' : 'dialog-text-primary')" style="font-size: 0.68rem;">
                     {{ formatWeight(stepC.peso) }}<span style="font-size: 0.50rem;">k</span>
                   </span>
                 </div>
@@ -3119,11 +3120,21 @@
                       <span class="font-weight-black text-slate-100" style="font-size: 0.85rem;">WEEK {{ step.week }} <span class="text-slate-400 font-weight-medium text-caption">({{ step.repsTeoriche }})</span></span>
                     </div>
                     
-                    <v-chip v-if="step.week === 2" color="blue-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">{{ step.caricoTeorico !== strategiaCoachData.roadmap[0].caricoReale ? '+' + formatWeight(parseFloat(step.caricoTeorico) - parseFloat(strategiaCoachData.roadmap[0].caricoReale)) + ' kg' : 'Stesso carico' }}</v-chip>
-                    <v-chip v-else-if="step.week === 3" color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">RITORNO CARICO PR</v-chip>
-                    <v-chip v-else-if="step.week === 4" color="grey-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">SCARICO</v-chip>
-                    <v-chip v-else-if="step.week === 5" color="purple-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">ATTACCO e1RM</v-chip>
-                    <v-chip v-else-if="step.week === 6" color="green-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">NUOVO RECORD</v-chip>
+                    <template v-if="step.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto">
+                      <v-chip color="purple-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2"><v-icon size="12" class="mr-1">mdi-crown</v-icon> NUOVO RECORD ASSOLUTO</v-chip>
+                    </template>
+                    <template v-else-if="step.week === 4">
+                      <v-chip color="grey-darken-2" size="x-small" variant="flat" class="font-weight-black text-white px-2">SCARICO</v-chip>
+                    </template>
+                    <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekSfidaPR">
+                      <v-chip color="green-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">ATTACCO PR</v-chip>
+                    </template>
+                    <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekPareggioKg">
+                      <v-chip color="amber-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">RITORNO CARICO PR</v-chip>
+                    </template>
+                    <template v-else-if="step.week === 2">
+                      <v-chip color="blue-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2">{{ step.caricoTeorico !== strategiaCoachData.roadmap[0].caricoReale ? '+' + formatWeight(parseFloat(step.caricoTeorico) - parseFloat(strategiaCoachData.roadmap[0].caricoReale)) + ' kg' : 'Stesso carico' }}</v-chip>
+                    </template>
                   </div>
                   
                   <div class="d-flex justify-space-between align-end">
@@ -3134,11 +3145,24 @@
                       </div>
                     </div>
                     <div class="text-right">
-                      <div v-if="step.week === 2" class="text-super-caption text-slate-400">Rispetto a W1</div>
-                      <div v-else-if="step.week === 3" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Stesso carico del PR ({{ strategiaCoachData.prWeight }}kg)</div>
-                      <div v-else-if="step.week === 4" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Volume, recupero, tecnica</div>
-                      <div v-else-if="step.week === 5" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Superamento e1RM possibile</div>
-                      <div v-else-if="step.week === 6" class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">e1RM stimato<br><strong class="text-slate-200">{{ formatWeight(parseFloat(step.caricoTeorico) / (1.0278 - 0.0278 * parseInt(step.repsTeoriche.split('x')[1].split('-')[0]))) }} kg</strong></div>
+                      <template v-if="step.week === 4">
+                        <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Volume, recupero, tecnica</div>
+                      </template>
+                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekNuovoE1RMAssoluto">
+                        <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">e1RM stimato record<br><strong class="text-purple-lighten-2">{{ formatWeight(parseFloat(step.caricoTeorico) / (1.0278 - 0.0278 * parseInt(step.repsTeoriche.split('x')[1].split('-')[0]))) }} kg</strong></div>
+                      </template>
+                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekSfidaPR">
+                        <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Superamento PR possibile</div>
+                      </template>
+                      <template v-else-if="step.week === 6">
+                        <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">e1RM finale<br><strong class="text-slate-200">{{ formatWeight(parseFloat(step.caricoTeorico) / (1.0278 - 0.0278 * parseInt(step.repsTeoriche.split('x')[1].split('-')[0]))) }} kg</strong></div>
+                      </template>
+                      <template v-else-if="step.week === strategiaCoachData.rottaPredittiva.weekPareggioKg">
+                        <div class="text-super-caption text-slate-400 text-right" style="max-width: 120px; line-height: 1.2;">Stesso carico del PR ({{ strategiaCoachData.prWeight }}kg)</div>
+                      </template>
+                      <template v-else-if="step.week === 2">
+                        <div class="text-super-caption text-slate-400">Rispetto a W1</div>
+                      </template>
                     </div>
                   </div>
                 </template>
@@ -17000,6 +17024,7 @@ const analizzaRottaProgressione = ({
   prWeight,
   prReps,
   e1rmStorico,
+  e1rmMassimoAssoluto,
   isCavo,
   isManubri,
   stepKg,
@@ -17057,6 +17082,8 @@ const analizzaRottaProgressione = ({
   let tipoSfida = null; // 'PAREGGIO' o 'SUPERAMENTO'
   let weekPareggioKg = null;
   let pesoPareggioKg = null;
+  let weekNuovoE1RMAssoluto = null;
+  const targetE1RM = e1rmMassimoAssoluto || e1rmStorico;
 
   // Se W1 ha già eguagliato o superato il record storico (es. 52kg su 52kg),
   // l'obiettivo della rotta futura è il SUPERAMENTO nelle settimane successive (W2..W6)
@@ -17091,6 +17118,10 @@ const analizzaRottaProgressione = ({
             tipoSfida = 'SUPERAMENTO';
           }
         }
+      }
+      
+      if (!weekNuovoE1RMAssoluto && stepObj.e1rm > (targetE1RM * 1.002)) {
+        weekNuovoE1RMAssoluto = stepObj.week;
       }
     }
   }
@@ -17145,6 +17176,8 @@ const analizzaRottaProgressione = ({
     repsSfidaPR,
     tipoSfida,
     weekPareggioKg,
+    pesoPareggioKg,
+    weekNuovoE1RMAssoluto,
     w1Consigliato,
     motivazione,
     curvaProiettata: curve
@@ -17363,6 +17396,7 @@ const valutazioneProgressione = computed(() => {
       prWeight: recWeight,
       prReps: recReps,
       e1rmStorico: e1rmHistoric,
+      e1rmMassimoAssoluto: recordOverviewData.value?.bestE1RM?.max1RM > 0 ? recordOverviewData.value.bestE1RM.max1RM : e1rmHistoric,
       isCavo,
       isManubri: isManubriEsercizio(workout.value),
       stepKg: stepVal,

@@ -5157,16 +5157,46 @@ const dialogRicercaGlobaleScheda = ref(false);
 const testoRicercaGlobale = ref('');
 const settoreFiltroGlobale = ref('Tutti');
 
+// Mappa per associare i settori specifici ai rispettivi macro-gruppi
+const appartieneAlGruppo = (settoreEsercizio, filtroSelezionato) => {
+  if (!filtroSelezionato || filtroSelezionato === 'Tutti') return true;
+  if (!settoreEsercizio) return filtroSelezionato === 'Altro';
+  
+  const sec = getSettorePrincipale(settoreEsercizio);
+  if (sec === filtroSelezionato) return true;
+
+  if (filtroSelezionato === 'Gambe') {
+    const sottoGruppiGambe = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'];
+    if (sottoGruppiGambe.includes(sec)) return true;
+  }
+
+  if (filtroSelezionato === 'Braccia') {
+    if (sec === 'Bicipiti' || sec === 'Tricipiti') return true;
+  }
+
+  return false;
+};
+
 const filtriSettoriGlobali = computed(() => {
   const set = new Set(['Tutti']);
+  const presenti = new Set();
   if (listaAllenamenti.value) {
     listaAllenamenti.value.forEach(ex => {
-      if (parseInt(ex.num_riga_giorno) > 0) {
+      if (parseInt(ex.num_riga_giorno) > 0 && ex.des_settore) {
         const sec = getSettorePrincipale(ex.des_settore);
-        if (sec && sec !== 'Altro') set.add(sec);
+        if (sec) presenti.add(sec);
       }
     });
   }
+
+  const haGambeSotto = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'].some(g => presenti.has(g));
+  if (haGambeSotto) {
+    set.add('Gambe');
+  }
+
+  const listaPresenti = Array.from(presenti).sort();
+  listaPresenti.forEach(s => set.add(s));
+
   return Array.from(set);
 });
 
@@ -5176,7 +5206,7 @@ const risultatiRicercaGlobaleRaggruppati = computed(() => {
   let esercizi = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) > 0);
 
   if (settoreFiltroGlobale.value && settoreFiltroGlobale.value !== 'Tutti') {
-    esercizi = esercizi.filter(ex => getSettorePrincipale(ex.des_settore) === settoreFiltroGlobale.value);
+    esercizi = esercizi.filter(ex => appartieneAlGruppo(ex.des_settore, settoreFiltroGlobale.value));
   }
 
   if (testoRicercaGlobale.value && testoRicercaGlobale.value.trim() !== '') {
@@ -5345,28 +5375,44 @@ const getProgressoGiorno = (g) => {
 const getSettorePrincipale = (s) => {
   if (!s) return 'Altro';
   const clean = s.toLowerCase().trim();
-  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('chest')) {
+  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('pectoral') || clean.includes('chest')) {
     return 'Pettorali';
   }
-  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('back')) {
+  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('latissimus') || clean.includes('trapezius') || clean.includes('back')) {
     return 'Dorsali';
   }
-  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('shoulder')) {
+  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('deltoid') || clean.includes('shoulder')) {
     return 'Spalle';
   }
-  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('biceps')) {
+  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('brachialis') || clean.includes('brachioradialis') || clean.includes('biceps')) {
     return 'Bicipiti';
   }
   if (clean.includes('tricipiti') || clean.includes('tricipite') || clean.includes('triceps')) {
     return 'Tricipiti';
   }
-  if (clean.includes('gambe') || clean.includes('quadricipiti') || clean.includes('femorali') || clean.includes('glutei') || clean.includes('leg') || clean.includes('polpacci')) {
+  if (clean.includes('quadricipiti') || clean.includes('quadriceps')) {
+    return 'Quadricipiti';
+  }
+  if (clean.includes('femorali') || clean.includes('ischio') || clean.includes('ischiocrurali') || clean.includes('hamstring')) {
+    return 'Femorali';
+  }
+  if (clean.includes('glutei') || clean.includes('gluteus') || clean.includes('gluteo')) {
+    return 'Glutei';
+  }
+  if (clean.includes('adduttori') || clean.includes('adductor') || clean.includes('abductor') || clean.includes('abduttori')) {
+    return 'Adduttori';
+  }
+  if (clean.includes('polpacci') || clean.includes('polpaccio') || clean.includes('soleo') || clean.includes('gastrocnemius') || clean.includes('calves') || clean.includes('calf')) {
+    return 'Polpacci';
+  }
+  if (clean.includes('gambe') || clean.includes('leg')) {
     return 'Gambe';
   }
-  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('core') || clean.includes('obliqui') || clean.includes('abs')) {
+  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('abdomis') || clean.includes('core') || clean.includes('obliqui') || clean.includes('oblique') || clean.includes('abs')) {
     return 'Addome';
   }
-  return 'Altro';
+  // Se non riconosciuto, restituisce il valore formattato con iniziale maiuscola
+  return s.charAt(0).toUpperCase() + s.slice(1).trim();
 };
 
 

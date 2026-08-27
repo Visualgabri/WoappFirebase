@@ -1676,25 +1676,25 @@ const heatmapMode = ref('programmati'); // 'programmati' or 'completati'
 const getSettorePrincipale = (s) => {
   if (!s) return 'Altro';
   const clean = s.toLowerCase().trim();
-  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('chest')) {
+  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('pectoral') || clean.includes('chest')) {
     return 'Pettorali';
   }
-  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('back')) {
+  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('latissimus') || clean.includes('trapezius') || clean.includes('dorsal') || clean.includes('back')) {
     return 'Dorsali';
   }
-  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('shoulder')) {
+  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('deltoid') || clean.includes('spall') || clean.includes('shoulder')) {
     return 'Spalle';
   }
-  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('biceps')) {
+  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('brachialis') || clean.includes('brachioradialis') || clean.includes('biceps')) {
     return 'Bicipiti';
   }
   if (clean.includes('tricipiti') || clean.includes('tricipite') || clean.includes('triceps')) {
     return 'Tricipiti';
   }
-  if (clean.includes('gambe') || clean.includes('quadricipiti') || clean.includes('femorali') || clean.includes('glutei') || clean.includes('leg') || clean.includes('polpacci')) {
+  if (clean.includes('gambe') || clean.includes('quadricipiti') || clean.includes('quadriceps') || clean.includes('femorali') || clean.includes('ischio') || clean.includes('ischiocrurali') || clean.includes('glutei') || clean.includes('gluteus') || clean.includes('gluteo') || clean.includes('adduttori') || clean.includes('adductor') || clean.includes('abductor') || clean.includes('leg') || clean.includes('polpacci') || clean.includes('polpaccio') || clean.includes('soleo') || clean.includes('gastrocnemius')) {
     return 'Gambe';
   }
-  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('core') || clean.includes('obliqui') || clean.includes('abs')) {
+  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('abdomis') || clean.includes('core') || clean.includes('obliqui') || clean.includes('oblique') || clean.includes('abs')) {
     return 'Addome';
   }
   return 'Altro';

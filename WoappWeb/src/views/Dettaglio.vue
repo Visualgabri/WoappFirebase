@@ -2458,9 +2458,31 @@
             class="mb-3 rounded-xl"
           ></v-text-field>
 
+          <!-- Chip Filtri Settori Muscolari -->
+          <div class="d-flex align-center gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
+            <v-chip
+              v-for="settore in filtriSettoriDettaglio"
+              :key="settore"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="settoreFiltroDettaglio === settore ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+              :class="settoreFiltroDettaglio === settore ? 'text-white' : 'text-slate-dark'"
+              style="font-size: 0.68rem; height: 24px; padding: 0 10px;"
+              @click="settoreFiltroDettaglio = settore"
+            >
+              {{ settore }}
+            </v-chip>
+          </div>
+
           <!-- Lista risultati della ricerca raggruppati per giorno -->
-          <div v-if="eserciziRicercatiDettaglioRaggruppati.length === 0" class="text-center py-6 text-muted text-caption">
-            Nessun esercizio trovato per "{{ testoRicercaDettaglio }}".
+          <div v-if="eserciziRicercatiDettaglioRaggruppati.length === 0" class="text-center py-6 text-muted text-caption card-glass rounded-xl pa-4">
+            <v-icon size="36" color="orange-lighten-2" class="mb-2">mdi-dumbbell-off</v-icon>
+            <div class="font-weight-bold text-slate-dark text-subtitle-2">Nessun esercizio trovato</div>
+            <p class="text-super-caption text-muted mt-1 mb-3">Nessuna corrispondenza per "{{ testoRicercaDettaglio || settoreFiltroDettaglio }}" in tutta la scheda.</p>
+            <v-btn size="small" color="orange-darken-3" variant="tonal" class="font-weight-black text-none" @click="testoRicercaDettaglio = ''; settoreFiltroDettaglio = 'Tutti'">
+              Azzera Filtri
+            </v-btn>
           </div>
 
           <div v-else class="d-flex flex-column gap-3 scrollbar-custom" style="max-height: 65vh;">
@@ -10859,22 +10881,81 @@ const routeIdLocal = ref(route.params.id);
 const transitionName = ref(''); // Vuoto per evitare animazioni all'apertura dalla lista
 const settimanaAttiva = ref(1);
 const tuttiEserciziGiorno = ref([]);
+const tuttiEserciziScheda = ref([]);
 
-// Ricerca Rapida Esercizi nel Dettaglio
+// Ricerca Rapida Esercizi nel Dettaglio (Tutta la Scheda)
 const dialogRicercaRapida = ref(false);
 const testoRicercaDettaglio = ref('');
+const settoreFiltroDettaglio = ref('Tutti');
+
+// Mappa per associare i settori specifici / analitici ai rispettivi macro-gruppi
+const appartieneAlGruppo = (settoreEsercizio, filtroSelezionato) => {
+  if (!filtroSelezionato || filtroSelezionato === 'Tutti') return true;
+  if (!settoreEsercizio) return filtroSelezionato === 'Altro';
+  
+  const sec = getSettorePrincipale(settoreEsercizio);
+  if (sec === filtroSelezionato) return true;
+
+  // Se l'utente ha selezionato "Gambe", include anche tutti i sotto-gruppi degli arti inferiori
+  if (filtroSelezionato === 'Gambe') {
+    const sottoGruppiGambe = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'];
+    if (sottoGruppiGambe.includes(sec)) return true;
+  }
+
+  // Se l'utente ha selezionato "Braccia", include Bicipiti e Tricipiti
+  if (filtroSelezionato === 'Braccia') {
+    if (sec === 'Bicipiti' || sec === 'Tricipiti') return true;
+  }
+
+  return false;
+};
+
+const filtriSettoriDettaglio = computed(() => {
+  const set = new Set(['Tutti']);
+  const sorgente = tuttiEserciziScheda.value.length > 0 ? tuttiEserciziScheda.value : tuttiEserciziGiorno.value;
+  
+  // Raccoglie tutti i gruppi presenti
+  const presenti = new Set();
+  if (sorgente) {
+    sorgente.forEach(ex => {
+      if (parseInt(ex.num_riga_giorno) > 0 && ex.des_settore) {
+        const sec = getSettorePrincipale(ex.des_settore);
+        if (sec) presenti.add(sec);
+      }
+    });
+  }
+
+  // Se ci sono sotto-gruppi delle gambe, aggiungi il macro "Gambe" per selezione rapida
+  const haGambeSotto = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'].some(g => presenti.has(g));
+  if (haGambeSotto) {
+    set.add('Gambe');
+  }
+
+  // Aggiungi tutti i gruppi trovati ordinati
+  const listaPresenti = Array.from(presenti).sort();
+  listaPresenti.forEach(s => set.add(s));
+
+  return Array.from(set);
+});
 
 const eserciziRicercatiDettaglioRaggruppati = computed(() => {
-  if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) return [];
-  const query = testoRicercaDettaglio.value.toLowerCase().trim();
+  const sorgente = tuttiEserciziScheda.value.length > 0 ? tuttiEserciziScheda.value : tuttiEserciziGiorno.value;
+  if (!sorgente || sorgente.length === 0) return [];
   
-  let lista = tuttiEserciziGiorno.value;
-  if (query) {
+  let lista = sorgente.filter(item => parseInt(item.num_riga_giorno) > 0);
+
+  if (settoreFiltroDettaglio.value && settoreFiltroDettaglio.value !== 'Tutti') {
+    lista = lista.filter(ex => appartieneAlGruppo(ex.des_settore, settoreFiltroDettaglio.value));
+  }
+
+  if (testoRicercaDettaglio.value && testoRicercaDettaglio.value.trim() !== '') {
+    const query = testoRicercaDettaglio.value.toLowerCase().trim();
     lista = lista.filter(item => {
       const nome = String(item.des_esercizio || '').toLowerCase();
       const settore = String(item.des_settore || '').toLowerCase();
       const note = String(item.des_note_attrezzo || '').toLowerCase();
-      return nome.includes(query) || settore.includes(query) || note.includes(query);
+      const attr = String(item.des_note_gen_attr || '').toLowerCase();
+      return nome.includes(query) || settore.includes(query) || note.includes(query) || attr.includes(query);
     });
   }
 
@@ -10895,6 +10976,7 @@ const vaiADettaglioEsercizioRicercato = (id) => {
   vibraTattile(10);
   dialogRicercaRapida.value = false;
   testoRicercaDettaglio.value = '';
+  settoreFiltroDettaglio.value = 'Tutti';
   router.replace({ name: 'DettaglioWorkout', params: { id } });
 };
 
@@ -11600,31 +11682,63 @@ const getInfoRepsDiscrepanzaW6 = (ex) => {
   if (!ex) return null;
   
   // Controlla il campo input Week 6 (ins_week6, num_ins6, oppure dallo stato reattivo dello storico se attivo)
-  let insW6 = ex.ins_week6 || ex.num_ins6 || '';
+  let insW6 = ex.ins_week6 || '';
   if (typeof selectedStoricoWorkout !== 'undefined' && selectedStoricoWorkout.value && (ex.id === selectedStoricoWorkout.value.id || ex.num_scheda === selectedStoricoWorkout.value.num_scheda)) {
     if (typeof inputSettimaneStoricoSingolo !== 'undefined' && inputSettimaneStoricoSingolo.value?.[6]?.ins) {
       insW6 = inputSettimaneStoricoSingolo.value[6].ins;
     }
   }
 
-  const pStr = estraiPesoDaInput(insW6) || (ex.num_ins6 ? String(ex.num_ins6) : null);
-  const p = pStr ? parseFloat(pStr) : 0;
-  
+  if (!insW6) return null;
+
   const prescritteReps = parseInt(ex.reps_week6, 10) || estraiRepsDaPrescrizione(ex.des_week6) || 10;
+  const isCavo = isCavoOMacchinaEsercizio(ex);
   
-  // Cerca se l'utente ha scritto esplicitamente reps (es. "16x26r", "57x18r", "fatte 18", "26r")
-  const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(String(insW6));
-  if (!hasExplicitReps) return null;
-  
-  const explicitReps = estraiRepsDaInput(insW6);
-  if (explicitReps && explicitReps > 0 && explicitReps !== prescritteReps) {
-    return {
-      hasDiscrepancy: true,
-      peso: p > 0 ? p : (parseFloat(estraiPesoDaInput(insW6)) || 0),
-      repsEseguite: explicitReps,
-      repsPrescritte: prescritteReps
-    };
+  // Analizza riga per riga per separare carichi a reps sottointese e carichi con reps esplicite
+  const lines = String(insW6).split(/[\n;\r]+/);
+  let maxPesoSottointeso = 0;
+  let bestExplicitPerf = null; // { peso, reps, e1rm }
+  let maxExplicitE1RM = -1;
+
+  lines.forEach(line => {
+    const l = line.trim();
+    if (!l) return;
+    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+    const pStr = estraiPesoDaInput(l);
+    const peso = pStr ? parseFloat(pStr) : 0;
+    if (peso <= 0) return;
+
+    if (hasExplicitReps) {
+      const explicitReps = estraiRepsDaInput(l);
+      if (explicitReps && explicitReps > 0) {
+        const e1rm = calcolaE1RMSmorzato(peso, explicitReps, isCavo);
+        if (e1rm > maxExplicitE1RM) {
+          maxExplicitE1RM = e1rm;
+          bestExplicitPerf = { peso, reps: explicitReps, e1rm };
+        }
+      }
+    } else {
+      if (peso > maxPesoSottointeso) {
+        maxPesoSottointeso = peso;
+      }
+    }
+  });
+
+  if (bestExplicitPerf) {
+    const e1rmSottointeso = maxPesoSottointeso > 0 ? calcolaE1RMSmorzato(maxPesoSottointeso, prescritteReps, isCavo) : 0;
+    // Se la serie con reps esplicite ha una prestazione (e1RM) superiore o uguale a quella sottointesa (o se non ci sono carichi sottointesi)
+    if (bestExplicitPerf.e1rm >= e1rmSottointeso) {
+      if (bestExplicitPerf.reps !== prescritteReps) {
+        return {
+          hasDiscrepancy: true,
+          peso: bestExplicitPerf.peso,
+          repsEseguite: bestExplicitPerf.reps,
+          repsPrescritte: prescritteReps
+        };
+      }
+    }
   }
+
   return null;
 };
 
@@ -13107,6 +13221,39 @@ const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desG
   }
 };
 
+const caricaTuttiEserciziScheda = async (keyIdCliente, atletaId, numScheda) => {
+  try {
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where(keyIdCliente, '==', atletaId),
+      where('num_scheda', '==', numScheda)
+    );
+    const snap = await getDocs(q);
+    const temp = [];
+    snap.forEach((doc) => {
+      const d = doc.data();
+      if (parseInt(d.num_riga_giorno) > 0) {
+        temp.push(applicaModificheLocali({ id: doc.id, ...d }));
+      }
+    });
+    
+    if (temp.length === 0) {
+      const allData = await getStoryboardBackup();
+      const matched = allData.filter(b => {
+        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        return String(bAtletaId) === String(atletaId) &&
+               String(b.num_scheda) === String(numScheda) &&
+               parseInt(b.num_riga_giorno) > 0;
+      });
+      matched.forEach(item => temp.push(applicaModificheLocali(item)));
+    }
+    
+    tuttiEserciziScheda.value = temp;
+  } catch (err) {
+    console.warn("Errore caricamento tutti esercizi scheda per ricerca rapida:", err);
+  }
+};
+
 const vaiAdEsercizioSuccessivo = () => {
   if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1) return;
   if (indexCorrente.value === listaIdEsercizi.value.length - 1) return;
@@ -13215,18 +13362,32 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 const handleTouchStart = (e) => {
-  if (dialogStorico.value || dialogProgressioniPrecedente.value || dialogElimina.value) return;
+  if (dialogStorico.value || dialogProgressioniPrecedente.value || dialogElimina.value || dialogRicercaRapida.value || dialogSettore.value) return;
+  
+  // Se il tocco avviene dentro un elemento con scroll orizzontale (es. chip filtri) o campi input, ignora lo swipe
+  const target = e.target;
+  if (target && (target.closest('.overflow-x-auto') || target.closest('.no-scrollbar') || target.closest('input') || target.closest('textarea') || target.closest('.v-chip'))) {
+    touchStartX = 0;
+    touchStartY = 0;
+    return;
+  }
+
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
 };
 
 const handleTouchEnd = (e) => {
-  if (dialogStorico.value || dialogProgressioniPrecedente.value || dialogElimina.value) return;
+  if (dialogStorico.value || dialogProgressioniPrecedente.value || dialogElimina.value || dialogRicercaRapida.value || dialogSettore.value) return;
+  if (!touchStartX && !touchStartY) return;
+
   const touchEndX = e.changedTouches[0].clientX;
   const touchEndY = e.changedTouches[0].clientY;
   
   const diffX = touchEndX - touchStartX;
   const diffY = touchEndY - touchStartY;
+
+  touchStartX = 0;
+  touchStartY = 0;
   
   // Controllo se lo swipe è orizzontale e sufficientemente lungo (> 80px)
   if (Math.abs(diffX) > 80 && Math.abs(diffY) < 50) {
@@ -13322,6 +13483,7 @@ const caricaDatiEsercizio = async () => {
         determinaSettimanaAttivaGiorno();
       });
       caricaListaEserciziGiorno(keyIdCliente, atletaId, schemaRef, desGiorno);
+      caricaTuttiEserciziScheda(keyIdCliente, atletaId, schemaRef);
     }
 
     // Carica l'esercizio precedente e l'analisi in background
@@ -13442,6 +13604,7 @@ const caricaDatiEsercizio = async () => {
         await caricaRiga0(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
         determinaSettimanaAttivaGiorno();
         await caricaListaEserciziGiorno(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
+        caricaTuttiEserciziScheda(keyIdCliente, atletaId, dati.num_scheda);
       }
       try {
         await caricaDatiAnalisi(settimanaAttiva.value);
@@ -13529,6 +13692,13 @@ const caricaEsercizioDaBackup = async () => {
         filtratiMappati.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
         tuttiEserciziGiorno.value = filtratiMappati;
         listaIdEsercizi.value = filtratiMappati.map(item => item.id);
+
+        const tuttiSchedaBackup = allData.filter(
+          item => String(item.ID_cliente) === String(atletaId) &&
+          String(item.num_scheda) === String(found.num_scheda) &&
+          parseInt(item.num_riga_giorno) > 0
+        ).map(applicaModificheLocali);
+        tuttiEserciziScheda.value = tuttiSchedaBackup;
         
         // Ricerca robusta dell'indice per lo swipe touch
         indexCorrente.value = filtratiEsercizi.findIndex(item => {
@@ -15777,16 +15947,37 @@ const aggiornaDatoECommit = async (updates) => {
   }
 };
 
-const estraiNumeroMassimo = (str) => {
+const estraiNumeroMassimo = (str, prescritteRepsFallback = 10, isCavo = false) => {
   if (!str) return null;
-  const peso = estraiPesoDaInput(str);
-  if (peso !== null && peso !== undefined && peso !== '') {
-    const pNum = parseFloat(peso);
-    if (!isNaN(pNum)) return pNum;
-  }
-  const withoutParens = rimuoviContenutoTraParentesi(str);
-  if (!withoutParens) return null;
-  const cleanStr = withoutParens.replace(/,/g, '.');
+  const strClean = rimuoviContenutoTraParentesi(str);
+  if (!strClean) return null;
+
+  const lines = String(strClean).split(/[\n;\r]+/);
+  let bestPeso = null;
+  let maxE1RM = -1;
+
+  lines.forEach(line => {
+    const l = line.trim();
+    if (!l) return;
+    const pesoStr = estraiPesoDaInput(l);
+    if (pesoStr) {
+      const peso = parseFloat(pesoStr);
+      if (!isNaN(peso) && peso > 0) {
+        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
+        const reps = (explicitReps && explicitReps > 0) ? explicitReps : prescritteRepsFallback;
+        const e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
+        if (e1rm > maxE1RM) {
+          maxE1RM = e1rm;
+          bestPeso = peso;
+        }
+      }
+    }
+  });
+
+  if (bestPeso !== null) return bestPeso;
+
+  const cleanStr = strClean.replace(/,/g, '.');
   const matches = cleanStr.match(/\b\d+(?:\.\d+)?\b/g);
   if (matches && matches.length > 0) {
     const nums = matches.map(n => parseFloat(n)).filter(n => !isNaN(n));
@@ -15816,7 +16007,9 @@ const salvaDatoSettimanale = async (settimana, tipo) => {
     if (settimana === 6 && tipo === 'ins' && isEsercizioEligibileW6(workout.value)) {
       const valStr = String(valoreNuovo || '').trim();
       if (valStr) {
-        const estratto = estraiNumeroMassimo(valStr);
+        const pReps = parseInt(workout.value.reps_week6, 10) || estraiRepsDaPrescrizione(workout.value.des_week6) || 10;
+        const isCavo = isCavoOMacchinaEsercizio(workout.value);
+        const estratto = estraiNumeroMassimo(valStr, pReps, isCavo);
         if (estratto !== null) {
           if (!numIns6ModificatoManualmente.value) {
             numIns6Val.value = String(estratto);
@@ -15989,9 +16182,11 @@ const salvaDatoSettimanalePrecedente = async (settimana, tipo) => {
     
     // Auto-estrazione per la week 6 dell'esercizio precedente
     if (settimana === 6 && tipo === 'ins' && valoreNuovo) {
-      const estratto = estraiNumeroMassimo(valoreNuovo);
+      const pReps = parseInt(previousWorkout.value.reps_week6, 10) || estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10;
+      const isCavo = isCavoOMacchinaEsercizio(previousWorkout.value);
+      const estratto = estraiNumeroMassimo(valoreNuovo, pReps, isCavo);
       if (estratto !== null) {
-        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
+        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale, pReps, isCavo);
         if (!numIns6ValPrecedente.value || (vecchioEstratto !== null && parseFloat(numIns6ValPrecedente.value) === vecchioEstratto)) {
           numIns6ValPrecedente.value = String(estratto);
           updates.num_ins6 = String(estratto);
@@ -16104,9 +16299,11 @@ const salvaDatoSettimanaleStoricoSingolo = async (settimana, tipo) => {
   if (valoreOriginale !== valoreNuovo) {
     const updates = { [campo]: valoreNuovo };
     if (settimana === 6 && tipo === 'ins' && valoreNuovo) {
-      const estratto = estraiNumeroMassimo(valoreNuovo);
+      const pReps = parseInt(selectedStoricoWorkout.value.reps_week6, 10) || estraiRepsDaPrescrizione(selectedStoricoWorkout.value.des_week6) || 10;
+      const isCavo = isCavoOMacchinaEsercizio(selectedStoricoWorkout.value);
+      const estratto = estraiNumeroMassimo(valoreNuovo, pReps, isCavo);
       if (estratto !== null) {
-        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale);
+        const vecchioEstratto = estraiNumeroMassimo(valoreOriginale, pReps, isCavo);
         if (!numIns6ValStoricoSingolo.value || (vecchioEstratto !== null && parseFloat(numIns6ValStoricoSingolo.value) === vecchioEstratto)) {
           numIns6ValStoricoSingolo.value = String(estratto);
           updates.num_ins6 = String(estratto);
@@ -18914,29 +19111,44 @@ const getSettorePrincipale = (s) => {
   if (!s) return 'Altro';
   const clean = s.trim().toLowerCase();
   
-  if (clean.includes('pectoral') || clean.includes('petto')) {
-    return 'Petto';
+  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('pectoral') || clean.includes('chest')) {
+    return 'Pettorali';
   }
-  if (clean.includes('back') || clean.includes('latissimus') || clean.includes('dorsal') || clean.includes('trapezius') || clean.includes('erector')) {
+  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('latissimus') || clean.includes('trapezius') || clean.includes('dorsal') || clean.includes('back')) {
     return 'Dorsali';
   }
-  if (clean.includes('deltoid') || clean.includes('spall')) {
-    return 'Deltoidi';
+  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('deltoid') || clean.includes('spall') || clean.includes('shoulder')) {
+    return 'Spalle';
   }
-  if (clean.includes('biceps') || clean.includes('bicipiti') || clean.includes('brachialis') || clean.includes('brachioradialis')) {
+  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('brachialis') || clean.includes('brachioradialis') || clean.includes('biceps')) {
     return 'Bicipiti';
   }
-  if (clean.includes('triceps') || clean.includes('tricipiti')) {
+  if (clean.includes('tricipiti') || clean.includes('tricipite') || clean.includes('triceps')) {
     return 'Tricipiti';
   }
-  if (clean.includes('quadriceps') || clean.includes('ischiocrurali') || clean.includes('gluteus') || clean.includes('glutei') || clean.includes('hip') || clean.includes('soleus') || clean.includes('gastrocnemius') || clean.includes('adductor') || clean.includes('abductor') || clean.includes('femorali') || clean.includes('quadricipiti') || clean.includes('gambe')) {
+  if (clean.includes('quadricipiti') || clean.includes('quadriceps')) {
+    return 'Quadricipiti';
+  }
+  if (clean.includes('femorali') || clean.includes('ischio') || clean.includes('ischiocrurali') || clean.includes('hamstring')) {
+    return 'Femorali';
+  }
+  if (clean.includes('glutei') || clean.includes('gluteus') || clean.includes('gluteo')) {
+    return 'Glutei';
+  }
+  if (clean.includes('adduttori') || clean.includes('adductor') || clean.includes('abductor') || clean.includes('abduttori')) {
+    return 'Adduttori';
+  }
+  if (clean.includes('polpacci') || clean.includes('polpaccio') || clean.includes('soleo') || clean.includes('soleus') || clean.includes('gastrocnemius') || clean.includes('calves') || clean.includes('calf')) {
+    return 'Polpacci';
+  }
+  if (clean.includes('gambe') || clean.includes('hip') || clean.includes('leg')) {
     return 'Gambe';
   }
-  if (clean.includes('abdomis') || clean.includes('addome') || clean.includes('oblique') || clean.includes('obliqui')) {
+  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('abdomis') || clean.includes('core') || clean.includes('obliqui') || clean.includes('oblique') || clean.includes('abs')) {
     return 'Addome';
   }
   
-  return s; // Fallback
+  return s.charAt(0).toUpperCase() + s.slice(1).trim();
 };
 
 const apriListaSettore = async () => {

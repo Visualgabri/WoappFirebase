@@ -7250,14 +7250,30 @@ const analizzaRecordSettimana = (sett) => {
 
   if (pesoDaValutare === null) return null;
 
-  if (pesoDaValutare >= recordVal) {
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const e1rmDaValutare = calcolaE1RMSmorzato(pesoDaValutare, targetReps, isCavo);
+  const e1rmRecord = calcolaE1RMSmorzato(recordVal, targetReps, isCavo);
+
+  // Per essere record, a target reps deve essere almeno pari al recordVal
+  if (pesoDaValutare > recordVal || e1rmDaValutare > (e1rmRecord * 1.005)) {
     return {
       stato: 'record',
       tipo: tipoValutato,
       peso: pesoDaValutare,
       record: recordVal,
       diff: Math.round((pesoDaValutare - recordVal) * 10) / 10,
-      targetReps
+      targetReps,
+      definizione: 'SUPERAMENTO'
+    };
+  } else if (pesoDaValutare === recordVal) {
+    return {
+      stato: 'record',
+      tipo: tipoValutato,
+      peso: pesoDaValutare,
+      record: recordVal,
+      diff: 0,
+      targetReps,
+      definizione: 'PAREGGIO'
     };
   } else if (pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5) {
     return {
@@ -7266,7 +7282,8 @@ const analizzaRecordSettimana = (sett) => {
       peso: pesoDaValutare,
       record: recordVal,
       diff: Math.round((recordVal - pesoDaValutare) * 10) / 10,
-      targetReps
+      targetReps,
+      definizione: 'AVVICINAMENTO'
     };
   }
 
@@ -7788,13 +7805,47 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     return propostaWeek1.value?.peso || null;
   }
 
+  // Se la strategia coach predittiva è attiva o calcolata, garantiamo che la progressione rispetti la roadmap unificata
+  const w1Log = inputSettimane.value?.[1]?.ins || workout.value?.ins_week1;
+  const w1P = w1Log ? parseFloat(estraiPesoDaInput(w1Log)) : (propostaWeek1.value?.peso || null);
+  if (w1P !== null && w1P > 0 && sett >= 2 && sett <= 6) {
+    const stepVal = (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) 
+      ? stepCaricoEsercizioEffettivo.value 
+      : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
+    const rotta = analizzaRottaProgressione({
+      w1Weight: w1P,
+      w1Reps: estraiRepsDaInput(w1Log) || getRepsPerWeek(1),
+      prWeight: suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0,
+      prReps: suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || getRepsPerWeek(sett) || 8,
+      e1rmStorico: calcolaE1RMSmorzato(suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0, suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || 8, isCavoOMacchinaEsercizio(workout.value)),
+      isCavo: isCavoOMacchinaEsercizio(workout.value),
+      isManubri: isManubriEsercizio(workout.value),
+      stepKg: stepVal,
+      r1: getRepsPerWeek(1),
+      r2: getRepsPerWeek(2),
+      r3: getRepsPerWeek(3),
+      r4: getRepsPerWeek(4),
+      r5: getRepsPerWeek(5),
+      r6: getRepsPerWeek(6)
+    });
+
+    if (rotta && rotta.curvaProiettata && rotta.curvaProiettata[sett - 1]) {
+      // Se non ci sono carichi loggati successivi divergenti, proponiamo il punto della curva
+      const infoBase = getBaseWeekInfo(sett);
+      const isDifficile = infoBase && isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText);
+      if (!isDifficile) {
+        return rotta.curvaProiettata[sett - 1].peso;
+      }
+    }
+  }
+
   // Nuova regola per Week 2 a peso
   if (sett === 2 && regolaProgressioneW2.value === 'peso') {
     const infoBase = getBaseWeekInfo(2);
     if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
       const isManubri = isManubriEsercizio(workout.value);
       const step = getWeightStep(isManubri, infoBase.pesoBase);
-      return infoBase.pesoBase + step; // Proponi esattamente W1 + step (es. 12 + 2 = 14)
+      return infoBase.pesoBase + step; // Proponi esattamente W1 + step (es. 20 + 1 = 21)
     }
   }
 
@@ -8082,6 +8133,34 @@ const getGhostWeightsRangeForWeek = (sett) => {
       medio = defaultPeso;
       min = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'down') : Math.max(step, defaultPeso - step);
       max = isManubri ? getDumbbellSequenceWeight(defaultPeso, 'up') : defaultPeso + step;
+
+      // Se la rotta predittiva calcola un target W1 consigliato per agganciare il PR (es. 11.25 kg)
+      const recW = suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0;
+      const recR = suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || getRepsPerWeek(1) || 8;
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
+      const e1rmH = calcolaE1RMSmorzato(recW, recR, isCavo);
+      if (recW > 0 && e1rmH > 0) {
+        const rotta = analizzaRottaProgressione({
+          w1Weight: defaultPeso,
+          w1Reps: getRepsPerWeek(1),
+          prWeight: recW,
+          prReps: recR,
+          e1rmStorico: e1rmH,
+          isCavo,
+          isManubri,
+          stepKg: step,
+          r1: getRepsPerWeek(1),
+          r2: getRepsPerWeek(2),
+          r3: getRepsPerWeek(3),
+          r4: getRepsPerWeek(4),
+          r5: getRepsPerWeek(5),
+          r6: getRepsPerWeek(6)
+        });
+        if (rotta && rotta.w1Consigliato && rotta.w1Consigliato > medio) {
+          max = Math.max(max, rotta.w1Consigliato);
+          sfidanteLabel = 'Sfidante (Rotta PR W6)';
+        }
+      }
 
       // Evita il collasso delle opzioni
       if (min === medio && defaultPeso - step > 0) {
@@ -9771,6 +9850,8 @@ const strategieAlternativeCards = computed(() => {
   } else if (String(range.sfidante?.value).includes('r')) {
     sfidanteSottotitolo = '+2 rep (+volume)';
     sfidanteValoreDisplay = formatCaricoConReps(range.sfidante.value, targetReps);
+  } else if (sett === 1 && range.sfidante?.label && range.sfidante.label.includes('Rotta PR')) {
+    sfidanteSottotitolo = '🎯 Sblocca Rotta PR W6';
   } else if (sfidanteVal > smartVal && smartVal > 0) {
     const diffSfid = Math.round((sfidanteVal - smartVal) * 10) / 10;
     sfidanteSottotitolo = `+${diffSfid}k vs smart`;
@@ -11605,7 +11686,7 @@ const getWeightStep = (isManubri, baseWeight) => {
 
   const p = parseFloat(baseWeight) || 0;
 
-  // 1. Manubri (Step 1kg sotto i 10kg, Step 2kg sopra)
+  // 1. Manubri (Step 1kg sotto i 10kg, Step 2kg sopra se non custom)
   if (isManubri) {
     return p >= 10 ? 2.0 : 1.0;
   }
@@ -11622,20 +11703,31 @@ const getWeightStep = (isManubri, baseWeight) => {
 };
 
 const getDumbbellSequenceWeight = (currentWeight, direction) => {
-  const w = Math.round(parseFloat(currentWeight)) || 0;
+  const w = parseFloat(currentWeight) || 0;
+  // Se è presente uno step personalizzato per l'esercizio, usa esattamente quello step
+  if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
+    const s = stepCaricoEsercizioEffettivo.value;
+    return direction === 'up' ? Math.round((w + s) / s) * s : Math.max(0, Math.round((w - s) / s) * s);
+  }
+  const wRound = Math.round(w);
   if (direction === 'up') {
-    if (w < 10) return w + 1;
-    return Math.floor(w / 2) * 2 + 2;
+    if (wRound < 10) return wRound + 1;
+    return Math.floor(wRound / 2) * 2 + 2;
   } else if (direction === 'down') {
-    if (w <= 10) return Math.max(0, w - 1);
-    if (w === 12) return 10;
-    return Math.ceil((w - 2) / 2) * 2;
+    if (wRound <= 10) return Math.max(0, wRound - 1);
+    if (wRound === 12) return 10;
+    return Math.ceil((wRound - 2) / 2) * 2;
   }
   return w;
 };
 
 const arrotondaManubrioCommerciale = (peso) => {
   const p = parseFloat(peso) || 0;
+  // Se c'è uno step specifico impostato sull'esercizio, non forzare numeri pari commerciali
+  if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
+    const s = stepCaricoEsercizioEffettivo.value;
+    return Math.round(p / s) * s;
+  }
   if (p <= 10) {
     return Math.round(p);
   } else {
@@ -16709,15 +16801,27 @@ const analizzaRottaProgressione = ({
     return null;
   }
 
-  const step = stepKg > 0 ? stepKg : (isManubri ? 1.0 : 2.5);
-  const getStepForVal = (val) => stepKg > 0 ? stepKg : (isManubri ? (val >= 10 ? 2.0 : 1.0) : 2.5);
-  const adjustVal = (val) => (isManubri && !stepKg) ? arrotondaManubrioCommerciale(val) : val;
+  const effectiveStep = (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) 
+    ? stepCaricoEsercizioEffettivo.value 
+    : (stepKg > 0 ? stepKg : (isManubri ? 1.0 : 2.5));
+  
+  const getStepForVal = (val) => (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value)
+    ? stepCaricoEsercizioEffettivo.value
+    : (isManubri ? (val >= 10 ? 2.0 : 1.0) : 2.5);
+
+  const adjustVal = (val) => {
+    if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
+      const s = stepCaricoEsercizioEffettivo.value;
+      return Math.round(val / s) * s;
+    }
+    return isManubri ? arrotondaManubrioCommerciale(val) : Math.round(val / effectiveStep) * effectiveStep;
+  };
 
   // Costruzione curva ideale dal carico W1
   const p1 = w1Weight;
   const p2 = adjustVal(p1 + getStepForVal(p1));
   const p3 = adjustVal(p2 + getStepForVal(p2));
-  const p4 = adjustVal(p2); // Scarico neurale W4 pari a W2 o ridotto
+  const p4 = adjustVal(p2); // Scarico neurale W4 pari a W2
   const p5 = adjustVal(p3 + getStepForVal(p3));
   const p6 = adjustVal(p5 + getStepForVal(p5));
 
@@ -16729,27 +16833,62 @@ const analizzaRottaProgressione = ({
   const e1rmW6 = calcolaE1RMSmorzato(p6, r6, isCavo);
 
   const curve = [
-    { week: 1, peso: p1, reps: r1, e1rm: e1rmW1 },
-    { week: 2, peso: p2, reps: r2, e1rm: e1rmW2 },
-    { week: 3, peso: p3, reps: r3, e1rm: e1rmW3 },
-    { week: 4, peso: p4, reps: r4, e1rm: e1rmW4 },
-    { week: 5, peso: p5, reps: r5, e1rm: e1rmW5 },
-    { week: 6, peso: p6, reps: r6, e1rm: e1rmW6 }
+    { week: 1, peso: p1, reps: r1, e1rm: e1rmW1, isScarico: false },
+    { week: 2, peso: p2, reps: r2, e1rm: e1rmW2, isScarico: false },
+    { week: 3, peso: p3, reps: r3, e1rm: e1rmW3, isScarico: false },
+    { week: 4, peso: p4, reps: r4, e1rm: e1rmW4, isScarico: true },
+    { week: 5, peso: p5, reps: r5, e1rm: e1rmW5, isScarico: false },
+    { week: 6, peso: p6, reps: r6, e1rm: e1rmW6, isScarico: false }
   ];
 
   // Trova la prima settimana in cui la progressione eguaglia o supera il PR storico
+  // NOTA FONDAMENTALE: W4 è scarico e NON può essere la settimana di attacco PR!
   let weekSfidaPR = null;
   let pesoSfidaPR = null;
   let repsSfidaPR = null;
   let tipoSfida = null; // 'PAREGGIO' o 'SUPERAMENTO'
+  let weekPareggioKg = null;
+  let pesoPareggioKg = null;
 
   for (const stepObj of curve) {
-    if (stepObj.e1rm >= e1rmStorico || (stepObj.reps === prReps && stepObj.peso >= prWeight)) {
-      weekSfidaPR = stepObj.week;
-      pesoSfidaPR = stepObj.peso;
-      repsSfidaPR = stepObj.reps;
-      tipoSfida = (stepObj.e1rm > e1rmStorico * 1.01 || stepObj.peso > prWeight) ? 'SUPERAMENTO' : 'PAREGGIO';
-      break;
+    if (stepObj.peso >= prWeight && !weekPareggioKg && !stepObj.isScarico) {
+      weekPareggioKg = stepObj.week;
+      pesoPareggioKg = stepObj.peso;
+    }
+    // Escludiamo la settimana 4 di scarico dalla designazione di attacco al record
+    if (!stepObj.isScarico) {
+      const isSuperamentoE1RM = stepObj.e1rm > (e1rmStorico * 1.002);
+      const isSuperamentoRepsSpecifiche = (stepObj.peso > prWeight);
+      const isPareggioPRCompleto = (stepObj.peso >= prWeight) || Math.abs(stepObj.e1rm - e1rmStorico) <= (e1rmStorico * 0.015);
+
+      if (isSuperamentoE1RM || isSuperamentoRepsSpecifiche) {
+        if (!weekSfidaPR) {
+          weekSfidaPR = stepObj.week;
+          pesoSfidaPR = stepObj.peso;
+          repsSfidaPR = stepObj.reps;
+          tipoSfida = 'SUPERAMENTO';
+        }
+      } else if (isPareggioPRCompleto) {
+        if (!weekSfidaPR) {
+          weekSfidaPR = stepObj.week;
+          pesoSfidaPR = stepObj.peso;
+          repsSfidaPR = stepObj.reps;
+          tipoSfida = 'PAREGGIO';
+        }
+      }
+    }
+  }
+
+  // Calcolo W1 consigliato per rotta bilanciata ideale (attacco W5 / W6)
+  const rawW1Ideale = (e1rmStorico * 0.85) / (1 + r1 / 30);
+  const w1Consigliato = adjustVal(Math.max(Math.round(rawW1Ideale / effectiveStep) * effectiveStep, isManubri ? 4 : 10));
+
+  if (!weekSfidaPR) {
+    if (p6 >= prWeight || (p1 >= w1Consigliato && w1Consigliato > 0)) {
+      weekSfidaPR = 6;
+      pesoSfidaPR = p6;
+      repsSfidaPR = r6;
+      tipoSfida = p6 > prWeight ? 'SUPERAMENTO' : 'PAREGGIO';
     }
   }
 
@@ -16759,12 +16898,8 @@ const analizzaRottaProgressione = ({
   let badgeColor = 'green-lighten-2';
   let badgeIcon = 'mdi-scale-balance';
 
-  // Calcolo W1 consigliato per rotta bilanciata ideale (attacco W5 / W6)
-  const rawW1Ideale = (e1rmStorico * 0.85) / (1 + r1 / 30);
-  const w1Consigliato = adjustVal(Math.max(Math.round(rawW1Ideale / step) * step, isManubri ? 4 : 10));
-
   if (!weekSfidaPR) {
-    // In nessuna delle 6 week si raggiunge il PR
+    // In nessuna delle settimane utili (escludendo W4) si raggiunge/supera il PR
     profilo = 'CONSERVATIVA';
     badgeColor = 'amber-lighten-2';
     badgeIcon = 'mdi-shield-check';
@@ -16777,11 +16912,12 @@ const analizzaRottaProgressione = ({
     badgeIcon = 'mdi-fire';
     motivazione = `Progressione aggressiva: carico W1 elevato che sfida il PR già in W${weekSfidaPR} (${formatWeight(pesoSfidaPR)}kg). Rischio elevato di RPE massimale e stallo prima della W5.`;
   } else {
-    // Bilanciata (W3 pareggio, W5 o W6 attacco PR)
+    // Bilanciata (W3 consolidamento/pareggio, W5 o W6 attacco PR)
     profilo = 'BILANCIATA';
     badgeColor = 'green-lighten-2';
     badgeIcon = 'mdi-trending-up';
-    motivazione = `Progressione armonica: partenza controllata in W1 (${formatWeight(p1)}kg), pareggio in W3 e attacco al nuovo record stimato in W${weekSfidaPR} (${formatWeight(pesoSfidaPR)}kg × ${repsSfidaPR}r).`;
+    const descPareggio = weekPareggioKg ? `pareggio in W${weekPareggioKg}` : `consolidamento in W3`;
+    motivazione = `Progressione armonica: partenza controllata in W1 (${formatWeight(p1)}kg), ${descPareggio} e attacco al record stimato in W${weekSfidaPR} (${formatWeight(pesoSfidaPR)}kg × ${repsSfidaPR}r).`;
   }
 
   return {
@@ -16792,6 +16928,7 @@ const analizzaRottaProgressione = ({
     pesoSfidaPR,
     repsSfidaPR,
     tipoSfida,
+    weekPareggioKg,
     w1Consigliato,
     motivazione,
     curvaProiettata: curve
@@ -16999,6 +17136,43 @@ const valutazioneProgressione = computed(() => {
   const diffE1RM = bestCurrentE1RM - e1rmHistoric;
   const diffKg = Math.round((bestCurrentWeight - recWeight) * 10) / 10;
 
+  // Se la previsione strategica è attiva, valutiamo la rotta
+  if (previsioneStrategicaAttiva.value && (w === 1 || bestCurrentWeight > 0)) {
+    const stepVal = (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) 
+      ? stepCaricoEsercizioEffettivo.value 
+      : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
+    const rotta = analizzaRottaProgressione({
+      w1Weight: bestCurrentWeight,
+      w1Reps: bestCurrentReps,
+      prWeight: recWeight,
+      prReps: recReps,
+      e1rmStorico: e1rmHistoric,
+      isCavo,
+      isManubri: isManubriEsercizio(workout.value),
+      stepKg: stepVal,
+      r1: getRepsPerWeek(1),
+      r2: getRepsPerWeek(2),
+      r3: getRepsPerWeek(3),
+      r4: getRepsPerWeek(4),
+      r5: getRepsPerWeek(5),
+      r6: getRepsPerWeek(6)
+    });
+
+    if (rotta && rotta.weekSfidaPR) {
+      return {
+        testo: `🎯 Rotta PR: attacco record stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
+        colore: 'text-green-accent-3',
+        icona: 'mdi-flag-checkered'
+      };
+    } else if (rotta && rotta.profilo === 'CONSERVATIVA') {
+      return {
+        testo: `⚠️ W1 conservativo: non raggiunge il PR a W6 (target W1: ${formatWeight(rotta.w1Consigliato)} kg)`,
+        colore: 'text-amber-lighten-2',
+        icona: 'mdi-shield-alert'
+      };
+    }
+  }
+
   if (bestCurrentWeight >= recWeight) {
     const perc = e1rmHistoric > 0 ? Math.round((diffE1RM / e1rmHistoric) * 100) : 0;
     const rawDiff = diffKg > 0 ? diffKg : Math.max(diffE1RM / 1.2, 0.5);
@@ -17009,76 +17183,12 @@ const valutazioneProgressione = computed(() => {
       icona: null
     };
   } else if (bestCurrentWeight >= 0.95 * recWeight || bestCurrentE1RM >= 0.95 * e1rmHistoric) {
-    // Se la previsione strategica è attiva ed è W1 (o inizio scheda), forniamo l'analisi di rotta
-    if (previsioneStrategicaAttiva.value && (w === 1 || bestCurrentWeight > 0)) {
-      const stepVal = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
-      const rotta = analizzaRottaProgressione({
-        w1Weight: bestCurrentWeight,
-        w1Reps: bestCurrentReps,
-        prWeight: recWeight,
-        prReps: recReps,
-        e1rmStorico: e1rmHistoric,
-        isCavo,
-        isManubri: isManubriEsercizio(workout.value),
-        stepKg: stepVal,
-        r1: getRepsPerWeek(1),
-        r2: getRepsPerWeek(2),
-        r3: getRepsPerWeek(3),
-        r4: getRepsPerWeek(4),
-        r5: getRepsPerWeek(5),
-        r6: getRepsPerWeek(6)
-      });
-
-      if (rotta && rotta.weekSfidaPR) {
-        return {
-          testo: `🎯 Rotta PR: attacco record stimato in W${rotta.weekSfidaPR} (${formatWeight(rotta.pesoSfidaPR)} kg)`,
-          colore: 'text-green-accent-3',
-          icona: 'mdi-flag-checkered'
-        };
-      } else if (rotta && rotta.profilo === 'CONSERVATIVA') {
-        return {
-          testo: `⚠️ W1 prudente: a W6 rimani sotto al PR (consigliato: ${formatWeight(rotta.w1Consigliato)} kg)`,
-          colore: 'text-amber-lighten-2',
-          icona: 'mdi-shield-alert'
-        };
-      }
-    }
-
     return {
       testo: `Carico in linea col tuo record storico a ${recReps} reps`,
       colore: 'text-cyan-lighten-2',
       icona: null
     };
   } else {
-    // Se la previsione strategica è attiva e siamo sotto al 95% del record
-    if (previsioneStrategicaAttiva.value) {
-      const stepVal = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
-      const rotta = analizzaRottaProgressione({
-        w1Weight: bestCurrentWeight,
-        w1Reps: bestCurrentReps,
-        prWeight: recWeight,
-        prReps: recReps,
-        e1rmStorico: e1rmHistoric,
-        isCavo,
-        isManubri: isManubriEsercizio(workout.value),
-        stepKg: stepVal,
-        r1: getRepsPerWeek(1),
-        r2: getRepsPerWeek(2),
-        r3: getRepsPerWeek(3),
-        r4: getRepsPerWeek(4),
-        r5: getRepsPerWeek(5),
-        r6: getRepsPerWeek(6)
-      });
-
-      if (rotta && rotta.profilo === 'CONSERVATIVA') {
-        return {
-          testo: `⚠️ W1 conservativo: non raggiunge il PR a W6 (target W1: ${formatWeight(rotta.w1Consigliato)} kg)`,
-          colore: 'text-orange-lighten-2',
-          icona: 'mdi-alert-outline'
-        };
-      }
-    }
-
     const diffKgAbs = Math.abs(diffKg);
     const percAbs = e1rmHistoric > 0 ? Math.round(((e1rmHistoric - bestCurrentE1RM) / e1rmHistoric) * 100) : 0;
     return {
@@ -17188,13 +17298,12 @@ const strategiaCoachData = computed(() => {
   const step = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? 1.0 : 2.5);
   const getStepFor = (w) => stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? (w >= 10 ? 2.0 : 1.0) : 2.5);
 
-  const adjustDumbbell = (w) => (isManubri && !stepCaricoEsercizioEffettivo?.value) ? arrotondaManubrioCommerciale(w) : w;
-
-  const calcWeightForReps = (targetE1RM, targetReps) => {
-    if (targetE1RM <= 0) return isManubri ? 10 : 20;
-    const rawW = targetE1RM / (1 + targetReps / 30);
-    const rounded = Math.max(Math.round(rawW / step) * step, isManubri ? 4 : 10);
-    return adjustDumbbell(rounded);
+  const adjustDumbbell = (w) => {
+    if (stepCaricoEsercizioEffettivo?.value) {
+      const s = stepCaricoEsercizioEffettivo.value;
+      return Math.round(w / s) * s;
+    }
+    return isManubri ? arrotondaManubrioCommerciale(w) : Math.round(w / step) * step;
   };
 
   const r1 = getRepsPerWeek(1);
@@ -17204,12 +17313,33 @@ const strategiaCoachData = computed(() => {
   const r5 = getRepsPerWeek(5);
   const r6 = getRepsPerWeek(6);
 
-  let w1Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r1) : (isManubri ? 10 : 20));
-  let w2Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.92, r2) : w1Target + getStepFor(w1Target));
-  let w3Target = adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.98, r3) : w2Target + getStepFor(w2Target));
-  let w4Target = adjustDumbbell(w2Target > 0 ? w2Target : (e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r4) : w1Target));
-  let w5Target = adjustDumbbell(Math.max(w3Target + getStepFor(w3Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.02, r5) : w3Target + getStepFor(w3Target)));
-  let w6Target = adjustDumbbell(Math.max(w5Target + getStepFor(w5Target), e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 1.05, r6) : w5Target + getStepFor(w5Target)));
+  // Analisi predittiva rotta W1 -> W6
+  const w1InputVal = workout.value?.['ins_week1'];
+  const w1LoggedPeso = w1InputVal ? parseFloat(estraiPesoDaInput(w1InputVal)) : null;
+  const w1LogPeso = (w1LoggedPeso !== null && !isNaN(w1LoggedPeso) && w1LoggedPeso > 0)
+    ? w1LoggedPeso
+    : (bestCurrentWeight > 0 ? bestCurrentWeight : (e1rmStorico > 0 ? adjustDumbbell(calcWeightForReps(e1rmStorico * 0.85, r1)) : (isManubri ? 10 : 20)));
+  const w1LogReps = w1InputVal ? (estraiRepsDaInput(w1InputVal) || r1) : (bestCurrentReps > 0 ? bestCurrentReps : r1);
+
+  const rottaPredittiva = analizzaRottaProgressione({
+    w1Weight: w1LogPeso,
+    w1Reps: w1LogReps,
+    prWeight,
+    prReps,
+    e1rmStorico,
+    isCavo,
+    isManubri,
+    stepKg: step,
+    r1, r2, r3, r4, r5, r6
+  });
+
+  // Target unificati derivati dalla curva della rotta
+  let w1Target = rottaPredittiva?.curvaProiettata?.[0]?.peso || adjustDumbbell(e1rmStorico > 0 ? calcWeightForReps(e1rmStorico * 0.85, r1) : (isManubri ? 10 : 20));
+  let w2Target = rottaPredittiva?.curvaProiettata?.[1]?.peso || adjustDumbbell(w1Target + getStepFor(w1Target));
+  let w3Target = rottaPredittiva?.curvaProiettata?.[2]?.peso || adjustDumbbell(w2Target + getStepFor(w2Target));
+  let w4Target = rottaPredittiva?.curvaProiettata?.[3]?.peso || adjustDumbbell(w2Target);
+  let w5Target = rottaPredittiva?.curvaProiettata?.[4]?.peso || adjustDumbbell(w3Target + getStepFor(w3Target));
+  let w6Target = rottaPredittiva?.curvaProiettata?.[5]?.peso || adjustDumbbell(w5Target + getStepFor(w5Target));
 
   if (isComfortAttivo && pctComfort > 0) {
     const factor = (100 - pctComfort) / 100;
@@ -17242,23 +17372,6 @@ const strategiaCoachData = computed(() => {
       }
     }
   }
-
-  // Analisi predittiva rotta W1 -> W6
-  const w1InputVal = workout.value?.['ins_week1'];
-  const w1LogPeso = w1InputVal ? parseFloat(estraiPesoDaInput(w1InputVal)) : (bestCurrentWeight > 0 ? bestCurrentWeight : w1Target);
-  const w1LogReps = w1InputVal ? (estraiRepsDaInput(w1InputVal) || r1) : (bestCurrentReps > 0 ? bestCurrentReps : r1);
-
-  const rottaPredittiva = analizzaRottaProgressione({
-    w1Weight: w1LogPeso,
-    w1Reps: w1LogReps,
-    prWeight,
-    prReps,
-    e1rmStorico,
-    isCavo,
-    isManubri,
-    stepKg: step,
-    r1, r2, r3, r4, r5, r6
-  });
 
   // Rilevamento disarmonie tra settimane inserite
   const disarmonie = [];
@@ -17346,14 +17459,18 @@ const strategiaCoachData = computed(() => {
         const valW2 = workout.value?.['ins_week2'];
         const pW2 = valW2 ? parseFloat(estraiPesoDaInput(valW2)) : 0;
         if (pW2 > 0) pesoProiettato = pW2;
-        else if (peakLoggedPreScarico > 0) pesoProiettato = Math.max(peakLoggedPreScarico - getStepFor(peakLoggedPreScarico), isManubri ? 4 : 10);
+        else if (peakLoggedPreScarico > 0 && !w4Target) pesoProiettato = Math.max(peakLoggedPreScarico - getStepFor(peakLoggedPreScarico), isManubri ? 4 : 10);
+        else pesoProiettato = targetPeso;
       } else if (w === 5) {
-        if (peakLoggedPreScarico > 0) pesoProiettato = peakLoggedPreScarico + getStepFor(peakLoggedPreScarico);
+        if (peakLoggedPreScarico > 0 && !w5Target) pesoProiettato = peakLoggedPreScarico + getStepFor(peakLoggedPreScarico);
+        else pesoProiettato = targetPeso;
       } else if (w === 6) {
-        if (peakLoggedPreScarico > 0) {
+        if (peakLoggedPreScarico > 0 && !w6Target) {
           const stepW5 = getStepFor(peakLoggedPreScarico);
           const pesoW5 = peakLoggedPreScarico + stepW5;
           pesoProiettato = pesoW5 + getStepFor(pesoW5);
+        } else {
+          pesoProiettato = targetPeso;
         }
       }
       pesoProiettato = adjustDumbbell(pesoProiettato);

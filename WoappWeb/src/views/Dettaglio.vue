@@ -18139,8 +18139,9 @@ const caricaDatiAnalisi = async (sett) => {
           if (!isNaN(currentNumScheda) && !isSchedaPassata.value && sNum > currentNumScheda) return;
           const sNumStr = String(b.num_scheda || '').trim();
           const itemId = b.id || `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+          const uniqueKey = `${sNumStr}_${(b.des_giorno || '').trim()}_${String(b.num_riga_giorno || '').trim()}_${itemId}`;
           const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(b);
-          mappaSchede.set(sNumStr, applicaModificheLocali({ ...b, id: itemId, peso_corporeo: pesoCorp }));
+          mappaSchede.set(uniqueKey, applicaModificheLocali({ ...b, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
     } catch (errBackup) {
@@ -18162,8 +18163,9 @@ const caricaDatiAnalisi = async (sett) => {
           if (!isNaN(currentNumScheda) && !isSchedaPassata.value && sNum > currentNumScheda) return;
           const itemId = docSnap.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
           const sNumStr = String(d.num_scheda || '').trim();
+          const uniqueKey = `${sNumStr}_${(d.des_giorno || '').trim()}_${String(d.num_riga_giorno || '').trim()}_${itemId}`;
           const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
-          mappaSchede.set(sNumStr, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
+          mappaSchede.set(uniqueKey, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
     } catch (errFirestore) {
@@ -18173,8 +18175,10 @@ const caricaDatiAnalisi = async (sett) => {
     // 3. Sovrascrivi/Integra la scheda corrente da workout.value (per avere gli ultimissimi input inseriti)
     if (workout.value && workout.value.num_scheda) {
       const sNumStr = String(workout.value.num_scheda || '').trim();
+      const itemId = workout.value.id || `STORICO_${workout.value.num_scheda}_${workout.value.des_giorno}_${workout.value.num_riga_giorno}`;
+      const uniqueKey = `${sNumStr}_${(workout.value.des_giorno || '').trim()}_${String(workout.value.num_riga_giorno || '').trim()}_${itemId}`;
       const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(workout.value);
-      mappaSchede.set(sNumStr, applicaModificheLocali({ ...workout.value, peso_corporeo: pesoCorp }));
+      mappaSchede.set(uniqueKey, applicaModificheLocali({ ...workout.value, peso_corporeo: pesoCorp }));
     }
 
     const list = Array.from(mappaSchede.values());

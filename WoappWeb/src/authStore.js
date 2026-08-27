@@ -1896,7 +1896,9 @@ export const getStoryboardBackup = async () => {
     backupDataPromise = (async () => {
       try {
         console.log("Fetching storyboard_backup.json (22MB)...");
-        const res = await fetch('/storyboard_backup.json');
+        // Aggiungiamo un cache-buster basato sulla data odierna per forzare il download del backup aggiornato 
+        // ed evitare che i dispositivi mantengano in cache la vecchia versione con i record buggati.
+        const res = await fetch('/storyboard_backup.json?v=20260827_1');
         backupDataCache = await res.json();
         console.log("Parsed storyboard_backup.json successfully, items count:", backupDataCache.length);
         return backupDataCache;

@@ -884,28 +884,34 @@
               </span>
             </div>
 
-            <!-- Tag di Stato (Etichetta informativa non cliccabile) -->
-            <v-chip
-              v-if="haRecupero(inputSettimane[sett].ins)"
-              color="red-lighten-2"
-              size="x-small"
-              class="font-weight-black px-1.5 week-active-chip"
-              :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
-              variant="tonal"
-            >
-              DA COMPLETARE
-            </v-chip>
-            <v-chip
-              v-else-if="sett === settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))"
-              color="orange-lighten-2"
-              size="x-small"
-              class="font-weight-black px-1.5 week-active-chip"
-              :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
-              variant="tonal"
-            >
-              ATTIVA
-            </v-chip>
-            <v-chip v-else-if="modalitaSettimane === 'dinamica' && sett !== settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5 week-altre-chip" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
+            <div class="d-flex align-center gap-2">
+              <span v-if="!getGhostRenderInfo(sett)" class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Strategia">
+                💡
+              </span>
+
+              <!-- Tag di Stato (Etichetta informativa non cliccabile) -->
+              <v-chip
+                v-if="haRecupero(inputSettimane[sett].ins)"
+                color="red-lighten-2"
+                size="x-small"
+                class="font-weight-black px-1.5 week-active-chip"
+                :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
+                variant="tonal"
+              >
+                DA COMPLETARE
+              </v-chip>
+              <v-chip
+                v-else-if="sett === settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))"
+                color="orange-lighten-2"
+                size="x-small"
+                class="font-weight-black px-1.5 week-active-chip"
+                :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
+                variant="tonal"
+              >
+                ATTIVA
+              </v-chip>
+              <v-chip v-else-if="modalitaSettimane === 'dinamica' && sett !== settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5 week-altre-chip" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
+            </div>
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
@@ -1025,11 +1031,11 @@
                   <div class="d-flex align-center gap-1">
 
 
-                    <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="apriAiutoCaricoDettagliato(sett)">
+                    <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)">
                       {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
                     </span>
 
-                    <span class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
+                    <span class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
                       💡
                     </span>
                   </div>
@@ -11585,7 +11591,7 @@ const isCorpoLiberoEsercizio = (ex) => {
 
   const keywords = [
     'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
-    'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 
+    'trazioni', 'piegamenti', 'push up', 'push-up', 'pushup', 
     'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
     'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
     'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',

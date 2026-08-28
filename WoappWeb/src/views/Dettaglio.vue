@@ -2786,10 +2786,10 @@
               v-for="st in opzioniStepRapidi"
               :key="st.val"
               size="small"
-              :variant="stepCaricoEsercizioEffettivo === st.val ? 'flat' : 'outlined'"
-              :color="stepCaricoEsercizioEffettivo === st.val ? 'cyan-darken-2' : 'slate-600'"
+              :variant="(stepPersonalizzatoEsercizio === st.val || (!stepPersonalizzatoEsercizio && st.val === 0)) ? 'flat' : 'outlined'"
+              :color="(stepPersonalizzatoEsercizio === st.val || (!stepPersonalizzatoEsercizio && st.val === 0)) ? 'cyan-darken-2' : 'slate-600'"
               class="font-weight-black text-white px-2 rounded-lg"
-              :class="{ 'border-cyan': stepCaricoEsercizioEffettivo === st.val }"
+              :class="{ 'border-cyan': (stepPersonalizzatoEsercizio === st.val || (!stepPersonalizzatoEsercizio && st.val === 0)) }"
               style="min-width: 58px; height: 34px; font-size: 0.75rem;"
               @click="selezionaStepEsercizio(st.val)"
             >
@@ -7886,7 +7886,29 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
       const infoBase = getBaseWeekInfo(sett);
       const isDifficile = infoBase && isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText);
       if (!isDifficile) {
-        return rotta.curvaProiettata[sett - 1].peso;
+        const propostoRotta = rotta.curvaProiettata[sett - 1].peso;
+        
+        // Verifica fisiologica se abbiamo un infoBase valido (controllo sull'1RM per supportare i cali di reps)
+        if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
+          const isMan = isManubriEsercizio(workout.value);
+          const isCav = isCavoOMacchinaEsercizio(workout.value);
+          const maxIncPct = isMan ? 0.08 : (isCav ? 0.05 : 0.08);
+          
+          let pesoRiferimento = infoBase.pesoBase;
+          // Se le rep target scendono, il peso equivalente per pareggiare l'1RM sale
+          if (infoBase.repsBase > infoBase.repsTarget && infoBase.repsTarget > 0) {
+            const e1rmBase = infoBase.pesoBase * (1 + infoBase.repsBase / 30);
+            pesoRiferimento = Math.max(infoBase.pesoBase, e1rmBase / (1 + infoBase.repsTarget / 30));
+          }
+          
+          const maxFisiologico = pesoRiferimento * (1 + maxIncPct);
+          // Se il salto forzato dallo step supera il limite massimo fisiologico
+          if (propostoRotta > maxFisiologico) {
+             return infoBase.pesoBase;
+          }
+        }
+        
+        return propostoRotta;
       }
     }
   }
@@ -7907,6 +7929,7 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
       }
       // Altrimenti lo step genera un salto irrealistico (es. W1 26kg + 5kg = 31kg > +15%).
       // Ignoriamo la forzatura del salto di peso per far subentrare la logica smart (progressione su reps).
+      return infoBase.pesoBase;
     }
   }
 

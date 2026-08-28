@@ -106,8 +106,8 @@
                     Step Incremento
                   </v-list-item-title>
                   <template v-slot:append>
-                    <v-chip size="x-small" color="cyan-darken-3" class="px-1 py-0 font-weight-black text-white ml-1" style="height: 16px; font-size: 0.55rem;">
-                      {{ stepPersonalizzatoEsercizio && stepPersonalizzatoEsercizio > 0 ? stepPersonalizzatoEsercizio + 'kg' : 'Auto' }}
+                    <v-chip size="x-small" color="cyan-darken-3" class="px-1.5 py-0 font-weight-black text-white ml-1 text-truncate" style="height: 18px; font-size: 0.58rem; max-width: 140px;">
+                      {{ stepPersonalizzatoEsercizio && stepPersonalizzatoEsercizio > 0 ? stepPersonalizzatoEsercizio + ' kg' : descrizioneStepAuto }}
                     </v-chip>
                   </template>
                 </v-list-item>
@@ -2790,10 +2790,10 @@
               :color="(stepPersonalizzatoEsercizio === st.val || (!stepPersonalizzatoEsercizio && st.val === 0)) ? 'cyan-darken-2' : 'slate-600'"
               class="font-weight-black text-white px-2 rounded-lg"
               :class="{ 'border-cyan': (stepPersonalizzatoEsercizio === st.val || (!stepPersonalizzatoEsercizio && st.val === 0)) }"
-              style="min-width: 58px; height: 34px; font-size: 0.75rem;"
+              :style="{ minWidth: st.val === 0 ? 'auto' : '52px', height: '34px', fontSize: '0.72rem' }"
               @click="selezionaStepEsercizio(st.val)"
             >
-              {{ st.label }}
+              {{ st.val === 0 ? descrizioneStepAuto : st.label }}
             </v-btn>
           </div>
 
@@ -7068,6 +7068,27 @@ const stepCaricoEsercizioEffettivo = computed(() => {
   }
   if (isCavo) return 1.25;
   return 2.5;
+});
+
+const tipoAttrezzoEsercizio = computed(() => {
+  if (!workout.value) return 'generale';
+  const name = String(workout.value.des_esercizio || '').toLowerCase();
+  const attr = String(workout.value.des_note_attrezzo || '').toLowerCase();
+  const noteGen = String(workout.value.des_note_gen_attr || '').toLowerCase();
+  const all = `${name} ${attr} ${noteGen}`;
+
+  if (isManubriEsercizio(workout.value)) return 'manubri';
+  if (all.includes('multipower') || all.includes('smith')) return 'multipower';
+  if (all.includes('pressa') || all.includes('leg press')) return 'pressa';
+  if (all.includes('cavo') || all.includes('cavi') || all.includes('cable') || all.includes('pulley')) return 'cavi';
+  if (isCavoOMacchinaEsercizio(workout.value)) return 'macchine';
+  return 'bilanciere';
+});
+
+const descrizioneStepAuto = computed(() => {
+  const step = stepCaricoEsercizioEffettivo.value || 2.5;
+  const attrezzo = tipoAttrezzoEsercizio.value;
+  return `Auto · ${step} kg ${attrezzo}`;
 });
 
 const apriDialogStepEsercizio = () => {
@@ -17240,28 +17261,75 @@ const analizzaRottaProgressione = ({
     return isManubri ? arrotondaManubrioCommerciale(val) : Math.round(val / effectiveStep) * effectiveStep;
   };
 
-  // Costruzione curva ideale dal carico W1
-  const p1 = w1Weight;
-  const p2 = adjustVal(p1 + getStepForVal(p1));
-  const p3 = adjustVal(p2 + getStepForVal(p2));
-  const p4 = adjustVal(p2); // Scarico neurale W4 pari a W2
-  const p5 = adjustVal(p3 + getStepForVal(p3));
-  const p6 = adjustVal(p5 + getStepForVal(p5));
+  const getLoggedPeso = (w) => {
+    if (typeof inputSettimane !== 'undefined' && inputSettimane.value && inputSettimane.value[w]?.ins) {
+      const p = parseFloat(estraiPesoDaInput(inputSettimane.value[w].ins));
+      if (!isNaN(p) && p > 0) return p;
+    }
+    if (typeof workout !== 'undefined' && workout.value && workout.value['ins_week' + w]) {
+      const p = parseFloat(estraiPesoDaInput(workout.value['ins_week' + w]));
+      if (!isNaN(p) && p > 0) return p;
+    }
+    return null;
+  };
 
-  const e1rmW1 = calcolaE1RMSmorzato(p1, r1, isCavo);
-  const e1rmW2 = calcolaE1RMSmorzato(p2, r2, isCavo);
-  const e1rmW3 = calcolaE1RMSmorzato(p3, r3, isCavo);
-  const e1rmW4 = calcolaE1RMSmorzato(p4, r4, isCavo);
-  const e1rmW5 = calcolaE1RMSmorzato(p5, r5, isCavo);
-  const e1rmW6 = calcolaE1RMSmorzato(p6, r6, isCavo);
+  const getLoggedReps = (w, fallbackReps) => {
+    if (typeof inputSettimane !== 'undefined' && inputSettimane.value && inputSettimane.value[w]?.ins) {
+      const r = estraiRepsDaInput(inputSettimane.value[w].ins);
+      if (r !== null && !isNaN(r) && r > 0) return r;
+    }
+    if (typeof workout !== 'undefined' && workout.value && workout.value['ins_week' + w]) {
+      const r = estraiRepsDaInput(workout.value['ins_week' + w]);
+      if (r !== null && !isNaN(r) && r > 0) return r;
+    }
+    return fallbackReps;
+  };
+
+  // Costruzione curva ideale con Rolling Dynamic Re-Anchoring:
+  // Se l'utente ha inserito carichi reali nelle settimane successive che superano la curva teorica iniziale da W1,
+  // la rotta riparte dinamicamente da tali prestazioni per le settimane future!
+  const l1 = w1Weight;
+  const l2 = getLoggedPeso(2);
+  const l3 = getLoggedPeso(3);
+  const l4 = getLoggedPeso(4);
+  const l5 = getLoggedPeso(5);
+  const l6 = getLoggedPeso(6);
+
+  const p1 = l1;
+  const p2 = l2 || adjustVal(p1 + getStepForVal(p1));
+  const p3 = l3 || adjustVal(p2 + getStepForVal(p2));
+
+  // W4 scarico: se l4 è inserito usa l4, altrimenti teorico da p2
+  const p4 = l4 || adjustVal(p2);
+
+  // W5: se in W4 è stato completato un carico >= W3 (l4 >= p3), W5 riparte da p4!
+  const baseForW5 = (l4 && l4 >= p3) ? p4 : p3;
+  const p5 = l5 || adjustVal(baseForW5 + getStepForVal(baseForW5));
+
+  // W6: riparte da W5
+  const p6 = l6 || adjustVal(p5 + getStepForVal(p5));
+
+  const reps1 = getLoggedReps(1, r1);
+  const reps2 = getLoggedReps(2, r2);
+  const reps3 = getLoggedReps(3, r3);
+  const reps4 = getLoggedReps(4, r4);
+  const reps5 = getLoggedReps(5, r5);
+  const reps6 = getLoggedReps(6, r6);
+
+  const e1rmW1 = calcolaE1RMSmorzato(p1, reps1, isCavo);
+  const e1rmW2 = calcolaE1RMSmorzato(p2, reps2, isCavo);
+  const e1rmW3 = calcolaE1RMSmorzato(p3, reps3, isCavo);
+  const e1rmW4 = calcolaE1RMSmorzato(p4, reps4, isCavo);
+  const e1rmW5 = calcolaE1RMSmorzato(p5, reps5, isCavo);
+  const e1rmW6 = calcolaE1RMSmorzato(p6, reps6, isCavo);
 
   const curve = [
-    { week: 1, peso: p1, reps: r1, e1rm: e1rmW1, isScarico: false },
-    { week: 2, peso: p2, reps: r2, e1rm: e1rmW2, isScarico: false },
-    { week: 3, peso: p3, reps: r3, e1rm: e1rmW3, isScarico: false },
-    { week: 4, peso: p4, reps: r4, e1rm: e1rmW4, isScarico: true },
-    { week: 5, peso: p5, reps: r5, e1rm: e1rmW5, isScarico: false },
-    { week: 6, peso: p6, reps: r6, e1rm: e1rmW6, isScarico: false }
+    { week: 1, peso: p1, reps: reps1, e1rm: e1rmW1, isScarico: false },
+    { week: 2, peso: p2, reps: reps2, e1rm: e1rmW2, isScarico: false },
+    { week: 3, peso: p3, reps: reps3, e1rm: e1rmW3, isScarico: false },
+    { week: 4, peso: p4, reps: reps4, e1rm: e1rmW4, isScarico: true },
+    { week: 5, peso: p5, reps: reps5, e1rm: e1rmW5, isScarico: false },
+    { week: 6, peso: p6, reps: reps6, e1rm: e1rmW6, isScarico: false }
   ];
 
   // Trova la prima settimana in cui la progressione eguaglia o supera il PR storico

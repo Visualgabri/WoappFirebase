@@ -1587,9 +1587,7 @@ export const setCustomExerciseStep = async (exerciseName, stepKg) => {
   const atletaId = getActiveAtletaId();
   
   if (isNaN(val) || val <= 0) {
-    const updated = { ...userCustomExerciseSteps.value };
-    delete updated[key];
-    userCustomExerciseSteps.value = updated;
+    return removeCustomExerciseStep(key);
   } else {
     userCustomExerciseSteps.value = {
       ...userCustomExerciseSteps.value,

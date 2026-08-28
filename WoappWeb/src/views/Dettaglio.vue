@@ -7071,8 +7071,11 @@ const selezionaStepEsercizio = async (nuovoStep) => {
   if (workout.value && workout.value.des_esercizio) {
     if (stepVal > 0) {
       workout.value.step_kg = stepVal;
+      await aggiornaDatoECommit({ step_kg: stepVal });
     } else {
+      workout.value.step_kg = null;
       delete workout.value.step_kg;
+      await aggiornaDatoECommit({ step_kg: null });
     }
     await setCustomExerciseStep(workout.value.des_esercizio, stepVal);
   }

@@ -3217,10 +3217,10 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero } from '../authStore.js';
+import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
-import { rimuoviContenutoTraParentesi } from '../utils/loadParser.js';
+import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio } from '../utils/loadParser.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -4652,7 +4652,7 @@ const salvaInsW6Rapido = async (ex, nuovoValore) => {
 };
 
 // Stepper incremento / decremento kg per Miglior Carico W6 (num_ins6)
-const modificaKgW6Rapido = async (ex, delta) => {
+const modificaKgW6Rapido = async (ex, direction) => {
   vibraTattile(10);
   const currentValStr = getValoreInsW6(ex);
   let currentNum = parseFloat(String(currentValStr).replace(',', '.'));
@@ -4660,7 +4660,33 @@ const modificaKgW6Rapido = async (ex, delta) => {
     const match = String(currentValStr).match(/[-+]?[0-9]*\.?[0-9]+/);
     currentNum = match ? parseFloat(match[0]) : 0;
   }
-  let nextNum = currentNum + delta;
+  
+  // Calcolo dinamico dello step di incremento
+  let step = 2.5;
+  const custom = getCustomExerciseStep(ex.des_esercizio);
+  if (custom && custom > 0) {
+    step = custom;
+  } else if (ex.step_kg && parseFloat(ex.step_kg) > 0) {
+    step = parseFloat(ex.step_kg);
+  } else {
+    const exName = ex.des_esercizio || '';
+    if (exName.toLowerCase().includes('pressa') || exName.toLowerCase().includes('leg press')) {
+      step = 5.0;
+    } else {
+      const isManubri = isManubriEsercizio(ex);
+      if (isManubri) {
+        step = currentNum >= 10 ? 2.0 : 1.0;
+      } else {
+        const isCavo = isCavoOMacchinaEsercizio(ex);
+        if (isCavo || currentNum < 15) {
+          step = 1.25;
+        }
+      }
+    }
+  }
+
+
+  let nextNum = currentNum + (direction > 0 ? step : -step);
   if (nextNum < 0) nextNum = 0;
   const cleanVal = parseFloat(nextNum.toFixed(2));
   await salvaInsW6Rapido(ex, cleanVal > 0 ? String(cleanVal) : '');

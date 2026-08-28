@@ -44,8 +44,15 @@
       </div>
     </v-card>
 
+    <!-- TAB NAVIGATION -->
+    <v-tabs v-model="activeTab" density="compact" color="orange-darken-3" class="mb-3 rounded-lg bg-slate-900 border" align-tabs="center">
+      <v-tab value="generali" class="text-caption font-weight-bold" style="text-transform: none;">⚙️ Generali</v-tab>
+      <v-tab value="step" class="text-caption font-weight-bold" style="text-transform: none;">⚖️ Salti di Carico</v-tab>
+    </v-tabs>
+
     <!-- SEZIONE 2: TEMA & ASPETTO -->
     <v-card 
+      v-show="activeTab === 'generali'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
@@ -109,6 +116,7 @@
 
     <!-- SEZIONE 3: LAYOUT & INTERFACCIA -->
     <v-card 
+      v-show="activeTab === 'generali'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
@@ -193,6 +201,7 @@
 
     <!-- SEZIONE 4: PARAMETRI ALLENAMENTO -->
     <v-card 
+      v-show="activeTab === 'generali'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
@@ -481,6 +490,7 @@
 
     <!-- SEZIONE 4.1: ELENCO STEP INCREMENTO PERSONALIZZATI (Nuova Schermata/Card Dedicata) -->
     <v-card 
+      v-show="activeTab === 'step'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
@@ -494,8 +504,48 @@
         </v-chip>
       </div>
 
+      <!-- Coach Solo: Selettore Atleta -->
+      <div v-if="ruolo === 'coach'" class="mb-3">
+        <v-select
+          v-model="selectedAthlete"
+          :items="listaAtletiSoloSingoli"
+          item-title="title"
+          item-value="value"
+          label="Seleziona Atleta per gestire gli step"
+          density="compact"
+          variant="outlined"
+          color="cyan-lighten-2"
+          base-color="slate-600"
+          bg-color="slate-900"
+          hide-details
+          class="text-caption"
+          @update:model-value="cambiaAtletaStep"
+        >
+          <template v-slot:item="{ props, item }">
+            <v-list-item v-bind="props" :title="item.raw.nome"></v-list-item>
+          </template>
+        </v-select>
+      </div>
+
       <div class="text-super-caption text-slate-300 mb-2.5 font-weight-medium" style="font-size: 0.65rem; line-height: 1.35;">
-        Elenco di tutti gli esercizi per i quali hai modificato il salto di carico rispetto ai valori standard.
+        Elenco degli esercizi per i quali hai modificato il salto di carico.
+      </div>
+      
+      <!-- Barra di ricerca -->
+      <div v-if="haEserciziSalvatiOFiltrati" class="mb-3">
+        <v-text-field
+          v-model="searchQueryStep"
+          placeholder="Cerca esercizio..."
+          prepend-inner-icon="mdi-magnify"
+          density="compact"
+          variant="outlined"
+          color="cyan-lighten-2"
+          base-color="slate-600"
+          bg-color="slate-900"
+          hide-details
+          clearable
+          class="text-caption"
+        ></v-text-field>
       </div>
 
       <!-- Lista degli esercizi con Step Personalizzato -->
@@ -586,6 +636,7 @@
     <!-- SEZIONE 5: NOTIFICA DEPLOY / MESSAGGIO (SOLO COACH) -->
     <v-card 
       v-if="ruolo === 'coach'"
+      v-show="activeTab === 'generali'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
       :style="{ borderColor: tipoNotificaForm === 'deploy' ? 'var(--theme-primary-border) !important' : 'rgba(168, 85, 247, 0.5) !important' }"
@@ -747,6 +798,7 @@
     <!-- SEZIONE 6: BACKUP & RIPRISTINO DATI -->
     <v-card 
       v-if="atletaSelezionato && schedaSelezionata"
+      v-show="activeTab === 'generali'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
     >
@@ -794,6 +846,7 @@
     <!-- SEZIONE 7: RESET DATI CARICO (SOLO COACH) -->
     <v-card 
       v-if="ruolo === 'coach' && atletaSelezionato && schedaSelezionata"
+      v-show="activeTab === 'generali'"
       class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
       elevation="1"
       style="border-color: rgba(239, 68, 68, 0.3) !important;"
@@ -904,6 +957,7 @@ import {
   logout, 
   getNomeAtleta,
   selectedAthlete,
+  setSelectedAthlete,
   selectedSheet,
   layoutEserciziGlobal,
   layoutDettaglioGlobal,
@@ -947,6 +1001,7 @@ import {
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
+const activeTab = ref('generali');
 const selectedTheme = ref(currentTheme.value);
 const selectedLightStyle = ref(currentLightStyle.value);
 
@@ -954,16 +1009,32 @@ const selectedLightStyle = ref(currentLightStyle.value);
 const dialogModificaStepImp = ref(false);
 const esercizioInModificaStep = ref(null);
 
+const searchQueryStep = ref('');
+
 const listaEserciziStepPersonalizzati = computed(() => {
   if (!userCustomExerciseSteps.value) return [];
   const entries = Object.entries(userCustomExerciseSteps.value);
-  return entries.map(([key, val]) => {
+  let arr = entries.map(([key, val]) => {
     const isObj = typeof val === 'object' && val !== null;
     const name = isObj ? (val.name || key) : key;
     const step = isObj ? parseFloat(val.step || 0) : parseFloat(val || 0);
     return { key, name, step };
   }).filter(item => item.step > 0);
+  
+  if (searchQueryStep.value) {
+    const q = searchQueryStep.value.toLowerCase();
+    arr = arr.filter(item => item.name.toLowerCase().includes(q));
+  }
+  return arr.sort((a, b) => a.name.localeCompare(b.name));
 });
+
+const haEserciziSalvatiOFiltrati = computed(() => {
+  return (userCustomExerciseSteps.value && Object.keys(userCustomExerciseSteps.value).length > 0) || searchQueryStep.value;
+});
+
+const cambiaAtletaStep = (nuovoAtleta) => {
+  setSelectedAthlete(nuovoAtleta);
+};
 
 const apriModificaStepDaImpostazioni = (item) => {
   esercizioInModificaStep.value = { ...item };

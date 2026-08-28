@@ -107,7 +107,7 @@
                   </v-list-item-title>
                   <template v-slot:append>
                     <v-chip size="x-small" color="cyan-darken-3" class="px-1 py-0 font-weight-black text-white ml-1" style="height: 16px; font-size: 0.55rem;">
-                      {{ stepCaricoEsercizioEffettivo }}kg
+                      {{ stepPersonalizzatoEsercizio && stepPersonalizzatoEsercizio > 0 ? stepPersonalizzatoEsercizio + 'kg' : 'Auto' }}
                     </v-chip>
                   </template>
                 </v-list-item>
@@ -7015,6 +7015,7 @@ const stimaRecordStoricoPerReps = (targetReps) => {
 const dialogStepEsercizio = ref(false);
 const inputStepCustom = ref('');
 const opzioniStepRapidi = [
+  { val: 0, label: 'Auto' },
   { val: 0.5, label: '0.5 kg' },
   { val: 1.0, label: '1.0 kg' },
   { val: 1.25, label: '1.25 kg' },
@@ -7057,29 +7058,23 @@ const stepCaricoEsercizioEffettivo = computed(() => {
 });
 
 const apriDialogStepEsercizio = () => {
-  inputStepCustom.value = stepCaricoEsercizioEffettivo.value ? String(stepCaricoEsercizioEffettivo.value) : '';
+  inputStepCustom.value = (stepPersonalizzatoEsercizio.value && stepPersonalizzatoEsercizio.value > 0) ? String(stepPersonalizzatoEsercizio.value) : '';
   dialogStepEsercizio.value = true;
 };
 
 const selezionaStepEsercizio = async (nuovoStep) => {
   const stepVal = parseFloat(nuovoStep);
-  if (isNaN(stepVal) || stepVal <= 0) return;
+  if (isNaN(stepVal) || stepVal < 0) return;
   
   vibraTattile(15);
   
   if (workout.value && workout.value.des_esercizio) {
-    workout.value.step_kg = stepVal;
-    await setCustomExerciseStep(workout.value.des_esercizio, stepVal);
-    
-    // Salva anche nel documento Firestore dell'esercizio se presente ID
-    if (workout.value.id) {
-      try {
-        const docRef = doc(db, 'esercizi', String(workout.value.id));
-        await updateDoc(docRef, { step_kg: stepVal });
-      } catch (err) {
-        console.warn('Errore salvataggio step_kg su Firestore:', err);
-      }
+    if (stepVal > 0) {
+      workout.value.step_kg = stepVal;
+    } else {
+      delete workout.value.step_kg;
     }
+    await setCustomExerciseStep(workout.value.des_esercizio, stepVal);
   }
   
   dialogStepEsercizio.value = false;
@@ -7901,8 +7896,17 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     const infoBase = getBaseWeekInfo(2);
     if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
       const isManubri = isManubriEsercizio(workout.value);
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
       const step = getWeightStep(isManubri, infoBase.pesoBase);
-      return infoBase.pesoBase + step; // Proponi esattamente W1 + step (es. 20 + 1 = 21)
+      const targetP = infoBase.pesoBase + step;
+      const maxIncrementoPct = isManubri ? 0.08 : (isCavo ? 0.05 : 0.08);
+      
+      // Se il salto forzato dallo step non supera il massimale di progressione sicura (es. 8%), lo approviamo
+      if (targetP <= infoBase.pesoBase * (1 + maxIncrementoPct) + 0.1) {
+        return targetP;
+      }
+      // Altrimenti lo step genera un salto irrealistico (es. W1 26kg + 5kg = 31kg > +15%).
+      // Ignoriamo la forzatura del salto di peso per far subentrare la logica smart (progressione su reps).
     }
   }
 
@@ -7959,13 +7963,14 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     }
   }
 
+  let pesoRiferimentoEffettivo = pesoBase;
+
   // Salvaguardia Incremento Massimo: Previene salti di carico irrealistici da storici remoti (es. 58kg -> 72.5kg)
   if (pesoBase > 0 && result !== null) {
     const repsTarget = infoBase ? infoBase.repsTarget : getRepsPerWeek(sett);
     const repsBase = infoBase ? infoBase.repsBase : 10;
     
     // Se le rep scendono (intensificazione, es. W5 16r -> W6 10r), il peso equivalente per pareggiare l'1RM sale!
-    let pesoRiferimentoEffettivo = pesoBase;
     if (repsBase > repsTarget && repsTarget > 0) {
       const e1rmBase = pesoBase * (1 + repsBase / 30);
       const wEq = e1rmBase / (1 + repsTarget / 30);
@@ -7974,20 +7979,36 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
       }
     }
 
+    // Calcola il limite di sicurezza prima dell'arrotondamento
     const maxIncrementoPct = isManubri ? 0.08 : (isCavoOMacchinaEsercizio(workout.value) ? 0.05 : 0.08);
-    const maxPesoAccettabile = Math.max(
-      pesoRiferimentoEffettivo + step, 
-      Math.floor((pesoRiferimentoEffettivo * (1 + maxIncrementoPct)) / step) * step
-    );
-    if (result > maxPesoAccettabile) {
-      result = maxPesoAccettabile;
+    const absMax = pesoRiferimentoEffettivo * (1 + maxIncrementoPct);
+    const limiteSicuro = Math.max(absMax, pesoRiferimentoEffettivo + 2.5);
+    
+    if (result > limiteSicuro) {
+      result = limiteSicuro;
     }
   }
 
   if (result !== null && !isNaN(result)) {
-    result = Math.round(result / step) * step;
+    // Usa Math.ceil per favorire l'arrotondamento al rialzo, specialmente utile per microcarichi
+    result = Math.ceil(result / step) * step;
     if (isManubri) {
       result = arrotondaManubrioCommerciale(result);
+    }
+    
+    // Salvaguardia finale: se il ceil o lo step ha superato il limite di sicurezza, arretra
+    if (pesoBase > 0) {
+      const maxIncrementoPct = isManubri ? 0.08 : (isCavoOMacchinaEsercizio(workout.value) ? 0.05 : 0.08);
+      const absMax = pesoRiferimentoEffettivo * (1 + maxIncrementoPct);
+      const limiteSicuro = Math.max(absMax, pesoRiferimentoEffettivo + 2.5);
+      
+      if (result > limiteSicuro) {
+        result = Math.floor(limiteSicuro / step) * step;
+      }
+    }
+
+    if (infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) && result < infoBase.pesoBase) {
+      result = infoBase.pesoBase;
     }
   }
 
@@ -8406,11 +8427,11 @@ const getGhostWeightsRangeForWeek = (sett) => {
 
   const smartWeight = getCaricoConsigliatoViaDiMezzoForWeek(sett);
   const potenzialeRaw = calcolaCaricoIdealeConsigliatoPerSettimana(sett)?.pesoProposto || null;
-  let pesoConsigliato = (smartWeight !== null && smartWeight > pesoBase) 
+  let pesoConsigliato = (smartWeight !== null && smartWeight >= pesoBase) 
     ? smartWeight 
-    : ((potenzialeRaw !== null && potenzialeRaw > pesoBase) 
+    : ((potenzialeRaw !== null && potenzialeRaw >= pesoBase) 
       ? potenzialeRaw 
-      : (isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step));
+      : pesoBase);
   pesoConsigliato = Math.round(pesoConsigliato / step) * step;
   let pesoSfidante = isManubri ? getDumbbellSequenceWeight(pesoConsigliato, 'up') : pesoConsigliato + step;
   pesoSfidante = Math.round(pesoSfidante / step) * step;
@@ -8447,8 +8468,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
   if (repsTarget < repsBaseVal) {
     const e1rmBase = pesoBase * (1 + repsBaseVal / 30);
     const e1rmConsigliato = pesoConsigliato * (1 + repsTarget / 30);
-    // Un peso senza reps per le repsTarget è valido solo se pareggia o supera l'1RM base (entro il 95%)
-    const isValidoTargetReps = e1rmConsigliato >= (e1rmBase * 0.95);
+    // Un peso senza reps per le repsTarget è valido solo se è aumentato rispetto a W1 e pareggia o supera l'1RM base (entro il 95%)
+    const isValidoTargetReps = (pesoConsigliato > pesoBase) && (e1rmConsigliato >= (e1rmBase * 0.95));
 
     // Se l'atleta vuole progredire a parità di peso base (Safe):
     // Per avere una progressione reale di volume rispetto a quanto già fatto (repsBaseVal), propone +1 rep (es. 36x10r o 65x14r)
@@ -11856,10 +11877,17 @@ const isCavoOMacchinaEsercizio = (ex) => {
 };
 
 // ✅ NUOVA LOGICA CON STEP PERSONALIZZATO E FALLBACK
-const getWeightStep = (isManubri, baseWeight) => {
-  // 0. Priorità assoluta allo step configurato per questo specifico esercizio
-  if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
-    return stepCaricoEsercizioEffettivo.value;
+const getWeightStep = (isManubri, baseWeight, exObj = null) => {
+  const targetEx = exObj || workout.value;
+  const exName = targetEx ? targetEx.des_esercizio : null;
+  
+  if (exName) {
+    const custom = getCustomExerciseStep(exName);
+    if (custom && custom > 0) return custom;
+  }
+  
+  if (targetEx && targetEx.step_kg && parseFloat(targetEx.step_kg) > 0) {
+    return parseFloat(targetEx.step_kg);
   }
 
   const p = parseFloat(baseWeight) || 0;
@@ -11869,8 +11897,13 @@ const getWeightStep = (isManubri, baseWeight) => {
     return p >= 10 ? 2.0 : 1.0;
   }
 
+  // 1.5 Pressa (Macchinario Pesante)
+  if (exName && (exName.toLowerCase().includes('pressa') || exName.toLowerCase().includes('leg press'))) {
+    return 5.0;
+  }
+
   // 2. Cavi / Macchine / Isolamento piccoli muscoli
-  const isCavo = workout.value ? isCavoOMacchinaEsercizio(workout.value) : false;
+  const isCavo = targetEx ? isCavoOMacchinaEsercizio(targetEx) : false;
   if (isCavo || p < 15) {
     // Per carichi bassi o esercizi ai cavi usiamo micro-incrementi da 1,25 kg
     return 1.25;
@@ -16282,7 +16315,7 @@ const incrementaKgUnicoPrecedente = () => {
   vibraTattile(10);
   const isManubri = isManubriEsercizio(previousWorkout.value);
   let current = parseKg(numIns6ValPrecedente.value);
-  const step = getWeightStep(isManubri, current);
+  const step = getWeightStep(isManubri, current, previousWorkout.value);
   current += step;
   numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnicoPrecedente();
@@ -16293,7 +16326,7 @@ const decrementaKgUnicoPrecedente = () => {
   const isManubri = isManubriEsercizio(previousWorkout.value);
   let current = parseKg(numIns6ValPrecedente.value);
   if (current > 0) {
-    const step = getWeightStep(isManubri, current);
+    const step = getWeightStep(isManubri, current, previousWorkout.value);
     current = Math.max(0, current - step);
     numIns6ValPrecedente.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnicoPrecedente();
@@ -16398,7 +16431,7 @@ const incrementaKgUnicoStoricoSingolo = () => {
   vibraTattile(10);
   const isManubri = isManubriEsercizio(selectedStoricoWorkout.value);
   let current = parseKg(numIns6ValStoricoSingolo.value);
-  const step = getWeightStep(isManubri, current);
+  const step = getWeightStep(isManubri, current, selectedStoricoWorkout.value);
   current += step;
   numIns6ValStoricoSingolo.value = String(parseFloat(current.toFixed(2)));
   salvaKgUnicoStoricoSingolo();
@@ -16409,7 +16442,7 @@ const decrementaKgUnicoStoricoSingolo = () => {
   const isManubri = isManubriEsercizio(selectedStoricoWorkout.value);
   let current = parseKg(numIns6ValStoricoSingolo.value);
   if (current > 0) {
-    const step = getWeightStep(isManubri, current);
+    const step = getWeightStep(isManubri, current, selectedStoricoWorkout.value);
     current = Math.max(0, current - step);
     numIns6ValStoricoSingolo.value = String(parseFloat(current.toFixed(2)));
     salvaKgUnicoStoricoSingolo();

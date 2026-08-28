@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue';
-import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc, getDocs, getDoc, updateDoc, deleteField } from 'firebase/firestore';
 import { db } from './firebase.js';
 
 // Ordine originale degli atleti (estratto dal foglio Google)
@@ -1603,7 +1603,6 @@ export const setCustomExerciseStep = async (exerciseName, stepKg) => {
 
   if (atletaId) {
     localStorage.setItem('userExerciseCustomSteps_' + atletaId, JSON.stringify(userCustomExerciseSteps.value));
-    localStorage.setItem('userExerciseCustomSteps', JSON.stringify(userCustomExerciseSteps.value));
   }
   salvaClienteConfigFirestore();
 };
@@ -1615,8 +1614,16 @@ export const removeCustomExerciseStep = async (exerciseKey) => {
   userCustomExerciseSteps.value = updated;
   if (atletaId) {
     localStorage.setItem('userExerciseCustomSteps_' + atletaId, JSON.stringify(updated));
-    localStorage.setItem('userExerciseCustomSteps', JSON.stringify(updated));
+    try {
+      const docRef = doc(db, 'UTENTI_CONFIG', String(atletaId));
+      await updateDoc(docRef, {
+        [`customExerciseSteps.${exerciseKey}`]: deleteField()
+      });
+    } catch (e) {
+      console.warn("Errore updateDoc per deleteField, il documento potrebbe non esistere:", e);
+    }
   }
+  // Chiamiamo comunque il salvataggio generale che debouncerà e sincronizzerà le altre impostazioni se necessario
   salvaClienteConfigFirestore();
 };
 
@@ -1688,7 +1695,7 @@ export const syncClienteConfigListener = () => {
 
   // Pre-carica cache locale per l'atleta attivo prima dell'arrivo del doc Firestore
   try {
-    const rawLocalSteps = localStorage.getItem('userExerciseCustomSteps_' + atletaId) || localStorage.getItem('userExerciseCustomSteps') || '{}';
+    const rawLocalSteps = localStorage.getItem('userExerciseCustomSteps_' + atletaId) || '{}';
     userCustomExerciseSteps.value = JSON.parse(rawLocalSteps);
   } catch (e) {
     userCustomExerciseSteps.value = {};
@@ -1717,7 +1724,6 @@ export const syncClienteConfigListener = () => {
       if (data.customExerciseSteps && typeof data.customExerciseSteps === 'object') {
         userCustomExerciseSteps.value = data.customExerciseSteps;
         localStorage.setItem('userExerciseCustomSteps_' + atletaId, JSON.stringify(data.customExerciseSteps));
-        localStorage.setItem('userExerciseCustomSteps', JSON.stringify(data.customExerciseSteps));
       }
 
       if (ghost.stileVisualizzazione !== undefined) {

@@ -4675,7 +4675,7 @@ const modificaKgW6Rapido = async (ex, direction) => {
     } else {
       const isManubri = isManubriEsercizio(ex);
       if (isManubri) {
-        step = currentNum >= 10 ? 2.0 : 1.0;
+        step = currentNum > 9 ? 2.0 : 1.0;
       } else {
         const isCavo = isCavoOMacchinaEsercizio(ex);
         if (isCavo || currentNum < 15) {

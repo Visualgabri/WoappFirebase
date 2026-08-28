@@ -7052,7 +7052,20 @@ const stepCaricoEsercizioEffettivo = computed(() => {
   if (!workout.value) return 2.5;
   const isManubri = isManubriEsercizio(workout.value);
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
-  if (isManubri) return 1.0;
+  if (isManubri) {
+    let pRef = 0;
+    for (let w = 1; w <= 6; w++) {
+      const val = (inputSettimane.value && inputSettimane.value[w]?.ins) || workout.value['ins_week' + w] || (w === 6 ? workout.value.num_ins6 : null);
+      if (val) {
+        const p = parseFloat(estraiPesoDaInput(val));
+        if (!isNaN(p) && p > 0) { pRef = p; break; }
+      }
+    }
+    if (!pRef && propostaWeek1.value?.peso) pRef = propostaWeek1.value.peso;
+    if (!pRef && suggerimentoRecord.value?.record) pRef = suggerimentoRecord.value.record;
+    if (!pRef && suggerimentoRecord.value?.recordAbsolute) pRef = suggerimentoRecord.value.recordAbsolute;
+    return pRef > 9 ? 2.0 : 1.0;
+  }
   if (isCavo) return 1.25;
   return 2.5;
 });
@@ -11918,9 +11931,9 @@ const getWeightStep = (isManubri, baseWeight, exObj = null) => {
 
   const p = parseFloat(baseWeight) || 0;
 
-  // 1. Manubri (Step 1kg sotto i 10kg, Step 2kg sopra se non custom)
+  // 1. Manubri (Step 1kg sotto o uguale a 9kg, Step 2kg sopra i 9kg se non custom)
   if (isManubri) {
-    return p >= 10 ? 2.0 : 1.0;
+    return p > 9 ? 2.0 : 1.0;
   }
 
   // 1.5 Pressa (Macchinario Pesante)
@@ -11960,12 +11973,12 @@ const getDumbbellSequenceWeight = (currentWeight, direction) => {
 
 const arrotondaManubrioCommerciale = (peso) => {
   const p = parseFloat(peso) || 0;
-  // Se c'è uno step specifico impostato sull'esercizio, non forzare numeri pari commerciali
-  if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
-    const s = stepCaricoEsercizioEffettivo.value;
+  // Se c'è uno step specifico personalizzato impostato dall'utente sull'esercizio, non forzare numeri pari commerciali
+  if (typeof stepPersonalizzatoEsercizio !== 'undefined' && stepPersonalizzatoEsercizio?.value && stepPersonalizzatoEsercizio.value > 0) {
+    const s = stepPersonalizzatoEsercizio.value;
     return Math.round(p / s) * s;
   }
-  if (p <= 10) {
+  if (p <= 9) {
     return Math.round(p);
   } else {
     return Math.round(p / 2.0) * 2.0;
@@ -17120,17 +17133,22 @@ const analizzaRottaProgressione = ({
     return null;
   }
 
-  const effectiveStep = (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) 
-    ? stepCaricoEsercizioEffettivo.value 
-    : (stepKg > 0 ? stepKg : (isManubri ? 1.0 : 2.5));
+  const isCustomStep = (typeof stepPersonalizzatoEsercizio !== 'undefined' && stepPersonalizzatoEsercizio?.value && stepPersonalizzatoEsercizio.value > 0);
+
+  const effectiveStep = isCustomStep 
+    ? stepPersonalizzatoEsercizio.value 
+    : (stepKg > 0 ? stepKg : (isManubri ? 2.0 : 2.5));
   
-  const getStepForVal = (val) => (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value)
-    ? stepCaricoEsercizioEffettivo.value
-    : (isManubri ? (val >= 10 ? 2.0 : 1.0) : 2.5);
+  const getStepForVal = (val) => {
+    if (isCustomStep) return stepPersonalizzatoEsercizio.value;
+    if (isManubri) return val > 9 ? 2.0 : 1.0;
+    if (isCavo) return 1.25;
+    return 2.5;
+  };
 
   const adjustVal = (val) => {
-    if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
-      const s = stepCaricoEsercizioEffettivo.value;
+    if (isCustomStep) {
+      const s = stepPersonalizzatoEsercizio.value;
       return Math.round(val / s) * s;
     }
     return isManubri ? arrotondaManubrioCommerciale(val) : Math.round(val / effectiveStep) * effectiveStep;
@@ -17643,12 +17661,13 @@ const strategiaCoachData = computed(() => {
   }
 
   // Costruzione Roadmap W1 -> W6 basata su reps prescritte
-  const step = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? 1.0 : 2.5);
-  const getStepFor = (w) => stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? (w >= 10 ? 2.0 : 1.0) : 2.5);
+  const isCustomStep = (typeof stepPersonalizzatoEsercizio !== 'undefined' && stepPersonalizzatoEsercizio?.value && stepPersonalizzatoEsercizio.value > 0);
+  const step = isCustomStep ? stepPersonalizzatoEsercizio.value : (isManubri ? 2.0 : 2.5);
+  const getStepFor = (w) => isCustomStep ? stepPersonalizzatoEsercizio.value : (isManubri ? (w > 9 ? 2.0 : 1.0) : 2.5);
 
   const adjustDumbbell = (w) => {
-    if (stepCaricoEsercizioEffettivo?.value) {
-      const s = stepCaricoEsercizioEffettivo.value;
+    if (isCustomStep) {
+      const s = stepPersonalizzatoEsercizio.value;
       return Math.round(w / s) * s;
     }
     return isManubri ? arrotondaManubrioCommerciale(w) : Math.round(w / step) * step;

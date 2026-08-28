@@ -885,7 +885,7 @@
             </div>
 
             <div class="d-flex align-center gap-2">
-              <span v-if="!getGhostRenderInfo(sett) && !isEsercizioVPercentuale" class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Strategia">
+              <span v-if="!getGhostRenderInfo(sett) && !isEsercizioVPercentuale && !isCorpoLiberoPuro" class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Strategia">
                 💡
               </span>
 
@@ -899,16 +899,6 @@
                 variant="tonal"
               >
                 DA COMPLETARE
-              </v-chip>
-              <v-chip
-                v-else-if="sett === settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))"
-                color="orange-lighten-2"
-                size="x-small"
-                class="font-weight-black px-1.5 week-active-chip"
-                :style="{ height: '16px', fontSize: '0.54rem', letterSpacing: '0.04em', pointerEvents: 'none' }"
-                variant="tonal"
-              >
-                ATTIVA
               </v-chip>
               <v-chip v-else-if="modalitaSettimane === 'dinamica' && sett !== settimanaAttiva && !(isWeekCompleted(sett) || (inputSettimane[sett]?.ins && String(inputSettimane[sett].ins).trim() !== '' && String(inputSettimane[sett].ins).trim() !== '-'))" color="grey-darken-2" size="x-small" class="font-weight-bold px-1.5 week-altre-chip" style="height: 16px; font-size: 0.52rem; pointer-events: none;" variant="outlined">ALTRE</v-chip>
             </div>
@@ -1035,7 +1025,7 @@
                       {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
                     </span>
 
-                    <span v-if="!isEsercizioVPercentuale" class="cursor-pointer text-muted font-weight-bold" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
+                    <span v-if="!isEsercizioVPercentuale && !isCorpoLiberoPuro" class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
                       💡
                     </span>
                   </div>
@@ -12529,6 +12519,10 @@ const haPesoEsercizio = computed(() => {
   }
   
   return false;
+});
+
+const isCorpoLiberoPuro = computed(() => {
+  return Boolean(isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value);
 });
 
 const normalizzaNomeEsercizio = (nome) => {

@@ -859,7 +859,7 @@
               <v-icon color="blue-lighten-2" size="15" class="flex-shrink-0 mt-0.5">mdi-information-outline</v-icon>
               <div class="text-slate-dark font-weight-medium" style="font-size: 0.70rem; line-height: 1.3;">
                 <span class="text-blue-lighten-2 uppercase font-weight-black mr-1" style="font-size: 0.65rem; letter-spacing: 0.03em;">RIR:</span>
-                <span>Il numero ad esponente (es. 8²) indica le ripetizioni di margine da tenere prima del cedimento.</span>
+                <span>{{ testoSpiegazioneRir }}</span>
               </div>
             </div>
           </div>
@@ -7498,7 +7498,25 @@ const getBaseWeekInfo = (sett) => {
   } else if (sett === 4) {
     baseWNum = 2;
   } else if (sett === 5) {
-    baseWNum = parseInt(propostaBaseWeek5.value.replace('W', ''), 10) || 3;
+    const w4Ins = inputSettimane.value?.[4]?.ins || workout.value?.ins_week4;
+    const w3Ins = inputSettimane.value?.[3]?.ins || workout.value?.ins_week3;
+    const pW4 = w4Ins ? parseFloat(estraiPesoDaInput(w4Ins)) : null;
+    const pW3 = w3Ins ? parseFloat(estraiPesoDaInput(w3Ins)) : null;
+
+    const rW4 = w4Ins ? (estraiRepsDaInput(w4Ins) || estraiRepsDaPrescrizione(workout.value?.des_week4) || 10) : 0;
+    const rW3 = w3Ins ? (estraiRepsDaInput(w3Ins) || estraiRepsDaPrescrizione(workout.value?.des_week3) || 8) : 0;
+
+    const isCavo = isCavoOMacchinaEsercizio(workout.value);
+    const e1rmW4 = (pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0;
+    const e1rmW3 = (pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0;
+
+    // Se in W4 viene completato un carico uguale o superiore a quello della W3, usa W4 come nuova baseline
+    if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
+      baseWNum = 4;
+    } else {
+      // Se in W4 viene eseguito il carico di scarico previsto, calcola la W5 prendendo come riferimento la W3
+      baseWNum = parseInt(propostaBaseWeek5.value.replace('W', ''), 10) || 3;
+    }
   } else if (sett === 6) {
     baseWNum = parseInt(propostaBaseWeek6.value.replace('W', ''), 10) || 5;
   } else if (sett > 1) {
@@ -7902,7 +7920,17 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
       const infoBase = getBaseWeekInfo(sett);
       const isDifficile = infoBase && isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText);
       if (!isDifficile) {
-        const propostoRotta = rotta.curvaProiettata[sett - 1].peso;
+        let propostoRotta = rotta.curvaProiettata[sett - 1].peso;
+
+        // Se siamo in Week 5 e in W4 è stata eseguita una prestazione reale >= W3 (baseWNum === 4),
+        // la proposta deve progredire a partire dalla nuova baseline reale di W4
+        if (sett === 5 && infoBase && infoBase.baseWNum === 4 && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
+          const isMan = isManubriEsercizio(workout.value);
+          const stepW = getWeightStep(isMan, infoBase.pesoBase);
+          if (infoBase.repsTarget <= infoBase.repsBase && propostoRotta <= infoBase.pesoBase) {
+            propostoRotta = infoBase.pesoBase + stepW;
+          }
+        }
         
         // Verifica fisiologica se abbiamo un infoBase valido (controllo sull'1RM per supportare i cali di reps)
         if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
@@ -11279,6 +11307,27 @@ const haEsponenti = computed(() => {
   return esponentiRegex.test(des);
 });
 
+const testoSpiegazioneRir = computed(() => {
+  if (!workout.value || !settimanaAttiva.value) {
+    return "Il numero ad esponente indica le ripetizioni di margine da tenere prima del cedimento.";
+  }
+  const des = workout.value['des_week' + settimanaAttiva.value] || '';
+  const match = des.match(/([⁰¹²³⁴⁵⁶⁷⁸⁹])/);
+  if (!match) {
+    return "Il numero ad esponente indica le ripetizioni di margine da tenere prima del cedimento.";
+  }
+  const supChar = match[1];
+  const mapSup = { '⁰': 0, '¹': 1, '²': 2, '³': 3, '⁴': 4, '⁵': 5, '⁶': 6, '⁷': 7, '⁸': 8, '⁹': 9 };
+  const rirVal = mapSup[supChar];
+  if (rirVal === 0) {
+    return `L'esponente ${supChar} indica 0 ripetizioni di margine (serie a cedimento tecnico, RIR 0).`;
+  }
+  if (rirVal === 1) {
+    return `L'esponente ${supChar} indica 1 sola ripetizione di margine prima del cedimento (RIR 1).`;
+  }
+  return `L'esponente ${supChar} indica ${rirVal} ripetizioni di margine da tenere prima del cedimento (RIR ${rirVal}).`;
+});
+
 // Campi Modificabili
 const inputSettimane = ref({
   1: { ins: '', reps: '' },
@@ -11721,16 +11770,35 @@ const consenteProgressioneIntensita = (ex, targetWeek) => {
   if (isCorpoLiberoOVolumeEsercizio(ex)) return false;
   if (targetWeek === 1) return true;
   
+  let prevWeek = targetWeek - 1;
+  if (targetWeek === 5) {
+    const w4Ins = inputSettimane.value?.[4]?.ins || ex?.ins_week4;
+    const w3Ins = inputSettimane.value?.[3]?.ins || ex?.ins_week3;
+    const pW4 = w4Ins ? parseFloat(estraiPesoDaInput(w4Ins)) : null;
+    const pW3 = w3Ins ? parseFloat(estraiPesoDaInput(w3Ins)) : null;
+    const rW4 = w4Ins ? (estraiRepsDaInput(w4Ins) || estraiRepsDaPrescrizione(ex?.des_week4) || 10) : 0;
+    const rW3 = w3Ins ? (estraiRepsDaInput(w3Ins) || estraiRepsDaPrescrizione(ex?.des_week3) || 8) : 0;
+    const isCavo = isCavoOMacchinaEsercizio(ex);
+    const e1rmW4 = (pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0;
+    const e1rmW3 = (pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0;
+    
+    if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
+      prevWeek = 4;
+    } else {
+      prevWeek = 3;
+    }
+  }
+
   const repsCurr = getPrescriptionReps(ex, targetWeek);
-  const repsPrev = getPrescriptionReps(ex, targetWeek - 1);
+  const repsPrev = getPrescriptionReps(ex, prevWeek);
   
   if (repsCurr === null || repsPrev === null) return false;
-  if (repsCurr >= repsPrev) return false;
+  if (repsCurr > repsPrev) return false;
   
   const setsCurr = getPrescriptionSets(ex, targetWeek);
-  const setsPrev = getPrescriptionSets(ex, targetWeek - 1);
+  const setsPrev = getPrescriptionSets(ex, prevWeek);
   
-  if (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev) {
+  if (setsCurr !== null && setsPrev !== null && setsCurr > setsPrev && repsCurr === repsPrev) {
     return false;
   }
   
@@ -15154,9 +15222,27 @@ const getGhostLiftStandard = (sett) => {
         return { text: w4Ins, peso: 0, label: 'W4', isRepExercise: true };
       }
 
-      const baseW = propostaBaseWeek5.value; // e.g. "W3"
-      const baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
-      const baseIns = inputSettimane.value[baseWNum]?.ins;
+      const w4Ins = inputSettimane.value[4]?.ins || workout.value?.ins_week4;
+      const w3Ins = inputSettimane.value[3]?.ins || workout.value?.ins_week3;
+      const pW4 = w4Ins ? parseFloat(estraiPesoDaInput(w4Ins)) : null;
+      const pW3 = w3Ins ? parseFloat(estraiPesoDaInput(w3Ins)) : null;
+
+      const rW4 = w4Ins ? (estraiRepsDaInput(w4Ins) || estraiRepsDaPrescrizione(workout.value?.des_week4) || 10) : 0;
+      const rW3 = w3Ins ? (estraiRepsDaInput(w3Ins) || estraiRepsDaPrescrizione(workout.value?.des_week3) || 8) : 0;
+
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
+      const e1rmW4 = (pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0;
+      const e1rmW3 = (pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0;
+
+      let baseW = propostaBaseWeek5.value; // e.g. "W3"
+      let baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
+
+      if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
+        baseW = 'W4';
+        baseWNum = 4;
+      }
+
+      const baseIns = inputSettimane.value[baseWNum]?.ins || workout.value?.['ins_week' + baseWNum];
       if (!baseIns) return null;
       const pesoStrBase = estraiPesoDaInput(baseIns);
       if (!pesoStrBase) return null;

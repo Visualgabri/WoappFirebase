@@ -540,18 +540,19 @@
                 <!-- Sottotitolo Dettaglio Record Reps -->
                 <div class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
                   <template v-if="recordOverviewData?.bestReal?.weight > 0">
-                    <span v-if="recordOverviewData.bestReal.isCurrentPR" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                    <span v-if="recordOverviewData.bestReal.isCurrentPR || (workout?.num_scheda && String(recordOverviewData.bestReal.sheet).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
                     <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})</span>
                   </template>
                   <template v-else-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
-                    <span v-if="recordMaxRepsInfo.isCurrentMeso" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                    <span v-if="recordMaxRepsInfo.isCurrentMeso" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
                   </template>
                   <template v-else-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
                     <span v-if="suggerimentoRecord.recordRepsValue" class="text-amber-lighten-2 font-weight-bold">x{{ formatRepsDisplay(suggerimentoRecord.recordRepsValue) }}</span>
-                    <span v-if="suggerimentoRecord.recordRepsDate && tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) }})</span>
+                    <span v-if="suggerimentoRecord.recordRepsSheet && String(suggerimentoRecord.recordRepsSheet).replace(/\D+/g, '') === String(workout?.num_scheda).replace(/\D+/g, '')" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
+                    <span v-else-if="suggerimentoRecord.recordRepsDate && tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(suggerimentoRecord.recordRepsDate) }})</span>
                   </template>
                   <template v-else-if="currentWeekLoggedWeight">
-                    <span class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                    <span class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
                   </template>
                 </div>
               </div>
@@ -575,7 +576,7 @@
                 <!-- Sottotitolo Dettaglio Max Assoluto -->
                 <div v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
                   <span v-if="recordMaxAssolutoInfo.reps && recordMaxAssolutoInfo.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
-                  <span v-if="recordMaxAssolutoInfo.isCurrentMeso" class="text-green-lighten-3 text-truncate">(questa scheda)</span>
+                  <span v-if="recordMaxAssolutoInfo.isCurrentMeso || (workout?.num_scheda && String(recordMaxAssolutoInfo.sheetAtMaxWeight).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
                   <span v-else-if="recordMaxAssolutoInfo.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
                 </div>
               </div>
@@ -7178,28 +7179,31 @@ const calcolaDettaglioMassimale1RMPuro = () => {
       }
     });
 
-  // Se la scheda corrente ha un caricamento registrato in week 6
-  if (inputSettimane.value && inputSettimane.value[6]) {
-    const insVal = inputSettimane.value[6]?.ins;
-    if (insVal) {
-      const weightStr = estraiPesoDaInput(insVal);
-      if (weightStr) {
-        const weight = parseFloat(weightStr);
-        if (!isNaN(weight) && weight > 0) {
-          const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(6);
-          if (rExecuted) {
-            const e1rm = calcolaE1RMSmorzato(weight, rExecuted, isCavo);
-            if (e1rm > best1RM) {
-              best1RM = e1rm;
-              bestSource = {
-                id: workout.value.id,
-                peso: weight,
-                reps: rExecuted,
-                fatica: workout.value.num_faticaw6 || null,
-                numScheda: workout.value.num_scheda,
-                date: workout.value.dat_scheda_ult_ex || workout.value.timestamp,
-                tempoTrascorso: 'questa scheda'
-              };
+  // Se la scheda corrente ha un caricamento registrato in W1..W6
+  if (inputSettimane.value) {
+    for (let w = 1; w <= 6; w++) {
+      const insVal = inputSettimane.value[w]?.ins || workout.value?.['ins_week' + w];
+      if (insVal) {
+        const weightStr = estraiPesoDaInput(insVal);
+        if (weightStr) {
+          const weight = parseFloat(weightStr);
+          if (!isNaN(weight) && weight > 0) {
+            const rExecuted = estraiRepsDaInput(insVal) || getRepsPerWeek(w);
+            if (rExecuted) {
+              const e1rm = calcolaE1RMSmorzato(weight, rExecuted, isCavo);
+              if (e1rm >= best1RM) {
+                best1RM = e1rm;
+                bestSource = {
+                  id: workout.value.id,
+                  peso: weight,
+                  reps: rExecuted,
+                  fatica: (w === 6 && workout.value.num_faticaw6) ? workout.value.num_faticaw6 : (inputSettimane.value[w]?.fatica || workout.value?.['num_faticaw' + w] || null),
+                  numScheda: workout.value.num_scheda,
+                  week: w,
+                  date: workout.value.dat_scheda_ult_ex || workout.value.timestamp,
+                  tempoTrascorso: 'questa scheda'
+                };
+              }
             }
           }
         }
@@ -9311,9 +9315,14 @@ const calcolaRecordOverviewData = (sett) => {
     });
   }
 
-  // Fallback da suggerimentoRecord per lo storico passato
+  // Fallback da suggerimentoRecord per lo storico passato (solo se scheda differente da quella attuale)
   if (pastRepsWeight === 0 && suggerimentoRecord.value) {
-    if (suggerimentoRecord.value.record > 0 || suggerimentoRecord.value.recordRepsValue > 0) {
+    const rawSugSheet = suggerimentoRecord.value.recordRepsSheet;
+    const cleanSugSheet = String(rawSugSheet || '').replace(/\D+/g, '');
+    const cleanCurSheet = String(workout.value?.num_scheda || '').replace(/\D+/g, '');
+    const isSugCurrent = Boolean(cleanSugSheet && cleanCurSheet && cleanSugSheet === cleanCurSheet);
+
+    if (!isSugCurrent && (suggerimentoRecord.value.record > 0 || suggerimentoRecord.value.recordRepsValue > 0)) {
       pastRepsWeight = suggerimentoRecord.value.record || 0;
       pastRepsReps = suggerimentoRecord.value.recordRepsValue || targetReps;
       pastRepsSheet = suggerimentoRecord.value.recordRepsSheet;
@@ -9367,8 +9376,11 @@ const calcolaRecordOverviewData = (sett) => {
   let bestId = null;
   let bestIsCurrent = false;
 
+  const cleanCurSheet = String(workout.value?.num_scheda || '').replace(/\D+/g, '');
+  const cleanPastSheet = String(pastRepsSheet || '').replace(/\D+/g, '');
+
   const recAnalisi = analizzaRecordSettimana(sett);
-  if (currentRepsWeight > 0 && (pastRepsWeight === 0 || currentRepsWeight > pastRepsWeight)) {
+  if (currentRepsWeight > 0 && (pastRepsWeight === 0 || currentRepsWeight >= pastRepsWeight)) {
     isCurrentPR = true;
     bestIsCurrent = true;
     bestWeight = currentRepsWeight;
@@ -9379,8 +9391,13 @@ const calcolaRecordOverviewData = (sett) => {
     bestFatica = currentRepsFatica;
     bestId = currentRepsId;
   } else if (pastRepsWeight > 0 || (!isCorpoLibero && pastRepsWeight > 0)) {
-    isCurrentPR = false;
-    bestIsCurrent = false;
+    if (cleanPastSheet && cleanCurSheet && cleanPastSheet === cleanCurSheet) {
+      isCurrentPR = true;
+      bestIsCurrent = true;
+    } else {
+      isCurrentPR = false;
+      bestIsCurrent = false;
+    }
     bestWeight = pastRepsWeight;
     bestReps = pastRepsReps;
     bestSheet = pastRepsSheet;
@@ -17208,7 +17225,7 @@ const recordMaxAssolutoInfo = computed(() => {
             idAtMaxWeight = workout.value.id;
             itemAtMaxWeight = workout.value;
           }
-        } else if (p > maxWeight || (p === maxWeight && p > 0 && r > repsAtMaxWeight)) {
+        } else if (p > maxWeight || (p === maxWeight && p > 0 && r >= repsAtMaxWeight)) {
           maxWeight = p;
           repsAtMaxWeight = r;
           weekAtMaxWeight = w;
@@ -17223,6 +17240,12 @@ const recordMaxAssolutoInfo = computed(() => {
   }
 
   if (maxWeight <= 0 && (!isCorpoLibero || repsAtMaxWeight <= 0)) return null;
+
+  const cleanCurrentNum = String(workout.value?.num_scheda || '').replace(/\D+/g, '');
+  const cleanRecSheet = String(sheetAtMaxWeight || '').replace(/\D+/g, '');
+  if (cleanCurrentNum && cleanRecSheet && cleanCurrentNum === cleanRecSheet) {
+    isCurrentMeso = true;
+  }
 
   return {
     peso: (isCorpoLibero && !haPesoEsercizio.value) ? 0 : maxWeight,

@@ -218,9 +218,27 @@ const cleanTargetReps = computed(() => {
   return String(props.targetReps || 10).replace(/r$/i, '');
 });
 
+// Helper per verificare se un numero di scheda corrisponde alla scheda corrente
+const isCurrentSheet = (sheetVal) => {
+  if (!sheetVal || !props.workout?.num_scheda) return false;
+  return extractCleanSheetNum(sheetVal) === extractCleanSheetNum(props.workout.num_scheda);
+};
+
 // Flag Scheda Attuale
-const isCurrentPR = computed(() => Boolean(bestReal.value?.isCurrentPR));
-const isNewPeak = computed(() => Boolean(bestE1RM.value?.isNewPeak));
+const isCurrentPR = computed(() => Boolean(
+  bestReal.value?.isCurrentPR || 
+  bestReal.value?.isCurrent || 
+  isCurrentSheet(bestReal.value?.sheet) || 
+  (typeof bestReal.value?.date === 'string' && bestReal.value.date.toLowerCase().includes('questa scheda')) ||
+  (typeof bestReal.value?.tempoTrascorso === 'string' && bestReal.value.tempoTrascorso.toLowerCase().includes('questa scheda'))
+));
+
+const isNewPeak = computed(() => Boolean(
+  bestE1RM.value?.isNewPeak || 
+  isCurrentSheet(bestE1RM.value?.sheet) || 
+  (typeof bestE1RM.value?.date === 'string' && bestE1RM.value.date.toLowerCase().includes('questa scheda')) ||
+  (typeof bestE1RM.value?.tempoTrascorso === 'string' && bestE1RM.value.tempoTrascorso.toLowerCase().includes('questa scheda'))
+));
 
 // Presenza Record Assoluto
 const hasAbsoluteRecord = computed(() => {
@@ -368,11 +386,11 @@ const formatTimeAgo = (dateVal) => {
 // Formato standard: Sch. [numero] · [tempo trascorso abbreviato] (mostra solo il numero senza lettere e solo tempo trascorso)
 const card1ProvenienzaFormatted = computed(() => {
   if (!bestReal.value) return 'Storico';
-  const rawSheet = isCurrentPR.value ? (props.workout?.num_scheda || bestReal.value.sheet) : bestReal.value.sheet;
-  const cleanNum = extractCleanSheetNum(rawSheet);
+  const rawSheet = bestReal.value.sheet || props.workout?.num_scheda;
+  const cleanNum = extractCleanSheetNum(rawSheet) || extractCleanSheetNum(props.workout?.num_scheda);
   const sNumStr = cleanNum ? `Sch. ${cleanNum}` : 'Sch. -';
   
-  if (isCurrentPR.value) {
+  if (isCurrentPR.value || isCurrentSheet(rawSheet)) {
     return `${sNumStr} · questa scheda`;
   }
   
@@ -382,11 +400,11 @@ const card1ProvenienzaFormatted = computed(() => {
 
 const card2ProvenienzaFormatted = computed(() => {
   if (!bestE1RM.value) return 'Storico';
-  const rawSheet = isNewPeak.value ? (props.workout?.num_scheda || bestE1RM.value.sheet) : bestE1RM.value.sheet;
-  const cleanNum = extractCleanSheetNum(rawSheet);
+  const rawSheet = bestE1RM.value.sheet || props.workout?.num_scheda;
+  const cleanNum = extractCleanSheetNum(rawSheet) || extractCleanSheetNum(props.workout?.num_scheda);
   const sNumStr = cleanNum ? `Sch. ${cleanNum}` : 'Sch. -';
   
-  if (isNewPeak.value) {
+  if (isNewPeak.value || isCurrentSheet(rawSheet)) {
     return `${sNumStr} · questa scheda`;
   }
   

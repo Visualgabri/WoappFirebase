@@ -362,7 +362,7 @@ import { ref, onMounted, computed, watch, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'; // Aggiunto onBeforeRouteLeave
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, globalStoryboard, getStoryboardBackup } from '../authStore.js';
+import { selectedAthlete, globalStoryboard, getStoryboardBackup, caricaSequenzaNavigabile } from '../authStore.js';
 import WorkoutTimePicker from '../components/WorkoutTimePicker.vue';
 
 const route = useRoute();
@@ -392,11 +392,34 @@ const handleTouchEnd = (e) => {
 };
 
 const vaiAdEsercizioSuccessivo = () => {
+  const sessionGiorno = (route.query.giornoSessione || workout.value?.des_giorno || '').trim().toUpperCase();
+  const cached = caricaSequenzaNavigabile(selectedAthlete.value, sessionGiorno);
+  if (cached && Array.isArray(cached.sequenza)) {
+    const firstEx = cached.sequenza.find(item => parseInt(item.num_riga_giorno) > 0 || item.isRecupero);
+    if (firstEx) {
+      transitionName.value = 'swipe-next';
+      vibraTattile(15);
+      const qParams = {};
+      if (sessionGiorno) qParams.giornoSessione = sessionGiorno;
+      if (firstEx.isRecupero) {
+        qParams.isRecupero = 'true';
+        qParams.originGiorno = firstEx.originGiorno || firstEx.des_giorno;
+        qParams.targetWeek = firstEx.weekRecupero || 1;
+      }
+      router.replace({ name: 'DettaglioWorkout', params: { id: firstEx.id }, query: qParams });
+      return;
+    }
+  }
+
   if (eserciziDelGiorno.value.length > 0) {
     const primoEx = eserciziDelGiorno.value.find(ex => parseInt(ex.num_riga_giorno) === 1) || eserciziDelGiorno.value[0];
     transitionName.value = 'swipe-next';
     vibraTattile(15);
-    router.replace({ name: 'DettaglioWorkout', params: { id: primoEx.id } });
+    router.replace({ 
+      name: 'DettaglioWorkout', 
+      params: { id: primoEx.id },
+      query: sessionGiorno ? { giornoSessione: sessionGiorno } : {}
+    });
   }
 };
 

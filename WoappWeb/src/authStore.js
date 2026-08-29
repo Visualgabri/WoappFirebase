@@ -284,6 +284,287 @@ export const haRecupero = (val) => {
   return keywords.some(kw => str.includes(kw));
 };
 
+// Classificazione complessità esercizi per ordinamento intelligente
+// Priorità: 1 = Multiarticolari pesanti (alto impatto SNC) → 2 = Multiarticolari leggeri → 3 = Isolamento → 4 = Core/Stabilità
+export const classificaComplessitaEsercizio = (nomeEsercizio) => {
+  const nome = (nomeEsercizio || '').toLowerCase();
+  
+  // 1 — Multiarticolari pesanti (alto impatto SNC, eseguire per primi)
+  const compound_heavy = [
+    'squat', 'stacco', 'deadlift', 'panca piana', 'bench press',
+    'military press', 'overhead press', 'pressa', 'leg press',
+    'distensioni', 'trazioni', 'pull-up', 'chin-up', 'pullup',
+    'rematore', 'row', 'hip thrust', 'clean', 'snatch', 'jerk',
+    'good morning', 'front squat', 'back squat', 'bulgaro',
+    'affondi', 'lunge', 'dip', 'muscle up'
+  ];
+  
+  // 2 — Multiarticolari leggeri / accessori compound
+  const compound_light = [
+    'lat machine', 'lat pull', 'pulldown', 'cable row',
+    'chest press', 'shoulder press', 'push up', 'piegamenti',
+    'leg curl', 'leg extension', 'hack squat', 'step up',
+    'tirata', 'alzate', 'remata', 'pulley', 'seated row',
+    'incline', 'decline', 't-bar', 'pendlay'
+  ];
+  
+  // 4 — Core e stabilità (eseguire per ultimi)
+  const core = [
+    'plank', 'crunch', 'addominali', 'obliqui', 'core',
+    'sit up', 'sit-up', 'russian twist', 'hollow', 'ab wheel',
+    'woodchop', 'pallof', 'bird dog', 'dead bug', 'superman',
+    'hyperextension', 'iperestensioni', 'back extension'
+  ];
+  
+  if (compound_heavy.some(kw => nome.includes(kw))) return 1;
+  if (compound_light.some(kw => nome.includes(kw))) return 2;
+  if (core.some(kw => nome.includes(kw))) return 4;
+  return 3; // Default: isolamento / accessorio
+};
+
+// Stato reattivo per la sequenza navigabile dallo swipe tra gli esercizi della seduta
+export const sequenzaNavigabileWorkout = ref([]);
+export const infoSessioneNavigabile = ref({ giorno: '', week: 1, atletaId: '' });
+
+export const salvaSequenzaNavigabile = (sequenza, giorno, week, atletaId) => {
+  const sanitized = Array.isArray(sequenza) ? sequenza.map(item => ({
+    ...item,
+    id: item.id || '',
+    num_riga: item.num_riga || '',
+    num_riga_giorno: item.num_riga_giorno !== undefined ? item.num_riga_giorno : 0,
+    riga: item.riga !== undefined ? item.riga : (parseInt(item.num_riga_giorno) || 0),
+    des_esercizio: item.des_esercizio || '',
+    des_giorno: item.des_giorno || '',
+    des_settore: item.des_settore || '',
+    giornoSessione: item.giornoSessione || '',
+    isRecupero: !!item.isRecupero,
+    weekRecupero: item.weekRecupero || null,
+    originGiorno: item.originGiorno || null,
+    prescrizioneRecupero: item.prescrizioneRecupero || '',
+    inSuperset: !!item.inSuperset,
+    supersetLetter: item.supersetLetter || ''
+  })) : [];
+
+  sequenzaNavigabileWorkout.value = sanitized;
+  infoSessioneNavigabile.value = {
+    giorno: String(giorno || '').trim().toUpperCase(),
+    week: parseInt(week) || 1,
+    atletaId: String(atletaId || '').trim()
+  };
+  try {
+    const payload = {
+      sequenza: sanitized,
+      info: infoSessioneNavigabile.value,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem('woapp_sequenza_navigabile', JSON.stringify(payload));
+  } catch (e) {
+    console.warn("Impossibile salvare sequenza navigabile in sessionStorage:", e);
+  }
+};
+
+export const caricaSequenzaNavigabile = (atletaId = null, giorno = null) => {
+  if (sequenzaNavigabileWorkout.value && sequenzaNavigabileWorkout.value.length > 0) {
+    if (!giorno || (infoSessioneNavigabile.value.giorno === String(giorno).trim().toUpperCase())) {
+      return {
+        sequenza: sequenzaNavigabileWorkout.value,
+        info: infoSessioneNavigabile.value
+      };
+    }
+  }
+  try {
+    const raw = sessionStorage.getItem('woapp_sequenza_navigabile');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.sequenza) && parsed.sequenza.length > 0) {
+        if (!giorno || (parsed.info && parsed.info.giorno === String(giorno).trim().toUpperCase())) {
+          sequenzaNavigabileWorkout.value = parsed.sequenza;
+          infoSessioneNavigabile.value = parsed.info || { giorno: '', week: 1, atletaId: '' };
+          return parsed;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Impossibile leggere sequenza navigabile da sessionStorage:", e);
+  }
+  return null;
+};
+
+// Generatore universale di sequenza navigabile da storyboard (giorno corrente + blocchi + recuperi)
+export const costruisciSequenzaNavigabilePerGiorno = (tuttiDati, giornoTarget, settimanaAttiva = 1, options = {}) => {
+  if (!tuttiDati || !Array.isArray(tuttiDati) || tuttiDati.length === 0) return [];
+  const gTarget = String(giornoTarget || '').trim().toUpperCase();
+  if (!gTarget) return [];
+
+  const giorniSet = new Set();
+  const headersMap = {};
+  tuttiDati.forEach(item => {
+    const g = (item.des_giorno || '').trim().toUpperCase();
+    if (g) giorniSet.add(g);
+    if (parseInt(item.num_riga_giorno) === 0) {
+      headersMap[g] = item;
+    }
+  });
+
+  const giorniOrdinati = Array.from(giorniSet).sort();
+  const idxCorrente = giorniOrdinati.indexOf(gTarget);
+
+  const header = headersMap[gTarget];
+  const giornoExList = tuttiDati.filter(item => 
+    (item.des_giorno || '').trim().toUpperCase() === gTarget && parseInt(item.num_riga_giorno) > 0
+  ).sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
+
+  // Blocchi giorno corrente
+  const giornoBlocks = [];
+  let currentSuperset = null;
+  giornoExList.forEach((ex) => {
+    const ss = (ex.alf_superserie || '').trim().toUpperCase();
+    if (ss) {
+      if (currentSuperset && currentSuperset.letter === ss) {
+        currentSuperset.exercises.push(ex);
+      } else {
+        currentSuperset = {
+          type: 'superset',
+          letter: ss,
+          exercises: [ex],
+          complessita: classificaComplessitaEsercizio(ex.des_esercizio)
+        };
+        giornoBlocks.push(currentSuperset);
+      }
+    } else {
+      currentSuperset = null;
+      giornoBlocks.push({
+        type: 'single',
+        exercise: ex,
+        complessita: classificaComplessitaEsercizio(ex.des_esercizio)
+      });
+    }
+  });
+
+  // Trova esercizi da recuperare
+  const isCmpTrue = (val) => val === true || val === 'true' || String(val).toLowerCase() === 'true';
+  const recList = [];
+  tuttiDati.forEach(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return;
+    const giornoEx = (ex.des_giorno || '').trim().toUpperCase();
+    const idxEx = giorniOrdinati.indexOf(giornoEx);
+    const exHeader = headersMap[giornoEx];
+    if (!exHeader) return;
+
+    for (let w = 1; w <= 6; w++) {
+      let isPastSession = false;
+      if (w < settimanaAttiva) {
+        isPastSession = true;
+      } else if (w === settimanaAttiva && idxEx >= 0 && idxEx < idxCorrente) {
+        isPastSession = true;
+      }
+      if (isPastSession) {
+        if (isCmpTrue(exHeader['cmp' + w])) {
+          const val = ex['ins_week' + w] || '';
+          if (haRecupero(val)) {
+            const comp = classificaComplessitaEsercizio(ex.des_esercizio);
+            const targetPos = (options.overridePosizioni && options.overridePosizioni[ex.id]) || options.posizioneDefault || 'strategica';
+            recList.push({
+              type: 'recupero',
+              exercise: ex,
+              week: w,
+              prescrizione: ex['des_week' + w] || ex.des_qta_report || '',
+              originalVal: val,
+              complessita: comp,
+              targetPosizione: targetPos
+            });
+          }
+        }
+      }
+    }
+  });
+
+  let resultBlocks = [...giornoBlocks];
+  if (recList.length > 0) {
+    const inizioRecuperi = recList.filter(r => r.targetPosizione === 'inizio').sort((a, b) => a.complessita - b.complessita);
+    const fineRecuperi = recList.filter(r => r.targetPosizione === 'fine').sort((a, b) => a.complessita - b.complessita);
+    const strategiciRecuperi = recList.filter(r => r.targetPosizione === 'strategica' || !['inizio', 'fine'].includes(r.targetPosizione)).sort((a, b) => a.complessita - b.complessita);
+
+    strategiciRecuperi.forEach((rec) => {
+      if (resultBlocks.length === 0) {
+        resultBlocks.push(rec);
+        return;
+      }
+      let bestIdx = -1;
+      for (let i = 0; i < resultBlocks.length; i++) {
+        const b = resultBlocks[i];
+        let bComp = 3;
+        if (b.type === 'superset') {
+          bComp = Math.min(...b.exercises.map(e => classificaComplessitaEsercizio(e.des_esercizio)));
+        } else if (b.type === 'single') {
+          bComp = b.complessita || classificaComplessitaEsercizio(b.exercise.des_esercizio);
+        } else if (b.type === 'recupero') {
+          bComp = b.complessita;
+        }
+        if (bComp <= rec.complessita) {
+          bestIdx = i;
+        }
+      }
+      if (bestIdx === -1) {
+        resultBlocks.unshift(rec);
+      } else {
+        resultBlocks.splice(bestIdx + 1, 0, rec);
+      }
+    });
+
+    resultBlocks = [...inizioRecuperi, ...resultBlocks, ...fineRecuperi];
+  }
+
+  // Appiattisci in sequenza lineare
+  const flatSequence = [];
+  if (header) {
+    flatSequence.push({
+      ...header,
+      id: header.id,
+      num_riga_giorno: 0,
+      riga: 0,
+      des_giorno: gTarget,
+      giornoSessione: gTarget,
+      isRecupero: false
+    });
+  }
+
+  resultBlocks.forEach(b => {
+    if (b.type === 'single' && b.exercise) {
+      flatSequence.push({
+        ...b.exercise,
+        id: b.exercise.id,
+        giornoSessione: gTarget,
+        isRecupero: false
+      });
+    } else if (b.type === 'superset' && Array.isArray(b.exercises)) {
+      b.exercises.forEach(ex => {
+        flatSequence.push({
+          ...ex,
+          id: ex.id,
+          giornoSessione: gTarget,
+          isRecupero: false,
+          inSuperset: true,
+          supersetLetter: b.letter
+        });
+      });
+    } else if (b.type === 'recupero' && b.exercise) {
+      flatSequence.push({
+        ...b.exercise,
+        id: b.exercise.id,
+        isRecupero: true,
+        weekRecupero: b.week,
+        originGiorno: b.exercise.des_giorno,
+        giornoSessione: gTarget,
+        prescrizioneRecupero: b.prescrizione,
+        originalVal: b.originalVal
+      });
+    }
+  });
+
+  return flatSequence;
+};
+
 
 
 // Stato per il Calcolatore dei Dischi (Plate Calculator)

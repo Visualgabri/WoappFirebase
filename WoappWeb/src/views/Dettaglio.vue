@@ -27,7 +27,19 @@
             }"
           >
             <v-chip
-              v-if="workout?.num_riga_giorno"
+              v-if="isEsercizioRecupero"
+              color="primary"
+              size="x-small"
+              class="font-weight-black text-white mr-1.5 px-1.5 py-0 cursor-pointer elevation-1"
+              variant="flat"
+              style="height: 16px; font-size: 0.58rem; display: inline-flex; vertical-align: middle; line-height: 1; border-radius: 3px;"
+              @click.stop="vaiAlGiornoAllenamento"
+              title="Esercizio da recuperare inserito in questa seduta"
+            >
+              🔄 REC • G.{{ infoRecupero.originGiorno }} W{{ infoRecupero.week }}
+            </v-chip>
+            <v-chip
+              v-else-if="workout?.num_riga_giorno"
               color="orange-darken-3"
               size="x-small"
               class="font-weight-black text-white mr-1.5 px-1.5 py-0 cursor-pointer elevation-1"
@@ -186,6 +198,31 @@
           </v-btn>
         </div>
       </div>
+
+      <!-- Avviso Esercizio da Recuperare -->
+      <v-card
+        v-if="isEsercizioRecupero"
+        class="text-left border d-flex align-center card-glass mt-2"
+        :class="layoutCorrente === 'super_compatto' ? 'py-1 px-2 mb-1.5' : (layoutCorrente === 'compatto' ? 'py-1.5 px-2.5 mb-2' : 'py-2 px-3 mb-3')"
+        :style="{
+          background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(15, 23, 42, 0.85)) !important',
+          border: '1.5px solid rgba(249, 115, 22, 0.5) !important',
+          boxShadow: '0 4px 20px rgba(249, 115, 22, 0.15)',
+          borderRadius: layoutCorrente === 'super_compatto' ? '4px !important' : (layoutCorrente === 'compatto' ? '8px !important' : '12px !important')
+        }"
+      >
+        <v-icon color="orange-darken-2" class="mr-2.5 flex-shrink-0 animate-pulse" :size="layoutCorrente === 'super_compatto' ? 16 : 20">mdi-sync</v-icon>
+        <div class="text-slate-dark d-flex flex-column min-width-0" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.65rem' : '0.72rem', lineHeight: 1.3 }">
+          <div>
+            <strong class="text-orange-lighten-2 text-uppercase font-weight-black" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.60rem' : '0.68rem', letterSpacing: '0.04em' }">
+              Da recuperare da giorno {{ infoRecupero.originGiorno }} • W{{ infoRecupero.week }}
+            </strong>
+          </div>
+          <span class="text-slate-300 font-weight-medium" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">
+            Esercizio integrato nella seduta del Giorno {{ infoRecupero.sessionGiorno || 'corrente' }}. Registra i tuoi carichi in Week {{ infoRecupero.week }}.
+          </span>
+        </div>
+      </v-card>
 
       <!-- Avviso Scheda Passata (Modalità Storico) -->
       <v-card
@@ -5898,7 +5935,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -13437,40 +13474,47 @@ watch(workout, (nuovoWorkout) => {
 
 // Allineato alla settimana attiva globale per evitare disallineamenti di visualizzazione dei giorni completati
 
-const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, desGiorno) => {
+const caricaListaEserciziGiorno = async (keyIdCliente, atletaId, numScheda, sessionGiorno) => {
   try {
-    const q = query(
+    const cached = caricaSequenzaNavigabile(atletaId, sessionGiorno);
+    if (cached && Array.isArray(cached.sequenza) && cached.sequenza.length > 0) {
+      tuttiEserciziGiorno.value = cached.sequenza.map(applicaModificheLocali);
+      listaIdEsercizi.value = tuttiEserciziGiorno.value.map(item => item.id);
+      calcolaIndexCorrente();
+      return;
+    }
+
+    // Fallback: se non in cache, carica tutti i record della scheda e costruisci la sequenza esatta identica a Workouts.vue
+    const qAll = query(
       collection(db, 'STORYBOARD'),
       where(keyIdCliente, '==', atletaId),
-      where('num_scheda', '==', numScheda),
-      where('des_giorno', '==', desGiorno)
+      where('num_scheda', 'in', [numScheda, String(numScheda), Number(numScheda)])
     );
-    const snap = await getDocs(q);
-    
-    let temp = [];
-    let sessionItem = null;
-    snap.forEach((doc) => {
-      const d = doc.data();
-      const riga = parseInt(d.num_riga_giorno) || 0;
-      const item = applicaModificheLocali({ id: doc.id, riga, ...d });
-      if (riga === 0) {
-        sessionItem = item;
-      } else {
-        temp.push(item);
-      }
+    const snapAll = await getDocs(qAll);
+    let allData = [];
+    snapAll.forEach((docSnap) => {
+      allData.push(applicaModificheLocali({ id: docSnap.id, ...docSnap.data() }));
     });
     
-    temp.sort((a, b) => a.riga - b.riga);
-    
-    // Inseriamo la sessione (riga 0) come primo elemento assoluto della cache
-    if (sessionItem) {
-      tuttiEserciziGiorno.value = [sessionItem, ...temp];
-    } else {
-      tuttiEserciziGiorno.value = temp;
+    if (allData.length === 0) {
+      const backup = await getStoryboardBackup();
+      if (backup && Array.isArray(backup)) {
+        allData = backup.filter(b => 
+          (String(b[keyIdCliente]) === String(atletaId) || String(b['ID_cliente']) === String(atletaId)) &&
+          String(b.num_scheda) === String(numScheda)
+        ).map(applicaModificheLocali);
+      }
     }
-    
+
+    const posDefault = localStorage.getItem('posizioneRecuperi_' + atletaId) || 'strategica';
+    const seq = costruisciSequenzaNavigabilePerGiorno(allData, sessionGiorno, settimanaAttiva.value, {
+      posizioneDefault: posDefault
+    });
+
+    tuttiEserciziGiorno.value = seq.map(applicaModificheLocali);
     listaIdEsercizi.value = tuttiEserciziGiorno.value.map(item => item.id);
-    indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
+    salvaSequenzaNavigabile(tuttiEserciziGiorno.value, sessionGiorno, settimanaAttiva.value, atletaId);
+    calcolaIndexCorrente();
   } catch (error) {
     console.error("Errore caricamento lista esercizi per swipe:", error);
   }
@@ -13481,7 +13525,7 @@ const caricaTuttiEserciziScheda = async (keyIdCliente, atletaId, numScheda) => {
     const q = query(
       collection(db, 'STORYBOARD'),
       where(keyIdCliente, '==', atletaId),
-      where('num_scheda', '==', numScheda)
+      where('num_scheda', 'in', [numScheda, String(numScheda), Number(numScheda)])
     );
     const snap = await getDocs(q);
     const temp = [];
@@ -13511,56 +13555,104 @@ const caricaTuttiEserciziScheda = async (keyIdCliente, atletaId, numScheda) => {
 
 const vaiAdEsercizioSuccessivo = () => {
   if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1) return;
-  if (indexCorrente.value === listaIdEsercizi.value.length - 1) return;
+  if (indexCorrente.value >= tuttiEserciziGiorno.value.length - 1) return;
   transitionName.value = 'swipe-next'; // Imposta l'animazione verso sinistra
   const nextItem = tuttiEserciziGiorno.value[indexCorrente.value + 1];
   vibraTattile(15);
+
+  const sessionGiorno = route.query.giornoSessione || 
+    (indexCorrente.value >= 0 ? tuttiEserciziGiorno.value[indexCorrente.value]?.giornoSessione : null) || 
+    localStorage.getItem('woapp_giorno_selezionato') || 
+    workout.value?.des_giorno || '';
+
   if (parseInt(nextItem.num_riga_giorno) === 0) {
-    router.replace({ name: 'DettaglioSessione', params: { id: nextItem.id } });
+    router.replace({ 
+      name: 'DettaglioSessione', 
+      params: { id: nextItem.id },
+      query: { giornoSessione: sessionGiorno }
+    });
   } else {
-    router.replace({ name: 'DettaglioWorkout', params: { id: nextItem.id } });
+    const qParams = {};
+    if (sessionGiorno) qParams.giornoSessione = sessionGiorno;
+    if (nextItem.isRecupero) {
+      qParams.isRecupero = 'true';
+      qParams.originGiorno = nextItem.originGiorno || nextItem.des_giorno;
+      qParams.targetWeek = nextItem.weekRecupero || 1;
+    }
+    router.replace({
+      name: 'DettaglioWorkout',
+      params: { id: nextItem.id },
+      query: qParams
+    });
   }
 };
 
 const vaiAdEsercizioPrecedente = () => {
   if (listaIdEsercizi.value.length <= 1 || indexCorrente.value === -1 || indexCorrente.value <= 0) {
-    tornaIndietro();
+    vaiAlGiornoAllenamento();
     return;
   }
 
-  // Navigazione precedente standard
   transitionName.value = 'swipe-prev';
   const prevItem = tuttiEserciziGiorno.value[indexCorrente.value - 1];
   vibraTattile(15);
+
+  const sessionGiorno = route.query.giornoSessione || 
+    (indexCorrente.value >= 0 ? tuttiEserciziGiorno.value[indexCorrente.value]?.giornoSessione : null) || 
+    localStorage.getItem('woapp_giorno_selezionato') || 
+    workout.value?.des_giorno || '';
+
   if (parseInt(prevItem.num_riga_giorno) === 0) {
-    router.replace({ name: 'DettaglioSessione', params: { id: prevItem.id } });
+    router.replace({
+      name: 'DettaglioSessione',
+      params: { id: prevItem.id },
+      query: { giornoSessione: sessionGiorno }
+    });
   } else {
-    router.replace({ name: 'DettaglioWorkout', params: { id: prevItem.id } });
+    const qParams = {};
+    if (sessionGiorno) qParams.giornoSessione = sessionGiorno;
+    if (prevItem.isRecupero) {
+      qParams.isRecupero = 'true';
+      qParams.originGiorno = prevItem.originGiorno || prevItem.des_giorno;
+      qParams.targetWeek = prevItem.weekRecupero || 1;
+    }
+    router.replace({
+      name: 'DettaglioWorkout',
+      params: { id: prevItem.id },
+      query: qParams
+    });
   }
 };
 
 const vaiAlGiornoAllenamento = async () => {
   vibraTattile(15);
-  const giorno = (workout.value?.des_giorno || '').trim().toUpperCase();
-  const week = settimanaAttiva.value || 1;
+  const sessionGiorno = (route.query.giornoSessione || 
+    (indexCorrente.value >= 0 ? tuttiEserciziGiorno.value[indexCorrente.value]?.giornoSessione : null) || 
+    localStorage.getItem('woapp_giorno_selezionato') || 
+    workout.value?.des_giorno || '').trim().toUpperCase();
+    
+  const week = (isEsercizioRecupero.value ? (infoRecupero.value.week || settimanaAttiva.value || 1) : (settimanaAttiva.value || 1));
   const exId = workout.value?.id || routeIdLocal.value || '';
   
-  if (giorno) {
-    localStorage.setItem('woapp_giorno_selezionato', giorno);
+  if (sessionGiorno) {
+    localStorage.setItem('woapp_giorno_selezionato', sessionGiorno);
     localStorage.setItem('woapp_target_scroll_exercise', exId);
   }
   
-  // 1. Cerchiamo l'id del documento Sessione (Riga 0) per questo giorno
+  // 1. Cerchiamo l'id del documento Sessione (Riga 0) per questo giorno di sessione
   let sessionId = riga0.value?.id;
+  if (riga0.value && String(riga0.value.des_giorno).trim().toUpperCase() !== sessionGiorno) {
+    sessionId = null;
+  }
   
   if (!sessionId && tuttiEserciziGiorno.value && tuttiEserciziGiorno.value.length > 0) {
-    const sessionObj = tuttiEserciziGiorno.value.find(item => parseInt(item.num_riga_giorno) === 0);
+    const sessionObj = tuttiEserciziGiorno.value.find(item => parseInt(item.num_riga_giorno) === 0 && String(item.des_giorno).trim().toUpperCase() === sessionGiorno);
     if (sessionObj) sessionId = sessionObj.id;
   }
   
   if (!sessionId && allExercises.value && allExercises.value.length > 0) {
     const sessionObj = allExercises.value.find(item => 
-      String(item.des_giorno).trim().toUpperCase() === giorno && parseInt(item.num_riga_giorno) === 0
+      String(item.des_giorno).trim().toUpperCase() === sessionGiorno && parseInt(item.num_riga_giorno) === 0
     );
     if (sessionObj) sessionId = sessionObj.id;
   }
@@ -13658,10 +13750,35 @@ const handleTouchEnd = (e) => {
 
 // Carica l'esercizio ed estrai i dati
 const caricaDatiEsercizio = async () => {
-  // CACHE REATTIVA PER SWIPE E CARICAMENTO IMMEDIATO
-  let cachedEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
-  if (!cachedEx && globalStoryboard.value && globalStoryboard.value.length > 0) {
-    cachedEx = globalStoryboard.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+  // 1. Cerca il documento completo dell'esercizio con tutte le prescrizioni settimanali
+  let fullEx = null;
+  if (globalStoryboard.value && globalStoryboard.value.length > 0) {
+    fullEx = globalStoryboard.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+  }
+  if (!fullEx) {
+    try {
+      const backup = await getStoryboardBackup();
+      if (backup && Array.isArray(backup)) {
+        fullEx = backup.find(ex => String(ex.id) === String(routeIdLocal.value));
+      }
+    } catch (e) {}
+  }
+
+  // 2. Unisci con eventuali metadati di recupero dallo swipe
+  const swipeEx = tuttiEserciziGiorno.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+  let cachedEx = fullEx || swipeEx;
+  if (fullEx && swipeEx) {
+    cachedEx = {
+      ...swipeEx,
+      ...fullEx
+    };
+    if (swipeEx.isRecupero) {
+      cachedEx.isRecupero = true;
+      cachedEx.weekRecupero = swipeEx.weekRecupero;
+      cachedEx.originGiorno = swipeEx.originGiorno;
+      cachedEx.giornoSessione = swipeEx.giornoSessione;
+      cachedEx.prescrizioneRecupero = swipeEx.prescrizioneRecupero;
+    }
   }
 
   if (cachedEx) {
@@ -13733,11 +13850,12 @@ const caricaDatiEsercizio = async () => {
     caricamento.value = false;
 
     // Carica il completamento del giorno (Riga 0) e l'elenco esercizi per lo swipe in background
-    if (atletaId && schemaRef && desGiorno) {
-      caricaRiga0(keyIdCliente, atletaId, schemaRef, desGiorno).then(() => {
+    const sessionGiorno = (route.query.giornoSessione || localStorage.getItem('woapp_giorno_selezionato') || desGiorno || '').trim().toUpperCase();
+    if (atletaId && schemaRef && sessionGiorno) {
+      caricaRiga0(keyIdCliente, atletaId, schemaRef, sessionGiorno).then(() => {
         determinaSettimanaAttivaGiorno();
       });
-      caricaListaEserciziGiorno(keyIdCliente, atletaId, schemaRef, desGiorno);
+      caricaListaEserciziGiorno(keyIdCliente, atletaId, schemaRef, sessionGiorno);
       caricaTuttiEserciziScheda(keyIdCliente, atletaId, schemaRef);
     }
 
@@ -13855,10 +13973,11 @@ const caricaDatiEsercizio = async () => {
       }
 
       // Carica il completamento del giorno (Riga 0) ed elenco per swipe
-      if (atletaId && dati.num_scheda && dati.des_giorno) {
-        await caricaRiga0(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
+      const sessionGiorno = (route.query.giornoSessione || localStorage.getItem('woapp_giorno_selezionato') || dati.des_giorno || '').trim().toUpperCase();
+      if (atletaId && dati.num_scheda && sessionGiorno) {
+        await caricaRiga0(keyIdCliente, atletaId, dati.num_scheda, sessionGiorno);
         determinaSettimanaAttivaGiorno();
-        await caricaListaEserciziGiorno(keyIdCliente, atletaId, dati.num_scheda, dati.des_giorno);
+        await caricaListaEserciziGiorno(keyIdCliente, atletaId, dati.num_scheda, sessionGiorno);
         caricaTuttiEserciziScheda(keyIdCliente, atletaId, dati.num_scheda);
       }
       try {
@@ -13923,12 +14042,13 @@ const caricaEsercizioDaBackup = async () => {
 
       await caricaEsercizioPrecedente();
 
-      if (atletaId && found.num_scheda && found.des_giorno) {
+      const sessionGiorno = (route.query.giornoSessione || localStorage.getItem('woapp_giorno_selezionato') || found.des_giorno || '').trim().toUpperCase();
+      if (atletaId && found.num_scheda && sessionGiorno) {
         // Riga 0 locale da backup
         const riga0Trovata = allData.find(
           item => String(item.ID_cliente) === String(atletaId) &&
           String(item.num_scheda) === String(found.num_scheda) &&
-          String(item.des_giorno) === String(found.des_giorno) &&
+          String(item.des_giorno).trim().toUpperCase() === sessionGiorno &&
           parseInt(item.num_riga_giorno) === 0
         );
         if (riga0Trovata) {
@@ -13936,17 +14056,17 @@ const caricaEsercizioDaBackup = async () => {
           determinaSettimanaAttivaGiorno();
         }
 
-        // Lista per swipe da backup
-        const filtratiEsercizi = allData.filter(
-          item => String(item.ID_cliente) === String(atletaId) &&
-          String(item.num_scheda) === String(found.num_scheda) &&
-          String(item.des_giorno) === String(found.des_giorno) &&
-          parseInt(item.num_riga_giorno) > 0
+        // Lista per swipe da backup con logica unificata
+        const posDefault = localStorage.getItem('posizioneRecuperi_' + atletaId) || 'strategica';
+        const seq = costruisciSequenzaNavigabilePerGiorno(
+          allData.filter(item => (String(item.ID_cliente) === String(atletaId) || String(item[keyIdCliente]) === String(atletaId)) && String(item.num_scheda) === String(found.num_scheda)),
+          sessionGiorno,
+          settimanaAttiva.value,
+          { posizioneDefault: posDefault }
         );
-        const filtratiMappati = filtratiEsercizi.map(applicaModificheLocali);
-        filtratiMappati.sort((a, b) => (parseInt(a.num_riga_giorno) || 0) - (parseInt(b.num_riga_giorno) || 0));
-        tuttiEserciziGiorno.value = filtratiMappati;
-        listaIdEsercizi.value = filtratiMappati.map(item => item.id);
+        tuttiEserciziGiorno.value = seq.map(applicaModificheLocali);
+        listaIdEsercizi.value = tuttiEserciziGiorno.value.map(item => item.id);
+        salvaSequenzaNavigabile(tuttiEserciziGiorno.value, sessionGiorno, settimanaAttiva.value, atletaId);
 
         const tuttiSchedaBackup = allData.filter(
           item => String(item.ID_cliente) === String(atletaId) &&
@@ -13955,13 +14075,7 @@ const caricaEsercizioDaBackup = async () => {
         ).map(applicaModificheLocali);
         tuttiEserciziScheda.value = tuttiSchedaBackup;
         
-        // Ricerca robusta dell'indice per lo swipe touch
-        indexCorrente.value = filtratiEsercizi.findIndex(item => {
-          const itemId = String(item.id || '');
-          const itemNumRiga = item.num_riga ? String(item.num_riga) : '';
-          const currentId = String(routeIdLocal.value || '');
-          return itemId === currentId || itemNumRiga === currentId;
-        });
+        calcolaIndexCorrente();
       }
       try {
         await caricaDatiAnalisi(settimanaAttiva.value);

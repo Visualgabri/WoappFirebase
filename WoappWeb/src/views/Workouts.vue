@@ -3217,7 +3217,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep } from '../authStore.js';
+import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio } from '../utils/loadParser.js';
@@ -3225,11 +3225,251 @@ import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEserci
 const router = useRouter();
 const route = useRoute();
 
+const vibraTattile = (ms = 12) => {
+  if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+  }
+};
+
 const isCmpTrue = (val) => {
   if (val === undefined || val === null) return false;
   if (typeof val === 'boolean') return val;
   const str = String(val).toLowerCase().trim();
   return str === 'true' || str === 'sì' || str === 'si' || str === '1';
+};
+
+const getTimestampUte = () => {
+  const now = new Date();
+  const gg = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${gg}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+};
+
+const getSettorePrincipale = (s) => {
+  if (!s) return 'Altro';
+  const clean = s.toLowerCase().trim();
+  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('pectoral') || clean.includes('chest')) {
+    return 'Pettorali';
+  }
+  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('latissimus') || clean.includes('trapezius') || clean.includes('back')) {
+    return 'Dorsali';
+  }
+  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('deltoid') || clean.includes('shoulder')) {
+    return 'Spalle';
+  }
+  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('brachialis') || clean.includes('brachioradialis') || clean.includes('biceps')) {
+    return 'Bicipiti';
+  }
+  if (clean.includes('tricipiti') || clean.includes('tricipite') || clean.includes('triceps')) {
+    return 'Tricipiti';
+  }
+  if (clean.includes('quadricipiti') || clean.includes('quadriceps')) {
+    return 'Quadricipiti';
+  }
+  if (clean.includes('femorali') || clean.includes('ischio') || clean.includes('ischiocrurali') || clean.includes('hamstring')) {
+    return 'Femorali';
+  }
+  if (clean.includes('glutei') || clean.includes('gluteus') || clean.includes('gluteo')) {
+    return 'Glutei';
+  }
+  if (clean.includes('adduttori') || clean.includes('adductor') || clean.includes('abductor') || clean.includes('abduttori')) {
+    return 'Adduttori';
+  }
+  if (clean.includes('polpacci') || clean.includes('polpaccio') || clean.includes('soleo') || clean.includes('gastrocnemius') || clean.includes('calves') || clean.includes('calf')) {
+    return 'Polpacci';
+  }
+  if (clean.includes('gambe') || clean.includes('leg')) {
+    return 'Gambe';
+  }
+  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('abdomis') || clean.includes('core') || clean.includes('obliqui') || clean.includes('oblique') || clean.includes('abs')) {
+    return 'Addome';
+  }
+  return s.charAt(0).toUpperCase() + s.slice(1).trim();
+};
+
+const estraiRepsDaPrescrizione = (prescrizioneStr) => {
+  if (!prescrizioneStr) return null;
+  const rawStr = String(prescrizioneStr).trim();
+  const part = rawStr.split('|')[0].trim();
+  
+  const matchX = part.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  if (matchX) {
+    const r = parseInt(matchX[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+
+  const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
+  
+  const matchCleanX = cleanPart.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  if (matchCleanX) {
+    const r = parseInt(matchCleanX[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+  
+  const matchNum = cleanPart.match(/^(\d+)$/);
+  if (matchNum) {
+    const r = parseInt(matchNum[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+  
+  const matchRepsSuffix = cleanPart.match(/\b(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+  if (matchRepsSuffix) {
+    const r = parseInt(matchRepsSuffix[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+
+  const matchFirstNum = cleanPart.match(/\b(\d+)\b/);
+  if (matchFirstNum) {
+    const r = parseInt(matchFirstNum[1], 10);
+    if (!isNaN(r) && r > 0 && r <= 100) {
+      return r;
+    }
+  }
+  
+  return null;
+};
+
+const isRepProgression = (ex) => {
+  if (!ex) return false;
+  const name = String(ex.des_esercizio || '').toLowerCase();
+  const note = String(ex.des_note_attrezzo || '').toLowerCase();
+  const attr = String(ex.des_note_gen_attr || '').toLowerCase();
+  const desNote = String(ex.des_note || '').toLowerCase();
+  const settore = String(ex.des_settore || '').toLowerCase();
+  const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
+  
+  const weightKeywords = [
+    'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
+    'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
+    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
+    'con sovraccarico', 'con cavigliera', 'con cavigliere',
+    'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley'
+  ];
+  const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
+  if (hasWeightKeyword) return false;
+
+  const keywords = [
+    'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
+    'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 
+    'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
+    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
+    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
+    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
+    'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
+    'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
+    'pino', 'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
+    'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
+  ];
+  
+  const isCorpoLibero = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k)) || note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno');
+  if (!isCorpoLibero) return false;
+
+  let prevReps = null;
+  let matchesIncr = 0;
+  let totalWeeks = 0;
+  
+  for (let w = 1; w <= 6; w++) {
+    if (w === 4) continue;
+    const presc = ex['des_week' + w];
+    if (presc) {
+      const reps = estraiRepsDaPrescrizione(presc);
+      if (reps !== null) {
+        if (prevReps !== null && reps > prevReps) {
+          matchesIncr++;
+        }
+        prevReps = reps;
+        totalWeeks++;
+      }
+    }
+  }
+  
+  if (matchesIncr > 0 && matchesIncr >= totalWeeks - 2) {
+    return true;
+  }
+  
+  const hasZavorra = name.includes('con peso') || name.includes('+') || name.includes('zavorra') || name.includes('con manubri') || note.includes('zavorra') || note.includes('con peso') || attr.includes('zavorra');
+  if (!hasZavorra) {
+    return true;
+  }
+  
+  return false;
+};
+
+function estraiRepsDaInputExplicitSingle(str) {
+  if (!str) return null;
+  let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
+  
+  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
+  if (!clean) return null;
+
+  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
+  clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
+  clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, '').trim();
+
+  clean = clean.replace(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?:?\s*@?\s*\+?\s*\d+(?:[\.,]\d+)?(?:\s*(?:sec|secondi|s|r|reps?|rip))?/gi, ' ').trim();
+  clean = clean.replace(/\+\s*\d+(?:[\.,]\d+)?\s*(?:r|reps?)?\s*(?:rp|rest\s*pause)/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rp|rest\s*pause|drop\s*set|cluster)\b/gi, ' ').trim();
+
+  const matchExplicitXWithR = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+  if (matchExplicitXWithR) {
+    const val = parseFloat(matchExplicitXWithR[2]);
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
+  }
+
+  const matchSxR = clean.match(/^\s*(\d+)\s*[xX]\s*(\d+)\s*$/);
+  if (matchSxR) {
+    const nSets = parseInt(matchSxR[1], 10);
+    const nReps = parseInt(matchSxR[2], 10);
+    if (nSets >= 1 && nSets <= 5 && nReps >= 6) {
+      return { val: nReps, explicit: true };
+    }
+    return null;
+  }
+
+  const matchSets = clean.match(/\b\d+(?:\.\d+)?\s*[xX]\s*\d+\s*(?:s|set|sets|serie)?\b/i);
+  if (matchSets) {
+    clean = clean.replace(matchSets[0], ' ').trim();
+  }
+
+  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)/i);
+  if (matchR) {
+    const val = parseFloat(matchR[1]);
+    if (!isNaN(val) && val > 0) return { val, explicit: true };
+  }
+
+  return null;
+}
+
+const estraiRepsDaInputSingle = (str) => {
+  const res = estraiRepsDaInputExplicitSingle(str);
+  return res ? res.val : null;
+};
+
+const estraiRepsDaInput = (str) => {
+  if (!str) return null;
+  const strVal = String(str);
+  const lines = strVal.split(/[\n;\r]+/);
+  const results = lines.map(l => estraiRepsDaInputExplicitSingle(l)).filter(v => v !== null && !isNaN(v.val) && Number.isInteger(v.val) && v.val > 0 && v.val <= 50);
+  if (results.length === 0) return null;
+  const explicitResults = results.filter(v => v.explicit);
+  if (explicitResults.length > 0) {
+    return Math.max(...explicitResults.map(v => v.val));
+  }
+  return Math.max(...results.map(v => v.val));
 };
 
 const parseTimeToSeconds = (tStr) => {
@@ -3790,10 +4030,37 @@ const getGifUrl = (url) => {
   return url;
 };
 
-// Stato
+// Stato fondamentale
 const atletaSelezionato = ref(selectedAthlete.value);
 const schedaSelezionata = ref(selectedSheet.value);
 const giornoSelezionato = ref('A');
+const caricamento = ref(true);
+const listaAllenamenti = ref([]);
+const headerGiorno = ref(null);
+const eserciziFiltrati = ref([]);
+const allExercisesBackup = ref([]);
+
+// Settimana Attiva importata da localStorage (placeholder iniziale)
+const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
+const overrideWeek = ref(null);
+
+const selezionaSettimanaManuale = (w) => {
+  vibraTattile(8);
+  overrideWeek.value = w;
+};
+
+const settimanaAttivaGiorno = computed(() => {
+  if (overrideWeek.value !== null) {
+    return overrideWeek.value;
+  }
+  if (!headerGiorno.value) return settimanaAttiva.value;
+  for (let w = 1; w <= 6; w++) {
+    if (!isCmpTrue(headerGiorno.value['cmp' + w])) {
+      return w;
+    }
+  }
+  return 6;
+});
 
 // Stato Prossima Scheda e WhatsApp Coach
 const dialogProssimaSchedaNonPronta = ref(false);
@@ -4028,11 +4295,7 @@ const getPosizioneLabel = (pos) => {
 };
 
 
-const caricamento = ref(true);
-const listaAllenamenti = ref([]);
-const headerGiorno = ref(null);
-const eserciziFiltrati = ref([]);
-const allExercisesBackup = ref([]);
+
 
 const mesocicloCompletato = computed(() => {
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return false;
@@ -4844,226 +5107,7 @@ const getLavoroStyle = (val) => {
   return {};
 };
 
-const estraiRepsDaPrescrizione = (prescrizioneStr) => {
-  if (!prescrizioneStr) return null;
-  const rawStr = String(prescrizioneStr).trim();
-  const part = rawStr.split('|')[0].trim();
-  
-  // 1. Cerca prima pattern "NxM" (es. "3x20", "3x20 52", "(3x20 52)", "4X15")
-  const matchX = part.match(/\b\d+\s*[xX]\s*(\d+)\b/);
-  if (matchX) {
-    const r = parseInt(matchX[1], 10);
-    if (!isNaN(r) && r > 0 && r <= 100) {
-      return r;
-    }
-  }
 
-  // 2. Cerca nel testo senza parentesi
-  const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
-  
-  const matchCleanX = cleanPart.match(/\b\d+\s*[xX]\s*(\d+)\b/);
-  if (matchCleanX) {
-    const r = parseInt(matchCleanX[1], 10);
-    if (!isNaN(r) && r > 0 && r <= 100) {
-      return r;
-    }
-  }
-  
-  const matchNum = cleanPart.match(/^(\d+)$/);
-  if (matchNum) {
-    const r = parseInt(matchNum[1], 10);
-    if (!isNaN(r) && r > 0 && r <= 100) {
-      return r;
-    }
-  }
-  
-  const matchRepsSuffix = cleanPart.match(/\b(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
-  if (matchRepsSuffix) {
-    const r = parseInt(matchRepsSuffix[1], 10);
-    if (!isNaN(r) && r > 0 && r <= 100) {
-      return r;
-    }
-  }
-
-  const matchFirstNum = cleanPart.match(/\b(\d+)\b/);
-  if (matchFirstNum) {
-    const r = parseInt(matchFirstNum[1], 10);
-    if (!isNaN(r) && r > 0 && r <= 100) {
-      return r;
-    }
-  }
-  
-  return null;
-};
-
-const isRepProgression = (ex) => {
-  if (!ex) return false;
-  const name = String(ex.des_esercizio || '').toLowerCase();
-  const note = String(ex.des_note_attrezzo || '').toLowerCase();
-  const attr = String(ex.des_note_gen_attr || '').toLowerCase();
-  const desNote = String(ex.des_note || '').toLowerCase();
-  const settore = String(ex.des_settore || '').toLowerCase();
-  const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
-  
-  const weightKeywords = [
-    'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
-    'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
-    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
-    'con sovraccarico', 'con cavigliera', 'con cavigliere',
-    'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley'
-  ];
-  const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
-  if (hasWeightKeyword) return false;
-
-  const keywords = [
-    'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
-    'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 
-    'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
-    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
-    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
-    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
-    'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
-    'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
-    'pino', 'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
-    'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
-  ];
-  
-  const isCorpoLibero = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k)) || note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno');
-  if (!isCorpoLibero) return false;
-
-  let prevReps = null;
-  let matchesIncr = 0;
-  let totalWeeks = 0;
-  
-  for (let w = 1; w <= 6; w++) {
-    if (w === 4) continue;
-    const presc = ex['des_week' + w];
-    if (presc) {
-      const reps = estraiRepsDaPrescrizione(presc);
-      if (reps !== null) {
-        if (prevReps !== null && reps > prevReps) {
-          matchesIncr++;
-        }
-        prevReps = reps;
-        totalWeeks++;
-      }
-    }
-  }
-  
-  if (matchesIncr > 0 && matchesIncr >= totalWeeks - 2) {
-    return true;
-  }
-  
-  const hasZavorra = name.includes('con peso') || name.includes('+') || name.includes('zavorra') || name.includes('con manubri') || note.includes('zavorra') || note.includes('con peso') || attr.includes('zavorra');
-  if (!hasZavorra) {
-    return true;
-  }
-  
-  return false;
-};
-
-function estraiRepsDaInputExplicitSingle(str) {
-  if (!str) return null;
-  let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
-  
-  // Rimuove QUALSIASI contenuto tra parentesi (...), quadre [...] o graffe {...} per evitare che note influenzino i calcoli
-  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
-  if (!clean) return null;
-
-  // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
-  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
-  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
-  clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
-  clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, '').trim();
-
-  // 2. Rimuove COMPLETAMENTE diciture Rest-Pause, Drop-Set, Cluster (es. "rp20", "rp 15", "+2r RP", "47,6x4+2r RP", "RP+3")
-  clean = clean.replace(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?:?\s*@?\s*\+?\s*\d+(?:[\.,]\d+)?(?:\s*(?:sec|secondi|s|r|reps?|rip))?/gi, ' ').trim();
-  clean = clean.replace(/\+\s*\d+(?:[\.,]\d+)?\s*(?:r|reps?)?\s*(?:rp|rest\s*pause)/gi, ' ').trim();
-  clean = clean.replace(/\b(?:rp|rest\s*pause|drop\s*set|cluster)\b/gi, ' ').trim();
-
-  // 3. Rileva formato esplicito con suffisso reps "40x23r", "42.5x24 reps", "5x12 rip"
-  const matchExplicitXWithR = clean.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
-  if (matchExplicitXWithR) {
-    const val = parseFloat(matchExplicitXWithR[2]);
-    if (!isNaN(val) && val > 0) return { val, explicit: true };
-  }
-
-  // 4. Rileva formato tipo "3x20", "4x12", "1x18" (dove il primo numero è il numero di serie [1..5] e il secondo sono le reps [>=6])
-  const matchSxR = clean.match(/^\s*(\d+)\s*[xX]\s*(\d+)\s*$/);
-  if (matchSxR) {
-    const nSets = parseInt(matchSxR[1], 10);
-    const nReps = parseInt(matchSxR[2], 10);
-    if (nSets >= 1 && nSets <= 5 && nReps >= 6) {
-      return { val: nReps, explicit: true };
-    }
-    return null;
-  }
-
-  // 5. Rileva formato "47.5 x2" o "47.5 x2s" o "65 x2s" o "140 x3s" -> la seconda parte dopo 'x' senza 'r' indica le SERIE completate!
-  const matchSets = clean.match(/\b\d+(?:\.\d+)?\s*[xX]\s*\d+\s*(?:s|set|sets|serie)?\b/i);
-  if (matchSets) {
-    clean = clean.replace(matchSets[0], ' ').trim();
-  }
-
-  // 6. Rileva ripetizioni esplicite con suffissi "r", "reps", "rip" (es. "12r", "12 reps", "20r")
-  const matchR = clean.match(/(\d+(?:\.\d+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)/i);
-  if (matchR) {
-    const val = parseFloat(matchR[1]);
-    if (!isNaN(val) && val > 0) return { val, explicit: true };
-  }
-
-  // 7. UN NUMERO SINGOLO SENZA "r" O "reps" (es. "2", "3", "5", "12") È IL CARICO IN KG!
-  return null;
-}
-
-const estraiRepsDaInputSingle = (str) => {
-  const res = estraiRepsDaInputExplicitSingle(str);
-  return res ? res.val : null;
-};
-
-const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo = false) => {
-  if (!strVal) return null;
-  const str = String(strVal).trim();
-  if (!str || str === '-') return null;
-
-  const lines = str.split(/[\n;\r]+/);
-  let bestPerf = null;
-  let maxE1RM = -1;
-
-  lines.forEach(line => {
-    const l = line.trim();
-    if (!l) return;
-    const pesoStr = parsePesoLocalInternal(l);
-    if (pesoStr) {
-      const peso = parseFloat(pesoStr);
-      if (!isNaN(peso) && peso > 0) {
-        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
-        const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
-        const e1rm = peso * (1 + reps / 30);
-        if (e1rm > maxE1RM) {
-          maxE1RM = e1rm;
-          bestPerf = { peso, reps, e1rm };
-        }
-      }
-    }
-  });
-
-  return bestPerf;
-};
-
-const estraiRepsDaInput = (str) => {
-  if (!str) return null;
-  const strVal = String(str);
-  const lines = strVal.split(/[\n;\r]+/);
-  const results = lines.map(l => estraiRepsDaInputExplicitSingle(l)).filter(v => v !== null && !isNaN(v.val) && Number.isInteger(v.val) && v.val > 0 && v.val <= 50);
-  if (results.length === 0) return null;
-  const explicitResults = results.filter(v => v.explicit);
-  if (explicitResults.length > 0) {
-    return Math.max(...explicitResults.map(v => v.val));
-  }
-  return Math.max(...results.map(v => v.val));
-};
 
 const getTrendFreccia = (ex) => {
   if (!ex || !allExercisesBackup.value.length) return '';
@@ -5270,6 +5314,173 @@ const vaiADettaglioDaRicercaGlobale = (id) => {
   router.push({ name: 'DettaglioWorkout', params: { id } });
 };
 
+// --- LOGICA DI RECUPERO E COMPLETAMENTO ESERCIZI (COMBINAZIONE A+B) ---
+const dialogRecuperiAvviso = ref(false);
+const logRecuperi = ref({});
+const pannelloRecuperiAperto = ref(true);
+const recuperoAccordionAperto = ref(null);
+
+const toggleRecuperoAccordion = (giorno) => {
+  recuperoAccordionAperto.value = recuperoAccordionAperto.value === giorno ? null : giorno;
+};
+
+const impostaRecuperoValore = (valoreAttuale, attivo) => {
+  let str = (valoreAttuale || '').trim();
+  if (attivo) {
+    if (!str.includes('[RECUPERA]')) {
+      str = str ? `${str} [RECUPERA]` : '[RECUPERA]';
+    }
+  } else {
+    str = str.replace(/\s*\[RECUPERA\]/g, '').trim();
+  }
+  return str;
+};
+
+const salvaValoreEsercizio = async (ex, w, valore) => {
+  const campo = 'ins_week' + w;
+  ex[campo] = valore;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
+  
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates[campo] = valore;
+  updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  updates['timestamp_ute'] = getTimestampUte();
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, { [campo]: valore, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
+    console.log("Valore esercizio salvato con successo!");
+  } catch (err) {
+    console.warn("Errore salvataggio esercizio:", err);
+  }
+  
+  controllaEChiudiGiornoAutomatico();
+};
+
+const toggleRecupero = async (ex, attivo) => {
+  vibraTattile(15);
+  const w = settimanaAttivaGiorno.value;
+  const valoreAttuale = ex['ins_week' + w] || '';
+  const nuovoValore = impostaRecuperoValore(valoreAttuale, attivo);
+  await salvaValoreEsercizio(ex, w, nuovoValore);
+};
+
+const concludiRecuperoRapido = async (recItem) => {
+  vibraTattile(20);
+  const ex = recItem.exercise;
+  const w = recItem.week;
+  
+  let original = recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim();
+  let valoreFinale = '';
+  
+  if (!original || original === '-') {
+    valoreFinale = 'Recuperato';
+  } else {
+    valoreFinale = `${original} [RECUPERATO]`;
+  }
+  
+  await salvaValoreEsercizio(ex, w, valoreFinale);
+};
+
+const labelComplessita = (livello) => {
+  switch (livello) {
+    case 1: return '🔴 Alta intensità SNC';
+    case 2: return '🟠 Compound accessorio';
+    case 3: return '🟡 Isolamento';
+    case 4: return '🟢 Core / Stabilità';
+    default: return '';
+  }
+};
+
+const eserciziDaRecuperare = computed(() => {
+  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return [];
+  
+  const giornoCorrente = (giornoSelezionato.value || '').trim().toUpperCase();
+  if (!giornoCorrente) return [];
+  
+  const giorniOrdinati = listaGiorniDisponibili.value.map(g => g.toUpperCase());
+  const idxCorrente = giorniOrdinati.indexOf(giornoCorrente);
+  if (idxCorrente < 0) return [];
+  
+  const list = [];
+  
+  const headersMap = {};
+  listaAllenamenti.value.forEach(item => {
+    if (parseInt(item.num_riga_giorno) === 0) {
+      const g = (item.des_giorno || '').trim().toUpperCase();
+      headersMap[g] = item;
+    }
+  });
+
+  listaAllenamenti.value.forEach(ex => {
+    if (parseInt(ex.num_riga_giorno) === 0) return;
+    
+    const giornoEx = (ex.des_giorno || '').trim().toUpperCase();
+    const idxEx = giorniOrdinati.indexOf(giornoEx);
+    
+    const header = headersMap[giornoEx];
+    if (!header) return;
+    
+    for (let w = 1; w <= 6; w++) {
+      let isPastSession = false;
+      if (w < settimanaAttiva.value) {
+        isPastSession = true;
+      } else if (w === settimanaAttiva.value && idxEx >= 0 && idxEx < idxCorrente) {
+        isPastSession = true;
+      }
+      
+      if (isPastSession) {
+        const giornoCompletato = isCmpTrue(header['cmp' + w]);
+        if (giornoCompletato) {
+          const val = ex['ins_week' + w] || '';
+          if (haRecupero(val)) {
+            const prescrizione = ex['des_week' + w] || ex.des_qta_report || '';
+            list.push({
+              exercise: ex,
+              week: w,
+              prescrizione,
+              originalVal: val
+            });
+          }
+        }
+      }
+    }
+  });
+  
+  return list;
+});
+
+// Raggruppa gli esercizi da recuperare per giorno di origine
+const recuperiRaggruppati = computed(() => {
+  const grouped = {};
+  eserciziDaRecuperare.value.forEach(item => {
+    const g = (item.exercise.des_giorno || '').trim().toUpperCase();
+    if (!grouped[g]) {
+      grouped[g] = { giorno: g, esercizi: [] };
+    }
+    const complessita = classificaComplessitaEsercizio(item.exercise.des_esercizio);
+    grouped[g].esercizi.push({ ...item, complessita });
+  });
+  
+  const result = Object.values(grouped).sort((a, b) => a.giorno.localeCompare(b.giorno));
+  result.forEach(gruppo => {
+    gruppo.esercizi.sort((a, b) => a.complessita - b.complessita);
+  });
+  
+  if (recuperoAccordionAperto.value && !grouped[recuperoAccordionAperto.value]) {
+    recuperoAccordionAperto.value = null;
+  }
+  
+  return result;
+});
+
 // Raggruppa gli esercizi consecutivi in blocchi (singoli, superset, o recuperi posizionati strategicamente)
 const blocchiEsercizi = computed(() => {
   // 1. Costruisci prima i blocchi del giorno corrente
@@ -5360,6 +5571,65 @@ const blocchiEsercizi = computed(() => {
   return [...inizioRecuperi, ...result, ...fineRecuperi];
 });
 
+// Sequenza lineare appiattita identica all'ordine di visualizzazione nella lista (inclusi sessione, superset e recuperi)
+const sequenzaNavigabileFlat = computed(() => {
+  const list = [];
+  if (headerGiorno.value) {
+    list.push({
+      ...headerGiorno.value,
+      id: headerGiorno.value.id,
+      num_riga_giorno: 0,
+      riga: 0,
+      des_giorno: giornoSelezionato.value || headerGiorno.value.des_giorno,
+      giornoSessione: giornoSelezionato.value || headerGiorno.value.des_giorno,
+      isRecupero: false
+    });
+  }
+  
+  if (blocchiEsercizi.value && Array.isArray(blocchiEsercizi.value)) {
+    blocchiEsercizi.value.forEach(b => {
+      if (b.type === 'single' && b.exercise) {
+        list.push({
+          ...b.exercise,
+          id: b.exercise.id,
+          giornoSessione: giornoSelezionato.value || b.exercise.des_giorno,
+          isRecupero: false
+        });
+      } else if (b.type === 'superset' && Array.isArray(b.exercises)) {
+        b.exercises.forEach(ex => {
+          list.push({
+            ...ex,
+            id: ex.id,
+            giornoSessione: giornoSelezionato.value || ex.des_giorno,
+            isRecupero: false,
+            inSuperset: true,
+            supersetLetter: b.letter
+          });
+        });
+      } else if (b.type === 'recupero' && b.exercise) {
+        list.push({
+          ...b.exercise,
+          id: b.exercise.id,
+          isRecupero: true,
+          weekRecupero: b.week,
+          originGiorno: b.exercise.des_giorno,
+          giornoSessione: giornoSelezionato.value,
+          prescrizioneRecupero: b.prescrizione,
+          originalVal: b.originalVal
+        });
+      }
+    });
+  }
+  return list;
+});
+
+// Mantieni sincronizzata la sequenza navigabile globale
+watch(sequenzaNavigabileFlat, (newSeq) => {
+  if (newSeq && newSeq.length > 0) {
+    salvaSequenzaNavigabile(newSeq, giornoSelezionato.value, settimanaAttivaGiorno.value, atletaSelezionato.value || selectedAthlete.value);
+  }
+}, { immediate: true });
+
 // Progresso sessione per barra di avanzamento (Energy Bar)
 const progressoSessione = computed(() => {
   if (!eserciziFiltrati.value || eserciziFiltrati.value.length === 0) {
@@ -5398,48 +5668,7 @@ const getProgressoGiorno = (g) => {
 };
 
 
-const getSettorePrincipale = (s) => {
-  if (!s) return 'Altro';
-  const clean = s.toLowerCase().trim();
-  if (clean.includes('petto') || clean.includes('pettorali') || clean.includes('pectoral') || clean.includes('chest')) {
-    return 'Pettorali';
-  }
-  if (clean.includes('dorso') || clean.includes('dorsali') || clean.includes('schiena') || clean.includes('latissimus') || clean.includes('trapezius') || clean.includes('back')) {
-    return 'Dorsali';
-  }
-  if (clean.includes('spalle') || clean.includes('deltoidi') || clean.includes('deltoid') || clean.includes('shoulder')) {
-    return 'Spalle';
-  }
-  if (clean.includes('bicipiti') || clean.includes('bicipite') || clean.includes('brachialis') || clean.includes('brachioradialis') || clean.includes('biceps')) {
-    return 'Bicipiti';
-  }
-  if (clean.includes('tricipiti') || clean.includes('tricipite') || clean.includes('triceps')) {
-    return 'Tricipiti';
-  }
-  if (clean.includes('quadricipiti') || clean.includes('quadriceps')) {
-    return 'Quadricipiti';
-  }
-  if (clean.includes('femorali') || clean.includes('ischio') || clean.includes('ischiocrurali') || clean.includes('hamstring')) {
-    return 'Femorali';
-  }
-  if (clean.includes('glutei') || clean.includes('gluteus') || clean.includes('gluteo')) {
-    return 'Glutei';
-  }
-  if (clean.includes('adduttori') || clean.includes('adductor') || clean.includes('abductor') || clean.includes('abduttori')) {
-    return 'Adduttori';
-  }
-  if (clean.includes('polpacci') || clean.includes('polpaccio') || clean.includes('soleo') || clean.includes('gastrocnemius') || clean.includes('calves') || clean.includes('calf')) {
-    return 'Polpacci';
-  }
-  if (clean.includes('gambe') || clean.includes('leg')) {
-    return 'Gambe';
-  }
-  if (clean.includes('addome') || clean.includes('addominali') || clean.includes('abdomis') || clean.includes('core') || clean.includes('obliqui') || clean.includes('oblique') || clean.includes('abs')) {
-    return 'Addome';
-  }
-  // Se non riconosciuto, restituisce il valore formattato con iniziale maiuscola
-  return s.charAt(0).toUpperCase() + s.slice(1).trim();
-};
+
 
 
 // Stato apertura/chiusura ordine esecuzione
@@ -5509,29 +5738,6 @@ const ordineEsecuzioneCompleto = computed(() => {
   return lista;
 });
 
-// Settimana Attiva importata da localStorage (placeholder iniziale)
-const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
-
-const overrideWeek = ref(null);
-
-const selezionaSettimanaManuale = (w) => {
-  vibraTattile(8);
-  overrideWeek.value = w;
-};
-
-const settimanaAttivaGiorno = computed(() => {
-  if (overrideWeek.value !== null) {
-    return overrideWeek.value;
-  }
-  if (!headerGiorno.value) return settimanaAttiva.value;
-  for (let w = 1; w <= 6; w++) {
-    if (!isCmpTrue(headerGiorno.value['cmp' + w])) {
-      return w;
-    }
-  }
-  return 6;
-});
-
 
 // Verifica se tutti gli esercizi del giorno sono stati compilati per la settimana attiva
 const tuttiEserciziCompilatiGiorno = computed(() => {
@@ -5590,17 +5796,6 @@ const applicaModificheLocali = (item) => {
   }
   
   return { ...item, ...updates };
-};
-
-const getTimestampUte = () => {
-  const now = new Date();
-  const gg = String(now.getDate()).padStart(2, '0');
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const yyyy = now.getFullYear();
-  const hh = String(now.getHours()).padStart(2, '0');
-  const min = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-  return `${gg}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
 };
 
 // Ricalcola la settimana attiva globale in base alle settimane chiuse delle righe zero
@@ -6416,35 +6611,45 @@ watch([mesocicloCompletato, loadingStoryboard], ([mesoDone, loading]) => {
 }, { immediate: true });
 
 // Naviga al dettaglio dell'esercizio
-const vaiAlDettaglio = (id, week = null) => {
+const vaiAlDettaglio = (id, week = null, extraQuery = {}) => {
   vibraTattile(10);
-  const routeLocation = { name: 'DettaglioWorkout', params: { id } };
-  if (week) {
-    routeLocation.query = { targetWeek: week };
-  }
+  salvaSequenzaNavigabile(sequenzaNavigabileFlat.value, giornoSelezionato.value, settimanaAttivaGiorno.value, atletaSelezionato.value || selectedAthlete.value);
+  const routeLocation = {
+    name: 'DettaglioWorkout',
+    params: { id },
+    query: {
+      giornoSessione: giornoSelezionato.value,
+      ...(week ? { targetWeek: week } : {}),
+      ...extraQuery
+    }
+  };
   router.push(routeLocation);
 };
 
 // Naviga all'esercizio da recuperare passando la settimana specifica
 const vaiAlRecupero = (recItem) => {
   if (recItem && recItem.exercise && recItem.exercise.id) {
-    vaiAlDettaglio(recItem.exercise.id, recItem.week);
+    vaiAlDettaglio(recItem.exercise.id, recItem.week, {
+      isRecupero: 'true',
+      originGiorno: recItem.exercise.des_giorno,
+      targetWeek: recItem.week
+    });
   }
 };
 
 const vaiAlDettaglioSessione = (id) => {
   if (id) {
     vibraTattile(12);
-    router.push({ name: 'DettaglioSessione', params: { id } });
+    salvaSequenzaNavigabile(sequenzaNavigabileFlat.value, giornoSelezionato.value, settimanaAttivaGiorno.value, atletaSelezionato.value || selectedAthlete.value);
+    router.push({
+      name: 'DettaglioSessione',
+      params: { id },
+      query: { giornoSessione: giornoSelezionato.value }
+    });
   }
 };
 
-const vibraTattile = (ms = 12) => {
-  if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
-  if (navigator.vibrate) {
-    navigator.vibrate(ms);
-  }
-};
+
 
 
 
@@ -7373,213 +7578,7 @@ const ripristinaMesociclo = async () => {
   }
 };
 
-// --- LOGICA DI RECUPERO E COMPLETAMENTO ESERCIZI (COMBINAZIONE A+B) ---
-const dialogRecuperiAvviso = ref(false);
-const logRecuperi = ref({});
-const pannelloRecuperiAperto = ref(true);
-const recuperoAccordionAperto = ref(null);
 
-const toggleRecuperoAccordion = (giorno) => {
-  recuperoAccordionAperto.value = recuperoAccordionAperto.value === giorno ? null : giorno;
-};
-
-const impostaRecuperoValore = (valoreAttuale, attivo) => {
-  let str = (valoreAttuale || '').trim();
-  if (attivo) {
-    if (!str.includes('[RECUPERA]')) {
-      str = str ? `${str} [RECUPERA]` : '[RECUPERA]';
-    }
-  } else {
-    str = str.replace(/\s*\[RECUPERA\]/g, '').trim();
-  }
-  return str;
-};
-
-const salvaValoreEsercizio = async (ex, w, valore) => {
-  const campo = 'ins_week' + w;
-  ex[campo] = valore;
-  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  ex.timestamp_ute = getTimestampUte();
-  
-  const key1 = `offline_storyboard_${ex.id}`;
-  let updates = {};
-  const localData1 = localStorage.getItem(key1);
-  if (localData1) {
-    try { updates = JSON.parse(localData1); } catch (e) {}
-  }
-  updates[campo] = valore;
-  updates['timestamp'] = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  updates['timestamp_ute'] = getTimestampUte();
-  localStorage.setItem(key1, JSON.stringify(updates));
-
-  try {
-    const docRef = doc(db, 'STORYBOARD', ex.id);
-    await setDoc(docRef, { [campo]: valore, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
-    console.log("Valore esercizio salvato con successo!");
-  } catch (err) {
-    console.warn("Errore salvataggio esercizio:", err);
-  }
-  
-  controllaEChiudiGiornoAutomatico();
-};
-
-const toggleRecupero = async (ex, attivo) => {
-  vibraTattile(15);
-  const w = settimanaAttivaGiorno.value;
-  const valoreAttuale = ex['ins_week' + w] || '';
-  const nuovoValore = impostaRecuperoValore(valoreAttuale, attivo);
-  await salvaValoreEsercizio(ex, w, nuovoValore);
-};
-
-const concludiRecuperoRapido = async (recItem) => {
-  vibraTattile(20);
-  const ex = recItem.exercise;
-  const w = recItem.week;
-  
-  let original = recItem.originalVal.replace(/\s*\[RECUPERA\]/g, '').replace(/\s*\[RECUPERATO\]/g, '').trim();
-  let valoreFinale = '';
-  
-  if (!original || original === '-') {
-    valoreFinale = 'Recuperato';
-  } else {
-    valoreFinale = `${original} [RECUPERATO]`;
-  }
-  
-  await salvaValoreEsercizio(ex, w, valoreFinale);
-};
-
-const eserciziDaRecuperare = computed(() => {
-  if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return [];
-  
-  const giornoCorrente = (giornoSelezionato.value || '').trim().toUpperCase();
-  if (!giornoCorrente) return [];
-  
-  const giorniOrdinati = listaGiorniDisponibili.value.map(g => g.toUpperCase());
-  const idxCorrente = giorniOrdinati.indexOf(giornoCorrente);
-  if (idxCorrente < 0) return [];
-  
-  const list = [];
-  
-  const headersMap = {};
-  listaAllenamenti.value.forEach(item => {
-    if (parseInt(item.num_riga_giorno) === 0) {
-      const g = (item.des_giorno || '').trim().toUpperCase();
-      headersMap[g] = item;
-    }
-  });
-
-  listaAllenamenti.value.forEach(ex => {
-    if (parseInt(ex.num_riga_giorno) === 0) return;
-    
-    const giornoEx = (ex.des_giorno || '').trim().toUpperCase();
-    const idxEx = giorniOrdinati.indexOf(giornoEx);
-    
-    const header = headersMap[giornoEx];
-    if (!header) return;
-    
-    for (let w = 1; w <= 6; w++) {
-      let isPastSession = false;
-      if (w < settimanaAttiva.value) {
-        isPastSession = true;
-      } else if (w === settimanaAttiva.value && idxEx >= 0 && idxEx < idxCorrente) {
-        isPastSession = true;
-      }
-      
-      if (isPastSession) {
-        const giornoCompletato = isCmpTrue(header['cmp' + w]);
-        if (giornoCompletato) {
-          const val = ex['ins_week' + w] || '';
-          if (haRecupero(val)) {
-            const prescrizione = ex['des_week' + w] || ex.des_qta_report || '';
-            list.push({
-              exercise: ex,
-              week: w,
-              prescrizione,
-              originalVal: val
-            });
-          }
-        }
-      }
-    }
-  });
-  
-  return list;
-});
-
-// Classificazione complessità esercizi per ordinamento intelligente
-// Priorità: 1 = Multiarticolari pesanti (alto impatto SNC) → 2 = Multiarticolari leggeri → 3 = Isolamento → 4 = Core/Stabilità
-const classificaComplessitaEsercizio = (nomeEsercizio) => {
-  const nome = (nomeEsercizio || '').toLowerCase();
-  
-  // 1 — Multiarticolari pesanti (alto impatto SNC, eseguire per primi)
-  const compound_heavy = [
-    'squat', 'stacco', 'deadlift', 'panca piana', 'bench press',
-    'military press', 'overhead press', 'pressa', 'leg press',
-    'distensioni', 'trazioni', 'pull-up', 'chin-up', 'pullup',
-    'rematore', 'row', 'hip thrust', 'clean', 'snatch', 'jerk',
-    'good morning', 'front squat', 'back squat', 'bulgaro',
-    'affondi', 'lunge', 'dip', 'muscle up'
-  ];
-  
-  // 2 — Multiarticolari leggeri / accessori compound
-  const compound_light = [
-    'lat machine', 'lat pull', 'pulldown', 'cable row',
-    'chest press', 'shoulder press', 'push up', 'piegamenti',
-    'leg curl', 'leg extension', 'hack squat', 'step up',
-    'tirata', 'alzate', 'remata', 'pulley', 'seated row',
-    'incline', 'decline', 't-bar', 'pendlay'
-  ];
-  
-  // 4 — Core e stabilità (eseguire per ultimi)
-  const core = [
-    'plank', 'crunch', 'addominali', 'obliqui', 'core',
-    'sit up', 'sit-up', 'russian twist', 'hollow', 'ab wheel',
-    'woodchop', 'pallof', 'bird dog', 'dead bug', 'superman',
-    'hyperextension', 'iperestensioni', 'back extension'
-  ];
-  
-  if (compound_heavy.some(kw => nome.includes(kw))) return 1;
-  if (compound_light.some(kw => nome.includes(kw))) return 2;
-  if (core.some(kw => nome.includes(kw))) return 4;
-  return 3; // Default: isolamento / accessorio
-};
-
-const labelComplessita = (livello) => {
-  switch (livello) {
-    case 1: return '🔴 Alta intensità SNC';
-    case 2: return '🟠 Compound accessorio';
-    case 3: return '🟡 Isolamento';
-    case 4: return '🟢 Core / Stabilità';
-    default: return '';
-  }
-};
-
-// Raggruppa gli esercizi da recuperare per giorno di origine
-const recuperiRaggruppati = computed(() => {
-  const grouped = {};
-  eserciziDaRecuperare.value.forEach(item => {
-    const g = (item.exercise.des_giorno || '').trim().toUpperCase();
-    if (!grouped[g]) {
-      grouped[g] = { giorno: g, esercizi: [] };
-    }
-    // Aggiungi livello di complessità per ordinamento
-    const complessita = classificaComplessitaEsercizio(item.exercise.des_esercizio);
-    grouped[g].esercizi.push({ ...item, complessita });
-  });
-  
-  // Ordina per giorno, e dentro ogni giorno ordina per complessità (compound first → core last)
-  const result = Object.values(grouped).sort((a, b) => a.giorno.localeCompare(b.giorno));
-  result.forEach(gruppo => {
-    gruppo.esercizi.sort((a, b) => a.complessita - b.complessita);
-  });
-  
-  // Se l'accordion aperto non esiste più (esercizi completati), resetta a null
-  if (recuperoAccordionAperto.value && !grouped[recuperoAccordionAperto.value]) {
-    recuperoAccordionAperto.value = null;
-  }
-  
-  return result;
-});
 </script>
 
 <style scoped>

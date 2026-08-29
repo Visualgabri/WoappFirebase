@@ -1089,65 +1089,74 @@
             </div>
 
 
-            <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA -->
+            <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA (Soluzione 3: Multi-Chip) -->
             <div 
-              v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'forma' || sett === 1)"
+              v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'multichip' || stileVisualizzazioneGhost === 'forma')"
               class="d-flex flex-wrap gap-1.5 mt-1.5 mb-2.5 w-100 align-center justify-space-between animate-fade-in"
             >
-              <div class="w-100 text-super-caption text-left text-muted mb-1" style="font-size: 0.58rem !important; letter-spacing: 0.05em;">
-                {{ (sett === 1 && getGhostLiftSmart(sett).recordVal) ? '🏆 SFIDA IL RECORD IN WEEK 1:' : (sett === 1 ? '💡 RANGE PROPOSTO IN WEEK 1:' : (stileVisualizzazioneGhost === 'forma' ? '💡 COME TI SENTI OGGI?' : (stileVisualizzazioneGhost === 'marce' ? '⚙️ SELEZIONA LA MARCIA:' : '💡 TOCCA PER APPLICARE:'))) }}
+              <div class="w-100 text-super-caption text-left text-muted mb-1 d-flex align-center justify-space-between" style="font-size: 0.58rem !important; letter-spacing: 0.05em;">
+                <span class="font-weight-black uppercase text-slate-300">
+                  {{ (sett === 1 && getGhostLiftSmart(sett).recordVal) ? '🏆 SFIDA IL RECORD IN W1:' : '💡 SCEGLI LA STRATEGIA PER QUESTA SESSIONE:' }}
+                </span>
+                <span class="text-super-caption text-slate-500 font-weight-bold" style="font-size: 0.52rem;">Tocca per inserire</span>
               </div>
               
-              <!-- 1. PRUDENZIALE / STANCO / MARCIA 1 -->
+              <!-- 1. PRUDENZIALE / VOLUME -->
               <v-btn
                 :variant="sensibilitaFaticaGhost === 'conservativa' ? 'flat' : 'outlined'"
                 :color="sensibilitaFaticaGhost === 'conservativa' ? 'green-darken-2' : 'blue-lighten-2'"
                 size="x-small"
-                class="flex-grow-1 text-none px-2 rounded-lg"
+                class="flex-grow-1 text-none px-1.5 rounded-lg border-soft"
                 :class="{ 'text-white': sensibilitaFaticaGhost === 'conservativa' }"
-                style="height: 32px; font-size: 0.72rem; min-width: 30%; max-width: 32%; background: rgba(144, 205, 244, 0.04);"
+                style="height: 34px; font-size: 0.72rem; min-width: 30%; max-width: 32%; background: rgba(144, 205, 244, 0.05);"
                 @click="applicaPropostaCaricoRapida(sett, getGhostWeightsRangeForWeek(sett).prudenziale.value)"
               >
-                <div class="d-flex flex-column align-center line-height-tight">
-                  <span class="font-weight-black" :class="sensibilitaFaticaGhost === 'conservativa' ? 'text-white' : 'text-blue-lighten-3'">{{ getGhostWeightsRangeForWeek(sett).prudenziale.display }}</span>
-                  <span style="font-size: 0.52rem; opacity: 0.85;" class="text-truncate">
-                    {{ sett === 1 ? getGhostWeightsRangeForWeek(sett).prudenziale.label : (stileVisualizzazioneGhost === 'forma' ? 'Stanco' : (stileVisualizzazioneGhost === 'marce' ? 'M1 (Safe)' : getGhostWeightsRangeForWeek(sett).prudenziale.label)) }}
+                <div class="d-flex flex-column align-center line-height-tight py-0.5">
+                  <span class="font-weight-black" :class="sensibilitaFaticaGhost === 'conservativa' ? 'text-white' : 'text-blue-lighten-3'">
+                    {{ getGhostWeightsRangeForWeek(sett).prudenziale.display }}
+                  </span>
+                  <span style="font-size: 0.50rem; opacity: 0.85;" class="text-truncate">
+                    🛡️ {{ getGhostWeightsRangeForWeek(sett).prudenziale.label }}
                   </span>
                 </div>
               </v-btn>
 
-              <!-- 2. CONSIGLIATO / NORMALE / MARCIA 2 -->
+              <!-- 2. CONSIGLIATO / ROTTA -->
               <v-btn
                 :variant="sensibilitaFaticaGhost === 'bilanciata' ? 'flat' : 'outlined'"
                 color="green-darken-2"
                 size="x-small"
-                class="flex-grow-1 text-none px-2 rounded-lg"
+                class="flex-grow-1 text-none px-1.5 rounded-lg border-soft"
                 :class="{ 'text-white': sensibilitaFaticaGhost === 'bilanciata' }"
-                style="height: 32px; font-size: 0.72rem; min-width: 30%; max-width: 32%;"
+                style="height: 34px; font-size: 0.72rem; min-width: 30%; max-width: 32%; background: rgba(74, 222, 128, 0.06);"
                 @click="applicaPropostaCaricoRapida(sett, getGhostWeightsRangeForWeek(sett).consigliato.value)"
               >
-                <div class="d-flex flex-column align-center line-height-tight">
-                  <span class="font-weight-black" :class="sensibilitaFaticaGhost === 'bilanciata' ? 'text-white' : ''">{{ getGhostWeightsRangeForWeek(sett).consigliato.display }}</span>
-                  <span style="font-size: 0.52rem; opacity: 0.9;" class="text-truncate">
-                    {{ sett === 1 ? getGhostWeightsRangeForWeek(sett).consigliato.label : (stileVisualizzazioneGhost === 'forma' ? 'Normale' : (stileVisualizzazioneGhost === 'marce' ? 'M2 (Prog)' : getGhostWeightsRangeForWeek(sett).consigliato.label)) }}
+                <div class="d-flex flex-column align-center line-height-tight py-0.5">
+                  <span class="font-weight-black" :class="sensibilitaFaticaGhost === 'bilanciata' ? 'text-white' : 'text-green-accent-3'">
+                    {{ getGhostWeightsRangeForWeek(sett).consigliato.display }}
+                  </span>
+                  <span style="font-size: 0.50rem; opacity: 0.9;" class="text-truncate">
+                    🎯 {{ getGhostWeightsRangeForWeek(sett).consigliato.label }}
                   </span>
                 </div>
               </v-btn>
 
-              <!-- 3. SFIDANTE / FORTE / MARCIA 3 -->
+              <!-- 3. SFIDANTE / PICCO -->
               <v-btn
                 :variant="sensibilitaFaticaGhost === 'aggressiva' ? 'flat' : 'outlined'"
                 :color="sensibilitaFaticaGhost === 'aggressiva' ? 'green-darken-2' : 'amber-darken-2'"
                 size="x-small"
-                class="flex-grow-1 text-none px-2 rounded-lg"
+                class="flex-grow-1 text-none px-1.5 rounded-lg border-soft"
                 :class="{ 'text-white': sensibilitaFaticaGhost === 'aggressiva' }"
-                style="height: 32px; font-size: 0.72rem; min-width: 30%; max-width: 32%; background: rgba(245, 158, 11, 0.04);"
+                style="height: 34px; font-size: 0.72rem; min-width: 30%; max-width: 32%; background: rgba(245, 158, 11, 0.05);"
                 @click="applicaPropostaCaricoRapida(sett, getGhostWeightsRangeForWeek(sett).sfidante.value)"
               >
-                <div class="d-flex flex-column align-center line-height-tight">
-                  <span class="font-weight-black" :class="sensibilitaFaticaGhost === 'aggressiva' ? 'text-white' : 'text-amber-lighten-2'">{{ getGhostWeightsRangeForWeek(sett).sfidante.display }}</span>
-                  <span style="font-size: 0.52rem; opacity: 0.85;" class="text-truncate">
-                    {{ sett === 1 ? getGhostWeightsRangeForWeek(sett).sfidante.label : (stileVisualizzazioneGhost === 'forma' ? 'Forte' : (stileVisualizzazioneGhost === 'marce' ? 'M3 (PR!)' : getGhostWeightsRangeForWeek(sett).sfidante.label)) }}
+                <div class="d-flex flex-column align-center line-height-tight py-0.5">
+                  <span class="font-weight-black" :class="sensibilitaFaticaGhost === 'aggressiva' ? 'text-white' : 'text-amber-lighten-2'">
+                    {{ getGhostWeightsRangeForWeek(sett).sfidante.display }}
+                  </span>
+                  <span style="font-size: 0.50rem; opacity: 0.85;" class="text-truncate">
+                    ⚡ {{ getGhostWeightsRangeForWeek(sett).sfidante.label }}
                   </span>
                 </div>
               </v-btn>

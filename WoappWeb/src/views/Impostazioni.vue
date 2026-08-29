@@ -296,19 +296,33 @@
 
         <!-- Suggerimenti e Stile Carico Consigliato -->
         <div>
-          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.65rem;">Stile Carichi Consigliati</span>
+          <div class="d-flex align-center justify-space-between mb-1">
+            <span class="text-caption font-weight-bold text-slate-dark uppercase" style="font-size: 0.65rem;">Stile Suggerimento Carichi</span>
+            <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.58rem;">
+              {{ (stileVisualizzazioneGhost === 'multichip' || stileVisualizzazioneGhost === 'forma') ? '⚡ Multi-Chip' : '📄 Classico' }}
+            </span>
+          </div>
           <v-btn-toggle
             v-model="stileVisualizzazioneGhost"
             mandatory
             selected-class="v-btn--active bg-theme-primary text-white"
             density="compact"
             rounded="lg"
-            class="w-100 card-glass border mb-2"
-            style="height: 32px;"
+            class="w-100 card-glass border mb-1"
+            style="height: 34px;"
           >
-            <v-btn value="range" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Solo Range</v-btn>
-            <v-btn value="forma" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">Stato Forma</v-btn>
+            <v-btn value="range" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+              <v-icon size="14" class="mr-1">mdi-text-box-outline</v-icon> Classico (Come prima)
+            </v-btn>
+            <v-btn value="multichip" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
+              <v-icon size="14" class="mr-1">mdi-view-grid-plus-outline</v-icon> Multi-Chip (Soluzione 3)
+            </v-btn>
           </v-btn-toggle>
+          <div class="text-super-caption text-slate-400 mb-2.5 px-0.5" style="font-size: 0.58rem; line-height: 1.25;">
+            {{ (stileVisualizzazioneGhost === 'multichip' || stileVisualizzazioneGhost === 'forma') 
+              ? '⚡ Mostra 3 chip rapidi sotto l’input: 🛡️ Prudenziale (Volume), 🎯 Consigliato (Rotta), ⚡ Sfidante (Picco).' 
+              : '📄 Mostra il suggerimento compatto lineare nel box superiore, senza chip invasivi sotto l’input.' }}
+          </div>
 
           <!-- Attitudine alla Progressione / Sensibilità Fatica -->
           <div class="mb-2.5">

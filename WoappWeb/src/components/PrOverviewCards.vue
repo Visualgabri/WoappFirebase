@@ -28,33 +28,45 @@
             <!-- Valore Principale: 1RM Stimato in Grande -->
             <div class="d-flex align-center justify-center my-0.5 min-width-0">
               <span class="font-weight-black text-amber-300" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
-                {{ isCorpoLiberoPuro ? prWeightDisplay : (prE1rmDisplay ? `${prE1rmDisplay}` : prWeightDisplay) }}
+                <template v-if="hasPRRecord">
+                  {{ isCorpoLiberoPuro ? prWeightDisplay : (prE1rmDisplay ? `${prE1rmDisplay}` : prWeightDisplay) }}
+                </template>
+                <template v-else>
+                  --
+                </template>
               </span>
-              <span v-if="!isCorpoLiberoPuro && prE1rmDisplay" class="text-super-caption font-weight-bold ml-1 text-amber-200/80" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+              <span v-if="hasPRRecord && !isCorpoLiberoPuro && prE1rmDisplay" class="text-super-caption font-weight-bold ml-1 text-amber-200/80" style="font-size: 0.52rem; letter-spacing: 0.02em;">
                 1RM
               </span>
             </div>
 
             <!-- Dettaglio Sotto: Peso Reale + Reps + Fatica -->
             <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-0.5" style="line-height: 1.1;">
-              <span class="text-super-caption font-weight-bold text-white text-truncate" style="font-size: 0.60rem;">
-                {{ prWeightDisplay }}
-              </span>
-              <span 
-                v-if="prRepsDisplay && !isCorpoLiberoPuro" 
-                class="text-super-caption font-weight-bold text-truncate text-amber-200/90" 
-                style="font-size: 0.58rem;"
-              >
-                {{ prRepsDisplay }}
-              </span>
-              <span 
-                v-if="faticaLetter" 
-                class="text-super-caption font-weight-bold text-truncate" 
-                :style="{ color: faticaColor, fontSize: '0.58rem' }"
-                :title="`Fatica: ${bestReal?.fatica || faticaLetter}`"
-              >
-                ({{ faticaLetter }})
-              </span>
+              <template v-if="hasPRRecord">
+                <span class="text-super-caption font-weight-bold text-white text-truncate" style="font-size: 0.60rem;">
+                  {{ prWeightDisplay }}
+                </span>
+                <span 
+                  v-if="prRepsDisplay && !isCorpoLiberoPuro" 
+                  class="text-super-caption font-weight-bold text-truncate text-amber-200/90" 
+                  style="font-size: 0.58rem;"
+                >
+                  {{ prRepsDisplay }}
+                </span>
+                <span 
+                  v-if="faticaLetter" 
+                  class="text-super-caption font-weight-bold text-truncate" 
+                  :style="{ color: faticaColor, fontSize: '0.58rem' }"
+                  :title="`Fatica: ${bestReal?.fatica || faticaLetter}`"
+                >
+                  ({{ faticaLetter }})
+                </span>
+              </template>
+              <template v-else>
+                <span class="text-super-caption text-slate-400 text-truncate" style="font-size: 0.58rem;">
+                  1° ciclo a {{ cleanTargetReps }} reps
+                </span>
+              </template>
             </div>
           </div>
 
@@ -224,13 +236,22 @@ const isCurrentSheet = (sheetVal) => {
   return extractCleanSheetNum(sheetVal) === extractCleanSheetNum(props.workout.num_scheda);
 };
 
+// Flag Presenza Record Reps reale
+const hasPRRecord = computed(() => {
+  if (!bestReal.value) return false;
+  if (isCorpoLiberoPuro.value) return Boolean(bestReal.value.reps && bestReal.value.reps > 0);
+  return Boolean(bestReal.value.weight && bestReal.value.weight > 0);
+});
+
 // Flag Scheda Attuale
 const isCurrentPR = computed(() => Boolean(
-  bestReal.value?.isCurrentPR || 
-  bestReal.value?.isCurrent || 
-  isCurrentSheet(bestReal.value?.sheet) || 
-  (typeof bestReal.value?.date === 'string' && bestReal.value.date.toLowerCase().includes('questa scheda')) ||
-  (typeof bestReal.value?.tempoTrascorso === 'string' && bestReal.value.tempoTrascorso.toLowerCase().includes('questa scheda'))
+  hasPRRecord.value && (
+    bestReal.value?.isCurrentPR || 
+    bestReal.value?.isCurrent || 
+    isCurrentSheet(bestReal.value?.sheet) || 
+    (typeof bestReal.value?.date === 'string' && bestReal.value.date.toLowerCase().includes('questa scheda')) ||
+    (typeof bestReal.value?.tempoTrascorso === 'string' && bestReal.value.tempoTrascorso.toLowerCase().includes('questa scheda'))
+  )
 ));
 
 const isNewPeak = computed(() => Boolean(
@@ -385,7 +406,7 @@ const formatTimeAgo = (dateVal) => {
 
 // Formato standard: Sch. [numero] · [tempo trascorso abbreviato] (mostra solo il numero senza lettere e solo tempo trascorso)
 const card1ProvenienzaFormatted = computed(() => {
-  if (!bestReal.value) return 'Storico';
+  if (!hasPRRecord.value) return `Nuovo target ${cleanTargetReps.value}r`;
   const rawSheet = bestReal.value.sheet || props.workout?.num_scheda;
   const cleanNum = extractCleanSheetNum(rawSheet) || extractCleanSheetNum(props.workout?.num_scheda);
   const sNumStr = cleanNum ? `Sch. ${cleanNum}` : 'Sch. -';

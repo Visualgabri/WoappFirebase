@@ -484,19 +484,19 @@
               <div class="text-center d-flex flex-column align-center justify-center">
                 <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">
                   <template v-if="recordOverviewData?.bestReal?.weight > 0">
-                    Record {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                    Record {{ formatRepsDisplay(recordOverviewData.bestReal.reps || getRepsPerWeek(aiutoWeek || settimanaAttiva)) }} Reps
                   </template>
-                  <template v-else-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(settimanaAttiva)">
+                  <template v-else-if="recordMaxRepsInfo && recordMaxRepsInfo.maxReps > getRepsPerWeek(aiutoWeek || settimanaAttiva)">
                     Record {{ recordMaxRepsInfo.maxReps }} Reps
                   </template>
                   <template v-else-if="suggerimentoRecord && (suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0)">
-                    Max {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                    Max {{ getRepsPerWeek(aiutoWeek || settimanaAttiva) }} Reps
                   </template>
                   <template v-else-if="currentWeekLoggedWeight">
-                    Record {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                    Record {{ getRepsPerWeek(aiutoWeek || settimanaAttiva) }} Reps
                   </template>
                   <template v-else>
-                    Target {{ getRepsPerWeek(settimanaAttiva) }} Reps
+                    Target {{ getRepsPerWeek(aiutoWeek || settimanaAttiva) }} Reps
                   </template>
                 </span>
                 <span class="font-weight-black d-inline-flex align-center justify-center gap-0.5" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordOverviewData?.bestReal?.isCurrentPR || recordMaxRepsInfo?.isCurrentMeso || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
@@ -8850,8 +8850,8 @@ const getGhostRenderInfo = (sett) => {
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     
-    if (isAttaccoPRProtagonista) {
-      label = sett === 6 ? 'Consigliato (Attacco PR):' : 'Consigliato (Attacco PR):';
+    if (isAttaccoPRProtagonista || (sett === 6 && ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
+      label = 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
     } else if (sensibilitaFaticaGhost.value === 'conservativa') {
@@ -8894,8 +8894,8 @@ const getGhostRenderInfo = (sett) => {
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     
-    if (isAttaccoPRProtagonista) {
-      label = sett === 6 ? 'Consigliato (Attacco PR):' : 'Consigliato (Attacco PR):';
+    if (isAttaccoPRProtagonista || (sett === 6 && ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
+      label = 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
     } else if (sensibilitaFaticaGhost.value === 'conservativa') {
@@ -8951,8 +8951,8 @@ const getGhostRenderInfo = (sett) => {
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     
-    if (isAttaccoPRProtagonista) {
-      label = sett === 6 ? 'Consigliato (Attacco PR):' : 'Consigliato (Attacco PR):';
+    if (isAttaccoPRProtagonista || (sett === 6 && ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
+      label = 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
     } else if (sensibilitaFaticaGhost.value === 'conservativa') {

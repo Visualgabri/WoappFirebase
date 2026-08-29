@@ -441,6 +441,24 @@
             </div>
 
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
+
+            <!-- Priorità Rotta di Carico (Allineamento Strategia Coach) -->
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+              <div>
+                <span class="text-caption font-weight-bold text-cyan-accent-2 d-block" style="font-size: 0.72rem;">Priorità Rotta di Carico (Allineamento Strategia)</span>
+                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Allinea le proposte Ghost ai carichi target della Strategia (+Kg su step reale) evitando blocchi a sole reps</span>
+              </div>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="allineamentoRottaGhost"
+                  color="cyan-darken-2"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
+            </div>
+
+            <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
             <!-- Ottimizza Digitazione Note -->
             <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
@@ -995,6 +1013,7 @@ import {
   ghostAnalisiNoteAttiva,
   arrotondamentoCarichiRealisticiGlobal,
   previsioneStrategicaAttiva,
+  allineamentoRottaGhost,
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
   defaultTimerRecGlobal,

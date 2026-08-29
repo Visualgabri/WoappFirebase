@@ -5913,7 +5913,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -7975,10 +7975,16 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
             pesoRiferimento = Math.max(infoBase.pesoBase, e1rmBase / (1 + infoBase.repsTarget / 30));
           }
           
-          const maxFisiologico = pesoRiferimento * (1 + maxIncPct);
+          let maxFisiologico = pesoRiferimento * (1 + maxIncPct);
+          if (allineamentoRottaGhost.value) {
+            // Con l'allineamento della rotta attivo, garantiamo che lo step minimo reale dell'attrezzo
+            // sia sempre ammesso evitando che i carichi leggeri restino bloccati dalla percentuale
+            maxFisiologico = Math.max(maxFisiologico, pesoRiferimento + stepVal, infoBase.pesoBase + stepVal);
+          }
+          
           // Se il salto forzato dallo step supera il limite massimo fisiologico
           if (propostoRotta > maxFisiologico) {
-             return infoBase.pesoBase;
+             return allineamentoRottaGhost.value ? propostoRotta : infoBase.pesoBase;
           }
         }
         
@@ -7988,7 +7994,7 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   }
 
   // Nuova regola per Week 2 a peso
-  if (sett === 2 && regolaProgressioneW2.value === 'peso') {
+  if (sett === 2 && (regolaProgressioneW2.value === 'peso' || allineamentoRottaGhost.value)) {
     const infoBase = getBaseWeekInfo(2);
     if (infoBase && infoBase.pesoBase !== null && infoBase.pesoBase > 0) {
       const isManubri = isManubriEsercizio(workout.value);
@@ -7997,12 +8003,10 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
       const targetP = infoBase.pesoBase + step;
       const maxIncrementoPct = isManubri ? 0.08 : (isCavo ? 0.05 : 0.08);
       
-      // Se il salto forzato dallo step non supera il massimale di progressione sicura (es. 8%), lo approviamo
-      if (targetP <= infoBase.pesoBase * (1 + maxIncrementoPct) + 0.1) {
+      // Se il salto forzato dallo step non supera il massimale di progressione sicura (es. 8%) o allineamento rotta è attivo, approviamo
+      if (allineamentoRottaGhost.value || targetP <= infoBase.pesoBase * (1 + maxIncrementoPct) + 0.1) {
         return targetP;
       }
-      // Altrimenti lo step genera un salto irrealistico (es. W1 26kg + 5kg = 31kg > +15%).
-      // Ignoriamo la forzatura del salto di peso per far subentrare la logica smart (progressione su reps).
       return infoBase.pesoBase;
     }
   }
@@ -8565,8 +8569,8 @@ const getGhostWeightsRangeForWeek = (sett) => {
   if (repsTarget < repsBaseVal) {
     const e1rmBase = pesoBase * (1 + repsBaseVal / 30);
     const e1rmConsigliato = pesoConsigliato * (1 + repsTarget / 30);
-    // Un peso senza reps per le repsTarget è valido solo se è aumentato rispetto a W1 e pareggia o supera l'1RM base (entro il 95%)
-    const isValidoTargetReps = (pesoConsigliato > pesoBase) && (e1rmConsigliato >= (e1rmBase * 0.95));
+    // Un peso senza reps per le repsTarget è valido solo se è aumentato rispetto a W1 e pareggia o supera l'1RM base (entro il 95%) o se allineamento rotta è attivo
+    const isValidoTargetReps = (pesoConsigliato > pesoBase) && (allineamentoRottaGhost.value || (e1rmConsigliato >= (e1rmBase * 0.95)));
 
     // Se l'atleta vuole progredire a parità di peso base (Safe):
     // Per avere una progressione reale di volume rispetto a quanto già fatto (repsBaseVal), propone +1 rep (es. 36x10r o 65x14r)

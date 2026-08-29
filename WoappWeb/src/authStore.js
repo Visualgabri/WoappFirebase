@@ -1564,6 +1564,7 @@ export const sensibilitaFaticaGhost = ref(localStorage.getItem('sensibilitaFatic
 export const ghostAnalisiNoteAttiva = ref(localStorage.getItem('ghostAnalisiNoteAttiva_' + curAtletaId) === 'true');
 export const arrotondamentoCarichiRealisticiGlobal = ref(localStorage.getItem('arrotondamentoCarichiRealistici_' + curAtletaId) !== 'false');
 export const previsioneStrategicaAttiva = ref(localStorage.getItem('previsioneStrategicaAttiva_' + curAtletaId) === 'true');
+export const allineamentoRottaGhost = ref(localStorage.getItem('allineamentoRottaGhost_' + curAtletaId) !== 'false');
 
 export const defaultBilanciereGlobal = ref(parseFloat(localStorage.getItem('woapp_default_bilanciere') || '20'));
 export const vibrazioneAttivaGlobal = ref(localStorage.getItem('woapp_vibrazione_attiva') !== 'false');
@@ -1654,7 +1655,8 @@ export const salvaClienteConfigFirestore = () => {
           sensibilitaFatica: sensibilitaFaticaGhost.value,
           analisiNoteAttiva: ghostAnalisiNoteAttiva.value,
           arrotondamentoCarichiRealistici: arrotondamentoCarichiRealisticiGlobal.value,
-          previsioneStrategicaAttiva: previsioneStrategicaAttiva.value
+          previsioneStrategicaAttiva: previsioneStrategicaAttiva.value,
+          allineamentoRotta: allineamentoRottaGhost.value
         },
         uiSettings: {
           userTheme: currentTheme.value,
@@ -1708,6 +1710,7 @@ export const syncClienteConfigListener = () => {
   ghostAnalisiNoteAttiva.value = localStorage.getItem('ghostAnalisiNoteAttiva_' + atletaId) === 'true';
   arrotondamentoCarichiRealisticiGlobal.value = localStorage.getItem('arrotondamentoCarichiRealistici_' + atletaId) !== 'false';
   previsioneStrategicaAttiva.value = localStorage.getItem('previsioneStrategicaAttiva_' + atletaId) === 'true';
+  allineamentoRottaGhost.value = localStorage.getItem('allineamentoRottaGhost_' + atletaId) !== 'false';
 
   const docRef = doc(db, 'UTENTI_CONFIG', String(atletaId));
 
@@ -1759,6 +1762,10 @@ export const syncClienteConfigListener = () => {
       if (ghost.previsioneStrategicaAttiva !== undefined) {
         previsioneStrategicaAttiva.value = ghost.previsioneStrategicaAttiva === true;
         localStorage.setItem('previsioneStrategicaAttiva_' + atletaId, String(ghost.previsioneStrategicaAttiva));
+      }
+      if (ghost.allineamentoRotta !== undefined) {
+        allineamentoRottaGhost.value = ghost.allineamentoRotta !== false;
+        localStorage.setItem('allineamentoRottaGhost_' + atletaId, String(ghost.allineamentoRotta));
       }
 
       if (ui.userTheme !== undefined && ui.userTheme !== currentTheme.value) {
@@ -1854,6 +1861,7 @@ watch([
   ghostAnalisiNoteAttiva,
   arrotondamentoCarichiRealisticiGlobal,
   previsioneStrategicaAttiva,
+  allineamentoRottaGhost,
   defaultBilanciereGlobal,
   vibrazioneAttivaGlobal,
   defaultTimerRecGlobal,
@@ -1870,6 +1878,7 @@ watch([
     localStorage.setItem('ghostAnalisiNoteAttiva_' + atletaId, String(ghostAnalisiNoteAttiva.value));
     localStorage.setItem('arrotondamentoCarichiRealistici_' + atletaId, String(arrotondamentoCarichiRealisticiGlobal.value));
     localStorage.setItem('previsioneStrategicaAttiva_' + atletaId, String(previsioneStrategicaAttiva.value));
+    localStorage.setItem('allineamentoRottaGhost_' + atletaId, String(allineamentoRottaGhost.value));
     localStorage.setItem('woapp_default_bilanciere', String(defaultBilanciereGlobal.value));
     localStorage.setItem('woapp_vibrazione_attiva', String(vibrazioneAttivaGlobal.value));
     localStorage.setItem('woapp_default_timer_rec', String(defaultTimerRecGlobal.value));

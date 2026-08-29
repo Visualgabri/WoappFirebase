@@ -4456,10 +4456,10 @@
               class="table-responsive-wrapper rounded-xl border border-soft scrollbar-hidden flex-grow-1 w-100"
               style="min-height: 300px; flex: 1 1 auto;"
             >
-              <table class="premium-storico-table" style="width: 1825px; table-layout: fixed; border-collapse: collapse;">
+              <table class="premium-storico-table" style="width: 1840px; table-layout: fixed; border-collapse: collapse;">
                 <thead>
                   <tr>
-                    <th class="sticky-col header-cell text-left" style="width: 75px;">Scheda</th>
+                    <th class="sticky-col header-cell text-left" style="width: 88px;">Scheda</th>
                     <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}" :style="{ opacity: (soloCorrispondenti && getRepsPerWeek(w) !== targetRepsRange) ? 0.45 : 1.0 }">
                       <div class="table-header-title font-weight-bold">W{{ w }}</div>
                     </th>
@@ -4484,55 +4484,63 @@
                       class="sticky-col body-cell text-left" 
                       :class="{'red-scheda-cell': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}"
                       :style="{
-                        background: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'rgba(34, 197, 94, 0.16) !important' : '',
+                        width: '88px !important',
+                        minWidth: '88px !important',
+                        maxWidth: '88px !important',
+                        padding: '6px 8px !important',
+                        background: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#092518 !important' : '#0b1329 !important',
                         borderLeft: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '3.5px solid #22c55e !important' : ''
                       }"
                     >
-                      <div class="d-flex align-center gap-1">
-                        <div 
-                          class="table-scheda-title font-weight-black" 
-                          :style="{
-                            fontSize: '0.75rem',
-                            lineHeight: '1.15',
-                            color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80 !important' : ''
-                          }"
-                        >
-                          S. {{ prevEx.num_scheda }}
-                        </div>
+                      <!-- Titolo Scheda -->
+                      <div 
+                        class="table-scheda-title font-weight-black text-truncate" 
+                        :style="{
+                          fontSize: '0.80rem',
+                          lineHeight: '1.2',
+                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80 !important' : ''
+                        }"
+                      >
+                        S. {{ prevEx.num_scheda }}
+                      </div>
+
+                      <!-- Badge Stato per la Scheda Attuale -->
+                      <div v-if="String(prevEx.num_scheda) === String(workout?.num_scheda)" class="my-0.5">
                         <span 
-                          v-if="String(prevEx.num_scheda) === String(workout?.num_scheda)" 
-                          class="font-weight-black uppercase px-1 py-0.2 rounded" 
-                          style="font-size: 0.50rem; line-height: 1; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4);"
+                          class="font-weight-black uppercase px-1 py-0.2 rounded d-inline-flex align-center gap-1" 
+                          style="font-size: 0.48rem; line-height: 1.1; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.45); white-space: nowrap;"
                         >
-                          ATTUALE
+                          <span style="font-size: 0.38rem;">●</span> IN CORSO
                         </span>
                       </div>
+
+                      <!-- Data Esecuzione -->
                       <div 
                         v-if="getExecutionDate(prevEx, storicoEsercizio, workout) || prevEx.dat_scheda_ult_ex || prevEx.timestamp" 
-                        class="text-super-caption font-weight-medium" 
+                        class="text-super-caption font-weight-medium text-truncate" 
                         :style="{
                           fontSize: '0.55rem',
                           whiteSpace: 'nowrap',
-                          lineHeight: '1.15',
-                          marginTop: '1px',
-                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#86efac !important' : ''
+                          lineHeight: '1.2',
+                          marginTop: '2px',
+                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#86efac !important' : '#94a3b8'
                         }"
                       >
                         {{ formattaDataStorico(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
                       </div>
+
+                      <!-- Tempo Trascorso per schede passate -->
                       <div 
-                        v-if="getExecutionDate(prevEx, storicoEsercizio, workout) || prevEx.dat_scheda_ult_ex || prevEx.timestamp" 
-                        class="font-weight-bold" 
-                        :class="String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'text-emerald-400' : 'text-orange-lighten-2'"
+                        v-if="String(prevEx.num_scheda) !== String(workout?.num_scheda) && (getExecutionDate(prevEx, storicoEsercizio, workout) || prevEx.dat_scheda_ult_ex || prevEx.timestamp)" 
+                        class="font-weight-bold text-truncate text-orange-lighten-2" 
                         :style="{
                           fontSize: '0.52rem',
                           whiteSpace: 'nowrap',
                           lineHeight: '1.1',
-                          marginTop: '1px',
-                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80 !important' : ''
+                          marginTop: '1px'
                         }"
                       >
-                        {{ String(prevEx.num_scheda) === String(workout?.num_scheda) ? '(in corso)' : tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
+                        {{ tempoTrascorso(getExecutionDate(prevEx, storicoEsercizio, workout)) }}
                       </div>
                     </td>
                     

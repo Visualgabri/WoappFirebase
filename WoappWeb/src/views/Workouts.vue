@@ -3027,29 +3027,54 @@
             class="mb-3 rounded-xl"
           ></v-text-field>
 
-          <!-- Chip Filtri Settori Muscolari -->
-          <div class="d-flex align-center gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
+          <!-- Livello 1: Chip Settori Principali (des_settore_princ) -->
+          <div class="d-flex align-center gap-1.5 overflow-x-auto pb-2 mb-2 no-scrollbar">
             <v-chip
-              v-for="settore in filtriSettoriGlobali"
+              v-for="settore in filtriSettoriPrincGlobali"
               :key="settore"
               size="x-small"
               variant="flat"
-              class="font-weight-black cursor-pointer flex-shrink-0"
-              :color="settoreFiltroGlobale === settore ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-              :class="settoreFiltroGlobale === settore ? 'text-white' : 'text-slate-dark'"
+              class="font-weight-black cursor-pointer flex-shrink-0 transition-all"
+              :color="settorePrincFiltroGlobale === settore ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+              :class="settorePrincFiltroGlobale === settore ? 'text-white elevation-2' : 'text-slate-dark'"
               style="font-size: 0.68rem; height: 24px; padding: 0 10px;"
-              @click="settoreFiltroGlobale = settore"
+              @click="selezionaSettorePrincGlobale(settore)"
             >
+              <v-icon v-if="settorePrincFiltroGlobale === settore && settore !== 'Tutti'" size="12" class="mr-1">mdi-check</v-icon>
               {{ settore }}
             </v-chip>
           </div>
+
+          <!-- Livello 2: Chip Settori Secondari (des_settore) se un Settore Principale è selezionato -->
+          <v-expand-transition>
+            <div v-if="settorePrincFiltroGlobale !== 'Tutti' && filtriSettoriSecGlobali.length > 0" class="mb-3">
+              <div class="d-flex align-center gap-1.5 overflow-x-auto px-2.5 py-1.5 rounded-xl no-scrollbar" style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(249, 115, 22, 0.35);">
+                <span class="text-super-caption font-weight-black text-orange-lighten-2 mr-1 flex-shrink-0 uppercase" style="font-size: 0.60rem;">
+                  Sotto-settori:
+                </span>
+                <v-chip
+                  v-for="sub in filtriSettoriSecGlobali"
+                  :key="sub"
+                  size="x-small"
+                  variant="flat"
+                  class="font-weight-bold cursor-pointer flex-shrink-0 transition-all"
+                  :color="settoreSecFiltroGlobale === sub ? 'amber-darken-3' : 'rgba(255, 255, 255, 0.06)'"
+                  :class="settoreSecFiltroGlobale === sub ? 'text-white elevation-1 font-weight-black' : 'text-slate-light'"
+                  style="font-size: 0.64rem; height: 20px; padding: 0 8px;"
+                  @click="settoreSecFiltroGlobale = sub"
+                >
+                  {{ sub === 'Tutti' ? 'Tutti (' + settorePrincFiltroGlobale + ')' : sub }}
+                </v-chip>
+              </div>
+            </div>
+          </v-expand-transition>
 
           <!-- Stato vuoto se nessun risultato -->
           <div v-if="risultatiRicercaGlobaleRaggruppati.length === 0" class="text-center py-8 text-muted text-caption card-glass rounded-xl pa-4">
             <v-icon size="40" color="orange-lighten-2" class="mb-2">mdi-dumbbell-off</v-icon>
             <div class="font-weight-bold text-slate-dark text-subtitle-2">Nessun esercizio trovato</div>
-            <p class="text-super-caption text-muted mt-1 mb-3">Nessuna corrispondenza per "{{ testoRicercaGlobale || settoreFiltroGlobale }}" in tutta la scheda.</p>
-            <v-btn size="small" color="orange-darken-3" variant="tonal" class="font-weight-black text-none" @click="testoRicercaGlobale = ''; settoreFiltroGlobale = 'Tutti'">
+            <p class="text-super-caption text-muted mt-1 mb-3">Nessuna corrispondenza per i filtri selezionati in tutta la scheda.</p>
+            <v-btn size="small" color="orange-darken-3" variant="tonal" class="font-weight-black text-none" @click="azzeraFiltriRicercaGlobale">
               Azzera Filtri
             </v-btn>
           </div>
@@ -3100,8 +3125,14 @@
                           {{ item.des_esercizio }}
                         </span>
                       </div>
-                      <div v-if="item.des_settore || item.des_week1" class="d-flex align-center flex-wrap gap-1 mt-1 text-super-caption">
-                        <span v-if="item.des_settore" class="text-orange-lighten-2 font-weight-black" style="font-size: 0.68rem;">
+                      <div v-if="item.des_settore || item.des_settore_princ || item.des_week1" class="d-flex align-center flex-wrap gap-1 mt-1 text-super-caption">
+                        <span v-if="item.des_settore_princ" class="text-orange-lighten-2 font-weight-black" style="font-size: 0.68rem;">
+                          {{ item.des_settore_princ }}
+                        </span>
+                        <span v-if="item.des_settore && item.des_settore !== item.des_settore_princ" class="text-amber-lighten-3 font-weight-bold" style="font-size: 0.66rem; opacity: 0.9;">
+                          › {{ item.des_settore }}
+                        </span>
+                        <span v-if="!item.des_settore_princ && item.des_settore" class="text-orange-lighten-2 font-weight-black" style="font-size: 0.68rem;">
                           {{ item.des_settore }}
                         </span>
                         <span v-if="item.des_week1" class="text-slate font-weight-medium text-truncate" style="font-size: 0.65rem; opacity: 0.85; color: #cbd5e1 !important;">
@@ -5222,71 +5253,95 @@ const settimanaDaChiuderePerGiorno = (g) => {
   return 'FINE'; // Se tutte sono chiuse
 };
 
-// Stato e Logica per Ricerca Globale Scheda (Tutti i giorni)
+// Stato e Logica per Ricerca Globale Scheda (Tutti i giorni - Gerarchia Settore Principale -> Secondario)
 const dialogRicercaGlobaleScheda = ref(false);
 const testoRicercaGlobale = ref('');
-const settoreFiltroGlobale = ref('Tutti');
+const settorePrincFiltroGlobale = ref('Tutti');
+const settoreSecFiltroGlobale = ref('Tutti');
 
-// Mappa per associare i settori specifici ai rispettivi macro-gruppi
-const appartieneAlGruppo = (settoreEsercizio, filtroSelezionato) => {
-  if (!filtroSelezionato || filtroSelezionato === 'Tutti') return true;
-  if (!settoreEsercizio) return filtroSelezionato === 'Altro';
-  
-  const sec = getSettorePrincipale(settoreEsercizio);
-  if (sec === filtroSelezionato) return true;
-
-  if (filtroSelezionato === 'Gambe') {
-    const sottoGruppiGambe = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'];
-    if (sottoGruppiGambe.includes(sec)) return true;
-  }
-
-  if (filtroSelezionato === 'Braccia') {
-    if (sec === 'Bicipiti' || sec === 'Tricipiti') return true;
-  }
-
-  return false;
+const getSettorePrincEsercizio = (ex) => {
+  if (!ex) return 'Altro';
+  const sp = (ex.des_settore_princ || '').trim();
+  if (sp) return sp;
+  return getSettorePrincipale(ex.des_settore) || 'Altro';
 };
 
-const filtriSettoriGlobali = computed(() => {
-  const set = new Set(['Tutti']);
-  const presenti = new Set();
+const getSettoreSecEsercizio = (ex) => {
+  if (!ex) return 'Altro';
+  const s = (ex.des_settore || '').trim();
+  return s || 'Altro';
+};
+
+const filtriSettoriPrincGlobali = computed(() => {
+  const set = new Set();
   if (listaAllenamenti.value) {
     listaAllenamenti.value.forEach(ex => {
-      if (parseInt(ex.num_riga_giorno) > 0 && ex.des_settore) {
-        const sec = getSettorePrincipale(ex.des_settore);
-        if (sec) presenti.add(sec);
+      if (parseInt(ex.num_riga_giorno) > 0) {
+        const sp = getSettorePrincEsercizio(ex);
+        if (sp && sp !== 'Altro') set.add(sp);
       }
     });
   }
-
-  const haGambeSotto = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'].some(g => presenti.has(g));
-  if (haGambeSotto) {
-    set.add('Gambe');
-  }
-
-  const listaPresenti = Array.from(presenti).sort();
-  listaPresenti.forEach(s => set.add(s));
-
-  return Array.from(set);
+  const ordinati = Array.from(set).sort();
+  return ['Tutti', ...ordinati];
 });
+
+const filtriSettoriSecGlobali = computed(() => {
+  if (!settorePrincFiltroGlobale.value || settorePrincFiltroGlobale.value === 'Tutti') {
+    return [];
+  }
+  const set = new Set();
+  if (listaAllenamenti.value) {
+    listaAllenamenti.value.forEach(ex => {
+      if (parseInt(ex.num_riga_giorno) > 0) {
+        const sp = getSettorePrincEsercizio(ex);
+        if (sp === settorePrincFiltroGlobale.value) {
+          const sec = getSettoreSecEsercizio(ex);
+          if (sec) set.add(sec);
+        }
+      }
+    });
+  }
+  const ordinati = Array.from(set).sort();
+  return ['Tutti', ...ordinati];
+});
+
+const selezionaSettorePrincGlobale = (sp) => {
+  settorePrincFiltroGlobale.value = sp;
+  settoreSecFiltroGlobale.value = 'Tutti';
+};
+
+const azzeraFiltriRicercaGlobale = () => {
+  testoRicercaGlobale.value = '';
+  settorePrincFiltroGlobale.value = 'Tutti';
+  settoreSecFiltroGlobale.value = 'Tutti';
+};
 
 const risultatiRicercaGlobaleRaggruppati = computed(() => {
   if (!listaAllenamenti.value || listaAllenamenti.value.length === 0) return [];
   
   let esercizi = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) > 0);
 
-  if (settoreFiltroGlobale.value && settoreFiltroGlobale.value !== 'Tutti') {
-    esercizi = esercizi.filter(ex => appartieneAlGruppo(ex.des_settore, settoreFiltroGlobale.value));
+  // Filtro per Settore Principale
+  if (settorePrincFiltroGlobale.value && settorePrincFiltroGlobale.value !== 'Tutti') {
+    esercizi = esercizi.filter(ex => getSettorePrincEsercizio(ex) === settorePrincFiltroGlobale.value);
   }
 
+  // Filtro per Settore Secondario
+  if (settoreSecFiltroGlobale.value && settoreSecFiltroGlobale.value !== 'Tutti') {
+    esercizi = esercizi.filter(ex => getSettoreSecEsercizio(ex) === settoreSecFiltroGlobale.value);
+  }
+
+  // Filtro Testuale
   if (testoRicercaGlobale.value && testoRicercaGlobale.value.trim() !== '') {
     const q = testoRicercaGlobale.value.trim().toLowerCase();
     esercizi = esercizi.filter(ex => {
       const nome = String(ex.des_esercizio || '').toLowerCase();
       const note = String(ex.des_note_attrezzo || '').toLowerCase();
       const settore = String(ex.des_settore || '').toLowerCase();
+      const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
       const attr = String(ex.des_note_gen_attr || '').toLowerCase();
-      return nome.includes(q) || note.includes(q) || settore.includes(q) || attr.includes(q);
+      return nome.includes(q) || note.includes(q) || settore.includes(q) || settorePrinc.includes(q) || attr.includes(q);
     });
   }
 

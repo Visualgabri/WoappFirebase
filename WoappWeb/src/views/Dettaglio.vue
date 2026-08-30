@@ -2492,29 +2492,54 @@
             class="mb-3 rounded-xl"
           ></v-text-field>
 
-          <!-- Chip Filtri Settori Muscolari -->
-          <div class="d-flex align-center gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
+          <!-- Livello 1: Chip Settori Principali (des_settore_princ) -->
+          <div class="d-flex align-center gap-1.5 overflow-x-auto pb-2 mb-2 no-scrollbar">
             <v-chip
-              v-for="settore in filtriSettoriDettaglio"
+              v-for="settore in filtriSettoriPrincDettaglio"
               :key="settore"
               size="x-small"
               variant="flat"
-              class="font-weight-black cursor-pointer flex-shrink-0"
-              :color="settoreFiltroDettaglio === settore ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
-              :class="settoreFiltroDettaglio === settore ? 'text-white' : 'text-slate-dark'"
+              class="font-weight-black cursor-pointer flex-shrink-0 transition-all"
+              :color="settorePrincFiltroDettaglio === settore ? 'orange-darken-3' : 'rgba(255, 255, 255, 0.08)'"
+              :class="settorePrincFiltroDettaglio === settore ? 'text-white elevation-2' : 'text-slate-dark'"
               style="font-size: 0.68rem; height: 24px; padding: 0 10px;"
-              @click="settoreFiltroDettaglio = settore"
+              @click="selezionaSettorePrincDettaglio(settore)"
             >
+              <v-icon v-if="settorePrincFiltroDettaglio === settore && settore !== 'Tutti'" size="12" class="mr-1">mdi-check</v-icon>
               {{ settore }}
             </v-chip>
           </div>
+
+          <!-- Livello 2: Chip Settori Secondari (des_settore) se un Settore Principale è selezionato -->
+          <v-expand-transition>
+            <div v-if="settorePrincFiltroDettaglio !== 'Tutti' && filtriSettoriSecDettaglio.length > 0" class="mb-3">
+              <div class="d-flex align-center gap-1.5 overflow-x-auto px-2 py-1.5 rounded-xl no-scrollbar" style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(249, 115, 22, 0.35);">
+                <span class="text-super-caption font-weight-black text-orange-lighten-2 mr-1 flex-shrink-0 uppercase" style="font-size: 0.58rem;">
+                  Sotto-settori:
+                </span>
+                <v-chip
+                  v-for="sub in filtriSettoriSecDettaglio"
+                  :key="sub"
+                  size="x-small"
+                  variant="flat"
+                  class="font-weight-bold cursor-pointer flex-shrink-0 transition-all"
+                  :color="settoreSecFiltroDettaglio === sub ? 'amber-darken-3' : 'rgba(255, 255, 255, 0.06)'"
+                  :class="settoreSecFiltroDettaglio === sub ? 'text-white elevation-1 font-weight-black' : 'text-slate-light'"
+                  style="font-size: 0.62rem; height: 20px; padding: 0 8px;"
+                  @click="settoreSecFiltroDettaglio = sub"
+                >
+                  {{ sub === 'Tutti' ? 'Tutti (' + settorePrincFiltroDettaglio + ')' : sub }}
+                </v-chip>
+              </div>
+            </div>
+          </v-expand-transition>
 
           <!-- Lista risultati della ricerca raggruppati per giorno -->
           <div v-if="eserciziRicercatiDettaglioRaggruppati.length === 0" class="text-center py-6 text-muted text-caption card-glass rounded-xl pa-4">
             <v-icon size="36" color="orange-lighten-2" class="mb-2">mdi-dumbbell-off</v-icon>
             <div class="font-weight-bold text-slate-dark text-subtitle-2">Nessun esercizio trovato</div>
-            <p class="text-super-caption text-muted mt-1 mb-3">Nessuna corrispondenza per "{{ testoRicercaDettaglio || settoreFiltroDettaglio }}" in tutta la scheda.</p>
-            <v-btn size="small" color="orange-darken-3" variant="tonal" class="font-weight-black text-none" @click="testoRicercaDettaglio = ''; settoreFiltroDettaglio = 'Tutti'">
+            <p class="text-super-caption text-muted mt-1 mb-3">Nessuna corrispondenza per i filtri selezionati in tutta la scheda.</p>
+            <v-btn size="small" color="orange-darken-3" variant="tonal" class="font-weight-black text-none" @click="azzeraFiltriRicercaDettaglio">
               Azzera Filtri
             </v-btn>
           </div>
@@ -2552,8 +2577,16 @@
                     <div class="text-caption font-weight-black text-white text-truncate" style="font-size: 0.8rem;">
                       {{ item.des_esercizio }}
                     </div>
-                    <div v-if="item.des_settore" class="text-super-caption text-orange-lighten-2 font-weight-bold" style="font-size: 0.6rem;">
-                      {{ item.des_settore }}
+                    <div v-if="item.des_settore || item.des_settore_princ" class="d-flex align-center gap-1 text-super-caption mt-0.5">
+                      <span v-if="item.des_settore_princ" class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.6rem;">
+                        {{ item.des_settore_princ }}
+                      </span>
+                      <span v-if="item.des_settore && item.des_settore !== item.des_settore_princ" class="text-amber-lighten-3 font-weight-medium" style="font-size: 0.58rem; opacity: 0.9;">
+                        › {{ item.des_settore }}
+                      </span>
+                      <span v-if="!item.des_settore_princ && item.des_settore" class="text-orange-lighten-2 font-weight-bold" style="font-size: 0.6rem;">
+                        {{ item.des_settore }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -11119,60 +11152,71 @@ const settimanaAttiva = ref(1);
 const tuttiEserciziGiorno = ref([]);
 const tuttiEserciziScheda = ref([]);
 
-// Ricerca Rapida Esercizi nel Dettaglio (Tutta la Scheda)
+// Ricerca Rapida Esercizi nel Dettaglio (Tutta la Scheda - Gerarchia Settore Principale -> Secondario)
 const dialogRicercaRapida = ref(false);
 const testoRicercaDettaglio = ref('');
-const settoreFiltroDettaglio = ref('Tutti');
+const settorePrincFiltroDettaglio = ref('Tutti');
+const settoreSecFiltroDettaglio = ref('Tutti');
 
-// Mappa per associare i settori specifici / analitici ai rispettivi macro-gruppi
-const appartieneAlGruppo = (settoreEsercizio, filtroSelezionato) => {
-  if (!filtroSelezionato || filtroSelezionato === 'Tutti') return true;
-  if (!settoreEsercizio) return filtroSelezionato === 'Altro';
-  
-  const sec = getSettorePrincipale(settoreEsercizio);
-  if (sec === filtroSelezionato) return true;
-
-  // Se l'utente ha selezionato "Gambe", include anche tutti i sotto-gruppi degli arti inferiori
-  if (filtroSelezionato === 'Gambe') {
-    const sottoGruppiGambe = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'];
-    if (sottoGruppiGambe.includes(sec)) return true;
-  }
-
-  // Se l'utente ha selezionato "Braccia", include Bicipiti e Tricipiti
-  if (filtroSelezionato === 'Braccia') {
-    if (sec === 'Bicipiti' || sec === 'Tricipiti') return true;
-  }
-
-  return false;
+const getSettorePrincEsercizioDettaglio = (ex) => {
+  if (!ex) return 'Altro';
+  const sp = (ex.des_settore_princ || '').trim();
+  if (sp) return sp;
+  return getSettorePrincipale(ex.des_settore) || 'Altro';
 };
 
-const filtriSettoriDettaglio = computed(() => {
-  const set = new Set(['Tutti']);
+const getSettoreSecEsercizioDettaglio = (ex) => {
+  if (!ex) return 'Altro';
+  const s = (ex.des_settore || '').trim();
+  return s || 'Altro';
+};
+
+const filtriSettoriPrincDettaglio = computed(() => {
   const sorgente = tuttiEserciziScheda.value.length > 0 ? tuttiEserciziScheda.value : tuttiEserciziGiorno.value;
-  
-  // Raccoglie tutti i gruppi presenti
-  const presenti = new Set();
+  const set = new Set();
   if (sorgente) {
     sorgente.forEach(ex => {
-      if (parseInt(ex.num_riga_giorno) > 0 && ex.des_settore) {
-        const sec = getSettorePrincipale(ex.des_settore);
-        if (sec) presenti.add(sec);
+      if (parseInt(ex.num_riga_giorno) > 0) {
+        const sp = getSettorePrincEsercizioDettaglio(ex);
+        if (sp && sp !== 'Altro') set.add(sp);
       }
     });
   }
-
-  // Se ci sono sotto-gruppi delle gambe, aggiungi il macro "Gambe" per selezione rapida
-  const haGambeSotto = ['Quadricipiti', 'Femorali', 'Glutei', 'Adduttori', 'Polpacci', 'Gambe'].some(g => presenti.has(g));
-  if (haGambeSotto) {
-    set.add('Gambe');
-  }
-
-  // Aggiungi tutti i gruppi trovati ordinati
-  const listaPresenti = Array.from(presenti).sort();
-  listaPresenti.forEach(s => set.add(s));
-
-  return Array.from(set);
+  const ordinati = Array.from(set).sort();
+  return ['Tutti', ...ordinati];
 });
+
+const filtriSettoriSecDettaglio = computed(() => {
+  if (!settorePrincFiltroDettaglio.value || settorePrincFiltroDettaglio.value === 'Tutti') {
+    return [];
+  }
+  const sorgente = tuttiEserciziScheda.value.length > 0 ? tuttiEserciziScheda.value : tuttiEserciziGiorno.value;
+  const set = new Set();
+  if (sorgente) {
+    sorgente.forEach(ex => {
+      if (parseInt(ex.num_riga_giorno) > 0) {
+        const sp = getSettorePrincEsercizioDettaglio(ex);
+        if (sp === settorePrincFiltroDettaglio.value) {
+          const sec = getSettoreSecEsercizioDettaglio(ex);
+          if (sec) set.add(sec);
+        }
+      }
+    });
+  }
+  const ordinati = Array.from(set).sort();
+  return ['Tutti', ...ordinati];
+});
+
+const selezionaSettorePrincDettaglio = (sp) => {
+  settorePrincFiltroDettaglio.value = sp;
+  settoreSecFiltroDettaglio.value = 'Tutti';
+};
+
+const azzeraFiltriRicercaDettaglio = () => {
+  testoRicercaDettaglio.value = '';
+  settorePrincFiltroDettaglio.value = 'Tutti';
+  settoreSecFiltroDettaglio.value = 'Tutti';
+};
 
 const eserciziRicercatiDettaglioRaggruppati = computed(() => {
   const sorgente = tuttiEserciziScheda.value.length > 0 ? tuttiEserciziScheda.value : tuttiEserciziGiorno.value;
@@ -11180,18 +11224,26 @@ const eserciziRicercatiDettaglioRaggruppati = computed(() => {
   
   let lista = sorgente.filter(item => parseInt(item.num_riga_giorno) > 0);
 
-  if (settoreFiltroDettaglio.value && settoreFiltroDettaglio.value !== 'Tutti') {
-    lista = lista.filter(ex => appartieneAlGruppo(ex.des_settore, settoreFiltroDettaglio.value));
+  // Filtro per Settore Principale
+  if (settorePrincFiltroDettaglio.value && settorePrincFiltroDettaglio.value !== 'Tutti') {
+    lista = lista.filter(ex => getSettorePrincEsercizioDettaglio(ex) === settorePrincFiltroDettaglio.value);
   }
 
+  // Filtro per Settore Secondario
+  if (settoreSecFiltroDettaglio.value && settoreSecFiltroDettaglio.value !== 'Tutti') {
+    lista = lista.filter(ex => getSettoreSecEsercizioDettaglio(ex) === settoreSecFiltroDettaglio.value);
+  }
+
+  // Filtro Testuale
   if (testoRicercaDettaglio.value && testoRicercaDettaglio.value.trim() !== '') {
     const query = testoRicercaDettaglio.value.toLowerCase().trim();
     lista = lista.filter(item => {
       const nome = String(item.des_esercizio || '').toLowerCase();
       const settore = String(item.des_settore || '').toLowerCase();
+      const settorePrinc = String(item.des_settore_princ || '').toLowerCase();
       const note = String(item.des_note_attrezzo || '').toLowerCase();
       const attr = String(item.des_note_gen_attr || '').toLowerCase();
-      return nome.includes(query) || settore.includes(query) || note.includes(query) || attr.includes(query);
+      return nome.includes(query) || settore.includes(query) || settorePrinc.includes(query) || note.includes(query) || attr.includes(query);
     });
   }
 
@@ -11211,8 +11263,7 @@ const eserciziRicercatiDettaglioRaggruppati = computed(() => {
 const vaiADettaglioEsercizioRicercato = (id) => {
   vibraTattile(10);
   dialogRicercaRapida.value = false;
-  testoRicercaDettaglio.value = '';
-  settoreFiltroDettaglio.value = 'Tutti';
+  azzeraFiltriRicercaDettaglio();
   router.replace({ name: 'DettaglioWorkout', params: { id } });
 };
 

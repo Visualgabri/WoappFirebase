@@ -12012,11 +12012,19 @@ function estraiRepsEsercizioWeek(ex, w, fallbackReps = 10) {
 function estraiDiscrepanzaInputPrescrizione(ex, w) {
   if (!ex) return null;
   
-  // Controlla il campo input Week 6 (ins_week6, num_ins6, oppure dallo stato reattivo dello storico se attivo)
-  let insW6 = ex.ins_week6 || '';
+  // Controlla il campo input Week 6 (ins_week6, num_ins6, oppure dallo stato reattivo dello storico/precedente/workout)
+  let insW6 = ex.ins_week6 || (ex.num_ins6 ? String(ex.num_ins6) : '');
   if (typeof selectedStoricoWorkout !== 'undefined' && selectedStoricoWorkout.value && (ex.id === selectedStoricoWorkout.value.id || ex.num_scheda === selectedStoricoWorkout.value.num_scheda)) {
     if (typeof inputSettimaneStoricoSingolo !== 'undefined' && inputSettimaneStoricoSingolo.value?.[6]?.ins) {
       insW6 = inputSettimaneStoricoSingolo.value[6].ins;
+    }
+  } else if (typeof previousWorkout !== 'undefined' && previousWorkout.value && (ex.id === previousWorkout.value.id || ex.num_scheda === previousWorkout.value.num_scheda)) {
+    if (typeof inputSettimanePrecedente !== 'undefined' && inputSettimanePrecedente.value?.[6]?.ins) {
+      insW6 = inputSettimanePrecedente.value[6].ins;
+    }
+  } else if (typeof workout !== 'undefined' && workout.value && (ex.id === workout.value.id || ex.num_scheda === workout.value.num_scheda)) {
+    if (typeof inputSettimane !== 'undefined' && inputSettimane.value?.[6]?.ins) {
+      insW6 = inputSettimane.value[6].ins;
     }
   }
 
@@ -12072,6 +12080,10 @@ function estraiDiscrepanzaInputPrescrizione(ex, w) {
 
   return null;
 };
+
+function getInfoRepsDiscrepanzaW6(ex) {
+  return estraiDiscrepanzaInputPrescrizione(ex);
+}
 
 function isManubriEsercizio(ex) {
   if (!ex) return false;

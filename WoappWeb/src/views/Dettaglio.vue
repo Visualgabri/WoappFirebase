@@ -516,85 +516,90 @@
             </v-chip>
           </div>
 
-          <v-row dense class="align-center">
-            <v-col cols="6" class="border-right-soft">
-              <div class="text-center d-flex flex-column align-center justify-center">
-                <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">
-                  <template v-if="recordOverviewData?.bestReal?.weight > 0">
-                    Record {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
-                  </template>
-                  <template v-else-if="currentWeekLoggedWeight">
-                    Record {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
-                  </template>
-                  <template v-else>
-                    Target {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
-                  </template>
-                </span>
-                <span class="font-weight-black d-inline-flex align-center justify-center gap-0.5" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordOverviewData?.bestReal?.isCurrentPR || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
-                  <template v-if="recordOverviewData?.bestReal?.weight > 0">
-                    <template v-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
-                      {{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}
-                    </template>
-                    <template v-else>
-                      {{ formatWeight(recordOverviewData.bestReal.weight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                    </template>
-                  </template>
-                  <template v-else-if="currentWeekLoggedWeight">
-                    {{ formatWeight(currentWeekLoggedWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                  </template>
-                  <template v-else-if="isCorpoLiberoEsercizio(workout)">
-                    🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
-                  </template>
-                  <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                    🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                  </template>
-                  <template v-else-if="caricoConsigliatoViaDiMezzo">
-                    🎯 {{ formatWeight(caricoConsigliatoViaDiMezzo) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+          <div class="d-flex align-stretch w-100 min-width-0 my-1">
+            <!-- COLONNA 1: RECORD A REPS TARGET (Sinistra - Ambra) -->
+            <div class="text-center d-flex flex-column align-center justify-center border-right-soft px-1 min-width-0" style="flex: 1 1 50%; min-width: 0; overflow: hidden;">
+              <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5 text-truncate w-100" style="font-size: 0.50rem; letter-spacing: 0.02em;">
+                <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                  Record {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
+                </template>
+                <template v-else-if="currentWeekLoggedWeight">
+                  Record {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
+                </template>
+                <template v-else>
+                  Target {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
+                </template>
+              </span>
+              <span class="font-weight-black d-inline-flex align-center justify-center gap-0.5 text-truncate" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordOverviewData?.bestReal?.isCurrentPR || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
+                <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                  <template v-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
+                    {{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}
                   </template>
                   <template v-else>
-                    --
+                    {{ formatWeight(recordOverviewData.bestReal.weight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                   </template>
-                </span>
-                <!-- Sottotitolo Dettaglio Record Reps -->
-                <div class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
-                  <template v-if="recordOverviewData?.bestReal?.weight > 0">
-                    <span v-if="recordOverviewData.bestReal.isCurrentPR || (workout?.num_scheda && String(recordOverviewData.bestReal.sheet).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                    <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})</span>
-                  </template>
-                  <template v-else-if="currentWeekLoggedWeight">
-                    <span class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                  </template>
-                  <template v-else>
-                    <span class="text-muted text-truncate">nessun record passato</span>
-                  </template>
-                </div>
+                </template>
+                <template v-else-if="currentWeekLoggedWeight">
+                  {{ formatWeight(currentWeekLoggedWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+                </template>
+                <template v-else-if="isCorpoLiberoEsercizio(workout)">
+                  🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
+                </template>
+                <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
+                  🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+                </template>
+                <template v-else-if="caricoConsigliatoViaDiMezzo">
+                  🎯 {{ formatWeight(caricoConsigliatoViaDiMezzo) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+                </template>
+                <template v-else>
+                  --
+                </template>
+              </span>
+              <!-- Sottotitolo Dettaglio Record Reps -->
+              <div class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
+                <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                  <span v-if="recordOverviewData.bestReal.reps && !isCorpoLiberoEsercizio(workout)" class="text-amber-lighten-2 font-weight-bold">x{{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}</span>
+                  <span v-if="recordOverviewData.bestReal.isCurrentPR || (workout?.num_scheda && String(recordOverviewData.bestReal.sheet).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
+                  <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})</span>
+                </template>
+                <template v-else-if="currentWeekLoggedWeight">
+                  <span class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
+                </template>
+                <template v-else>
+                  <span class="text-muted text-truncate">nessun record passato</span>
+                </template>
               </div>
-            </v-col>
-            <v-col cols="6">
-              <div class="text-center d-flex flex-column align-center justify-center">
-                <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
-                <span class="font-weight-black text-cyan-lighten-2 d-inline-flex align-center justify-center gap-0.5" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
-                  <template v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
-                    <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
-                      {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
-                    </template>
-                    <template v-else>
-                      {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                    </template>
+            </div>
+
+            <!-- COLONNA 2: MAX ASSOLUTO (Destra - Ciano) -->
+            <div class="text-center d-flex flex-column align-center justify-center px-1 min-width-0" style="flex: 1 1 50%; min-width: 0; overflow: hidden;">
+              <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5 text-truncate w-100" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
+              <span class="font-weight-black text-cyan-lighten-2 d-inline-flex align-center justify-center gap-0.5 text-truncate" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+                <template v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
+                  <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
+                    {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
                   </template>
                   <template v-else>
-                    --
+                    {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                   </template>
-                </span>
-                <!-- Sottotitolo Dettaglio Max Assoluto -->
-                <div v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
-                  <span v-if="recordMaxAssolutoInfo.reps && recordMaxAssolutoInfo.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
-                  <span v-if="recordMaxAssolutoInfo.isCurrentMeso || (workout?.num_scheda && String(recordMaxAssolutoInfo.sheetAtMaxWeight).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                  <span v-else-if="recordMaxAssolutoInfo.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
-                </div>
+                </template>
+                <template v-else-if="recordOverviewData?.bestE1RM?.rawWeight > 0">
+                  {{ formatWeight(recordOverviewData.bestE1RM.rawWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+                </template>
+                <template v-else>
+                  --
+                </template>
+              </span>
+              <!-- Sottotitolo Dettaglio Max Assoluto -->
+              <div v-if="(recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)) || recordOverviewData?.bestE1RM?.rawWeight > 0" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
+                <span v-if="recordMaxAssolutoInfo?.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
+                <span v-else-if="recordOverviewData?.bestE1RM?.rawReps" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordOverviewData.bestE1RM.rawReps) }}</span>
+                <span v-if="recordMaxAssolutoInfo?.isCurrentMeso || (workout?.num_scheda && String(recordMaxAssolutoInfo?.sheetAtMaxWeight).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
+                <span v-else-if="recordMaxAssolutoInfo?.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
+                <span v-else-if="recordOverviewData?.bestE1RM?.date && tempoTrascorsoBreve(recordOverviewData.bestE1RM.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestE1RM.date) }})</span>
               </div>
-            </v-col>
-          </v-row>
+            </div>
+          </div>
 
           <!-- Barra Progresso verso il Miglior 1RM Storico -->
           <div 
@@ -6712,10 +6717,10 @@ watch(activeTabAnalisi, async (newVal) => {
   }
 });
 
-const getRepsPerWeek = (sett) => {
+function getRepsPerWeek(sett) {
   if (!workout.value) return 10;
   return estraiRepsEsercizioWeek(workout.value, sett, 10);
-};
+}
 
 // --- LOGICA RECORD & INCREMENTI GHOST (Collegata a Store Centralizzato authStore.js) ---
 const stileRecordStorico = ref('cards');
@@ -6980,7 +6985,7 @@ const impostaCaricoLimite = () => {
   snackbarSalvataggio.value = true;
 };
 
-const tempoTrascorsoBreve = (dateStr) => {
+function tempoTrascorsoBreve(dateStr) {
   const str = tempoTrascorso(dateStr);
   if (!str) return '';
   return str
@@ -6990,7 +6995,7 @@ const tempoTrascorsoBreve = (dateStr) => {
     .replace(' gg fa', 'g fa')
     .replace(' anni fa', 'a fa')
     .replace(' anno fa', 'a fa');
-};
+}
 
 const ottieniDettaglioRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;
@@ -7186,18 +7191,21 @@ const selezionaStepEsercizio = async (nuovoStep) => {
   dialogStepEsercizio.value = false;
 };
 
-const arrotondaAStepEsercizio = (val) => {
+function arrotondaAStepEsercizio(val) {
   if (val === null || val === undefined || isNaN(val) || val <= 0) return null;
   const isManubri = isManubriEsercizio(workout.value);
   const step = getWeightStep(isManubri, val);
   const rounded = Math.round(val / step) * step;
   return Math.round(rounded * 100) / 100;
-};
-const arrotondaAStep125 = arrotondaAStepEsercizio;
+}
+function arrotondaAStep125(val) {
+  return arrotondaAStepEsercizio(val);
+}
 
 const calcolaDettaglioMassimale1RMPuro = () => {
   if (!workout.value) return { best1RM: 0, bestSource: null };
-  if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  if (isCorpoLibero && !haPesoEsercizio.value) {
     return { best1RM: 0, bestSource: null, isCorpoLiberoPuro: true };
   }
   const currentNumScheda = parseInt(workout.value.num_scheda);
@@ -11801,7 +11809,7 @@ const getAtletaInfo = (wObj) => {
   return { key, id: wObj[key] || '' };
 };
 
-const isCorpoLiberoEsercizio = (ex) => {
+function isCorpoLiberoEsercizio(ex) {
   if (!ex) return false;
   const name = String(ex.des_esercizio || '').toLowerCase();
   const note = String(ex.des_note_attrezzo || '').toLowerCase();
@@ -12001,7 +12009,7 @@ function estraiRepsEsercizioWeek(ex, w, fallbackReps = 10) {
   return fallbackReps > 0 ? fallbackReps : 10;
 }
 
-const getInfoRepsDiscrepanzaW6 = (ex) => {
+function estraiDiscrepanzaInputPrescrizione(ex, w) {
   if (!ex) return null;
   
   // Controlla il campo input Week 6 (ins_week6, num_ins6, oppure dallo stato reattivo dello storico se attivo)
@@ -12065,7 +12073,7 @@ const getInfoRepsDiscrepanzaW6 = (ex) => {
   return null;
 };
 
-const isManubriEsercizio = (ex) => {
+function isManubriEsercizio(ex) {
   if (!ex) return false;
   const name = String(ex.des_esercizio || '').toLowerCase();
   const noteAttr = String(ex.des_note_attrezzo || '').toLowerCase();
@@ -12083,7 +12091,7 @@ const isManubriEsercizio = (ex) => {
   );
 };
 
-const isCavoOMacchinaEsercizio = (ex) => {
+function isCavoOMacchinaEsercizio(ex) {
   if (!ex) return false;
   const name = String(ex.des_esercizio || '').toLowerCase();
   const noteAttr = String(ex.des_note_attrezzo || '').toLowerCase();
@@ -12115,7 +12123,7 @@ const isCavoOMacchinaEsercizio = (ex) => {
 };
 
 // ✅ NUOVA LOGICA CON STEP PERSONALIZZATO E FALLBACK
-const getWeightStep = (isManubri, baseWeight, exObj = null) => {
+function getWeightStep(isManubri, baseWeight, exObj = null) {
   const targetEx = exObj || workout.value;
   const exName = targetEx ? targetEx.des_esercizio : null;
   
@@ -12151,7 +12159,7 @@ const getWeightStep = (isManubri, baseWeight, exObj = null) => {
   return 2.5;
 };
 
-const getDumbbellSequenceWeight = (currentWeight, direction) => {
+function getDumbbellSequenceWeight(currentWeight, direction) {
   const w = parseFloat(currentWeight) || 0;
   // Se è presente uno step personalizzato per l'esercizio, usa esattamente quello step
   if (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) {
@@ -12170,7 +12178,7 @@ const getDumbbellSequenceWeight = (currentWeight, direction) => {
   return w;
 };
 
-const arrotondaManubrioCommerciale = (peso) => {
+function arrotondaManubrioCommerciale(peso) {
   const p = parseFloat(peso) || 0;
   // Se c'è uno step specifico personalizzato impostato dall'utente sull'esercizio, non forzare numeri pari commerciali
   if (typeof stepPersonalizzatoEsercizio !== 'undefined' && stepPersonalizzatoEsercizio?.value && stepPersonalizzatoEsercizio.value > 0) {
@@ -12184,7 +12192,7 @@ const arrotondaManubrioCommerciale = (peso) => {
   }
 };
 
-const estraiRepsDaPrescrizione = (prescrizioneStr) => {
+function estraiRepsDaPrescrizione(prescrizioneStr) {
   if (!prescrizioneStr) return null;
   const rawStr = String(prescrizioneStr).trim();
   const part = rawStr.split('|')[0].trim();
@@ -13018,16 +13026,16 @@ const isMatchingReps = (prevEx, w) => {
 const workoutTPesiMap = ref({});
 const workoutTDateMap = ref({});
 
-const getExecutionDate = (prevEx, list, currWorkout) => {
+function getExecutionDate(prevEx, list, currWorkout) {
   if (!prevEx) return null;
   const sNum = String(prevEx.num_scheda || '').trim();
   if (sNum && workoutTDateMap.value[sNum]) {
     return workoutTDateMap.value[sNum];
   }
   return prevEx.dat_scheda_ult_ex || prevEx.timestamp;
-};
+}
 
-const parseSmartDate = (dateStr) => {
+function parseSmartDate(dateStr) {
   if (!dateStr) return null;
   const cleanStr = String(dateStr).trim();
   if (/^\d{4}-\d{2}-\d{2}/.test(cleanStr)) {
@@ -13040,9 +13048,9 @@ const parseSmartDate = (dateStr) => {
     const t = Date.parse(cleanStr);
     return !isNaN(t) ? new Date(t) : null;
   }
-};
+}
 
-const formattaDataStorico = (dateStr) => {
+function formattaDataStorico(dateStr) {
   if (!dateStr) return '';
   try {
     const d = parseSmartDate(dateStr);
@@ -13055,9 +13063,9 @@ const formattaDataStorico = (dateStr) => {
   } catch (e) {
     return dateStr;
   }
-};
+}
 
-const tempoTrascorso = (dateStr) => {
+function tempoTrascorso(dateStr) {
   if (!dateStr) return '';
   try {
     const past = parseSmartDate(dateStr);
@@ -13093,7 +13101,7 @@ const tempoTrascorso = (dateStr) => {
   } catch (e) {
     return '';
   }
-};
+}
 
 const getTitoloFontSize = (nomeEsercizio) => {
   const nome = String(nomeEsercizio || '').trim();

@@ -3374,8 +3374,8 @@
             </div>
           </div>
           
-          <!-- Tabs Unificati -->
-          <v-tabs v-model="activeTabAnalisi" color="orange-darken-3" grow class="border-top" style="border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)) !important; height: 38px;">
+          <!-- Tabs Unificati: visibili solo se l'esercizio ha pesi/sovraccarichi (tab proposta carico + storico) -->
+          <v-tabs v-if="!isCorpoLiberoPuro" v-model="activeTabAnalisi" color="orange-darken-3" grow class="border-top" style="border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)) !important; height: 38px;">
             <v-tab :value="0" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 0 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.75rem; height: 38px;">
               <v-icon start size="15" class="mr-1">mdi-lightbulb-on-outline</v-icon>
               Cosa faccio oggi
@@ -3389,13 +3389,13 @@
           <!-- Rigo 2: Subheader WEEK & REPS unificato per entrambi i tab -->
           <div class="px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
             <v-chip size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))', fontSize: '0.65rem', height: '20px', left: '12px' }">
-              WEEK {{ activeTabAnalisi === 0 ? aiutoWeek : settimanaAttiva }}
+              WEEK {{ (activeTabAnalisi === 0 && !isCorpoLiberoPuro) ? aiutoWeek : settimanaAttiva }}
             </v-chip>
             <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.90rem', letterSpacing: '0.02em' }">
-              {{ activeTabAnalisi === 0 ? String(targetRepsAttive).replace(/r$/i, '') : String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
+              {{ (activeTabAnalisi === 0 && !isCorpoLiberoPuro) ? String(targetRepsAttive).replace(/r$/i, '') : String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
             </span>
             <v-chip
-              v-if="activeTabAnalisi === 0 && ghostPRAttackAttivo"
+              v-if="activeTabAnalisi === 0 && !isCorpoLiberoPuro && ghostPRAttackAttivo"
               size="x-small"
               class="font-weight-black text-purple-lighten-2 px-1.5 position-absolute"
               variant="outlined"
@@ -3409,7 +3409,7 @@
         <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1" style="overflow-y: auto;">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
-          <div v-if="activeTabAnalisi === 0" class="pt-0">
+          <div v-if="activeTabAnalisi === 0 && !isCorpoLiberoPuro" class="pt-0">
 
             <!-- CASO SCARICO WEEK 4 -->
             <div v-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-2.5 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
@@ -4172,7 +4172,7 @@
           </div>
 
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
-          <div v-show="activeTabAnalisi === 1" class="d-flex flex-column w-100 flex-grow-1">
+          <div v-show="activeTabAnalisi === 1 || isCorpoLiberoPuro" class="d-flex flex-column w-100" style="min-height: 0;">
             
             <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (Segmented Hero Card Unificata a 2 Colonne - Centrata) -->
             <div v-if="suggerimentoRecord" class="my-2 text-center">
@@ -4235,7 +4235,7 @@
                       </template>
                     </span>
                     <span 
-                      v-if="suggerimentoRecord.recordRepsE1RM" 
+                      v-if="suggerimentoRecord.recordRepsE1RM && !isCorpoLiberoPuro" 
                       class="font-weight-bold text-amber-200 rounded px-1 flex-shrink-0" 
                       style="background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.44rem; white-space: nowrap; padding: 1px 3px;"
                     >
@@ -4299,7 +4299,7 @@
                       </template>
                     </span>
                     <span 
-                      v-if="suggerimentoRecord.recordAbsoluteE1RM" 
+                      v-if="suggerimentoRecord.recordAbsoluteE1RM && !isCorpoLiberoPuro" 
                       class="font-weight-bold text-cyan-200 rounded px-1 flex-shrink-0" 
                       style="background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.35); font-size: 0.44rem; white-space: nowrap; padding: 1px 3px;"
                     >
@@ -4663,23 +4663,23 @@
                     class="card-glass border w-100"
                     style="height: 28px;"
                   >
-                    <v-btn value="1RM_W6" class="flex-grow-1 font-weight-black text-none px-1 text-cyan-accent-2" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
+                    <v-btn v-if="!isCorpoLiberoPuro" value="1RM_W6" class="flex-grow-1 font-weight-black text-none px-1 text-cyan-accent-2" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
                       ⚡ 1RM W6
                     </v-btn>
-                    <v-btn value="A" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
+                    <v-btn v-if="!isCorpoLiberoPuro" value="A" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
                       Linee + 1RM
                     </v-btn>
-                    <v-btn value="B" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
+                    <v-btn v-if="!isCorpoLiberoPuro" value="B" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
                       Punti + 1RM
                     </v-btn>
                     <v-btn value="C" class="flex-grow-1 font-weight-black text-none px-1" style="font-size: 0.58rem; min-height: 28px; min-width: 0;">
-                      Linea Unica
+                      {{ isCorpoLiberoPuro ? 'Progressione Reps' : 'Linea Unica' }}
                     </v-btn>
                   </v-btn-toggle>
                 </div>
 
                 <!-- Info Card per 1RM W6 -->
-                <div v-if="modeGraficoStorico === '1RM_W6'" class="px-2.5 py-1 rounded-lg border text-left d-flex align-center justify-space-between" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important;">
+                <div v-if="modeGraficoStorico === '1RM_W6' && !isCorpoLiberoPuro" class="px-2.5 py-1 rounded-lg border text-left d-flex align-center justify-space-between" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%); border-color: rgba(6, 182, 212, 0.35) !important;">
                   <div class="d-flex align-center gap-1 text-cyan-lighten-2 font-weight-black uppercase" style="font-size: 0.60rem;">
                     <span>📈</span>
                     <span>PROGRESSIONE 1RM W6</span>
@@ -6694,14 +6694,20 @@ watch(dialogProgressioniStoricoSingolo, (newVal, oldVal) => {
 });
 
 watch(activeTabAnalisi, async (newVal) => {
+  console.log('[DEBUG STORICO] WATCHER activeTabAnalisi scattato, newVal:', newVal);
   if (newVal === 1) {
+    console.log('[DEBUG STORICO] WATCHER: tab=1, storicoEsercizio.length:', storicoEsercizio.value?.length);
     if (!storicoEsercizio.value || storicoEsercizio.value.length === 0) {
+      console.log('[DEBUG STORICO] WATCHER: storico vuoto, chiamo caricaDatiAnalisi...');
       try {
         await caricaDatiAnalisi(settimanaAttiva.value);
-      } catch (e) {}
+      } catch (e) { console.error('[DEBUG STORICO] WATCHER errore caricaDatiAnalisi:', e); }
     }
     stileStorico.value = 'tabella';
-    soloCorrispondenti.value = (workout.value && isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) ? false : true;
+    const isCL = workout.value ? isCorpoLiberoEsercizio(workout.value) : false;
+    soloCorrispondenti.value = isCL ? false : true;
+    console.log('[DEBUG STORICO] WATCHER: isCorpoLibero:', isCL, 'soloCorrispondenti:', soloCorrispondenti.value);
+    console.log('[DEBUG STORICO] WATCHER: storicoFiltrato.length:', storicoFiltrato.value?.length);
     eseguiScrollStorico();
   }
 });
@@ -10849,6 +10855,8 @@ const strategieProgressione = computed(() => {
 });
 
 const apriAiutoCaricoDettagliato = async (sett) => {
+  // Non mostrare proposta carico per esercizi a corpo libero puro
+  if (isCorpoLiberoPuro.value) return;
   vibraTattile(10);
   activeTabAnalisi.value = 0; // Tab Proposta Carico
   showSimulatoreCarico.value = false;
@@ -12963,7 +12971,8 @@ watch(stileStorico, (nuovoValore) => {
     localStorage.setItem('stileStorico_' + atletaId, nuovoValore);
   }
   if (nuovoValore === 'grafico') {
-    modeGraficoStorico.value = '1RM_W6';
+    // Per corpo libero puro usa la modalità Linea Unica (C) che mostra solo reps
+    modeGraficoStorico.value = isCorpoLiberoPuro.value ? 'C' : '1RM_W6';
     soloCorrispondenti.value = false;
     scrollAlGrafico();
   }
@@ -13151,7 +13160,8 @@ const scrollAlGrafico = () => {
 const passaAVistaGrafico = () => {
   vibraTattile(10);
   stileStorico.value = 'grafico';
-  modeGraficoStorico.value = '1RM_W6';
+  // Per corpo libero puro usa la modalità Linea Unica (C) che mostra solo reps
+  modeGraficoStorico.value = isCorpoLiberoPuro.value ? 'C' : '1RM_W6';
   soloCorrispondenti.value = false;
   scrollAlGrafico();
 };
@@ -18419,7 +18429,7 @@ const calcola1RMW6Prescritto = (prevEx) => {
 
   if (!rawW6 || rawW6 === '-') return null;
 
-  if (isCL && !haSovraccaricoEsplicito(rawW6)) {
+  if (isCL && !haPesoEsplicitoInInput(rawW6)) {
     return null;
   }
 
@@ -18569,6 +18579,7 @@ const formattaPesoCorporeo = (prevEx) => {
 
 // Funzione unificata per caricamento dati storico e proposta
 const caricaDatiAnalisi = async (sett) => {
+  console.log('[DEBUG STORICO] caricaDatiAnalisi START, sett:', sett);
   aiutoWeek.value = sett || settimanaAttiva.value;
   caricandoStorico.value = true;
   caricandoAiutoCarico.value = true;
@@ -18581,7 +18592,10 @@ const caricaDatiAnalisi = async (sett) => {
     const desEsercizioClean = desEsercizio.toLowerCase();
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     
+    console.log('[DEBUG STORICO] caricaDatiAnalisi params:', { keyIdCliente, atletaId, desEsercizio, desEsercizioClean, currentNumScheda });
+    
     if (!atletaId || !desEsercizio || isNaN(currentNumScheda)) {
+      console.warn('[DEBUG STORICO] caricaDatiAnalisi ABORT: dati mancanti', { atletaId, desEsercizio, currentNumScheda });
       caricandoStorico.value = false;
       caricandoAiutoCarico.value = false;
       return;
@@ -18594,12 +18608,15 @@ const caricaDatiAnalisi = async (sett) => {
     // 1. Carica dallo storyboard_backup.json locale (tutte le schede passate dell'atleta)
     try {
       const allData = await getStoryboardBackup();
+      console.log('[DEBUG STORICO] Backup locale: totale record caricati:', (allData || []).length);
+      let backupMatched = 0;
       (allData || []).forEach(b => {
         const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
         const bNome = String(b.des_esercizio || '').trim().toLowerCase();
         if (String(bAtletaId) === String(atletaId) && bNome === desEsercizioClean && parseInt(b.num_riga_giorno) > 0) {
           const sNum = parseInt(b.num_scheda);
           if (!isNaN(currentNumScheda) && !isSchedaPassata.value && sNum > currentNumScheda) return;
+          backupMatched++;
           const sNumStr = String(b.num_scheda || '').trim();
           const itemId = b.id || `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
           const uniqueKey = `${sNumStr}_${(b.des_giorno || '').trim()}_${String(b.num_riga_giorno || '').trim()}_${itemId}`;
@@ -18607,8 +18624,9 @@ const caricaDatiAnalisi = async (sett) => {
           mappaSchede.set(uniqueKey, applicaModificheLocali({ ...b, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
+      console.log('[DEBUG STORICO] Backup locale: record corrispondenti per esercizio:', backupMatched);
     } catch (errBackup) {
-      console.warn("Errore backup in caricaDatiAnalisi:", errBackup);
+      console.warn('[DEBUG STORICO] Errore backup in caricaDatiAnalisi:', errBackup);
     }
 
     // 2. Interroga Firestore per le schede salvate/aggiornate online
@@ -18618,12 +18636,15 @@ const caricaDatiAnalisi = async (sett) => {
         where(keyIdCliente, 'in', [atletaId, !isNaN(Number(atletaId)) ? Number(atletaId) : atletaId])
       );
       const snap = await getDocs(q);
+      console.log('[DEBUG STORICO] Firestore: totale docs trovati:', snap.size);
+      let firestoreMatched = 0;
       snap.forEach((docSnap) => {
         const d = docSnap.data();
         const dNome = String(d.des_esercizio || '').trim().toLowerCase();
         const sNum = parseInt(d.num_scheda);
         if (dNome === desEsercizioClean && parseInt(d.num_riga_giorno) > 0) {
           if (!isNaN(currentNumScheda) && !isSchedaPassata.value && sNum > currentNumScheda) return;
+          firestoreMatched++;
           const itemId = docSnap.id || d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
           const sNumStr = String(d.num_scheda || '').trim();
           const uniqueKey = `${sNumStr}_${(d.des_giorno || '').trim()}_${String(d.num_riga_giorno || '').trim()}_${itemId}`;
@@ -18631,8 +18652,9 @@ const caricaDatiAnalisi = async (sett) => {
           mappaSchede.set(uniqueKey, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
+      console.log('[DEBUG STORICO] Firestore: record corrispondenti per esercizio:', firestoreMatched);
     } catch (errFirestore) {
-      console.warn("Errore query Firestore in caricaDatiAnalisi:", errFirestore);
+      console.warn('[DEBUG STORICO] Errore query Firestore in caricaDatiAnalisi:', errFirestore);
     }
 
     // 3. Sovrascrivi/Integra la scheda corrente da workout.value (per avere gli ultimissimi input inseriti)
@@ -18648,11 +18670,14 @@ const caricaDatiAnalisi = async (sett) => {
     list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
     storicoEsercizio.value = list;
     storicoEsercizioPerAiuto.value = list;
+    console.log('[DEBUG STORICO] caricaDatiAnalisi RISULTATO FINALE:', list.length, 'schede trovate');
+    console.log('[DEBUG STORICO] Schede:', list.map(x => `S.${x.num_scheda} G.${x.des_giorno}`).join(', '));
   } catch (err) {
-    console.error("Errore caricamento dati analisi:", err);
+    console.error('[DEBUG STORICO] Errore caricamento dati analisi:', err);
   } finally {
     caricandoStorico.value = false;
     caricandoAiutoCarico.value = false;
+    console.log('[DEBUG STORICO] caricaDatiAnalisi END, caricandoStorico:', caricandoStorico.value);
     rigeneraGraficoStorico();
   }
 };
@@ -19316,11 +19341,33 @@ function eseguiScrollStorico() {
 // Funzione Riepilogo Storico Esercizi (freccia con orologio)
 const apriStoricoEsercizio = async () => {
   vibraTattile(10);
-  activeTabAnalisi.value = 1; // Tab Cronologia
+  const isCL = workout.value ? isCorpoLiberoEsercizio(workout.value) : false;
+  const hasPeso = haPesoEsercizio.value;
+  const isCLPuro = isCorpoLiberoPuro.value;
+  console.log('[DEBUG STORICO] === apriStoricoEsercizio START ===');
+  console.log('[DEBUG STORICO] Esercizio:', workout.value?.des_esercizio);
+  console.log('[DEBUG STORICO] isCorpoLiberoEsercizio:', isCL);
+  console.log('[DEBUG STORICO] haPesoEsercizio:', hasPeso);
+  console.log('[DEBUG STORICO] isCorpoLiberoPuro:', isCLPuro);
+  console.log('[DEBUG STORICO] settimanaAttiva:', settimanaAttiva.value);
+  activeTabAnalisi.value = 1;
   dialogStorico.value = true;
   stileStorico.value = 'tabella';
-  soloCorrispondenti.value = (workout.value && isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) ? false : true;
+  soloCorrispondenti.value = isCL ? false : true;
+  console.log('[DEBUG STORICO] soloCorrispondenti impostato a:', soloCorrispondenti.value);
+  console.log('[DEBUG STORICO] dialogStorico:', dialogStorico.value);
+  console.log('[DEBUG STORICO] Inizio caricaDatiAnalisi...');
   await caricaDatiAnalisi(settimanaAttiva.value);
+  console.log('[DEBUG STORICO] caricaDatiAnalisi completato.');
+  console.log('[DEBUG STORICO] storicoEsercizio.length:', storicoEsercizio.value?.length);
+  console.log('[DEBUG STORICO] storicoFiltrato.length:', storicoFiltrato.value?.length);
+  // Ri-forza soloCorrispondenti dopo il caricamento per proteggere da race condition con i watchers
+  soloCorrispondenti.value = isCL ? false : true;
+  console.log('[DEBUG STORICO] soloCorrispondenti DOPO ri-forza:', soloCorrispondenti.value);
+  console.log('[DEBUG STORICO] storicoFiltrato.length DOPO ri-forza:', storicoFiltrato.value?.length);
+  console.log('[DEBUG STORICO] caricandoStorico:', caricandoStorico.value);
+  console.log('[DEBUG STORICO] stileStorico:', stileStorico.value);
+  console.log('[DEBUG STORICO] === apriStoricoEsercizio END ===');
   eseguiScrollStorico();
 };
 

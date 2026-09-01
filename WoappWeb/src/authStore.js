@@ -1840,6 +1840,7 @@ export const stileVisualizzazioneGhost = ref(localStorage.getItem('stileVisualiz
 export const modalitaIncrementoGhost = ref(localStorage.getItem('modalitaIncrementoGhost_' + curAtletaId) || 'ibrida');
 export const ghostPRAttackAttivo = ref(localStorage.getItem('ghostPRAttackAttivo_' + curAtletaId) !== 'false');
 export const ghostAutoregolazioneRepsAttiva = ref(localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + curAtletaId) !== 'false');
+export const bloccoGhostDigitazioneAttivo = ref(localStorage.getItem('bloccoGhostDigitazioneAttivo_' + curAtletaId) !== 'false');
 export const sfidaRecordWeek1 = ref(localStorage.getItem('sfidaRecordWeek1_' + curAtletaId) === 'true');
 export const sensibilitaFaticaGhost = ref(localStorage.getItem('sensibilitaFaticaGhost_' + curAtletaId) || 'bilanciata');
 export const ghostAnalisiNoteAttiva = ref(localStorage.getItem('ghostAnalisiNoteAttiva_' + curAtletaId) === 'true');
@@ -1932,6 +1933,7 @@ export const salvaClienteConfigFirestore = () => {
           modalitaIncremento: modalitaIncrementoGhost.value,
           prAttackAttivo: ghostPRAttackAttivo.value,
           autoregolazioneRepsAttiva: ghostAutoregolazioneRepsAttiva.value,
+          bloccoGhostDigitazioneAttivo: bloccoGhostDigitazioneAttivo.value,
           sfidaRecordWeek1: sfidaRecordWeek1.value,
           sensibilitaFatica: sensibilitaFaticaGhost.value,
           analisiNoteAttiva: ghostAnalisiNoteAttiva.value,
@@ -1986,6 +1988,7 @@ export const syncClienteConfigListener = () => {
   modalitaIncrementoGhost.value = localStorage.getItem('modalitaIncrementoGhost_' + atletaId) || 'ibrida';
   ghostPRAttackAttivo.value = localStorage.getItem('ghostPRAttackAttivo_' + atletaId) !== 'false';
   ghostAutoregolazioneRepsAttiva.value = localStorage.getItem('ghostAutoregolazioneRepsAttiva_' + atletaId) !== 'false';
+  bloccoGhostDigitazioneAttivo.value = localStorage.getItem('bloccoGhostDigitazioneAttivo_' + atletaId) !== 'false';
   sfidaRecordWeek1.value = localStorage.getItem('sfidaRecordWeek1_' + atletaId) === 'true';
   sensibilitaFaticaGhost.value = localStorage.getItem('sensibilitaFaticaGhost_' + atletaId) || 'bilanciata';
   ghostAnalisiNoteAttiva.value = localStorage.getItem('ghostAnalisiNoteAttiva_' + atletaId) === 'true';
@@ -2023,6 +2026,10 @@ export const syncClienteConfigListener = () => {
       if (ghost.autoregolazioneRepsAttiva !== undefined) {
         ghostAutoregolazioneRepsAttiva.value = ghost.autoregolazioneRepsAttiva === true;
         localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + atletaId, String(ghost.autoregolazioneRepsAttiva));
+      }
+      if (ghost.bloccoGhostDigitazioneAttivo !== undefined) {
+        bloccoGhostDigitazioneAttivo.value = ghost.bloccoGhostDigitazioneAttivo === true;
+        localStorage.setItem('bloccoGhostDigitazioneAttivo_' + atletaId, String(ghost.bloccoGhostDigitazioneAttivo));
       }
       if (ghost.sfidaRecordWeek1 !== undefined) {
         sfidaRecordWeek1.value = ghost.sfidaRecordWeek1 === true;
@@ -2137,6 +2144,7 @@ watch([
   modalitaIncrementoGhost,
   ghostPRAttackAttivo,
   ghostAutoregolazioneRepsAttiva,
+  bloccoGhostDigitazioneAttivo,
   sfidaRecordWeek1,
   sensibilitaFaticaGhost,
   ghostAnalisiNoteAttiva,
@@ -2154,6 +2162,7 @@ watch([
     localStorage.setItem('modalitaIncrementoGhost_' + atletaId, modalitaIncrementoGhost.value);
     localStorage.setItem('ghostPRAttackAttivo_' + atletaId, String(ghostPRAttackAttivo.value));
     localStorage.setItem('ghostAutoregolazioneRepsAttiva_' + atletaId, String(ghostAutoregolazioneRepsAttiva.value));
+    localStorage.setItem('bloccoGhostDigitazioneAttivo_' + atletaId, String(bloccoGhostDigitazioneAttivo.value));
     localStorage.setItem('sfidaRecordWeek1_' + atletaId, String(sfidaRecordWeek1.value));
     localStorage.setItem('sensibilitaFaticaGhost_' + atletaId, sensibilitaFaticaGhost.value);
     localStorage.setItem('ghostAnalisiNoteAttiva_' + atletaId, String(ghostAnalisiNoteAttiva.value));

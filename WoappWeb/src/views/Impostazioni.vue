@@ -358,6 +358,21 @@
             
             <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
             
+            <!-- Blocco Ghost in Digitazione -->
+            <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
+              <span class="text-caption font-weight-bold text-blue-grey-lighten-2" style="font-size: 0.72rem;">Blocco Ghost Digitazione</span>
+              <div class="compact-switch">
+                <v-switch
+                  v-model="bloccoGhostDigitazioneAttivo"
+                  color="blue-grey-darken-1"
+                  hide-details
+                  density="compact"
+                ></v-switch>
+              </div>
+            </div>
+
+            <v-divider class="border-soft" style="opacity: 0.2;"></v-divider>
+
             <!-- Autoregolazione Reps -->
             <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <span class="text-caption font-weight-bold text-green-accent-3" style="font-size: 0.72rem;">Autoregolazione Reps</span>
@@ -1007,6 +1022,7 @@ import {
   stileVisualizzazioneGhost,
   modalitaIncrementoGhost,
   ghostPRAttackAttivo,
+  bloccoGhostDigitazioneAttivo,
   ghostAutoregolazioneRepsAttiva,
   sfidaRecordWeek1,
   sensibilitaFaticaGhost,

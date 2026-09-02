@@ -1067,6 +1067,7 @@ import {
   getNomeAtleta, 
   getEmailAtleta,
   isAtletaObsoleto,
+  isAtletaAttivo,
   getSchedaSelezionataAtleta,
   getVistaDettagliAtleta,
   activeTimer, 
@@ -1104,7 +1105,9 @@ const caricamentoWorkouts = ref(false);
 const caricamento = ref(false);
 
 const itemsAtleti = computed(() => {
-  const ordinati = [...listaAtleti.value].sort((a, b) => {
+  // Filtra ed esclude completamente i clienti disabilitati
+  const soloAttivi = listaAtleti.value.filter(id => isAtletaAttivo(id));
+  const ordinati = [...soloAttivi].sort((a, b) => {
     const idxA = ORDINE_ORIGINALE_ATLETI.indexOf(String(a).trim());
     const idxB = ORDINE_ORIGINALE_ATLETI.indexOf(String(b).trim());
     const posA = idxA === -1 ? 999 : idxA;

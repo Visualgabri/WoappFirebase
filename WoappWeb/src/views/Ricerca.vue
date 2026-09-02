@@ -308,6 +308,7 @@ import {
   getNomeAtleta,
   getEmailAtleta,
   isAtletaObsoleto,
+  isAtletaAttivo,
   getSchedaSelezionataAtleta,
   getVistaDettagliAtleta,
   ORDINE_ORIGINALE_ATLETI,
@@ -330,10 +331,10 @@ const caricamentoAtleti = ref(true);
 const caricamentoSchede = ref(false);
 const caricamentoPreview = ref(false);
 
-// Computed property per mappare la lista ID atleti a nomi reali leggibili per l'autocomplete
+// Computed property per mappare la lista ID atleti a nomi reali leggibili per l'autocomplete (solo atleti attivi)
 const itemsAtleti = computed(() => {
-  // Ordina gli atleti in base alla sequenza originale del foglio Google
-  const ordinati = [...listaAtleti.value].sort((a, b) => {
+  const soloAttivi = (listaAtleti.value || []).filter(id => isAtletaAttivo(id));
+  const ordinati = [...soloAttivi].sort((a, b) => {
     const idxA = ORDINE_ORIGINALE_ATLETI.indexOf(String(a).trim());
     const idxB = ORDINE_ORIGINALE_ATLETI.indexOf(String(b).trim());
     

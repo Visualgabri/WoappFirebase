@@ -7,7 +7,7 @@ export const ORDINE_ORIGINALE_ATLETI = [
   '1', '57', '93', '186', '219', '125', '188', '232', '193', '245',
   '164', '196', '228', '276', '19', '237', '249', '243', '263', '54',
   '268', '269', '281', '211', '178', '175', '297', '304', '274', '14',
-  '313', '312', '314'
+  '313', '312', '314', '301'
 ];
 
 // Mappa statica anagrafica clienti del foglio Google originario
@@ -44,7 +44,8 @@ export const MAPPA_CLIENTI = {
   '14': { nome: 'Filippo', cognome: 'Cruccolini', email: 'filippo.cruccolini@gmail.com', scheda: 7, vista: false, obsoleto: false, sesso: 'M' },
   '313': { nome: 'Lucia', cognome: 'Gozzi', email: 'Luciagozzi88@hotmail.com', scheda: 3, vista: false, obsoleto: false, sesso: 'F' },
   '312': { nome: 'Rachele', cognome: 'Cucurnia', email: 'Rachele.cucurnia@gmail.com', scheda: 2, vista: false, obsoleto: false, sesso: 'F' },
-  '314': { nome: 'Matteo', cognome: 'Delle Fate', email: 'matteodellefate@gmail.com', scheda: 1, vista: false, obsoleto: false, sesso: 'M' }
+  '314': { nome: 'Matteo', cognome: 'Delle Fate', email: 'matteodellefate@gmail.com', scheda: 1, vista: false, obsoleto: false, sesso: 'M' },
+  '301': { nome: 'Andrea', cognome: 'Durini', email: 'adurini88@gmail.com', scheda: 6, vista: false, obsoleto: false, sesso: 'M' }
 };
 
 // Helper per ottenere il sesso dell'atleta (M/F)
@@ -967,14 +968,94 @@ export const caricaNomiAtletiDinamici = async () => {
 // Avvia subito il caricamento dei nomi atleti da WORKOUT_T in background
 caricaNomiAtletiDinamici();
 
-export const getEmailAtleta = (id) => {
+// --- STATO ATLETI (ATTIVO / DISABILITATO) ---
+export const MAPPA_STATO_CLIENTI = ref(JSON.parse(localStorage.getItem('mappa_stato_clienti') || '{}'));
+
+export const isAtletaAttivo = (id) => {
   const cleanId = String(id || '').trim();
-  return MAPPA_CLIENTI[cleanId]?.email || '';
+  if (!cleanId) return false;
+  if (MAPPA_STATO_CLIENTI.value[cleanId] !== undefined) {
+    return MAPPA_STATO_CLIENTI.value[cleanId];
+  }
+  if (MAPPA_CLIENTI[cleanId]?.obsoleto !== undefined) {
+    return !MAPPA_CLIENTI[cleanId].obsoleto;
+  }
+  if (MAPPA_CLIENTI[cleanId]?.attivo !== undefined) {
+    return !!MAPPA_CLIENTI[cleanId].attivo;
+  }
+  return true; // Default attivo
 };
 
 export const isAtletaObsoleto = (id) => {
+  return !isAtletaAttivo(id);
+};
+
+export const impostaStatoAtletaLocale = (id, attivo) => {
   const cleanId = String(id || '').trim();
-  return !!MAPPA_CLIENTI[cleanId]?.obsoleto;
+  if (!cleanId) return;
+  const mappa = { ...MAPPA_STATO_CLIENTI.value, [cleanId]: !!attivo };
+  MAPPA_STATO_CLIENTI.value = mappa;
+  localStorage.setItem('mappa_stato_clienti', JSON.stringify(mappa));
+};
+
+export const toggleStatoAtletaFirestore = async (id, attivo) => {
+  const cleanId = String(id || '').trim();
+  if (!cleanId) return;
+  impostaStatoAtletaLocale(cleanId, attivo);
+  try {
+    const docRef = doc(db, 'CLIENTI', cleanId);
+    await setDoc(docRef, { 
+      flg_attivo: !!attivo,
+      flg_obsoleto: !attivo ? 'SI' : 'NO'
+    }, { merge: true });
+  } catch (err) {
+    console.error("Errore salvataggio stato atleta su Firestore:", err);
+    throw err;
+  }
+};
+
+export const caricaStatoClientiDaFirestore = async () => {
+  try {
+    const snap = await getDocs(collection(db, 'CLIENTI'));
+    const mappa = { ...MAPPA_STATO_CLIENTI.value };
+    let cambiato = false;
+
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = String(data.ID_cliente || docSnap.id).trim();
+      if (!id) return;
+      
+      let attivo = true;
+      if (data.flg_attivo !== undefined) {
+        attivo = Boolean(data.flg_attivo);
+      } else if (data.flg_obsoleto !== undefined) {
+        const obs = String(data.flg_obsoleto).trim().toUpperCase();
+        attivo = !(obs === 'SI' || obs === 'TRUE' || obs === '1');
+      } else if (MAPPA_CLIENTI[id]?.obsoleto !== undefined) {
+        attivo = !MAPPA_CLIENTI[id].obsoleto;
+      }
+
+      if (mappa[id] !== attivo) {
+        mappa[id] = attivo;
+        cambiato = true;
+      }
+    });
+
+    if (cambiato) {
+      MAPPA_STATO_CLIENTI.value = mappa;
+      localStorage.setItem('mappa_stato_clienti', JSON.stringify(mappa));
+    }
+  } catch (err) {
+    console.error("Errore sync stato clienti da Firestore:", err);
+  }
+};
+
+// Avvia sincronizzazione stato atleti da Firestore
+caricaStatoClientiDaFirestore();
+
+export const getEmailAtleta = (id) => {
+  const cleanId = String(id || '').trim();
+  return MAPPA_CLIENTI[cleanId]?.email || '';
 };
 
 export const getSchedaSelezionataAtleta = (id) => {

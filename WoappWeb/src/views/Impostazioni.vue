@@ -1043,6 +1043,7 @@ import {
   MAPPA_CLIENTI,
   MAPPA_CLIENTI_DINAMICI,
   caricaNomiAtletiDinamici,
+  isAtletaAttivo,
   userCustomExerciseSteps,
   setCustomExerciseStep,
   removeCustomExerciseStep
@@ -1148,7 +1149,7 @@ onMounted(async () => {
   }
 });
 
-// Computed per la lista atleti esclusiva dei messaggi individuali (SENZA "Tutti gli Atleti")
+// Computed per la lista atleti esclusiva dei messaggi individuali (SENZA "Tutti gli Atleti" e solo attivi)
 const listaAtletiSoloSingoli = computed(() => {
   const idsSet = new Set([
     ...(listaAtleti.value || []),
@@ -1157,14 +1158,17 @@ const listaAtletiSoloSingoli = computed(() => {
     ...Object.keys(MAPPA_CLIENTI_DINAMICI.value || {})
   ]);
 
-  const ordinati = Array.from(idsSet).map(id => String(id).trim()).filter(Boolean).sort((a, b) => {
-    const idxA = ORDINE_ORIGINALE_ATLETI ? ORDINE_ORIGINALE_ATLETI.indexOf(a) : -1;
-    const idxB = ORDINE_ORIGINALE_ATLETI ? ORDINE_ORIGINALE_ATLETI.indexOf(b) : -1;
-    const posA = idxA === -1 ? 999 : idxA;
-    const posB = idxB === -1 ? 999 : idxB;
-    if (posA !== posB) return posA - posB;
-    return a.localeCompare(b, undefined, { numeric: true });
-  });
+  const ordinati = Array.from(idsSet)
+    .map(id => String(id).trim())
+    .filter(id => id && isAtletaAttivo(id))
+    .sort((a, b) => {
+      const idxA = ORDINE_ORIGINALE_ATLETI ? ORDINE_ORIGINALE_ATLETI.indexOf(a) : -1;
+      const idxB = ORDINE_ORIGINALE_ATLETI ? ORDINE_ORIGINALE_ATLETI.indexOf(b) : -1;
+      const posA = idxA === -1 ? 999 : idxA;
+      const posB = idxB === -1 ? 999 : idxB;
+      if (posA !== posB) return posA - posB;
+      return a.localeCompare(b, undefined, { numeric: true });
+    });
 
   const items = [];
   ordinati.forEach(id => {

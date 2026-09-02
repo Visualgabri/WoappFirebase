@@ -55,7 +55,11 @@
             </v-btn>
             <v-btn value="clienti" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
               <v-icon start size="13" class="mr-1">mdi-account-details</v-icon>
-              Cliente
+              Anagrafica
+            </v-btn>
+            <v-btn value="tutti_clienti" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
+              <v-icon start size="13" class="mr-1">mdi-account-group</v-icon>
+              Tutti i Clienti
             </v-btn>
             <v-btn value="infortuni" class="flex-grow-1 font-weight-bold text-caption text-slate-dark px-1" style="height: 34px; font-size: 0.68rem !important;">
               <v-icon start size="13" class="mr-1">mdi-bandage</v-icon>
@@ -64,7 +68,7 @@
           </v-btn-toggle>
         </v-col>
 
-        <!-- Atleta -->
+        <!-- Atleta (non obbligatorio se si è su Tutti i Clienti) -->
         <v-col cols="12" sm="6" :md="tipoDatiCaricare === 'storyboard' ? 3 : 4">
           <span class="text-super-caption text-slate-dark font-weight-black uppercase tracking-wider d-block mb-1" style="font-size: 0.60rem;">Atleta</span>
           <v-autocomplete
@@ -79,6 +83,7 @@
             color="orange-darken-3"
             prepend-inner-icon="mdi-account"
             hide-details
+            :disabled="tipoDatiCaricare === 'tutti_clienti'"
             @update:model-value="gestisciCambioAtleta"
           ></v-autocomplete>
         </v-col>
@@ -109,8 +114,8 @@
             rounded="lg"
             class="text-white font-weight-bold text-none px-3"
             style="height: 36px; font-size: 0.76rem;"
-            :disabled="!atletaSelezionato || loadingData"
-            :loading="loadingData"
+            :disabled="(tipoDatiCaricare !== 'tutti_clienti' && !atletaSelezionato) || loadingData || loadingClientiTutti"
+            :loading="loadingData || loadingClientiTutti"
             @click="caricaDati"
           >
             <v-icon class="mr-1" size="16">mdi-cloud-download</v-icon>
@@ -768,6 +773,13 @@
           Anagrafica Cliente
           <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="purple-darken-3" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="tabCaricate.clienti && clienteRecord">
             1
+          </v-chip>
+        </v-tab>
+        <v-tab value="tutti_clienti" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
+          <v-icon start size="15" class="mr-1">mdi-account-group</v-icon>
+          Tutti i Clienti (Accessi)
+          <v-chip size="x-small" class="ml-1.5 font-weight-bold" color="purple-lighten-2" variant="flat" style="height: 16px; font-size: 0.58rem;" v-if="tabCaricate.tutti_clienti && listaClientiTutti.length > 0">
+            {{ listaClientiTutti.length }}
           </v-chip>
         </v-tab>
         <v-tab value="infortuni" class="font-weight-black text-none px-2" style="font-size: 0.75rem;">
@@ -1758,12 +1770,12 @@
         </div>
       </div>
 
-      <!-- TAB 4: CLIENTI (Anagrafica Atleta) -->
-      <div v-show="activeTab === 'clienti'">
+      <!-- TAB 4: CLIENTI (Anagrafica Singolo Atleta Selezionato) -->
+      <div v-show="activeTab === 'clienti'" class="pa-1">
         <!-- Spinner Caricamento -->
         <div v-if="loadingCliente" class="text-center my-12 py-12">
           <v-progress-circular indeterminate color="purple" size="48"></v-progress-circular>
-          <p class="mt-4 text-slate text-body-2">Caricamento anagrafica CLIENTE...</p>
+          <p class="mt-4 text-slate text-body-2">Caricamento anagrafica CLIENTE #{{ atletaSelezionato }}...</p>
         </div>
 
         <!-- Dati non ancora caricati -->
@@ -1771,26 +1783,53 @@
           <v-icon color="purple-lighten-2" size="48" class="mb-2">mdi-cloud-download-outline</v-icon>
           <h4 class="text-slate font-weight-bold text-body-1">Anagrafica Cliente non caricata da Firestore</h4>
           <p class="text-caption text-muted px-4 leading-tight mt-1">
-            Seleziona l'atleta e premi <strong class="text-orange-lighten-2">CARICA DATI</strong> in alto per scaricare l'anagrafica da Firestore.
+            Seleziona l'atleta in alto e premi <strong class="text-orange-lighten-2">CARICA DATI</strong> per scaricare l'anagrafica da Firestore (1 sola lettura).
           </p>
+          <v-btn color="orange-darken-3" variant="tonal" rounded="lg" @click="caricaDati" class="mt-3 text-none font-weight-bold" :disabled="!atletaSelezionato">
+            <v-icon class="mr-1">mdi-cloud-download</v-icon>
+            Carica Anagrafica (ID: {{ atletaSelezionato || 'N/D' }})
+          </v-btn>
         </div>
 
         <div v-else-if="!clienteRecord" class="text-center py-12 border-dashed rounded-xl my-4">
           <v-icon color="grey" size="48" class="mb-2">mdi-account-off-outline</v-icon>
           <h4 class="text-slate font-weight-bold text-body-1">Nessun dato anagrafico trovato</h4>
           <p class="text-caption text-muted px-4 leading-tight mt-1">Nessun record trovato nella collezione CLIENTI per questo atleta.</p>
-          <v-btn color="orange-darken-3" variant="tonal" rounded="lg" @click="creaSchedaClienteDefault" class="mt-3 text-none">
+          <v-btn color="orange-darken-3" variant="tonal" rounded="lg" @click="creaSchedaClienteDefault" class="mt-3 text-none font-weight-bold">
             <v-icon class="mr-1">mdi-account-plus</v-icon>
-            Crea Anagrafica Base
+            Crea Anagrafica Base (ID: {{ atletaSelezionato }})
           </v-btn>
         </div>
 
-        <div v-else class="pa-2">
+        <div v-else class="pa-1">
           <v-card class="card-glass border rounded-xl pa-4" style="background: rgba(15, 23, 42, 0.4) !important;">
-            <h4 class="text-subtitle-1 font-weight-black text-slate-dark mb-3 d-flex align-center">
-              <v-icon color="purple-lighten-2" class="mr-2">mdi-account-circle</v-icon>
-              Dati Anagrafici Atleta (ID: {{ clienteRecord.ID_cliente }})
-            </h4>
+            <div class="d-flex flex-wrap align-center justify-space-between gap-2 mb-3">
+              <h4 class="text-subtitle-1 font-weight-black text-slate-dark d-flex align-center mb-0">
+                <v-icon color="purple-lighten-2" class="mr-2">mdi-account-circle</v-icon>
+                Dati Anagrafici Atleta (ID: {{ clienteRecord.ID_cliente }})
+              </h4>
+              
+              <!-- Switch Stato in Anagrafica -->
+              <div class="d-flex align-center">
+                <span class="text-caption font-weight-bold text-slate-dark mr-2">Stato Account:</span>
+                <v-switch
+                  v-model="clienteRecord.flg_attivo"
+                  :color="clienteRecord.flg_attivo ? 'green-darken-3' : 'red-darken-3'"
+                  density="compact"
+                  hide-details
+                  class="mt-n2 mb-n2"
+                  @update:model-value="segnaModificatoCliente"
+                ></v-switch>
+                <v-chip
+                  size="small"
+                  :color="clienteRecord.flg_attivo ? 'green-darken-3' : 'red-darken-4'"
+                  variant="flat"
+                  class="font-weight-black text-white ml-1.5"
+                >
+                  {{ clienteRecord.flg_attivo ? 'ATTIVO (Accesso consentito) 🟢' : 'DISABILITATO (Accesso bloccato) 🔴' }}
+                </v-chip>
+              </div>
+            </div>
 
             <v-row dense>
               <v-col cols="12" sm="6" md="4">
@@ -1928,6 +1967,201 @@
                 ></v-textarea>
               </v-col>
             </v-row>
+          </v-card>
+        </div>
+      </div>
+
+      <!-- TAB 5: TUTTI I CLIENTI (Gestione Accessi & Abilitazioni On-Demand) -->
+      <div v-show="activeTab === 'tutti_clienti'" class="pa-1">
+        <!-- Spinner Caricamento -->
+        <div v-if="loadingClientiTutti" class="text-center my-12 py-12">
+          <v-progress-circular indeterminate color="purple-lighten-2" size="48"></v-progress-circular>
+          <p class="mt-4 text-slate text-body-2">Caricamento elenco completo clienti da Firestore...</p>
+        </div>
+
+        <!-- Dati non ancora caricati su richiesta esplicita -->
+        <div v-else-if="!tabCaricate.tutti_clienti" class="text-center py-12 border-dashed rounded-xl my-4">
+          <v-icon color="purple-lighten-2" size="48" class="mb-2">mdi-account-group-outline</v-icon>
+          <h4 class="text-slate font-weight-bold text-body-1">Elenco Completo Clienti non caricato</h4>
+          <p class="text-caption text-muted px-4 leading-tight mt-1">
+            Per preservare le quote Firestore, la tabella completa viene scaricata solo su richiesta esplicita.
+          </p>
+          <v-btn
+            color="purple-darken-2"
+            rounded="lg"
+            class="mt-4 text-none font-weight-bold px-4 text-white elevation-2"
+            @click="caricaTuttiIClienti"
+          >
+            <v-icon class="mr-1.5" size="18">mdi-account-group</v-icon>
+            CARICA TUTTI I CLIENTI DA FIRESTORE
+          </v-btn>
+        </div>
+
+        <!-- Tabella Caricata -->
+        <div v-else>
+          <!-- Header & Controlli Tabella Clienti -->
+          <v-card class="card-glass border rounded-xl pa-3.5 mb-4" style="background: rgba(15, 23, 42, 0.5) !important;">
+            <div class="d-flex flex-wrap align-center justify-space-between gap-2 mb-3">
+              <div class="d-flex align-center">
+                <v-icon color="purple-lighten-2" class="mr-2" size="22">mdi-account-group</v-icon>
+                <div>
+                  <h3 class="text-subtitle-1 font-weight-black text-slate-dark leading-tight mb-0">
+                    Gestione & Abilitazione Atleti
+                  </h3>
+                  <span class="text-caption text-muted d-block" style="font-size: 0.72rem;">
+                    Abilita o disabilita al volo l'accesso degli atleti con lo switch rapido
+                  </span>
+                </div>
+              </div>
+
+              <!-- Contatori Badge -->
+              <div class="d-flex align-center gap-1.5 flex-wrap">
+                <v-chip size="small" variant="flat" color="slate-dark" class="font-weight-bold" style="font-size: 0.70rem;">
+                  Totali: <strong>{{ statsClienti.tot }}</strong>
+                </v-chip>
+                <v-chip size="small" variant="flat" color="green-darken-3" class="font-weight-bold text-white" style="font-size: 0.70rem;">
+                  <v-icon start size="12">mdi-check-circle</v-icon>
+                  Attivi: <strong>{{ statsClienti.attivi }}</strong>
+                </v-chip>
+                <v-chip size="small" variant="flat" color="red-darken-3" class="font-weight-bold text-white" style="font-size: 0.70rem;">
+                  <v-icon start size="12">mdi-account-off</v-icon>
+                  Disabilitati: <strong>{{ statsClienti.disabilitati }}</strong>
+                </v-chip>
+                <v-btn
+                  icon
+                  size="x-small"
+                  color="purple-lighten-2"
+                  variant="tonal"
+                  class="ml-1"
+                  :loading="loadingClientiTutti"
+                  @click="caricaTuttiIClienti"
+                  title="Ricarica elenco clienti da Firestore"
+                >
+                  <v-icon size="14">mdi-refresh</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Barra Filtri e Ricerca -->
+            <v-row dense class="align-center">
+              <v-col cols="12" sm="7" md="8">
+                <v-text-field
+                  v-model="ricercaClienteTabella"
+                  placeholder="Cerca per Nome, Cognome, ID o Email..."
+                  prepend-inner-icon="mdi-magnify"
+                  density="compact"
+                  variant="outlined"
+                  rounded="lg"
+                  color="purple-lighten-2"
+                  hide-details
+                  clearable
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="5" md="4">
+                <v-btn-toggle
+                  v-model="filtroStatoClienti"
+                  mandatory
+                  density="compact"
+                  color="purple-lighten-2"
+                  variant="outlined"
+                  class="w-100 d-flex"
+                  style="height: 40px; border-radius: 8px;"
+                >
+                  <v-btn value="tutti" class="flex-grow-1 font-weight-bold text-caption px-1">Tutti</v-btn>
+                  <v-btn value="attivi" class="flex-grow-1 font-weight-bold text-caption px-1 text-green-accent-3">Attivi</v-btn>
+                  <v-btn value="disabilitati" class="flex-grow-1 font-weight-bold text-caption px-1 text-red-accent-2">Disabilitati</v-btn>
+                </v-btn-toggle>
+              </v-col>
+            </v-row>
+          </v-card>
+
+          <!-- Tabella Rapida Clienti -->
+          <v-card class="card-glass border rounded-xl overflow-hidden mb-5" style="background: rgba(15, 23, 42, 0.3) !important;">
+            <div v-if="clientiFiltratiTabella.length === 0" class="text-center py-8 text-muted">
+              <v-icon size="36" color="grey">mdi-account-search</v-icon>
+              <p class="mt-2 text-body-2">Nessun atleta trovato per i criteri selezionati.</p>
+            </div>
+
+            <div v-else class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+              <table class="w-100 text-left border-collapse-table">
+                <thead>
+                  <tr class="table-header-row">
+                    <th class="px-3 py-2.5 text-super-caption font-weight-black uppercase text-slate-dark">ID</th>
+                    <th class="px-3 py-2.5 text-super-caption font-weight-black uppercase text-slate-dark">Atleta</th>
+                    <th class="px-3 py-2.5 text-super-caption font-weight-black uppercase text-slate-dark">Email WoApp</th>
+                    <th class="px-3 py-2.5 text-super-caption font-weight-black uppercase text-slate-dark text-center">Scheda</th>
+                    <th class="px-3 py-2.5 text-super-caption font-weight-black uppercase text-slate-dark text-center">Stato Login</th>
+                    <th class="px-3 py-2.5 text-super-caption font-weight-black uppercase text-slate-dark text-center">Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr 
+                    v-for="c in clientiFiltratiTabella" 
+                    :key="c.id" 
+                    class="table-data-row transition-all"
+                    :class="{ 'bg-purple-subtle': String(atletaSelezionato) === String(c.id), 'opacity-60': !c.flg_attivo }"
+                  >
+                    <td class="px-3 py-2 font-weight-black text-slate-dark">
+                      <v-chip size="x-small" color="purple-darken-3" variant="flat" class="font-weight-black">
+                        #{{ c.id }}
+                      </v-chip>
+                    </td>
+                    <td class="px-3 py-2 font-weight-bold text-slate-dark">
+                      <div class="d-flex align-center">
+                        <v-avatar size="24" :color="c.flg_sesso === 'F' ? 'pink-darken-3' : 'blue-darken-3'" class="mr-2 text-white font-weight-black" style="font-size: 0.65rem;">
+                          {{ c.Nome ? c.Nome.charAt(0).toUpperCase() : 'A' }}
+                        </v-avatar>
+                        <span>{{ c.Nome }} {{ c.Cognome }}</span>
+                      </div>
+                    </td>
+                    <td class="px-3 py-2 text-caption text-slate-dark">
+                      {{ c.des_email_woapp || c.des_email || '-' }}
+                    </td>
+                    <td class="px-3 py-2 text-center">
+                      <span class="text-caption font-weight-bold text-slate-dark">
+                        {{ c.SchedaSelezionata ? 'Scheda ' + c.SchedaSelezionata : '-' }}
+                      </span>
+                    </td>
+                    <td class="px-3 py-2 text-center">
+                      <div class="d-inline-flex align-center gap-1">
+                        <v-switch
+                          :model-value="c.flg_attivo"
+                          :loading="c.loadingToggle"
+                          :disabled="c.loadingToggle"
+                          :color="c.flg_attivo ? 'green-darken-2' : 'red-darken-3'"
+                          density="compact"
+                          hide-details
+                          class="d-inline-block mt-n2 mb-n2"
+                          @update:model-value="toggleStatoRapidoCliente(c)"
+                        ></v-switch>
+                        <v-chip
+                          size="x-small"
+                          :color="c.flg_attivo ? 'green-darken-3' : 'red-darken-4'"
+                          variant="flat"
+                          class="font-weight-black text-white"
+                          style="height: 18px; font-size: 0.60rem;"
+                        >
+                          {{ c.flg_attivo ? 'Attivo 🟢' : 'Disabilitato 🔴' }}
+                        </v-chip>
+                      </div>
+                    </td>
+                    <td class="px-3 py-2 text-center">
+                      <v-btn
+                        size="x-small"
+                        color="orange-darken-3"
+                        variant="tonal"
+                        rounded="lg"
+                        class="text-none font-weight-bold"
+                        @click="selezionaEdEditaCliente(c.id)"
+                      >
+                        <v-icon size="13" class="mr-1">mdi-pencil</v-icon>
+                        Anagrafica
+                      </v-btn>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </v-card>
         </div>
       </div>
@@ -2390,7 +2624,12 @@ import {
   impostaNomeAtletaDinamico,
   caricaNomiAtletiDinamici,
   getNomeAtleta,
-  getStoryboardBackup
+  getStoryboardBackup,
+  isAtletaAttivo,
+  toggleStatoAtletaFirestore,
+  MAPPA_STATO_CLIENTI,
+  impostaStatoAtletaLocale,
+  caricaStatoClientiDaFirestore
 } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 
@@ -2502,9 +2741,85 @@ const loadingWorkoutT = ref(false);
 const massimaliRecords = ref([]);
 const loadingMassimali = ref(false);
 
-// Stato CLIENTI
+// Helper per generare la lista iniziale sincrona da MAPPA_CLIENTI
+const generaClientiIniziali = () => {
+  return Object.keys(MAPPA_CLIENTI).map(id => {
+    const c = MAPPA_CLIENTI[id];
+    const attivo = isAtletaAttivo(id);
+    return {
+      id: String(id),
+      Nome: c?.nome || '',
+      Cognome: c?.cognome || '',
+      des_email: c?.email || '',
+      des_email_woapp: c?.email || '',
+      flg_sesso: c?.sesso || 'M',
+      SchedaSelezionata: c?.scheda || '',
+      flg_attivo: attivo,
+      loadingToggle: false,
+      rawDoc: null
+    };
+  }).sort((a, b) => {
+    const idxA = ORDINE_ORIGINALE_ATLETI.indexOf(String(a.id).trim());
+    const idxB = ORDINE_ORIGINALE_ATLETI.indexOf(String(b).trim());
+    const posA = idxA === -1 ? 999 : idxA;
+    const posB = idxB === -1 ? 999 : idxB;
+    return posA - posB;
+  });
+};
+
+// Stato CLIENTI (Singolo e Tabella Tutti)
 const clienteRecord = ref(null);
 const loadingCliente = ref(false);
+const listaClientiTutti = ref([]);
+const loadingClientiTutti = ref(false);
+const ricercaClienteTabella = ref('');
+const filtroStatoClienti = ref('tutti'); // 'tutti', 'attivi', 'disabilitati'
+
+// Statistiche aggregate clienti
+const statsClienti = computed(() => {
+  let attivi = 0;
+  let disabilitati = 0;
+  (listaClientiTutti.value || []).forEach(c => {
+    if (c.flg_attivo) attivi++;
+    else disabilitati++;
+  });
+  return {
+    tot: (listaClientiTutti.value || []).length,
+    attivi,
+    disabilitati
+  };
+});
+
+// Clienti filtrati per tabella di gestione
+const clientiFiltratiTabella = computed(() => {
+  let list = listaClientiTutti.value || [];
+  
+  // Filtro stato
+  if (filtroStatoClienti.value === 'attivi') {
+    list = list.filter(c => c.flg_attivo);
+  } else if (filtroStatoClienti.value === 'disabilitati') {
+    list = list.filter(c => !c.flg_attivo);
+  }
+  
+  // Filtro ricerca testuale
+  const query = String(ricercaClienteTabella.value || '').trim().toLowerCase();
+  if (query) {
+    list = list.filter(c => {
+      const id = String(c.id || '').toLowerCase();
+      const nome = String(c.Nome || '').toLowerCase();
+      const cognome = String(c.Cognome || '').toLowerCase();
+      const email = String(c.des_email || '').toLowerCase();
+      const emailWoapp = String(c.des_email_woapp || '').toLowerCase();
+      return id.includes(query) ||
+             nome.includes(query) ||
+             cognome.includes(query) ||
+             email.includes(query) ||
+             emailWoapp.includes(query);
+    });
+  }
+  
+  return list;
+});
 
 // Stato INFORTUNI
 const infortuniRecords = ref([]);
@@ -2516,6 +2831,7 @@ const tabCaricate = ref({
   workout_t: false,
   massimali: false,
   clienti: false,
+  tutti_clienti: false,
   infortuni: false
 });
 
@@ -2548,6 +2864,9 @@ const salvaInCache = () => {
   current.massimaliRecords = JSON.parse(JSON.stringify(massimaliRecords.value));
   current.clienteRecord = clienteRecord.value ? JSON.parse(JSON.stringify(clienteRecord.value)) : null;
   current.infortuniRecords = JSON.parse(JSON.stringify(infortuniRecords.value));
+  if (listaClientiTutti.value.length > 0) {
+    current.listaClientiTutti = JSON.parse(JSON.stringify(listaClientiTutti.value));
+  }
   
   if (schedaSelezionata.value) {
     if (!current.storyboardRecords) current.storyboardRecords = {};
@@ -2558,56 +2877,44 @@ const salvaInCache = () => {
   dashboardCache.set(athleteId, current);
 };
 
-// Ripristina i dati dell'atleta dalla cache in memoria a costo 0 Firestore reads
+// Ripristina lo stato dalla cache
 const ripristinaDaCache = (athleteId) => {
-  const cached = dashboardCache.get(String(athleteId));
+  const cached = dashboardCache.get(athleteId);
   if (!cached) return false;
   
-  tabCaricate.value = {
-    storyboard: false,
-    workout_t: false,
-    massimali: false,
-    clienti: false,
-    infortuni: false,
-    ...(cached.tabCaricate || {})
-  };
-  listaSchede.value = [...(cached.listaSchede || [])];
+  tabCaricate.value = { ...cached.tabCaricate };
+  listaSchede.value = [...cached.listaSchede];
   workoutTRecords.value = JSON.parse(JSON.stringify(cached.workoutTRecords || []));
   massimaliRecords.value = JSON.parse(JSON.stringify(cached.massimaliRecords || []));
   clienteRecord.value = cached.clienteRecord ? JSON.parse(JSON.stringify(cached.clienteRecord)) : null;
   infortuniRecords.value = JSON.parse(JSON.stringify(cached.infortuniRecords || []));
-  
-  if (listaSchede.value.length > 0 && !schedaSelezionata.value) {
-    if (selectedSheet.value && listaSchede.value.includes(String(selectedSheet.value).trim())) {
-      schedaSelezionata.value = String(selectedSheet.value).trim();
-    } else {
-      schedaSelezionata.value = listaSchede.value[listaSchede.value.length - 1];
-    }
+  if (cached.listaClientiTutti && cached.listaClientiTutti.length > 0) {
+    listaClientiTutti.value = JSON.parse(JSON.stringify(cached.listaClientiTutti));
   }
   
   if (schedaSelezionata.value && cached.storyboardRecords && cached.storyboardRecords[String(schedaSelezionata.value)]) {
     records.value = JSON.parse(JSON.stringify(cached.storyboardRecords[String(schedaSelezionata.value)]));
+    tabCaricate.value.storyboard = true;
   } else {
     records.value = [];
+    tabCaricate.value.storyboard = false;
   }
-  
   return true;
 };
 
-// Svuota i dati locali quando si cambia atleta senza avere cache
+// Svuota i dati locali
 const svuotaDatiLocali = () => {
   records.value = [];
   workoutTRecords.value = [];
   massimaliRecords.value = [];
   clienteRecord.value = null;
   infortuniRecords.value = [];
-  listaSchede.value = [];
-  schedaSelezionata.value = '';
   tabCaricate.value = {
     storyboard: false,
     workout_t: false,
     massimali: false,
     clienti: false,
+    tutti_clienti: tabCaricate.value.tutti_clienti, // Mantiene la tabella se già scaricata
     infortuni: false
   };
 };
@@ -2616,8 +2923,114 @@ const svuotaDatiLocali = () => {
 watch(activeTab, (newVal) => {
   tipoDatiCaricare.value = newVal;
 });
+
 const gestisciCambioTipoDati = (val) => {
   activeTab.value = val;
+};
+
+// Carica la lista completa di tutti i clienti da Firestore CLIENTI e metadata
+const caricaTuttiIClienti = async () => {
+  loadingClientiTutti.value = true;
+  try {
+    const snap = await getDocs(collection(db, 'CLIENTI'));
+    const clientiMap = new Map();
+
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = String(data.ID_cliente || docSnap.id).trim();
+      if (!id) return;
+      
+      let attivo = true;
+      if (data.flg_attivo !== undefined) {
+        attivo = Boolean(data.flg_attivo);
+      } else if (data.flg_obsoleto !== undefined) {
+        const obs = String(data.flg_obsoleto).trim().toUpperCase();
+        attivo = !(obs === 'SI' || obs === 'TRUE' || obs === '1');
+      } else if (MAPPA_CLIENTI[id]?.obsoleto !== undefined) {
+        attivo = !MAPPA_CLIENTI[id].obsoleto;
+      }
+
+      clientiMap.set(id, {
+        id,
+        Nome: data.Nome || (MAPPA_CLIENTI[id]?.nome || ''),
+        Cognome: data.Cognome || (MAPPA_CLIENTI[id]?.cognome || ''),
+        des_email: data.des_email || (MAPPA_CLIENTI[id]?.email || ''),
+        des_email_woapp: data.des_email_woapp || data.des_email || '',
+        flg_sesso: data.flg_sesso || (MAPPA_CLIENTI[id]?.sesso || 'M'),
+        SchedaSelezionata: data.SchedaSelezionata || (MAPPA_CLIENTI[id]?.scheda || ''),
+        flg_attivo: attivo,
+        loadingToggle: false,
+        rawDoc: data
+      });
+    });
+
+    // Unisci con eventuali altri atleti in listaAtleti o MAPPA_CLIENTI
+    const idsUniti = new Set([...listaAtleti.value, ...Object.keys(MAPPA_CLIENTI)]);
+    idsUniti.forEach(id => {
+      if (!clientiMap.has(id)) {
+        const c = MAPPA_CLIENTI[id];
+        const attivo = isAtletaAttivo(id);
+        clientiMap.set(id, {
+          id,
+          Nome: c?.nome || '',
+          Cognome: c?.cognome || '',
+          des_email: c?.email || '',
+          des_email_woapp: c?.email || '',
+          flg_sesso: c?.sesso || 'M',
+          SchedaSelezionata: c?.scheda || '',
+          flg_attivo: attivo,
+          loadingToggle: false,
+          rawDoc: null
+        });
+      }
+    });
+
+    const list = Array.from(clientiMap.values()).sort((a, b) => {
+      const idxA = ORDINE_ORIGINALE_ATLETI.indexOf(String(a.id).trim());
+      const idxB = ORDINE_ORIGINALE_ATLETI.indexOf(String(b).trim());
+      const posA = idxA === -1 ? 999 : idxA;
+      const posB = idxB === -1 ? 999 : idxB;
+      return posA - posB;
+    });
+
+    listaClientiTutti.value = list;
+    tabCaricate.value.tutti_clienti = true;
+    salvaInCache();
+  } catch (err) {
+    console.error("Errore caricamento lista clienti completa:", err);
+    alert("Errore durante il caricamento dei clienti da Firestore: " + err.message);
+  } finally {
+    loadingClientiTutti.value = false;
+  }
+};
+
+// Modifica rapida dello stato attivo/disabilitato direttamente dalla tabella
+const toggleStatoRapidoCliente = async (cliente) => {
+  const nuovoStato = !cliente.flg_attivo;
+  cliente.loadingToggle = true;
+  try {
+    await toggleStatoAtletaFirestore(cliente.id, nuovoStato);
+    cliente.flg_attivo = nuovoStato;
+    if (clienteRecord.value && String(clienteRecord.value.ID_cliente) === String(cliente.id)) {
+      clienteRecord.value.flg_attivo = nuovoStato;
+      clienteRecord.value.flg_obsoleto = nuovoStato ? 'NO' : 'SI';
+    }
+  } catch (err) {
+    alert("Errore durante il cambio stato dell'atleta: " + err.message);
+  } finally {
+    cliente.loadingToggle = false;
+  }
+};
+
+// Seleziona un atleta dalla tabella e ne apre l'anagrafica dettagliata
+const selezionaEdEditaCliente = async (id) => {
+  atletaSelezionato.value = id;
+  setSelectedAthlete(id);
+  activeTab.value = 'clienti';
+  tipoDatiCaricare.value = 'clienti';
+  await caricaCliente();
+  tabCaricate.value.clienti = true;
+  salvaInCache();
 };
 
 // Loading States
@@ -2643,9 +3056,10 @@ const editColumns = [
   'des_commenti', 'des_note_attrezzo', 'des_note_gen_attr', 'UrlNormal', 'flg_video', 'no_elimina', 'num_riga', 'timestamp_ute'
 ];
 
-// Configurazione Atleti per dropdown
+// Configurazione Atleti per dropdown (solo atleti attivi)
 const itemsAtleti = computed(() => {
-  const ordinati = [...listaAtleti.value].sort((a, b) => {
+  const soloAttivi = (listaAtleti.value || []).filter(id => isAtletaAttivo(id));
+  const ordinati = [...soloAttivi].sort((a, b) => {
     const idxA = ORDINE_ORIGINALE_ATLETI.indexOf(String(a).trim());
     const idxB = ORDINE_ORIGINALE_ATLETI.indexOf(String(b).trim());
     const posA = idxA === -1 ? 999 : idxA;
@@ -2729,7 +3143,7 @@ const registerInputRef = (el, rowIndex, fieldName) => {
 };
 
 onMounted(async () => {
-  // Carica anagrafica clienti per popolare il dropdown
+  // Carica anagrafica clienti per popolare il dropdown (solo lista metadata leggera a 1 sola lettura)
   try {
     const docSnap = await getDoc(doc(db, 'METADATA', 'clienti'));
     if (docSnap.exists()) {
@@ -2752,7 +3166,7 @@ onMounted(async () => {
   if (atletaSelezionato.value && dashboardCache.has(String(atletaSelezionato.value))) {
     ripristinaDaCache(String(atletaSelezionato.value));
   }
-  // NOTA: Nessuna lettura automatica a Firestore viene eseguita qui se non in cache, salvaguardando le quote.
+  // NOTA: Nessuna lettura automatica a Firestore viene eseguita all'avvio, salvaguardando rigorosamente le quote.
 });
 
 // Watcher per allineare l'atleta e la scheda selezionati localmente con lo stato globale
@@ -2884,10 +3298,23 @@ const caricaCliente = async () => {
   try {
     const docSnap = await getDoc(doc(db, 'CLIENTI', String(atletaSelezionato.value)));
     if (docSnap.exists()) {
+      const data = docSnap.data();
+      let attivo = true;
+      if (data.flg_attivo !== undefined) {
+        attivo = Boolean(data.flg_attivo);
+      } else if (data.flg_obsoleto !== undefined) {
+        const obs = String(data.flg_obsoleto).trim().toUpperCase();
+        attivo = !(obs === 'SI' || obs === 'TRUE' || obs === '1');
+      } else {
+        attivo = isAtletaAttivo(atletaSelezionato.value);
+      }
+
       clienteRecord.value = {
         isDirty: false,
         ID_cliente: String(atletaSelezionato.value),
-        ...docSnap.data()
+        ...data,
+        flg_attivo: attivo,
+        flg_obsoleto: attivo ? 'NO' : 'SI'
       };
     } else {
       clienteRecord.value = null;
@@ -2968,8 +3395,16 @@ const gestisciCambioScheda = async () => {
 
 // Carica su richiesta ESCLUSIVAMENTE la tabella attualmente selezionata per risparmiare quote Firestore
 const caricaDati = async () => {
-  if (!atletaSelezionato.value) return;
   const tab = activeTab.value || tipoDatiCaricare.value || 'storyboard';
+  
+  if (tab === 'tutti_clienti') {
+    await caricaTuttiIClienti();
+    tabCaricate.value.tutti_clienti = true;
+    salvaInCache();
+    return;
+  }
+
+  if (!atletaSelezionato.value) return;
   
   if (tab === 'storyboard') {
     loadingData.value = true;
@@ -3089,6 +3524,8 @@ const creaSchedaClienteDefault = () => {
     num_altezza: '',
     SchedaSelezionata: schedaSelezionata.value || '1',
     TipoVistaDettagli: 'FALSE',
+    flg_attivo: true,
+    flg_obsoleto: 'NO',
     Note: ''
   };
 };
@@ -3444,7 +3881,11 @@ const salvaModifiche = async () => {
     if (clienteRecord.value && clienteRecord.value.isDirty) {
       const cleanClient = { ...clienteRecord.value };
       delete cleanClient.isDirty;
+      cleanClient.flg_attivo = Boolean(cleanClient.flg_attivo);
+      cleanClient.flg_obsoleto = !cleanClient.flg_attivo ? 'SI' : 'NO';
       batch.set(doc(db, 'CLIENTI', String(atletaSelezionato.value)), cleanClient, { merge: true });
+      impostaStatoAtletaLocale(atletaSelezionato.value, cleanClient.flg_attivo);
+      await caricaTuttiIClienti();
     }
 
     // 5. Process INFORTUNI records
@@ -3697,6 +4138,35 @@ const esportaCSVLocale = () => {
 
 .border-top-soft {
   border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Stili Tabella Gestione Clienti */
+.border-collapse-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table-header-row th {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  color: #f8fafc !important;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.table-data-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color 0.15s ease;
+}
+
+.table-data-row:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.bg-purple-subtle {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+  border-left: 3px solid #a855f7 !important;
 }
 
 /* Griglia Excel Style */

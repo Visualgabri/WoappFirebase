@@ -136,7 +136,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { signInWithPopup } from 'firebase/auth';
 import { db, auth, googleProvider } from '../firebase.js';
 import { 
@@ -146,6 +146,7 @@ import {
   ruolo, 
   logout, 
   getNomeAtleta,
+  isAtletaAttivo,
   MAPPA_CLIENTI
 } from '../authStore.js';
 
@@ -165,6 +166,18 @@ const vibraTattile = (ms = 12) => {
 const disconnettiAccount = async () => {
   vibraTattile(15);
   await logout();
+};
+
+// Helper per verificare se un atleta è attivo
+const verificaSeAttivo = (id, dataObj = null) => {
+  if (dataObj) {
+    if (dataObj.flg_attivo !== undefined) return Boolean(dataObj.flg_attivo);
+    if (dataObj.flg_obsoleto !== undefined) {
+      const obs = String(dataObj.flg_obsoleto).trim().toUpperCase();
+      return !(obs === 'SI' || obs === 'TRUE' || obs === '1');
+    }
+  }
+  return isAtletaAttivo(id);
 };
 
 // Gestore Autenticazione con Google (Google Sign-In)
@@ -190,29 +203,67 @@ const accediConGoogle = async () => {
       return;
     }
     
-    // 2. Cerca nella mappa dei clienti statica di authStore.js
+    // 2. Cerca nella mappa dei clienti statica di authStore.js (cache / accesso rapido)
     const matchedId = Object.keys(MAPPA_CLIENTI).find(
       id => MAPPA_CLIENTI[id].email && MAPPA_CLIENTI[id].email.toLowerCase().trim() === emailPulita
     );
     
     if (matchedId) {
+      if (!verificaSeAttivo(matchedId)) {
+        errore.value = "Il tuo account è temporaneamente disabilitato. Contatta il Coach per riattivare l'accesso.";
+        await logout();
+        return;
+      }
       inizializzaSessione(user.email, matchedId, 'atleta');
       router.push('/');
       return;
     }
     
-    // 3. Cerca nella collection UTENTI di Firestore (per utenti registrati dinamicamente)
+    // 3. Cerca nella collection CLIENTI di Firestore (per tutti gli atleti gestiti/salvati in anagrafica)
+    const clientiSnap = await getDocs(collection(db, 'CLIENTI'));
+    let matchedClienteId = null;
+    let matchedData = null;
+    
+    clientiSnap.forEach(docSnap => {
+      const data = docSnap.data();
+      const emailWoapp = String(data.des_email_woapp || '').trim().toLowerCase();
+      const emailPrincipale = String(data.des_email || '').trim().toLowerCase();
+      
+      if (emailWoapp === emailPulita || emailPrincipale === emailPulita) {
+        matchedClienteId = String(data.ID_cliente || docSnap.id).trim();
+        matchedData = data;
+      }
+    });
+    
+    if (matchedClienteId) {
+      if (!verificaSeAttivo(matchedClienteId, matchedData)) {
+        errore.value = "Il tuo account è temporaneamente disabilitato. Contatta il Coach per riattivare l'accesso.";
+        await logout();
+        return;
+      }
+      inizializzaSessione(user.email, matchedClienteId, 'atleta');
+      router.push('/');
+      return;
+    }
+    
+    // 4. Fallback: cerca nella collection UTENTI di Firestore
     const userDocRef = doc(db, 'UTENTI', emailPulita);
     const docSnap = await getDoc(userDocRef);
     
     if (docSnap.exists()) {
       const data = docSnap.data();
-      inizializzaSessione(data.email, data.ID_cliente, data.ruolo);
+      const athleteId = data.ID_cliente;
+      if (athleteId && !verificaSeAttivo(athleteId, data)) {
+        errore.value = "Il tuo account è temporaneamente disabilitato. Contatta il Coach per riattivare l'accesso.";
+        await logout();
+        return;
+      }
+      inizializzaSessione(data.email, data.ID_cliente, data.ruolo || 'atleta');
       router.push('/');
       return;
     }
     
-    // 4. Utente non autorizzato: blocca e mostra errore
+    // 5. Utente non autorizzato: blocca e mostra errore
     errore.value = "Utente non abilitato all'accesso. Contatta il Coach per registrare la tua email.";
     await logout(); // Disconnette l'utente da Firebase Auth e pulisce la sessione locale
     

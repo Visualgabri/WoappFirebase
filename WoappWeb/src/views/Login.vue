@@ -147,6 +147,7 @@ import {
   logout, 
   getNomeAtleta,
   isAtletaAttivo,
+  impostaNomeAtletaDinamico,
   MAPPA_CLIENTI
 } from '../authStore.js';
 
@@ -241,6 +242,10 @@ const accediConGoogle = async () => {
         await logout();
         return;
       }
+      const nomeCompleto = (matchedData.NomeCognomeTM || matchedData.des_nome_cognome || `${matchedData.Nome || ''} ${matchedData.Cognome || ''}`).trim();
+      if (nomeCompleto) {
+        impostaNomeAtletaDinamico(matchedClienteId, nomeCompleto);
+      }
       inizializzaSessione(user.email, matchedClienteId, 'atleta');
       router.push('/');
       return;
@@ -257,6 +262,10 @@ const accediConGoogle = async () => {
         errore.value = "Il tuo account è temporaneamente disabilitato. Contatta il Coach per riattivare l'accesso.";
         await logout();
         return;
+      }
+      const nomeCompleto = (data.des_nome_cognome || `${data.nome || ''} ${data.cognome || ''}`).trim();
+      if (athleteId && nomeCompleto) {
+        impostaNomeAtletaDinamico(athleteId, nomeCompleto);
       }
       inizializzaSessione(data.email, data.ID_cliente, data.ruolo || 'atleta');
       router.push('/');

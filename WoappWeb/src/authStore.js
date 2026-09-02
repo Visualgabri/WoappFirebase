@@ -941,20 +941,42 @@ export const getNomeAtleta = (id) => {
 
 export const caricaNomiAtletiDinamici = async () => {
   try {
-    const q = query(collection(db, 'WORKOUT_T'));
-    const snap = await getDocs(q);
     const mappa = { ...MAPPA_CLIENTI_DINAMICI.value };
     let haCambiamenti = false;
 
-    snap.forEach(docSnap => {
-      const data = docSnap.data();
-      const id = String(data.ID_cliente || '').trim();
-      const nome = (data.NomeCognomeTM || data.des_nome_cognome || data.des_atleta || '').trim();
-      if (id && nome && mappa[id] !== nome) {
-        mappa[id] = nome;
-        haCambiamenti = true;
-      }
-    });
+    // 1. Carica nomi da collezione CLIENTI
+    try {
+      const clientiSnap = await getDocs(collection(db, 'CLIENTI'));
+      clientiSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = String(data.ID_cliente || docSnap.id).trim();
+        const nomeP = (data.Nome || data.nome || '').trim();
+        const cognomeP = (data.Cognome || data.cognome || '').trim();
+        const nomeCompleto = (data.NomeCognomeTM || data.des_nome_cognome || `${nomeP} ${cognomeP}`).trim();
+        if (id && nomeCompleto && mappa[id] !== nomeCompleto) {
+          mappa[id] = nomeCompleto;
+          haCambiamenti = true;
+        }
+      });
+    } catch (errClienti) {
+      console.warn("Avviso lettura CLIENTI in caricaNomiAtletiDinamici:", errClienti);
+    }
+
+    // 2. Carica/integra nomi da collezione WORKOUT_T
+    try {
+      const wtSnap = await getDocs(collection(db, 'WORKOUT_T'));
+      wtSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = String(data.ID_cliente || '').trim();
+        const nome = (data.NomeCognomeTM || data.des_nome_cognome || data.des_atleta || '').trim();
+        if (id && nome && mappa[id] !== nome) {
+          mappa[id] = nome;
+          haCambiamenti = true;
+        }
+      });
+    } catch (errWt) {
+      console.warn("Avviso lettura WORKOUT_T in caricaNomiAtletiDinamici:", errWt);
+    }
 
     if (haCambiamenti) {
       MAPPA_CLIENTI_DINAMICI.value = mappa;

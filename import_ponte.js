@@ -104,7 +104,8 @@ const BOOLEAN_FIELDS = new Set([
   'flg_stampa_wo_grafici',
   'flg_sic',
   'flg_ramp_test',
-  'flg_da_finire'
+  'flg_da_finire',
+  'flg_attivo'
 ]);
 
 function parseBooleanFlag(val) {
@@ -112,7 +113,7 @@ function parseBooleanFlag(val) {
   if (typeof val === 'number') return val === 1;
   if (typeof val === 'string') {
     const s = val.trim().toLowerCase();
-    return s === 'true' || s === 'vero' || s === '1';
+    return s === 'true' || s === 'vero' || s === '1' || s === 'si';
   }
   return false;
 }
@@ -188,22 +189,85 @@ async function run() {
           cleanVal = formatExcelDate(cleanVal);
         }
 
-        clientRecord[cleanKey] = cleanVal;
+        if (BOOLEAN_FIELDS.has(cleanKey)) {
+          clientRecord[cleanKey] = parseBooleanFlag(cleanVal);
+        } else {
+          // Normalizzazione email se il campo è un'email
+          if (cleanKey === 'des_email' || cleanKey === 'des_email_woapp') {
+            cleanVal = cleanVal.toLowerCase();
+          }
+          clientRecord[cleanKey] = cleanVal;
+        }
+      }
+
+      // Se non presente des_email_woapp, sincronizza da des_email o viceversa
+      if (!clientRecord.des_email_woapp && clientRecord.des_email) {
+        clientRecord.des_email_woapp = clientRecord.des_email;
+      } else if (!clientRecord.des_email && clientRecord.des_email_woapp) {
+        clientRecord.des_email = clientRecord.des_email_woapp;
+      }
+
+      // Sintetizza des_nome_cognome e NomeCognomeTM se assenti o vuoti
+      const nomeP = clientRecord.Nome || clientRecord.nome || '';
+      const cognomeP = clientRecord.Cognome || clientRecord.cognome || '';
+      const nomeCompleto = `${nomeP} ${cognomeP}`.trim();
+      if (nomeCompleto) {
+        if (!clientRecord.des_nome_cognome) clientRecord.des_nome_cognome = nomeCompleto;
+        if (!clientRecord.NomeCognomeTM) clientRecord.NomeCognomeTM = nomeCompleto;
       }
 
       const clientDocRef = db.collection('CLIENTI').doc(idClienteStr);
       const clientDocSnap = await clientDocRef.get();
 
       if (!clientDocSnap.exists) {
+        // Default di abilitazione per un nuovo cliente se non esplicitamente specificato
+        if (clientRecord.flg_attivo === undefined) {
+          clientRecord.flg_attivo = true;
+        }
+        if (clientRecord.flg_obsoleto === undefined) {
+          clientRecord.flg_obsoleto = 'NO';
+        }
         await clientDocRef.set(clientRecord);
-        console.log(`[Import Ponte] Record CLIENTE creato per '${idClienteStr}' (nuovo documento con flg_sesso, dat_data_nascita, num_altezza).`);
+        console.log(`[Import Ponte] Record CLIENTE creato per '${idClienteStr}' (nuovo documento abilitato, con email, sesso, data nascita, altezza).`);
       } else {
         const existingClientData = clientDocSnap.data();
+        // Se nel record esistente flg_attivo è già valorizzato e in excel non era presente, preservalo
+        if (clientRecord.flg_attivo === undefined && existingClientData.flg_attivo !== undefined) {
+          clientRecord.flg_attivo = existingClientData.flg_attivo;
+        }
+        if (clientRecord.flg_obsoleto === undefined && existingClientData.flg_obsoleto !== undefined) {
+          clientRecord.flg_obsoleto = existingClientData.flg_obsoleto;
+        }
         if (!areRecordsEqual(clientRecord, existingClientData)) {
           await clientDocRef.set(clientRecord, { merge: true });
           console.log(`[Import Ponte] Record CLIENTE aggiornato per '${idClienteStr}' (campi modificati).`);
         } else {
           console.log(`[Import Ponte] Record CLIENTE per '${idClienteStr}' già allineato (scrittura saltata).`);
+        }
+      }
+
+      // 1.3 Sincronizza anche la collezione 'UTENTI' per garantire l'accesso immediato via email
+      const userEmailKey = String(clientRecord.des_email_woapp || clientRecord.des_email || '').trim().toLowerCase();
+      if (userEmailKey) {
+        const userDocRef = db.collection('UTENTI').doc(userEmailKey);
+        const userDocSnap = await userDocRef.get();
+        const userPayload = {
+          email: userEmailKey,
+          ID_cliente: idClienteStr,
+          ruolo: 'atleta',
+          attivo: clientRecord.flg_attivo !== undefined ? Boolean(clientRecord.flg_attivo) : true,
+          nome: clientRecord.Nome || clientRecord.nome || '',
+          cognome: clientRecord.Cognome || clientRecord.cognome || '',
+          des_nome_cognome: clientRecord.des_nome_cognome || nomeCompleto || '',
+          aggiornatoAl: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (!userDocSnap.exists) {
+          await userDocRef.set(userPayload);
+          console.log(`[Import Ponte] Record UTENTI creato per '${userEmailKey}' (abilitato al login con ID ${idClienteStr}).`);
+        } else {
+          await userDocRef.set(userPayload, { merge: true });
+          console.log(`[Import Ponte] Record UTENTI aggiornato per '${userEmailKey}' (ID ${idClienteStr}).`);
         }
       }
     }

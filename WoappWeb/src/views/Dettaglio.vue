@@ -8281,14 +8281,19 @@ const getGhostWeightsRangeForWeek = (sett) => {
     return raw;
   }
 
+  const exKey = String(workout.value?.id || routeIdLocal.value || 'default');
+  if (!ghostOriginaliCache[exKey]) {
+    ghostOriginaliCache[exKey] = {};
+  }
+
   const currentIns = inputSettimane.value[sett]?.ins;
   const hasInput = currentIns !== undefined && currentIns !== null && String(currentIns).trim() !== '';
 
   if (hasInput) {
-    return ghostOriginaliCache[sett] || raw;
+    return ghostOriginaliCache[exKey][sett] || raw;
   } else {
     if (raw) {
-      ghostOriginaliCache[sett] = raw;
+      ghostOriginaliCache[exKey][sett] = raw;
     }
     return raw;
   }
@@ -12838,9 +12843,49 @@ const isCorpoLiberoPuro = computed(() => {
   return Boolean(isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value);
 });
 
+let currentExerciseRequestId = 0;
+
 const normalizzaNomeEsercizio = (nome) => {
   if (!nome) return '';
   return String(nome).trim().toLowerCase().replace(/\s+/g, ' ');
+};
+
+const applicaStoricoSincrono = (wObj) => {
+  if (!wObj) return false;
+  const { key: keyIdCliente, id: atletaId } = getAtletaInfo(wObj);
+  const desEsercizioClean = normalizzaNomeEsercizio(wObj.des_esercizio);
+  const currentNumScheda = parseInt(wObj.num_scheda);
+  if (!atletaId || !desEsercizioClean || isNaN(currentNumScheda)) return false;
+
+  const mappaSchede = new Map();
+  if (globalStoryboard.value && globalStoryboard.value.length > 0) {
+    globalStoryboard.value.forEach(d => {
+      const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
+      const dNome = normalizzaNomeEsercizio(d.des_esercizio);
+      if (String(dAtletaId) === String(atletaId) && dNome === desEsercizioClean && parseInt(d.num_riga_giorno) > 0) {
+        const sNum = parseInt(d.num_scheda);
+        if (!isSchedaPassata.value && sNum > currentNumScheda) return;
+        const sNumStr = String(d.num_scheda || '').trim();
+        const itemId = d.id || `STORICO_${d.num_scheda}_${d.des_giorno}_${d.num_riga_giorno}`;
+        const uniqueKey = `${sNumStr}_${(d.des_giorno || '').trim()}_${String(d.num_riga_giorno || '').trim()}_${itemId}`;
+        const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(d);
+        mappaSchede.set(uniqueKey, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
+      }
+    });
+  }
+
+  // Integra la scheda corrente
+  const sNumStr = String(wObj.num_scheda || '').trim();
+  const itemId = wObj.id || `STORICO_${wObj.num_scheda}_${wObj.des_giorno}_${wObj.num_riga_giorno}`;
+  const uniqueKey = `${sNumStr}_${(wObj.des_giorno || '').trim()}_${String(wObj.num_riga_giorno || '').trim()}_${itemId}`;
+  const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(wObj);
+  mappaSchede.set(uniqueKey, applicaModificheLocali({ ...wObj, peso_corporeo: pesoCorp }));
+
+  const list = Array.from(mappaSchede.values());
+  list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
+  storicoEsercizio.value = list;
+  storicoEsercizioPerAiuto.value = list;
+  return list.length > 0;
 };
 
 const applicaEsercizioPrecedenteSincrono = (wObj) => {
@@ -12880,7 +12925,7 @@ const applicaEsercizioPrecedenteSincrono = (wObj) => {
   return false;
 };
 
-const caricaEsercizioPrecedente = async () => {
+const caricaEsercizioPrecedente = async (reqId = currentExerciseRequestId) => {
   if (!workout.value) return;
   
   const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
@@ -12894,23 +12939,32 @@ const caricaEsercizioPrecedente = async () => {
     const currentSchedaNum = parseInt(currentNumScheda);
     if (isNaN(currentSchedaNum)) return;
 
-    // Se già trovato per lo STESSO esercizio, evitiamo query
+    // Se già trovato per lo STESSO esercizio e ancora valido, evitiamo query duplicate
     if (previousWorkout.value && normalizzaNomeEsercizio(previousWorkout.value.des_esercizio) === desEsercizioNorm) {
       return;
     }
-    
-    // Se non corrisponde, resettiamo a null prima di cercare
-    previousWorkout.value = null;
-    for (let w = 1; w <= 6; w++) {
-      inputSettimanePrecedente.value[w].ins = '';
-      inputSettimanePrecedente.value[w].reps = '';
-    }
-    numIns6ValPrecedente.value = '';
-    numFaticaw6ValPrecedente.value = '';
 
     let bestPrev = null;
 
-    // 1. Cerca da Firestore per atletaId (senza filtro case-sensitive)
+    // 1. Cerca dallo storyboard_backup.json locale (istantaneo)
+    try {
+      const allData = await getStoryboardBackup();
+      (allData || []).forEach(b => {
+        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        const bNorm = normalizzaNomeEsercizio(b.des_esercizio);
+        const sNum = parseInt(b.num_scheda);
+        if (String(bAtletaId) === String(atletaId) && bNorm === desEsercizioNorm && sNum < currentSchedaNum) {
+          if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+            const itemId = b.id || b.num_riga || `PREV_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+            bestPrev = { ...b, id: itemId };
+          }
+        }
+      });
+    } catch (eBk) {
+      console.warn("Errore backup in caricaEsercizioPrecedente:", eBk);
+    }
+
+    // 2. Cerca da Firestore per atletaId (senza filtro case-sensitive) per dati più recenti
     try {
       const q = query(
         collection(db, 'STORYBOARD'),
@@ -12931,25 +12985,10 @@ const caricaEsercizioPrecedente = async () => {
     } catch (eFs) {
       console.warn("Errore query Firestore in caricaEsercizioPrecedente:", eFs);
     }
-    
-    // 2. Cerca dallo storyboard_backup.json locale
-    if (!bestPrev) {
-      try {
-        const allData = await getStoryboardBackup();
-        (allData || []).forEach(b => {
-          const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
-          const bNorm = normalizzaNomeEsercizio(b.des_esercizio);
-          const sNum = parseInt(b.num_scheda);
-          if (String(bAtletaId) === String(atletaId) && bNorm === desEsercizioNorm && sNum < currentSchedaNum) {
-            if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
-              const itemId = b.id || b.num_riga || `PREV_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
-              bestPrev = { ...b, id: itemId };
-            }
-          }
-        });
-      } catch (eBk) {
-        console.warn("Errore backup in caricaEsercizioPrecedente:", eBk);
-      }
+
+    if (reqId !== currentExerciseRequestId) {
+      console.log('[DEBUG SWIPE] caricaEsercizioPrecedente scartato per richiesta obsoleta');
+      return;
     }
 
     if (bestPrev) {
@@ -12965,7 +13004,9 @@ const caricaEsercizioPrecedente = async () => {
     }
   } catch (error) {
     console.error("Errore caricamento esercizio precedente:", error);
-    previousWorkout.value = null;
+    if (reqId === currentExerciseRequestId) {
+      previousWorkout.value = null;
+    }
   }
 };
 
@@ -13526,6 +13567,21 @@ const determinaSettimanaAttivaGiorno = () => {
 const listaIdEsercizi = ref([]);
 const indexCorrente = ref(-1);
 
+const calcolaIndexCorrente = () => {
+  if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) {
+    indexCorrente.value = -1;
+    return -1;
+  }
+  const currentId = String(routeIdLocal.value || route.params.id || workout.value?.id || '');
+  const idx = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === currentId || String(item.num_riga) === currentId);
+  indexCorrente.value = idx;
+  return idx;
+};
+
+watch([tuttiEserciziGiorno, routeIdLocal], () => {
+  calcolaIndexCorrente();
+}, { immediate: true, deep: true });
+
 const riportaAInizioPagina = () => {
   window.scrollTo({ top: 0, behavior: 'instant' });
   const appContainer = document.querySelector('.v-main') || document.documentElement || document.body;
@@ -13841,6 +13897,8 @@ const handleTouchEnd = (e) => {
 
 // Carica l'esercizio ed estrai i dati
 const caricaDatiEsercizio = async () => {
+  const thisRequestId = ++currentExerciseRequestId;
+
   // 1. Cerca il documento completo dell'esercizio con tutte le prescrizioni settimanali
   let fullEx = null;
   if (globalStoryboard.value && globalStoryboard.value.length > 0) {
@@ -13900,19 +13958,10 @@ const caricaDatiEsercizio = async () => {
       }
     }
 
-    // Risoluzione sincrona immediata dell'esercizio precedente per evitare flickering di colore
-    const trovatoSync = applicaEsercizioPrecedenteSincrono(workout.value);
-    if (!trovatoSync) {
-      previousWorkout.value = null;
-      for (let w = 1; w <= 6; w++) {
-        inputSettimanePrecedente.value[w].ins = '';
-        inputSettimanePrecedente.value[w].reps = '';
-      }
-      numIns6ValPrecedente.value = '';
-      numFaticaw6ValPrecedente.value = '';
-      storicoEsercizio.value = [];
-      storicoEsercizioPerAiuto.value = [];
-    }
+    // Risoluzione sincrona immediata dell'esercizio precedente e storico per aggiornamento atomico
+    applicaEsercizioPrecedenteSincrono(workout.value);
+    applicaStoricoSincrono(workout.value);
+    calcolaIndexCorrente();
 
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
@@ -13950,12 +13999,12 @@ const caricaDatiEsercizio = async () => {
       caricaTuttiEserciziScheda(keyIdCliente, atletaId, schemaRef);
     }
 
-    // Carica l'esercizio precedente e l'analisi in background
-    caricaEsercizioPrecedente().then(() => {
-      indexCorrente.value = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === String(routeIdLocal.value));
+    // Carica l'esercizio precedente e l'analisi in background con protezione da race condition
+    caricaEsercizioPrecedente(thisRequestId).then(() => {
+      calcolaIndexCorrente();
     });
     
-    caricaDatiAnalisi(settimanaAttiva.value).catch(errAnalisi => {
+    caricaDatiAnalisi(settimanaAttiva.value, thisRequestId).catch(errAnalisi => {
       console.warn("Errore caricamento dati analisi eager:", errAnalisi);
     });
 
@@ -18614,13 +18663,10 @@ const formattaPesoCorporeo = (prevEx) => {
 };
 
 // Funzione unificata per caricamento dati storico e proposta
-const caricaDatiAnalisi = async (sett) => {
-  console.log('[DEBUG STORICO] caricaDatiAnalisi START, sett:', sett);
+const caricaDatiAnalisi = async (sett, reqId = currentExerciseRequestId) => {
   aiutoWeek.value = sett || settimanaAttiva.value;
   caricandoStorico.value = true;
   caricandoAiutoCarico.value = true;
-  storicoEsercizio.value = [];
-  storicoEsercizioPerAiuto.value = [];
   
   try {
     const { key: keyIdCliente, id: atletaId } = getAtletaInfo(workout.value);
@@ -18628,12 +18674,11 @@ const caricaDatiAnalisi = async (sett) => {
     const desEsercizioClean = desEsercizio.toLowerCase();
     const currentNumScheda = parseInt(workout.value?.num_scheda);
     
-    console.log('[DEBUG STORICO] caricaDatiAnalisi params:', { keyIdCliente, atletaId, desEsercizio, desEsercizioClean, currentNumScheda });
-    
     if (!atletaId || !desEsercizio || isNaN(currentNumScheda)) {
-      console.warn('[DEBUG STORICO] caricaDatiAnalisi ABORT: dati mancanti', { atletaId, desEsercizio, currentNumScheda });
-      caricandoStorico.value = false;
-      caricandoAiutoCarico.value = false;
+      if (reqId === currentExerciseRequestId) {
+        caricandoStorico.value = false;
+        caricandoAiutoCarico.value = false;
+      }
       return;
     }
 
@@ -18644,7 +18689,6 @@ const caricaDatiAnalisi = async (sett) => {
     // 1. Carica dallo storyboard_backup.json locale (tutte le schede passate dell'atleta)
     try {
       const allData = await getStoryboardBackup();
-      console.log('[DEBUG STORICO] Backup locale: totale record caricati:', (allData || []).length);
       let backupMatched = 0;
       (allData || []).forEach(b => {
         const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
@@ -18660,7 +18704,6 @@ const caricaDatiAnalisi = async (sett) => {
           mappaSchede.set(uniqueKey, applicaModificheLocali({ ...b, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
-      console.log('[DEBUG STORICO] Backup locale: record corrispondenti per esercizio:', backupMatched);
     } catch (errBackup) {
       console.warn('[DEBUG STORICO] Errore backup in caricaDatiAnalisi:', errBackup);
     }
@@ -18672,7 +18715,6 @@ const caricaDatiAnalisi = async (sett) => {
         where(keyIdCliente, 'in', [atletaId, !isNaN(Number(atletaId)) ? Number(atletaId) : atletaId])
       );
       const snap = await getDocs(q);
-      console.log('[DEBUG STORICO] Firestore: totale docs trovati:', snap.size);
       let firestoreMatched = 0;
       snap.forEach((docSnap) => {
         const d = docSnap.data();
@@ -18688,7 +18730,6 @@ const caricaDatiAnalisi = async (sett) => {
           mappaSchede.set(uniqueKey, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
-      console.log('[DEBUG STORICO] Firestore: record corrispondenti per esercizio:', firestoreMatched);
     } catch (errFirestore) {
       console.warn('[DEBUG STORICO] Errore query Firestore in caricaDatiAnalisi:', errFirestore);
     }
@@ -18702,19 +18743,23 @@ const caricaDatiAnalisi = async (sett) => {
       mappaSchede.set(uniqueKey, applicaModificheLocali({ ...workout.value, peso_corporeo: pesoCorp }));
     }
 
+    if (reqId !== currentExerciseRequestId) {
+      console.log('[DEBUG SWIPE] caricaDatiAnalisi scartato per richiesta obsoleta');
+      return;
+    }
+
     const list = Array.from(mappaSchede.values());
     list.sort((a, b) => parseInt(a.num_scheda) - parseInt(b.num_scheda));
     storicoEsercizio.value = list;
     storicoEsercizioPerAiuto.value = list;
-    console.log('[DEBUG STORICO] caricaDatiAnalisi RISULTATO FINALE:', list.length, 'schede trovate');
-    console.log('[DEBUG STORICO] Schede:', list.map(x => `S.${x.num_scheda} G.${x.des_giorno}`).join(', '));
   } catch (err) {
     console.error('[DEBUG STORICO] Errore caricamento dati analisi:', err);
   } finally {
-    caricandoStorico.value = false;
-    caricandoAiutoCarico.value = false;
-    console.log('[DEBUG STORICO] caricaDatiAnalisi END, caricandoStorico:', caricandoStorico.value);
-    rigeneraGraficoStorico();
+    if (reqId === currentExerciseRequestId) {
+      caricandoStorico.value = false;
+      caricandoAiutoCarico.value = false;
+      rigeneraGraficoStorico();
+    }
   }
 };
 

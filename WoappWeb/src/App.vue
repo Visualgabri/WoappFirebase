@@ -725,19 +725,27 @@ const tourStepApp = ref(0);
 const tourStepsApp = [
   {
     titolo: '👋 Benvenuto in FlexCoach!',
-    descrizione: 'Questa è la tua piattaforma avanzata per la forza. Vediamo insieme le funzionalità principali in pochissimi secondi.'
+    descrizione: 'La tua piattaforma avanzata per la progressione e la forza. Vediamo insieme le funzionalità chiave in pochi secondi.'
   },
   {
-    titolo: '📖 Guida Sempre a Portata di Mano',
-    descrizione: 'Tocca l’icona col punto interrogativo o del libro in alto a destra per aprire la Guida Interattiva, calcolare l’e1RM o provare i temi.'
+    titolo: '💡 Strategia Coach & Rotta 6W',
+    descrizione: 'Tocca l’icona della lampadina per visualizzare la rotta predittiva da W1 a W6, con Dynamic Re-Anchoring, scarico programmato (-15%) e test di picco.'
   },
   {
-    titolo: '🧠 Strategia Coach & 6 Settimane',
-    descrizione: 'In ogni esercizio trovi la Roadmap delle 6 Settimane per conoscere esattamente l’RPE e il carico target consigliato.'
+    titolo: '⚡ Suggerimenti Smart & Ghost Shield',
+    descrizione: 'Scegli tra stile Classico o Multi-Chip rapido nelle Impostazioni. Mentre scrivi, il Ghost Shield nasconde i suggerimenti per garantirti digitazioni perfette.'
   },
   {
-    titolo: '📊 Grafici e Proposta Carico',
-    descrizione: 'L’algoritmo calcola in automatico i kg da caricare tenendo conto del tuo deallenamento e della fatica passata.'
+    titolo: '🏆 Card Record & Storico Esercizio',
+    descrizione: 'Due colonne simmetriche per confrontare istantaneamente il Record Storico Assoluto con la Migliore Prestazione della scheda attuale.'
+  },
+  {
+    titolo: '💿 Calcolatore Dischi & Timer Flottante',
+    descrizione: 'Calcola al volo i dischi per lato per ogni bilanciere e gestisci il recupero con il timer floating persistente tra le pagine.'
+  },
+  {
+    titolo: '🎨 Temi, Colori & Guida Completa',
+    descrizione: 'Personalizza l’app con 5 colori d’accento, temi Dark/Light e layout compatti. Puoi riaprire questa guida in ogni momento dall’icona in alto a destra!'
   }
 ];
 

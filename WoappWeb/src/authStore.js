@@ -2294,9 +2294,48 @@ watch([
 // Caching globale per il backup dello storyboard da 22MB per evitare freeze e download duplicati
 let backupDataPromise = null;
 let backupDataCache = null;
+let backupExerciseMap = null;
+
+export const popolaIndiceBackup = (items) => {
+  if (!items || !Array.isArray(items)) return;
+  const map = new Map();
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const keyCliente = item.ID_cliente ? 'ID_cliente' : (Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente');
+    const atletaId = String(item[keyCliente] || '').trim();
+    const nomeNorm = String(item.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    if (atletaId && nomeNorm && parseInt(item.num_riga_giorno) > 0) {
+      const mapKey = `${atletaId}_${nomeNorm}`;
+      let arr = map.get(mapKey);
+      if (!arr) {
+        arr = [];
+        map.set(mapKey, arr);
+      }
+      arr.push(item);
+    }
+  }
+  backupExerciseMap = map;
+};
+
+export const getStoryboardBackupSync = () => backupDataCache;
+
+export const getStoricoEsercizioFromBackupSync = (atletaId, desEsercizioNorm) => {
+  if (!atletaId || !desEsercizioNorm) return [];
+  if (!backupExerciseMap && backupDataCache) {
+    popolaIndiceBackup(backupDataCache);
+  }
+  if (backupExerciseMap) {
+    const mapKey = `${String(atletaId).trim()}_${String(desEsercizioNorm).trim().toLowerCase().replace(/\s+/g, ' ')}`;
+    return backupExerciseMap.get(mapKey) || [];
+  }
+  return [];
+};
 
 export const getStoryboardBackup = async () => {
-  if (backupDataCache) return backupDataCache;
+  if (backupDataCache) {
+    if (!backupExerciseMap) popolaIndiceBackup(backupDataCache);
+    return backupDataCache;
+  }
   if (!backupDataPromise) {
     backupDataPromise = (async () => {
       try {
@@ -2305,6 +2344,7 @@ export const getStoryboardBackup = async () => {
         // ed evitare che i dispositivi mantengano in cache la vecchia versione con i record buggati.
         const res = await fetch('/storyboard_backup.json?v=20260827_1');
         backupDataCache = await res.json();
+        popolaIndiceBackup(backupDataCache);
         console.log("Parsed storyboard_backup.json successfully, items count:", backupDataCache.length);
         return backupDataCache;
       } catch (err) {

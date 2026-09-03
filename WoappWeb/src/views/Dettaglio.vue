@@ -6002,7 +6002,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -12897,6 +12897,40 @@ const applicaStoricoSincrono = (wObj) => {
   if (!atletaId || !desEsercizioClean || isNaN(currentNumScheda)) return false;
 
   const mappaSchede = new Map();
+
+  // 1. Cerca prima nello storico indicizzato del backup locale in RAM (tutte le schede passate)
+  const backupMatches = getStoricoEsercizioFromBackupSync(atletaId, desEsercizioClean);
+  if (backupMatches && backupMatches.length > 0) {
+    backupMatches.forEach(b => {
+      const sNum = parseInt(b.num_scheda);
+      if (!isSchedaPassata.value && sNum > currentNumScheda) return;
+      const sNumStr = String(b.num_scheda || '').trim();
+      const itemId = b.id || `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+      const uniqueKey = `${sNumStr}_${(b.des_giorno || '').trim()}_${String(b.num_riga_giorno || '').trim()}_${itemId}`;
+      const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(b);
+      mappaSchede.set(uniqueKey, applicaModificheLocali({ ...b, id: itemId, peso_corporeo: pesoCorp }));
+    });
+  } else {
+    // Fallback: se l'indice non è ancora pronto ma il backup raw è già in cache
+    const rawBackup = getStoryboardBackupSync();
+    if (rawBackup && Array.isArray(rawBackup) && rawBackup.length > 0) {
+      rawBackup.forEach(b => {
+        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+        const bNome = normalizzaNomeEsercizio(b.des_esercizio);
+        if (String(bAtletaId) === String(atletaId) && bNome === desEsercizioClean && parseInt(b.num_riga_giorno) > 0) {
+          const sNum = parseInt(b.num_scheda);
+          if (!isSchedaPassata.value && sNum > currentNumScheda) return;
+          const sNumStr = String(b.num_scheda || '').trim();
+          const itemId = b.id || `STORICO_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+          const uniqueKey = `${sNumStr}_${(b.des_giorno || '').trim()}_${String(b.num_riga_giorno || '').trim()}_${itemId}`;
+          const pesoCorp = workoutTPesiMap.value[sNumStr] || estraiPesoCorporeoDaOggetto(b);
+          mappaSchede.set(uniqueKey, applicaModificheLocali({ ...b, id: itemId, peso_corporeo: pesoCorp }));
+        }
+      });
+    }
+  }
+
+  // 2. Integra globalStoryboard per la scheda corrente
   if (globalStoryboard.value && globalStoryboard.value.length > 0) {
     globalStoryboard.value.forEach(d => {
       const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
@@ -12913,7 +12947,7 @@ const applicaStoricoSincrono = (wObj) => {
     });
   }
 
-  // Integra la scheda corrente
+  // 3. Integra la scheda corrente
   const sNumStr = String(wObj.num_scheda || '').trim();
   const itemId = wObj.id || `STORICO_${wObj.num_scheda}_${wObj.des_giorno}_${wObj.num_riga_giorno}`;
   const uniqueKey = `${sNumStr}_${(wObj.des_giorno || '').trim()}_${String(wObj.num_riga_giorno || '').trim()}_${itemId}`;
@@ -12936,6 +12970,39 @@ const applicaEsercizioPrecedenteSincrono = (wObj) => {
   if (!atletaId || isNaN(currentNumScheda) || !desEsercizioNorm) return false;
 
   let bestPrev = null;
+
+  // 1. Cerca prima dal backup indicizzato in memoria (schede passate)
+  const backupMatches = getStoricoEsercizioFromBackupSync(atletaId, desEsercizioNorm);
+  if (backupMatches && backupMatches.length > 0) {
+    backupMatches.forEach(d => {
+      const sNum = parseInt(d.num_scheda);
+      if (sNum < currentNumScheda && (parseInt(d.num_riga_giorno) > 0 || !d.num_riga_giorno)) {
+        if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+          const itemId = d.id || d.num_riga;
+          bestPrev = { ...d, id: itemId };
+        }
+      }
+    });
+  } else {
+    // Fallback: cerca in tutto il backup se non indicizzato
+    const rawBackup = getStoryboardBackupSync();
+    if (rawBackup && Array.isArray(rawBackup) && rawBackup.length > 0) {
+      rawBackup.forEach(d => {
+        const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
+        if (String(dAtletaId) === String(atletaId) && normalizzaNomeEsercizio(d.des_esercizio) === desEsercizioNorm) {
+          const sNum = parseInt(d.num_scheda);
+          if (sNum < currentNumScheda && (parseInt(d.num_riga_giorno) > 0 || !d.num_riga_giorno)) {
+            if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+              const itemId = d.id || d.num_riga;
+              bestPrev = { ...d, id: itemId };
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // 2. Cerca in globalStoryboard
   if (globalStoryboard.value && globalStoryboard.value.length > 0) {
     globalStoryboard.value.forEach(d => {
       const dAtletaId = d[keyIdCliente] || d['ID_cliente'] || '';
@@ -13606,6 +13673,27 @@ const determinaSettimanaAttivaGiorno = () => {
 const listaIdEsercizi = ref([]);
 const indexCorrente = ref(-1);
 
+const prefetchEserciziAdiacenti = (currIdx) => {
+  if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) return;
+  const targetIndices = [currIdx + 1, currIdx - 1].filter(i => i >= 0 && i < tuttiEserciziGiorno.value.length);
+  targetIndices.forEach(i => {
+    const item = tuttiEserciziGiorno.value[i];
+    if (item) {
+      // 1. Precarica GIF / immagine nella cache del browser
+      if (item.UrlNormal && typeof item.UrlNormal === 'string' && item.UrlNormal.startsWith('http')) {
+        const img = new Image();
+        img.src = item.UrlNormal;
+      }
+      // 2. Preriscalda la cache sincrona dello storico per l'esercizio adiacente
+      const { id: atletaId } = getAtletaInfo(item);
+      const nomeNorm = normalizzaNomeEsercizio(item.des_esercizio);
+      if (atletaId && nomeNorm) {
+        getStoricoEsercizioFromBackupSync(atletaId, nomeNorm);
+      }
+    }
+  });
+};
+
 const calcolaIndexCorrente = () => {
   if (!tuttiEserciziGiorno.value || tuttiEserciziGiorno.value.length === 0) {
     indexCorrente.value = -1;
@@ -13614,6 +13702,9 @@ const calcolaIndexCorrente = () => {
   const currentId = String(routeIdLocal.value || route.params.id || workout.value?.id || '');
   const idx = tuttiEserciziGiorno.value.findIndex(item => String(item.id) === currentId || String(item.num_riga) === currentId);
   indexCorrente.value = idx;
+  if (idx !== -1) {
+    prefetchEserciziAdiacenti(idx);
+  }
   return idx;
 };
 
@@ -13942,6 +14033,12 @@ const caricaDatiEsercizio = async () => {
   let fullEx = null;
   if (globalStoryboard.value && globalStoryboard.value.length > 0) {
     fullEx = globalStoryboard.value.find(ex => String(ex.id) === String(routeIdLocal.value));
+  }
+  if (!fullEx) {
+    const backupSync = getStoryboardBackupSync();
+    if (backupSync && Array.isArray(backupSync)) {
+      fullEx = backupSync.find(ex => String(ex.id) === String(routeIdLocal.value));
+    }
   }
   if (!fullEx) {
     try {

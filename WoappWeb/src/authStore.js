@@ -2036,7 +2036,6 @@ export const salvaClienteConfigFirestore = () => {
           modalitaIncremento: modalitaIncrementoGhost.value,
           prAttackAttivo: ghostPRAttackAttivo.value,
           autoregolazioneRepsAttiva: ghostAutoregolazioneRepsAttiva.value,
-          bloccoGhostDigitazioneAttivo: bloccoGhostDigitazioneAttivo.value,
           sfidaRecordWeek1: sfidaRecordWeek1.value,
           sensibilitaFatica: sensibilitaFaticaGhost.value,
           analisiNoteAttiva: ghostAnalisiNoteAttiva.value,

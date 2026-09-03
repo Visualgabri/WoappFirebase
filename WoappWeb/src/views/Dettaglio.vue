@@ -1097,7 +1097,7 @@
             </div>
             
             <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-              💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>).
+              💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
             <!-- 1. AVVISO FATICA / DIFFICILE A X REPS (Sopra il Range) -->
@@ -5991,7 +5991,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, bloccoGhostDigitazioneAttivo, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -8315,31 +8315,8 @@ const getGhostLiftSmart = (sett) => {
   return smartGhost;
 };
 
-const ghostOriginaliCache = {};
-
 const getGhostWeightsRangeForWeek = (sett) => {
-  const raw = getGhostWeightsRangeForWeekRaw(sett);
-  
-  if (!bloccoGhostDigitazioneAttivo.value) {
-    return raw;
-  }
-
-  const exKey = String(workout.value?.id || routeIdLocal.value || 'default');
-  if (!ghostOriginaliCache[exKey]) {
-    ghostOriginaliCache[exKey] = {};
-  }
-
-  const currentIns = inputSettimane.value[sett]?.ins;
-  const hasInput = currentIns !== undefined && currentIns !== null && String(currentIns).trim() !== '';
-
-  if (hasInput) {
-    return ghostOriginaliCache[exKey][sett] || raw;
-  } else {
-    if (raw) {
-      ghostOriginaliCache[exKey][sett] = raw;
-    }
-    return raw;
-  }
+  return getGhostWeightsRangeForWeekRaw(sett);
 };
 
 function getGhostWeightsRangeForWeekRaw(sett) {
@@ -14008,8 +13985,6 @@ const caricaDatiEsercizio = async () => {
     applicaEsercizioPrecedenteSincrono(workout.value);
     applicaStoricoSincrono(workout.value);
     calcolaIndexCorrente();
-    const exKey = String(workout.value?.id || routeIdLocal.value || 'default');
-    delete ghostOriginaliCache[exKey];
 
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
@@ -17628,8 +17603,8 @@ const analizzaRottaProgressione = ({
   };
 
   // Costruzione curva ideale con Rolling Dynamic Re-Anchoring:
-  // Se l'utente ha inserito carichi reali nelle settimane successive che superano la curva teorica iniziale da W1,
-  // la rotta riparte dinamicamente da tali prestazioni per le settimane future!
+  // t[w] rappresenta la proposta teorica per la settimana w (proiettata dalla progressione precedente).
+  // p[w] rappresenta l'anchor effettivo (carico reale se loggato, altrimenti teorico) da cui ripartono dinamicamente le settimane future!
   const l1 = w1Weight;
   const l2 = getLoggedPeso(2);
   const l3 = getLoggedPeso(3);
@@ -17637,19 +17612,25 @@ const analizzaRottaProgressione = ({
   const l5 = getLoggedPeso(5);
   const l6 = getLoggedPeso(6);
 
+  const t1 = l1;
   const p1 = l1;
-  const p2 = l2 || adjustVal(p1 + getStepForVal(p1));
-  const p3 = l3 || adjustVal(p2 + getStepForVal(p2));
+  const t2 = adjustVal(t1 + getStepForVal(t1));
+  const p2 = l2 || t2;
+  const t3 = adjustVal(p2 + getStepForVal(p2));
+  const p3 = l3 || t3;
 
   // W4 scarico: se l4 è inserito usa l4, altrimenti teorico da p2
-  const p4 = l4 || adjustVal(p2);
+  const t4 = adjustVal(p2);
+  const p4 = l4 || t4;
 
   // W5: se in W4 è stato completato un carico >= W3 (l4 >= p3), W5 riparte da p4!
   const baseForW5 = (l4 && l4 >= p3) ? p4 : p3;
-  const p5 = l5 || adjustVal(baseForW5 + getStepForVal(baseForW5));
+  const t5 = adjustVal(baseForW5 + getStepForVal(baseForW5));
+  const p5 = l5 || t5;
 
   // W6: riparte da W5
-  const p6 = l6 || adjustVal(p5 + getStepForVal(p5));
+  const t6 = adjustVal(p5 + getStepForVal(p5));
+  const p6 = l6 || t6;
 
   const reps1 = getLoggedReps(1, r1);
   const reps2 = getLoggedReps(2, r2);
@@ -17658,20 +17639,20 @@ const analizzaRottaProgressione = ({
   const reps5 = getLoggedReps(5, r5);
   const reps6 = getLoggedReps(6, r6);
 
-  const e1rmW1 = calcolaE1RMSmorzato(p1, reps1, isCavo);
-  const e1rmW2 = calcolaE1RMSmorzato(p2, reps2, isCavo);
-  const e1rmW3 = calcolaE1RMSmorzato(p3, reps3, isCavo);
-  const e1rmW4 = calcolaE1RMSmorzato(p4, reps4, isCavo);
-  const e1rmW5 = calcolaE1RMSmorzato(p5, reps5, isCavo);
-  const e1rmW6 = calcolaE1RMSmorzato(p6, reps6, isCavo);
+  const e1rmW1 = calcolaE1RMSmorzato(t1, reps1, isCavo);
+  const e1rmW2 = calcolaE1RMSmorzato(t2, reps2, isCavo);
+  const e1rmW3 = calcolaE1RMSmorzato(t3, reps3, isCavo);
+  const e1rmW4 = calcolaE1RMSmorzato(t4, reps4, isCavo);
+  const e1rmW5 = calcolaE1RMSmorzato(t5, reps5, isCavo);
+  const e1rmW6 = calcolaE1RMSmorzato(t6, reps6, isCavo);
 
   const curve = [
-    { week: 1, peso: p1, reps: reps1, e1rm: e1rmW1, isScarico: false },
-    { week: 2, peso: p2, reps: reps2, e1rm: e1rmW2, isScarico: false },
-    { week: 3, peso: p3, reps: reps3, e1rm: e1rmW3, isScarico: false },
-    { week: 4, peso: p4, reps: reps4, e1rm: e1rmW4, isScarico: true },
-    { week: 5, peso: p5, reps: reps5, e1rm: e1rmW5, isScarico: false },
-    { week: 6, peso: p6, reps: reps6, e1rm: e1rmW6, isScarico: false }
+    { week: 1, peso: t1, reps: reps1, e1rm: e1rmW1, isScarico: false },
+    { week: 2, peso: t2, reps: reps2, e1rm: e1rmW2, isScarico: false },
+    { week: 3, peso: t3, reps: reps3, e1rm: e1rmW3, isScarico: false },
+    { week: 4, peso: t4, reps: reps4, e1rm: e1rmW4, isScarico: true },
+    { week: 5, peso: t5, reps: reps5, e1rm: e1rmW5, isScarico: false },
+    { week: 6, peso: t6, reps: reps6, e1rm: e1rmW6, isScarico: false }
   ];
 
   // Trova la prima settimana in cui la progressione eguaglia o supera il PR storico

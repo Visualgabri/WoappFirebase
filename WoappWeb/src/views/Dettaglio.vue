@@ -3739,13 +3739,20 @@
                     >
                       <div>
                         <!-- Titolo Card Secondaria -->
-                        <div class="mb-1">
+                        <div class="mb-1 d-flex align-center justify-center gap-1">
                           <span 
                             class="font-weight-bold uppercase text-truncate"
                             :class="(card.tipo === 'sfidante') ? 'text-orange-lighten-2' : ((card.tipo === 'safe') ? 'text-blue-lighten-2' : 'text-green-lighten-2')"
                             style="font-size: 0.62rem; letter-spacing: 0.02em;"
                           >
                             {{ card.icon }} {{ card.nome }}
+                          </span>
+                          <span 
+                            v-if="card.tipo === 'sfidante' && card.isAttaccoPROpzione"
+                            class="font-weight-black text-amber-accent-2 px-1.5 py-0.5 rounded-full text-no-wrap"
+                            style="font-size: 0.46rem; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.45); letter-spacing: 0.02em;"
+                          >
+                            🎯 ATTACCO PR
                           </span>
                         </div>
 
@@ -3777,9 +3784,13 @@
                         <v-btn
                           :color="(card.tipo === 'sfidante') ? 'orange-darken-3' : ((card.tipo === 'safe') ? 'blue-darken-3' : 'green-darken-2')"
                           size="x-small"
-                          variant="tonal"
+                          :variant="(card.tipo === 'sfidante' && card.isAttaccoPROpzione) ? 'flat' : 'tonal'"
                           class="font-weight-bold text-white text-none w-100 rounded-lg text-no-wrap"
-                          style="font-size: 0.55rem; height: 24px;"
+                          :style="{
+                            fontSize: '0.55rem',
+                            height: '24px',
+                            background: (card.tipo === 'sfidante' && card.isAttaccoPROpzione) ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important' : ''
+                          }"
                           @click="applicaPropostaCaricoStorico(card.pesoToApply)"
                         >
                           Applica
@@ -10041,9 +10052,13 @@ const strategieAlternativeCards = computed(() => {
   const safeVal = rawSafe > 0 ? (isManubri && !stepCaricoEsercizioEffettivo?.value ? arrotondaManubrioCommerciale(rawSafe) : Math.round(rawSafe / step) * step) : 0;
   const sfidanteVal = rawSfidante > 0 ? (isManubri && !stepCaricoEsercizioEffettivo?.value ? arrotondaManubrioCommerciale(rawSfidante) : Math.round(rawSfidante / step) * step) : 0;
 
-  // Determina se c'è opportunità PR attiva e se Sfidante deve essere protagonista
+  // Determina se c'è opportunità PR attiva e se Sfidante deve essere protagonista.
+  // In W5 e W6 (fase culminante del mesociclo post-scarico), lo Sfidante sale al centro come Hero Card Consigliata (Attacco PR).
+  // In W1, W2 e W3 (fase di accumulo e costruzione), la Hero Card al centro rimane lo Smart (progressione lineare fisiologica),
+  // mentre lo Sfidante viene proposto nella card secondaria a destra con badge '🎯 ATTACCO PR'.
   const oppPR = opportunitaPRData.value;
-  const sfidanteIsProtagonista = Boolean(oppPR && oppPR.sfidanteIsProtagonista);
+  const isSettimanaPiccoPR = sett === 5 || sett === 6;
+  const sfidanteIsProtagonista = Boolean(oppPR && oppPR.sfidanteIsProtagonista && isSettimanaPiccoPR);
 
   // Determina quale strategia è consigliata in base alla sensibilità fatica dell'utente o Attacco PR
   const sens = sensibilitaFaticaGhost.value;
@@ -10233,6 +10248,7 @@ const strategieAlternativeCards = computed(() => {
     nome: 'SFIDANTE',
     isConsigliato: sfidanteIsProtagonista || tipoConsigliato === 'sfidante',
     isProtagonista: sfidanteIsProtagonista,
+    isAttaccoPROpzione: Boolean(oppPR && oppPR.isOpportunita && !sfidanteIsProtagonista),
     valoreDisplay: sfidanteValoreDisplay,
     sfidanteVal,
     targetRecordAssolutoKg: isCorpoLiberoPuro ? null : targetRecordAssolutoKg,

@@ -13919,6 +13919,9 @@ const vaiAlGiornoAllenamento = async () => {
     localStorage.setItem('woapp_target_scroll_exercise', exId);
   }
   
+  localStorage.setItem('highlightChiusuraWeek', 'true');
+  localStorage.setItem('highlightChiusuraWeekNumber', String(week));
+  
   // 1. Cerchiamo l'id del documento Sessione (Riga 0) per questo giorno di sessione
   let sessionId = riga0.value?.id;
   if (riga0.value && String(riga0.value.des_giorno).trim().toUpperCase() !== sessionGiorno) {
@@ -13943,7 +13946,7 @@ const vaiAlGiornoAllenamento = async () => {
     const sessionObj = globalStoryboard.value.find(item =>
       (String(item[keyIdCliente]) === String(atletaId) || String(item['ID_cliente']) === String(atletaId)) &&
       String(item.num_scheda) === String(workout.value?.num_scheda) &&
-      String(item.des_giorno).trim().toUpperCase() === giorno &&
+      String(item.des_giorno).trim().toUpperCase() === sessionGiorno &&
       parseInt(item.num_riga_giorno) === 0
     );
     if (sessionObj) sessionId = sessionObj.id;
@@ -13951,13 +13954,14 @@ const vaiAlGiornoAllenamento = async () => {
 
   if (!sessionId) {
     try {
-      const allData = await getStoryboardBackup();
+      const backupSync = getStoryboardBackupSync();
+      const allData = (backupSync && Array.isArray(backupSync)) ? backupSync : await getStoryboardBackup();
       const keyIdCliente = workout.value ? (Object.keys(workout.value).find(k => k.includes('ID_cliente')) || 'ID_cliente') : 'ID_cliente';
       const atletaId = workout.value ? (workout.value[keyIdCliente] || '') : '';
-      const sessionObj = allData.find(item =>
+      const sessionObj = (allData || []).find(item =>
         (String(item[keyIdCliente]) === String(atletaId) || String(item['ID_cliente']) === String(atletaId)) &&
         String(item.num_scheda) === String(workout.value?.num_scheda) &&
-        String(item.des_giorno).trim().toUpperCase() === giorno &&
+        String(item.des_giorno).trim().toUpperCase() === sessionGiorno &&
         parseInt(item.num_riga_giorno) === 0
       );
       if (sessionObj) sessionId = sessionObj.id || sessionObj.num_riga;
@@ -13976,7 +13980,7 @@ const vaiAlGiornoAllenamento = async () => {
     router.push({
       name: 'Workouts',
       query: {
-        giorno: giorno,
+        giorno: sessionGiorno,
         week: week,
         targetEx: exId
       }

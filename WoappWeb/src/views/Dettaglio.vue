@@ -1088,9 +1088,6 @@
                   
                   <!-- Caso Post Scarico o progressione standard -->
                   <template v-else>
-                    <span v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-green-accent-3 font-weight-bold mr-2">
-                      ↔ {{ getGhostWeightsRangeText(sett) }}
-                    </span>
                     <span v-if="getGhostLiftSmart(sett).text">
                       (prec. {{ getGhostLiftSmart(sett).label }}: <strong class="text-slate-light">{{ getGhostLiftSmart(sett).text }}</strong>)
                     </span>
@@ -1103,8 +1100,19 @@
               💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}kg x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
-            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-1 mb-2" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em', marginBottom: (margineBottomGhostNoticeGlobal ?? 10) + 'px !important' }">
+            <!-- 1. AVVISO FATICA / DIFFICILE A X REPS (Sopra il Range) -->
+            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-1 mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em', marginBottom: (margineBottomGhostNoticeGlobal ?? 10) + 'px !important' }">
               {{ getGhostRenderInfo(sett).maxEffortNotice }}
+            </div>
+
+            <!-- 2. AVVISO TENTATIVO SFIDANTE W5/W6 CON INDICAZIONE ULTIMA SERIE -->
+            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).sfidanteNotice" class="text-super-caption font-weight-bold text-amber-lighten-1 text-left px-1 mt-0.5 mb-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em', lineHeight: 1.35 }">
+              {{ getGhostRenderInfo(sett).sfidanteNotice }}
+            </div>
+
+            <!-- 3. GHOST RANGE (STILE CLASSICO LINEARE, POSIZIONATO SOTTO L'AVVISO DIFFICILE) -->
+            <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-left px-1 mt-0.5 mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem' }">
+              <span class="text-green-accent-3 font-weight-bold">↔ {{ getGhostWeightsRangeText(sett) }}</span>
             </div>
 
 
@@ -3643,6 +3651,11 @@
 
                   <!-- Footer e Metriche Card Consigliata -->
                   <div class="pt-2 mt-2 border-top" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                    <!-- Distanza dal PR per Sfidante (Sempre visibile) -->
+                    <div v-if="strategiaConsigliataCard.tipo === 'sfidante' && strategiaConsigliataCard.prDistanzaText" class="text-super-caption font-weight-bold text-amber-accent-2 mb-1.5 text-center" style="font-size: 0.58rem; letter-spacing: 0.02em;">
+                      {{ strategiaConsigliataCard.prDistanzaText }}
+                    </div>
+
                     <div class="d-flex align-center justify-space-between text-super-caption px-1 mb-2" style="font-size: 0.52rem;">
                       <span class="text-slate-400 font-weight-medium">
                         {{ (strategiaConsigliataCard.tipo === 'sfidante') ? (strategiaConsigliataCard.diffVsSmartText || '+2,5k vs Smart') : (strategiaConsigliataCard.sottotitolo || 'Progressione') }}
@@ -3752,6 +3765,11 @@
 
                       <!-- Footer e Tasto Applica Secondario -->
                       <div class="pt-1.5 mt-1.5 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+                        <!-- Distanza dal PR per Sfidante (Sempre visibile) -->
+                        <div v-if="card.tipo === 'sfidante' && card.prDistanzaText" class="text-super-caption font-weight-bold text-amber-accent-2 mb-1 text-center" style="font-size: 0.50rem; line-height: 1.2;">
+                          {{ card.prDistanzaText }}
+                        </div>
+
                         <div class="text-super-caption text-slate-400 font-weight-regular text-truncate mb-1" style="font-size: 0.46rem;">
                           {{ card.metricLabel }} <strong :class="(card.tipo === 'sfidante') ? 'text-orange-lighten-2' : ((card.tipo === 'safe') ? 'text-blue-lighten-2' : 'text-green-lighten-2')">{{ card.metricValue }}</strong>
                         </div>
@@ -5985,7 +6003,8 @@ import {
   calcolaRepsPerE1RMTarget,
   calcolaTabellaRepsRecordAssoluto,
   calcolaObiettivoBilanciato1RM,
-  valutaOpportunitaPR
+  valutaOpportunitaPR,
+  estraiSerieDaPrescrizione
 } from '../utils/loadParser.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
@@ -6069,7 +6088,7 @@ const apriResocontoCoachPR = () => {
     pressTimerPR = null;
   }
   if (!workout.value) return;
-  const sett = (typeof dialogAiutoCarico !== 'undefined' && dialogAiutoCarico.value) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
+  const sett = (dialogStorico.value && activeTabAnalisi.value === 0) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
   const targetReps = getRepsPerWeek(sett);
   const cleanTargetReps = String(targetReps).replace(/r$/i, '');
   const exName = workout.value.des_esercizio || 'questo esercizio';
@@ -7450,8 +7469,11 @@ const analizzaRecordSettimana = (sett) => {
       badgeText: '🏆 PR',
       tooltipText: `🏆 Pareggio Record a ${targetReps} reps!`
     };
-  } else if (pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5 || (caricoTargetPR > pesoDaValutare && caricoTargetPR <= pesoDaValutare + (stepKg * 2))) {
+  } else if ((sett === 2 || sett === 3) || pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5 || (caricoTargetPR > pesoDaValutare && caricoTargetPR <= pesoDaValutare + (stepKg * 2))) {
     const diffDisplay = diffMancanteRecord > 0 ? diffMancanteRecord : diffPerSuperare;
+    const badge = (sett === 2 || sett === 3)
+      ? `🔥 -${formatWeight(diffDisplay)}kg`
+      : `🔥 Quasi (-${formatWeight(diffDisplay)}kg)`;
     return {
       stato: 'quasi-record',
       tipo: tipoValutato,
@@ -7462,8 +7484,8 @@ const analizzaRecordSettimana = (sett) => {
       caricoTargetPR,
       targetReps,
       definizione: 'AVVICINAMENTO',
-      badgeText: `🔥 Quasi (-${formatWeight(diffDisplay)}kg)`,
-      tooltipText: `Quasi Record (-${formatWeight(diffDisplay)}kg). Serve ${formatWeight(caricoTargetPR)}kg per superare il record a ${targetReps} reps.`
+      badgeText: badge,
+      tooltipText: `Distanza dal Record: -${formatWeight(diffDisplay)}kg. Serve ${formatWeight(caricoTargetPR)}kg per superare il record a ${targetReps} reps.`
     };
   }
 
@@ -8907,6 +8929,86 @@ const getGhostRenderInfo = (sett) => {
   const pesoBase = ghost.pesoBaseOriginale || ghost.peso || 0;
 
   let maxEffortNotice = '';
+  let sfidanteNotice = '';
+
+  const calcolaSceltaCaricoEInfo = (ghostProp, baseInfo) => {
+    const range = getGhostWeightsRangeForWeek(sett);
+    let valConsigliato = range?.consigliato?.display || (ghostProp.isPostScarico && ghostProp.pesoProposto > 0 ? `${formatWeight(ghostProp.pesoProposto)} kg` : (ghostProp.text || ''));
+    let isSfidanteTarget = false;
+
+    // Logica Attacco Record PR:
+    // Quando “Attacco Record PR” è OFF: tutta la logica attuale del Ghost rimane invariata.
+    // Quando è ON:
+    // • W2 e W3: il Ghost continua a proporre il normale carico Smart, esattamente come con il flag OFF.
+    // • W5 e W6: il Ghost propone direttamente il carico Sfidante, identico a quello mostrato nella card Sfidante della dialog “Cosa faccio oggi?”.
+    if (ghostPRAttackAttivo.value) {
+      if ((sett === 5 || sett === 6) && range?.sfidante?.display) {
+        valConsigliato = range.sfidante.display;
+        isSfidanteTarget = true;
+      } else {
+        // W2 e W3 (e altre): carico Smart normale
+        valConsigliato = range?.consigliato?.display || valConsigliato;
+      }
+    } else {
+      // Flag OFF: logica attuale invariata
+      const isAttaccoPRProtagonista = Boolean(opportunitaPRData.value?.sfidanteIsProtagonista);
+      if ((isAttaccoPRProtagonista || sensibilitaFaticaGhost.value === 'aggressiva') && range?.sfidante?.display) {
+        valConsigliato = range.sfidante.display;
+        isSfidanteTarget = isAttaccoPRProtagonista || (sensibilitaFaticaGhost.value === 'aggressiva');
+      } else if (sensibilitaFaticaGhost.value === 'conservativa' && range?.prudenziale?.display) {
+        valConsigliato = range.prudenziale.display;
+      }
+    }
+
+    const prevPeso = baseInfo?.pesoBase || ghostProp.pesoBaseOriginale || 0;
+    const prevInsStr = String(baseInfo?.baseInsText || ghostProp.text || '').trim();
+    const numConsigliato = parseFloat(valConsigliato ? String(valConsigliato).replace(',', '.') : 0);
+    const isAumentoPeso = (numConsigliato > 0 && prevPeso > 0) ? (numConsigliato > prevPeso) : ((ghostProp.pesoProposto || ghostProp.peso) > ghostProp.pesoBaseOriginale);
+    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== prevInsStr;
+
+    let ic = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
+    let col = isLight ? '#c2410c' : '#ffb74d';
+    let lbl = '';
+
+    if (isSfidanteTarget) {
+      lbl = (sett === 5 || sett === 6) ? 'Sfidante (Attacco PR):' : 'Consigliato (Sfidante PR):';
+      ic = 'mdi-rocket-launch';
+      col = isLight ? '#b45309' : '#fbbf24';
+
+      // Parsing prescrizione per numero serie previste
+      const prescStr = workout.value?.['des_week' + sett];
+      const nSets = estraiSerieDaPrescrizione(prescStr) || workout.value?.num_serie || 3;
+      const targetReps = getRepsPerWeek(sett);
+      const sfidanteNum = range?.sfidante?.value ? parseFloat(String(range.sfidante.value).replace(',', '.')) : 0;
+      const smartNum = range?.consigliato?.value ? parseFloat(String(range.consigliato.value).replace(',', '.')) : 0;
+      const step = stepCaricoEsercizioEffettivo?.value || 2.5;
+      const isCompatibile = sfidanteNum > 0 && (sfidanteNum <= (smartNum + step * 2.5) || !String(range?.sfidante?.value || '').includes('r'));
+
+      if (isCompatibile) {
+        sfidanteNotice = (nSets > 1)
+          ? `⚡ Tentativo Sfidante: prova questo carico almeno nell'ultima serie (S${nSets}) puntando a completare le ${targetReps} reps previste.`
+          : `⚡ Tentativo Sfidante: punta a completare le ${targetReps} reps previste con questo carico.`;
+      }
+    } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
+      lbl = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
+    } else if (sensibilitaFaticaGhost.value === 'conservativa') {
+      lbl = valConsigliato.includes('r') ? 'Consigliato (Prudente +1r):' : 'Consigliato (Prudente):';
+    } else if (isAumentoPeso) {
+      lbl = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Aumento):';
+    } else if (isAumentoReps) {
+      lbl = 'Consigliato (+1r):';
+    } else {
+      lbl = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Mantieni):';
+    }
+
+    if (numConsigliato > 0 && prevPeso > 0) {
+      const repsTarget = getRepsPerWeek(sett);
+      const repsPrev = baseInfo?.repsBase || 10;
+      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
+    }
+
+    return { valConsigliato, ic, col, lbl };
+  };
 
   if (ghost.isWeek2Scritta) {
     icon = 'mdi-trending-up';
@@ -8947,93 +9049,18 @@ const getGhostRenderInfo = (sett) => {
     valueText = ghost.text;
   } else if (ghost.isOverload) {
     const baseInfo = getBaseWeekInfo(sett);
-    const prevPeso = baseInfo?.pesoBase || ghost.pesoBaseOriginale || 0;
-    const prevInsStr = String(baseInfo?.baseInsText || ghost.text || '').trim();
-
-    const range = getGhostWeightsRangeForWeek(sett);
-    let valConsigliato = range?.consigliato?.display || ghost.text;
-    
-    const isAttaccoPRProtagonista = Boolean(opportunitaPRData.value?.sfidanteIsProtagonista);
-
-    // Sensibilità Fatica o Attacco PR determina quale fascia di intensità è il target primario consigliato
-    if ((isAttaccoPRProtagonista || sensibilitaFaticaGhost.value === 'aggressiva') && range?.sfidante?.display) {
-      valConsigliato = range.sfidante.display;
-    } else if (sensibilitaFaticaGhost.value === 'conservativa' && range?.prudenziale?.display) {
-      valConsigliato = range.prudenziale.display;
-    }
-
-    const numConsigliato = parseFloat(valConsigliato ? valConsigliato.replace(',', '.') : 0);
-
-    const isAumentoPeso = (numConsigliato > 0 && prevPeso > 0) ? (numConsigliato > prevPeso) : (ghost.peso > ghost.pesoBaseOriginale);
-    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== prevInsStr;
-
-    icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
-    color = isLight ? '#c2410c' : '#ffb74d';
-    
-    if (isAttaccoPRProtagonista || (ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
-      label = 'Consigliato (Attacco PR):';
-    } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
-      label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
-    } else if (sensibilitaFaticaGhost.value === 'conservativa') {
-      label = valConsigliato.includes('r') ? 'Consigliato (Prudente +1r):' : 'Consigliato (Prudente):';
-    } else if (isAumentoPeso) {
-      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Aumento):';
-    } else if (isAumentoReps) {
-      label = 'Consigliato (+1r):';
-    } else {
-      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Mantieni):';
-    }
-    valueText = valConsigliato;
-
-    if (numConsigliato > 0 && prevPeso > 0) {
-      const repsTarget = getRepsPerWeek(sett);
-      const repsPrev = baseInfo?.repsBase || 10;
-      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
-    }
+    const res = calcolaSceltaCaricoEInfo(ghost, baseInfo);
+    icon = res.ic;
+    color = res.col;
+    label = res.lbl;
+    valueText = res.valConsigliato;
   } else if (ghost.isPostScarico) {
     const baseInfo = getBaseWeekInfo(sett);
-    const prevPeso = baseInfo?.pesoBase || ghost.pesoBaseOriginale || 0;
-    const prevInsStr = String(baseInfo?.baseInsText || ghost.text || '').trim();
-
-    const range = getGhostWeightsRangeForWeek(sett);
-    let valConsigliato = range?.consigliato?.display || (ghost.pesoProposto > 0 ? `${formatWeight(ghost.pesoProposto)} kg` : ghost.text);
-    
-    const isAttaccoPRProtagonista = Boolean(opportunitaPRData.value?.sfidanteIsProtagonista);
-
-    if ((isAttaccoPRProtagonista || sensibilitaFaticaGhost.value === 'aggressiva') && range?.sfidante?.display) {
-      valConsigliato = range.sfidante.display;
-    } else if (sensibilitaFaticaGhost.value === 'conservativa' && range?.prudenziale?.display) {
-      valConsigliato = range.prudenziale.display;
-    }
-
-    const numConsigliato = parseFloat(valConsigliato ? valConsigliato.replace(',', '.') : 0);
-
-    const isAumentoPeso = (numConsigliato > 0 && prevPeso > 0) ? (numConsigliato > prevPeso) : (ghost.pesoProposto > ghost.pesoBaseOriginale);
-    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== prevInsStr;
-
-    icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
-    color = isLight ? '#c2410c' : '#ffb74d';
-    
-    if (isAttaccoPRProtagonista || (ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
-      label = 'Consigliato (Attacco PR):';
-    } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
-      label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
-    } else if (sensibilitaFaticaGhost.value === 'conservativa') {
-      label = valConsigliato.includes('r') ? 'Consigliato (Prudente +1r):' : 'Consigliato (Prudente):';
-    } else if (isAumentoPeso) {
-      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Aumento):';
-    } else if (isAumentoReps) {
-      label = 'Consigliato (+1r):';
-    } else {
-      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Mantieni):';
-    }
-    valueText = valConsigliato;
-
-    if (numConsigliato > 0 && prevPeso > 0) {
-      const repsTarget = getRepsPerWeek(sett);
-      const repsPrev = baseInfo?.repsBase || 10;
-      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
-    }
+    const res = calcolaSceltaCaricoEInfo(ghost, baseInfo);
+    icon = res.ic;
+    color = res.col;
+    label = res.lbl;
+    valueText = res.valConsigliato;
   } else if (ghost.isWeek1) {
     icon = 'mdi-lightbulb-on-outline';
     color = isLight ? '#c2410c' : '#ffb74d';
@@ -9049,48 +9076,11 @@ const getGhostRenderInfo = (sett) => {
   } else {
     // Caso standard delle settimane progressive (W2, W3, W4 se non scarico, W5, W6)
     const baseInfo = getBaseWeekInfo(sett);
-    const prevPeso = baseInfo?.pesoBase || ghost.pesoBaseOriginale || 0;
-    const prevInsStr = String(baseInfo?.baseInsText || ghost.text || '').trim();
-
-    const range = getGhostWeightsRangeForWeek(sett);
-    let valConsigliato = range?.consigliato?.display || ghost.text || '';
-    
-    const isAttaccoPRProtagonista = Boolean(opportunitaPRData.value?.sfidanteIsProtagonista);
-
-    // Sensibilità Fatica o Attacco PR determina quale fascia di intensità è il target primario consigliato
-    if ((isAttaccoPRProtagonista || sensibilitaFaticaGhost.value === 'aggressiva') && range?.sfidante?.display) {
-      valConsigliato = range.sfidante.display;
-    } else if (sensibilitaFaticaGhost.value === 'conservativa' && range?.prudenziale?.display) {
-      valConsigliato = range.prudenziale.display;
-    }
-
-    const numConsigliato = parseFloat(valConsigliato ? String(valConsigliato).replace(',', '.') : 0);
-    const isAumentoPeso = (numConsigliato > 0 && prevPeso > 0) ? (numConsigliato > prevPeso) : (ghost.peso > ghost.pesoBaseOriginale);
-    const isAumentoReps = valConsigliato && valConsigliato.includes('r') && valConsigliato !== prevInsStr;
-
-    icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
-    color = isLight ? '#c2410c' : '#ffb74d';
-    
-    if (isAttaccoPRProtagonista || (ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
-      label = 'Consigliato (Attacco PR):';
-    } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
-      label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
-    } else if (sensibilitaFaticaGhost.value === 'conservativa') {
-      label = valConsigliato.includes('r') ? 'Consigliato (Prudente +1r):' : 'Consigliato (Prudente):';
-    } else if (isAumentoPeso) {
-      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Aumento):';
-    } else if (isAumentoReps) {
-      label = 'Consigliato (+1r):';
-    } else {
-      label = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Mantieni):';
-    }
-    valueText = valConsigliato;
-
-    if (numConsigliato > 0 && prevPeso > 0) {
-      const repsTarget = getRepsPerWeek(sett);
-      const repsPrev = baseInfo?.repsBase || 10;
-      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
-    }
+    const res = calcolaSceltaCaricoEInfo(ghost, baseInfo);
+    icon = res.ic;
+    color = res.col;
+    label = res.lbl;
+    valueText = res.valConsigliato;
   }
 
   // Calcolo Delta % rispetto a Week 1
@@ -9149,7 +9139,7 @@ const getGhostRenderInfo = (sett) => {
     hasReference = true;
   }
 
-  return { icon, color, label, valueText, hasReference, maxEffortNotice, deltaW1 };
+  return { icon, color, label, valueText, hasReference, maxEffortNotice, sfidanteNotice, deltaW1 };
 };
 
 // Long-press Ghost & Progression Info
@@ -9924,7 +9914,7 @@ const calcolaRecordOverviewData = (sett) => {
 };
 
 const recordOverviewData = computed(() => {
-  const w = (typeof dialogAiutoCarico !== 'undefined' && dialogAiutoCarico.value) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
+  const w = (dialogStorico.value && activeTabAnalisi.value === 0) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
   return calcolaRecordOverviewData(w);
 });
 const recordCronologiaOverviewData = computed(() => calcolaRecordOverviewData(settimanaAttiva.value));
@@ -9987,7 +9977,7 @@ const heroProposalData = computed(() => {
 // 2.5 COMPUTED OPPORTUNITA PR (Centralizzato per W6, Attacco PR e vicinanza record)
 const opportunitaPRData = computed(() => {
   if (!workout.value) return null;
-  const sett = (typeof dialogAiutoCarico !== 'undefined' && dialogAiutoCarico.value) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
+  const sett = (dialogStorico.value && activeTabAnalisi.value === 0) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
   const targetReps = getRepsPerWeek(sett);
   const isManubri = isManubriEsercizio(workout.value);
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
@@ -10239,6 +10229,27 @@ const strategieAlternativeCards = computed(() => {
     themeColor: 'green'
   };
 
+  const prRecordReps = Math.max(ottieniRecordStoricoPerReps(targetReps) || 0, stimaRecordStoricoPerReps(targetReps) || 0, prRealWeight || 0);
+  let prDistanzaText = null;
+  if (prRecordReps > 0 && sfidanteVal > 0 && !isCorpoLiberoPuro) {
+    const diffMancante = Math.round((prRecordReps - sfidanteVal) * 10) / 10;
+    const stepTarget = stepCaricoEsercizioEffettivo?.value || getWeightStep(isManubri, sfidanteVal);
+    let targetPerSuperare = Math.round((prRecordReps + stepTarget) / stepTarget) * stepTarget;
+    if (isManubri && typeof getDumbbellSequenceWeight === 'function') {
+      targetPerSuperare = getDumbbellSequenceWeight(prRecordReps, 'up');
+    }
+    const diffPerSuperare = Math.round((targetPerSuperare - sfidanteVal) * 10) / 10;
+
+    if (sfidanteVal > prRecordReps) {
+      const diffSup = Math.round((sfidanteVal - prRecordReps) * 10) / 10;
+      prDistanzaText = `🏆 Supera il PR (+${formatWeight(diffSup)} kg)`;
+    } else if (sfidanteVal === prRecordReps) {
+      prDistanzaText = `🏆 Pareggia il PR (+${formatWeight(diffPerSuperare)} kg per superarlo)`;
+    } else {
+      prDistanzaText = `🔥 -${formatWeight(diffMancante)} kg al PR (-${formatWeight(diffPerSuperare)} kg per superarlo)`;
+    }
+  }
+
   const cardSfidante = {
     tipo: 'sfidante',
     icon: '🔥',
@@ -10254,6 +10265,7 @@ const strategieAlternativeCards = computed(() => {
     recordAssolutoPesoToApply: (!isCorpoLiberoPuro && targetRecordAssolutoKg && targetRecordAssolutoKg > sfidanteVal) ? targetRecordAssolutoKg : null,
     sottotitolo: sfidanteSottotitolo,
     diffVsSmartText,
+    prDistanzaText,
     mesoPillText: (sfidanteIsProtagonista || tipoConsigliato === 'sfidante') ? mesoPillText : null,
     prGoalText: isCorpoLiberoPuro ? `🎯 Target ${targetReps + 1} reps` : sfidantePRGoalText,
     prDetail: isCorpoLiberoPuro ? null : sfidantePRDetail,
@@ -10932,7 +10944,9 @@ const apriAiutoCaricoDettagliato = async (sett) => {
   showStoricoCompleto.value = false;
   showCambioPalestra.value = false;
   dialogStorico.value = true;
-  await caricaDatiAnalisi(sett);
+  if (!storicoEsercizio.value || storicoEsercizio.value.length === 0) {
+    await caricaDatiAnalisi(sett);
+  }
   const info = getBaseWeekInfo(sett);
   pesoCustomSimulatore.value = (info && info.pesoBase) ? info.pesoBase : (caricoConsigliatoViaDiMezzo.value || 0);
 };
@@ -11922,17 +11936,6 @@ function isCorpoLiberoEsercizio(ex) {
   return false;
 };
 
-const estraiSerieDaPrescrizione = (prescrizioneStr) => {
-  if (!prescrizioneStr) return null;
-  const part = String(prescrizioneStr).split('|')[0].trim();
-  const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
-  
-  const matchX = cleanPart.match(/^(\d+)\s*[xX]/);
-  if (matchX) {
-    return parseInt(matchX[1], 10);
-  }
-  return null;
-};
 
 const getPrescriptionReps = (ex, w) => {
   if (!ex) return null;
@@ -14005,6 +14008,8 @@ const caricaDatiEsercizio = async () => {
     applicaEsercizioPrecedenteSincrono(workout.value);
     applicaStoricoSincrono(workout.value);
     calcolaIndexCorrente();
+    const exKey = String(workout.value?.id || routeIdLocal.value || 'default');
+    delete ghostOriginaliCache[exKey];
 
     stileStorico.value = localStorage.getItem('stileStorico_' + atletaId) || getStileStoricoAtleta(atletaId);
     modalitaSettimane.value = localStorage.getItem('modalitaSettimane_' + atletaId) || getModalitaSettimaneAtleta(atletaId);
@@ -14047,9 +14052,11 @@ const caricaDatiEsercizio = async () => {
       calcolaIndexCorrente();
     });
     
-    caricaDatiAnalisi(settimanaAttiva.value, thisRequestId).catch(errAnalisi => {
+    try {
+      await caricaDatiAnalisi(settimanaAttiva.value, thisRequestId);
+    } catch (errAnalisi) {
       console.warn("Errore caricamento dati analisi eager:", errAnalisi);
-    });
+    }
 
     return;
   }

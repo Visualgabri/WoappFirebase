@@ -2301,8 +2301,8 @@ export const popolaIndiceBackup = (items) => {
   const map = new Map();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const keyCliente = item.ID_cliente ? 'ID_cliente' : (Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente');
-    const atletaId = String(item[keyCliente] || '').trim();
+    const keyCliente = item.ID_cliente !== undefined ? 'ID_cliente' : (Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente');
+    const atletaId = String(item[keyCliente] !== undefined ? item[keyCliente] : '').trim();
     const nomeNorm = String(item.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
     if (atletaId && nomeNorm && parseInt(item.num_riga_giorno) > 0) {
       const mapKey = `${atletaId}_${nomeNorm}`;

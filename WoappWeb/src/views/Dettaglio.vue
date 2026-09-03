@@ -1040,8 +1040,8 @@
                   <div class="d-flex align-center gap-1">
 
 
-                    <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)">
-                      {{ analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi' }}
+                    <span v-if="analizzaRecordSettimana(sett)" :class="analizzaRecordSettimana(sett).stato === 'record' ? 'text-amber-lighten-1' : 'text-orange-lighten-2'" class="font-weight-black mr-1 cursor-pointer animate-pulse" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.55rem' : '0.62rem' }" @click.stop="isCorpoLiberoPuro ? (vibraTattile(15), dialogStrategiaCoach = true) : apriAiutoCaricoDettagliato(sett)" :title="analizzaRecordSettimana(sett).tooltipText">
+                      {{ analizzaRecordSettimana(sett).badgeText || (analizzaRecordSettimana(sett).stato === 'record' ? '🏆 PR' : '🔥 Quasi') }}
                     </span>
 
                     <span v-if="!isEsercizioVPercentuale && !isCorpoLiberoPuro" class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;">
@@ -7413,16 +7413,29 @@ const analizzaRecordSettimana = (sett) => {
   const e1rmDaValutare = calcolaE1RMSmorzato(pesoDaValutare, targetReps, isCavo);
   const e1rmRecord = calcolaE1RMSmorzato(recordVal, targetReps, isCavo);
 
+  const isManubri = isManubriEsercizio(workout.value);
+  const stepKg = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubri ? 1.0 : (isCavo ? 1.25 : 2.5));
+  let caricoTargetPR = Math.round((recordVal + stepKg) / stepKg) * stepKg;
+  if (isManubri && typeof getDumbbellSequenceWeight === 'function') {
+    caricoTargetPR = getDumbbellSequenceWeight(recordVal, 'up');
+  }
+  const diffMancanteRecord = Math.round((recordVal - pesoDaValutare) * 10) / 10;
+  const diffPerSuperare = Math.max(stepKg, Math.round((caricoTargetPR - pesoDaValutare) * 10) / 10);
+
   // Per essere record, a target reps deve essere almeno pari al recordVal
   if (pesoDaValutare > recordVal || e1rmDaValutare > (e1rmRecord * 1.005)) {
+    const diffSuperamento = Math.round((pesoDaValutare - recordVal) * 10) / 10;
     return {
       stato: 'record',
       tipo: tipoValutato,
       peso: pesoDaValutare,
       record: recordVal,
-      diff: Math.round((pesoDaValutare - recordVal) * 10) / 10,
+      diff: diffSuperamento,
+      caricoTargetPR: pesoDaValutare,
       targetReps,
-      definizione: 'SUPERAMENTO'
+      definizione: 'SUPERAMENTO',
+      badgeText: '🏆 PR',
+      tooltipText: `🏆 Nuovo Record a ${targetReps} reps (+${formatWeight(diffSuperamento)}kg)!`
     };
   } else if (pesoDaValutare === recordVal) {
     return {
@@ -7431,18 +7444,26 @@ const analizzaRecordSettimana = (sett) => {
       peso: pesoDaValutare,
       record: recordVal,
       diff: 0,
+      caricoTargetPR: pesoDaValutare,
       targetReps,
-      definizione: 'PAREGGIO'
+      definizione: 'PAREGGIO',
+      badgeText: '🏆 PR',
+      tooltipText: `🏆 Pareggio Record a ${targetReps} reps!`
     };
-  } else if (pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5) {
+  } else if (pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5 || (caricoTargetPR > pesoDaValutare && caricoTargetPR <= pesoDaValutare + (stepKg * 2))) {
+    const diffDisplay = diffMancanteRecord > 0 ? diffMancanteRecord : diffPerSuperare;
     return {
       stato: 'quasi-record',
       tipo: tipoValutato,
       peso: pesoDaValutare,
       record: recordVal,
-      diff: Math.round((recordVal - pesoDaValutare) * 10) / 10,
+      diff: diffDisplay,
+      diffPerSuperare,
+      caricoTargetPR,
       targetReps,
-      definizione: 'AVVICINAMENTO'
+      definizione: 'AVVICINAMENTO',
+      badgeText: `🔥 Quasi (-${formatWeight(diffDisplay)}kg)`,
+      tooltipText: `Quasi Record (-${formatWeight(diffDisplay)}kg). Serve ${formatWeight(caricoTargetPR)}kg per superare il record a ${targetReps} reps.`
     };
   }
 
@@ -8625,6 +8646,21 @@ function getGhostWeightsRangeForWeekRaw(sett) {
   let pesoSfidante = isManubri ? getDumbbellSequenceWeight(pesoConsigliato, 'up') : pesoConsigliato + step;
   pesoSfidante = Math.round(pesoSfidante / step) * step;
 
+  // Se il flag Attacco PR è attivo, mira esattamente al carico necessario per superare il record
+  if (ghostPRAttackAttivo.value && workout.value) {
+    const isCavo = isCavoOMacchinaEsercizio(workout.value);
+    const prReal = ottieniRecordStoricoPerReps(repsTarget);
+    const prStimato = stimaRecordStoricoPerReps(repsTarget);
+    const recVal = Math.max(prReal || 0, prStimato || 0);
+    if (recVal > 0) {
+      let targetPRKg = Math.round((recVal + step) / step) * step;
+      if (isManubri) targetPRKg = arrotondaManubrioCommerciale(targetPRKg);
+      if (targetPRKg > pesoConsigliato && targetPRKg <= (pesoConsigliato + (step * 2.5))) {
+        pesoSfidante = targetPRKg;
+      }
+    }
+  }
+
   if (isManubri) {
     pesoConsigliato = arrotondaManubrioCommerciale(pesoConsigliato);
     pesoSfidante = arrotondaManubrioCommerciale(pesoSfidante);
@@ -8917,7 +8953,7 @@ const getGhostRenderInfo = (sett) => {
     const range = getGhostWeightsRangeForWeek(sett);
     let valConsigliato = range?.consigliato?.display || ghost.text;
     
-    const isAttaccoPRProtagonista = Boolean(sett === 6 && opportunitaPRData.value?.sfidanteIsProtagonista);
+    const isAttaccoPRProtagonista = Boolean(opportunitaPRData.value?.sfidanteIsProtagonista);
 
     // Sensibilità Fatica o Attacco PR determina quale fascia di intensità è il target primario consigliato
     if ((isAttaccoPRProtagonista || sensibilitaFaticaGhost.value === 'aggressiva') && range?.sfidante?.display) {
@@ -8934,7 +8970,7 @@ const getGhostRenderInfo = (sett) => {
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     
-    if (isAttaccoPRProtagonista || (sett === 6 && ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
+    if (isAttaccoPRProtagonista || (ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
       label = 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
@@ -8962,7 +8998,7 @@ const getGhostRenderInfo = (sett) => {
     const range = getGhostWeightsRangeForWeek(sett);
     let valConsigliato = range?.consigliato?.display || (ghost.pesoProposto > 0 ? `${formatWeight(ghost.pesoProposto)} kg` : ghost.text);
     
-    const isAttaccoPRProtagonista = Boolean(sett === 6 && opportunitaPRData.value?.sfidanteIsProtagonista);
+    const isAttaccoPRProtagonista = Boolean(opportunitaPRData.value?.sfidanteIsProtagonista);
 
     if ((isAttaccoPRProtagonista || sensibilitaFaticaGhost.value === 'aggressiva') && range?.sfidante?.display) {
       valConsigliato = range.sfidante.display;
@@ -8978,7 +9014,7 @@ const getGhostRenderInfo = (sett) => {
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     
-    if (isAttaccoPRProtagonista || (sett === 6 && ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
+    if (isAttaccoPRProtagonista || (ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
       label = 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
@@ -9019,7 +9055,7 @@ const getGhostRenderInfo = (sett) => {
     const range = getGhostWeightsRangeForWeek(sett);
     let valConsigliato = range?.consigliato?.display || ghost.text || '';
     
-    const isAttaccoPRProtagonista = Boolean(sett === 6 && opportunitaPRData.value?.sfidanteIsProtagonista);
+    const isAttaccoPRProtagonista = Boolean(opportunitaPRData.value?.sfidanteIsProtagonista);
 
     // Sensibilità Fatica o Attacco PR determina quale fascia di intensità è il target primario consigliato
     if ((isAttaccoPRProtagonista || sensibilitaFaticaGhost.value === 'aggressiva') && range?.sfidante?.display) {
@@ -9035,7 +9071,7 @@ const getGhostRenderInfo = (sett) => {
     icon = (isAumentoPeso || isAumentoReps) ? 'mdi-trending-up' : 'mdi-trending-neutral';
     color = isLight ? '#c2410c' : '#ffb74d';
     
-    if (isAttaccoPRProtagonista || (sett === 6 && ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
+    if (isAttaccoPRProtagonista || (ghostPRAttackAttivo.value && opportunitaPRData.value?.isOpportunita)) {
       label = 'Consigliato (Attacco PR):';
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {
       label = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
@@ -9951,26 +9987,27 @@ const heroProposalData = computed(() => {
 // 2.5 COMPUTED OPPORTUNITA PR (Centralizzato per W6, Attacco PR e vicinanza record)
 const opportunitaPRData = computed(() => {
   if (!workout.value) return null;
-  const sett = aiutoWeek.value;
+  const sett = (typeof dialogAiutoCarico !== 'undefined' && dialogAiutoCarico.value) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
   const targetReps = getRepsPerWeek(sett);
   const isManubri = isManubriEsercizio(workout.value);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
   const isCorpoLiberoPuro = isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value;
   const hasInfortunio = Boolean(
     (infortuniAttiviEsercizio.value && infortuniAttiviEsercizio.value.length > 0 && !ghostSbloccato.value) ||
     (getGhostLiftSmart(sett)?.isGhostInfortunio && !ghostSbloccato.value)
   );
 
-  const prWeight = recordOverviewData.value?.bestReal?.weight || 0;
+  const prWeight = recordOverviewData.value?.bestReal?.weight || ottieniRecordStoricoPerReps(targetReps) || stimaRecordStoricoPerReps(targetReps) || 0;
   const currentE1RM = recordOverviewData.value?.bestE1RM?.currentE1RM || 0;
   const max1RM = recordOverviewData.value?.bestE1RM?.max1RM || 0;
 
   const range = getGhostWeightsRangeForWeek(sett);
   const rawSmart = range?.consigliato?.value ? parseFloat(String(range.consigliato.value).replace(',', '.')) : 0;
   const rawSfidante = range?.sfidante?.value ? parseFloat(String(range.sfidante.value).replace(',', '.')) : 0;
-  const step = getWeightStep(isManubri, rawSmart || 20);
+  const step = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : getWeightStep(isManubri, rawSmart || 20);
 
-  const smartVal = rawSmart > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSmart) : Math.round(rawSmart / step) * step) : 0;
-  const sfidanteVal = rawSfidante > 0 ? (isManubri ? arrotondaManubrioCommerciale(rawSfidante) : Math.round(rawSfidante / step) * step) : 0;
+  const smartVal = rawSmart > 0 ? (isManubri && !stepCaricoEsercizioEffettivo?.value ? arrotondaManubrioCommerciale(rawSmart) : Math.round(rawSmart / step) * step) : 0;
+  const sfidanteVal = rawSfidante > 0 ? (isManubri && !stepCaricoEsercizioEffettivo?.value ? arrotondaManubrioCommerciale(rawSfidante) : Math.round(rawSfidante / step) * step) : 0;
 
   return valutaOpportunitaPR({
     sett,
@@ -9983,7 +10020,9 @@ const opportunitaPRData = computed(() => {
     sfidanteVal,
     stepKg: step,
     isCorpoLiberoPuro,
-    hasInfortunio
+    hasInfortunio,
+    isCavo,
+    isScarico: sett === 4 && isWeek4Scarico.value
   });
 });
 
@@ -10039,9 +10078,9 @@ const strategieAlternativeCards = computed(() => {
   const oppPR = opportunitaPRData.value;
   const sfidanteIsProtagonista = Boolean(oppPR && oppPR.sfidanteIsProtagonista);
 
-  // Determina quale strategia è consigliata in base alla sensibilità fatica dell'utente
+  // Determina quale strategia è consigliata in base alla sensibilità fatica dell'utente o Attacco PR
   const sens = sensibilitaFaticaGhost.value;
-  const tipoConsigliato = sens === 'aggressiva' ? 'sfidante' : (sens === 'conservativa' ? 'safe' : 'smart');
+  const tipoConsigliato = sfidanteIsProtagonista ? 'sfidante' : (sens === 'aggressiva' ? 'sfidante' : (sens === 'conservativa' ? 'safe' : 'smart'));
 
   // Calcolo pillola di incremento vs W1 per la strategia consigliata
   const consigliatoVal = sfidanteIsProtagonista ? sfidanteVal : (tipoConsigliato === 'sfidante' ? sfidanteVal : (tipoConsigliato === 'safe' ? safeVal : smartVal));
@@ -10157,6 +10196,10 @@ const strategieAlternativeCards = computed(() => {
     sfidanteValoreDisplay = formatCaricoConReps(range.sfidante.value, targetReps);
   } else if (sett === 1 && range.sfidante?.label && range.sfidante.label.includes('Rotta PR')) {
     sfidanteSottotitolo = '🎯 Sblocca Rotta PR W6';
+  } else if (oppPR?.targetNuovoPRKg && sfidanteVal >= oppPR.targetNuovoPRKg) {
+    sfidanteSottotitolo = `🏆 Supera PR ${targetReps}r (${formatWeight(sfidanteVal)}kg)`;
+  } else if (oppPR?.targetRecordAssolutoKg && sfidanteVal >= oppPR.targetRecordAssolutoKg) {
+    sfidanteSottotitolo = `👑 Nuovo Record 1RM (${formatWeight(sfidanteVal)}kg)`;
   } else if (sfidanteVal > smartVal && smartVal > 0) {
     const diffSfid = Math.round((sfidanteVal - smartVal) * 10) / 10;
     sfidanteSottotitolo = `+${diffSfid}k vs smart`;

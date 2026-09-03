@@ -781,9 +781,11 @@ export const valutaOpportunitaPR = ({
   sfidanteVal = 0,
   stepKg = 2.5,
   isCorpoLiberoPuro = false,
-  hasInfortunio = false
+  hasInfortunio = false,
+  isCavo = false,
+  isScarico = false
 }) => {
-  if (isCorpoLiberoPuro || hasInfortunio || !ghostPRAttackAttivo) {
+  if (isCorpoLiberoPuro || hasInfortunio || !ghostPRAttackAttivo || isScarico || sett === 4) {
     return {
       isOpportunita: false,
       percentuale: 0,
@@ -802,7 +804,7 @@ export const valutaOpportunitaPR = ({
 
   let targetRecordAssolutoKg = targetNuovoPRKg;
   if (max1RM > 0 && targetReps > 0) {
-    targetRecordAssolutoKg = calcolaCaricoTargetRecord1RM(max1RM, targetReps, stepKg);
+    targetRecordAssolutoKg = calcolaCaricoTargetRecord1RM(max1RM, targetReps, stepKg, isCavo);
   }
 
   // Verifica se il carico Smart (es. 38kg) è già sufficiente a battere il record a target reps
@@ -828,15 +830,13 @@ export const valutaOpportunitaPR = ({
   }
 
   // Condizioni per essere considerata Opportunità PR:
-  // 1. Week 6 (picco del mesociclo)
-  // 2. Attacco record PR attivo
-  // 3. Prossimità al record elevata (≥ 85% o diff ≤ 3.5kg o smart/sfidante raggiunge/supera il record a target reps)
-  // 4. Tentativo realistico (sfidanteVal <= smartVal + 2*stepKg o smartGiaNuovoRecord)
-  const isW6 = sett === 6;
-  const isRecordVicino = e1rmProximityPct >= 85 || diff1RMKg <= (stepKg * 2) || sfidanteVal >= targetRecordAssolutoKg || sfidanteVal >= targetNuovoPRKg || smartGiaNuovoRecord;
-  const isTentativoRealistico = (sfidanteVal > 0 && sfidanteVal <= (smartVal + (stepKg * 2.5))) || smartGiaNuovoRecord;
+  // 1. Attacco record PR attivo
+  // 2. Prossimità al record elevata (≥ 80% o diff ≤ 2.5 step o smart/sfidante raggiunge/supera il record a target reps)
+  // 3. Tentativo realistico (sfidanteVal <= smartVal + 2.5*stepKg o smartGiaNuovoRecord o supera target)
+  const isRecordVicino = e1rmProximityPct >= 80 || diff1RMKg <= (stepKg * 2.5) || sfidanteVal >= targetRecordAssolutoKg || sfidanteVal >= targetNuovoPRKg || smartGiaNuovoRecord;
+  const isTentativoRealistico = (sfidanteVal > 0 && sfidanteVal <= (smartVal + (stepKg * 2.5))) || smartGiaNuovoRecord || sfidanteVal >= targetRecordAssolutoKg;
 
-  const isOpportunita = Boolean(isW6 && ghostPRAttackAttivo && isRecordVicino && isTentativoRealistico);
+  const isOpportunita = Boolean(ghostPRAttackAttivo && isRecordVicino && isTentativoRealistico);
 
   // Promuovere lo Sfidante come protagonista SOLO se lo Smart NON è già sufficiente a battere il record!
   // Se lo Smart (es. 38kg) è già il nuovo record, lo Smart rimane il Consigliato primario (evitando salti doppi esagerati da +4kg).
@@ -852,7 +852,7 @@ export const valutaOpportunitaPR = ({
     }
   }
 
-  const motivo = 'Vicino al record: W6 è ideale per il primato!';
+  const motivo = sett === 6 ? 'Vicino al record: W6 è ideale per il primato!' : 'Attacco PR attivo: obiettivo primato personale!';
 
   return {
     isOpportunita,

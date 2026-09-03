@@ -6046,6 +6046,23 @@ ChartJS.register(
 const route = useRoute();
 const router = useRouter();
 
+const isEsercizioRecupero = computed(() => {
+  return Boolean(
+    workout.value?.isRecupero || 
+    route.query.isRecupero === 'true' || 
+    (indexCorrente.value >= 0 && tuttiEserciziGiorno.value[indexCorrente.value]?.isRecupero)
+  );
+});
+
+const infoRecupero = computed(() => {
+  const currentItem = (indexCorrente.value >= 0 ? tuttiEserciziGiorno.value[indexCorrente.value] : null) || workout.value || {};
+  return {
+    originGiorno: currentItem.originGiorno || route.query.originGiorno || '',
+    week: parseInt(currentItem.weekRecupero || route.query.weekRecupero || route.query.targetWeek || route.query.week) || settimanaAttiva.value || 1,
+    sessionGiorno: currentItem.giornoSessione || route.query.giornoSessione || ''
+  };
+});
+
 // Parametri di progressione allenamento legati ai parametri globali
 const propostaBaseWeek2 = propostaBaseWeek2Global;
 const propostaBaseWeek5 = propostaBaseWeek5Global;
@@ -13906,10 +13923,14 @@ const vaiAdEsercizioPrecedente = () => {
 
 const vaiAlGiornoAllenamento = async () => {
   vibraTattile(15);
-  const sessionGiorno = (route.query.giornoSessione || 
+  const sessionGiorno = (
+    (isEsercizioRecupero.value ? infoRecupero.value?.originGiorno : null) ||
+    workout.value?.des_giorno ||
+    route.query.giornoSessione || 
     (indexCorrente.value >= 0 ? tuttiEserciziGiorno.value[indexCorrente.value]?.giornoSessione : null) || 
     localStorage.getItem('woapp_giorno_selezionato') || 
-    workout.value?.des_giorno || '').trim().toUpperCase();
+    ''
+  ).trim().toUpperCase();
     
   const week = (isEsercizioRecupero.value ? (infoRecupero.value.week || settimanaAttiva.value || 1) : (settimanaAttiva.value || 1));
   const exId = workout.value?.id || routeIdLocal.value || '';
@@ -13950,6 +13971,31 @@ const vaiAlGiornoAllenamento = async () => {
       parseInt(item.num_riga_giorno) === 0
     );
     if (sessionObj) sessionId = sessionObj.id;
+  }
+
+  // 2. Cerca in Firestore per Riga 0 se ancora non trovata in memoria locale
+  if (!sessionId && workout.value) {
+    try {
+      const keyIdCliente = Object.keys(workout.value).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+      const atletaId = workout.value[keyIdCliente] || '';
+      const sNum = workout.value.num_scheda;
+      if (atletaId && sNum && sessionGiorno) {
+        const qR0 = query(
+          collection(db, 'STORYBOARD'),
+          where(keyIdCliente, 'in', [atletaId, !isNaN(Number(atletaId)) ? Number(atletaId) : atletaId]),
+          where('num_scheda', 'in', [sNum, String(sNum), Number(sNum)])
+        );
+        const snapR0 = await getDocs(qR0);
+        snapR0.forEach(docSnap => {
+          const d = docSnap.data();
+          if (parseInt(d.num_riga_giorno) === 0 && String(d.des_giorno).trim().toUpperCase() === sessionGiorno) {
+            sessionId = docSnap.id;
+          }
+        });
+      }
+    } catch (eFs) {
+      console.warn("Errore ricerca Riga 0 su Firestore:", eFs);
+    }
   }
 
   if (!sessionId) {
@@ -14133,7 +14179,7 @@ const caricaDatiEsercizio = async () => {
     caricamento.value = false;
 
     // Carica il completamento del giorno (Riga 0) e l'elenco esercizi per lo swipe in background
-    const sessionGiorno = (route.query.giornoSessione || localStorage.getItem('woapp_giorno_selezionato') || desGiorno || '').trim().toUpperCase();
+    const sessionGiorno = (route.query.giornoSessione || desGiorno || localStorage.getItem('woapp_giorno_selezionato') || '').trim().toUpperCase();
     if (atletaId && schemaRef && sessionGiorno) {
       caricaRiga0(keyIdCliente, atletaId, schemaRef, sessionGiorno).then(() => {
         determinaSettimanaAttivaGiorno();

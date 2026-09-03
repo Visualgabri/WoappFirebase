@@ -2317,6 +2317,35 @@ export const popolaIndiceBackup = (items) => {
   backupExerciseMap = map;
 };
 
+export const integraElementiInIndice = (items) => {
+  if (!items || !Array.isArray(items)) return;
+  if (!backupExerciseMap) {
+    if (backupDataCache) popolaIndiceBackup(backupDataCache);
+    else backupExerciseMap = new Map();
+  }
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const keyCliente = item.ID_cliente !== undefined ? 'ID_cliente' : (Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente');
+    const atletaId = String(item[keyCliente] !== undefined ? item[keyCliente] : '').trim();
+    const nomeNorm = String(item.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    if (atletaId && nomeNorm && parseInt(item.num_riga_giorno) > 0) {
+      const mapKey = `${atletaId}_${nomeNorm}`;
+      let arr = backupExerciseMap.get(mapKey);
+      if (!arr) {
+        arr = [];
+        backupExerciseMap.set(mapKey, arr);
+      }
+      const sNum = parseInt(item.num_scheda);
+      const existingIdx = arr.findIndex(x => parseInt(x.num_scheda) === sNum && String(x.des_giorno) === String(item.des_giorno) && String(x.num_riga_giorno) === String(item.num_riga_giorno));
+      if (existingIdx >= 0) {
+        arr[existingIdx] = { ...arr[existingIdx], ...item };
+      } else {
+        arr.push(item);
+      }
+    }
+  }
+};
+
 export const getStoryboardBackupSync = () => backupDataCache;
 
 export const getStoricoEsercizioFromBackupSync = (atletaId, desEsercizioNorm) => {

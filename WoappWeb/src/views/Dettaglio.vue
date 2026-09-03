@@ -6002,7 +6002,7 @@ import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vu
 import PrOverviewCards from '../components/PrOverviewCards.vue';
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
+import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, integraElementiInIndice, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
   rimuoviContenutoTraParentesi,
@@ -13045,32 +13045,34 @@ const caricaEsercizioPrecedente = async (reqId = currentExerciseRequestId) => {
     const currentSchedaNum = parseInt(currentNumScheda);
     if (isNaN(currentSchedaNum)) return;
 
-    // Se già trovato per lo STESSO esercizio e ancora valido, evitiamo query duplicate
-    if (previousWorkout.value && normalizzaNomeEsercizio(previousWorkout.value.des_esercizio) === desEsercizioNorm) {
+    // Se già trovato e coincide con la scheda esattamente precedente (currentSchedaNum - 1), non serve interrogare Firestore
+    if (previousWorkout.value && parseInt(previousWorkout.value.num_scheda) === currentSchedaNum - 1 && normalizzaNomeEsercizio(previousWorkout.value.des_esercizio) === desEsercizioNorm) {
       return;
     }
 
-    let bestPrev = null;
+    let bestPrev = previousWorkout.value ? { ...previousWorkout.value } : null;
 
-    // 1. Cerca dallo storyboard_backup.json locale (istantaneo)
-    try {
-      const allData = await getStoryboardBackup();
-      (allData || []).forEach(b => {
-        const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
-        const bNorm = normalizzaNomeEsercizio(b.des_esercizio);
-        const sNum = parseInt(b.num_scheda);
-        if (String(bAtletaId) === String(atletaId) && bNorm === desEsercizioNorm && sNum < currentSchedaNum) {
-          if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
-            const itemId = b.id || b.num_riga || `PREV_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
-            bestPrev = { ...b, id: itemId };
+    // 1. Cerca dallo storyboard_backup.json locale (istantaneo) se non ancora in memoria
+    if (!bestPrev) {
+      try {
+        const allData = await getStoryboardBackup();
+        (allData || []).forEach(b => {
+          const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
+          const bNorm = normalizzaNomeEsercizio(b.des_esercizio);
+          const sNum = parseInt(b.num_scheda);
+          if (String(bAtletaId) === String(atletaId) && bNorm === desEsercizioNorm && sNum < currentSchedaNum) {
+            if (!bestPrev || sNum > parseInt(bestPrev.num_scheda)) {
+              const itemId = b.id || b.num_riga || `PREV_${b.num_scheda}_${b.des_giorno}_${b.num_riga_giorno}`;
+              bestPrev = { ...b, id: itemId };
+            }
           }
-        }
-      });
-    } catch (eBk) {
-      console.warn("Errore backup in caricaEsercizioPrecedente:", eBk);
+        });
+      } catch (eBk) {
+        console.warn("Errore backup in caricaEsercizioPrecedente:", eBk);
+      }
     }
 
-    // 2. Cerca da Firestore per atletaId (senza filtro case-sensitive) per dati più recenti
+    // 2. Cerca da Firestore per atletaId per verificare se ci sono schede più recenti (es. Scheda 67 salvata online)
     try {
       const q = query(
         collection(db, 'STORYBOARD'),
@@ -13098,6 +13100,7 @@ const caricaEsercizioPrecedente = async (reqId = currentExerciseRequestId) => {
     }
 
     if (bestPrev) {
+      integraElementiInIndice([bestPrev]);
       previousWorkout.value = applicaModificheLocali(bestPrev);
       for (let w = 1; w <= 6; w++) {
         inputSettimanePrecedente.value[w].ins = previousWorkout.value['ins_week' + w] || '';
@@ -18859,9 +18862,11 @@ const caricaDatiAnalisi = async (sett, reqId = currentExerciseRequestId) => {
         where(keyIdCliente, 'in', [atletaId, !isNaN(Number(atletaId)) ? Number(atletaId) : atletaId])
       );
       const snap = await getDocs(q);
+      const fsDocs = [];
       let firestoreMatched = 0;
       snap.forEach((docSnap) => {
         const d = docSnap.data();
+        fsDocs.push({ id: docSnap.id, ...d });
         const dNome = String(d.des_esercizio || '').trim().toLowerCase();
         const sNum = parseInt(d.num_scheda);
         if (dNome === desEsercizioClean && parseInt(d.num_riga_giorno) > 0) {
@@ -18874,6 +18879,7 @@ const caricaDatiAnalisi = async (sett, reqId = currentExerciseRequestId) => {
           mappaSchede.set(uniqueKey, applicaModificheLocali({ ...d, id: itemId, peso_corporeo: pesoCorp }));
         }
       });
+      integraElementiInIndice(fsDocs);
     } catch (errFirestore) {
       console.warn('[DEBUG STORICO] Errore query Firestore in caricaDatiAnalisi:', errFirestore);
     }

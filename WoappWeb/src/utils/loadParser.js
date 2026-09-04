@@ -29,6 +29,20 @@ export const STOP_WORDS = [
 ];
 
 /**
+ * Determina se un esercizio appartiene al settore cardio.
+ * Regola: il settore contiene la parola 'cardio' (des_settore o des_settore_princ).
+ * @param {Object|string} ex Esercizio o oggetto riga
+ * @returns {boolean}
+ */
+export const isCardioEsercizio = (ex) => {
+  if (!ex) return false;
+  const settore = typeof ex === 'object' ? String(ex.des_settore || '').toLowerCase() : '';
+  const settorePrinc = typeof ex === 'object' ? String(ex.des_settore_princ || '').toLowerCase() : '';
+  const raw = typeof ex === 'string' ? ex.toLowerCase() : '';
+  return settore.includes('cardio') || settorePrinc.includes('cardio') || raw.includes('cardio');
+};
+
+/**
  * Determina se un esercizio è intrinsecamente a corpo libero (bodyweight).
  * @param {Object|string} ex Esercizio o nome esercizio
  * @returns {boolean}
@@ -217,15 +231,192 @@ export const estraiSerieDaPrescrizione = (prescrizioneStr) => {
 };
 
 /**
+ * Estrae il tempo/durata previsto da una prescrizione cardio (in secondi).
+ * Normalizza internamente in secondi per confronti affidabili.
+ * Esempi:
+ * - 3x3' = 180s (3 minuti)
+ * - 3x3min = 180s (3 minuti)
+ * - 3x3'30'' / 3x3'30" = 210s (3 minuti e 30 secondi)
+ * - 3x7min = 420s (7 minuti)
+ * - 4x30'' = 30s
+ *
+ * @param {string} prescrizioneStr
+ * @returns {number|null} Durata per serie in secondi o null
+ */
+export const estraiTempoDaPrescrizione = (prescrizioneStr) => {
+  if (!prescrizioneStr) return null;
+  const part = String(prescrizioneStr).split('|')[0].trim();
+  const cleanPart = part.replace(/\([^)]+\)/g, '').replace(/\[[^\]]+\]/g, '').trim().toLowerCase();
+  if (!cleanPart) return null;
+
+  // 1. Minuti e secondi combinati: es. 3x3'30'', 3x3'30", 3x3'30, 3x3m30s, 3'30'', 3'30
+  const matchMinSec = cleanPart.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(\d+)\s*(?:'|m|min)\s*(\d{1,2})(?:''|"|s|sec)?/i) ||
+                      cleanPart.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(\d+):(\d{2})\b/);
+  if (matchMinSec) {
+    const min = parseInt(matchMinSec[1], 10);
+    const sec = parseInt(matchMinSec[2], 10);
+    if (!isNaN(min) && !isNaN(sec) && sec < 60) {
+      return (min * 60) + sec;
+    }
+  }
+
+  // 2. Solo minuti: es. 3x3', 3x3min, 3x7min, 1x5min, 5min, 10', 10m
+  const matchMin = cleanPart.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(\d+(?:[.,]\d+)?)\s*(?:'|min(?:uti)?\b|m\b)/i);
+  if (matchMin) {
+    const min = parseFloat(matchMin[1].replace(',', '.'));
+    if (!isNaN(min) && min > 0) {
+      return Math.round(min * 60);
+    }
+  }
+
+  // 3. Solo secondi (anche con range, es. 4-6x30''-40'' o 4x30''):
+  const matchSecRange = cleanPart.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(?:\d+\s*(?:''|"|s|sec)?\s*-\s*)?(\d+)\s*(?:''|"|sec(?:ondi)?\b|s\b)/i);
+  if (matchSecRange) {
+    const sec = parseInt(matchSecRange[1], 10);
+    if (!isNaN(sec) && sec > 0) {
+      return sec;
+    }
+  }
+
+  // 4. Match secondi singoli (es. 30'')
+  const matchSec = cleanPart.match(/(\d+)\s*(?:''|"|sec(?:ondi)?\b)/i);
+  if (matchSec) {
+    const sec = parseInt(matchSec[1], 10);
+    if (!isNaN(sec) && sec > 0) {
+      return sec;
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Estrae il tempo/durata eseguito da un input utente (ins_week) per un esercizio cardio.
+ * Normalizzato internamente in secondi.
+ *
+ * @param {string} str Testo inserito dall'utente (es. "7min", "7'", "7'30''", "Liv 6 7min", "140 bpm", "3x7min")
+ * @param {Object} [options={}] Opzioni: { tempoPrescSec: number }
+ * @returns {number|null} Tempo in secondi o null
+ */
+export const estraiTempoDaInput = (str, options = {}) => {
+  const tempoPresc = options.tempoPrescSec || null;
+  if (!str) return tempoPresc;
+  const raw = String(str).trim();
+  if (!raw || raw === '-') return tempoPresc;
+
+  const clean = rimuoviContenutoTraParentesi(raw).toLowerCase().trim();
+  if (!clean) return tempoPresc;
+
+  // 1. Minuti e secondi: es. 7'30'', 7'30", 7'30, 7m30s, 7:30
+  const matchMinSec = clean.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(\d+)\s*(?:'|m|min)\s*(\d{1,2})(?:''|"|s|sec)?/i) ||
+                      clean.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(\d+):(\d{2})\b/);
+  if (matchMinSec) {
+    const min = parseInt(matchMinSec[1], 10);
+    const sec = parseInt(matchMinSec[2], 10);
+    if (!isNaN(min) && !isNaN(sec) && sec < 60) {
+      return (min * 60) + sec;
+    }
+  }
+
+  // 2. Solo minuti espliciti: es. 7min, 7', 3x7min, 5 min, 10m
+  const matchMin = clean.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(\d+(?:[.,]\d+)?)\s*(?:'|min(?:uti)?\b|m\b)/i);
+  if (matchMin) {
+    const min = parseFloat(matchMin[1].replace(',', '.'));
+    if (!isNaN(min) && min > 0) {
+      return Math.round(min * 60);
+    }
+  }
+
+  // 3. Solo secondi espliciti: es. 30'', 30", 45s, 45sec
+  const matchSec = clean.match(/(?:(?:\d+(?:-\d+)?)\s*[xX]\s*)?(\d+)\s*(?:''|"|sec(?:ondi)?\b|s\b)/i);
+  if (matchSec) {
+    const sec = parseInt(matchSec[1], 10);
+    if (!isNaN(sec) && sec > 0) {
+      return sec;
+    }
+  }
+
+  // 4. Se contiene solo impostazioni/note (es. "Liv 6", "140/150 bpm", "ok", "fatto") senza specifica temporale,
+  // si assume completato il tempo prescritto
+  if (tempoPresc) {
+    return tempoPresc;
+  }
+
+  // 5. Numero isolato senza unità (es. "7" o "8"): se >= 1 e <= 180, interpretato come minuti
+  const matchIsolatedNum = clean.match(/^\s*(\d+)\s*$/);
+  if (matchIsolatedNum) {
+    const n = parseInt(matchIsolatedNum[1], 10);
+    if (!isNaN(n) && n > 0 && n <= 180) {
+      return n * 60;
+    }
+  }
+
+  return tempoPresc;
+};
+
+/**
+ * Formatta un tempo in secondi in stringa leggibile (minuti e secondi).
+ * Es: 180 -> "3 min", 210 -> "3'30\"", 45 -> "45\""
+ *
+ * @param {number} secondi
+ * @param {boolean} [formatoCompatto=false]
+ * @returns {string}
+ */
+export const formattaTempoDisplay = (secondi, formatoCompatto = false) => {
+  if (!secondi || isNaN(secondi) || secondi <= 0) return '--';
+  const secTot = Math.round(secondi);
+  const m = Math.floor(secTot / 60);
+  const s = secTot % 60;
+
+  if (m > 0 && s > 0) {
+    return `${m}'${s.toString().padStart(2, '0')}"`;
+  }
+  if (m > 0) {
+    return formatoCompatto ? `${m}'` : `${m} min`;
+  }
+  return `${s}"`;
+};
+
+/**
+ * Descrive testualmente una prescrizione cardio.
+ * Es: "3x3'" -> "3 serie da 3 minuti"
+ *     "3x3min" -> "3 serie da 3 minuti"
+ *     "3x3'30''" -> "3 serie da 3 minuti e 30 secondi"
+ *
+ * @param {string} prescStr
+ * @returns {string}
+ */
+export const descriviPrescrizioneCardio = (prescStr) => {
+  if (!prescStr) return '';
+  const serie = estraiSerieDaPrescrizione(prescStr) || 1;
+  const tempoSec = estraiTempoDaPrescrizione(prescStr);
+  if (!tempoSec) return prescStr;
+
+  const m = Math.floor(tempoSec / 60);
+  const s = tempoSec % 60;
+  let tempoTxt = '';
+  if (m > 0 && s > 0) {
+    tempoTxt = `${m} minut${m === 1 ? 'o' : 'i'} e ${s} second${s === 1 ? 'o' : 'i'}`;
+  } else if (m > 0) {
+    tempoTxt = `${m} minut${m === 1 ? 'o' : 'i'}`;
+  } else {
+    tempoTxt = `${s} second${s === 1 ? 'o' : 'i'}`;
+  }
+
+  return `${serie} serie da ${tempoTxt}`;
+};
+
+/**
  * Estrae il carico (peso in kg) da una stringa di input utente (ins_week).
  * Supporta contestualmente esercizi a corpo libero (con/senza sovraccarico).
  *
  * @param {string} str Testo inserito dall'utente (es. "62,5 65 65", "45 x7r", "14kg", "14", "panca 45 8kg")
- * @param {Object} [options={}] Opzioni di parsing: { isCorpoLibero: boolean, defaultReps: number }
+ * @param {Object} [options={}] Opzioni di parsing: { isCorpoLibero: boolean, isCardio: boolean, defaultReps: number }
  * @returns {string|null} Il carico estratto come stringa (es: "65", "14", "62.5") oppure null
  */
 export const estraiPesoDaInput = (str, options = {}) => {
   if (!str) return null;
+  if (options.isCardio) return null;
   let raw = String(str).trim();
   if (!raw || raw === '-') return null;
 
@@ -497,6 +688,7 @@ export function estraiRepsDaInputExplicitSingle(str) {
  */
 export const estraiRepsDaInput = (str, options = {}) => {
   if (!str) return null;
+  if (options.isCardio) return null;
   const strVal = String(str).trim();
   if (!strVal || strVal === '-') return null;
 
@@ -781,11 +973,12 @@ export const valutaOpportunitaPR = ({
   sfidanteVal = 0,
   stepKg = 2.5,
   isCorpoLiberoPuro = false,
+  isCardio = false,
   hasInfortunio = false,
   isCavo = false,
   isScarico = false
 }) => {
-  if (isCorpoLiberoPuro || hasInfortunio || !ghostPRAttackAttivo || isScarico || sett === 4) {
+  if (isCardio || isCorpoLiberoPuro || hasInfortunio || !ghostPRAttackAttivo || isScarico || sett === 4) {
     return {
       isOpportunita: false,
       percentuale: 0,
@@ -874,8 +1067,8 @@ export const valutaOpportunitaPR = ({
  * @param {boolean} [isCorpoLibero=false]
  * @returns {{ peso: number, reps: number, e1rm: number, isZavorrato: boolean }|null}
  */
-export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo = false, isCorpoLibero = false) => {
-  if (!strVal) return null;
+export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo = false, isCorpoLibero = false, isCardio = false) => {
+  if (!strVal || isCardio) return null;
   const str = String(strVal).trim();
   if (!str || str === '-') return null;
 

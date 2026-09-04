@@ -131,7 +131,7 @@
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" md="6">
-                <span class="text-caption text-muted font-weight-bold d-block mb-1">Ripetizioni</span>
+                <span class="text-caption text-muted font-weight-bold d-block mb-1">{{ isEsercizioSelezionatoCardio ? 'Durata' : 'Ripetizioni' }}</span>
                 <v-btn-toggle
                   v-model="tipoAnalisiEsercizio"
                   mandatory
@@ -140,16 +140,18 @@
                   class="rounded-lg w-100 filter-btn-toggle"
                   density="comfortable"
                 >
-                  <v-btn value="tutte" class="flex-grow-1 font-weight-bold text-none text-caption">Tutte le reps</v-btn>
-                  <v-btn value="stesse" class="flex-grow-1 font-weight-bold text-none text-caption">Stesse reps</v-btn>
+                  <v-btn value="tutte" class="flex-grow-1 font-weight-bold text-none text-caption">{{ isEsercizioSelezionatoCardio ? 'Tutte le durate' : 'Tutte le reps' }}</v-btn>
+                  <v-btn value="stesse" class="flex-grow-1 font-weight-bold text-none text-caption">{{ isEsercizioSelezionatoCardio ? 'Stessa durata' : 'Stesse reps' }}</v-btn>
                 </v-btn-toggle>
               </v-col>
               <v-col cols="12" v-if="tipoAnalisiEsercizio === 'stesse'" class="mt-2">
-                <span class="text-caption text-muted font-weight-bold d-block mb-1">Scegli quota ripetizioni</span>
+                <span class="text-caption text-muted font-weight-bold d-block mb-1">{{ isEsercizioSelezionatoCardio ? 'Scegli durata' : 'Scegli quota ripetizioni' }}</span>
                 <v-select
                   v-model="repSelezionata"
                   :items="repsDisponibili"
-                  placeholder="Seleziona target reps..."
+                  item-title="title"
+                  item-value="value"
+                  :placeholder="isEsercizioSelezionatoCardio ? 'Seleziona durata...' : 'Seleziona target reps...'"
                   variant="outlined"
                   rounded="lg"
                   color="primary"
@@ -167,7 +169,7 @@
                 <v-icon color="orange-darken-3" class="mr-2">mdi-chart-line</v-icon>
                 Progressione: {{ esercizioSelezionato }}
               </h3>
-              <span class="text-caption text-muted">Unità: kg</span>
+              <span class="text-caption text-muted">Unità: {{ isEsercizioSelezionatoCardio ? 'minuti' : 'kg' }}</span>
             </div>
 
             <div v-if="esercizioChartReady && esercizioChartData.labels.length > 0" class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
@@ -261,7 +263,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { selectedAthlete, getNomeAtleta, layoutEserciziGlobal } from '../authStore.js';
-import { haProgressioneQualitativa, rimuoviContenutoTraParentesi } from '../utils/loadParser.js';
+import { haProgressioneQualitativa, rimuoviContenutoTraParentesi, isCardioEsercizio, estraiTempoDaPrescrizione, estraiTempoDaInput, formattaTempoDisplay } from '../utils/loadParser.js';
 
 // Chart.js e Vue-Chartjs
 import { Bar, Line, Doughnut } from 'vue-chartjs';
@@ -319,6 +321,13 @@ const repsDisponibili = ref([]);
 const filteredPointsLocal = ref([]);
 const esercizioChartData = ref({ labels: [], datasets: [] });
 const esercizioChartReady = ref(false);
+
+const isEsercizioSelezionatoCardio = computed(() => {
+  if (!esercizioSelezionato.value || tuttiWorkoutGlobal.value.length === 0) return false;
+  const normSel = esercizioSelezionato.value.toLowerCase().trim();
+  const found = tuttiWorkoutGlobal.value.find(w => w.des_esercizio && w.des_esercizio.toLowerCase().trim() === normSel);
+  return isCardioEsercizio(found);
+});
 
 // Stato Tab 3: Analisi Scheda (Mesociclo)
 const mesocicloSelezionato = ref('');
@@ -535,6 +544,9 @@ const caricaDatiGrafici = async () => {
       const settore = (workout.des_settore_princ || '').trim().toLowerCase();
       const muscolo = (workout.des_settore || '').trim().toLowerCase();
 
+      // Escludi esercizi cardio dal calcolo del volume Upper / Lower
+      if (settore.includes('cardio') || muscolo.includes('cardio')) return;
+
       const rawW6 = workout.ins_week6;
       const isRepStyle = rawW6 && (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(String(rawW6).trim()) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(String(rawW6).trim()));
       const peso = isRepStyle ? 1 : parseWeight(rawW6);
@@ -644,6 +656,41 @@ const aggiornaOpzioniEsercizio = () => {
   }
 
   const normSel = esercizioSelezionato.value.toLowerCase().trim();
+
+  // Se l'esercizio è cardio, gestisci le opzioni basate sulla durata temporale
+  if (isEsercizioSelezionatoCardio.value) {
+    const tempoSet = new Set();
+    tuttiWorkoutGlobal.value.forEach(w => {
+      if (w.des_esercizio && w.des_esercizio.toLowerCase().trim() === normSel) {
+        for (let wNum = 1; wNum <= 6; wNum++) {
+          const prescStr = w[`des_week${wNum}`];
+          const prescSec = estraiTempoDaPrescrizione(prescStr);
+          const rawIns = w[`ins_week${wNum}`];
+          const tempoSec = estraiTempoDaInput(rawIns, { tempoPrescSec: prescSec });
+          if (tempoSec && tempoSec > 0) {
+            tempoSet.add(tempoSec);
+          }
+        }
+      }
+    });
+
+    const sortedTempi = Array.from(tempoSet).sort((a, b) => a - b);
+    repsDisponibili.value = sortedTempi.map(sec => ({
+      title: formattaTempoDisplay(sec),
+      value: sec
+    }));
+    if (repsDisponibili.value.length > 0) {
+      if (repSelezionata.value === null || !sortedTempi.includes(repSelezionata.value)) {
+        repSelezionata.value = sortedTempi[0];
+      }
+    } else {
+      repSelezionata.value = null;
+    }
+
+    rigeneraGraficoEsercizio();
+    return;
+  }
+
   const repSet = new Set();
 
   tuttiWorkoutGlobal.value.forEach(w => {
@@ -665,10 +712,14 @@ const aggiornaOpzioniEsercizio = () => {
     }
   });
 
-  repsDisponibili.value = Array.from(repSet).sort((a, b) => a - b);
+  const sortedReps = Array.from(repSet).sort((a, b) => a - b);
+  repsDisponibili.value = sortedReps.map(r => ({
+    title: `${r} reps`,
+    value: r
+  }));
   if (repsDisponibili.value.length > 0) {
-    if (repSelezionata.value === null || !repsDisponibili.value.includes(repSelezionata.value)) {
-      repSelezionata.value = repsDisponibili.value[0];
+    if (repSelezionata.value === null || !sortedReps.includes(repSelezionata.value)) {
+      repSelezionata.value = sortedReps[0];
     }
   } else {
     repSelezionata.value = null;
@@ -697,6 +748,61 @@ const rigeneraGraficoEsercizio = () => {
     const rB = Number(b.num_riga_giorno) || 0;
     return rA - rB;
   });
+
+  if (isEsercizioSelezionatoCardio.value) {
+    const cardioPoints = [];
+    records.forEach(w => {
+      const numScheda = String(w.num_scheda || '').trim();
+      for (let wNum = 1; wNum <= 6; wNum++) {
+        const prescStr = w[`des_week${wNum}`];
+        const prescSec = estraiTempoDaPrescrizione(prescStr);
+        const rawIns = w[`ins_week${wNum}`];
+        const tempoSec = estraiTempoDaInput(rawIns, { tempoPrescSec: prescSec });
+        if (tempoSec && tempoSec > 0) {
+          const tempoMin = parseFloat((tempoSec / 60).toFixed(2));
+          cardioPoints.push({
+            label: `Wo ${numScheda} - W${wNum}`,
+            tempoSec: tempoSec,
+            tempoMin: tempoMin,
+            tempoDisplay: formattaTempoDisplay(tempoSec)
+          });
+        }
+      }
+    });
+
+    let filtered = cardioPoints;
+    if (tipoAnalisiEsercizio.value === 'stesse' && repSelezionata.value) {
+      filtered = cardioPoints.filter(p => p.tempoSec === repSelezionata.value);
+    }
+    filteredPointsLocal.value = filtered;
+
+    const labels = filtered.map(p => p.label);
+    const dataTempo = filtered.map(p => p.tempoMin);
+
+    const selTempoTitle = repsDisponibili.value.find(r => (r.value !== undefined ? r.value : r) === repSelezionata.value)?.title || `${repSelezionata.value}s`;
+    const lineLabel = tipoAnalisiEsercizio.value === 'stesse' ? `Durata a ${selTempoTitle}` : 'Durata registrata (minuti)';
+
+    const datasets = [{
+      label: lineLabel,
+      data: dataTempo,
+      borderColor: '#f97316',
+      backgroundColor: 'rgba(249, 115, 22, 0.08)',
+      borderWidth: 3,
+      pointBackgroundColor: '#ea580c',
+      pointBorderColor: '#ffffff',
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      fill: true,
+      tension: 0.15
+    }];
+
+    esercizioChartData.value = {
+      labels: labels,
+      datasets: datasets
+    };
+    esercizioChartReady.value = true;
+    return;
+  }
 
   const dataPoints = [];
 
@@ -749,8 +855,9 @@ const rigeneraGraficoEsercizio = () => {
   const datasets = [];
 
   // Linea Carico Sollevato
+  const selRepTitle = repsDisponibili.value.find(r => (r.value !== undefined ? r.value : r) === repSelezionata.value)?.title || `${repSelezionata.value} reps`;
   datasets.push({
-    label: tipoAnalisiEsercizio.value === 'stesse' ? `Carico a ${repSelezionata.value} reps` : 'Carico sollevato',
+    label: tipoAnalisiEsercizio.value === 'stesse' ? `Carico a ${selRepTitle}` : 'Carico sollevato',
     data: dataCarico,
     borderColor: '#f97316',
     backgroundColor: 'rgba(249, 115, 22, 0.06)',
@@ -807,6 +914,7 @@ const rigeneraGraficoMesociclo = () => {
   workoutsScheda.forEach(w => {
     const settore = (w.des_settore_princ || '').trim().toLowerCase();
     const muscolo = (w.des_settore || '').trim().toLowerCase();
+    if (settore.includes('cardio') || muscolo.includes('cardio')) return;
     if (!settore && !muscolo && Number(w.num_riga_giorno) === 0) return;
 
     let gruppo = 'Altri';
@@ -881,6 +989,9 @@ const rigeneraGraficoMesociclo = () => {
 
   workoutsScheda.forEach(w => {
     if (Number(w.num_riga_giorno) === 0) return; // Salta intestazione giorno
+    const settore = (w.des_settore_princ || '').trim().toLowerCase();
+    const muscolo = (w.des_settore || '').trim().toLowerCase();
+    if (settore.includes('cardio') || muscolo.includes('cardio')) return;
     for (let wNum = 1; wNum <= 6; wNum++) {
       const rawVal = w[`ins_week${wNum}`];
       const isRepStyle = rawVal && (/^\d+(?:\.\d+)?\s*[rR]\b/i.test(String(rawVal).trim()) || /^\d+(?:\.\d+)?\s*(?:rep|rip)/i.test(String(rawVal).trim()));
@@ -1016,6 +1127,14 @@ const esercizioChartOptions = ref({
           const label = context.dataset.label;
           const val = context.raw;
           
+          if (isEsercizioSelezionatoCardio.value) {
+            const pt = filteredPointsLocal.value[index];
+            if (pt) {
+              return ` Durata: ${pt.tempoDisplay}`;
+            }
+            return ` Durata: ${val} min`;
+          }
+          
           if (datasetIndex === 0) {
             const pt = filteredPointsLocal.value[index];
             if (pt) {
@@ -1041,6 +1160,9 @@ const esercizioChartOptions = ref({
       ticks: {
         color: '#94a3b8',
         callback: function(value) {
+          if (isEsercizioSelezionatoCardio.value) {
+            return value + ' min';
+          }
           return value + ' kg';
         }
       }

@@ -502,7 +502,7 @@
           @click="apriStoricoEsercizio"
         >
           <!-- Header Card Record: Pulsante Strategia a Destra -->
-          <div class="d-flex align-center justify-end mb-2">
+          <div v-if="!isCardio" class="d-flex align-center justify-end mb-2">
             <v-chip
               size="x-small"
               color="orange-darken-3"
@@ -517,10 +517,13 @@
           </div>
 
           <div class="d-flex align-stretch w-100 min-width-0 my-1">
-            <!-- COLONNA 1: RECORD A REPS TARGET (Sinistra - Ambra) -->
+            <!-- COLONNA 1: RECORD O TARGET TEMPO / REPS (Sinistra - Ambra) -->
             <div class="text-center d-flex flex-column align-center justify-center border-right-soft px-1 min-width-0" style="flex: 1 1 50%; min-width: 0; overflow: hidden;">
               <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5 text-truncate w-100" style="font-size: 0.50rem; letter-spacing: 0.02em;">
-                <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                <template v-if="isCardio">
+                  Target {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
+                </template>
+                <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
                   Record {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
                 </template>
                 <template v-else-if="currentWeekLoggedWeight">
@@ -530,8 +533,16 @@
                   Target {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
                 </template>
               </span>
-              <span class="font-weight-black d-inline-flex align-center justify-center gap-0.5 text-truncate" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (recordOverviewData?.bestReal?.isCurrentPR || currentWeekLoggedWeight) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
-                <template v-if="recordOverviewData?.bestReal?.weight > 0">
+              <span class="font-weight-black d-inline-flex align-center justify-center gap-0.5 text-truncate" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (isCardio ? currentWeekLoggedTempo : (recordOverviewData?.bestReal?.isCurrentPR || currentWeekLoggedWeight)) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
+                <template v-if="isCardio">
+                  <template v-if="currentWeekLoggedTempo">
+                    {{ formattaTempoDisplay(currentWeekLoggedTempo) }}
+                  </template>
+                  <template v-else>
+                    🎯 {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
+                  </template>
+                </template>
+                <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
                   <template v-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
                     {{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}
                   </template>
@@ -555,9 +566,13 @@
                   --
                 </template>
               </span>
-              <!-- Sottotitolo Dettaglio Record Reps -->
+              <!-- Sottotitolo Dettaglio Record Reps / Cardio -->
               <div class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
-                <template v-if="recordOverviewData?.bestReal?.weight > 0">
+                <template v-if="isCardio">
+                  <span v-if="currentWeekLoggedTempo" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
+                  <span v-else class="text-muted text-truncate">da completare</span>
+                </template>
+                <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
                   <span v-if="recordOverviewData.bestReal.reps && !isCorpoLiberoEsercizio(workout)" class="text-amber-lighten-2 font-weight-bold">x{{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}</span>
                   <span v-if="recordOverviewData.bestReal.isCurrentPR || (workout?.num_scheda && String(recordOverviewData.bestReal.sheet).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
                   <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})</span>
@@ -575,7 +590,10 @@
             <div class="text-center d-flex flex-column align-center justify-center px-1 min-width-0" style="flex: 1 1 50%; min-width: 0; overflow: hidden;">
               <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5 text-truncate w-100" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
               <span class="font-weight-black text-cyan-lighten-2 d-inline-flex align-center justify-center gap-0.5 text-truncate" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
-                <template v-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
+                <template v-if="isCardio && recordMaxAssolutoInfo?.tempoSec > 0">
+                  {{ recordMaxAssolutoInfo.tempoDisplay }}
+                </template>
+                <template v-else-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
                   <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
                     {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
                   </template>
@@ -591,7 +609,12 @@
                 </template>
               </span>
               <!-- Sottotitolo Dettaglio Max Assoluto -->
-              <div v-if="(recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)) || recordOverviewData?.bestE1RM?.rawWeight > 0" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
+              <div v-if="isCardio && recordMaxAssolutoInfo?.tempoSec > 0" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
+                <span v-if="recordMaxAssolutoInfo?.isCurrentMeso" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
+                <span v-else-if="recordMaxAssolutoInfo?.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
+                <span v-else-if="recordMaxAssolutoInfo?.sheetAtMaxWeight" class="text-cyan-lighten-4 opacity-85 text-truncate">(Sch. {{ recordMaxAssolutoInfo.sheetAtMaxWeight }})</span>
+              </div>
+              <div v-else-if="!isCardio && ((recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)) || recordOverviewData?.bestE1RM?.rawWeight > 0)" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
                 <span v-if="recordMaxAssolutoInfo?.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
                 <span v-else-if="recordOverviewData?.bestE1RM?.rawReps" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordOverviewData.bestE1RM.rawReps) }}</span>
                 <span v-if="recordMaxAssolutoInfo?.isCurrentMeso || (workout?.num_scheda && String(recordMaxAssolutoInfo?.sheetAtMaxWeight).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
@@ -601,9 +624,9 @@
             </div>
           </div>
 
-          <!-- Barra Progresso verso il Miglior 1RM Storico -->
+          <!-- Barra Progresso verso il Miglior 1RM Storico (solo pesistica / corpo libero zavorrato) -->
           <div 
-            v-if="recordOverviewData?.bestE1RM && !recordOverviewData?.isCorpoLiberoPuro && recordOverviewData.bestE1RM.max1RM > 0" 
+            v-if="!isCardio && recordOverviewData?.bestE1RM && !recordOverviewData?.isCorpoLiberoPuro && recordOverviewData.bestE1RM.max1RM > 0" 
             class="mt-2 pt-1.5 border-top-soft px-1"
           >
             <template v-if="recordOverviewData.bestE1RM.isNewPeak">
@@ -1270,7 +1293,7 @@
                 @input="e => onInputWeek(sett, e.target.value)"
                 @focus="onFocusWeek(sett)"
                 @blur="e => onBlurWeek(sett, e.target.value)"
-                :placeholder="getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'"
+                :placeholder="isCardio ? 'Tempo o note (es. 7min o 3x7min)' : (getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)')"
                 class="native-week-textarea flex-grow-1 text-left pr-2 font-weight-black"
                 rows="1"
                 style="background: transparent; border: none; outline: none; resize: none; width: 100%; color: inherit; font-size: 0.92rem; line-height: 1.45; font-family: inherit; box-sizing: border-box; padding: 0; margin: 0; min-height: 24px; field-sizing: content;"
@@ -4346,7 +4369,7 @@
 
             <!-- Controlli Visualizzazione Cronologia (Toolbar Snella e Moderna con bottoni ampi) -->
             <div class="mt-2 mb-4 d-flex align-center justify-space-between gap-2 flex-shrink-0 min-width-0">
-              <!-- Chip Pill Filtro Stesse Reps -->
+              <!-- Chip Pill Filtro Stesse Reps / Stesso Tempo -->
               <div class="min-width-0">
                 <v-btn
                   v-if="stileStorico !== 'grafico'"
@@ -4359,7 +4382,7 @@
                   <v-icon size="15" class="mr-1.5" :color="soloCorrispondenti ? 'red-lighten-2' : 'slate-300'">
                     {{ soloCorrispondenti ? 'mdi-filter-check' : 'mdi-filter-outline' }}
                   </v-icon>
-                  <span>Solo {{ targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r' }}</span>
+                  <span>Solo {{ isCardio ? (formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) || '3 min') : (targetRepsRange ? formatRepsDisplay(targetRepsRange) : '8r') }}</span>
                 </v-btn>
               </div>
               
@@ -4449,7 +4472,7 @@
                       🟢 SCHEDA ATTUALE
                     </v-chip>
                     <v-chip
-                      v-if="calcola1RMW6Prescritto(prevEx)"
+                      v-if="!isCardio && calcola1RMW6Prescritto(prevEx)"
                       size="x-small"
                       density="compact"
                       class="font-weight-black text-cyan-accent-2 px-1.5"
@@ -4457,6 +4480,16 @@
                       style="font-size: 0.54rem; height: 18px; border: 1px solid rgba(6, 182, 212, 0.35); background: rgba(6, 182, 212, 0.12);"
                     >
                       ⚡ 1RM W6: {{ formatta1RMW6Prescritto(prevEx) }}
+                    </v-chip>
+                    <v-chip
+                      v-if="isCardio && getMaxTempoScheda(prevEx)"
+                      size="x-small"
+                      density="compact"
+                      class="font-weight-black text-amber-lighten-1 px-1.5"
+                      variant="tonal"
+                      style="font-size: 0.54rem; height: 18px; border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.10);"
+                    >
+                      ⏱️ MAX: {{ formattaTempoDisplay(getMaxTempoScheda(prevEx)) }}
                     </v-chip>
                     <v-chip
                       v-if="formattaPesoCorporeo(prevEx) && formattaPesoCorporeo(prevEx) !== '-'"
@@ -4513,7 +4546,7 @@
                     >
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
-                        {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
+                        {{ prevEx['des_week' + w] ? (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w])) : 'N.D.' }}
                       </span>
                       <strong 
                         class="font-weight-black d-block mt-1" 
@@ -4536,7 +4569,7 @@
                     >
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
-                        {{ prevEx['des_week' + w] ? (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) : 'N.D.' }}
+                        {{ prevEx['des_week' + w] ? (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w])) : 'N.D.' }}
                       </span>
                       <strong 
                         class="font-weight-black d-block mt-1" 
@@ -4564,11 +4597,12 @@
                 <thead>
                   <tr>
                     <th class="sticky-col header-cell text-left" style="width: 88px;">Scheda</th>
-                    <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}" :style="{ opacity: (soloCorrispondenti && getRepsPerWeek(w) !== targetRepsRange) ? 0.45 : 1.0 }">
+                    <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}" :style="{ opacity: (soloCorrispondenti && (isCardio ? (getTempoPerWeek(w) !== getTempoPerWeek(settimanaAttiva)) : (getRepsPerWeek(w) !== targetRepsRange))) ? 0.45 : 1.0 }">
                       <div class="table-header-title font-weight-bold">W{{ w }}</div>
                     </th>
-                    <th class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
-                    <th class="header-cell text-cyan-accent-2" style="width: 85px;">1RM W6</th>
+                    <th v-if="!isCardio" class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
+                    <th v-if="!isCardio" class="header-cell text-cyan-accent-2" style="width: 85px;">1RM W6</th>
+                    <th v-if="isCardio" class="header-cell text-amber-lighten-1" style="width: 100px;">Max Tempo</th>
                     <th class="header-cell" style="width: 75px;">Peso Corp.</th>
                     <th class="header-cell" style="width: 110px;">Giorno</th>
                     <th class="header-cell" style="width: 250px;">Note</th>
@@ -4650,7 +4684,7 @@
                     
                     <td v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="body-cell font-weight-bold text-center" :class="{'red-cell': isMatchingReps(prevEx, w)}" style="word-wrap: break-word;" :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }">
                       <div v-if="prevEx['des_week' + w]" class="table-prescription-text text-super-caption font-weight-medium" style="font-size: 0.65rem; line-height: 1;">
-                        {{ parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w] }}
+                        {{ isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) }}
                       </div>
                       <div 
                         class="font-weight-black mt-1" 
@@ -4663,11 +4697,14 @@
                       </div>
                     </td>
                     
-                    <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
+                    <td v-if="!isCardio" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
                       {{ prevEx.num_ins6 ? (isCorpoLiberoEsercizio(workout) ? (String(prevEx.num_ins6).toLowerCase().endsWith('r') ? prevEx.num_ins6 : prevEx.num_ins6 + 'r') : (String(prevEx.num_ins6).toLowerCase().includes('kg') ? prevEx.num_ins6 : prevEx.num_ins6 + ' kg')) : '-' }}
                     </td>
-                    <td class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
+                    <td v-if="!isCardio" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
                       {{ formatta1RMW6Prescritto(prevEx) }}
+                    </td>
+                    <td v-if="isCardio" class="body-cell font-weight-black text-center text-amber-lighten-1" style="font-size: 0.95rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);">
+                      {{ formattaMaxTempoScheda(prevEx) }}
                     </td>
                     <td class="body-cell text-center" style="font-size: 0.75rem; word-wrap: break-word;">{{ formattaPesoCorporeo(prevEx) }}</td>
                     <td class="body-cell font-weight-medium text-center" style="font-size: 0.7rem; word-wrap: break-word;">{{ prevEx.des_giorno }}{{ prevEx.num_riga_giorno }}</td>
@@ -4684,8 +4721,21 @@
               ref="graficoContainerRef"
               class="d-flex flex-column gap-2 py-1"
             >
-              <!-- Se l'esercizio NON è V%, mostra i selettori standard 1RM_W6/A/B/C e Raggruppamento Reps -->
-              <template v-if="!isEsercizioVPercentuale">
+              <!-- Se l'esercizio è CARDIO, mostra intestazione dedicata tempo -->
+              <template v-if="isCardio">
+                <div class="px-2.5 py-1.5 rounded-lg border text-left d-flex align-center justify-space-between mb-1" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.03) 100%); border-color: rgba(249, 115, 22, 0.35) !important;">
+                  <div class="d-flex align-center gap-1 text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.62rem;">
+                    <v-icon size="14" color="orange-lighten-2">mdi-timer-outline</v-icon>
+                    <span>PROGRESSIONE TEMPO CARDIO</span>
+                  </div>
+                  <span class="text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.52rem;">
+                    Durata registrata (minuti) nel tempo
+                  </span>
+                </div>
+              </template>
+
+              <!-- Se l'esercizio NON è V% né Cardio, mostra i selettori standard 1RM_W6/A/B/C e Raggruppamento Reps -->
+              <template v-else-if="!isEsercizioVPercentuale">
                 <!-- Selettore Modalità Grafico: 1RM W6 prima scelta a sinistra -->
                 <div class="text-left" ref="graficoHeaderRef">
                   <v-btn-toggle
@@ -4841,24 +4891,34 @@
                     
                     <div class="pa-3 text-slate-light" style="font-size: 0.72rem; line-height: 1.45;">
                       <v-row dense class="mb-2.5 align-center text-center">
-                        <v-col cols="4" class="border-right pr-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-                          <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Carico</span>
-                          <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.85rem;">
-                            {{ selectedPointDetails.peso }} kg
-                          </span>
-                        </v-col>
-                        <v-col cols="4" class="border-right px-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-                          <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Reps</span>
-                          <span class="font-weight-black dialog-text-primary" style="font-size: 0.85rem;">
-                            {{ selectedPointDetails.reps }} r
-                          </span>
-                        </v-col>
-                        <v-col cols="4" class="pl-2">
-                          <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Stima 1RM</span>
-                          <span class="font-weight-black text-green-accent-3" style="font-size: 0.85rem;">
-                            {{ selectedPointDetails.e1rm }} kg
-                          </span>
-                        </v-col>
+                        <template v-if="isCardio">
+                          <v-col cols="12">
+                            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Durata Registrata</span>
+                            <span class="font-weight-black text-amber-lighten-1" style="font-size: 1.1rem;">
+                              ⏱️ {{ selectedPointDetails.tempoDisplay || (selectedPointDetails.tempoSec ? formattaTempoDisplay(selectedPointDetails.tempoSec) : '-') }}
+                            </span>
+                          </v-col>
+                        </template>
+                        <template v-else>
+                          <v-col cols="4" class="border-right pr-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Carico</span>
+                            <span class="font-weight-black text-orange-lighten-2" style="font-size: 0.85rem;">
+                              {{ selectedPointDetails.peso }} kg
+                            </span>
+                          </v-col>
+                          <v-col cols="4" class="border-right px-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Reps</span>
+                            <span class="font-weight-black dialog-text-primary" style="font-size: 0.85rem;">
+                              {{ selectedPointDetails.reps }} r
+                            </span>
+                          </v-col>
+                          <v-col cols="4" class="pl-2">
+                            <span class="text-super-caption text-muted uppercase font-weight-black d-block mb-0.5" style="font-size: 0.52rem;">Stima 1RM</span>
+                            <span class="font-weight-black text-green-accent-3" style="font-size: 0.85rem;">
+                              {{ selectedPointDetails.e1rm }} kg
+                            </span>
+                          </v-col>
+                        </template>
                       </v-row>
                       
                       <div class="mt-2 text-super-caption d-flex align-center gap-1.5 flex-wrap font-weight-bold" style="font-size: 0.65rem;">
@@ -4926,11 +4986,16 @@
                       <div class="d-flex align-center justify-space-between pa-1.5 rounded-lg mb-2 bg-slate-900 border" style="border-color: rgba(255,255,255,0.05) !important;">
                         <div class="d-flex align-center gap-1">
                           <span class="font-weight-black" :class="analisiAndamentoEsercizio.pctDiff > 0 ? 'text-green-accent-3' : (analisiAndamentoEsercizio.pctDiff < 0 ? 'text-red-lighten-2' : 'text-amber-lighten-2')" style="font-size: 0.90rem;">
-                            {{ analisiAndamentoEsercizio.pctDiff >= 0 ? '+' : '' }}{{ analisiAndamentoEsercizio.pctDiff }}% 1RM
+                            {{ analisiAndamentoEsercizio.pctDiff >= 0 ? '+' : '' }}{{ analisiAndamentoEsercizio.pctDiff }}% {{ isCardio ? 'Tempo' : '1RM' }}
                           </span>
                         </div>
                         <div v-if="analisiAndamentoEsercizio.firstPt && analisiAndamentoEsercizio.lastPt" class="text-super-caption font-weight-bold text-slate-300" style="font-size: 0.65rem;">
-                          {{ analisiAndamentoEsercizio.firstPt.e1rm }} → {{ analisiAndamentoEsercizio.lastPt.e1rm }} kg
+                          <template v-if="isCardio">
+                            {{ formattaTempoDisplay(analisiAndamentoEsercizio.firstPt.tempoSec) }} → {{ formattaTempoDisplay(analisiAndamentoEsercizio.lastPt.tempoSec) }}
+                          </template>
+                          <template v-else>
+                            {{ analisiAndamentoEsercizio.firstPt.e1rm }} → {{ analisiAndamentoEsercizio.lastPt.e1rm }} kg
+                          </template>
                         </div>
                       </div>
                       
@@ -6015,7 +6080,12 @@ import {
   calcolaTabellaRepsRecordAssoluto,
   calcolaObiettivoBilanciato1RM,
   valutaOpportunitaPR,
-  estraiSerieDaPrescrizione
+  estraiSerieDaPrescrizione,
+  isCardioEsercizio,
+  estraiTempoDaPrescrizione,
+  estraiTempoDaInput,
+  formattaTempoDisplay,
+  descriviPrescrizioneCardio
 } from '../utils/loadParser.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
@@ -8913,6 +8983,7 @@ const calcolaAvvisoFaticaConsigliato = (sett, numConsigliato, repsTarget, repsPr
 };
 
 const getGhostRenderInfo = (sett) => {
+  if (isCardio.value) return null;
   const ghost = getGhostLiftSmart(sett);
   if (!ghost) return null;
 
@@ -12054,6 +12125,7 @@ const isOndaProgression = (ex) => {
 
 function isEsercizioEligibileW6(ex) {
   if (!ex || parseInt(ex.num_riga_giorno) === 0) return false;
+  if (isCardioEsercizio(ex)) return false;
   if (ex.flg_perc && (String(ex.flg_perc).includes('V%') || String(ex.flg_perc).includes('%V') || String(ex.flg_perc).includes('V_PERC'))) return false;
   if (isCorpoLiberoEsercizio(ex) && !isOndaProgression(ex)) return false;
   return true;
@@ -12061,6 +12133,7 @@ function isEsercizioEligibileW6(ex) {
 
 function estraiRepsEsercizioWeek(ex, w, fallbackReps = 10) {
   if (!ex) return fallbackReps > 0 ? fallbackReps : 10;
+  if (isCardioEsercizio(ex)) return null;
   
   const pReps = estraiRepsDaPrescrizione(ex['des_week' + w]) || fallbackReps || 10;
   const isCavo = isCavoOMacchinaEsercizio(ex);
@@ -12861,8 +12934,53 @@ const haPesoEsplicitoInInput = (str) => {
   return false;
 };
 
+const isCardio = computed(() => {
+  return isCardioEsercizio(workout.value);
+});
+
+function getTempoPerWeek(sett) {
+  if (!workout.value) return null;
+  return getTempoEsercizioWeek(workout.value, sett);
+}
+
+function getTempoEsercizioWeek(ex, w) {
+  if (!ex) return null;
+  const prescStr = ex['des_week' + w];
+  const prescSec = estraiTempoDaPrescrizione(prescStr);
+  const insVal = (ex === workout.value && inputSettimane.value?.[w]?.ins) 
+    ? inputSettimane.value[w].ins 
+    : (ex['ins_week' + w] || (w === 6 ? ex.num_ins6 : null));
+  return estraiTempoDaInput(insVal, { tempoPrescSec: prescSec });
+}
+
+function getMaxTempoScheda(prevEx) {
+  if (!prevEx) return null;
+  let maxSec = 0;
+  for (let w = 1; w <= 6; w++) {
+    const t = getTempoEsercizioWeek(prevEx, w);
+    if (t && t > maxSec) maxSec = t;
+  }
+  return maxSec > 0 ? maxSec : null;
+}
+
+function formattaMaxTempoScheda(prevEx) {
+  const maxSec = getMaxTempoScheda(prevEx);
+  return maxSec ? formattaTempoDisplay(maxSec) : '-';
+}
+
+const currentWeekLoggedTempo = computed(() => {
+  if (!isCardio.value) return null;
+  const w = settimanaAttiva.value;
+  const insVal = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w] || (w === 6 ? workout.value?.num_ins6 : null);
+  if (!insVal || String(insVal).trim() === '' || String(insVal).trim() === '-') return null;
+  const prescStr = workout.value?.['des_week' + w];
+  const prescSec = estraiTempoDaPrescrizione(prescStr);
+  return estraiTempoDaInput(insVal, { tempoPrescSec: prescSec });
+});
+
 const haPesoEsercizio = computed(() => {
   if (!workout.value) return false;
+  if (isCardio.value) return false;
   
   // 1. Se staticamente NON è corpo libero (es. Panca, Lat Machine, Squat), ha sempre peso
   if (!isCorpoLiberoEsercizio(workout.value)) {
@@ -12896,7 +13014,7 @@ const haPesoEsercizio = computed(() => {
 });
 
 const isCorpoLiberoPuro = computed(() => {
-  return Boolean(isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value);
+  return Boolean(isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value && !isCardio.value);
 });
 
 let currentExerciseRequestId = 0;
@@ -13217,6 +13335,12 @@ const targetRepsRange = computed(() => {
 
 
 const isMatchingReps = (prevEx, w) => {
+  if (isCardio.value) {
+    const targetSec = getTempoPerWeek(settimanaAttiva.value);
+    if (!targetSec) return false;
+    const prevSec = getTempoEsercizioWeek(prevEx, w);
+    return prevSec === targetSec;
+  }
   const target = targetRepsRange.value;
   if (!target) return false;
   
@@ -13357,8 +13481,8 @@ const scrollAlGrafico = () => {
 const passaAVistaGrafico = () => {
   vibraTattile(10);
   stileStorico.value = 'grafico';
-  // Per corpo libero puro usa la modalità Linea Unica (C) che mostra solo reps
-  modeGraficoStorico.value = isCorpoLiberoPuro.value ? 'C' : '1RM_W6';
+  // Per corpo libero puro o cardio usa la modalità Linea Unica (C)
+  modeGraficoStorico.value = (isCorpoLiberoPuro.value || isCardio.value) ? 'C' : '1RM_W6';
   soloCorrispondenti.value = false;
   scrollAlGrafico();
 };
@@ -15440,6 +15564,7 @@ function formatRepsDisplay(val) {
 
 const getGhostLift = (sett) => {
   if (!workout.value) return null;
+  if (isCardio.value) return null;
 
   // Se è un esercizio a corpo libero con reps in aumento, senza onda e senza scarico in W4, ed è SENZA PESO, il Ghost non consiglia nulla
   if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
@@ -17537,6 +17662,7 @@ const recordMaxRepsInfo = computed(() => {
 });
 
 const currentWeekLoggedWeight = computed(() => {
+  if (isCardio.value) return null;
   const w = settimanaAttiva.value;
   const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
   if (!ins) return null;
@@ -17548,6 +17674,7 @@ const currentWeekLoggedWeight = computed(() => {
 });
 
 const currentWeekLoggedReps = computed(() => {
+  if (isCardio.value) return null;
   const w = settimanaAttiva.value;
   const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
   if (!ins) return null;
@@ -17559,6 +17686,77 @@ const currentWeekLoggedReps = computed(() => {
 
 const recordMaxAssolutoInfo = computed(() => {
   if (!workout.value) return null;
+  if (isCardio.value) {
+    let maxTempoSec = 0;
+    let weekAtMax = 0;
+    let sheetAtMax = null;
+    let dateAtMax = null;
+    let isCurrentMeso = false;
+    let itemAtMax = null;
+
+    const currentNumScheda = parseInt(workout.value?.num_scheda);
+
+    // 1. Cerca prima nello storico delle schede passate
+    if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+      storicoEsercizio.value.forEach(prevEx => {
+        const sNum = parseInt(prevEx.num_scheda);
+        if (!isNaN(sNum) && !isNaN(currentNumScheda) && sNum >= currentNumScheda) return;
+        const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
+
+        for (let w = 1; w <= 6; w++) {
+          const tSec = getTempoEsercizioWeek(prevEx, w);
+          if (tSec && tSec > maxTempoSec) {
+            maxTempoSec = tSec;
+            weekAtMax = w;
+            sheetAtMax = prevEx.num_scheda;
+            dateAtMax = dEx;
+            isCurrentMeso = false;
+            itemAtMax = prevEx;
+          }
+        }
+      });
+    }
+
+    // 2. Cerca nel mesociclo corrente W1-W6
+    for (let w = 1; w <= 6; w++) {
+      const tSec = getTempoEsercizioWeek(workout.value, w);
+      if (tSec && tSec >= maxTempoSec && tSec > 0) {
+        maxTempoSec = tSec;
+        weekAtMax = w;
+        sheetAtMax = workout.value.num_scheda;
+        dateAtMax = workout.value.dat_scheda_ult_ex || workout.value.timestamp;
+        isCurrentMeso = true;
+        itemAtMax = workout.value;
+      }
+    }
+
+    // Fallback: se non ancora registrato alcun tempo, usa il target prescritto della settimana attiva
+    if (maxTempoSec === 0) {
+      const activeTargetSec = estraiTempoDaPrescrizione(workout.value?.['des_week' + settimanaAttiva.value]);
+      if (activeTargetSec) {
+        maxTempoSec = activeTargetSec;
+        weekAtMax = settimanaAttiva.value;
+        sheetAtMax = workout.value.num_scheda;
+        isCurrentMeso = true;
+      }
+    }
+
+    if (maxTempoSec <= 0) return null;
+
+    return {
+      isCardio: true,
+      peso: 0,
+      reps: 0,
+      tempoSec: maxTempoSec,
+      tempoDisplay: formattaTempoDisplay(maxTempoSec),
+      weekAtMaxWeight: weekAtMax,
+      sheetAtMaxWeight: sheetAtMax,
+      dateAtMaxWeight: dateAtMax,
+      isCurrentMeso: isCurrentMeso,
+      itemAtMaxWeight: itemAtMax
+    };
+  }
+
   let maxWeight = 0;
   let repsAtMaxWeight = 0;
   let weekAtMaxWeight = 0;
@@ -17933,6 +18131,41 @@ const analizzaRottaProgressione = ({
 
 const valutazioneProgressione = computed(() => {
   const w = settimanaAttiva.value;
+  if (isCardio.value) {
+    const targetSec = estraiTempoDaPrescrizione(workout.value?.['des_week' + w]);
+    const currentLoggedSec = currentWeekLoggedTempo.value;
+    const maxSec = recordMaxAssolutoInfo.value?.tempoSec || 0;
+
+    if (currentLoggedSec) {
+      if (maxSec > 0 && currentLoggedSec >= maxSec && currentLoggedSec > (targetSec || 0)) {
+        return {
+          testo: `🏆 Record di durata stabilito (${formattaTempoDisplay(currentLoggedSec)})`,
+          colore: 'text-amber-lighten-1',
+          icona: 'mdi-trophy-award'
+        };
+      }
+      return {
+        testo: `✅ Prestazione registrata: ${formattaTempoDisplay(currentLoggedSec)}`,
+        colore: 'text-green-accent-3',
+        icona: 'mdi-check-circle-outline'
+      };
+    }
+
+    if (targetSec) {
+      return {
+        testo: `🎯 Obiettivo seduta: ${formattaTempoDisplay(targetSec)}`,
+        colore: 'text-amber-lighten-2',
+        icona: 'mdi-timer-outline'
+      };
+    }
+
+    return {
+      testo: 'Esercizio cardio',
+      colore: 'text-amber-lighten-2',
+      icona: 'mdi-heart-pulse'
+    };
+  }
+
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
 
   if (!suggerimentoRecord.value) {
@@ -18703,6 +18936,7 @@ const getW6BestColorStyle = (prevEx) => {
 
 const calcola1RMW6Prescritto = (prevEx) => {
   if (!prevEx) return null;
+  if (isCardioEsercizio(prevEx) || isCardio.value) return null;
   
   const isCL = isCorpoLiberoEsercizio(workout.value || prevEx);
   const rawW6 = (prevEx.num_ins6 !== undefined && prevEx.num_ins6 !== null && String(prevEx.num_ins6).trim() !== '')
@@ -19041,6 +19275,58 @@ const rigeneraGraficoStorico = () => {
     ? ['#ea580c', '#0284c7', '#7e22ce', '#059669', '#db2777', '#b45309'] 
     : ['#f97316', '#38bdf8', '#a855f7', '#22c55e', '#ec4899', '#eab308'];
   
+  if (isCardio.value) {
+    const cardioPoints = [];
+    storicoFiltrato.value.forEach(prevEx => {
+      const numScheda = String(prevEx.num_scheda || '').trim();
+      const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value) || '';
+      for (let wNum = 1; wNum <= 6; wNum++) {
+        const tempoSec = getTempoEsercizioWeek(prevEx, wNum);
+        if (tempoSec && tempoSec > 0) {
+          const tempoMin = parseFloat((tempoSec / 60).toFixed(2));
+          cardioPoints.push({
+            label: `S.${numScheda}-W${wNum}`,
+            scheda: numScheda,
+            week: wNum,
+            tempoSec: tempoSec,
+            tempoMin: tempoMin,
+            tempoDisplay: formattaTempoDisplay(tempoSec),
+            date: dEx,
+            note: prevEx.des_note || '',
+            noteAttrezzo: prevEx.des_note_attrezzo || '',
+            giorno: prevEx.des_giorno || ''
+          });
+        }
+      }
+    });
+
+    rawPointsLocal.value = cardioPoints;
+    const labels = cardioPoints.map(p => p.label);
+    const dataTempo = cardioPoints.map(p => p.tempoMin);
+
+    datasets.push({
+      label: 'Durata (minuti)',
+      data: dataTempo,
+      borderColor: isLight ? '#ea580c' : '#f97316',
+      backgroundColor: isLight ? 'rgba(234, 88, 12, 0.15)' : 'rgba(249, 115, 22, 0.1)',
+      borderWidth: 3,
+      pointBackgroundColor: isLight ? '#c2410c' : '#ea580c',
+      pointBorderColor: '#ffffff',
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      fill: true,
+      tension: 0.15
+    });
+
+    storicoChartData.value = {
+      labels: labels,
+      datasets: datasets
+    };
+    storicoChartOptions.value = getChartOptions(isLight);
+    storicoChartReady.value = true;
+    return;
+  }
+  
   if (isEsercizioVPercentuale.value) {
     let rmtBase = 0;
     const rmtObj = parsedRmt(workout.value?.des_esercizio_2);
@@ -19363,6 +19649,15 @@ const getChartOptions = (isLight) => ({
           let dateInfo = '';
           const isCL = isCorpoLiberoEsercizio(workout.value);
           
+          if (isCardio.value) {
+            const pt = rawPointsLocal.value[index];
+            if (pt) {
+              const dInfo = pt.date ? ` | Data: ${formattaDataStorico(pt.date)} (${tempoTrascorso(pt.date)})` : '';
+              return ` Durata: ${pt.tempoDisplay}${dInfo}`;
+            }
+            return ` Durata: ${val} min`;
+          }
+          
           if (modeGraficoStorico.value === '1RM_W6') {
             const pt = rawPointsLocal.value[index];
             if (pt) {
@@ -19428,6 +19723,7 @@ const getChartOptions = (isLight) => ({
       ticks: {
         color: isLight ? '#334155' : '#94a3b8',
         callback: function(value) {
+          if (isCardio.value) return value + ' min';
           return isCorpoLiberoEsercizio(workout.value) ? value + ' reps' : value + ' kg';
         }
       }
@@ -19439,6 +19735,26 @@ const storicoChartOptions = ref(getChartOptions(document.documentElement.getAttr
 
 const gestisciClickGrafico = (datasetIndex, index) => {
   let pt = null;
+  if (isCardio.value) {
+    pt = rawPointsLocal.value[index];
+    if (pt) {
+      selectedPointDetails.value = {
+        label: pt.label,
+        scheda: pt.scheda,
+        week: pt.week,
+        peso: 0,
+        reps: 0,
+        tempoSec: pt.tempoSec,
+        tempoDisplay: pt.tempoDisplay,
+        date: pt.date,
+        giorno: pt.giorno || '',
+        note: pt.note || '',
+        noteAttrezzo: pt.noteAttrezzo || '',
+        noteGen: ''
+      };
+    }
+    return;
+  }
   if (modeGraficoStorico.value === '1RM_W6') {
     pt = rawPointsLocal.value[index];
     if (pt) {
@@ -19522,6 +19838,50 @@ const analisiAndamentoEsercizio = computed(() => {
   
   const firstPt = pts[0];
   const lastPt = pts[pts.length - 1];
+  
+  if (isCardio.value) {
+    const firstTempo = firstPt.tempoSec || 0;
+    const lastTempo = lastPt.tempoSec || 0;
+    let pctDiff = 0;
+    if (firstTempo > 0) {
+      pctDiff = parseFloat((((lastTempo - firstTempo) / firstTempo) * 100).toFixed(1));
+    }
+    let badgeColor = 'grey';
+    let badgeText = 'Stabile';
+    let giudizio = '';
+    let consigli = '';
+    let consigliSintetico = '';
+    if (pctDiff > 5) {
+      badgeColor = 'green-darken-2';
+      badgeText = 'Durata in Aumento';
+      giudizio = `Incremento della durata del **+${pctDiff}%** (da ${formattaTempoDisplay(firstTempo)} a ${formattaTempoDisplay(lastTempo)}).`;
+      consigli = "Ottimo lavoro sulla capacità aerobica. Mantieni la costanza o aumenta gradualmente il target.";
+      consigliSintetico = "Ottimo lavoro sulla capacità aerobica.";
+    } else if (pctDiff >= -5 && pctDiff <= 5) {
+      badgeColor = 'amber-darken-3';
+      badgeText = 'Durata Costante';
+      giudizio = `Durata stabile (${formattaTempoDisplay(lastTempo)}).`;
+      consigli = "Prestazione costante. Puoi incrementare gradualmente i minuti o l'intensità/ritmo.";
+      consigliSintetico = "Prestazione costante nel tempo.";
+    } else {
+      badgeColor = 'blue-darken-2';
+      badgeText = 'Durata Inferiore';
+      giudizio = `Variazione della durata del **${pctDiff}%** (da ${formattaTempoDisplay(firstTempo)} a ${formattaTempoDisplay(lastTempo)}).`;
+      consigli = "Controlla il recupero e l'intensità della sessione.";
+      consigliSintetico = "Controlla il recupero e l'intensità.";
+    }
+    return {
+      pctDiff,
+      badgeColor,
+      badgeText,
+      giudizio,
+      consigli,
+      consigliSintetico,
+      firstPt,
+      lastPt,
+      records: []
+    };
+  }
   
   let pctDiff = 0;
   if (firstPt.e1rm > 0) {

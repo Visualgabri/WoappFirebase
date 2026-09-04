@@ -8124,10 +8124,28 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   }
 
   // Se la strategia coach predittiva è attiva o calcolata, garantiamo che la progressione rispetti la roadmap unificata
-  if (sett >= 2 && sett <= 6) {
-    const rotta = (typeof rottaPredittivaEsercizio !== 'undefined' && rottaPredittivaEsercizio?.value) 
-      ? rottaPredittivaEsercizio.value 
-      : null;
+  const w1Log = inputSettimane.value?.[1]?.ins || workout.value?.ins_week1;
+  const w1P = w1Log ? parseFloat(estraiPesoDaInput(w1Log)) : (propostaWeek1.value?.peso || null);
+  if (w1P !== null && w1P > 0 && sett >= 2 && sett <= 6) {
+    const stepVal = (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) 
+      ? stepCaricoEsercizioEffettivo.value 
+      : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
+    const rotta = analizzaRottaProgressione({
+      w1Weight: w1P,
+      w1Reps: estraiRepsDaInput(w1Log) || getRepsPerWeek(1),
+      prWeight: suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0,
+      prReps: suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || getRepsPerWeek(sett) || 8,
+      e1rmStorico: calcolaE1RMSmorzato(suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0, suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || 8, isCavoOMacchinaEsercizio(workout.value)),
+      isCavo: isCavoOMacchinaEsercizio(workout.value),
+      isManubri: isManubriEsercizio(workout.value),
+      stepKg: stepVal,
+      r1: getRepsPerWeek(1),
+      r2: getRepsPerWeek(2),
+      r3: getRepsPerWeek(3),
+      r4: getRepsPerWeek(4),
+      r5: getRepsPerWeek(5),
+      r6: getRepsPerWeek(6)
+    });
 
     if (rotta && rotta.curvaProiettata && rotta.curvaProiettata[sett - 1]) {
       // Se non ci sono carichi loggati successivi divergenti, proponiamo il punto della curva
@@ -8507,24 +8525,22 @@ function getGhostWeightsRangeForWeekRaw(sett) {
       const isCavo = isCavoOMacchinaEsercizio(workout.value);
       const e1rmH = calcolaE1RMSmorzato(recW, recR, isCavo);
       if (recW > 0 && e1rmH > 0) {
-        const rotta = (typeof rottaPredittivaEsercizio !== 'undefined' && rottaPredittivaEsercizio?.value)
-          ? rottaPredittivaEsercizio.value
-          : analizzaRottaProgressione({
-              w1Weight: defaultPeso,
-              w1Reps: getRepsPerWeek(1),
-              prWeight: recW,
-              prReps: recR,
-              e1rmStorico: e1rmH,
-              isCavo,
-              isManubri,
-              stepKg: step,
-              r1: getRepsPerWeek(1),
-              r2: getRepsPerWeek(2),
-              r3: getRepsPerWeek(3),
-              r4: getRepsPerWeek(4),
-              r5: getRepsPerWeek(5),
-              r6: getRepsPerWeek(6)
-            });
+        const rotta = analizzaRottaProgressione({
+          w1Weight: defaultPeso,
+          w1Reps: getRepsPerWeek(1),
+          prWeight: recW,
+          prReps: recR,
+          e1rmStorico: e1rmH,
+          isCavo,
+          isManubri,
+          stepKg: step,
+          r1: getRepsPerWeek(1),
+          r2: getRepsPerWeek(2),
+          r3: getRepsPerWeek(3),
+          r4: getRepsPerWeek(4),
+          r5: getRepsPerWeek(5),
+          r6: getRepsPerWeek(6)
+        });
         if (rotta && rotta.w1Consigliato && rotta.w1Consigliato > medio) {
           max = Math.max(max, rotta.w1Consigliato);
           sfidanteLabel = 'Sfidante (Rotta PR W6)';
@@ -17889,7 +17905,7 @@ const recordMaxAssolutoInfo = computed(() => {
 });
 
 // Helper globale per analisi predittiva rotta W1 -> W6
-const analizzaRottaProgressione = ({
+function analizzaRottaProgressione({
   w1Weight,
   w1Reps,
   prWeight,
@@ -17900,7 +17916,7 @@ const analizzaRottaProgressione = ({
   isManubri,
   stepKg,
   r1, r2, r3, r4, r5, r6
-}) => {
+}) {
   if (!w1Weight || w1Weight <= 0 || !prWeight || prWeight <= 0 || !e1rmStorico || e1rmStorico <= 0) {
     return null;
   }
@@ -18127,7 +18143,7 @@ const analizzaRottaProgressione = ({
     motivazione,
     curvaProiettata: curve
   };
-};
+}
 
 // Computed unificata reattiva per la rotta predittiva (Unica fonte di verità per Ghost, Rotta PR e Strategia Coach)
 const rottaPredittivaEsercizio = computed(() => {

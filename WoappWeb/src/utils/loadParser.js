@@ -1082,7 +1082,8 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
     if (!l) return;
 
     const pesoStr = estraiPesoDaInput(l, { isCorpoLibero });
-    const explicitReps = estraiRepsDaInput(l, { isCorpoLibero });
+    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+    const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero }) : null;
     const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
 
     if (pesoStr) {

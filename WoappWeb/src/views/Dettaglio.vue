@@ -7730,17 +7730,25 @@ const getBaseWeekInfo = (sett) => {
   } else if (sett === 4) {
     baseWNum = 2;
   } else if (sett === 5) {
+    const isCavo = isCavoOMacchinaEsercizio(workout.value);
+    const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+
     const w4Ins = inputSettimane.value?.[4]?.ins || workout.value?.ins_week4;
     const w3Ins = inputSettimane.value?.[3]?.ins || workout.value?.ins_week3;
-    const pW4 = w4Ins ? parseFloat(estraiPesoDaInput(w4Ins)) : null;
-    const pW3 = w3Ins ? parseFloat(estraiPesoDaInput(w3Ins)) : null;
+    const prescRepsW4 = estraiRepsDaPrescrizione(workout.value?.des_week4) || 10;
+    const prescRepsW3 = estraiRepsDaPrescrizione(workout.value?.des_week3) || 8;
 
-    const rW4 = w4Ins ? (estraiRepsDaInput(w4Ins) || estraiRepsDaPrescrizione(workout.value?.des_week4) || 10) : 0;
-    const rW3 = w3Ins ? (estraiRepsDaInput(w3Ins) || estraiRepsDaPrescrizione(workout.value?.des_week3) || 8) : 0;
+    const perfW4 = w4Ins ? estraiMigliorPrestazioneInput(w4Ins, prescRepsW4, isCavo, isCorpoLibero) : null;
+    const perfW3 = w3Ins ? estraiMigliorPrestazioneInput(w3Ins, prescRepsW3, isCavo, isCorpoLibero) : null;
 
-    const isCavo = isCavoOMacchinaEsercizio(workout.value);
-    const e1rmW4 = (pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0;
-    const e1rmW3 = (pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0;
+    const pW4 = perfW4 ? perfW4.peso : (w4Ins ? parseFloat(estraiPesoDaInput(w4Ins, { isCorpoLibero })) : null);
+    const pW3 = perfW3 ? perfW3.peso : (w3Ins ? parseFloat(estraiPesoDaInput(w3Ins, { isCorpoLibero })) : null);
+
+    const rW4 = perfW4 ? perfW4.reps : (w4Ins ? (estraiRepsDaInput(w4Ins) || prescRepsW4) : 0);
+    const rW3 = perfW3 ? perfW3.reps : (w3Ins ? (estraiRepsDaInput(w3Ins) || prescRepsW3) : 0);
+
+    const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
+    const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
 
     // Se in W4 viene completato un carico uguale o superiore a quello della W3, usa W4 come nuova baseline
     if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
@@ -7761,16 +7769,27 @@ const getBaseWeekInfo = (sett) => {
   let noteText = '';
   let faticaText = '';
 
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+
   if (isPreviousWorkoutW6) {
     if (previousWorkout.value) {
       const prevW6Text = previousWorkout.value.num_ins6 || previousWorkout.value.ins_week6;
+      const prevW6PrescReps = estraiRepsDaPrescrizione(previousWorkout.value.des_week6) || 10;
       if (prevW6Text) {
         baseInsText = String(prevW6Text);
-        const pStr = estraiPesoDaInput(baseInsText);
-        pesoBase = pStr ? parseFloat(pStr) : null;
+        const perfW6 = estraiMigliorPrestazioneInput(baseInsText, prevW6PrescReps, isCavo, isCorpoLibero);
+        if (perfW6) {
+          pesoBase = perfW6.peso;
+          repsBase = perfW6.reps;
+        } else {
+          const pStr = estraiPesoDaInput(baseInsText, { isCorpoLibero });
+          pesoBase = pStr ? parseFloat(pStr) : null;
+          repsBase = prevW6PrescReps;
+        }
+      } else {
+        repsBase = prevW6PrescReps;
       }
-      const prevW6Reps = estraiRepsDaPrescrizione(previousWorkout.value.des_week6);
-      repsBase = prevW6Reps ? parseInt(prevW6Reps, 10) : 10;
       noteText = previousWorkout.value.des_note || '';
       faticaText = previousWorkout.value.des_fatica || '';
     }
@@ -7778,19 +7797,26 @@ const getBaseWeekInfo = (sett) => {
     noteText = inputSettimane.value[baseWNum]?.not || '';
     faticaText = inputSettimane.value[baseWNum]?.fatica || '';
     const baseIns = inputSettimane.value[baseWNum]?.ins;
+    const prescReps = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
     if (baseIns) {
       baseInsText = String(baseIns);
-      const pStr = estraiPesoDaInput(baseIns);
-      pesoBase = pStr ? parseFloat(pStr) : null;
-      
-      const repsEseguite = estraiRepsDaInput(baseIns);
-      if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 50) {
-        repsBase = repsEseguite;
+      const perf = estraiMigliorPrestazioneInput(baseIns, prescReps, isCavo, isCorpoLibero);
+      if (perf) {
+        pesoBase = perf.peso;
+        repsBase = perf.reps;
       } else {
-        repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
+        const pStr = estraiPesoDaInput(baseIns, { isCorpoLibero });
+        pesoBase = pStr ? parseFloat(pStr) : null;
+        
+        const repsEseguite = estraiRepsDaInput(baseIns);
+        if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 50) {
+          repsBase = repsEseguite;
+        } else {
+          repsBase = prescReps;
+        }
       }
     } else {
-      repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
+      repsBase = prescReps;
     }
   }
 
@@ -8125,14 +8151,18 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
 
   // Se la strategia coach predittiva è attiva o calcolata, garantiamo che la progressione rispetti la roadmap unificata
   const w1Log = inputSettimane.value?.[1]?.ins || workout.value?.ins_week1;
-  const w1P = w1Log ? parseFloat(estraiPesoDaInput(w1Log)) : (propostaWeek1.value?.peso || null);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const w1PrescReps = getRepsPerWeek(1) || 10;
+  const w1Perf = w1Log ? estraiMigliorPrestazioneInput(w1Log, w1PrescReps, isCavo, isCorpoLibero) : null;
+  const w1P = w1Perf ? w1Perf.peso : (w1Log ? parseFloat(estraiPesoDaInput(w1Log, { isCorpoLibero })) : (propostaWeek1.value?.peso || null));
   if (w1P !== null && w1P > 0 && sett >= 2 && sett <= 6) {
     const stepVal = (typeof stepCaricoEsercizioEffettivo !== 'undefined' && stepCaricoEsercizioEffettivo?.value) 
       ? stepCaricoEsercizioEffettivo.value 
       : (isManubriEsercizio(workout.value) ? 1.0 : 2.5);
     const rotta = analizzaRottaProgressione({
       w1Weight: w1P,
-      w1Reps: estraiRepsDaInput(w1Log) || getRepsPerWeek(1),
+      w1Reps: w1Perf ? w1Perf.reps : (estraiRepsDaInput(w1Log, { isCorpoLibero }) || w1PrescReps),
       prWeight: suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0,
       prReps: suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || getRepsPerWeek(sett) || 8,
       e1rmStorico: calcolaE1RMSmorzato(suggerimentoRecord.value?.record || suggerimentoRecord.value?.recordAbsolute || 0, suggerimentoRecord.value?.recordRepsValue || suggerimentoRecord.value?.recordAbsoluteReps || 8, isCavoOMacchinaEsercizio(workout.value)),
@@ -8488,9 +8518,14 @@ function getGhostWeightsRangeForWeekRaw(sett) {
   const repsBaseVal = info ? info.repsBase : 10;
 
   const isManubri = isManubriEsercizio(workout.value);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const pesoBaseOriginale = ghost.pesoBaseOriginale || ghost.peso || 0;
-  const pesoEffettivoBase = (ghost.text && estraiPesoDaInput(ghost.text)) ? parseFloat(estraiPesoDaInput(ghost.text)) : null;
-  const pesoBase = (pesoEffettivoBase !== null && pesoEffettivoBase > 0) ? pesoEffettivoBase : pesoBaseOriginale;
+  const perfGhost = ghost.text ? estraiMigliorPrestazioneInput(ghost.text, repsBaseVal, isCavo, isCorpoLibero) : null;
+  const pesoEffettivoBase = perfGhost ? perfGhost.peso : ((ghost.text && estraiPesoDaInput(ghost.text, { isCorpoLibero })) ? parseFloat(estraiPesoDaInput(ghost.text, { isCorpoLibero })) : null);
+  const pesoBase = (info && info.pesoBase !== null && info.pesoBase > 0) 
+    ? info.pesoBase 
+    : ((pesoEffettivoBase !== null && pesoEffettivoBase > 0) ? pesoEffettivoBase : pesoBaseOriginale);
   const step = getWeightStep(isManubri, sett === 1 ? (ghost.suggerito || ghost.peso || 0) : pesoBase);
 
   // Calcolo per Week 1
@@ -8719,8 +8754,11 @@ function getGhostWeightsRangeForWeekRaw(sett) {
       if (wTarget === repsTarget) {
         const insPrev = inputSettimane.value[w]?.ins;
         if (insPrev) {
-          const pPrev = parseFloat(estraiPesoDaInput(insPrev)) || 0;
-          let rPrev = estraiRepsDaInput(insPrev);
+          const isCavo = isCavoOMacchinaEsercizio(workout.value);
+          const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+          const perfPrev = estraiMigliorPrestazioneInput(insPrev, wTarget, isCavo, isCorpoLibero);
+          const pPrev = perfPrev ? perfPrev.peso : (parseFloat(estraiPesoDaInput(insPrev, { isCorpoLibero })) || 0);
+          let rPrev = perfPrev ? perfPrev.reps : estraiRepsDaInput(insPrev, { isCorpoLibero });
           if (rPrev === null || isNaN(rPrev) || rPrev <= 0) rPrev = wTarget;
           if (pPrev > 0) {
             if (!prevMatchingRepsRecord || pPrev > prevMatchingRepsRecord.peso || (pPrev === prevMatchingRepsRecord.peso && rPrev > prevMatchingRepsRecord.reps)) {
@@ -10963,13 +11001,17 @@ const strategieProgressione = computed(() => {
   const ghost = getGhostLiftSmart(sett);
   if (!ghost || ghost.isRepExercise) return [];
 
-  const pesoBaseOriginale = ghost.pesoBaseOriginale || ghost.peso || 0;
-  const pesoEffettivoBase = (ghost.text && estraiPesoDaInput(ghost.text)) ? parseFloat(estraiPesoDaInput(ghost.text)) : null;
-  const pesoBase = (pesoEffettivoBase !== null && pesoEffettivoBase > 0) ? pesoEffettivoBase : pesoBaseOriginale;
-  
   const baseWeekInfo = getBaseWeekInfo(sett);
   const repsBaseVal = baseWeekInfo ? baseWeekInfo.repsBase : 10;
   const repsTarget = baseWeekInfo ? baseWeekInfo.repsTarget : 10;
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const pesoBaseOriginale = ghost.pesoBaseOriginale || ghost.peso || 0;
+  const perfGhost = ghost.text ? estraiMigliorPrestazioneInput(ghost.text, repsBaseVal, isCavo, isCorpoLibero) : null;
+  const pesoEffettivoBase = perfGhost ? perfGhost.peso : ((ghost.text && estraiPesoDaInput(ghost.text, { isCorpoLibero })) ? parseFloat(estraiPesoDaInput(ghost.text, { isCorpoLibero })) : null);
+  const pesoBase = (baseWeekInfo && baseWeekInfo.pesoBase !== null && baseWeekInfo.pesoBase > 0)
+    ? baseWeekInfo.pesoBase
+    : ((pesoEffettivoBase !== null && pesoEffettivoBase > 0) ? pesoEffettivoBase : pesoBaseOriginale);
   
   // Calcola peso proposto standard
   const pesoProposto = ghost.isPostScarico && ghost.pesoProposto !== undefined ? ghost.pesoProposto : ghost.peso;
@@ -12067,15 +12109,24 @@ const consenteProgressioneIntensita = (ex, targetWeek) => {
   
   let prevWeek = targetWeek - 1;
   if (targetWeek === 5) {
+    const isCavo = isCavoOMacchinaEsercizio(ex);
+    const isCorpoLibero = isCorpoLiberoEsercizio(ex);
     const w4Ins = inputSettimane.value?.[4]?.ins || ex?.ins_week4;
     const w3Ins = inputSettimane.value?.[3]?.ins || ex?.ins_week3;
-    const pW4 = w4Ins ? parseFloat(estraiPesoDaInput(w4Ins)) : null;
-    const pW3 = w3Ins ? parseFloat(estraiPesoDaInput(w3Ins)) : null;
-    const rW4 = w4Ins ? (estraiRepsDaInput(w4Ins) || estraiRepsDaPrescrizione(ex?.des_week4) || 10) : 0;
-    const rW3 = w3Ins ? (estraiRepsDaInput(w3Ins) || estraiRepsDaPrescrizione(ex?.des_week3) || 8) : 0;
-    const isCavo = isCavoOMacchinaEsercizio(ex);
-    const e1rmW4 = (pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0;
-    const e1rmW3 = (pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0;
+    const prescRepsW4 = estraiRepsDaPrescrizione(ex?.des_week4) || 10;
+    const prescRepsW3 = estraiRepsDaPrescrizione(ex?.des_week3) || 8;
+
+    const perfW4 = w4Ins ? estraiMigliorPrestazioneInput(w4Ins, prescRepsW4, isCavo, isCorpoLibero) : null;
+    const perfW3 = w3Ins ? estraiMigliorPrestazioneInput(w3Ins, prescRepsW3, isCavo, isCorpoLibero) : null;
+
+    const pW4 = perfW4 ? perfW4.peso : (w4Ins ? parseFloat(estraiPesoDaInput(w4Ins, { isCorpoLibero })) : null);
+    const pW3 = perfW3 ? perfW3.peso : (w3Ins ? parseFloat(estraiPesoDaInput(w3Ins, { isCorpoLibero })) : null);
+
+    const rW4 = perfW4 ? perfW4.reps : (w4Ins ? (estraiRepsDaInput(w4Ins) || prescRepsW4) : 0);
+    const rW3 = perfW3 ? perfW3.reps : (w3Ins ? (estraiRepsDaInput(w3Ins) || prescRepsW3) : 0);
+
+    const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
+    const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
     
     if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
       prevWeek = 4;
@@ -12466,9 +12517,12 @@ const getRIRDefault = (week) => {
 
 const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   if (!baseInsText || !workout.value) return null;
-  const pesoStr = estraiPesoDaInput(baseInsText);
-  if (!pesoStr) return null;
-  const pesoBase = parseFloat(pesoStr);
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const prescBaseReps = estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10;
+  const perf = estraiMigliorPrestazioneInput(baseInsText, prescBaseReps, isCavo, isCorpoLibero);
+
+  let pesoBase = perf ? perf.peso : parseFloat(estraiPesoDaInput(baseInsText, { isCorpoLibero }));
   if (isNaN(pesoBase) || pesoBase <= 0) return null;
   
   if (!consenteProgressioneIntensita(workout.value, targetWeek)) {
@@ -12481,9 +12535,9 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
     return pesoBase;
   }
   
-  let repsBase = estraiRepsDaInput(baseInsText);
+  let repsBase = perf ? perf.reps : estraiRepsDaInput(baseInsText, { isCorpoLibero });
   if (repsBase === null || isNaN(repsBase) || repsBase <= 0) {
-    repsBase = estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10;
+    repsBase = prescBaseReps;
   }
   const repsTarget = estraiRepsDaPrescrizione(workout.value['des_week' + targetWeek]) || 10;
   
@@ -12756,14 +12810,15 @@ const propostaWeek1 = computed(() => {
     for (let w = 5; w >= 1; w--) {
       const val = previousWorkout.value['ins_week' + w];
       if (val && String(val).trim() !== '' && String(val).trim() !== '-') {
-        const pesoStr = estraiPesoDaInput(val);
+        const prescW = estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10;
+        const perfW = estraiMigliorPrestazioneInput(val, prescW, isCavoOMacchinaEsercizio(previousWorkout.value), isRepEx);
+        const pesoNum = perfW ? perfW.peso : parseFloat(estraiPesoDaInput(val, { isCorpoLibero: isRepEx }));
         const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(val);
-        const perfW = estraiMigliorPrestazioneInput(val, estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10, isCavoOMacchinaEsercizio(previousWorkout.value), isRepEx);
-        const explicitReps = (perfW && perfW.reps > 0) ? perfW.reps : estraiRepsDaInput(val);
+        const explicitReps = (perfW && perfW.reps > 0) ? perfW.reps : estraiRepsDaInput(val, { isCorpoLibero: isRepEx });
         
-        if (pesoStr && (!isRepEx || haPesoEsplicito)) {
-          basePeso = parseFloat(pesoStr);
-          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : (estraiRepsDaPrescrizione(previousWorkout.value['des_week' + w]) || 10);
+        if (pesoNum && pesoNum > 0 && (!isRepEx || haPesoEsplicito)) {
+          basePeso = pesoNum;
+          baseReps = (explicitReps && explicitReps > 0 && explicitReps <= 100) ? explicitReps : prescW;
           baseRIR = estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) !== null ? estraiRIRDaPrescrizione(previousWorkout.value['des_week' + w]) : getRIRDefault(w);
           baseWeekNum = w;
           break;
@@ -15711,7 +15766,11 @@ const getGhostLiftStandard = (sett) => {
       for (let w = sett - 1; w >= 1; w--) {
         const insVal = inputSettimane.value[w]?.ins;
         if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-          const peso = parseFloat(estraiPesoDaInput(insVal));
+          const isCavo = isCavoOMacchinaEsercizio(workout.value);
+          const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+          const prescW = getRepsPerWeek(w) || 10;
+          const perf = estraiMigliorPrestazioneInput(insVal, prescW, isCavo, isCorpoLibero);
+          const peso = perf ? perf.peso : parseFloat(estraiPesoDaInput(insVal, { isCorpoLibero }));
           if (!isNaN(peso) && peso > 0) {
             lastLoggedWeek = w;
             prevIns = insVal;
@@ -15813,11 +15872,13 @@ const getGhostLiftStandard = (sett) => {
 
       const w2Ins = inputSettimane.value[2]?.ins;
       if (!w2Ins) return null;
-      const pesoStrW2 = estraiPesoDaInput(w2Ins);
-      if (!pesoStrW2) return null;
-      const pesoBase = parseFloat(pesoStrW2);
-      
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
+      const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
       const repsBase = workout.value['reps_week2'] ? parseInt(workout.value['reps_week2'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week2']) || 10);
+      const perfW2 = estraiMigliorPrestazioneInput(w2Ins, repsBase, isCavo, isCorpoLibero);
+      const pesoBase = perfW2 ? perfW2.peso : parseFloat(estraiPesoDaInput(w2Ins, { isCorpoLibero }));
+      if (!pesoBase || isNaN(pesoBase)) return null;
+      
       const repsTarget = workout.value['reps_week4'] ? parseInt(workout.value['reps_week4'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week4']) || 10);
       const isCorpoLiberoRepsSalgono = (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) && repsTarget > repsBase;
       
@@ -15839,17 +15900,24 @@ const getGhostLiftStandard = (sett) => {
         return { text: w4Ins, peso: 0, label: 'W4', isRepExercise: true };
       }
 
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
+      const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
       const w4Ins = inputSettimane.value[4]?.ins || workout.value?.ins_week4;
       const w3Ins = inputSettimane.value[3]?.ins || workout.value?.ins_week3;
-      const pW4 = w4Ins ? parseFloat(estraiPesoDaInput(w4Ins)) : null;
-      const pW3 = w3Ins ? parseFloat(estraiPesoDaInput(w3Ins)) : null;
+      const prescRepsW4 = estraiRepsDaPrescrizione(workout.value?.des_week4) || 10;
+      const prescRepsW3 = estraiRepsDaPrescrizione(workout.value?.des_week3) || 8;
 
-      const rW4 = w4Ins ? (estraiRepsDaInput(w4Ins) || estraiRepsDaPrescrizione(workout.value?.des_week4) || 10) : 0;
-      const rW3 = w3Ins ? (estraiRepsDaInput(w3Ins) || estraiRepsDaPrescrizione(workout.value?.des_week3) || 8) : 0;
+      const perfW4 = w4Ins ? estraiMigliorPrestazioneInput(w4Ins, prescRepsW4, isCavo, isCorpoLibero) : null;
+      const perfW3 = w3Ins ? estraiMigliorPrestazioneInput(w3Ins, prescRepsW3, isCavo, isCorpoLibero) : null;
 
-      const isCavo = isCavoOMacchinaEsercizio(workout.value);
-      const e1rmW4 = (pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0;
-      const e1rmW3 = (pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0;
+      const pW4 = perfW4 ? perfW4.peso : (w4Ins ? parseFloat(estraiPesoDaInput(w4Ins, { isCorpoLibero })) : null);
+      const pW3 = perfW3 ? perfW3.peso : (w3Ins ? parseFloat(estraiPesoDaInput(w3Ins, { isCorpoLibero })) : null);
+
+      const rW4 = perfW4 ? perfW4.reps : (w4Ins ? (estraiRepsDaInput(w4Ins) || prescRepsW4) : 0);
+      const rW3 = perfW3 ? perfW3.reps : (w3Ins ? (estraiRepsDaInput(w3Ins) || prescRepsW3) : 0);
+
+      const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
+      const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
 
       let baseW = propostaBaseWeek5.value; // e.g. "W3"
       let baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
@@ -15861,9 +15929,10 @@ const getGhostLiftStandard = (sett) => {
 
       const baseIns = inputSettimane.value[baseWNum]?.ins || workout.value?.['ins_week' + baseWNum];
       if (!baseIns) return null;
-      const pesoStrBase = estraiPesoDaInput(baseIns);
-      if (!pesoStrBase) return null;
-      const pesoBase = parseFloat(pesoStrBase);
+      const prescBaseReps = estraiRepsDaPrescrizione(workout.value?.['des_week' + baseWNum]) || 10;
+      const perfBase = estraiMigliorPrestazioneInput(baseIns, prescBaseReps, isCavo, isCorpoLibero);
+      const pesoBase = perfBase ? perfBase.peso : parseFloat(estraiPesoDaInput(baseIns, { isCorpoLibero }));
+      if (!pesoBase || isNaN(pesoBase)) return null;
       
       // Se c'è stato lo scarico alla W4, proponiamo di aumentare il peso rispetto alla base selezionata
       if (isWeek4Scarico.value) {
@@ -15956,9 +16025,12 @@ const getGhostLiftStandard = (sett) => {
       const baseIns = inputSettimane.value[baseWNum]?.ins;
       if (!baseIns) return null;
       if (isRepEx) return { text: baseIns, peso: 0, label: baseW, isRepExercise: true };
-      const pesoStrBase = estraiPesoDaInput(baseIns);
-      if (!pesoStrBase) return null;
-      const pesoBase = parseFloat(pesoStrBase);
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
+      const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+      const prescBaseReps = estraiRepsDaPrescrizione(workout.value?.['des_week' + baseWNum]) || 10;
+      const perfBase = estraiMigliorPrestazioneInput(baseIns, prescBaseReps, isCavo, isCorpoLibero);
+      const pesoBase = perfBase ? perfBase.peso : parseFloat(estraiPesoDaInput(baseIns, { isCorpoLibero }));
+      if (!pesoBase || isNaN(pesoBase)) return null;
       
       const isManubri = isManubriEsercizio(workout.value);
       const step = getWeightStep(isManubri, pesoBase);

@@ -556,6 +556,9 @@
                 <template v-else-if="isCorpoLiberoEsercizio(workout)">
                   🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
                 </template>
+                <template v-else-if="caricoConsigliatoGhostAttivo">
+                  🎯 {{ formatWeight(caricoConsigliatoGhostAttivo) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+                </template>
                 <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
                   🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
                 </template>
@@ -579,6 +582,9 @@
                 </template>
                 <template v-else-if="currentWeekLoggedWeight">
                   <span class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
+                </template>
+                <template v-else-if="caricoConsigliatoGhostAttivo">
+                  <span class="text-amber-lighten-3 text-truncate">(consigliato W{{ settimanaAttiva }})</span>
                 </template>
                 <template v-else>
                   <span class="text-muted text-truncate">nessun record passato</span>
@@ -9381,6 +9387,64 @@ const scaricoWeek4Weights = computed(() => {
 
 const caricoConsigliatoViaDiMezzo = computed(() => {
   return getCaricoConsigliatoViaDiMezzoForWeek(aiutoWeek.value);
+});
+
+const getCaricoConsigliatoGhostPerWeek = (sett) => {
+  if (!workout.value || isCardio.value) return null;
+  if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) return null;
+
+  // 1. Prova dal ghost render info (il carico raccomandato mostrato sotto la settimana)
+  try {
+    const ghostRender = getGhostRenderInfo(sett);
+    if (ghostRender && ghostRender.valueText) {
+      const pStr = estraiPesoDaInput(ghostRender.valueText);
+      const pVal = pStr ? parseFloat(String(pStr).replace(',', '.')) : null;
+      if (pVal !== null && !isNaN(pVal) && pVal > 0) {
+        return pVal;
+      }
+    }
+  } catch (e) {
+    console.warn('Errore estrazione ghostRender in getCaricoConsigliatoGhostPerWeek:', e);
+  }
+
+  // 2. Prova dal range consigliato del Ghost
+  try {
+    const range = getGhostWeightsRangeForWeek(sett);
+    if (range?.consigliato?.value) {
+      const pStr = estraiPesoDaInput(range.consigliato.value);
+      const pVal = pStr ? parseFloat(String(pStr).replace(',', '.')) : null;
+      if (pVal !== null && !isNaN(pVal) && pVal > 0) {
+        return pVal;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Prova da getGhostLiftSmart
+  try {
+    const ghost = getGhostLiftSmart(sett);
+    if (ghost) {
+      const ghostPeso = (ghost.isPostScarico && ghost.pesoProposto !== undefined)
+        ? ghost.pesoProposto
+        : (ghost.peso || ghost.suggerito || ghost.pesoProposto);
+      if (ghostPeso && !isNaN(ghostPeso) && ghostPeso > 0) {
+        return ghostPeso;
+      }
+    }
+  } catch (e) {}
+
+  // 4. Prova da getCaricoConsigliatoViaDiMezzoForWeek
+  try {
+    const viaDiMezzo = getCaricoConsigliatoViaDiMezzoForWeek(sett);
+    if (viaDiMezzo !== null && !isNaN(viaDiMezzo) && viaDiMezzo > 0) {
+      return viaDiMezzo;
+    }
+  } catch (e) {}
+
+  return null;
+};
+
+const caricoConsigliatoGhostAttivo = computed(() => {
+  return getCaricoConsigliatoGhostPerWeek(settimanaAttiva.value);
 });
 
 

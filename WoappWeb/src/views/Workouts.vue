@@ -798,7 +798,12 @@
               style="font-size: 0.68rem; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
             >
               <span><span class="mr-1">🧃</span> Avanzamento</span>
-              <span class="font-weight-bold">{{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%</span>
+              <span class="font-weight-bold">
+                {{ progressoSessione.completate }}/{{ progressoSessione.totali }} completati • {{ progressoSessione.percentuale }}%
+                <template v-if="progressoSessione.tempoRimanenteDisplay">
+                  • <span>⏱️ {{ progressoSessione.tempoRimanenteDisplay }}</span>
+                </template>
+              </span>
             </div>
             <div class="session-progress-bar-container rounded-full overflow-hidden" :style="{ height: layoutEsercizi === 'super_compatto' ? '4px' : '6px' }">
               <div
@@ -3913,6 +3918,11 @@ const parseCustomDate = (dateStr) => {
     const d = new Date(year, month, day, hour, minute, second);
     if (!isNaN(d)) return d;
   }
+  const timeOnlyMatch = dateStr.trim().match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (timeOnlyMatch) {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(timeOnlyMatch[1], 10), parseInt(timeOnlyMatch[2], 10), timeOnlyMatch[3] ? parseInt(timeOnlyMatch[3], 10) : 0);
+  }
   const dFallback = new Date(dateStr);
   return isNaN(dFallback) ? null : dFallback;
 };
@@ -3924,6 +3934,62 @@ const getDurataMinuti = (start, end) => {
   if (!startDate || !endDate) return 0;
   const diffMs = endDate - startDate;
   return diffMs > 0 ? Math.floor(diffMs / (1000 * 60)) : 0;
+};
+
+// Calcolo durata media effettiva in minuti ricavata dalle date/ore di inizio e fine registrate (con fallback su target)
+const getDurataMediaEffettivaMinuti = (header) => {
+  if (!header) return 60;
+
+  let sum = 0;
+  let count = 0;
+
+  const w1Mins = getDurataMinuti(header.start_wo, header.end_wo);
+  if (w1Mins > 0) { sum += w1Mins; count++; }
+
+  for (let w = 2; w <= 6; w++) {
+    const startKey = `start${w}_wo`;
+    const endKey = `end${w}_wo`;
+    const mins = getDurataMinuti(header[startKey], header[endKey]);
+    if (mins > 0) {
+      sum += mins;
+      count++;
+    }
+  }
+
+  // 1. Se questo giorno ha sessioni con data inizio e fine registrate, usa la loro media effettiva
+  if (count > 0) {
+    return Math.round(sum / count);
+  }
+
+  // 2. Se questo giorno non ne ha, controlla la media effettiva degli altri giorni della scheda/programma
+  if (listaAllenamenti?.value && listaAllenamenti.value.length > 0) {
+    let progSum = 0;
+    let progCount = 0;
+    listaAllenamenti.value.forEach(item => {
+      if (parseInt(item.num_riga_giorno) === 0) {
+        const m1 = getDurataMinuti(item.start_wo, item.end_wo);
+        if (m1 > 0) { progSum += m1; progCount++; }
+        for (let w = 2; w <= 6; w++) {
+          const m = getDurataMinuti(item[`start${w}_wo`], item[`end${w}_wo`]);
+          if (m > 0) { progSum += m; progCount++; }
+        }
+      }
+    });
+    if (progCount > 0) {
+      return Math.round(progSum / progCount);
+    }
+  }
+
+  // 3. Fallback: target programmato da des_esercizio o 60 min
+  const parsed = parseDayHeader(header.des_esercizio);
+  if (parsed) {
+    const w = (typeof settimanaAttivaGiorno !== 'undefined' && settimanaAttivaGiorno?.value) ? settimanaAttivaGiorno.value : 1;
+    if (w <= 3 && parsed.tempo1Mins > 0) return parsed.tempo1Mins;
+    if (w > 3 && parsed.tempo2Mins > 0) return parsed.tempo2Mins;
+    if (parsed.tempoMediaMins > 0) return parsed.tempoMediaMins;
+  }
+
+  return 60;
 };
 
 const getDinamicoTempo = (header, type) => {
@@ -3942,28 +4008,8 @@ const getDinamicoTempo = (header, type) => {
     const mins = getDurataMinuti(start, end);
     return mins > 0 ? formattaDurataLeggibile(mins) : formattaDurataLeggibile(parsed.tempo2Mins);
   } else if (type === 'media') {
-    let sum = 0;
-    let count = 0;
-    
-    const w1Mins = getDurataMinuti(header.start_wo, header.end_wo);
-    if (w1Mins > 0) { sum += w1Mins; count++; }
-    
-    for (let w = 2; w <= 6; w++) {
-      const startKey = `start${w}_wo`;
-      const endKey = `end${w}_wo`;
-      const start = header[startKey];
-      const end = header[endKey];
-      const mins = getDurataMinuti(start, end);
-      if (mins > 0) {
-        sum += mins;
-        count++;
-      }
-    }
-    
-    if (count > 0) {
-      return formattaDurataLeggibile(sum / count);
-    }
-    return formattaDurataLeggibile(parsed.tempoMediaMins);
+    const mins = getDurataMediaEffettivaMinuti(header);
+    return formattaDurataLeggibile(mins);
   }
   return '';
 };
@@ -5688,7 +5734,7 @@ watch(sequenzaNavigabileFlat, (newSeq) => {
 // Progresso sessione per barra di avanzamento (Energy Bar)
 const progressoSessione = computed(() => {
   if (!eserciziFiltrati.value || eserciziFiltrati.value.length === 0) {
-    return { completate: 0, totali: 0, percentuale: 0 };
+    return { completate: 0, totali: 0, percentuale: 0, minutiRimanenti: 0, tempoRimanenteDisplay: '' };
   }
   
   const totali = eserciziFiltrati.value.length;
@@ -5698,7 +5744,25 @@ const progressoSessione = computed(() => {
   }).length;
   
   const percentuale = totali > 0 ? Math.round((completate / totali) * 100) : 0;
-  return { completate, totali, percentuale };
+
+  // Calcolo durata media effettiva del programma (da date/ore inizio e fine se presenti, altrimenti target)
+  const durataBaseMins = headerGiorno.value ? getDurataMediaEffettivaMinuti(headerGiorno.value) : 60;
+
+  let tempoRimanenteDisplay = '';
+  let minutiRimanenti = 0;
+
+  if (totali > 0) {
+    if (completate >= totali) {
+      minutiRimanenti = 0;
+      tempoRimanenteDisplay = 'Fine 🎉';
+    } else {
+      const percRimasta = Math.max(0, 100 - percentuale);
+      minutiRimanenti = Math.max(1, Math.round(durataBaseMins * (percRimasta / 100)));
+      tempoRimanenteDisplay = `~${minutiRimanenti} min`;
+    }
+  }
+
+  return { completate, totali, percentuale, minutiRimanenti, tempoRimanenteDisplay };
 });
 
 const getProgressoGiorno = (g) => {

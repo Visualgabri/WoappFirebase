@@ -768,13 +768,12 @@
               </div>
             </template>
 
-            <!-- Segmented Cyan Progress Bar -->
-            <div class="hero-segmented-track position-relative my-1.5">
+            <!-- Solid / Continuous Cyan Progress Bar -->
+            <div class="hero-segmented-track position-relative my-1">
               <div 
                 class="hero-segmented-fill"
                 :style="{ width: Math.min(100, heroRecordComparison.proximityPct) + '%' }"
               ></div>
-              <div class="hero-segmented-overlay"></div>
             </div>
 
             <!-- Footers sotto la barra: attuale vs record a Xr -->
@@ -806,7 +805,7 @@
                 <span class="hero-card-header text-uppercase font-weight-bold mb-0.5">
                   e1RM ATTUALE
                 </span>
-                <span class="font-weight-black text-cyan-accent-2" style="font-size: 1.05rem;">
+                <span class="font-weight-black text-cyan-accent-2" style="font-size: 0.95rem;">
                   {{ recordOverviewData.bestE1RM.display }}
                 </span>
               </div>
@@ -817,16 +816,15 @@
                 <span class="hero-foot-sub text-right">del tuo 1RM</span>
               </div>
             </div>
-            <div class="hero-segmented-track position-relative my-1.5">
+            <div class="hero-segmented-track position-relative my-1">
               <div 
                 class="hero-segmented-fill"
                 :style="{ width: Math.min(100, recordOverviewData.bestE1RM.e1rmProximityPct) + '%' }"
               ></div>
-              <div class="hero-segmented-overlay"></div>
             </div>
           </div>
 
-          <!-- 4. Banner Inferiore: Record Stabilito / Valutazione Progressione -->
+          <!-- 4. Banner Inferiore: Record Stabilito / Valutazione Progressione (Molto più piccolo) -->
           <div 
             v-if="parsedValutazioneProgressione"
             class="hero-bottom-banner"
@@ -835,25 +833,25 @@
             ]"
             @click.stop="vibraTattile(15); apriStoricoEsercizio()"
           >
-            <div class="d-flex align-center gap-1.5 min-width-0 flex-grow-1">
+            <div class="d-flex align-center gap-1 min-width-0 flex-grow-1">
               <span class="hero-banner-icon flex-shrink-0">
                 <template v-if="parsedValutazioneProgressione.isTrophy">🏆</template>
                 <template v-else-if="parsedValutazioneProgressione.icon">
-                  <v-icon :icon="parsedValutazioneProgressione.icon" :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 16 : 20" />
+                  <v-icon :icon="parsedValutazioneProgressione.icon" :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 12 : 15" />
                 </template>
                 <template v-else>🏆</template>
               </span>
-              <span class="hero-banner-title text-truncate font-weight-black">
+              <span class="hero-banner-title text-truncate font-weight-bold">
                 {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? (parsedValutazioneProgressione.shortMainText || parsedValutazioneProgressione.mainText) : parsedValutazioneProgressione.mainText }}
               </span>
             </div>
             <div class="d-flex align-center flex-shrink-0 ml-1">
-              <span v-if="parsedValutazioneProgressione.subText" class="hero-banner-sub font-weight-bold mr-1">
+              <span v-if="parsedValutazioneProgressione.subText" class="hero-banner-sub font-weight-semibold mr-0.5">
                 {{ parsedValutazioneProgressione.subText }}
               </span>
               <v-icon 
                 icon="mdi-chevron-right" 
-                :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 14 : 20" 
+                :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 11 : 14" 
                 class="hero-banner-chevron" 
               />
             </div>
@@ -22370,29 +22368,23 @@ th.sticky-col {
 .hero-progress-card {
   background: #0f192e;
   border: 1px solid #1e2e4a;
-  border-radius: 14px;
-  padding: 14px 16px 12px 16px;
-}
-
-.hero-progress-title {
-  font-size: 1.12rem;
-  letter-spacing: 0.03em;
-  line-height: 1.2;
+  border-radius: 12px;
+  padding: 10px 14px 8px 14px;
 }
 
 .hero-progress-val-now {
-  font-size: 1.45rem;
+  font-size: 1.05rem;
   line-height: 1;
 }
 
 .hero-progress-arrow {
-  font-size: 1.35rem;
+  font-size: 0.90rem;
   line-height: 1;
   color: #64748b;
 }
 
 .hero-progress-val-target {
-  font-size: 1.45rem;
+  font-size: 1.05rem;
   line-height: 1;
   color: #22d3ee;
 }
@@ -22400,9 +22392,9 @@ th.sticky-col {
 .hero-mancano-badge {
   background: rgba(6, 182, 212, 0.08);
   border: 1.5px solid rgba(6, 182, 212, 0.45);
-  border-radius: 12px;
-  padding: 5px 14px;
-  min-width: 95px;
+  border-radius: 8px;
+  padding: 3px 10px;
+  min-width: 75px;
 }
 
 .hero-mancano-badge-compact {
@@ -22410,31 +22402,32 @@ th.sticky-col {
   border: 1px solid rgba(6, 182, 212, 0.45);
   color: #22d3ee;
   line-height: 1.2;
-  font-size: 0.62rem;
+  font-size: 0.52rem;
 }
 
 .hero-mancano-label {
   color: #94a3b8;
-  font-size: 0.70rem;
+  font-size: 0.60rem;
   font-weight: 600;
   line-height: 1.2;
 }
 
 .hero-mancano-val {
   color: #22d3ee;
-  font-size: 1.30rem;
+  font-size: 1.05rem;
   line-height: 1.15;
 }
 
 .hero-proximity-pct {
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 0.62rem;
   line-height: 1.2;
 }
 
+/* Barra unita e continua senza tratteggio */
 .hero-segmented-track {
   width: 100%;
-  height: 11px;
+  height: 7px;
   background: #172338;
   border-radius: 9999px;
   overflow: hidden;
@@ -22444,48 +22437,32 @@ th.sticky-col {
   height: 100%;
   background: linear-gradient(90deg, #06b6d4 0%, #22d3ee 100%);
   border-radius: 9999px;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.45);
+  box-shadow: 0 0 6px rgba(6, 182, 212, 0.4);
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hero-segmented-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent 0px,
-    transparent 7px,
-    #0f192e 7px,
-    #0f192e 9px
-  );
-  pointer-events: none;
-  border-radius: 9999px;
-}
-
 .hero-foot-val {
-  font-size: 0.82rem;
+  font-size: 0.68rem;
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .hero-foot-sub {
   color: #64748b;
-  font-size: 0.70rem;
+  font-size: 0.58rem;
   line-height: 1.2;
 }
 
-/* 4. Banner Inferiore Base */
+/* 4. Banner Inferiore Base (Molto più piccolo) */
 .hero-bottom-banner {
-  border-radius: 14px;
-  padding: 11px 16px;
+  border-radius: 8px;
+  padding: 4px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .hero-bottom-banner:hover {
@@ -22494,25 +22471,25 @@ th.sticky-col {
 }
 
 .hero-banner-icon {
-  font-size: 1.25rem;
+  font-size: 0.80rem;
   line-height: 1;
 }
 
 .hero-banner-green {
   background: rgba(6, 78, 59, 0.28);
-  border: 1.5px solid rgba(52, 211, 153, 0.4);
+  border: 1px solid rgba(52, 211, 153, 0.4);
   color: #34d399;
 }
 
 .hero-banner-green .hero-banner-title {
   color: #34d399;
-  font-size: 0.98rem;
+  font-size: 0.70rem;
   letter-spacing: -0.01em;
 }
 
 .hero-banner-green .hero-banner-sub {
   color: #94a3b8;
-  font-size: 0.88rem;
+  font-size: 0.62rem;
 }
 
 .hero-banner-green .hero-banner-chevron {
@@ -22521,19 +22498,19 @@ th.sticky-col {
 
 .hero-banner-cyan {
   background: rgba(8, 47, 73, 0.28);
-  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.4);
   color: #38bdf8;
 }
 
 .hero-banner-cyan .hero-banner-title {
   color: #38bdf8;
-  font-size: 0.98rem;
+  font-size: 0.70rem;
   letter-spacing: -0.01em;
 }
 
 .hero-banner-cyan .hero-banner-sub {
   color: #94a3b8;
-  font-size: 0.88rem;
+  font-size: 0.62rem;
 }
 
 .hero-banner-cyan .hero-banner-chevron {
@@ -22542,19 +22519,19 @@ th.sticky-col {
 
 .hero-banner-amber {
   background: rgba(120, 53, 15, 0.28);
-  border: 1.5px solid rgba(251, 191, 36, 0.4);
+  border: 1px solid rgba(251, 191, 36, 0.4);
   color: #fbbf24;
 }
 
 .hero-banner-amber .hero-banner-title {
   color: #fbbf24;
-  font-size: 0.98rem;
+  font-size: 0.70rem;
   letter-spacing: -0.01em;
 }
 
 .hero-banner-amber .hero-banner-sub {
   color: #94a3b8;
-  font-size: 0.88rem;
+  font-size: 0.62rem;
 }
 
 .hero-banner-amber .hero-banner-chevron {
@@ -22596,7 +22573,7 @@ th.sticky-col {
 
 .rmt-compatto .hero-cards-grid {
   gap: 5px;
-  margin-bottom: 6px !important;
+  margin-bottom: 5px !important;
 }
 
 .rmt-compatto .hero-subcard {
@@ -22637,57 +22614,58 @@ th.sticky-col {
 }
 
 .rmt-compatto .hero-progress-card {
-  border-radius: 9px;
-  padding: 6px 8px;
-  margin-bottom: 5px !important;
-}
-
-.rmt-compatto .hero-progress-title {
-  font-size: 0.68rem;
-  letter-spacing: 0.02em;
+  border-radius: 8px;
+  padding: 5px 7px 4px 7px;
+  margin-bottom: 4px !important;
 }
 
 .rmt-compatto .hero-progress-val-now,
 .rmt-compatto .hero-progress-val-target {
-  font-size: 0.90rem;
+  font-size: 0.78rem;
 }
 
 .rmt-compatto .hero-progress-arrow {
-  font-size: 0.80rem;
+  font-size: 0.70rem;
+}
+
+.rmt-compatto .hero-mancano-badge-compact {
+  font-size: 0.48rem;
+  padding: 1px 4px;
 }
 
 .rmt-compatto .hero-proximity-pct {
-  font-size: 0.56rem;
+  font-size: 0.48rem;
 }
 
 .rmt-compatto .hero-segmented-track {
-  height: 7px;
+  height: 5px;
 }
 
 .rmt-compatto .hero-foot-val {
-  font-size: 0.62rem;
+  font-size: 0.52rem;
 }
 
 .rmt-compatto .hero-foot-sub {
-  font-size: 0.50rem;
+  font-size: 0.44rem;
 }
 
 .rmt-compatto .hero-bottom-banner {
-  padding: 5px 8px;
-  border-radius: 9px;
-  margin-top: 5px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  margin-top: 3px;
+  min-height: 20px;
 }
 
 .rmt-compatto .hero-banner-icon {
-  font-size: 0.90rem;
+  font-size: 0.68rem;
 }
 
 .rmt-compatto .hero-banner-title {
-  font-size: 0.65rem;
+  font-size: 0.52rem;
 }
 
 .rmt-compatto .hero-banner-sub {
-  font-size: 0.58rem;
+  font-size: 0.46rem;
 }
 
 /* =========================================================
@@ -22753,55 +22731,52 @@ th.sticky-col {
 
 .rmt-super-compatto .hero-progress-card {
   border-radius: 6px;
-  padding: 5px 6px;
-  margin-bottom: 4px !important;
-}
-
-.rmt-super-compatto .hero-progress-title {
-  font-size: 0.60rem;
+  padding: 4px 5px 3px 5px;
+  margin-bottom: 3px !important;
 }
 
 .rmt-super-compatto .hero-progress-val-now,
 .rmt-super-compatto .hero-progress-val-target {
-  font-size: 0.80rem;
-}
-
-.rmt-super-compatto .hero-progress-arrow {
   font-size: 0.72rem;
 }
 
+.rmt-super-compatto .hero-progress-arrow {
+  font-size: 0.65rem;
+}
+
 .rmt-super-compatto .hero-proximity-pct {
-  font-size: 0.50rem;
+  font-size: 0.44rem;
 }
 
 .rmt-super-compatto .hero-segmented-track {
-  height: 6px;
+  height: 5px;
 }
 
 .rmt-super-compatto .hero-foot-val {
-  font-size: 0.55rem;
+  font-size: 0.46rem;
 }
 
 .rmt-super-compatto .hero-foot-sub {
-  font-size: 0.45rem;
+  font-size: 0.40rem;
 }
 
 .rmt-super-compatto .hero-bottom-banner {
-  padding: 4px 6px;
-  border-radius: 6px;
-  margin-top: 4px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin-top: 2px;
+  min-height: 18px;
 }
 
 .rmt-super-compatto .hero-banner-icon {
-  font-size: 0.80rem;
+  font-size: 0.60rem;
 }
 
 .rmt-super-compatto .hero-banner-title {
-  font-size: 0.58rem;
+  font-size: 0.46rem;
 }
 
 .rmt-super-compatto .hero-banner-sub {
-  font-size: 0.52rem;
+  font-size: 0.42rem;
 }
 
 /* Container Query Safety for narrow cards */
@@ -22832,7 +22807,7 @@ th.sticky-col {
   }
   .hero-cards-grid {
     gap: 5px;
-    margin-bottom: 6px !important;
+    margin-bottom: 5px !important;
   }
   .hero-subcard {
     border-radius: 9px;
@@ -22865,46 +22840,47 @@ th.sticky-col {
     font-size: 0.50rem;
   }
   .hero-progress-card {
-    border-radius: 9px;
-    padding: 6px 8px;
-    margin-bottom: 5px !important;
-  }
-  .hero-progress-title {
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+    border-radius: 8px;
+    padding: 5px 7px 4px 7px;
+    margin-bottom: 4px !important;
   }
   .hero-progress-val-now,
   .hero-progress-val-target {
-    font-size: 0.90rem;
+    font-size: 0.78rem;
   }
   .hero-progress-arrow {
-    font-size: 0.80rem;
+    font-size: 0.70rem;
+  }
+  .hero-mancano-badge-compact {
+    font-size: 0.48rem;
+    padding: 1px 4px;
   }
   .hero-proximity-pct {
-    font-size: 0.56rem;
+    font-size: 0.48rem;
   }
   .hero-segmented-track {
-    height: 7px;
+    height: 5px;
   }
   .hero-foot-val {
-    font-size: 0.62rem;
+    font-size: 0.52rem;
   }
   .hero-foot-sub {
-    font-size: 0.50rem;
+    font-size: 0.44rem;
   }
   .hero-bottom-banner {
-    padding: 5px 8px;
-    border-radius: 9px;
-    margin-top: 5px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    margin-top: 3px;
+    min-height: 20px;
   }
   .hero-banner-icon {
-    font-size: 0.90rem;
+    font-size: 0.68rem;
   }
   .hero-banner-title {
-    font-size: 0.65rem;
+    font-size: 0.52rem;
   }
   .hero-banner-sub {
-    font-size: 0.58rem;
+    font-size: 0.46rem;
   }
 }
 
@@ -22935,16 +22911,6 @@ th.sticky-col {
 
 [data-theme="light"] .hero-segmented-track {
   background: #e2e8f0 !important;
-}
-
-[data-theme="light"] .hero-segmented-overlay {
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent 0px,
-    transparent 7px,
-    #ffffff 7px,
-    #ffffff 9px
-  ) !important;
 }
 
 /* W6 Feedback Box Premium Styling */

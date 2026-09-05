@@ -502,51 +502,23 @@
           ]"
           @click="apriStoricoEsercizio"
         >
-          <!-- 1. Header: Icona Dumbbell + Obiettivo X ripetizioni + Strategia Coach -->
-          <div class="d-flex align-center justify-space-between mb-2 w-100 min-width-0">
-            <!-- Sinistra: Icona Dumbbell + Obiettivo X ripetizioni -->
-            <div class="d-flex align-center gap-1.5 min-width-0">
-              <div class="hero-target-icon-box flex-shrink-0 d-flex align-center justify-center">
-                <v-icon 
-                  icon="mdi-dumbbell" 
-                  :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 17 : 24" 
-                  color="#60a5fa" 
-                />
-              </div>
-              <div class="d-flex flex-column text-left min-width-0">
-                <span class="hero-target-title font-weight-black text-white text-truncate">Obiettivo</span>
-                <span class="hero-target-subtitle text-slate-400 text-truncate">
-                  <template v-if="isCardio">
-                    {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
-                  </template>
-                  <template v-else-if="heroRecordComparison?.targetReps">
-                    {{ heroRecordComparison.targetReps }} {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'rip.' : 'ripetizioni' }}
-                  </template>
-                  <template v-else>
-                    {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'rip.' : 'ripetizioni' }}
-                  </template>
-                </span>
-              </div>
-            </div>
-
-            <!-- Destra: Pill Button Strategia -->
-            <div v-if="!isCardio" class="flex-shrink-0 ml-1">
-              <button
-                type="button"
-                class="hero-strategia-pill d-inline-flex align-center cursor-pointer"
-                @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
-              >
-                <span class="hero-strategia-brain mr-1">🧠</span>
-                <span class="hero-strategia-text font-weight-black">
-                  {{ layoutCorrente === 'super_compatto' ? 'Strat.' : 'Strategia' }}
-                </span>
-                <v-icon 
-                  icon="mdi-chevron-right" 
-                  :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 14 : 18" 
-                  class="hero-strategia-chevron ml-0.5" 
-                />
-              </button>
-            </div>
+          <!-- 1. Header: Strategia Coach -->
+          <div v-if="!isCardio" class="d-flex align-center justify-end mb-2 w-100 min-width-0">
+            <button
+              type="button"
+              class="hero-strategia-pill d-inline-flex align-center cursor-pointer"
+              @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
+            >
+              <span class="hero-strategia-brain mr-1">🧠</span>
+              <span class="hero-strategia-text font-weight-black">
+                {{ layoutCorrente === 'super_compatto' ? 'Strat.' : 'Strategia' }}
+              </span>
+              <v-icon 
+                icon="mdi-chevron-right" 
+                :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 14 : 18" 
+                class="hero-strategia-chevron ml-0.5" 
+              />
+            </button>
           </div>
 
           <!-- 2. Griglia 2 Colonne: TARGET X REPS e MAX ASSOLUTO -->
@@ -723,28 +695,9 @@
             v-if="!isCardio && heroRecordComparison && heroRecordComparison.hasMaxAssoluto && heroRecordComparison.maxE1RM > 0" 
             class="hero-progress-card mb-2"
           >
-            <!-- Modalità Compatta / Super Compatta: 2 righe pulite senza collisioni -->
+            <!-- Modalità Compatta / Super Compatta: Pesi a sinistra, Badge e percentuale a destra -->
             <template v-if="['compatto', 'super_compatto'].includes(layoutCorrente)">
-              <div class="d-flex align-center justify-space-between mb-1 gap-1">
-                <span class="hero-progress-title font-weight-black text-white text-uppercase text-truncate">
-                  PROGRESSO {{ heroRecordComparison.targetReps }} REPS
-                </span>
-                <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center flex-shrink-0">
-                  <span class="font-weight-black">
-                    <template v-if="heroRecordComparison.isNewPeak">
-                      Nuovo +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
-                    </template>
-                    <template v-else-if="heroRecordComparison.deltaKg > 0">
-                      Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
-                    </template>
-                    <template v-else>
-                      Eguagliato!
-                    </template>
-                  </span>
-                </div>
-              </div>
-
-              <div class="d-flex align-baseline justify-space-between mb-1 gap-1">
+              <div class="d-flex align-center justify-space-between mb-1.5 gap-1">
                 <div class="d-flex align-baseline gap-1 text-truncate">
                   <span class="hero-progress-val-now font-weight-black text-white">
                     {{ formatWeight(heroRecordComparison.todayWeight) }}
@@ -754,29 +707,40 @@
                     {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
                   </span>
                 </div>
-                <span class="hero-proximity-pct font-weight-bold flex-shrink-0">
-                  ≈ {{ heroRecordComparison.proximityPct }}% del record
-                </span>
+
+                <div class="d-flex flex-column align-end flex-shrink-0">
+                  <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center">
+                    <span class="font-weight-black">
+                      <template v-if="heroRecordComparison.isNewPeak">
+                        Nuovo +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
+                      </template>
+                      <template v-else-if="heroRecordComparison.deltaKg > 0">
+                        Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
+                      </template>
+                      <template v-else>
+                        Eguagliato!
+                      </template>
+                    </span>
+                  </div>
+                  <span class="hero-proximity-pct font-weight-bold mt-0.5">
+                    ≈ {{ heroRecordComparison.proximityPct }}% del record
+                  </span>
+                </div>
               </div>
             </template>
 
-            <!-- Modalità Standard: Layout generoso a 2 colonne -->
+            <!-- Modalità Standard: Layout generoso a 2 colonne senza titolo PROGRESSO X REPS -->
             <template v-else>
-              <div class="d-flex align-start justify-space-between mb-2">
-                <!-- Sinistra: Titolo e Pesi con Freccia -->
-                <div class="d-flex flex-column text-left min-width-0">
-                  <span class="hero-progress-title font-weight-black text-white text-uppercase">
-                    PROGRESSO {{ heroRecordComparison.targetReps }} REPS
+              <div class="d-flex align-center justify-space-between mb-2">
+                <!-- Sinistra: Pesi con Freccia -->
+                <div class="d-flex align-baseline gap-1.5">
+                  <span class="hero-progress-val-now font-weight-black text-white">
+                    {{ formatWeight(heroRecordComparison.todayWeight) }} kg
                   </span>
-                  <div class="d-flex align-baseline gap-1 mt-1">
-                    <span class="hero-progress-val-now font-weight-black text-white">
-                      {{ formatWeight(heroRecordComparison.todayWeight) }} kg
-                    </span>
-                    <span class="hero-progress-arrow font-weight-bold mx-1">→</span>
-                    <span class="hero-progress-val-target font-weight-black">
-                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
-                    </span>
-                  </div>
+                  <span class="hero-progress-arrow font-weight-bold mx-1">→</span>
+                  <span class="hero-progress-val-target font-weight-black">
+                    {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
+                  </span>
                 </div>
 
                 <!-- Destra: Box Mancano ≈ e Percentuale del record -->

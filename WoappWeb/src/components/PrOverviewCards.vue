@@ -46,8 +46,8 @@
             <!-- Dettaglio Sotto: E1RM Previsto -->
             <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-1" style="line-height: 1.1;">
               <template v-if="!isCorpoLiberoPuro && todayE1RM > 0">
-                <span class="text-super-caption font-weight-bold text-amber-200/90" style="font-size: 0.58rem;">
-                  E1RM {{ isCurrentPR ? 'attuale' : 'previsto' }} ≈ {{ formatWeight(todayE1RM) }} kg
+                <span class="text-super-caption font-weight-bold text-amber-200/90" style="font-size: 0.52rem; letter-spacing: -0.035em;">
+                  e1RM {{ isCurrentPR ? 'attuale' : 'previsto' }} ≈ {{ formatWeight(todayE1RM) }} kg
                 </span>
                 <span 
                   v-if="faticaLetter" 
@@ -73,15 +73,15 @@
               </template>
             </div>
 
-            <!-- Riferimento Teorico: Per eguagliare il record assoluto (secondario, visivamente più piccolo) -->
+            <!-- Riferimento Teorico: Per il record assoluto (secondario, visivamente compatto) -->
             <div 
               v-if="!isCorpoLiberoPuro && theoreticalTargetLoad > 0 && hasAbsoluteRecord"
               class="mt-1.5 pt-0.5 text-center text-truncate w-100"
-              style="border-top: 1px dashed rgba(255, 255, 255, 0.08); font-size: 0.48rem; line-height: 1.15; color: rgba(253, 230, 138, 0.85);"
+              style="border-top: 1px dashed rgba(255, 255, 255, 0.08); font-size: 0.44rem; line-height: 1.1; letter-spacing: -0.04em; color: rgba(253, 230, 138, 0.85);"
             >
               <span class="d-inline-flex align-center justify-center gap-0.5 text-truncate" :title="`Carico teorico a ${cleanTargetReps} reps per eguagliare il record assoluto`">
-                <span class="opacity-80">👑 Per eguagliare il record:</span>
-                <strong class="font-weight-black text-amber-lighten-1">≈ {{ formatWeight(theoreticalTargetLoad) }} kg × {{ cleanTargetReps }}r</strong>
+                <span class="opacity-80">👑 Per il record:</span>
+                <strong class="font-weight-black text-amber-lighten-1" style="letter-spacing: -0.04em;">≈ {{ formatWeight(theoreticalTargetLoad) }} kg × {{ cleanTargetReps }}r</strong>
               </span>
             </div>
           </div>
@@ -135,8 +135,8 @@
             <!-- Dettaglio Sotto: E1RM Assoluto + Fatica -->
             <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-0.5" style="line-height: 1.1;">
               <template v-if="!isCorpoLiberoPuro && bestE1RM?.maxDisplay">
-                <span class="text-super-caption font-weight-bold text-cyan-200/90 text-truncate" style="font-size: 0.58rem;">
-                  E1RM ≈ {{ bestE1RM.maxDisplay }}
+                <span class="text-super-caption font-weight-bold text-cyan-200/90 text-truncate" style="font-size: 0.52rem; letter-spacing: -0.035em;">
+                  e1RM ≈ {{ bestE1RM.maxDisplay }}
                 </span>
                 <span 
                   v-if="e1rmFaticaLetter" 
@@ -181,16 +181,16 @@
             <span 
               class="font-weight-black text-truncate" 
               :class="isNewPeak ? 'text-green-accent-3' : 'text-cyan-accent-2'"
-              style="font-size: 0.68rem; letter-spacing: 0.02em;"
+              style="font-size: 0.66rem; letter-spacing: -0.01em;"
             >
               <template v-if="isNewPeak">
-                100% NUOVO RECORD ASSOLUTO
+                100% RECORD RAGGIUNTO
               </template>
               <template v-else-if="theoreticalTargetLoad > 0 && todayLoad > 0">
-                PROGRESSO {{ cleanTargetReps }} REPS: {{ formatWeight(todayLoad) }} kg → {{ formatWeight(theoreticalTargetLoad) }} kg
+                PROGR. {{ cleanTargetReps }}r: {{ formatWeight(todayLoad) }} → {{ formatWeight(theoreticalTargetLoad) }} kg
               </template>
               <template v-else>
-                {{ bestE1RM.e1rmProximityPct }}% DEL RECORD ASSOLUTO
+                {{ bestE1RM.e1rmProximityPct }}% DEL RECORD
               </template>
             </span>
           </div>
@@ -207,7 +207,7 @@
             <span 
               v-else-if="deltaCaricoKg > 0" 
               class="font-weight-black text-cyan-lighten-1 px-1.5 py-0.5 rounded" 
-              style="font-size: 0.68rem; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35);"
+              style="font-size: 0.60rem; letter-spacing: -0.035em; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35);"
             >
               🎯 Mancano ≈ {{ formatWeight(deltaCaricoKg) }} kg
             </span>
@@ -231,11 +231,11 @@
 
         <!-- Rigo Inferiore: E1RM Odierno -> E1RM Record e % del record assoluto -->
         <div v-if="!isNewPeak" class="d-flex align-center justify-space-between mt-0.5">
-          <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.50rem;">
+          <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.50rem; letter-spacing: -0.02em;">
             E1RM: {{ formatWeight(todayE1RM) }} kg → {{ bestE1RM.maxDisplay }}
           </span>
-          <span class="text-super-caption font-weight-bold text-cyan-accent-2" style="font-size: 0.52rem;">
-            ≈ {{ bestE1RM.e1rmProximityPct }}% del record assoluto
+          <span class="text-super-caption font-weight-bold text-cyan-accent-2" style="font-size: 0.48rem; letter-spacing: -0.035em;">
+            ≈ {{ bestE1RM.e1rmProximityPct }}% del record
           </span>
         </div>
       </div>

@@ -588,7 +588,7 @@
                   <span v-else class="text-muted text-truncate">target da raggiungere</span>
                 </template>
                 <template v-else-if="heroRecordComparison && heroRecordComparison.todayWeight > 0">
-                  <span class="text-amber-lighten-2 font-weight-bold">E1RM {{ heroRecordComparison.isLogged ? 'attuale' : 'previsto' }} ≈ {{ formatWeight(heroRecordComparison.todayE1RM) }} kg</span>
+                  <span class="text-amber-lighten-2 font-weight-bold" style="letter-spacing: -0.035em; font-size: 0.46rem;">e1RM {{ heroRecordComparison.isLogged ? 'attuale' : 'previsto' }} ≈ {{ formatWeight(heroRecordComparison.todayE1RM) }} kg</span>
                   <span v-if="heroRecordComparison.todayOrigine" class="text-muted text-truncate">({{ heroRecordComparison.todayOrigine }})</span>
                 </template>
                 <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
@@ -607,15 +607,15 @@
                 </template>
               </div>
 
-              <!-- Riferimento Teorico: Per eguagliare il record assoluto (secondario, visivamente più piccolo) -->
+              <!-- Riferimento Teorico: Per il record assoluto (secondario, visivamente compatto) -->
               <div 
                 v-if="!isCardio && heroRecordComparison?.caricoTeoricoEguaglia > 0 && heroRecordComparison?.hasMaxAssoluto"
                 class="mt-1 pt-0.5 text-center text-truncate w-100"
-                style="border-top: 1px dashed rgba(255, 255, 255, 0.08); font-size: 0.46rem; line-height: 1.15; color: rgba(253, 230, 138, 0.85);"
+                style="border-top: 1px dashed rgba(255, 255, 255, 0.08); font-size: 0.44rem; line-height: 1.1; letter-spacing: -0.04em; color: rgba(253, 230, 138, 0.85);"
               >
                 <span class="d-inline-flex align-center justify-center gap-0.5 text-truncate" :title="`Carico teorico a ${heroRecordComparison.targetReps} reps per eguagliare il record assoluto`">
-                  <span class="opacity-80">👑 Per eguagliare il record:</span>
-                  <strong class="font-weight-black text-amber-lighten-1">≈ {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg × {{ heroRecordComparison.targetReps }}r</strong>
+                  <span class="opacity-80">👑 Per il record:</span>
+                  <strong class="font-weight-black text-amber-lighten-1" style="letter-spacing: -0.04em;">≈ {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg × {{ heroRecordComparison.targetReps }}r</strong>
                 </span>
               </div>
             </div>
@@ -647,8 +647,8 @@
                 </template>
               </span>
               <!-- Sottotitolo Dettaglio Max Assoluto: E1RM Assoluto -->
-              <div v-if="!isCardio && heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxE1RM > 0" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
-                <span class="text-cyan-lighten-3 font-weight-bold">E1RM ≈ {{ formatWeight(heroRecordComparison.maxE1RM) }} kg</span>
+              <div v-if="!isCardio && heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxE1RM > 0" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.46rem; line-height: 1.1; max-width: 100%;">
+                <span class="text-cyan-lighten-3 font-weight-bold" style="letter-spacing: -0.035em;">e1RM ≈ {{ formatWeight(heroRecordComparison.maxE1RM) }} kg</span>
               </div>
 
               <!-- Sottotitolo Dettaglio Max Assoluto: Origine Esecuzione Reale -->
@@ -703,25 +703,25 @@
             <template v-else>
               <div class="d-flex align-center justify-space-between mb-1">
                 <div class="d-flex align-center gap-1 text-truncate">
-                  <span class="text-super-caption text-slate-300 font-weight-bold uppercase" style="font-size: 0.52rem; letter-spacing: 0.02em;">
+                  <span class="text-super-caption text-slate-300 font-weight-bold uppercase" style="font-size: 0.50rem; letter-spacing: -0.01em;">
                     PROGRESSO {{ heroRecordComparison.targetReps }} REPS
                   </span>
-                  <span class="font-weight-black text-white" style="font-size: 0.65rem;">
-                    {{ formatWeight(heroRecordComparison.todayWeight) }} kg → {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
+                  <span class="font-weight-black text-white" style="font-size: 0.64rem; letter-spacing: -0.02em;">
+                    {{ formatWeight(heroRecordComparison.todayWeight) }} → {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
                   </span>
                 </div>
                 <div class="d-flex align-center">
                   <span 
                     v-if="heroRecordComparison.deltaKg > 0" 
                     class="font-weight-black text-cyan-accent-2 px-1.5 py-0.5 rounded" 
-                    style="font-size: 0.62rem; background: rgba(6, 182, 212, 0.14); border: 1px solid rgba(6, 182, 212, 0.35);"
+                    style="font-size: 0.58rem; letter-spacing: -0.035em; background: rgba(6, 182, 212, 0.14); border: 1px solid rgba(6, 182, 212, 0.35);"
                   >
                     Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
                   </span>
                   <span 
                     v-else-if="heroRecordComparison.proximityPct >= 100" 
                     class="font-weight-black text-green-accent-3 px-1.5 py-0.5 rounded" 
-                    style="font-size: 0.62rem; background: rgba(34, 197, 94, 0.14); border: 1px solid rgba(34, 197, 94, 0.35);"
+                    style="font-size: 0.58rem; letter-spacing: -0.035em; background: rgba(34, 197, 94, 0.14); border: 1px solid rgba(34, 197, 94, 0.35);"
                   >
                     Record eguagliato!
                   </span>
@@ -749,11 +749,11 @@
             </div>
 
             <div v-if="!heroRecordComparison.isNewPeak && !heroRecordComparison.isEqualedPeak" class="d-flex align-center justify-space-between mt-0.5">
-              <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.50rem;">
+              <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.50rem; letter-spacing: -0.02em;">
                 E1RM: {{ formatWeight(heroRecordComparison.todayE1RM) }} kg → {{ formatWeight(heroRecordComparison.maxE1RM) }} kg
               </span>
-              <span class="text-super-caption font-weight-bold text-cyan-accent-2" style="font-size: 0.52rem;">
-                ≈ {{ heroRecordComparison.proximityPct }}% del record assoluto
+              <span class="text-super-caption font-weight-bold text-cyan-accent-2" style="font-size: 0.48rem; letter-spacing: -0.035em;">
+                ≈ {{ heroRecordComparison.proximityPct }}% del record
               </span>
             </div>
           </div>

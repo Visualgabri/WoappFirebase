@@ -529,14 +529,17 @@
                 <template v-if="isCardio">
                   TARGET {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
                 </template>
+                <template v-else-if="isCorpoLiberoPuro">
+                  TARGET {{ String(heroRecordComparison?.targetReps || getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
+                </template>
                 <template v-else-if="heroRecordComparison?.targetReps">
                   TARGET {{ heroRecordComparison.targetReps }} REPS
                 </template>
                 <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
-                  TARGET {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} REPS
+                  TARGET {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
                 </template>
                 <template v-else>
-                  TARGET {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} REPS
+                  TARGET {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
                 </template>
               </div>
 
@@ -548,9 +551,9 @@
                     {{ currentWeekLoggedTempo ? formattaTempoDisplay(currentWeekLoggedTempo) : formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
                   </span>
                 </template>
-                <template v-else-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
+                <template v-else-if="isCorpoLiberoPuro">
                   <span class="hero-metric-val hero-metric-val-amber">
-                    {{ recordOverviewData?.bestReal?.reps ? formatRepsDisplay(recordOverviewData.bestReal.reps) : formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
+                    {{ String(currentWeekLoggedReps || heroRecordComparison?.todayReps || (recordOverviewData?.bestReal?.reps ? recordOverviewData.bestReal.reps : getRepsPerWeek(settimanaAttiva))).replace(/r$/i, '') }}
                   </span>
                   <span class="hero-metric-unit">reps</span>
                 </template>
@@ -587,7 +590,7 @@
 
               <!-- Sottotitolo Dettaglio: e1RM Previsto con info icon -->
               <div class="hero-subcard-line d-flex align-center gap-0.5 text-truncate">
-                <template v-if="!isCardio && heroRecordComparison && heroRecordComparison.todayWeight > 0">
+                <template v-if="!isCardio && !isCorpoLiberoPuro && heroRecordComparison && heroRecordComparison.todayWeight > 0">
                   <span class="hero-subcard-label text-truncate">{{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'e1RM ≈' : ('e1RM ' + (heroRecordComparison.isLogged ? 'attuale' : 'previsto') + ' ≈') }}</span>
                   <span class="hero-subcard-val-amber font-weight-black">{{ formatWeight(heroRecordComparison.todayE1RM) }} kg</span>
                   <v-icon 
@@ -600,6 +603,9 @@
                 <template v-else-if="isCardio">
                   <span class="hero-subcard-label text-truncate">{{ currentWeekLoggedTempo ? 'registrato' : 'da completare' }}</span>
                 </template>
+                <template v-else-if="isCorpoLiberoPuro">
+                  <span class="hero-subcard-label text-truncate">{{ heroRecordComparison?.isLogged ? 'registrato' : 'target seduta' }}</span>
+                </template>
                 <template v-else>
                   <span class="hero-subcard-label text-truncate">target seduta</span>
                 </template>
@@ -607,11 +613,14 @@
 
               <!-- Riferimento Teorico: Per il record assoluto -->
               <div class="hero-subcard-line d-flex align-center gap-0.5 mt-0.5 text-truncate">
-                <template v-if="!isCardio && heroRecordComparison?.caricoTeoricoEguaglia > 0 && heroRecordComparison?.hasMaxAssoluto">
+                <template v-if="!isCardio && !isCorpoLiberoPuro && heroRecordComparison?.caricoTeoricoEguaglia > 0 && heroRecordComparison?.hasMaxAssoluto">
                   <span class="hero-record-label flex-shrink-0">🏆 {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'Rec:' : 'Per il record:' }}</span>
                   <span class="hero-record-val-yellow font-weight-black text-truncate">
                     ≈ {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg<template v-if="!['compatto', 'super_compatto'].includes(layoutCorrente)"> × {{ heroRecordComparison.targetReps }}r</template>
                   </span>
+                </template>
+                <template v-else-if="isCardio">
+                  <span class="hero-subcard-provenienza text-truncate">({{ currentWeekLoggedTempo ? ('questa scheda · W' + settimanaAttiva) : ('target W' + settimanaAttiva) }})</span>
                 </template>
                 <template v-else-if="heroRecordComparison?.todayOrigine">
                   <span class="hero-subcard-provenienza text-truncate">({{ heroRecordComparison.todayOrigine }})</span>
@@ -628,10 +637,27 @@
               <!-- Valore Principale Max Assoluto -->
               <div class="d-flex align-baseline flex-wrap gap-0.5 my-0.5 min-width-0">
                 <span class="hero-card-emoji flex-shrink-0">👑</span>
-                <template v-if="isCardio && recordMaxAssolutoInfo?.tempoSec > 0">
-                  <span class="hero-metric-val hero-metric-val-cyan">
+                <template v-if="isCardio">
+                  <span v-if="recordMaxAssolutoInfo?.tempoSec > 0" class="hero-metric-val hero-metric-val-cyan">
                     {{ recordMaxAssolutoInfo.tempoDisplay }}
                   </span>
+                  <span v-else class="hero-metric-val hero-metric-val-cyan">--</span>
+                </template>
+                <template v-else-if="isCorpoLiberoPuro">
+                  <template v-if="heroRecordComparison?.hasMaxAssoluto || (recordMaxAssolutoInfo && recordMaxAssolutoInfo.reps > 0) || (suggerimentoRecord && (suggerimentoRecord.recordAbsoluteReps > 0 || suggerimentoRecord.recordRepsValue > 0))">
+                    <span class="hero-metric-val hero-metric-val-cyan">
+                      {{ String(heroRecordComparison?.maxReps || recordMaxAssolutoInfo?.reps || suggerimentoRecord?.recordAbsoluteReps || suggerimentoRecord?.recordRepsValue).replace(/r$/i, '') }}r
+                    </span>
+                    <span 
+                      v-if="heroRecordComparison?.maxFatica || recordMaxAssolutoInfo?.fatica || suggerimentoRecord?.recordAbsoluteFatica" 
+                      class="hero-metric-unit"
+                    >
+                      ({{ formatFaticaAbbr(heroRecordComparison?.maxFatica || recordMaxAssolutoInfo?.fatica || suggerimentoRecord?.recordAbsoluteFatica) }})
+                    </span>
+                  </template>
+                  <template v-else>
+                    <span class="hero-metric-val hero-metric-val-cyan">--</span>
+                  </template>
                 </template>
                 <template v-else-if="heroRecordComparison?.hasMaxAssoluto">
                   <span class="hero-metric-val hero-metric-val-cyan">
@@ -641,11 +667,13 @@
                     kg × {{ heroRecordComparison.maxReps }}r<template v-if="heroRecordComparison.maxFatica">({{ formatFaticaAbbr(heroRecordComparison.maxFatica) }})</template>
                   </span>
                 </template>
-                <template v-else-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
+                <template v-else-if="recordMaxAssolutoInfo && recordMaxAssolutoInfo.peso > 0">
                   <span class="hero-metric-val hero-metric-val-cyan">
                     {{ formatWeight(recordMaxAssolutoInfo.peso) }}
                   </span>
-                  <span class="hero-metric-unit">kg</span>
+                  <span class="hero-metric-unit">
+                    kg<template v-if="recordMaxAssolutoInfo.reps > 0"> × {{ recordMaxAssolutoInfo.reps }}r</template>
+                  </span>
                 </template>
                 <template v-else-if="recordOverviewData?.bestE1RM?.rawWeight > 0">
                   <span class="hero-metric-val hero-metric-val-cyan">
@@ -660,7 +688,15 @@
 
               <!-- Sottotitolo Dettaglio: e1RM Max Assoluto -->
               <div class="hero-subcard-line d-flex align-center gap-0.5 text-truncate">
-                <template v-if="!isCardio && heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxE1RM > 0">
+                <template v-if="isCardio">
+                  <span v-if="recordMaxAssolutoInfo?.tempoSec > 0" class="hero-subcard-label text-truncate">record durata</span>
+                  <span v-else class="hero-subcard-label text-muted text-truncate">nessun record</span>
+                </template>
+                <template v-else-if="isCorpoLiberoPuro">
+                  <span v-if="heroRecordComparison?.hasMaxAssoluto || (recordMaxAssolutoInfo && recordMaxAssolutoInfo.reps > 0) || (suggerimentoRecord && (suggerimentoRecord.recordAbsoluteReps > 0 || suggerimentoRecord.recordRepsValue > 0))" class="hero-subcard-label text-truncate">record ripetizioni</span>
+                  <span v-else class="hero-subcard-label text-muted text-truncate">nessun record</span>
+                </template>
+                <template v-else-if="heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxE1RM > 0">
                   <span class="hero-subcard-label-cyan font-weight-bold flex-shrink-0">e1RM ≈</span>
                   <span class="hero-subcard-val-cyan font-weight-black">{{ formatWeight(heroRecordComparison.maxE1RM) }} kg</span>
                   <v-icon 
@@ -670,9 +706,6 @@
                     class="hero-info-icon" 
                   />
                 </template>
-                <template v-else-if="isCardio">
-                  <span class="hero-subcard-label text-truncate">record durata</span>
-                </template>
                 <template v-else>
                   <span class="hero-subcard-label text-muted text-truncate">nessun record</span>
                 </template>
@@ -680,11 +713,14 @@
 
               <!-- Sottotitolo 2: Provenienza (es. 2m fa · Sch. 67) -->
               <div class="hero-subcard-line d-flex align-center gap-0.5 mt-0.5 text-truncate">
-                <template v-if="heroRecordComparison?.hasMaxAssoluto">
+                <template v-if="heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxProvenienza">
                   <span class="hero-subcard-provenienza text-truncate">({{ heroRecordComparison.maxProvenienza }})</span>
                 </template>
-                <template v-else-if="recordMaxAssolutoInfo?.date">
-                  <span class="hero-subcard-provenienza text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
+                <template v-else-if="recordMaxAssolutoInfo">
+                  <span class="hero-subcard-provenienza text-truncate">({{ formattaProvenienzaRecordInfo(recordMaxAssolutoInfo) }})</span>
+                </template>
+                <template v-else-if="suggerimentoRecord">
+                  <span class="hero-subcard-provenienza text-truncate">({{ formattaProvenienzaRecordInfo(suggerimentoRecord) }})</span>
                 </template>
               </div>
             </div>
@@ -4399,11 +4435,75 @@
           <div v-show="activeTabAnalisi === 1 || isCorpoLiberoPuro" class="d-flex flex-column w-100" style="min-height: 0;">
             
             <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (Segmented Hero Card Unificata a 2 Colonne - Centrata) -->
-            <div v-if="suggerimentoRecord" class="my-2 text-center">
+            <div v-if="suggerimentoRecord || (isCardio && recordMaxAssolutoInfo?.tempoSec > 0)" class="my-2 text-center">
               <div 
                 class="rounded-xl border overflow-hidden d-flex align-stretch w-100 min-width-0 position-relative"
                 style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(2, 6, 23, 0.95) 100%); border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);"
               >
+                <!-- Se Cardio -->
+                <template v-if="isCardio">
+                  <!-- Colonna 1 Cardio: Target Settimana Corrente -->
+                  <div 
+                    class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors select-none min-width-0" 
+                    style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.04) 100%); border-right: 1px solid rgba(255, 255, 255, 0.08); flex: 1 1 0%;"
+                  >
+                    <div>
+                      <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
+                        <span style="font-size: 0.65rem; line-height: 1;">🎯</span>
+                        <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.50rem; letter-spacing: 0.02em;">
+                          TARGET W{{ settimanaAttiva }}
+                        </span>
+                      </div>
+                      <div class="d-flex align-center justify-center text-truncate my-0.5">
+                        <span class="font-weight-black text-white text-truncate" style="font-size: 1.15rem; line-height: 1.15;">
+                          {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="font-weight-medium mt-2 d-flex align-center justify-center gap-1.5 flex-wrap text-slate-400 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
+                      <span class="text-truncate text-green-accent-3 font-weight-bold">
+                        questa scheda · W{{ settimanaAttiva }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Colonna 2 Cardio: Record Assoluto Durata -->
+                  <div 
+                    class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0" 
+                    style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.14) 0%, rgba(6, 182, 212, 0.03) 100%); flex: 1 1 0%;"
+                    @click="recordMaxAssolutoInfo?.itemAtMaxWeight && vaiADettaglioStorico(recordMaxAssolutoInfo.itemAtMaxWeight)"
+                  >
+                    <div>
+                      <div class="d-flex align-center justify-center gap-1 mb-1 text-truncate min-width-0">
+                        <v-icon color="#00bcd4" size="12">mdi-fire</v-icon>
+                        <span class="text-super-caption font-weight-bold uppercase text-truncate text-cyan-lighten-2" style="font-size: 0.50rem; letter-spacing: 0.02em;">
+                          RECORD ASSOLUTO
+                        </span>
+                      </div>
+                      <div class="d-flex align-center justify-center text-truncate my-0.5">
+                        <span class="font-weight-black text-cyan-lighten-2 text-truncate" style="font-size: 1.15rem; line-height: 1.15;">
+                          {{ recordMaxAssolutoInfo?.tempoDisplay || '--' }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="font-weight-medium mt-2 d-flex align-center justify-center gap-1.5 flex-wrap text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
+                      <span 
+                        class="text-truncate"
+                        :class="recordMaxAssolutoInfo?.isCurrentMeso ? 'text-green-accent-3 font-weight-bold' : ''"
+                      >
+                        <template v-if="recordMaxAssolutoInfo?.isCurrentMeso">
+                          Sch. {{ (String(recordMaxAssolutoInfo?.sheet || workout?.num_scheda || '').match(/\d+/) || ['-'])[0] }} · questa scheda
+                        </template>
+                        <template v-else>
+                          Sch. {{ (String(recordMaxAssolutoInfo?.sheet || '').match(/\d+/) || ['-'])[0] }} · {{ tempoTrascorsoBreve(recordMaxAssolutoInfo?.date) || (recordMaxAssolutoInfo?.date ? tempoTrascorso(recordMaxAssolutoInfo.date) : 'Storico') }}
+                        </template>
+                      </span>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Se NON Cardio (Esercizi con peso o corpo libero) -->
+                <template v-else-if="suggerimentoRecord">
                 <!-- Colonna 1: Record a Stesse Reps (Ambra - Centrato) -->
                 <div 
                   v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
@@ -4531,6 +4631,7 @@
                     </span>
                   </div>
                 </div>
+                </template>
               </div>
             </div>
 
@@ -18005,6 +18106,19 @@ const currentWeekLoggedReps = computed(() => {
   return (r && !isNaN(r) && r > 0) ? r : getRepsPerWeek(w);
 });
 
+function formattaProvenienzaRecordInfo(info) {
+  if (!info) return 'Storico';
+  if (info.isCurrentMeso) return 'questa scheda';
+  const s = info.sheet || info.sheetAtMaxWeight || info.recordAbsoluteSheet || info.num_scheda;
+  const sNum = s ? `Sch. ${String(s).replace(/\D+/g, '') || s}` : '';
+  const d = info.date || info.dateAtMaxWeight || info.recordAbsoluteDate || info.dat_scheda_ult_ex || info.timestamp;
+  const tAgo = d ? (tempoTrascorsoBreve(d) || tempoTrascorso(d)) : '';
+  if (tAgo && sNum) return `${tAgo} · ${sNum}`;
+  if (tAgo) return tAgo;
+  if (sNum) return sNum;
+  return 'Storico';
+}
+
 const recordMaxAssolutoInfo = computed(() => {
   if (!workout.value) return null;
   if (isCardio.value) {
@@ -18070,6 +18184,9 @@ const recordMaxAssolutoInfo = computed(() => {
       reps: 0,
       tempoSec: maxTempoSec,
       tempoDisplay: formattaTempoDisplay(maxTempoSec),
+      week: weekAtMax,
+      sheet: sheetAtMax,
+      date: dateAtMax,
       weekAtMaxWeight: weekAtMax,
       sheetAtMaxWeight: sheetAtMax,
       dateAtMaxWeight: dateAtMax,
@@ -18224,7 +18341,6 @@ const heroRecordComparison = computed(() => {
   if (!workout.value || isCardio.value) return null;
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
-  if (isCorpoLiberoPuro) return null;
 
   const sett = settimanaAttiva.value || 1;
   const targetReps = getRepsPerWeek(sett) || 10;
@@ -18232,18 +18348,22 @@ const heroRecordComparison = computed(() => {
   const stepKg = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubriEsercizio(workout.value) ? 1.0 : (isCavo ? 1.25 : 2.5));
 
   // 1. Carico e Reps Proposti / Inseriti per Oggi
-  const loggedW = currentWeekLoggedWeight.value;
+  const loggedW = isCorpoLiberoPuro ? 0 : currentWeekLoggedWeight.value;
   const loggedR = currentWeekLoggedReps.value;
-  const isLogged = Boolean(loggedW && loggedW > 0);
+  const isLogged = isCorpoLiberoPuro ? Boolean(loggedR && loggedR > 0) : Boolean(loggedW && loggedW > 0);
 
   let todayWeight = 0;
   let todayReps = targetReps;
   let todayOrigine = '';
 
   if (isLogged) {
-    todayWeight = loggedW;
+    todayWeight = isCorpoLiberoPuro ? 0 : loggedW;
     todayReps = loggedR || targetReps;
     todayOrigine = `questa scheda • W${sett}`;
+  } else if (isCorpoLiberoPuro) {
+    todayWeight = 0;
+    todayReps = targetReps;
+    todayOrigine = `target W${sett}`;
   } else if (caricoConsigliatoGhostAttivo.value && caricoConsigliatoGhostAttivo.value > 0) {
     todayWeight = caricoConsigliatoGhostAttivo.value;
     todayReps = targetReps;
@@ -18266,7 +18386,7 @@ const heroRecordComparison = computed(() => {
   }
 
   // 2. E1RM Oggi
-  const todayE1RM = (todayWeight > 0 && todayReps > 0)
+  const todayE1RM = (!isCorpoLiberoPuro && todayWeight > 0 && todayReps > 0)
     ? Math.round(calcolaE1RMSmorzato(todayWeight, todayReps, isCavo) * 10) / 10
     : 0;
 
@@ -18284,36 +18404,36 @@ const heroRecordComparison = computed(() => {
   let isMaxCurrentMeso = false;
 
   if (sug && (sug.recordAbsolute > 0 || (isCorpoLibero && (sug.recordAbsoluteReps > 0 || sug.recordRepsValue > 0)))) {
-    maxWeight = sug.recordAbsolute || 0;
+    maxWeight = isCorpoLiberoPuro ? 0 : (sug.recordAbsolute || 0);
     maxReps = sug.recordAbsoluteReps || sug.recordRepsValue || 0;
-    maxE1RM = sug.recordAbsoluteE1RM || (maxWeight > 0 && maxReps > 0 ? Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10 : 0);
+    maxE1RM = isCorpoLiberoPuro ? 0 : (sug.recordAbsoluteE1RM || (maxWeight > 0 && maxReps > 0 ? Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10 : 0));
     maxSheet = sug.recordAbsoluteSheet;
     maxDate = sug.recordAbsoluteDate;
     maxFatica = sug.recordAbsoluteFatica;
     isMaxCurrentMeso = String(sug.recordAbsoluteSheet || '').replace(/\D+/g, '') === String(workout.value?.num_scheda || '').replace(/\D+/g, '');
   } else if (maxInfo && (maxInfo.peso > 0 || maxInfo.reps > 0)) {
-    maxWeight = maxInfo.peso || 0;
+    maxWeight = isCorpoLiberoPuro ? 0 : (maxInfo.peso || 0);
     maxReps = maxInfo.reps || 0;
-    maxE1RM = Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10;
+    maxE1RM = isCorpoLiberoPuro ? 0 : Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10;
     maxSheet = maxInfo.sheet;
     maxDate = maxInfo.date;
     maxFatica = maxInfo.fatica;
     isMaxCurrentMeso = Boolean(maxInfo.isCurrentMeso);
   } else if (overviewE1RM && (overviewE1RM.rawWeight > 0 || overviewE1RM.max1RM > 0)) {
-    maxWeight = overviewE1RM.rawWeight || 0;
+    maxWeight = isCorpoLiberoPuro ? 0 : (overviewE1RM.rawWeight || 0);
     maxReps = overviewE1RM.rawReps || 0;
-    maxE1RM = overviewE1RM.max1RM || (maxWeight > 0 && maxReps > 0 ? Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10 : 0);
+    maxE1RM = isCorpoLiberoPuro ? 0 : (overviewE1RM.max1RM || (maxWeight > 0 && maxReps > 0 ? Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10 : 0));
     maxSheet = overviewE1RM.sheet;
     maxDate = overviewE1RM.date;
     maxFatica = overviewE1RM.fatica;
     isMaxCurrentMeso = Boolean(overviewE1RM.isCurrent);
   }
 
-  const hasMaxAssoluto = maxE1RM > 0 && (maxWeight > 0 || maxReps > 0);
+  const hasMaxAssoluto = isCorpoLiberoPuro ? (maxReps > 0) : (maxE1RM > 0 && (maxWeight > 0 || maxReps > 0));
 
   // 4. Carico Teorico necessario alle reps prescritte per eguagliare il Max Assoluto
   let caricoTeoricoEguaglia = 0;
-  if (hasMaxAssoluto && targetReps > 0) {
+  if (!isCorpoLiberoPuro && hasMaxAssoluto && targetReps > 0) {
     const rawPesoTeorico = calcolaPesoDaE1RMSmorzato(maxE1RM, targetReps, isCavo);
     if (rawPesoTeorico > 0) {
       const step = stepKg > 0 ? stepKg : 1.0;
@@ -18332,7 +18452,18 @@ const heroRecordComparison = computed(() => {
   let isNewPeak = false;
   let isEqualedPeak = false;
 
-  if (hasMaxAssoluto && todayE1RM > 0) {
+  if (isCorpoLiberoPuro) {
+    if (hasMaxAssoluto && todayReps > 0) {
+      proximityPct = Math.min(100, Math.round((todayReps / maxReps) * 100));
+      if (todayReps > maxReps && isLogged) {
+        isNewPeak = true;
+        proximityPct = 100;
+      } else if (todayReps >= maxReps) {
+        isEqualedPeak = true;
+        proximityPct = 100;
+      }
+    }
+  } else if (hasMaxAssoluto && todayE1RM > 0) {
     const rawDeltaKg = Math.round((caricoTeoricoEguaglia - todayWeight) * 10) / 10;
     // Se la differenza è microscopica (pochi decimali <= 0.25kg) o todayWeight è già pari o superiore al carico per eguagliare
     const isQuasiEguagliato = (rawDeltaKg <= 0.25 || todayWeight >= caricoTeoricoEguaglia) && (todayE1RM >= maxE1RM - 0.25);

@@ -493,335 +493,406 @@
         </div>
 
         <!-- Alternativo: Card Record Assoluto & Record a Reps per esercizi senza Livello Forza (RMT) -->
+        <!-- Alternativo: Card Record Assoluto & Record a Reps per esercizi senza Livello Forza (RMT) -->
         <div 
           v-else 
-          class="rmt-premium-card card-glass border-amber-darken-3-op cursor-pointer"
+          class="rmt-premium-card cursor-pointer"
           :class="[
-            layoutCorrente === 'super_compatto' ? 'rounded-sm mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'rounded-lg mt-2 pa-2.5' : 'rounded-xl mt-3 pa-3')
+            layoutCorrente === 'super_compatto' ? 'rmt-super-compatto' : (layoutCorrente === 'compatto' ? 'rmt-compatto' : 'rmt-standard')
           ]"
           @click="apriStoricoEsercizio"
         >
-          <!-- Header Card Record: Pulsante Strategia a Destra -->
-          <div v-if="!isCardio" class="d-flex align-center justify-end mb-2">
-            <v-chip
-              size="x-small"
-              color="orange-darken-3"
-              variant="outlined"
-              class="font-weight-black cursor-pointer px-2 text-orange-lighten-2 flex-shrink-0"
-              style="font-size: 0.58rem; height: 20px; z-index: 2; background: var(--theme-primary-bg-soft); border-color: var(--theme-primary-border) !important;"
-              @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
-            >
-              <v-icon icon="mdi-brain" size="12" class="mr-1" color="orange-lighten-2" />
-              Strategia
-            </v-chip>
+          <!-- 1. Header: Icona Dumbbell + Obiettivo X ripetizioni + Strategia Coach -->
+          <div class="d-flex align-center justify-space-between mb-2 w-100 min-width-0">
+            <!-- Sinistra: Icona Dumbbell + Obiettivo X ripetizioni -->
+            <div class="d-flex align-center gap-1.5 min-width-0">
+              <div class="hero-target-icon-box flex-shrink-0 d-flex align-center justify-center">
+                <v-icon 
+                  icon="mdi-dumbbell" 
+                  :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 17 : 24" 
+                  color="#60a5fa" 
+                />
+              </div>
+              <div class="d-flex flex-column text-left min-width-0">
+                <span class="hero-target-title font-weight-black text-white text-truncate">Obiettivo</span>
+                <span class="hero-target-subtitle text-slate-400 text-truncate">
+                  <template v-if="isCardio">
+                    {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
+                  </template>
+                  <template v-else-if="heroRecordComparison?.targetReps">
+                    {{ heroRecordComparison.targetReps }} {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'rip.' : 'ripetizioni' }}
+                  </template>
+                  <template v-else>
+                    {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'rip.' : 'ripetizioni' }}
+                  </template>
+                </span>
+              </div>
+            </div>
+
+            <!-- Destra: Pill Button Strategia -->
+            <div v-if="!isCardio" class="flex-shrink-0 ml-1">
+              <button
+                type="button"
+                class="hero-strategia-pill d-inline-flex align-center cursor-pointer"
+                @click.stop="vibraTattile(15); dialogStrategiaCoach = true"
+              >
+                <span class="hero-strategia-brain mr-1">🧠</span>
+                <span class="hero-strategia-text font-weight-black">
+                  {{ layoutCorrente === 'super_compatto' ? 'Strat.' : 'Strategia' }}
+                </span>
+                <v-icon 
+                  icon="mdi-chevron-right" 
+                  :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 14 : 18" 
+                  class="hero-strategia-chevron ml-0.5" 
+                />
+              </button>
+            </div>
           </div>
 
-          <div class="d-flex align-stretch w-100 min-width-0 my-1">
-            <!-- COLONNA 1: TARGET REPS (Sinistra - Ambra) -->
-            <div class="text-center d-flex flex-column align-center justify-center border-right-soft px-1 min-width-0" style="flex: 1 1 50%; min-width: 0; overflow: hidden;">
-              <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5 text-truncate w-100" style="font-size: 0.50rem; letter-spacing: 0.02em;">
+          <!-- 2. Griglia 2 Colonne: TARGET X REPS e MAX ASSOLUTO -->
+          <div class="hero-cards-grid mb-2">
+            <!-- Colonna 1: TARGET REPS (Sinistra) -->
+            <div class="hero-subcard hero-subcard-target">
+              <div class="hero-card-header text-uppercase font-weight-black text-truncate">
                 <template v-if="isCardio">
-                  Target {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
+                  TARGET {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
                 </template>
                 <template v-else-if="heroRecordComparison?.targetReps">
                   TARGET {{ heroRecordComparison.targetReps }} REPS
                 </template>
                 <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
-                  Record {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
-                </template>
-                <template v-else-if="currentWeekLoggedWeight">
-                  Record {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
+                  TARGET {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} REPS
                 </template>
                 <template v-else>
-                  Target {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} Reps
-                </template>
-              </span>
-              <span class="font-weight-black d-inline-flex align-center justify-center gap-0.5 text-truncate" :class="[layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6'), (isCardio ? currentWeekLoggedTempo : (heroRecordComparison?.isLogged || recordOverviewData?.bestReal?.isCurrentPR || currentWeekLoggedWeight)) ? 'text-green-accent-3' : 'text-amber-lighten-1']">
-                <template v-if="isCardio">
-                  <template v-if="currentWeekLoggedTempo">
-                    {{ formattaTempoDisplay(currentWeekLoggedTempo) }}
-                  </template>
-                  <template v-else>
-                    🎯 {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
-                  </template>
-                </template>
-                <template v-else-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
-                  <template v-if="recordOverviewData?.bestReal?.reps > 0">
-                    {{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}
-                  </template>
-                  <template v-else>
-                    🎯 {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
-                  </template>
-                </template>
-                <template v-else-if="heroRecordComparison && heroRecordComparison.todayWeight > 0">
-                  <span class="mr-0.5" style="font-size: 0.85em;">{{ heroRecordComparison.isLogged ? '✅' : '🎯' }}</span>
-                  {{ formatWeight(heroRecordComparison.todayWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg × {{ heroRecordComparison.todayReps }}r</span>
-                </template>
-                <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
-                  {{ formatWeight(recordOverviewData.bestReal.weight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                </template>
-                <template v-else-if="currentWeekLoggedWeight">
-                  {{ formatWeight(currentWeekLoggedWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                </template>
-                <template v-else-if="caricoConsigliatoGhostAttivo">
-                  🎯 {{ formatWeight(caricoConsigliatoGhostAttivo) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                </template>
-                <template v-else-if="getRiferimentoSfidaRecord(settimanaAttiva)">
-                  🎯 {{ formatWeight(getRiferimentoSfidaRecord(settimanaAttiva).peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                </template>
-                <template v-else-if="caricoConsigliatoViaDiMezzo">
-                  🎯 {{ formatWeight(caricoConsigliatoViaDiMezzo) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                </template>
-                <template v-else>
-                  --
-                </template>
-              </span>
-              <!-- Sottotitolo Dettaglio Record Reps / Cardio / E1RM Previsto -->
-              <div class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.48rem; line-height: 1.1; max-width: 100%;">
-                <template v-if="isCardio">
-                  <span v-if="currentWeekLoggedTempo" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                  <span v-else class="text-muted text-truncate">da completare</span>
-                </template>
-                <template v-else-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
-                  <span v-if="recordOverviewData?.bestReal?.isCurrentPR" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                  <span v-else-if="recordOverviewData?.bestReal?.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})</span>
-                  <span v-else class="text-muted text-truncate">target da raggiungere</span>
-                </template>
-                <template v-else-if="heroRecordComparison && heroRecordComparison.todayWeight > 0">
-                  <span class="text-amber-lighten-2 font-weight-bold" style="letter-spacing: -0.035em; font-size: 0.46rem;">e1RM {{ heroRecordComparison.isLogged ? 'attuale' : 'previsto' }} ≈ {{ formatWeight(heroRecordComparison.todayE1RM) }} kg</span>
-                  <span v-if="heroRecordComparison.todayOrigine" class="text-muted text-truncate">({{ heroRecordComparison.todayOrigine }})</span>
-                </template>
-                <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
-                  <span v-if="recordOverviewData.bestReal.reps && !isCorpoLiberoEsercizio(workout)" class="text-amber-lighten-2 font-weight-bold">x{{ formatRepsDisplay(recordOverviewData.bestReal.reps) }}</span>
-                  <span v-if="recordOverviewData.bestReal.isCurrentPR || (workout?.num_scheda && String(recordOverviewData.bestReal.sheet).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                  <span v-else-if="recordOverviewData.bestReal.date && tempoTrascorsoBreve(recordOverviewData.bestReal.date)" class="text-amber-lighten-3 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestReal.date) }})</span>
-                </template>
-                <template v-else-if="currentWeekLoggedWeight">
-                  <span class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                </template>
-                <template v-else-if="caricoConsigliatoGhostAttivo">
-                  <span class="text-amber-lighten-3 text-truncate">(consigliato W{{ settimanaAttiva }})</span>
-                </template>
-                <template v-else>
-                  <span class="text-muted text-truncate">nessun record passato</span>
+                  TARGET {{ formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }} REPS
                 </template>
               </div>
 
-              <!-- Riferimento Teorico: Per il record assoluto (secondario, visivamente compatto) -->
-              <div 
-                v-if="!isCardio && heroRecordComparison?.caricoTeoricoEguaglia > 0 && heroRecordComparison?.hasMaxAssoluto"
-                class="mt-1 pt-0.5 text-center text-truncate w-100"
-                style="border-top: 1px dashed rgba(255, 255, 255, 0.08); font-size: 0.44rem; line-height: 1.1; letter-spacing: -0.04em; color: rgba(253, 230, 138, 0.85);"
-              >
-                <span class="d-inline-flex align-center justify-center gap-0.5 text-truncate" :title="`Carico teorico a ${heroRecordComparison.targetReps} reps per eguagliare il record assoluto`">
-                  <span class="opacity-80">👑 Per il record:</span>
-                  <strong class="font-weight-black text-amber-lighten-1" style="letter-spacing: -0.04em;">≈ {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg × {{ heroRecordComparison.targetReps }}r</strong>
-                </span>
+              <!-- Valore Principale Target -->
+              <div class="d-flex align-baseline flex-wrap gap-0.5 my-0.5 min-width-0">
+                <span class="hero-card-emoji flex-shrink-0">🎯</span>
+                <template v-if="isCardio">
+                  <span class="hero-metric-val hero-metric-val-amber">
+                    {{ currentWeekLoggedTempo ? formattaTempoDisplay(currentWeekLoggedTempo) : formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
+                  </span>
+                </template>
+                <template v-else-if="isCorpoLiberoEsercizio(workout) && !haPesoEsercizio">
+                  <span class="hero-metric-val hero-metric-val-amber">
+                    {{ recordOverviewData?.bestReal?.reps ? formatRepsDisplay(recordOverviewData.bestReal.reps) : formatRepsDisplay(getRepsPerWeek(settimanaAttiva)) }}
+                  </span>
+                  <span class="hero-metric-unit">reps</span>
+                </template>
+                <template v-else-if="heroRecordComparison && heroRecordComparison.todayWeight > 0">
+                  <span class="hero-metric-val hero-metric-val-amber">
+                    {{ formatWeight(heroRecordComparison.todayWeight) }}
+                  </span>
+                  <span class="hero-metric-unit">
+                    kg × {{ heroRecordComparison.todayReps }}r
+                  </span>
+                </template>
+                <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
+                  <span class="hero-metric-val hero-metric-val-amber">
+                    {{ formatWeight(recordOverviewData.bestReal.weight) }}
+                  </span>
+                  <span class="hero-metric-unit">kg</span>
+                </template>
+                <template v-else-if="currentWeekLoggedWeight">
+                  <span class="hero-metric-val hero-metric-val-amber">
+                    {{ formatWeight(currentWeekLoggedWeight) }}
+                  </span>
+                  <span class="hero-metric-unit">kg</span>
+                </template>
+                <template v-else-if="caricoConsigliatoGhostAttivo">
+                  <span class="hero-metric-val hero-metric-val-amber">
+                    {{ formatWeight(caricoConsigliatoGhostAttivo) }}
+                  </span>
+                  <span class="hero-metric-unit">kg</span>
+                </template>
+                <template v-else>
+                  <span class="hero-metric-val hero-metric-val-amber">--</span>
+                </template>
+              </div>
+
+              <!-- Sottotitolo Dettaglio: e1RM Previsto con info icon -->
+              <div class="hero-subcard-line d-flex align-center gap-0.5 text-truncate">
+                <template v-if="!isCardio && heroRecordComparison && heroRecordComparison.todayWeight > 0">
+                  <span class="hero-subcard-label text-truncate">{{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'e1RM ≈' : ('e1RM ' + (heroRecordComparison.isLogged ? 'attuale' : 'previsto') + ' ≈') }}</span>
+                  <span class="hero-subcard-val-amber font-weight-black">{{ formatWeight(heroRecordComparison.todayE1RM) }} kg</span>
+                  <v-icon 
+                    v-if="!['compatto', 'super_compatto'].includes(layoutCorrente)" 
+                    icon="mdi-information-outline" 
+                    size="13" 
+                    class="hero-info-icon" 
+                  />
+                </template>
+                <template v-else-if="isCardio">
+                  <span class="hero-subcard-label text-truncate">{{ currentWeekLoggedTempo ? 'registrato' : 'da completare' }}</span>
+                </template>
+                <template v-else>
+                  <span class="hero-subcard-label text-truncate">target seduta</span>
+                </template>
+              </div>
+
+              <!-- Riferimento Teorico: Per il record assoluto -->
+              <div class="hero-subcard-line d-flex align-center gap-0.5 mt-0.5 text-truncate">
+                <template v-if="!isCardio && heroRecordComparison?.caricoTeoricoEguaglia > 0 && heroRecordComparison?.hasMaxAssoluto">
+                  <span class="hero-record-label flex-shrink-0">🏆 {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? 'Rec:' : 'Per il record:' }}</span>
+                  <span class="hero-record-val-yellow font-weight-black text-truncate">
+                    ≈ {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg<template v-if="!['compatto', 'super_compatto'].includes(layoutCorrente)"> × {{ heroRecordComparison.targetReps }}r</template>
+                  </span>
+                </template>
+                <template v-else-if="heroRecordComparison?.todayOrigine">
+                  <span class="hero-subcard-provenienza text-truncate">({{ heroRecordComparison.todayOrigine }})</span>
+                </template>
               </div>
             </div>
 
-            <!-- COLONNA 2: MAX ASSOLUTO (Destra - Ciano) -->
-            <div class="text-center d-flex flex-column align-center justify-center px-1 min-width-0" style="flex: 1 1 50%; min-width: 0; overflow: hidden;">
-              <span class="text-super-caption text-muted uppercase font-weight-bold d-block mb-0.5 text-truncate w-100" style="font-size: 0.50rem; letter-spacing: 0.02em;">Max Assoluto</span>
-              <span class="font-weight-black text-cyan-lighten-2 d-inline-flex align-center justify-center gap-0.5 text-truncate" :class="layoutCorrente === 'super_compatto' ? 'text-body-1' : (layoutCorrente === 'compatto' ? 'text-subtitle-1' : 'text-h6')">
+            <!-- Colonna 2: MAX ASSOLUTO (Destra) -->
+            <div class="hero-subcard hero-subcard-max">
+              <div class="hero-card-header text-uppercase font-weight-black text-truncate">
+                MAX ASSOLUTO
+              </div>
+
+              <!-- Valore Principale Max Assoluto -->
+              <div class="d-flex align-baseline flex-wrap gap-0.5 my-0.5 min-width-0">
+                <span class="hero-card-emoji flex-shrink-0">👑</span>
                 <template v-if="isCardio && recordMaxAssolutoInfo?.tempoSec > 0">
-                  {{ recordMaxAssolutoInfo.tempoDisplay }}
+                  <span class="hero-metric-val hero-metric-val-cyan">
+                    {{ recordMaxAssolutoInfo.tempoDisplay }}
+                  </span>
                 </template>
                 <template v-else-if="heroRecordComparison?.hasMaxAssoluto">
-                  <span class="mr-0.5" style="font-size: 0.85em;">👑</span>
-                  {{ formatWeight(heroRecordComparison.maxWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg × {{ heroRecordComparison.maxReps }}r</span>
+                  <span class="hero-metric-val hero-metric-val-cyan">
+                    {{ formatWeight(heroRecordComparison.maxWeight) }}
+                  </span>
+                  <span class="hero-metric-unit">
+                    kg × {{ heroRecordComparison.maxReps }}r
+                  </span>
                 </template>
                 <template v-else-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
-                  <template v-if="isCorpoLiberoEsercizio(workout) && recordMaxAssolutoInfo.peso === 0">
-                    {{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}
-                  </template>
-                  <template v-else>
-                    {{ formatWeight(recordMaxAssolutoInfo.peso) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
-                  </template>
+                  <span class="hero-metric-val hero-metric-val-cyan">
+                    {{ formatWeight(recordMaxAssolutoInfo.peso) }}
+                  </span>
+                  <span class="hero-metric-unit">kg</span>
                 </template>
                 <template v-else-if="recordOverviewData?.bestE1RM?.rawWeight > 0">
-                  {{ formatWeight(recordOverviewData.bestE1RM.rawWeight) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg</span>
+                  <span class="hero-metric-val hero-metric-val-cyan">
+                    {{ formatWeight(recordOverviewData.bestE1RM.rawWeight) }}
+                  </span>
+                  <span class="hero-metric-unit">kg</span>
                 </template>
                 <template v-else>
-                  --
+                  <span class="hero-metric-val hero-metric-val-cyan">--</span>
                 </template>
-              </span>
-              <!-- Sottotitolo Dettaglio Max Assoluto: E1RM Assoluto -->
-              <div v-if="!isCardio && heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxE1RM > 0" class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.46rem; line-height: 1.1; max-width: 100%;">
-                <span class="text-cyan-lighten-3 font-weight-bold" style="letter-spacing: -0.035em;">e1RM ≈ {{ formatWeight(heroRecordComparison.maxE1RM) }} kg</span>
               </div>
 
-              <!-- Sottotitolo Dettaglio Max Assoluto: Origine Esecuzione Reale -->
-              <div class="text-super-caption font-weight-regular mt-0.5 d-flex align-center justify-center gap-1 text-truncate w-100" style="font-size: 0.46rem; line-height: 1.1; max-width: 100%;">
-                <template v-if="isCardio && recordMaxAssolutoInfo?.tempoSec > 0">
-                  <span v-if="recordMaxAssolutoInfo?.isCurrentMeso" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                  <span v-else-if="recordMaxAssolutoInfo?.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
-                  <span v-else-if="recordMaxAssolutoInfo?.sheetAtMaxWeight" class="text-cyan-lighten-4 opacity-85 text-truncate">(Sch. {{ recordMaxAssolutoInfo.sheetAtMaxWeight }})</span>
+              <!-- Sottotitolo Dettaglio: e1RM Max Assoluto -->
+              <div class="hero-subcard-line d-flex align-center gap-0.5 text-truncate">
+                <template v-if="!isCardio && heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxE1RM > 0">
+                  <span class="hero-subcard-label-cyan font-weight-bold flex-shrink-0">e1RM ≈</span>
+                  <span class="hero-subcard-val-cyan font-weight-black">{{ formatWeight(heroRecordComparison.maxE1RM) }} kg</span>
+                  <v-icon 
+                    v-if="!['compatto', 'super_compatto'].includes(layoutCorrente)" 
+                    icon="mdi-information-outline" 
+                    size="13" 
+                    class="hero-info-icon" 
+                  />
                 </template>
-                <template v-else-if="heroRecordComparison?.hasMaxAssoluto">
-                  <span :class="heroRecordComparison.isMaxCurrentMeso ? 'text-green-lighten-3 font-weight-bold text-truncate' : 'text-cyan-lighten-4 opacity-85 text-truncate'">({{ heroRecordComparison.maxProvenienza }})</span>
-                </template>
-                <template v-else-if="recordMaxAssolutoInfo?.reps > 0 || recordOverviewData?.bestE1RM?.rawReps">
-                  <span v-if="recordMaxAssolutoInfo?.reps > 0" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordMaxAssolutoInfo.reps) }}</span>
-                  <span v-else-if="recordOverviewData?.bestE1RM?.rawReps" class="text-cyan-lighten-3 font-weight-bold">x{{ formatRepsDisplay(recordOverviewData.bestE1RM.rawReps) }}</span>
-                  <span v-if="recordMaxAssolutoInfo?.isCurrentMeso || (workout?.num_scheda && String(recordMaxAssolutoInfo?.sheetAtMaxWeight).replace(/\D+/g, '') === String(workout.num_scheda).replace(/\D+/g, ''))" class="text-green-lighten-3 font-weight-bold text-truncate">(questa scheda)</span>
-                  <span v-else-if="recordMaxAssolutoInfo?.date && tempoTrascorsoBreve(recordMaxAssolutoInfo.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
-                  <span v-else-if="recordOverviewData?.bestE1RM?.date && tempoTrascorsoBreve(recordOverviewData.bestE1RM.date)" class="text-cyan-lighten-4 opacity-85 text-truncate">({{ tempoTrascorsoBreve(recordOverviewData.bestE1RM.date) }})</span>
+                <template v-else-if="isCardio">
+                  <span class="hero-subcard-label text-truncate">record durata</span>
                 </template>
                 <template v-else>
-                  <span class="text-muted text-truncate">nessun record passato</span>
+                  <span class="hero-subcard-label text-muted text-truncate">nessun record</span>
+                </template>
+              </div>
+
+              <!-- Sottotitolo 2: Provenienza (es. 2m fa · Sch. 67) -->
+              <div class="hero-subcard-line d-flex align-center gap-0.5 mt-0.5 text-truncate">
+                <template v-if="heroRecordComparison?.hasMaxAssoluto">
+                  <span class="hero-subcard-provenienza text-truncate">({{ heroRecordComparison.maxProvenienza }})</span>
+                </template>
+                <template v-else-if="recordMaxAssolutoInfo?.date">
+                  <span class="hero-subcard-provenienza text-truncate">({{ tempoTrascorsoBreve(recordMaxAssolutoInfo.date) }})</span>
                 </template>
               </div>
             </div>
           </div>
 
-          <!-- Barra Progresso verso il Record Assoluto (PROGRESSO X REPS) -->
+          <!-- 3. Card Progresso Verso il Record Assoluto (PROGRESSO X REPS) -->
           <div 
             v-if="!isCardio && heroRecordComparison && heroRecordComparison.hasMaxAssoluto && heroRecordComparison.maxE1RM > 0" 
-            class="mt-2 pt-1.5 border-top-soft px-1"
+            class="hero-progress-card mb-2"
           >
-            <template v-if="heroRecordComparison.isNewPeak">
-              <div class="d-flex align-center justify-space-between mb-1">
-                <span class="text-super-caption font-weight-black text-green-accent-3 uppercase d-flex align-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                  👑 NUOVO RECORD ASSOLUTO: {{ formatWeight(heroRecordComparison.todayE1RM) }} kg
+            <!-- Modalità Compatta / Super Compatta: 2 righe pulite senza collisioni -->
+            <template v-if="['compatto', 'super_compatto'].includes(layoutCorrente)">
+              <div class="d-flex align-center justify-space-between mb-1 gap-1">
+                <span class="hero-progress-title font-weight-black text-white text-uppercase text-truncate">
+                  PROGRESSO {{ heroRecordComparison.targetReps }} REPS
                 </span>
-                <span class="text-super-caption font-weight-black text-green-accent-3" style="font-size: 0.65rem;">
-                  100% (+{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg)
+                <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center flex-shrink-0">
+                  <span class="font-weight-black">
+                    <template v-if="heroRecordComparison.isNewPeak">
+                      Nuovo +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
+                    </template>
+                    <template v-else-if="heroRecordComparison.deltaKg > 0">
+                      Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
+                    </template>
+                    <template v-else>
+                      Eguagliato!
+                    </template>
+                  </span>
+                </div>
+              </div>
+
+              <div class="d-flex align-baseline justify-space-between mb-1 gap-1">
+                <div class="d-flex align-baseline gap-1 text-truncate">
+                  <span class="hero-progress-val-now font-weight-black text-white">
+                    {{ formatWeight(heroRecordComparison.todayWeight) }}
+                  </span>
+                  <span class="hero-progress-arrow font-weight-bold mx-0.5">→</span>
+                  <span class="hero-progress-val-target font-weight-black">
+                    {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
+                  </span>
+                </div>
+                <span class="hero-proximity-pct font-weight-bold flex-shrink-0">
+                  ≈ {{ heroRecordComparison.proximityPct }}% del record
                 </span>
               </div>
             </template>
-            <template v-else-if="heroRecordComparison.isEqualedPeak">
-              <div class="d-flex align-center justify-space-between mb-1">
-                <span class="text-super-caption font-weight-black text-cyan-accent-2 uppercase d-flex align-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                  👑 RECORD ASSOLUTO EGUAGLIATO: {{ formatWeight(heroRecordComparison.todayE1RM) }} kg
-                </span>
-                <span class="text-super-caption font-weight-black text-cyan-accent-2" style="font-size: 0.65rem;">
-                  100%
-                </span>
-              </div>
-            </template>
+
+            <!-- Modalità Standard: Layout generoso a 2 colonne -->
             <template v-else>
-              <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-center gap-1 text-truncate">
-                  <span class="text-super-caption text-slate-300 font-weight-bold uppercase" style="font-size: 0.50rem; letter-spacing: -0.01em;">
+              <div class="d-flex align-start justify-space-between mb-2">
+                <!-- Sinistra: Titolo e Pesi con Freccia -->
+                <div class="d-flex flex-column text-left min-width-0">
+                  <span class="hero-progress-title font-weight-black text-white text-uppercase">
                     PROGRESSO {{ heroRecordComparison.targetReps }} REPS
                   </span>
-                  <span class="font-weight-black text-white" style="font-size: 0.64rem; letter-spacing: -0.02em;">
-                    {{ formatWeight(heroRecordComparison.todayWeight) }} → {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
-                  </span>
+                  <div class="d-flex align-baseline gap-1 mt-1">
+                    <span class="hero-progress-val-now font-weight-black text-white">
+                      {{ formatWeight(heroRecordComparison.todayWeight) }} kg
+                    </span>
+                    <span class="hero-progress-arrow font-weight-bold mx-1">→</span>
+                    <span class="hero-progress-val-target font-weight-black">
+                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
+                    </span>
+                  </div>
                 </div>
-                <div class="d-flex align-center">
-                  <span 
-                    v-if="heroRecordComparison.deltaKg > 0" 
-                    class="font-weight-black text-cyan-accent-2 px-1.5 py-0.5 rounded" 
-                    style="font-size: 0.58rem; letter-spacing: -0.035em; background: rgba(6, 182, 212, 0.14); border: 1px solid rgba(6, 182, 212, 0.35);"
-                  >
-                    Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
-                  </span>
-                  <span 
-                    v-else-if="heroRecordComparison.proximityPct >= 100" 
-                    class="font-weight-black text-green-accent-3 px-1.5 py-0.5 rounded" 
-                    style="font-size: 0.58rem; letter-spacing: -0.035em; background: rgba(34, 197, 94, 0.14); border: 1px solid rgba(34, 197, 94, 0.35);"
-                  >
-                    Record eguagliato!
+
+                <!-- Destra: Box Mancano ≈ e Percentuale del record -->
+                <div class="d-flex flex-column align-end flex-shrink-0 ml-2">
+                  <div class="hero-mancano-badge text-center">
+                    <span class="hero-mancano-label d-block">
+                      {{ heroRecordComparison.isNewPeak ? 'Nuovo' : (heroRecordComparison.deltaKg > 0 ? 'Mancano ≈' : 'Record') }}
+                    </span>
+                    <span class="hero-mancano-val font-weight-black d-block">
+                      <template v-if="heroRecordComparison.isNewPeak">
+                        +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
+                      </template>
+                      <template v-else-if="heroRecordComparison.deltaKg > 0">
+                        {{ formatWeight(heroRecordComparison.deltaKg) }} kg
+                      </template>
+                      <template v-else>
+                        Eguagliato!
+                      </template>
+                    </span>
+                  </div>
+                  <span class="hero-proximity-pct font-weight-bold mt-1">
+                    ≈ {{ heroRecordComparison.proximityPct }}% del record
                   </span>
                 </div>
               </div>
             </template>
 
-            <div class="position-relative my-1">
-              <v-progress-linear
-                :model-value="100"
-                color="rgba(255, 255, 255, 0.08)"
-                height="4"
-                rounded
-                class="elevation-0 position-absolute w-100"
-              ></v-progress-linear>
-              <v-progress-linear
-                :model-value="heroRecordComparison.proximityPct"
-                :color="heroRecordComparison.isNewPeak ? 'green-accent-3' : 'cyan-accent-3'"
-                bg-color="transparent"
-                height="4"
-                rounded
-                class="elevation-1 position-relative"
-                style="z-index: 1"
-              ></v-progress-linear>
+            <!-- Segmented Cyan Progress Bar -->
+            <div class="hero-segmented-track position-relative my-1.5">
+              <div 
+                class="hero-segmented-fill"
+                :style="{ width: Math.min(100, heroRecordComparison.proximityPct) + '%' }"
+              ></div>
+              <div class="hero-segmented-overlay"></div>
             </div>
 
-            <div v-if="!heroRecordComparison.isNewPeak && !heroRecordComparison.isEqualedPeak" class="d-flex align-center justify-space-between mt-0.5">
-              <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.50rem; letter-spacing: -0.02em;">
-                E1RM: {{ formatWeight(heroRecordComparison.todayE1RM) }} kg → {{ formatWeight(heroRecordComparison.maxE1RM) }} kg
-              </span>
-              <span class="text-super-caption font-weight-bold text-cyan-accent-2" style="font-size: 0.48rem; letter-spacing: -0.035em;">
-                ≈ {{ heroRecordComparison.proximityPct }}% del record
-              </span>
+            <!-- Footers sotto la barra: attuale vs record a Xr -->
+            <div class="d-flex align-center justify-space-between mt-1">
+              <div class="d-flex flex-column text-left">
+                <span class="hero-foot-val font-weight-black text-white">
+                  {{ formatWeight(heroRecordComparison.todayWeight) }} kg
+                </span>
+                <span class="hero-foot-sub">attuale</span>
+              </div>
+              <div class="d-flex flex-column text-right">
+                <span class="hero-foot-val font-weight-black text-white">
+                  {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
+                </span>
+                <span class="hero-foot-sub">
+                  record a {{ heroRecordComparison.targetReps }}r
+                </span>
+              </div>
             </div>
           </div>
 
-          <!-- Barra Progresso verso il Miglior 1RM Storico (Fallback solo pesistica / corpo libero zavorrato) -->
+          <!-- Fallback Progresso solo per 1RM generico se heroRecordComparison non ha Max Assoluto -->
           <div 
             v-else-if="!isCardio && recordOverviewData?.bestE1RM && !recordOverviewData?.isCorpoLiberoPuro && recordOverviewData.bestE1RM.max1RM > 0" 
-            class="mt-2 pt-1.5 border-top-soft px-1"
+            class="hero-progress-card mb-2"
           >
-            <template v-if="recordOverviewData.bestE1RM.isNewPeak">
-              <div class="d-flex align-center justify-center text-center mb-1">
-                <span class="text-super-caption font-weight-black text-green-accent-3 uppercase d-flex align-center justify-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                  <span v-if="recordOverviewData.bestE1RM.isFirstCycle">1RM STIMATO: {{ recordOverviewData.bestE1RM.display }}</span>
-                  <span v-else>NUOVO RECORD 1RM: {{ recordOverviewData.bestE1RM.display }}</span>
+            <div class="d-flex align-end justify-space-between mb-1.5">
+              <div class="d-flex flex-column text-left">
+                <span class="hero-card-header text-uppercase font-weight-bold mb-0.5">
+                  e1RM ATTUALE
+                </span>
+                <span class="font-weight-black text-cyan-accent-2" style="font-size: 1.05rem;">
+                  {{ recordOverviewData.bestE1RM.display }}
                 </span>
               </div>
-            </template>
-            <template v-else-if="recordOverviewData.bestE1RM.isEqualedPeak">
-              <div class="d-flex align-center justify-center text-center mb-1">
-                <span class="text-super-caption font-weight-black text-cyan-accent-2 uppercase d-flex align-center justify-center gap-1" style="font-size: 0.58rem; letter-spacing: 0.02em;">
-                  <span>RECORD 1RM EGUAGLIATO: {{ recordOverviewData.bestE1RM.display }} (Sch. {{ recordOverviewData.bestE1RM.sheet }})</span>
+              <div class="d-flex flex-column text-right">
+                <span class="hero-proximity-pct font-weight-black text-cyan-accent-2">
+                  {{ recordOverviewData.bestE1RM.e1rmProximityPct }}%
                 </span>
+                <span class="hero-foot-sub text-right">del tuo 1RM</span>
               </div>
-            </template>
-            <template v-else>
-              <div class="d-flex align-end justify-space-between mb-1">
-                <div class="d-flex flex-column text-left">
-                  <span class="text-super-caption text-slate-300 font-weight-bold uppercase mb-0.5" style="font-size: 0.50rem; letter-spacing: 0.02em;">
-                    e1RM ATTUALE
-                  </span>
-                  <span class="font-weight-black text-cyan-accent-2" style="font-size: 0.75rem;">
-                    {{ recordOverviewData.bestE1RM.display }} <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ Math.round(parseFloat(recordOverviewData.bestE1RM.maxDeltaKg) * 10) / 10 }} kg</span> <span class="text-muted font-weight-regular px-0.5">|</span> <span class="text-muted font-weight-regular" style="font-size: 0.60rem;">-{{ (Math.max(0, 100 - recordOverviewData.bestE1RM.e1rmProximityPct)).toFixed(1).replace('.', ',') }}%</span>
-                  </span>
-                </div>
-                <div class="d-flex flex-column text-right">
-                  <span class="text-super-caption font-weight-black text-cyan-accent-2" style="font-size: 0.65rem;">
-                    {{ recordOverviewData.bestE1RM.e1rmProximityPct }}%
-                  </span>
-                  <span class="text-muted font-weight-medium d-block text-right" style="font-size: 0.50rem;">del tuo 1RM</span>
-                </div>
-              </div>
-            </template>
-            <div class="position-relative mt-1">
-              <v-progress-linear
-                :model-value="100"
-                color="rgba(255, 255, 255, 0.08)"
-                height="4"
-                rounded
-                class="elevation-0 position-absolute w-100"
-              ></v-progress-linear>
-              <v-progress-linear
-                :model-value="recordOverviewData.bestE1RM.e1rmProximityPct"
-                :color="recordOverviewData.bestE1RM.isNewPeak ? 'green-accent-3' : (recordOverviewData.bestE1RM.isBasedOnProposal ? 'cyan-accent-3' : 'cyan-accent-3')"
-                bg-color="transparent"
-                height="4"
-                rounded
-                class="elevation-1 position-relative"
-                style="z-index: 1"
-              ></v-progress-linear>
+            </div>
+            <div class="hero-segmented-track position-relative my-1.5">
+              <div 
+                class="hero-segmented-fill"
+                :style="{ width: Math.min(100, recordOverviewData.bestE1RM.e1rmProximityPct) + '%' }"
+              ></div>
+              <div class="hero-segmented-overlay"></div>
             </div>
           </div>
 
-          <!-- Status Linea Trend Progressione / Suggerimento Target -->
-          <div v-if="valutazioneProgressione" class="mt-1.5 pt-1 border-top-soft d-flex align-center justify-center px-1">
-            <span class="text-super-caption font-weight-black d-flex align-center justify-center gap-1 text-center" :class="valutazioneProgressione.colore" style="font-size: 0.62rem; width: 100%; white-space: normal; word-break: break-word; line-height: 1.3;">
-              <v-icon v-if="valutazioneProgressione.icona" size="12" class="mr-0.5 flex-shrink-0">{{ valutazioneProgressione.icona }}</v-icon>
-              {{ valutazioneProgressione.testo }}
-            </span>
+          <!-- 4. Banner Inferiore: Record Stabilito / Valutazione Progressione -->
+          <div 
+            v-if="parsedValutazioneProgressione"
+            class="hero-bottom-banner"
+            :class="[
+              parsedValutazioneProgressione.isGreen ? 'hero-banner-green' : (parsedValutazioneProgressione.isAmber ? 'hero-banner-amber' : 'hero-banner-cyan')
+            ]"
+            @click.stop="vibraTattile(15); apriStoricoEsercizio()"
+          >
+            <div class="d-flex align-center gap-1.5 min-width-0 flex-grow-1">
+              <span class="hero-banner-icon flex-shrink-0">
+                <template v-if="parsedValutazioneProgressione.isTrophy">🏆</template>
+                <template v-else-if="parsedValutazioneProgressione.icon">
+                  <v-icon :icon="parsedValutazioneProgressione.icon" :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 16 : 20" />
+                </template>
+                <template v-else>🏆</template>
+              </span>
+              <span class="hero-banner-title text-truncate font-weight-black">
+                {{ ['compatto', 'super_compatto'].includes(layoutCorrente) ? (parsedValutazioneProgressione.shortMainText || parsedValutazioneProgressione.mainText) : parsedValutazioneProgressione.mainText }}
+              </span>
+            </div>
+            <div class="d-flex align-center flex-shrink-0 ml-1">
+              <span v-if="parsedValutazioneProgressione.subText" class="hero-banner-sub font-weight-bold mr-1">
+                {{ parsedValutazioneProgressione.subText }}
+              </span>
+              <v-icon 
+                icon="mdi-chevron-right" 
+                :size="['compatto', 'super_compatto'].includes(layoutCorrente) ? 14 : 20" 
+                class="hero-banner-chevron" 
+              />
+            </div>
           </div>
         </div>
 
@@ -18911,6 +18982,69 @@ const valutazioneProgressione = computed(() => {
   }
 });
 
+// Parsing e formattazione per il banner hero inferiore (es. "🏆 Record a 13 reps stabilito (62,5 kg) >")
+const parsedValutazioneProgressione = computed(() => {
+  const raw = valutazioneProgressione.value;
+  let fullText = (raw?.testo || '').trim();
+  let colore = raw?.colore || '';
+  let icon = raw?.icona || null;
+
+  if (!fullText) {
+    if (recordOverviewData.value?.bestReal?.weight > 0 && recordOverviewData.value?.bestReal?.reps > 0) {
+      fullText = `Record a ${recordOverviewData.value.bestReal.reps} reps stabilito (${formatWeight(recordOverviewData.value.bestReal.weight)} kg)`;
+      colore = 'text-green-lighten-2';
+      icon = 'mdi-trophy-award';
+    } else {
+      return null;
+    }
+  }
+
+  // Estrai eventuale suffisso tra parentesi es. "(62,5 kg)"
+  const matchParen = fullText.match(/^(.*?)\s*(\([^)]+\))$/);
+  let mainText = fullText;
+  let subText = '';
+  if (matchParen) {
+    mainText = matchParen[1].trim();
+    subText = matchParen[2].trim();
+  }
+
+  // Pulisci eventuale emoji in testa a mainText per evitare duplicati con l'icona
+  const cleanMain = mainText.replace(/^[\p{Emoji}\u200d\uFE0F\s]+/u, '').trim();
+  if (cleanMain) {
+    mainText = cleanMain;
+  }
+
+  // Versione sintetica per contesti compatti / schermi stretti
+  let shortMainText = mainText;
+  if (/^ROTTA PR/i.test(mainText)) {
+    const wMatch = mainText.match(/W\d+/i);
+    shortMainText = wMatch ? `Rotta PR (${wMatch[0]})` : 'Rotta PR';
+  } else if (/Record a (\d+)\s*reps stabilito/i.test(mainText)) {
+    shortMainText = mainText.replace(/Record a (\d+)\s*reps stabilito/i, 'Record $1r');
+  } else if (/Carico in linea/i.test(mainText)) {
+    shortMainText = 'In linea col record';
+  } else if (/Sotto al record/i.test(mainText)) {
+    shortMainText = 'Sotto al record';
+  } else if (/Nuovo record stimato/i.test(mainText)) {
+    shortMainText = 'Nuovo record';
+  }
+
+  const isGreen = /green/i.test(colore) || /stabilito|miglioramento|nuovo/i.test(mainText);
+  const isAmber = /amber|orange|warning/i.test(colore);
+  const isTrophy = /record|stabilito|miglioramento|trophy/i.test(mainText) || /trophy/i.test(icon || '');
+
+  return {
+    mainText,
+    shortMainText,
+    subText,
+    colore,
+    icon,
+    isGreen,
+    isAmber,
+    isTrophy
+  };
+});
+
 const meAttrezzoLabel = (isManubri, isCorpoLiberoPuro, isComfortAttivo, pctComfort) => {
   if (isComfortAttivo) return `🛡️ Tutela Articolare (-${pctComfort}%)`;
   if (isCorpoLiberoPuro) return 'Progressione Ripetizioni';
@@ -22089,6 +22223,764 @@ th.sticky-col {
 
 [data-theme="light"] .rmt-premium-card .border-top-soft {
   border-top: 1px solid #e2e8f0 !important;
+}
+
+/* Hero Target & Record Comparison Card - Mockup Pixel-Perfect with Context Adaptation */
+.rmt-premium-card {
+  container-type: inline-size;
+  container-name: hero;
+  background: #0b1326 !important;
+  border: 1px solid #1e293b !important;
+  border-radius: 18px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.rmt-standard {
+  padding: 14px 14px 12px 14px !important;
+}
+
+.rmt-compatto {
+  padding: 8px 8px 6px 8px !important;
+  border-radius: 12px !important;
+}
+
+.rmt-super-compatto {
+  padding: 6px 6px 4px 6px !important;
+  border-radius: 8px !important;
+}
+
+/* 1. Header Base */
+.hero-target-icon-box {
+  width: 44px;
+  height: 44px;
+  background: #172338;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.hero-target-title {
+  font-size: 1.15rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.hero-target-subtitle {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.hero-strategia-pill {
+  border: 1.5px solid #eab308;
+  background: rgba(234, 179, 8, 0.12);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.hero-strategia-pill:hover {
+  background: rgba(234, 179, 8, 0.22);
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.25);
+}
+
+.hero-strategia-brain {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.hero-strategia-text {
+  color: #facc15;
+  font-size: 0.90rem;
+  letter-spacing: 0.01em;
+}
+
+.hero-strategia-chevron {
+  color: #facc15;
+}
+
+/* 2. Due Card Affiancate Base */
+.hero-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.hero-subcard {
+  background: #0f192e;
+  border: 1px solid #1e2e4a;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.hero-card-header {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.hero-card-emoji {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.hero-metric-val {
+  font-size: 1.85rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.hero-metric-val-amber {
+  color: #fbbf24;
+}
+
+.hero-metric-val-cyan {
+  color: #22d3ee;
+}
+
+.hero-metric-unit {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.hero-subcard-line {
+  font-size: 0.78rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-subcard-label {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.hero-subcard-label-cyan {
+  color: #38bdf8;
+}
+
+.hero-subcard-val-amber {
+  color: #facc15;
+}
+
+.hero-subcard-val-cyan {
+  color: #38bdf8;
+}
+
+.hero-info-icon {
+  color: #64748b;
+  margin-left: 2px;
+}
+
+.hero-record-label {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.hero-record-val-yellow {
+  color: #fde047;
+  font-size: 0.72rem;
+}
+
+.hero-subcard-provenienza {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* 3. Card Progresso Base */
+.hero-progress-card {
+  background: #0f192e;
+  border: 1px solid #1e2e4a;
+  border-radius: 14px;
+  padding: 14px 16px 12px 16px;
+}
+
+.hero-progress-title {
+  font-size: 1.12rem;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.hero-progress-val-now {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.hero-progress-arrow {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #64748b;
+}
+
+.hero-progress-val-target {
+  font-size: 1.45rem;
+  line-height: 1;
+  color: #22d3ee;
+}
+
+.hero-mancano-badge {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1.5px solid rgba(6, 182, 212, 0.45);
+  border-radius: 12px;
+  padding: 5px 14px;
+  min-width: 95px;
+}
+
+.hero-mancano-badge-compact {
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.45);
+  color: #22d3ee;
+  line-height: 1.2;
+  font-size: 0.62rem;
+}
+
+.hero-mancano-label {
+  color: #94a3b8;
+  font-size: 0.70rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.hero-mancano-val {
+  color: #22d3ee;
+  font-size: 1.30rem;
+  line-height: 1.15;
+}
+
+.hero-proximity-pct {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.hero-segmented-track {
+  width: 100%;
+  height: 11px;
+  background: #172338;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.hero-segmented-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4 0%, #22d3ee 100%);
+  border-radius: 9999px;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.45);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-segmented-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 7px,
+    #0f192e 7px,
+    #0f192e 9px
+  );
+  pointer-events: none;
+  border-radius: 9999px;
+}
+
+.hero-foot-val {
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.hero-foot-sub {
+  color: #64748b;
+  font-size: 0.70rem;
+  line-height: 1.2;
+}
+
+/* 4. Banner Inferiore Base */
+.hero-bottom-banner {
+  border-radius: 14px;
+  padding: 11px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.hero-bottom-banner:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.hero-banner-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.hero-banner-green {
+  background: rgba(6, 78, 59, 0.28);
+  border: 1.5px solid rgba(52, 211, 153, 0.4);
+  color: #34d399;
+}
+
+.hero-banner-green .hero-banner-title {
+  color: #34d399;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+}
+
+.hero-banner-green .hero-banner-sub {
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+.hero-banner-green .hero-banner-chevron {
+  color: #34d399;
+}
+
+.hero-banner-cyan {
+  background: rgba(8, 47, 73, 0.28);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+.hero-banner-cyan .hero-banner-title {
+  color: #38bdf8;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+}
+
+.hero-banner-cyan .hero-banner-sub {
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+.hero-banner-cyan .hero-banner-chevron {
+  color: #38bdf8;
+}
+
+.hero-banner-amber {
+  background: rgba(120, 53, 15, 0.28);
+  border: 1.5px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+}
+
+.hero-banner-amber .hero-banner-title {
+  color: #fbbf24;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+}
+
+.hero-banner-amber .hero-banner-sub {
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+.hero-banner-amber .hero-banner-chevron {
+  color: #fbbf24;
+}
+
+/* =========================================================
+   ADATTAZIONI AL CONTESTO (Compatto / Colonna Affiancata a GIF)
+   ========================================================= */
+.rmt-compatto .hero-target-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.rmt-compatto .hero-target-title {
+  font-size: 0.85rem;
+  line-height: 1.1;
+}
+
+.rmt-compatto .hero-target-subtitle {
+  font-size: 0.65rem;
+  line-height: 1.1;
+}
+
+.rmt-compatto .hero-strategia-pill {
+  padding: 2px 7px;
+  height: 22px;
+  border-width: 1px;
+}
+
+.rmt-compatto .hero-strategia-brain {
+  font-size: 0.72rem;
+}
+
+.rmt-compatto .hero-strategia-text {
+  font-size: 0.65rem;
+}
+
+.rmt-compatto .hero-cards-grid {
+  gap: 5px;
+  margin-bottom: 6px !important;
+}
+
+.rmt-compatto .hero-subcard {
+  border-radius: 9px;
+  padding: 6px 6px 5px 6px;
+  min-height: 76px;
+}
+
+.rmt-compatto .hero-card-header {
+  font-size: 0.55rem;
+  letter-spacing: 0.02em;
+  margin-bottom: 2px !important;
+}
+
+.rmt-compatto .hero-card-emoji {
+  font-size: 0.95rem;
+}
+
+.rmt-compatto .hero-metric-val {
+  font-size: 1.12rem;
+  letter-spacing: -0.02em;
+}
+
+.rmt-compatto .hero-metric-unit {
+  font-size: 0.60rem;
+  font-weight: 600;
+}
+
+.rmt-compatto .hero-subcard-line {
+  font-size: 0.52rem;
+  line-height: 1.2;
+}
+
+.rmt-compatto .hero-record-label,
+.rmt-compatto .hero-record-val-yellow,
+.rmt-compatto .hero-subcard-provenienza {
+  font-size: 0.50rem;
+}
+
+.rmt-compatto .hero-progress-card {
+  border-radius: 9px;
+  padding: 6px 8px;
+  margin-bottom: 5px !important;
+}
+
+.rmt-compatto .hero-progress-title {
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+
+.rmt-compatto .hero-progress-val-now,
+.rmt-compatto .hero-progress-val-target {
+  font-size: 0.90rem;
+}
+
+.rmt-compatto .hero-progress-arrow {
+  font-size: 0.80rem;
+}
+
+.rmt-compatto .hero-proximity-pct {
+  font-size: 0.56rem;
+}
+
+.rmt-compatto .hero-segmented-track {
+  height: 7px;
+}
+
+.rmt-compatto .hero-foot-val {
+  font-size: 0.62rem;
+}
+
+.rmt-compatto .hero-foot-sub {
+  font-size: 0.50rem;
+}
+
+.rmt-compatto .hero-bottom-banner {
+  padding: 5px 8px;
+  border-radius: 9px;
+  margin-top: 5px;
+}
+
+.rmt-compatto .hero-banner-icon {
+  font-size: 0.90rem;
+}
+
+.rmt-compatto .hero-banner-title {
+  font-size: 0.65rem;
+}
+
+.rmt-compatto .hero-banner-sub {
+  font-size: 0.58rem;
+}
+
+/* =========================================================
+   ADATTAZIONI AL CONTESTO (Super Compatto)
+   ========================================================= */
+.rmt-super-compatto .hero-target-icon-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+
+.rmt-super-compatto .hero-target-title {
+  font-size: 0.72rem;
+}
+
+.rmt-super-compatto .hero-target-subtitle {
+  font-size: 0.55rem;
+}
+
+.rmt-super-compatto .hero-strategia-pill {
+  padding: 1px 5px;
+  height: 19px;
+}
+
+.rmt-super-compatto .hero-cards-grid {
+  gap: 3px;
+  margin-bottom: 4px !important;
+}
+
+.rmt-super-compatto .hero-subcard {
+  border-radius: 6px;
+  padding: 4px 4px;
+  min-height: 68px;
+}
+
+.rmt-super-compatto .hero-card-header {
+  font-size: 0.50rem;
+  margin-bottom: 1px !important;
+}
+
+.rmt-super-compatto .hero-card-emoji {
+  font-size: 0.85rem;
+}
+
+.rmt-super-compatto .hero-metric-val {
+  font-size: 1.0rem;
+}
+
+.rmt-super-compatto .hero-metric-unit {
+  font-size: 0.52rem;
+}
+
+.rmt-super-compatto .hero-subcard-line {
+  font-size: 0.46rem;
+  line-height: 1.15;
+}
+
+.rmt-super-compatto .hero-record-label,
+.rmt-super-compatto .hero-record-val-yellow,
+.rmt-super-compatto .hero-subcard-provenienza {
+  font-size: 0.45rem;
+}
+
+.rmt-super-compatto .hero-progress-card {
+  border-radius: 6px;
+  padding: 5px 6px;
+  margin-bottom: 4px !important;
+}
+
+.rmt-super-compatto .hero-progress-title {
+  font-size: 0.60rem;
+}
+
+.rmt-super-compatto .hero-progress-val-now,
+.rmt-super-compatto .hero-progress-val-target {
+  font-size: 0.80rem;
+}
+
+.rmt-super-compatto .hero-progress-arrow {
+  font-size: 0.72rem;
+}
+
+.rmt-super-compatto .hero-proximity-pct {
+  font-size: 0.50rem;
+}
+
+.rmt-super-compatto .hero-segmented-track {
+  height: 6px;
+}
+
+.rmt-super-compatto .hero-foot-val {
+  font-size: 0.55rem;
+}
+
+.rmt-super-compatto .hero-foot-sub {
+  font-size: 0.45rem;
+}
+
+.rmt-super-compatto .hero-bottom-banner {
+  padding: 4px 6px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.rmt-super-compatto .hero-banner-icon {
+  font-size: 0.80rem;
+}
+
+.rmt-super-compatto .hero-banner-title {
+  font-size: 0.58rem;
+}
+
+.rmt-super-compatto .hero-banner-sub {
+  font-size: 0.52rem;
+}
+
+/* Container Query Safety for narrow cards */
+@container hero (max-width: 320px) {
+  .hero-target-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+  .hero-target-title {
+    font-size: 0.85rem;
+    line-height: 1.1;
+  }
+  .hero-target-subtitle {
+    font-size: 0.65rem;
+    line-height: 1.1;
+  }
+  .hero-strategia-pill {
+    padding: 2px 7px;
+    height: 22px;
+    border-width: 1px;
+  }
+  .hero-strategia-brain {
+    font-size: 0.72rem;
+  }
+  .hero-strategia-text {
+    font-size: 0.65rem;
+  }
+  .hero-cards-grid {
+    gap: 5px;
+    margin-bottom: 6px !important;
+  }
+  .hero-subcard {
+    border-radius: 9px;
+    padding: 6px 6px 5px 6px;
+    min-height: 76px;
+  }
+  .hero-card-header {
+    font-size: 0.55rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 2px !important;
+  }
+  .hero-card-emoji {
+    font-size: 0.95rem;
+  }
+  .hero-metric-val {
+    font-size: 1.12rem;
+    letter-spacing: -0.02em;
+  }
+  .hero-metric-unit {
+    font-size: 0.60rem;
+    font-weight: 600;
+  }
+  .hero-subcard-line {
+    font-size: 0.52rem;
+    line-height: 1.2;
+  }
+  .hero-record-label,
+  .hero-record-val-yellow,
+  .hero-subcard-provenienza {
+    font-size: 0.50rem;
+  }
+  .hero-progress-card {
+    border-radius: 9px;
+    padding: 6px 8px;
+    margin-bottom: 5px !important;
+  }
+  .hero-progress-title {
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+  .hero-progress-val-now,
+  .hero-progress-val-target {
+    font-size: 0.90rem;
+  }
+  .hero-progress-arrow {
+    font-size: 0.80rem;
+  }
+  .hero-proximity-pct {
+    font-size: 0.56rem;
+  }
+  .hero-segmented-track {
+    height: 7px;
+  }
+  .hero-foot-val {
+    font-size: 0.62rem;
+  }
+  .hero-foot-sub {
+    font-size: 0.50rem;
+  }
+  .hero-bottom-banner {
+    padding: 5px 8px;
+    border-radius: 9px;
+    margin-top: 5px;
+  }
+  .hero-banner-icon {
+    font-size: 0.90rem;
+  }
+  .hero-banner-title {
+    font-size: 0.65rem;
+  }
+  .hero-banner-sub {
+    font-size: 0.58rem;
+  }
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] .rmt-premium-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .hero-subcard,
+[data-theme="light"] .hero-progress-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .hero-target-icon-box {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .hero-target-title,
+[data-theme="light"] .hero-progress-title,
+[data-theme="light"] .hero-progress-val-now,
+[data-theme="light"] .hero-foot-val {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .hero-segmented-track {
+  background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .hero-segmented-overlay {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 7px,
+    #ffffff 7px,
+    #ffffff 9px
+  ) !important;
 }
 
 /* W6 Feedback Box Premium Styling */

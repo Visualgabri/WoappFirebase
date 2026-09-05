@@ -7,7 +7,7 @@
       
       <!-- RIGO PRINCIPALE A DUE COLONNE SIMMETRICHE -->
       <div class="d-flex align-stretch w-100 min-width-0">
-        <!-- COLONNA 1: PR A REPS TARGET (Ambra - Centrato) -->
+        <!-- COLONNA 1: TARGET A REPS PREVISTE (Ambra - Centrato) -->
         <div 
           class="pa-2.5 text-center d-flex flex-column justify-space-between transition-all cursor-pointer select-none min-width-0"
           :class="{ 'card-glow-pr': isCurrentPR }"
@@ -20,38 +20,34 @@
             <!-- Titolo Centrato -->
             <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
               <span class="text-super-caption font-weight-bold uppercase text-truncate text-amber-lighten-1" style="font-size: 0.52rem; letter-spacing: 0.03em;">
-                🏆 {{ `RECORD ${cleanTargetReps} REPS` }}
+                🎯 {{ `TARGET ${cleanTargetReps} REPS` }}
               </span>
               <span v-if="isCurrentPR" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
             </div>
 
-            <!-- Valore Principale: 1RM Stimato in Grande -->
+            <!-- Valore Principale: Carico e Reps in Primo Piano -->
             <div class="d-flex align-center justify-center my-0.5 min-width-0">
               <span class="font-weight-black text-amber-300" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
-                <template v-if="hasPRRecord">
-                  {{ isCorpoLiberoPuro ? prWeightDisplay : (prE1rmDisplay ? `${prE1rmDisplay}` : prWeightDisplay) }}
+                <template v-if="isCorpoLiberoPuro">
+                  {{ prWeightDisplay }}
+                </template>
+                <template v-else-if="todayLoad > 0">
+                  {{ formatWeight(todayLoad) }} <span class="text-super-caption text-muted" style="font-size: 0.58rem;">kg × {{ todayReps }}r</span>
+                </template>
+                <template v-else-if="hasPRRecord">
+                  {{ prWeightDisplay }}
                 </template>
                 <template v-else>
                   --
                 </template>
               </span>
-              <span v-if="hasPRRecord && !isCorpoLiberoPuro && prE1rmDisplay" class="text-super-caption font-weight-bold ml-1 text-amber-200/80" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                1RM
-              </span>
             </div>
 
-            <!-- Dettaglio Sotto: Peso Reale + Reps + Fatica -->
-            <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-0.5" style="line-height: 1.1;">
-              <template v-if="hasPRRecord">
-                <span class="text-super-caption font-weight-bold text-white text-truncate" style="font-size: 0.60rem;">
-                  {{ prWeightDisplay }}
-                </span>
-                <span 
-                  v-if="prRepsDisplay && !isCorpoLiberoPuro" 
-                  class="text-super-caption font-weight-bold text-truncate text-amber-200/90" 
-                  style="font-size: 0.58rem;"
-                >
-                  {{ prRepsDisplay }}
+            <!-- Dettaglio Sotto: E1RM Previsto -->
+            <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-1" style="line-height: 1.1;">
+              <template v-if="!isCorpoLiberoPuro && todayE1RM > 0">
+                <span class="text-super-caption font-weight-bold text-amber-200/90" style="font-size: 0.58rem;">
+                  E1RM {{ isCurrentPR ? 'attuale' : 'previsto' }} ≈ {{ formatWeight(todayE1RM) }} kg
                 </span>
                 <span 
                   v-if="faticaLetter" 
@@ -62,11 +58,31 @@
                   ({{ faticaLetter }})
                 </span>
               </template>
+              <template v-else-if="hasPRRecord">
+                <span class="text-super-caption font-weight-bold text-white text-truncate" style="font-size: 0.60rem;">
+                  {{ prWeightDisplay }}
+                </span>
+                <span v-if="prRepsDisplay && !isCorpoLiberoPuro" class="text-super-caption font-weight-bold text-truncate text-amber-200/90" style="font-size: 0.58rem;">
+                  {{ prRepsDisplay }}
+                </span>
+              </template>
               <template v-else>
                 <span class="text-super-caption text-slate-400 text-truncate" style="font-size: 0.58rem;">
                   1° ciclo a {{ cleanTargetReps }} reps
                 </span>
               </template>
+            </div>
+
+            <!-- Riferimento Teorico: Per eguagliare il record assoluto (secondario, visivamente più piccolo) -->
+            <div 
+              v-if="!isCorpoLiberoPuro && theoreticalTargetLoad > 0 && hasAbsoluteRecord"
+              class="mt-1.5 pt-0.5 text-center text-truncate w-100"
+              style="border-top: 1px dashed rgba(255, 255, 255, 0.08); font-size: 0.48rem; line-height: 1.15; color: rgba(253, 230, 138, 0.85);"
+            >
+              <span class="d-inline-flex align-center justify-center gap-0.5 text-truncate" :title="`Carico teorico a ${cleanTargetReps} reps per eguagliare il record assoluto`">
+                <span class="opacity-80">👑 Per eguagliare il record:</span>
+                <strong class="font-weight-black text-amber-lighten-1">≈ {{ formatWeight(theoreticalTargetLoad) }} kg × {{ cleanTargetReps }}r</strong>
+              </span>
             </div>
           </div>
 
@@ -100,36 +116,42 @@
               <span v-if="isNewPeak" title="Scheda attuale" style="font-size: 0.60rem; line-height: 1;">📋</span>
             </div>
 
-            <!-- Valore Principale: 1RM Storico in Grande -->
+            <!-- Valore Principale: Prestazione Reale Storica che ha generato il record -->
             <div class="d-flex align-center justify-center my-0.5 min-width-0">
               <span class="font-weight-black text-cyan-lighten-2" style="font-size: 1.15rem; line-height: 1.1; letter-spacing: -0.02em;">
-                {{ isCorpoLiberoPuro ? maxAbsoluteWeightDisplay : (bestE1RM?.maxDisplay || maxAbsoluteWeightDisplay) }}
-              </span>
-              <span v-if="!isCorpoLiberoPuro" class="text-super-caption font-weight-bold ml-1 text-cyan-200/80" style="font-size: 0.52rem; letter-spacing: 0.02em;">
-                1RM
+                <template v-if="isCorpoLiberoPuro">
+                  {{ maxAbsoluteWeightDisplay }}
+                </template>
+                <template v-else-if="maxAbsoluteWeightDisplay && maxAbsoluteWeightDisplay !== '-'">
+                  <span class="mr-0.5" style="font-size: 0.85em;">👑</span>
+                  {{ maxAbsoluteWeightDisplay }} <span v-if="maxAbsoluteRepsDisplay" class="text-super-caption text-muted" style="font-size: 0.58rem;">{{ maxAbsoluteRepsDisplay }}</span>
+                </template>
+                <template v-else>
+                  --
+                </template>
               </span>
             </div>
 
-            <!-- Dettaglio Sotto: Peso Reale Max Storico + Reps + Fatica -->
+            <!-- Dettaglio Sotto: E1RM Assoluto + Fatica -->
             <div class="d-flex align-center justify-center text-truncate mt-0.5 gap-0.5" style="line-height: 1.1;">
-              <span class="text-super-caption font-weight-bold text-white text-truncate" style="font-size: 0.60rem;">
-                {{ maxAbsoluteWeightDisplay }}
-              </span>
-              <span 
-                v-if="maxAbsoluteRepsDisplay" 
-                class="text-super-caption font-weight-bold text-truncate text-cyan-200/90" 
-                style="font-size: 0.58rem;"
-              >
-                {{ maxAbsoluteRepsDisplay }}
-              </span>
-              <span 
-                v-if="e1rmFaticaLetter" 
-                class="text-super-caption font-weight-bold text-truncate" 
-                :style="{ color: e1rmFaticaColor, fontSize: '0.58rem' }"
-                :title="`Fatica: ${e1rmFaticaLetter}`"
-              >
-                ({{ e1rmFaticaLetter }})
-              </span>
+              <template v-if="!isCorpoLiberoPuro && bestE1RM?.maxDisplay">
+                <span class="text-super-caption font-weight-bold text-cyan-200/90 text-truncate" style="font-size: 0.58rem;">
+                  E1RM ≈ {{ bestE1RM.maxDisplay }}
+                </span>
+                <span 
+                  v-if="e1rmFaticaLetter" 
+                  class="text-super-caption font-weight-bold text-truncate" 
+                  :style="{ color: e1rmFaticaColor, fontSize: '0.58rem' }"
+                  :title="`Fatica: ${e1rmFaticaLetter}`"
+                >
+                  ({{ e1rmFaticaLetter }})
+                </span>
+              </template>
+              <template v-else>
+                <span class="text-super-caption text-slate-400 text-truncate" style="font-size: 0.58rem;">
+                  Massimo storico
+                </span>
+              </template>
             </div>
           </div>
 
@@ -146,27 +168,35 @@
         </div>
       </div>
 
-      <!-- BARRA PROGRESSO VERSO IL MIGLIOR 1RM STORICO (SENZA TESTI LUNGHI, CON % E KG IN EVIDENZA) -->
+      <!-- BARRA PROGRESSO VERSO IL MIGLIOR 1RM STORICO (PROGRESSO X REPS) -->
       <div 
         v-if="bestE1RM && !isCorpoLiberoPuro && bestE1RM.max1RM > 0" 
         class="px-3 py-1.5 border-top d-flex flex-column gap-1"
         style="background: rgba(2, 6, 23, 0.75); border-color: rgba(255, 255, 255, 0.08) !important;"
       >
         <div class="d-flex align-center justify-space-between w-100">
-          <!-- Percentuale a sinistra -->
-          <div class="d-flex align-center gap-1">
+          <!-- Titolo PROGRESSO X REPS + Carico Odierno -> Carico Teorico a sinistra -->
+          <div class="d-flex align-center gap-1 min-width-0">
             <v-icon size="13" :color="isNewPeak ? 'green-accent-3' : 'cyan-accent-2'">mdi-chart-timeline-variant</v-icon>
             <span 
               class="font-weight-black text-truncate" 
               :class="isNewPeak ? 'text-green-accent-3' : 'text-cyan-accent-2'"
-              style="font-size: 0.72rem; letter-spacing: 0.02em;"
+              style="font-size: 0.68rem; letter-spacing: 0.02em;"
             >
-              {{ isNewPeak ? '100% RECORD RAGGIUNTO' : `${bestE1RM.e1rmProximityPct}% DEL PICCO 1RM` }}
+              <template v-if="isNewPeak">
+                100% NUOVO RECORD ASSOLUTO
+              </template>
+              <template v-else-if="theoreticalTargetLoad > 0 && todayLoad > 0">
+                PROGRESSO {{ cleanTargetReps }} REPS: {{ formatWeight(todayLoad) }} kg → {{ formatWeight(theoreticalTargetLoad) }} kg
+              </template>
+              <template v-else>
+                {{ bestE1RM.e1rmProximityPct }}% DEL RECORD ASSOLUTO
+              </template>
             </span>
           </div>
 
-          <!-- KG mancanti / nuovo record a destra ben in grande -->
-          <div>
+          <!-- KG mancanti / nuovo record a destra -->
+          <div class="flex-shrink-0">
             <span 
               v-if="isNewPeak" 
               class="font-weight-black text-green-accent-3 px-1.5 py-0.5 rounded" 
@@ -175,9 +205,16 @@
               👑 NUOVO PICCO
             </span>
             <span 
+              v-else-if="deltaCaricoKg > 0" 
+              class="font-weight-black text-cyan-lighten-1 px-1.5 py-0.5 rounded" 
+              style="font-size: 0.68rem; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35);"
+            >
+              🎯 Mancano ≈ {{ formatWeight(deltaCaricoKg) }} kg
+            </span>
+            <span 
               v-else-if="bestE1RM.maxDeltaKg" 
               class="font-weight-black text-cyan-lighten-1 px-1.5 py-0.5 rounded" 
-              style="font-size: 0.70rem; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35);"
+              style="font-size: 0.68rem; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35);"
             >
               🎯 -{{ bestE1RM.maxDeltaKg }} kg
             </span>
@@ -191,6 +228,16 @@
           height="3.5"
           rounded
         ></v-progress-linear>
+
+        <!-- Rigo Inferiore: E1RM Odierno -> E1RM Record e % del record assoluto -->
+        <div v-if="!isNewPeak" class="d-flex align-center justify-space-between mt-0.5">
+          <span class="text-super-caption text-muted font-weight-medium" style="font-size: 0.50rem;">
+            E1RM: {{ formatWeight(todayE1RM) }} kg → {{ bestE1RM.maxDisplay }}
+          </span>
+          <span class="text-super-caption font-weight-bold text-cyan-accent-2" style="font-size: 0.52rem;">
+            ≈ {{ bestE1RM.e1rmProximityPct }}% del record assoluto
+          </span>
+        </div>
       </div>
 
     </div>
@@ -228,6 +275,53 @@ const isCorpoLiberoPuro = computed(() => Boolean(props.overviewData?.isCorpoLibe
 
 const cleanTargetReps = computed(() => {
   return String(props.targetReps || 10).replace(/r$/i, '');
+});
+
+// Helper formattazione peso (con virgola italiana)
+const formatWeight = (val) => {
+  if (val === null || val === undefined || val === '') return '';
+  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(',', '.'));
+  if (isNaN(num)) return String(val).replace('.', ',');
+  const rounded = Math.round(num * 10) / 10;
+  return String(rounded).replace('.', ',');
+};
+
+// Dati dinamici coerenti per Target odierno vs Max Assoluto
+const todayLoad = computed(() => {
+  if (isCorpoLiberoPuro.value) return 0;
+  if (bestE1RM.value?.proposalLoad > 0) return bestE1RM.value.proposalLoad;
+  if (bestReal.value?.weight > 0) return bestReal.value.weight;
+  return 0;
+});
+
+const todayReps = computed(() => {
+  const r = parseInt(cleanTargetReps.value, 10);
+  return (!isNaN(r) && r > 0) ? r : (bestReal.value?.reps || 10);
+});
+
+const todayE1RM = computed(() => {
+  if (isCorpoLiberoPuro.value) return 0;
+  if (bestE1RM.value?.currentE1RM > 0) return bestE1RM.value.currentE1RM;
+  if (todayLoad.value > 0) {
+    return Math.round((todayLoad.value * (1 + todayReps.value / 30)) * 10) / 10;
+  }
+  return 0;
+});
+
+const theoreticalTargetLoad = computed(() => {
+  if (isCorpoLiberoPuro.value || !bestE1RM.value?.max1RM) return 0;
+  const max1rm = bestE1RM.value.max1RM;
+  const r = todayReps.value;
+  if (max1rm <= 0 || r <= 0) return 0;
+  const raw = max1rm / (1 + r / 30);
+  return Math.round(raw * 2) / 2; // Arrotonda al mezzo kg
+});
+
+const deltaCaricoKg = computed(() => {
+  if (theoreticalTargetLoad.value > 0 && todayLoad.value > 0) {
+    return Math.max(0, Math.round((theoreticalTargetLoad.value - todayLoad.value) * 10) / 10);
+  }
+  return 0;
 });
 
 // Helper per verificare se un numero di scheda corrisponde alla scheda corrente

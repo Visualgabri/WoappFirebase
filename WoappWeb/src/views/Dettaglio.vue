@@ -9864,7 +9864,7 @@ const calcolaRecordOverviewData = (sett) => {
         if (insVal) {
           const rPrescr = prevEx['reps_week' + w] || estraiRepsDaPrescrizione(prevEx['des_week' + w]);
           const defaultR = rPrescr ? parseInt(rPrescr, 10) : 10;
-          const tokens = String(insVal).split(/[\s,\n;\r]+/);
+          const tokens = String(insVal).split(/[\n;\r]+|,(?!\d)/);
           tokens.forEach(tok => {
             const t = tok.trim();
             if (!t || t.startsWith('(') || t.startsWith('[') || t.startsWith('Note') || t.startsWith('Provato') || t.startsWith('ok')) return;
@@ -9924,7 +9924,7 @@ const calcolaRecordOverviewData = (sett) => {
       const wRepsPrescr = getRepsPerWeek(w);
       const insVal = inputSettimane.value[w]?.ins;
       if (insVal) {
-        const tokens = String(insVal).split(/[\s,\n;\r]+/);
+        const tokens = String(insVal).split(/[\n;\r]+|,(?!\d)/);
         tokens.forEach(tok => {
           const t = tok.trim();
           if (!t || t.startsWith('(') || t.startsWith('[') || t.startsWith('Note') || t.startsWith('Provato') || t.startsWith('ok')) return;

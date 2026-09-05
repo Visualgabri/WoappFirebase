@@ -364,7 +364,7 @@ const hasAbsoluteRecord = computed(() => {
 // Carico PR
 const prWeightDisplay = computed(() => {
   if (!bestReal.value) return '-';
-  return bestReal.value.weightDisplay || (bestReal.value.weight > 0 ? `${bestReal.value.weight} kg` : `${bestReal.value.reps || cleanTargetReps.value}r`);
+  return bestReal.value.weightDisplay || (bestReal.value.weight > 0 ? `${formatWeight(bestReal.value.weight)} kg` : `${bestReal.value.reps || cleanTargetReps.value}r`);
 });
 
 // Carico Reale Max Assoluto (Card 2)
@@ -373,10 +373,10 @@ const maxAbsoluteWeightDisplay = computed(() => {
     return bestE1RM.value?.display || '-';
   }
   if (bestE1RM.value?.rawWeight > 0) {
-    return `${bestE1RM.value.rawWeight} kg`;
+    return `${formatWeight(bestE1RM.value.rawWeight)} kg`;
   }
   if (bestE1RM.value?.max1RM > 0) {
-    return `${bestE1RM.value.max1RM} kg`;
+    return `${formatWeight(bestE1RM.value.max1RM)} kg`;
   }
   return bestE1RM.value?.display || '-';
 });

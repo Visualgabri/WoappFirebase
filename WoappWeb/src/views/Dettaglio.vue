@@ -638,7 +638,7 @@
                     {{ formatWeight(heroRecordComparison.maxWeight) }}
                   </span>
                   <span class="hero-metric-unit">
-                    kg × {{ heroRecordComparison.maxReps }}r
+                    kg × {{ heroRecordComparison.maxReps }}r<template v-if="heroRecordComparison.maxFatica">({{ formatFaticaAbbr(heroRecordComparison.maxFatica) }})</template>
                   </span>
                 </template>
                 <template v-else-if="recordMaxAssolutoInfo && (recordMaxAssolutoInfo.peso > 0 || recordMaxAssolutoInfo.reps > 0)">
@@ -714,7 +714,7 @@
                       <template v-if="heroRecordComparison.isNewPeak">
                         Nuovo +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
                       </template>
-                      <template v-else-if="heroRecordComparison.deltaKg > 0">
+                      <template v-else-if="heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0'">
                         Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
                       </template>
                       <template v-else>
@@ -747,13 +747,13 @@
                 <div class="d-flex flex-column align-end flex-shrink-0 ml-2">
                   <div class="hero-mancano-badge text-center">
                     <span class="hero-mancano-label d-block">
-                      {{ heroRecordComparison.isNewPeak ? 'Nuovo' : (heroRecordComparison.deltaKg > 0 ? 'Mancano ≈' : 'Record') }}
+                      {{ heroRecordComparison.isNewPeak ? 'Nuovo' : ((heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0') ? 'Mancano ≈' : 'Record') }}
                     </span>
                     <span class="hero-mancano-val font-weight-black d-block">
                       <template v-if="heroRecordComparison.isNewPeak">
                         +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
                       </template>
-                      <template v-else-if="heroRecordComparison.deltaKg > 0">
+                      <template v-else-if="heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0'">
                         {{ formatWeight(heroRecordComparison.deltaKg) }} kg
                       </template>
                       <template v-else>
@@ -7497,7 +7497,28 @@ const calcolaDettaglioMassimale1RMPuro = () => {
   let best1RM = 0;
   let bestSource = null;
 
-    // 1. Cerca il miglior 1RM su tutte le schede precedenti (W1-W6), dando priorità alle reps reali eseguite
+  // Fonte dati unica corretta: allinea prioritariamente con suggerimentoRecord (la stessa di "Cosa ho fatto prima")
+  const sug = suggerimentoRecord.value;
+  if (sug && (sug.recordAbsolute > 0 || (isCorpoLibero && (sug.recordAbsoluteReps > 0 || sug.recordRepsValue > 0)))) {
+    const sP = sug.recordAbsolute || 0;
+    const sR = sug.recordAbsoluteReps || sug.recordRepsValue || 0;
+    const sE1 = sug.recordAbsoluteE1RM || (sP > 0 && sR > 0 ? Math.round(calcolaE1RMSmorzato(sP, sR, isCavo) * 10) / 10 : 0);
+    best1RM = sE1;
+    bestSource = {
+      id: sug.recordAbsoluteId || sug.recordAbsoluteItem?.id,
+      peso: sP,
+      rawWeight: sP,
+      reps: sR,
+      rawReps: sR,
+      fatica: sug.recordAbsoluteFatica,
+      numScheda: sug.recordAbsoluteSheet,
+      date: sug.recordAbsoluteDate,
+      tempoTrascorso: tempoTrascorsoBreve(sug.recordAbsoluteDate) || (sug.recordAbsoluteDate ? tempoTrascorso(sug.recordAbsoluteDate) : 'Storico')
+    };
+  }
+
+  // 1. Cerca il miglior 1RM su tutte le schede precedenti (W1-W6) solo se suggerimentoRecord non ha dati
+  if (best1RM === 0 && storicoEsercizio.value && storicoEsercizio.value.length > 0) {
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
       if (!isNaN(sNum) && sNum >= currentNumScheda) return;
@@ -7514,7 +7535,9 @@ const calcolaDettaglioMassimale1RMPuro = () => {
               bestSource = {
                 id: prevEx.id || prevEx.num_riga,
                 peso: perf.peso,
+                rawWeight: perf.peso,
                 reps: perf.reps,
+                rawReps: perf.reps,
                 fatica: (w === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : (prevEx['num_faticaw' + w] || null),
                 numScheda: prevEx.num_scheda,
                 date: dEx,
@@ -7525,6 +7548,7 @@ const calcolaDettaglioMassimale1RMPuro = () => {
         }
       }
     });
+  }
 
   // Se la scheda corrente ha un caricamento registrato in W1..W6
   if (inputSettimane.value) {
@@ -18059,6 +18083,7 @@ const recordMaxAssolutoInfo = computed(() => {
   let weekAtMaxWeight = 0;
   let sheetAtMaxWeight = null;
   let dateAtMaxWeight = null;
+  let faticaAtMaxWeight = null;
   let isCurrentMeso = false;
   let idAtMaxWeight = null;
   let itemAtMaxWeight = null;
@@ -18066,8 +18091,21 @@ const recordMaxAssolutoInfo = computed(() => {
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const currentNumScheda = parseInt(workout.value?.num_scheda);
 
-  // 1. Cerca prima nello storico delle schede passate
-  if (storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+  // 1. Fonte unica corretta: usa prioritariamente suggerimentoRecord (la stessa di "Cosa ho fatto prima")
+  if (suggerimentoRecord.value && (suggerimentoRecord.value.recordAbsolute > 0 || (isCorpoLibero && (suggerimentoRecord.value.recordAbsoluteReps > 0 || suggerimentoRecord.value.recordRepsValue > 0)))) {
+    maxWeight = suggerimentoRecord.value.recordAbsolute || 0;
+    repsAtMaxWeight = suggerimentoRecord.value.recordAbsoluteReps || suggerimentoRecord.value.recordRepsValue || 0;
+    weekAtMaxWeight = suggerimentoRecord.value.recordAbsoluteWeek;
+    sheetAtMaxWeight = suggerimentoRecord.value.recordAbsoluteSheet;
+    dateAtMaxWeight = suggerimentoRecord.value.recordAbsoluteDate;
+    faticaAtMaxWeight = suggerimentoRecord.value.recordAbsoluteFatica;
+    isCurrentMeso = String(suggerimentoRecord.value.recordAbsoluteSheet || '').replace(/\D+/g, '') === String(workout.value?.num_scheda || '').replace(/\D+/g, '');
+    idAtMaxWeight = suggerimentoRecord.value.recordAbsoluteId;
+    itemAtMaxWeight = suggerimentoRecord.value.recordAbsoluteItem;
+  }
+
+  // 2. Fallback: cerca nello storico delle schede passate solo se suggerimentoRecord non ha dati
+  if (maxWeight === 0 && repsAtMaxWeight === 0 && storicoEsercizio.value && storicoEsercizio.value.length > 0) {
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
       if (!isNaN(sNum) && sNum >= currentNumScheda) return;
@@ -18093,6 +18131,7 @@ const recordMaxAssolutoInfo = computed(() => {
                 weekAtMaxWeight = w;
                 sheetAtMaxWeight = prevEx.num_scheda;
                 dateAtMaxWeight = dEx;
+                faticaAtMaxWeight = (w === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : (prevEx['num_faticaw' + w] || null);
                 isCurrentMeso = false;
                 idAtMaxWeight = prevEx.id || prevEx.num_riga;
                 itemAtMaxWeight = prevEx;
@@ -18103,6 +18142,7 @@ const recordMaxAssolutoInfo = computed(() => {
               weekAtMaxWeight = w;
               sheetAtMaxWeight = prevEx.num_scheda;
               dateAtMaxWeight = dEx;
+              faticaAtMaxWeight = (w === 6 && prevEx.num_faticaw6) ? prevEx.num_faticaw6 : (prevEx['num_faticaw' + w] || null);
               isCurrentMeso = false;
               idAtMaxWeight = prevEx.id || prevEx.num_riga;
               itemAtMaxWeight = prevEx;
@@ -18117,29 +18157,6 @@ const recordMaxAssolutoInfo = computed(() => {
         }
       }
     });
-  }
-
-  // 2. Fallback da suggerimentoRecord per lo storico passato se non trovato direttamente
-  if (isCorpoLibero && !haPesoEsercizio.value) {
-    if (repsAtMaxWeight === 0 && (suggerimentoRecord.value?.recordAbsoluteReps > 0 || suggerimentoRecord.value?.recordRepsValue > 0)) {
-      maxWeight = 0;
-      repsAtMaxWeight = suggerimentoRecord.value.recordAbsoluteReps || suggerimentoRecord.value.recordRepsValue;
-      weekAtMaxWeight = suggerimentoRecord.value.recordAbsoluteWeek;
-      sheetAtMaxWeight = suggerimentoRecord.value.recordAbsoluteSheet;
-      dateAtMaxWeight = suggerimentoRecord.value.recordAbsoluteDate;
-      isCurrentMeso = false;
-      idAtMaxWeight = suggerimentoRecord.value.recordAbsoluteId;
-      itemAtMaxWeight = suggerimentoRecord.value.recordAbsoluteItem;
-    }
-  } else if (maxWeight === 0 && suggerimentoRecord.value?.recordAbsolute > 0) {
-    maxWeight = suggerimentoRecord.value.recordAbsolute;
-    repsAtMaxWeight = suggerimentoRecord.value.recordAbsoluteReps || 0;
-    weekAtMaxWeight = suggerimentoRecord.value.recordAbsoluteWeek;
-    sheetAtMaxWeight = suggerimentoRecord.value.recordAbsoluteSheet;
-    dateAtMaxWeight = suggerimentoRecord.value.recordAbsoluteDate;
-    isCurrentMeso = false;
-    idAtMaxWeight = suggerimentoRecord.value.recordAbsoluteId;
-    itemAtMaxWeight = suggerimentoRecord.value.recordAbsoluteItem;
   }
 
   // 3. Cerca nel mesociclo corrente W1-W6: assegna "questa scheda" SOLO SE supera strettamente lo storico
@@ -18195,6 +18212,7 @@ const recordMaxAssolutoInfo = computed(() => {
     week: weekAtMaxWeight,
     sheet: sheetAtMaxWeight,
     date: dateAtMaxWeight,
+    fatica: faticaAtMaxWeight,
     isCurrentMeso,
     id: idAtMaxWeight,
     item: itemAtMaxWeight
@@ -18252,7 +18270,8 @@ const heroRecordComparison = computed(() => {
     ? Math.round(calcolaE1RMSmorzato(todayWeight, todayReps, isCavo) * 10) / 10
     : 0;
 
-  // 3. Max Assoluto Storico (reale esecuzione)
+  // 3. Max Assoluto Storico (reale esecuzione) - FONTE UNICA CORRETTA: suggerimentoRecord (identica a 'Cosa ho fatto prima')
+  const sug = suggerimentoRecord.value;
   const overviewE1RM = recordOverviewData.value?.bestE1RM;
   const maxInfo = recordMaxAssolutoInfo.value;
 
@@ -18261,22 +18280,33 @@ const heroRecordComparison = computed(() => {
   let maxE1RM = 0;
   let maxSheet = null;
   let maxDate = null;
+  let maxFatica = null;
   let isMaxCurrentMeso = false;
 
-  if (overviewE1RM && (overviewE1RM.rawWeight > 0 || overviewE1RM.max1RM > 0)) {
-    maxWeight = overviewE1RM.rawWeight || maxInfo?.peso || 0;
-    maxReps = overviewE1RM.rawReps || maxInfo?.reps || 0;
-    maxE1RM = overviewE1RM.max1RM || (maxWeight > 0 && maxReps > 0 ? Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10 : 0);
-    maxSheet = overviewE1RM.sheet || maxInfo?.sheet;
-    maxDate = overviewE1RM.date || maxInfo?.date;
-    isMaxCurrentMeso = Boolean(overviewE1RM.isCurrent || maxInfo?.isCurrentMeso);
-  } else if (maxInfo && maxInfo.peso > 0) {
-    maxWeight = maxInfo.peso;
-    maxReps = maxInfo.reps;
+  if (sug && (sug.recordAbsolute > 0 || (isCorpoLibero && (sug.recordAbsoluteReps > 0 || sug.recordRepsValue > 0)))) {
+    maxWeight = sug.recordAbsolute || 0;
+    maxReps = sug.recordAbsoluteReps || sug.recordRepsValue || 0;
+    maxE1RM = sug.recordAbsoluteE1RM || (maxWeight > 0 && maxReps > 0 ? Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10 : 0);
+    maxSheet = sug.recordAbsoluteSheet;
+    maxDate = sug.recordAbsoluteDate;
+    maxFatica = sug.recordAbsoluteFatica;
+    isMaxCurrentMeso = String(sug.recordAbsoluteSheet || '').replace(/\D+/g, '') === String(workout.value?.num_scheda || '').replace(/\D+/g, '');
+  } else if (maxInfo && (maxInfo.peso > 0 || maxInfo.reps > 0)) {
+    maxWeight = maxInfo.peso || 0;
+    maxReps = maxInfo.reps || 0;
     maxE1RM = Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10;
     maxSheet = maxInfo.sheet;
     maxDate = maxInfo.date;
+    maxFatica = maxInfo.fatica;
     isMaxCurrentMeso = Boolean(maxInfo.isCurrentMeso);
+  } else if (overviewE1RM && (overviewE1RM.rawWeight > 0 || overviewE1RM.max1RM > 0)) {
+    maxWeight = overviewE1RM.rawWeight || 0;
+    maxReps = overviewE1RM.rawReps || 0;
+    maxE1RM = overviewE1RM.max1RM || (maxWeight > 0 && maxReps > 0 ? Math.round(calcolaE1RMSmorzato(maxWeight, maxReps, isCavo) * 10) / 10 : 0);
+    maxSheet = overviewE1RM.sheet;
+    maxDate = overviewE1RM.date;
+    maxFatica = overviewE1RM.fatica;
+    isMaxCurrentMeso = Boolean(overviewE1RM.isCurrent);
   }
 
   const hasMaxAssoluto = maxE1RM > 0 && (maxWeight > 0 || maxReps > 0);
@@ -18288,7 +18318,7 @@ const heroRecordComparison = computed(() => {
     if (rawPesoTeorico > 0) {
       const step = stepKg > 0 ? stepKg : 1.0;
       if (step <= 1.0) {
-        caricoTeoricoEguaglia = Math.round(rawPesoTeorico * 2) / 2;
+        caricoTeoricoEguaglia = Math.round(rawPesoTeorico * 4) / 4;
       } else {
         caricoTeoricoEguaglia = Math.round(rawPesoTeorico / step) * step;
       }
@@ -18296,38 +18326,53 @@ const heroRecordComparison = computed(() => {
     }
   }
 
-  // 5. Progresso, Delta e Percentuale
+  // 5. Progresso, Delta e Percentuale con visione realistica da palestra
   let deltaKg = 0;
   let proximityPct = 0;
   let isNewPeak = false;
   let isEqualedPeak = false;
 
   if (hasMaxAssoluto && todayE1RM > 0) {
-    if (todayE1RM > maxE1RM && isLogged) {
+    const rawDeltaKg = Math.round((caricoTeoricoEguaglia - todayWeight) * 10) / 10;
+    // Se la differenza è microscopica (pochi decimali <= 0.25kg) o todayWeight è già pari o superiore al carico per eguagliare
+    const isQuasiEguagliato = (rawDeltaKg <= 0.25 || todayWeight >= caricoTeoricoEguaglia) && (todayE1RM >= maxE1RM - 0.25);
+
+    if (todayE1RM > maxE1RM + 0.25 && isLogged) {
       isNewPeak = true;
       proximityPct = 100;
       deltaKg = Math.round((todayWeight - caricoTeoricoEguaglia) * 10) / 10;
-    } else if (todayE1RM === maxE1RM) {
+    } else if (todayE1RM >= maxE1RM || isQuasiEguagliato) {
+      // Visione realistica: allinea il tutto al 100% senza mostrare "mancano 0 kg"
       isEqualedPeak = true;
       proximityPct = 100;
       deltaKg = 0;
+      if (Math.abs(caricoTeoricoEguaglia - todayWeight) <= 0.25 || todayWeight >= caricoTeoricoEguaglia) {
+        caricoTeoricoEguaglia = todayWeight;
+      }
     } else {
       proximityPct = Math.min(100, Math.round((todayE1RM / maxE1RM) * 100));
-      if (caricoTeoricoEguaglia > 0 && todayWeight > 0) {
-        deltaKg = Math.max(0, Math.round((caricoTeoricoEguaglia - todayWeight) * 10) / 10);
+      deltaKg = Math.max(0, rawDeltaKg);
+      // Se il delta arrotondato risulta '0' o è sotto la soglia di frazione reale in palestra (<= 0.2 kg), allinea a eguagliato
+      if (deltaKg <= 0.2 || formatWeight(deltaKg) === '0') {
+        deltaKg = 0;
+        isEqualedPeak = true;
+        proximityPct = 100;
+        if (Math.abs(caricoTeoricoEguaglia - todayWeight) <= 0.25 || todayWeight >= caricoTeoricoEguaglia) {
+          caricoTeoricoEguaglia = todayWeight;
+        }
       }
     }
   } else if (todayE1RM > 0) {
     proximityPct = 100;
   }
 
-  // Provenienza Max formattata (es: "2m fa · Sch. 4")
+  // Provenienza Max formattata (es: "4m fa · Sch. 66")
   let maxProvenienza = 'Storico';
   if (isMaxCurrentMeso) {
     maxProvenienza = 'questa scheda';
   } else {
     const sNum = maxSheet ? `Sch. ${String(maxSheet).replace(/\D+/g, '') || maxSheet}` : '';
-    const tAgo = maxDate ? tempoTrascorsoBreve(maxDate) : '';
+    const tAgo = maxDate ? (tempoTrascorsoBreve(maxDate) || tempoTrascorso(maxDate)) : '';
     if (tAgo && sNum) {
       maxProvenienza = `${tAgo} · ${sNum}`;
     } else if (tAgo) {
@@ -18348,6 +18393,7 @@ const heroRecordComparison = computed(() => {
     maxWeight,
     maxReps,
     maxE1RM,
+    maxFatica,
     maxProvenienza,
     isMaxCurrentMeso,
     caricoTeoricoEguaglia,

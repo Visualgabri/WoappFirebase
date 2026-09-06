@@ -2261,52 +2261,90 @@
               class="rounded-xl"
             ></v-text-field>
 
-            <!-- Chip Filtri -->
-            <div class="d-flex align-center gap-1.5 overflow-x-auto pb-1 no-scrollbar flex-wrap">
-              <v-chip
-                size="small"
-                variant="flat"
-                class="font-weight-black cursor-pointer modal-filter-chip"
-                :class="{ 'active active-amber': filtroGradimenti === 'tutti' }"
-                :color="filtroGradimenti === 'tutti' ? 'amber-darken-3' : undefined"
-                style="font-size: 0.68rem; height: 26px;"
-                @click="filtroGradimenti = 'tutti'"
-              >
-                Tutti ({{ tuttiEserciziMesociclo.length }})
-              </v-chip>
+            <!-- Chip Filtri Giorno e Voti -->
+            <div class="d-flex flex-column gap-1.5">
+              <!-- Riga 1: Filtro Giorni -->
+              <div class="d-flex align-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar flex-nowrap">
+                <v-chip
+                  size="small"
+                  variant="flat"
+                  class="font-weight-black cursor-pointer modal-filter-chip flex-shrink-0"
+                  :class="{ 'active active-amber': filtroGradimentiGiorno === 'tutti' }"
+                  :color="filtroGradimentiGiorno === 'tutti' ? 'amber-darken-3' : undefined"
+                  style="font-size: 0.68rem; height: 26px;"
+                  @click="filtroGradimentiGiorno = 'tutti'"
+                >
+                  Tutti ({{ tuttiEserciziMesociclo.length }})
+                </v-chip>
 
-              <v-chip
-                size="small"
-                variant="flat"
-                class="font-weight-black cursor-pointer modal-filter-chip"
-                :class="{ 'active active-red': filtroGradimenti === 'mancanti' }"
-                :color="filtroGradimenti === 'mancanti' ? 'red-darken-3' : undefined"
-                style="font-size: 0.68rem; height: 26px;"
-                @click="filtroGradimenti = 'mancanti'"
-              >
-                <v-icon size="13" class="mr-1" color="red-lighten-2">mdi-alert-circle-outline</v-icon>
-                Senza Voto ({{ eserciziSenzaGradimento.length }})
-              </v-chip>
+                <v-chip
+                  v-for="g in ['A', 'B', 'C', 'D'].filter(day => conteggioGradimentiPerGiorno[day] && conteggioGradimentiPerGiorno[day].total > 0)"
+                  :key="g"
+                  size="small"
+                  variant="flat"
+                  class="font-weight-black cursor-pointer modal-filter-chip flex-shrink-0"
+                  :class="{ 'active active-orange': filtroGradimentiGiorno === g }"
+                  :color="filtroGradimentiGiorno === g ? 'orange-darken-3' : undefined"
+                  style="font-size: 0.68rem; height: 26px;"
+                  @click="filtroGradimentiGiorno = (filtroGradimentiGiorno === g ? 'tutti' : g)"
+                >
+                  {{ g }} ({{ conteggioGradimentiPerGiorno[g].voted }}/{{ conteggioGradimentiPerGiorno[g].total }})
+                </v-chip>
+              </div>
 
-              <v-chip
-                v-for="g in ['A', 'B', 'C', 'D'].filter(day => conteggioGradimentiPerGiorno[day] && conteggioGradimentiPerGiorno[day].total > 0)"
-                :key="g"
-                size="small"
-                variant="flat"
-                class="font-weight-black cursor-pointer modal-filter-chip"
-                :class="{ 'active active-orange': filtroGradimenti === g }"
-                :color="filtroGradimenti === g ? 'orange-darken-3' : undefined"
-                style="font-size: 0.68rem; height: 26px;"
-                @click="filtroGradimenti = g"
-              >
-                {{ g }} ({{ conteggioGradimentiPerGiorno[g].voted }}/{{ conteggioGradimentiPerGiorno[g].total }})
-              </v-chip>
+              <!-- Riga 2: Filtro per Voto (1-5 e Senza Voto) -->
+              <div class="d-flex align-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar flex-nowrap">
+                <v-chip
+                  size="small"
+                  variant="flat"
+                  class="font-weight-black cursor-pointer modal-filter-chip flex-shrink-0"
+                  :class="{ 'active active-amber': filtroGradimentiVoto === 'tutti' }"
+                  :color="filtroGradimentiVoto === 'tutti' ? 'amber-darken-3' : undefined"
+                  style="font-size: 0.68rem; height: 26px;"
+                  @click="filtroGradimentiVoto = 'tutti'"
+                >
+                  Tutti i voti
+                </v-chip>
+
+                <v-chip
+                  size="small"
+                  variant="flat"
+                  class="font-weight-black cursor-pointer modal-filter-chip flex-shrink-0"
+                  :class="{ 'active active-red': filtroGradimentiVoto === 'mancanti' }"
+                  :color="filtroGradimentiVoto === 'mancanti' ? 'red-darken-3' : undefined"
+                  style="font-size: 0.68rem; height: 26px;"
+                  @click="filtroGradimentiVoto = (filtroGradimentiVoto === 'mancanti' ? 'tutti' : 'mancanti')"
+                >
+                  <v-icon size="13" class="mr-1" color="red-lighten-2">mdi-alert-circle-outline</v-icon>
+                  Senza Voto ({{ conteggioVotiGradimenti.missing }})
+                </v-chip>
+
+                <v-chip
+                  v-for="v in [
+                    { val: '1', label: '😡 1', color: 'red-darken-3', activeClass: 'active-red' },
+                    { val: '2', label: '😕 2', color: 'deep-orange-darken-2', activeClass: 'active-orange' },
+                    { val: '3', label: '😐 3', color: 'amber-darken-3', activeClass: 'active-amber' },
+                    { val: '4', label: '🙂 4', color: 'light-green-darken-3', activeClass: 'active-lime' },
+                    { val: '5', label: '🤩 5', color: 'teal-darken-3', activeClass: 'active-emerald' }
+                  ]"
+                  :key="v.val"
+                  size="small"
+                  variant="flat"
+                  class="font-weight-black cursor-pointer modal-filter-chip flex-shrink-0"
+                  :class="{ ['active ' + v.activeClass]: filtroGradimentiVoto === v.val }"
+                  :color="filtroGradimentiVoto === v.val ? v.color : undefined"
+                  style="font-size: 0.68rem; height: 26px;"
+                  @click="filtroGradimentiVoto = (filtroGradimentiVoto === v.val ? 'tutti' : v.val)"
+                >
+                  {{ v.label }} ({{ conteggioVotiGradimenti[v.val] || 0 }})
+                </v-chip>
+              </div>
             </div>
           </div>
 
           <!-- Lista Esercizi per Gradimento Rapido -->
           <div v-if="eserciziGradimentiFiltrati.length === 0" class="text-center py-8 text-muted card-glass rounded-xl pa-4">
-            <template v-if="filtroGradimenti === 'mancanti' && eserciziSenzaGradimento.length === 0">
+            <template v-if="filtroGradimentiVoto === 'mancanti' && conteggioVotiGradimenti.missing === 0">
               <v-icon size="48" color="green-accent-4" class="mb-2 animate-bounce">mdi-check-decagram</v-icon>
               <h4 class="text-subtitle-1 font-weight-black text-green-lighten-2 mb-1">
                 Tutti i gradimenti completati!
@@ -2320,6 +2358,16 @@
               <p class="text-caption text-slate font-weight-medium mb-0">
                 Nessun esercizio trovato con i filtri selezionati.
               </p>
+              <v-btn
+                v-if="filtroGradimentiGiorno !== 'tutti' || filtroGradimentiVoto !== 'tutti' || (ricercaGradimenti && ricercaGradimenti.trim())"
+                variant="text"
+                size="x-small"
+                color="amber-lighten-2"
+                class="mt-2 text-none font-weight-bold"
+                @click="resettaFiltriGradimenti"
+              >
+                Reimposta filtri
+              </v-btn>
             </template>
           </div>
 
@@ -4391,7 +4439,31 @@ const mesocicloCompletato = computed(() => {
 // ═══════════════════════════════════════════════════════════════════
 
 const dialogGradimenti = ref(false);
-const filtroGradimenti = ref('tutti'); // 'tutti' | 'mancanti' | 'A' | 'B' | 'C' | 'D'
+const filtroGradimentiGiorno = ref('tutti'); // 'tutti' | 'A' | 'B' | 'C' | 'D'
+const filtroGradimentiVoto = ref('tutti'); // 'tutti' | 'mancanti' | '1' | '2' | '3' | '4' | '5'
+
+// Proprietà computata con getter e setter per retrocompatibilità con chiamate a filtroGradimenti
+const filtroGradimenti = computed({
+  get: () => {
+    if (filtroGradimentiVoto.value !== 'tutti') return filtroGradimentiVoto.value;
+    return filtroGradimentiGiorno.value;
+  },
+  set: (val) => {
+    if (val === 'mancanti') {
+      filtroGradimentiVoto.value = 'mancanti';
+      filtroGradimentiGiorno.value = 'tutti';
+    } else if (['1', '2', '3', '4', '5'].includes(String(val))) {
+      filtroGradimentiVoto.value = String(val);
+    } else if (['A', 'B', 'C', 'D'].includes(val)) {
+      filtroGradimentiGiorno.value = val;
+      filtroGradimentiVoto.value = 'tutti';
+    } else {
+      filtroGradimentiGiorno.value = 'tutti';
+      filtroGradimentiVoto.value = 'tutti';
+    }
+  }
+});
+
 const ricercaGradimenti = ref('');
 const dialogPropostaGradimentiFineMesociclo = ref(false);
 const salvataggioGradimentoInCorso = ref(null);
@@ -4465,19 +4537,55 @@ const conteggioGradimentiPerGiorno = computed(() => {
   return counts;
 });
 
-// Esercizi filtrati per la vista rapida gradimenti
+// Conteggio voti dinamico per il giorno attualmente selezionato (o mesociclo intero se 'tutti')
+const conteggioVotiGradimenti = computed(() => {
+  const baseList = ['A', 'B', 'C', 'D'].includes(filtroGradimentiGiorno.value)
+    ? tuttiEserciziMesociclo.value.filter(ex => (ex.des_giorno || '').trim().toUpperCase() === filtroGradimentiGiorno.value)
+    : tuttiEserciziMesociclo.value;
+
+  const counts = {
+    total: baseList.length,
+    missing: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0
+  };
+
+  baseList.forEach(ex => {
+    const v = parseInt(ex.ind_reps_start);
+    if (!isNaN(v) && v >= 1 && v <= 5) {
+      counts[v] = (counts[v] || 0) + 1;
+    } else {
+      counts.missing++;
+    }
+  });
+
+  return counts;
+});
+
+// Esercizi filtrati per la vista rapida gradimenti (combinazione giorno, voto e ricerca)
 const eserciziGradimentiFiltrati = computed(() => {
   let list = tuttiEserciziMesociclo.value;
   
-  if (filtroGradimenti.value === 'mancanti') {
+  // 1. Filtro Giorno
+  if (['A', 'B', 'C', 'D'].includes(filtroGradimentiGiorno.value)) {
+    list = list.filter(ex => (ex.des_giorno || '').trim().toUpperCase() === filtroGradimentiGiorno.value);
+  }
+
+  // 2. Filtro Voto
+  if (filtroGradimentiVoto.value === 'mancanti') {
     list = list.filter(ex => {
       const v = parseInt(ex.ind_reps_start);
       return isNaN(v) || v < 1 || v > 5;
     });
-  } else if (['A', 'B', 'C', 'D'].includes(filtroGradimenti.value)) {
-    list = list.filter(ex => (ex.des_giorno || '').trim().toUpperCase() === filtroGradimenti.value);
+  } else if (['1', '2', '3', '4', '5'].includes(String(filtroGradimentiVoto.value))) {
+    const target = parseInt(filtroGradimentiVoto.value);
+    list = list.filter(ex => parseInt(ex.ind_reps_start) === target);
   }
 
+  // 3. Ricerca testuale per nome, settore o giorno
   if (ricercaGradimenti.value && ricercaGradimenti.value.trim()) {
     const q = ricercaGradimenti.value.toLowerCase().trim();
     list = list.filter(ex => {
@@ -4491,11 +4599,30 @@ const eserciziGradimentiFiltrati = computed(() => {
   return list;
 });
 
+// Reset rapido di tutti i filtri gradimenti
+const resettaFiltriGradimenti = () => {
+  filtroGradimentiGiorno.value = 'tutti';
+  filtroGradimentiVoto.value = 'tutti';
+  ricercaGradimenti.value = '';
+};
+
 // Apertura modale gradimenti con filtro specificato
 const apriDialogGradimenti = (filtro = 'tutti') => {
   vibraTattile(12);
-  filtroGradimenti.value = filtro;
   ricercaGradimenti.value = '';
+  if (filtro === 'mancanti') {
+    filtroGradimentiGiorno.value = 'tutti';
+    filtroGradimentiVoto.value = 'mancanti';
+  } else if (['A', 'B', 'C', 'D'].includes(filtro)) {
+    filtroGradimentiGiorno.value = filtro;
+    filtroGradimentiVoto.value = 'tutti';
+  } else if (['1', '2', '3', '4', '5'].includes(String(filtro))) {
+    filtroGradimentiGiorno.value = 'tutti';
+    filtroGradimentiVoto.value = String(filtro);
+  } else {
+    filtroGradimentiGiorno.value = 'tutti';
+    filtroGradimentiVoto.value = 'tutti';
+  }
   dialogGradimenti.value = true;
 };
 

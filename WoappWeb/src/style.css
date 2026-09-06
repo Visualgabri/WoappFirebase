@@ -502,6 +502,54 @@
   background: rgba(255, 255, 255, 0.08) !important;
   color: var(--text-slate) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+.modal-filter-chip.active {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.modal-filter-chip.active-amber {
+  background: #d97706 !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4) !important;
+}
+
+.modal-filter-chip.active-red {
+  background: #dc2626 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4) !important;
+}
+
+.modal-filter-chip.active-orange {
+  background: #ea580c !important;
+  border-color: #f97316 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.4) !important;
+}
+
+.modal-filter-chip.active-lime {
+  background: #65a30d !important;
+  border-color: #84cc16 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(101, 163, 13, 0.4) !important;
+}
+
+.modal-filter-chip.active-emerald {
+  background: #059669 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4) !important;
+}
+
+.modal-filter-chip.active-green {
+  background: #16a34a !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4) !important;
 }
 
 [data-theme="light"] .modal-filter-chip {
@@ -539,6 +587,20 @@
   border-color: #c2410c !important;
   color: #ffffff !important;
   box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3) !important;
+}
+
+[data-theme="light"] .modal-filter-chip.active-lime {
+  background: #65a30d !important;
+  border-color: #4d7c0f !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(101, 163, 13, 0.3) !important;
+}
+
+[data-theme="light"] .modal-filter-chip.active-emerald {
+  background: #059669 !important;
+  border-color: #047857 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3) !important;
 }
 
 [data-theme="light"] .modal-filter-chip.active-green {

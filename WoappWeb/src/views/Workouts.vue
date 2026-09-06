@@ -6308,6 +6308,7 @@ const caricaAllenamenti = async () => {
 
   if (!loadingStoryboard.value) {
     caricamento.value = false;
+    gestisciNavigazioneDaQuery();
   }
 };
 
@@ -7000,13 +7001,13 @@ const gestisciNavigazioneDaQuery = () => {
     });
   }
 
-  if (qAction && !caricamento.value) {
+  if (qAction) {
     const actionToRun = String(qAction).toLowerCase();
     const filtroToRun = route.query?.filtro;
     // Pulisci query params per prevenire riaperture indesiderate su refresh
     router.replace({ query: { ...route.query, action: undefined, filtro: undefined } });
 
-    nextTick(() => {
+    const openAction = () => {
       if (actionToRun === 'gradimenti' || actionToRun === 'gradimenti_mancanti') {
         const f = actionToRun === 'gradimenti_mancanti' ? 'mancanti' : (filtroToRun || 'tutti');
         apriDialogGradimenti(f);
@@ -7020,7 +7021,13 @@ const gestisciNavigazioneDaQuery = () => {
       } else if (actionToRun === 'menu' || actionToRun === 'azioni') {
         sheetAzioniScheda.value = true;
       }
-    });
+    };
+
+    if (caricamento.value) {
+      setTimeout(openAction, 250);
+    } else {
+      nextTick(openAction);
+    }
   }
 };
 

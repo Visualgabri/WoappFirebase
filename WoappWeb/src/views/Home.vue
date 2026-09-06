@@ -406,17 +406,17 @@
             </v-col>
           </v-row>
 
-          <!-- Feedback & Azioni Rapide Mesociclo (Soluzione Ibrida Touch-Friendly) -->
+          <!-- Feedback & Verifiche Scheda (Dashboard Action Cards coerenti col contesto) -->
           <div class="text-left mb-2.5 d-flex align-center justify-space-between">
             <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.62rem;">
-              Feedback & Azioni Scheda
+              Feedback & Verifiche Scheda
             </span>
             <v-chip 
               v-if="numeroTotaleAzioniInAttesaHome > 0" 
               size="x-small" 
               color="amber-darken-3" 
               variant="flat" 
-              class="font-weight-black px-2 py-0 text-white animate-pulse"
+              class="font-weight-black px-1.5 py-0 text-white animate-pulse"
               style="height: 18px; font-size: 0.58rem;"
             >
               {{ numeroTotaleAzioniInAttesaHome }} in attesa
@@ -426,154 +426,102 @@
               size="x-small" 
               color="green-darken-3" 
               variant="flat" 
-              class="font-weight-black px-2 py-0 text-white"
+              class="font-weight-black px-1.5 py-0 text-white"
               style="height: 18px; font-size: 0.58rem;"
             >
               Tutto Aggiornato ✓
             </v-chip>
           </div>
 
-          <div class="d-flex flex-column gap-2.5 mb-5">
-            <!-- 1. GRADIMENTI & FEELING ESERCIZI -->
-            <v-card 
-              class="home-action-touch-card rounded-2xl pa-3.5 text-left d-flex align-center justify-space-between"
-              :class="{ 'is-pending': eserciziSenzaGradimentoHome.length > 0 }"
-              @click="navigaVersoWorkout('gradimenti')"
-              id="home-card-gradimenti"
-            >
-              <div class="d-flex align-center gap-3 min-width-0">
-                <v-avatar color="amber-lighten-5" size="44" class="border-amber flex-shrink-0">
-                  <v-icon color="amber-darken-3" size="24">mdi-star</v-icon>
+          <v-row dense class="mb-5">
+            <!-- 1. GRADIMENTI E FEELING -->
+            <v-col cols="4" class="pa-1">
+              <v-card 
+                class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-coaching text-center align-center clickable-stat-card" 
+                style="height: 110px !important;"
+                @click="vibraTattile(12); mostraDialogGradimentiHome = true"
+                id="home-card-gradimenti"
+              >
+                <v-avatar color="amber-lighten-5" size="28" class="action-avatar border-amber mb-1">
+                  <v-icon color="amber-darken-3" size="14">mdi-star</v-icon>
                 </v-avatar>
-                <div class="min-width-0">
-                  <div class="d-flex align-center gap-1.5 flex-wrap">
-                    <span class="text-body-2 font-weight-black text-slate-dark">Gradimenti & Feeling</span>
-                    <v-chip 
-                      v-if="eserciziSenzaGradimentoHome.length > 0" 
-                      size="x-small" 
-                      color="amber-darken-4" 
-                      variant="flat" 
-                      class="font-weight-black text-white px-1.5 py-0"
-                      style="height: 18px; font-size: 0.6rem;"
-                    >
-                      {{ eserciziSenzaGradimentoHome.length }} da votare
-                    </v-chip>
-                    <v-chip 
-                      v-else-if="tuttiEserciziMesocicloHome.length > 0" 
-                      size="x-small" 
-                      color="green-darken-3" 
-                      variant="flat" 
-                      class="font-weight-black text-white px-1.5 py-0"
-                      style="height: 18px; font-size: 0.6rem;"
-                    >
-                      100% Votati 🎉
-                    </v-chip>
+                <div class="text-center w-100">
+                  <div class="text-h6 font-weight-black text-amber-lighten-1 mt-0.5 leading-none">
+                    {{ eserciziSenzaGradimentoHome.length > 0 ? eserciziSenzaGradimentoHome.length : (mediaGradimentiHome > 0 ? mediaGradimentiHome + '★' : '100%') }}
                   </div>
-                  <div class="text-caption text-muted mt-0.5 text-truncate">
-                    <span v-if="eserciziSenzaGradimentoHome.length > 0">
-                      {{ eserciziConGradimentoHome.length }} di {{ tuttiEserciziMesocicloHome.length }} valutati • Vota per il Coach
-                    </span>
-                    <span v-else-if="tuttiEserciziMesocicloHome.length > 0" class="text-green-darken-2 font-weight-bold">
-                      Feedback completo • Media gradimento: {{ mediaGradimentiHome }}/5 ⭐
-                    </span>
-                    <span v-else>
-                      Nessun esercizio da valutare
-                    </span>
+                  <div class="text-super-caption text-muted font-weight-bold mt-1 text-truncate" style="font-size: 0.56rem !important;">
+                    {{ eserciziSenzaGradimentoHome.length > 0 ? (eserciziSenzaGradimentoHome.length === 1 ? 'Da Votare' : 'Da Votare') : 'Gradimenti' }}
                   </div>
                 </div>
-              </div>
-              <div class="d-flex align-center gap-1 flex-shrink-0 ml-2">
-                <v-icon color="grey-lighten-1" size="22">mdi-chevron-right</v-icon>
-              </div>
-            </v-card>
+              </v-card>
+            </v-col>
 
             <!-- 2. VERIFICA CARICHI W6 & FATICA -->
-            <v-card 
-              class="home-action-touch-card rounded-2xl pa-3.5 text-left d-flex align-center justify-space-between"
-              :class="{ 'is-pending': eserciziIncompletiW6Home.length > 0 }"
-              @click="navigaVersoWorkout('w6')"
-              id="home-card-insw6-fatica"
-            >
-              <div class="d-flex align-center gap-3 min-width-0">
-                <v-avatar color="deep-orange-lighten-5" size="44" class="border-deep-orange flex-shrink-0">
-                  <v-icon color="deep-orange-darken-2" size="24">mdi-lightning-bolt</v-icon>
+            <v-col cols="4" class="pa-1">
+              <v-card 
+                class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-energy text-center align-center clickable-stat-card" 
+                style="height: 110px !important;"
+                @click="vibraTattile(12); mostraDialogInsW6FaticaHome = true"
+                id="home-card-insw6-fatica"
+              >
+                <v-avatar color="deep-orange-lighten-5" size="28" class="action-avatar border-deep-orange mb-1">
+                  <v-icon color="deep-orange-darken-2" size="14">mdi-lightning-bolt</v-icon>
                 </v-avatar>
-                <div class="min-width-0">
-                  <div class="d-flex align-center gap-1.5 flex-wrap">
-                    <span class="text-body-2 font-weight-black text-slate-dark">Verifica Carichi W6 & Fatica</span>
-                    <v-chip 
-                      v-if="eserciziIncompletiW6Home.length > 0" 
-                      size="x-small" 
-                      color="deep-orange-darken-3" 
-                      variant="flat" 
-                      class="font-weight-black text-white px-1.5 py-0"
-                      style="height: 18px; font-size: 0.6rem;"
-                    >
-                      {{ eserciziIncompletiW6Home.length }} incompleti
-                    </v-chip>
-                    <v-chip 
-                      v-else-if="eserciziEligibiliW6Home.length > 0" 
-                      size="x-small" 
-                      color="green-darken-3" 
-                      variant="flat" 
-                      class="font-weight-black text-white px-1.5 py-0"
-                      style="height: 18px; font-size: 0.6rem;"
-                    >
-                      100% Completo ✓
-                    </v-chip>
+                <div class="text-center w-100">
+                  <div class="text-h6 font-weight-black text-deep-orange-lighten-2 mt-0.5 leading-none">
+                    {{ percentualeCompletatiW6Home }}%
                   </div>
-                  <div class="text-caption text-muted mt-0.5 text-truncate">
-                    <span v-if="eserciziIncompletiW6Home.length > 0">
-                      {{ eserciziCompletiW6Home.length }} di {{ eserciziEligibiliW6Home.length }} completi ({{ percentualeCompletatiW6Home }}%)
-                    </span>
-                    <span v-else-if="eserciziEligibiliW6Home.length > 0" class="text-green-darken-2 font-weight-bold">
-                      Tutti i massimali e le fatiche di scarico/test registrati
-                    </span>
-                    <span v-else>
-                      Nessun test carichi previsto
-                    </span>
+                  <div class="text-super-caption text-muted font-weight-bold mt-1 text-truncate" style="font-size: 0.56rem !important;">
+                    Carichi W6 ⚡
                   </div>
                 </div>
-              </div>
-              <div class="d-flex align-center gap-1 flex-shrink-0 ml-2">
-                <v-icon color="grey-lighten-1" size="22">mdi-chevron-right</v-icon>
-              </div>
-            </v-card>
+              </v-card>
+            </v-col>
 
-            <!-- 3. CONTROLLO QUALITA SCHEDA (COACH ONLY) -->
-            <v-card 
-              v-if="ruolo === 'coach'"
-              class="home-action-touch-card rounded-2xl pa-3.5 text-left d-flex align-center justify-space-between"
-              @click="navigaVersoWorkout('qualita')"
-              id="home-card-controllo-qualita"
-            >
-              <div class="d-flex align-center gap-3 min-width-0">
-                <v-avatar color="green-lighten-5" size="44" class="border-green flex-shrink-0">
-                  <v-icon color="green-darken-3" size="24">mdi-shield-check</v-icon>
+            <!-- 3A. CONTROLLO QUALITA (COACH ONLY) -->
+            <v-col v-if="ruolo === 'coach'" cols="4" class="pa-1">
+              <v-card 
+                class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-video text-center align-center clickable-stat-card" 
+                style="height: 110px !important;"
+                @click="vibraTattile(12); apriControlloQualitaHome()"
+                id="home-card-controllo-qualita"
+              >
+                <v-avatar color="green-lighten-5" size="28" class="action-avatar border-green mb-1">
+                  <v-icon color="green-darken-3" size="14">mdi-shield-check</v-icon>
                 </v-avatar>
-                <div class="min-width-0">
-                  <div class="d-flex align-center gap-1.5 flex-wrap">
-                    <span class="text-body-2 font-weight-black text-slate-dark">Controllo Qualità Scheda</span>
-                    <v-chip 
-                      size="x-small" 
-                      color="green-darken-3" 
-                      variant="tonal" 
-                      class="font-weight-bold px-1.5 py-0"
-                      style="height: 18px; font-size: 0.58rem;"
-                    >
-                      Pannello Coach
-                    </v-chip>
+                <div class="text-center w-100">
+                  <div class="text-h6 font-weight-black text-green-lighten-2 mt-0.5 leading-none">
+                    Audit
                   </div>
-                  <div class="text-caption text-muted mt-0.5 text-truncate">
-                    Audit automatico coerenza, salti carichi e progressioni
+                  <div class="text-super-caption text-muted font-weight-bold mt-1 text-truncate" style="font-size: 0.56rem !important;">
+                    Qualità Scheda
                   </div>
                 </div>
-              </div>
-              <div class="d-flex align-center gap-1 flex-shrink-0 ml-2">
-                <v-icon color="grey-lighten-1" size="22">mdi-chevron-right</v-icon>
-              </div>
-            </v-card>
-          </div>
+              </v-card>
+            </v-col>
+
+            <!-- 3B. PROGRESSIONI & REPORT (ATHLETE) -->
+            <v-col v-else cols="4" class="pa-1">
+              <v-card 
+                class="dashboard-action-card rounded-2xl pa-3 d-flex flex-column justify-space-between border-info text-center align-center clickable-stat-card" 
+                style="height: 110px !important;"
+                @click="vibraTattile(12); dialogProgressioni = true"
+                id="home-card-progressioni"
+              >
+                <v-avatar color="cyan-lighten-5" size="28" class="action-avatar border-cyan mb-1">
+                  <v-icon color="cyan-darken-3" size="14">mdi-chart-timeline-variant-shimmer</v-icon>
+                </v-avatar>
+                <div class="text-center w-100">
+                  <div class="text-h6 font-weight-black text-cyan-lighten-2 mt-0.5 leading-none">
+                    Report
+                  </div>
+                  <div class="text-super-caption text-muted font-weight-bold mt-1 text-truncate" style="font-size: 0.56rem !important;">
+                    Progressioni 📈
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
 
           <!-- Silhouette Anatomica / Heatmap Muscolare (Collapsible/Visual Panel) -->
           <v-card 
@@ -744,6 +692,350 @@
     </div>
 
     <!-- DIALOG POPUPS (Unificate stile Glassmorphism Premium) -->
+    <!-- dialog GESTIONE RAPIDA GRADIMENTI IN HOME -->
+    <v-dialog v-model="mostraDialogGradimentiHome" max-width="580" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <v-card-title class="pa-3 py-2.5 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2.5 min-width-0">
+            <v-avatar color="amber-darken-3" size="30" class="elevation-2 flex-shrink-0">
+              <v-icon size="17" color="white">mdi-star</v-icon>
+            </v-avatar>
+            <div class="min-width-0">
+              <span class="text-subtitle-2 font-weight-black text-white d-block leading-tight text-truncate">
+                Gradimenti & Feeling Esercizi
+              </span>
+              <span class="text-super-caption text-amber-lighten-2 font-weight-bold" style="font-size: 0.65rem;">
+                Scheda {{ schedaSelezionata || '' }} • Assegna un voto da 1 a 5 stelle
+              </span>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey-lighten-1" @click="mostraDialogGradimentiHome = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 68vh;">
+          <!-- Banner Statistiche -->
+          <div class="metric-pill metric-pill-box pa-2.5 rounded-xl mb-3 border-soft">
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">
+                Progresso Voti Mesociclo
+              </span>
+              <div class="d-flex align-center gap-1.5">
+                <span class="text-caption font-weight-black text-amber-lighten-2" style="font-size: 0.75rem;">
+                  ⭐ {{ mediaGradimentiHome > 0 ? mediaGradimentiHome + '/5' : '-' }} media
+                </span>
+                <v-chip 
+                  size="x-small" 
+                  :color="eserciziSenzaGradimentoHome.length === 0 ? 'green-darken-3' : 'amber-darken-4'" 
+                  class="font-weight-black text-white px-1.5 py-0" 
+                  variant="flat"
+                  style="font-size: 0.55rem; height: 17px;"
+                >
+                  {{ eserciziSenzaGradimentoHome.length === 0 ? 'Tutti Votati 🎉' : eserciziSenzaGradimentoHome.length + ' Mancanti' }}
+                </v-chip>
+              </div>
+            </div>
+            <v-progress-linear
+              :model-value="percentualeVotatiHome"
+              color="amber-darken-2"
+              height="6"
+              rounded
+              striped
+              class="mb-1"
+            ></v-progress-linear>
+            <div class="d-flex align-center justify-space-between text-super-caption text-slate font-weight-medium" style="font-size: 0.62rem;">
+              <span><strong>{{ eserciziConGradimentoHome.length }}</strong> su <strong>{{ tuttiEserciziMesocicloHome.length }}</strong> valutati</span>
+              <span class="font-weight-black text-amber-lighten-2">{{ percentualeVotatiHome }}%</span>
+            </div>
+          </div>
+
+          <!-- Filtro rapido: Tutti / Solo Mancanti -->
+          <div class="d-flex align-center gap-1.5 mb-3 overflow-x-auto pb-0.5 no-scrollbar">
+            <v-chip
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="filtroGradimentiHome === 'tutti' ? 'amber-darken-3' : undefined"
+              @click="filtroGradimentiHome = 'tutti'"
+              style="height: 24px; font-size: 0.62rem;"
+            >
+              Tutti ({{ tuttiEserciziMesocicloHome.length }})
+            </v-chip>
+            <v-chip
+              v-if="eserciziSenzaGradimentoHome.length > 0"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="filtroGradimentiHome === 'mancanti' ? 'red-darken-3' : undefined"
+              @click="filtroGradimentiHome = 'mancanti'"
+              style="height: 24px; font-size: 0.62rem;"
+            >
+              Mancanti ({{ eserciziSenzaGradimentoHome.length }})
+            </v-chip>
+            <v-chip
+              v-for="g in ['A', 'B', 'C', 'D'].filter(day => tuttiEserciziMesocicloHome.some(e => (e.des_giorno || '').trim().toUpperCase() === day))"
+              :key="g"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="filtroGradimentiHome === g ? 'orange-darken-3' : undefined"
+              @click="filtroGradimentiHome = filtroGradimentiHome === g ? 'tutti' : g"
+              style="height: 24px; font-size: 0.62rem;"
+            >
+              Giorno {{ g }}
+            </v-chip>
+          </div>
+
+          <!-- Lista Esercizi con Votazione Stelline Rapida -->
+          <div class="d-flex flex-column gap-2">
+            <div
+              v-for="ex in listaGradimentiFiltrataHome"
+              :key="ex.id"
+              class="d-flex align-center justify-space-between py-2 px-2.5 border rounded-xl border-soft bg-slate-950"
+            >
+              <div class="d-flex align-center gap-2.5 min-width-0 flex-grow-1 mr-2">
+                <div class="rounded overflow-hidden flex-shrink-0 border" style="width: 40px; height: 40px;">
+                  <v-img :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'" width="40" height="40" cover></v-img>
+                </div>
+                <div class="min-width-0 text-left">
+                  <div class="text-caption font-weight-black text-truncate text-slate-dark leading-tight" style="font-size: 0.78rem !important;">
+                    {{ ex.des_esercizio }}
+                  </div>
+                  <div class="text-super-caption text-muted font-weight-bold mt-0.5" style="font-size: 0.6rem;">
+                    Giorno <span class="text-orange-lighten-2 font-weight-black">{{ ex.des_giorno }}<template v-if="ex.num_riga_giorno">{{ ex.num_riga_giorno }}</template></span>
+                    <span v-if="ex.des_settore"> • {{ ex.des_settore }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5 Stelle Interattive ad alta ergonomia touch -->
+              <div class="d-flex align-center gap-0.5 flex-shrink-0">
+                <button
+                  v-for="star in [1, 2, 3, 4, 5]"
+                  :key="star"
+                  class="star-vote-btn"
+                  :class="{ 'star-active': parseInt(ex.ind_reps_start) >= star }"
+                  @click.stop="salvaGradimentoHome(ex, star)"
+                  :title="'Vota ' + star + ' stelle'"
+                >
+                  <v-icon size="19" :color="parseInt(ex.ind_reps_start) >= star ? 'amber-darken-2' : 'grey-darken-2'">
+                    {{ parseInt(ex.ind_reps_start) >= star ? 'mdi-star' : 'mdi-star-outline' }}
+                  </v-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-2.5 border-top bg-slate-900 d-flex gap-2">
+          <v-btn 
+            color="orange-darken-3" 
+            variant="tonal" 
+            rounded="lg" 
+            size="small" 
+            class="flex-grow-1 font-weight-bold text-none"
+            @click="mostraDialogGradimentiHome = false; navigaVersoWorkout('gradimenti')"
+          >
+            Apri nella Scheda Workouts ↗
+          </v-btn>
+          <v-btn 
+            color="grey-darken-1" 
+            variant="flat" 
+            rounded="lg" 
+            size="small" 
+            class="px-4 font-weight-bold text-white text-none" 
+            @click="mostraDialogGradimentiHome = false"
+          >
+            Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- dialog VERIFICA CARICHI W6 & FATICA IN HOME -->
+    <v-dialog v-model="mostraDialogInsW6FaticaHome" max-width="580" scrollable>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden text-left" style="backdrop-filter: blur(25px); background: var(--card-bg-dark) !important;">
+        <v-card-title class="pa-3 py-2.5 border-bottom d-flex align-center justify-space-between bg-slate-900">
+          <div class="d-flex align-center gap-2.5 min-width-0">
+            <v-avatar color="deep-orange-darken-3" size="30" class="elevation-2 flex-shrink-0">
+              <v-icon size="17" color="white">mdi-lightning-bolt</v-icon>
+            </v-avatar>
+            <div class="min-width-0">
+              <span class="text-subtitle-2 font-weight-black text-white d-block leading-tight text-truncate">
+                Verifica Carichi W6 & Fatica
+              </span>
+              <span class="text-super-caption text-deep-orange-lighten-2 font-weight-bold" style="font-size: 0.65rem;">
+                Scheda {{ schedaSelezionata || '' }} • Massimali e livello fatica W6
+              </span>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey-lighten-1" @click="mostraDialogInsW6FaticaHome = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-3 scrollbar-custom" style="max-height: 68vh;">
+          <!-- Banner Statistiche W6 -->
+          <div class="metric-pill metric-pill-box pa-2.5 rounded-xl mb-3 border-soft">
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">
+                Completezza Week 6 (Carico + Fatica)
+              </span>
+              <v-chip 
+                size="x-small" 
+                :color="eserciziIncompletiW6Home.length === 0 ? 'green-darken-3' : 'deep-orange-darken-3'" 
+                class="font-weight-black text-white px-1.5 py-0" 
+                variant="flat"
+                style="font-size: 0.55rem; height: 17px;"
+              >
+                {{ eserciziIncompletiW6Home.length === 0 ? '100% Completo ✓' : eserciziIncompletiW6Home.length + ' Incompleti' }}
+              </v-chip>
+            </div>
+            <v-progress-linear
+              :model-value="percentualeCompletatiW6Home"
+              color="deep-orange-darken-2"
+              height="6"
+              rounded
+              striped
+              class="mb-1"
+            ></v-progress-linear>
+            <div class="d-flex align-center justify-space-between text-super-caption text-slate font-weight-medium" style="font-size: 0.62rem;">
+              <span><strong>{{ eserciziCompletiW6Home.length }}</strong> su <strong>{{ eserciziEligibiliW6Home.length }}</strong> completi</span>
+              <span class="font-weight-black text-deep-orange-lighten-2">{{ percentualeCompletatiW6Home }}%</span>
+            </div>
+          </div>
+
+          <!-- Filtro rapido: Tutti / Solo Incompleti -->
+          <div class="d-flex align-center gap-1.5 mb-3 overflow-x-auto pb-0.5 no-scrollbar">
+            <v-chip
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="filtroW6Home === 'tutti' ? 'deep-orange-darken-3' : undefined"
+              @click="filtroW6Home = 'tutti'"
+              style="height: 24px; font-size: 0.62rem;"
+            >
+              Tutti ({{ eserciziEligibiliW6Home.length }})
+            </v-chip>
+            <v-chip
+              v-if="eserciziIncompletiW6Home.length > 0"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="filtroW6Home === 'incompleti' ? 'red-darken-3' : undefined"
+              @click="filtroW6Home = 'incompleti'"
+              style="height: 24px; font-size: 0.62rem;"
+            >
+              Incompleti ({{ eserciziIncompletiW6Home.length }})
+            </v-chip>
+            <v-chip
+              v-for="g in ['A', 'B', 'C', 'D'].filter(day => eserciziEligibiliW6Home.some(e => (e.des_giorno || '').trim().toUpperCase() === day))"
+              :key="g"
+              size="x-small"
+              variant="flat"
+              class="font-weight-black cursor-pointer flex-shrink-0"
+              :color="filtroW6Home === g ? 'orange-darken-3' : undefined"
+              @click="filtroW6Home = filtroW6Home === g ? 'tutti' : g"
+              style="height: 24px; font-size: 0.62rem;"
+            >
+              Giorno {{ g }}
+            </v-chip>
+          </div>
+
+          <!-- Lista Esercizi W6 -->
+          <div class="d-flex flex-column gap-2">
+            <div
+              v-for="ex in listaW6FiltrataHome"
+              :key="ex.id"
+              class="py-2.5 px-3 border rounded-xl border-soft bg-slate-950 text-left"
+            >
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center gap-2 min-width-0">
+                  <div class="rounded overflow-hidden flex-shrink-0 border" style="width: 36px; height: 36px;">
+                    <v-img :src="getGifUrl(ex.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=100'" width="36" height="36" cover></v-img>
+                  </div>
+                  <div class="min-width-0">
+                    <div class="text-caption font-weight-black text-truncate text-slate-dark leading-tight" style="font-size: 0.78rem !important;">
+                      {{ ex.des_esercizio }}
+                    </div>
+                    <div class="text-super-caption text-muted font-weight-bold" style="font-size: 0.6rem;">
+                      Giorno {{ ex.des_giorno }}<template v-if="ex.num_riga_giorno">{{ ex.num_riga_giorno }}</template>
+                      <span v-if="ex.des_settore"> • {{ ex.des_settore }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stato Carico W6 -->
+                <div class="text-right flex-shrink-0">
+                  <v-chip 
+                    size="x-small" 
+                    :color="haInsW6Home(ex) ? 'green-darken-3' : 'red-darken-3'" 
+                    variant="flat"
+                    class="font-weight-black text-white px-1.5 py-0"
+                    style="height: 18px; font-size: 0.58rem;"
+                  >
+                    {{ haInsW6Home(ex) ? ex.num_ins6 + ' kg' : 'Carico mancante' }}
+                  </v-chip>
+                </div>
+              </div>
+
+              <!-- Selettore Livello Fatica Rapido -->
+              <div class="d-flex align-center justify-space-between gap-1 mt-1 pt-1.5 border-top">
+                <span class="text-super-caption text-muted font-weight-bold" style="font-size: 0.6rem;">Livello Fatica W6:</span>
+                <div class="d-flex align-center gap-1">
+                  <v-btn
+                    v-for="fat in ['Media', 'Pesante', 'Devastante']"
+                    :key="fat"
+                    size="x-small"
+                    variant="flat"
+                    :color="(ex.num_faticaw6 || '').trim().toLowerCase() === fat.toLowerCase() ? (fat === 'Media' ? 'green-darken-2' : (fat === 'Pesante' ? 'amber-darken-3' : 'red-darken-3')) : 'grey-darken-4'"
+                    class="font-weight-bold px-1.5"
+                    style="height: 22px; font-size: 0.58rem; min-width: 0;"
+                    @click="salvaFaticaHome(ex, fat)"
+                  >
+                    {{ fat }}
+                  </v-btn>
+                </div>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-2.5 border-top bg-slate-900 d-flex gap-2">
+          <v-btn 
+            color="orange-darken-3" 
+            variant="tonal" 
+            rounded="lg" 
+            size="small" 
+            class="flex-grow-1 font-weight-bold text-none"
+            @click="mostraDialogInsW6FaticaHome = false; navigaVersoWorkout('w6')"
+          >
+            Apri nella Scheda Workouts ↗
+          </v-btn>
+          <v-btn 
+            color="grey-darken-1" 
+            variant="flat" 
+            rounded="lg" 
+            size="small" 
+            class="px-4 font-weight-bold text-white text-none" 
+            @click="mostraDialogInsW6FaticaHome = false"
+          >
+            Chiudi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- MODALE CONTROLLO QUALITÀ SCHEDA COACH IN HOME -->
+    <ControlloQualitaModal
+      v-if="ruolo === 'coach'"
+      v-model="mostraDialogControlloQualitaHome"
+      :records="allExercises && allExercises.length > 0 ? allExercises : globalStoryboard"
+      :storico-backup="storicoBackupCacheHome"
+      :id-atleta="selectedAthlete"
+      :nome-atleta="getNomeAtleta(selectedAthlete)"
+      :num-scheda="selectedSheet"
+      @applica-correzione="gestisciApplicaCorrezioneHome"
+      @seleziona-esercizio="gestisciSelezionaEsercizioDaControlloHome"
+    />
+
     <!-- dialog LEGGIMI -->
     <v-dialog v-model="mostraLeggimi" max-width="500" rounded="xl">
       <v-card class="pa-5 rounded-2xl card-glass border">
@@ -1223,6 +1515,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import GuidaFlexCoachModal from '../components/GuidaFlexCoachModal.vue';
 import { isCorpoLiberoEsercizio } from '../utils/loadParser.js';
+import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { 
@@ -1926,6 +2219,203 @@ const numeroTotaleAzioniInAttesaHome = computed(() => {
 const navigaVersoWorkout = (azione) => {
   vibraTattile(12);
   router.push({ path: '/', query: { action: azione } });
+};
+
+const getTimestampUte = () => {
+  const now = new Date();
+  const gg = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${gg}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+};
+
+// ==========================================================================
+// Dialog & Azioni Rapide Gradimenti in Home
+// ==========================================================================
+const mostraDialogGradimentiHome = ref(false);
+const filtroGradimentiHome = ref('tutti');
+const salvataggioGradimentoHomeInCorso = ref(null);
+
+const percentualeVotatiHome = computed(() => {
+  const tot = tuttiEserciziMesocicloHome.value.length;
+  if (tot === 0) return 0;
+  return Math.round((eserciziConGradimentoHome.value.length / tot) * 100);
+});
+
+const listaGradimentiFiltrataHome = computed(() => {
+  const list = tuttiEserciziMesocicloHome.value;
+  if (filtroGradimentiHome.value === 'mancanti') {
+    return list.filter(ex => {
+      const val = parseInt(ex.ind_reps_start);
+      return isNaN(val) || val < 1 || val > 5;
+    });
+  }
+  if (['A', 'B', 'C', 'D'].includes(filtroGradimentiHome.value)) {
+    return list.filter(ex => (ex.des_giorno || '').trim().toUpperCase() === filtroGradimentiHome.value);
+  }
+  return list;
+});
+
+const salvaGradimentoHome = async (ex, star) => {
+  vibraTattile(18);
+  const votoStr = String(star);
+  const valorePrecedente = (ex.ind_reps_start || '').trim();
+  const nuovoValore = valorePrecedente === votoStr ? '' : votoStr;
+
+  ex.ind_reps_start = nuovoValore;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
+
+  if (globalStoryboard.value) {
+    const foundDoc = globalStoryboard.value.find(d => d.id === ex.id);
+    if (foundDoc) {
+      foundDoc.ind_reps_start = nuovoValore;
+    }
+  }
+
+  salvataggioGradimentoHomeInCorso.value = ex.id;
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates['ind_reps_start'] = nuovoValore;
+  updates['timestamp'] = ex.timestamp;
+  updates['timestamp_ute'] = ex.timestamp_ute;
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  if (ex.num_riga) {
+    const key2 = `offline_storyboard_${ex.num_riga}`;
+    localStorage.setItem(key2, JSON.stringify(updates));
+  }
+
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, {
+      ind_reps_start: nuovoValore,
+      timestamp: updates['timestamp'],
+      timestamp_ute: updates['timestamp_ute']
+    }, { merge: true });
+  } catch (err) {
+    console.warn("Errore salvataggio gradimento Home su Firebase:", err);
+  } finally {
+    salvataggioGradimentoHomeInCorso.value = null;
+  }
+};
+
+// ==========================================================================
+// Dialog & Salvataggio Rapido W6 Carichi & Fatica in Home
+// ==========================================================================
+const mostraDialogInsW6FaticaHome = ref(false);
+const filtroW6Home = ref('tutti');
+const salvataggioFaticaHomeInCorso = ref(null);
+
+const listaW6FiltrataHome = computed(() => {
+  const list = eserciziEligibiliW6Home.value;
+  if (filtroW6Home.value === 'incompleti') {
+    return list.filter(ex => !isCompletoW6Home(ex));
+  }
+  if (['A', 'B', 'C', 'D'].includes(filtroW6Home.value)) {
+    return list.filter(ex => (ex.des_giorno || '').trim().toUpperCase() === filtroW6Home.value);
+  }
+  return list;
+});
+
+const salvaFaticaHome = async (ex, fatica) => {
+  vibraTattile(18);
+  const valorePrecedente = (ex.num_faticaw6 || '').trim();
+  const nuovoValore = valorePrecedente.toLowerCase() === fatica.toLowerCase() ? '' : fatica;
+
+  ex.num_faticaw6 = nuovoValore;
+  ex.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  ex.timestamp_ute = getTimestampUte();
+
+  if (globalStoryboard.value) {
+    const foundDoc = globalStoryboard.value.find(d => d.id === ex.id);
+    if (foundDoc) {
+      foundDoc.num_faticaw6 = nuovoValore;
+    }
+  }
+
+  salvataggioFaticaHomeInCorso.value = ex.id;
+  const key1 = `offline_storyboard_${ex.id}`;
+  let updates = {};
+  const localData1 = localStorage.getItem(key1);
+  if (localData1) {
+    try { updates = JSON.parse(localData1); } catch (e) {}
+  }
+  updates['num_faticaw6'] = nuovoValore;
+  updates['timestamp'] = ex.timestamp;
+  updates['timestamp_ute'] = ex.timestamp_ute;
+  localStorage.setItem(key1, JSON.stringify(updates));
+
+  if (ex.num_riga) {
+    const key2 = `offline_storyboard_${ex.num_riga}`;
+    localStorage.setItem(key2, JSON.stringify(updates));
+  }
+
+  try {
+    const docRef = doc(db, 'STORYBOARD', ex.id);
+    await setDoc(docRef, {
+      num_faticaw6: nuovoValore,
+      timestamp: updates['timestamp'],
+      timestamp_ute: updates['timestamp_ute']
+    }, { merge: true });
+  } catch (err) {
+    console.warn("Errore salvataggio fatica W6 da Home su Firebase:", err);
+  } finally {
+    salvataggioFaticaHomeInCorso.value = null;
+  }
+};
+
+// ==========================================================================
+// Dialog Controllo Qualità Scheda per Coach in Home
+// ==========================================================================
+const mostraDialogControlloQualitaHome = ref(false);
+const storicoBackupCacheHome = ref([]);
+
+const apriControlloQualitaHome = async () => {
+  vibraTattile(12);
+  if (storicoBackupCacheHome.value.length === 0) {
+    try {
+      const backup = await getStoryboardBackup();
+      storicoBackupCacheHome.value = backup || [];
+    } catch (e) {
+      console.warn("Impossibile caricare backup storico in Home:", e);
+    }
+  }
+  mostraDialogControlloQualitaHome.value = true;
+};
+
+const gestisciApplicaCorrezioneHome = async ({ docId, numRiga, settimana, nuovoValore, des_esercizio }) => {
+  const targetRecords = (allExercises.value && allExercises.value.length > 0) ? allExercises.value : (globalStoryboard.value || []);
+  const ex = targetRecords.find(r => 
+    (docId && (r.id === docId || r.dbId === docId)) || 
+    (numRiga && String(r.num_riga) === String(numRiga)) || 
+    (des_esercizio && String(r.des_esercizio || '').trim() === String(des_esercizio).trim())
+  );
+  if (ex) {
+    ex['ins_week' + settimana] = nuovoValore;
+    if (ex.id) {
+      try {
+        await updateDoc(doc(db, 'STORYBOARD', ex.id), {
+          ['ins_week' + settimana]: nuovoValore,
+          timestamp_ute: getTimestampUte()
+        });
+      } catch (e) {
+        console.warn("Errore salvataggio correzione Firestore da Home:", e);
+      }
+    }
+  }
+};
+
+const gestisciSelezionaEsercizioDaControlloHome = async (segnalazione) => {
+  mostraDialogControlloQualitaHome.value = false;
+  router.push({ path: '/', query: { action: 'qualita', giorno: segnalazione.giorno || '' } });
 };
 
 
@@ -4007,6 +4497,17 @@ const apriTest = () => {
   border-color: rgba(139, 92, 246, 0.3) !important;
   box-shadow: 0 8px 25px -8px rgba(139, 92, 246, 0.25) !important;
 }
+
+.border-energy:hover {
+  border-color: rgba(234, 88, 12, 0.35) !important;
+  box-shadow: 0 8px 25px -8px rgba(234, 88, 12, 0.25) !important;
+}
+
+.border-info:hover {
+  border-color: rgba(6, 182, 212, 0.35) !important;
+  box-shadow: 0 8px 25px -8px rgba(6, 182, 212, 0.25) !important;
+}
+
 
 .pulse-video-icon {
   animation: pulse-video 2s infinite alternate;

@@ -41,64 +41,40 @@
           </div>
         </div>
       </div>
-      <div class="header-actions d-flex align-center gap-1">
+      <div class="header-actions d-flex align-center gap-1.5">
+        <!-- 1. Cerca Rapido in Tutta la Scheda (Target touch 38x38px) -->
+        <v-btn 
+          icon 
+          color="primary" 
+          variant="tonal" 
+          class="btn-header-touch"
+          @click="vibraTattile(10); dialogRicercaGlobaleScheda = true" 
+          title="Cerca in tutta la scheda"
+          id="btn-apri-ricerca-header"
+        >
+          <v-icon size="20">mdi-magnify</v-icon>
+        </v-btn>
+
+        <!-- 2. Menu Rapido Azioni Scheda (Target touch 38x38px con badge notifiche e Bottom Sheet) -->
         <v-btn 
           icon 
           color="amber-darken-3" 
           variant="tonal" 
-          size="x-small" 
-          style="width: 28px; height: 28px;" 
-          @click="apriDialogGradimenti('tutti')" 
-          title="Gradimenti e Feeling Esercizi"
-          id="btn-apri-gradimenti-header"
+          class="btn-header-touch"
+          @click="vibraTattile(12); sheetAzioniScheda = true" 
+          title="Azioni e verifiche scheda"
+          id="btn-apri-menu-azioni-header"
         >
           <v-badge 
-            v-if="eserciziSenzaGradimento.length > 0" 
+            v-if="numeroTotaleAzioniInAttesa > 0" 
             color="red-darken-2" 
-            :content="eserciziSenzaGradimento.length" 
+            :content="numeroTotaleAzioniInAttesa" 
             floating 
-            style="font-size: 0.55rem;"
+            style="font-size: 0.58rem;"
           >
-            <v-icon size="16">mdi-star</v-icon>
+            <v-icon size="20">mdi-dots-horizontal</v-icon>
           </v-badge>
-          <v-icon v-else size="16">mdi-star</v-icon>
-        </v-btn>
-        <v-btn 
-          icon 
-          color="deep-orange-darken-2" 
-          variant="tonal" 
-          size="x-small" 
-          style="width: 22px; height: 22px;" 
-          @click="apriDialogInsW6Fatica('tutti')" 
-          title="Verifica carichi w6 & livello fatica"
-          id="btn-apri-insw6-fatica-header"
-        >
-          <v-badge 
-            v-if="eserciziIncompletiW6.length > 0" 
-            color="red-darken-2" 
-            :content="eserciziIncompletiW6.length" 
-            floating 
-            style="font-size: 0.55rem;"
-          >
-            <v-icon size="16">mdi-lightning-bolt</v-icon>
-          </v-badge>
-          <v-icon v-else size="16">mdi-lightning-bolt</v-icon>
-        </v-btn>
-        <v-btn 
-          v-if="ruolo === 'coach'"
-          icon 
-          color="green-darken-2" 
-          variant="tonal" 
-          size="x-small" 
-          style="width: 28px; height: 28px;" 
-          @click="apriDialogControlloQualita" 
-          title="Controllo Qualità Scheda (Pannello Coach)"
-          id="btn-apri-controllo-qualita-workouts"
-        >
-          <v-icon size="16">mdi-shield-check</v-icon>
-        </v-btn>
-        <v-btn icon color="primary" variant="tonal" size="x-small" style="width: 28px; height: 28px;" @click="dialogRicercaGlobaleScheda = true" title="Cerca in tutta la scheda">
-          <v-icon size="16">mdi-magnify</v-icon>
+          <v-icon v-else size="20">mdi-dots-horizontal</v-icon>
         </v-btn>
       </div>
     </div>
@@ -2028,6 +2004,193 @@
       </div>
 
     </div>
+
+    <!-- Bottom Sheet Azioni Rapide Scheda (Soluzione Ibrida Touch-Friendly) -->
+    <v-bottom-sheet v-model="sheetAzioniScheda" inset max-width="560">
+      <v-card class="bottom-sheet-menu-card pa-4 pt-3 text-left">
+        <!-- Drag Handle Indicator -->
+        <div class="d-flex justify-center mb-3">
+          <div class="bottom-sheet-handle"></div>
+        </div>
+
+        <!-- Header Sheet -->
+        <div class="d-flex align-center justify-space-between mb-3 px-1">
+          <div>
+            <div class="text-subtitle-1 font-weight-black text-slate-dark leading-tight d-flex align-center gap-1.5">
+              <span>Azioni Scheda</span>
+              <v-chip size="x-small" color="primary" variant="flat" class="font-weight-black px-1.5 py-0 text-white" style="height: 18px; font-size: 0.58rem;">
+                SCHEDA {{ schedaSelezionata }}
+              </v-chip>
+            </div>
+            <div class="text-caption text-muted font-weight-medium mt-0.5">
+              {{ getNomeAtleta(atletaSelezionato) }} • Strumenti rapidi, feeling e verifiche
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" density="comfortable" @click="sheetAzioniScheda = false"></v-btn>
+        </div>
+
+        <!-- Elenco Azioni ad Alto Feedback Tattile (Target 56-64px) -->
+        <div class="d-flex flex-column gap-2 mb-3">
+          <!-- 1. Gradimenti & Feeling Esercizi -->
+          <div 
+            class="action-sheet-row d-flex align-center justify-space-between pa-3 rounded-xl border cursor-pointer"
+            :class="{ 'has-pending-action': eserciziSenzaGradimento.length > 0 }"
+            @click="apriDaSheet('gradimenti')"
+            id="btn-sheet-gradimenti"
+          >
+            <div class="d-flex align-center gap-3 min-width-0">
+              <v-avatar color="amber-lighten-5" size="42" class="border-amber flex-shrink-0">
+                <v-icon color="amber-darken-3" size="22">mdi-star</v-icon>
+              </v-avatar>
+              <div class="min-width-0">
+                <div class="text-body-2 font-weight-black text-slate-dark d-flex align-center gap-1.5">
+                  <span>Gradimenti & Feeling</span>
+                  <v-chip 
+                    v-if="eserciziSenzaGradimento.length > 0" 
+                    size="x-small" 
+                    color="red-darken-2" 
+                    variant="flat" 
+                    class="font-weight-black text-white px-1.5 py-0"
+                    style="height: 18px; font-size: 0.6rem;"
+                  >
+                    {{ eserciziSenzaGradimento.length }} da votare
+                  </v-chip>
+                </div>
+                <div class="text-caption text-muted mt-0.5 text-truncate">
+                  <span v-if="eserciziSenzaGradimento.length > 0">
+                    {{ eserciziConGradimento.length }}/{{ tuttiEserciziMesociclo.length }} votati ({{ percentualeVotati }}%)
+                  </span>
+                  <span v-else class="text-green-darken-2 font-weight-bold">
+                    Tutti votati (Media {{ mediaGradimenti }}/5 ⭐)
+                  </span>
+                </div>
+              </div>
+            </div>
+            <v-icon color="grey-lighten-1" size="20" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+          </div>
+
+          <!-- 2. Verifica Carichi W6 & Livello Fatica -->
+          <div 
+            class="action-sheet-row d-flex align-center justify-space-between pa-3 rounded-xl border cursor-pointer"
+            :class="{ 'has-pending-action': eserciziIncompletiW6.length > 0 }"
+            @click="apriDaSheet('w6')"
+            id="btn-sheet-insw6-fatica"
+          >
+            <div class="d-flex align-center gap-3 min-width-0">
+              <v-avatar color="deep-orange-lighten-5" size="42" class="border-deep-orange flex-shrink-0">
+                <v-icon color="deep-orange-darken-2" size="22">mdi-lightning-bolt</v-icon>
+              </v-avatar>
+              <div class="min-width-0">
+                <div class="text-body-2 font-weight-black text-slate-dark d-flex align-center gap-1.5">
+                  <span>Verifica Carichi W6 & Fatica</span>
+                  <v-chip 
+                    v-if="eserciziIncompletiW6.length > 0" 
+                    size="x-small" 
+                    color="deep-orange-darken-3" 
+                    variant="flat" 
+                    class="font-weight-black text-white px-1.5 py-0"
+                    style="height: 18px; font-size: 0.6rem;"
+                  >
+                    {{ eserciziIncompletiW6.length }} mancanti
+                  </v-chip>
+                </div>
+                <div class="text-caption text-muted mt-0.5 text-truncate">
+                  <span v-if="eserciziIncompletiW6.length > 0">
+                    {{ eserciziCompletiW6.length }}/{{ tuttiEserciziMesocicloW6.length }} completi ({{ percentualeCompletatiW6 }}%)
+                  </span>
+                  <span v-else class="text-green-darken-2 font-weight-bold">
+                    100% Completi (Carico & Fatica ✓)
+                  </span>
+                </div>
+              </div>
+            </div>
+            <v-icon color="grey-lighten-1" size="20" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+          </div>
+
+          <!-- 3. Controllo Qualità Scheda (Coach Only) -->
+          <div 
+            v-if="ruolo === 'coach'"
+            class="action-sheet-row d-flex align-center justify-space-between pa-3 rounded-xl border cursor-pointer"
+            @click="apriDaSheet('qualita')"
+            id="btn-sheet-controllo-qualita"
+          >
+            <div class="d-flex align-center gap-3 min-width-0">
+              <v-avatar color="green-lighten-5" size="42" class="border-green flex-shrink-0">
+                <v-icon color="green-darken-3" size="22">mdi-shield-check</v-icon>
+              </v-avatar>
+              <div class="min-width-0">
+                <div class="text-body-2 font-weight-black text-slate-dark d-flex align-center gap-1.5">
+                  <span>Controllo Qualità Scheda</span>
+                  <v-chip size="x-small" color="green-darken-3" variant="tonal" class="font-weight-bold px-1.5 py-0" style="height: 18px; font-size: 0.58rem;">
+                    Coach
+                  </v-chip>
+                </div>
+                <div class="text-caption text-muted mt-0.5 text-truncate">
+                  Audit approfondito anomalie, progressioni e carichi
+                </div>
+              </div>
+            </div>
+            <v-icon color="grey-lighten-1" size="20" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+          </div>
+
+          <!-- 4. Cerca in Tutta la Scheda -->
+          <div 
+            class="action-sheet-row d-flex align-center justify-space-between pa-3 rounded-xl border cursor-pointer"
+            @click="apriDaSheet('ricerca')"
+            id="btn-sheet-cerca-scheda"
+          >
+            <div class="d-flex align-center gap-3 min-width-0">
+              <v-avatar color="blue-lighten-5" size="42" class="border-blue flex-shrink-0">
+                <v-icon color="blue-darken-3" size="22">mdi-magnify</v-icon>
+              </v-avatar>
+              <div class="min-width-0">
+                <div class="text-body-2 font-weight-black text-slate-dark">
+                  Cerca nella Scheda
+                </div>
+                <div class="text-caption text-muted mt-0.5 text-truncate">
+                  Filtra esercizi, attrezzi e note nei giorni A, B, C, D
+                </div>
+              </div>
+            </div>
+            <v-icon color="grey-lighten-1" size="20" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+          </div>
+
+          <!-- 5. Riepilogo Progressioni -->
+          <div 
+            class="action-sheet-row d-flex align-center justify-space-between pa-3 rounded-xl border cursor-pointer"
+            @click="apriDaSheet('progressioni')"
+            id="btn-sheet-riepilogo-progressioni"
+          >
+            <div class="d-flex align-center gap-3 min-width-0">
+              <v-avatar color="teal-lighten-5" size="42" class="border-teal flex-shrink-0">
+                <v-icon color="teal-darken-3" size="22">mdi-chart-line</v-icon>
+              </v-avatar>
+              <div class="min-width-0">
+                <div class="text-body-2 font-weight-black text-slate-dark">
+                  Riepilogo Progressioni
+                </div>
+                <div class="text-caption text-muted mt-0.5 text-truncate">
+                  Tabella comparativa carichi e andamento settimanale
+                </div>
+              </div>
+            </div>
+            <v-icon color="grey-lighten-1" size="20" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+          </div>
+        </div>
+
+        <!-- Pulsante Chiudi Tattile -->
+        <v-btn 
+          block 
+          variant="tonal" 
+          color="grey-darken-1" 
+          class="font-weight-bold text-none rounded-xl" 
+          style="height: 48px;"
+          @click="sheetAzioniScheda = false"
+        >
+          Chiudi
+        </v-btn>
+      </v-card>
+    </v-bottom-sheet>
 
     <!-- Dialog Progressioni Premium -->
     <v-dialog
@@ -5018,6 +5181,39 @@ const toggleFiltroGiorno = (g) => {
   filtroInsW6Fatica.value = filtroInsW6Fatica.value === g ? 'tutti' : g;
 };
 
+// Stato e metodi per Bottom Sheet Azioni Scheda (Soluzione Ibrida Touch-Friendly)
+const sheetAzioniScheda = ref(false);
+
+const numeroTotaleAzioniInAttesa = computed(() => {
+  let count = 0;
+  if (eserciziSenzaGradimento.value && eserciziSenzaGradimento.value.length > 0) {
+    count += eserciziSenzaGradimento.value.length;
+  }
+  if (eserciziIncompletiW6.value && eserciziIncompletiW6.value.length > 0) {
+    count += eserciziIncompletiW6.value.length;
+  }
+  return count;
+});
+
+const apriDaSheet = (tipo) => {
+  vibraTattile(12);
+  sheetAzioniScheda.value = false;
+  setTimeout(() => {
+    if (tipo === 'gradimenti') {
+      apriDialogGradimenti(eserciziSenzaGradimento.value.length > 0 ? 'mancanti' : 'tutti');
+    } else if (tipo === 'w6') {
+      apriDialogInsW6Fatica(eserciziIncompletiW6.value.length > 0 ? 'incompleti' : 'tutti');
+    } else if (tipo === 'qualita') {
+      apriDialogControlloQualita();
+    } else if (tipo === 'ricerca') {
+      dialogRicercaGlobaleScheda.value = true;
+    } else if (tipo === 'progressioni') {
+      dialogProgressioni.value = true;
+    }
+  }, 160);
+};
+
+
 // Salvataggio rapido Fatica con toggle
 const salvaFaticaRapida = async (ex, fatica) => {
   vibraTattile(18);
@@ -6765,6 +6961,7 @@ const gestisciNavigazioneDaQuery = () => {
   const qGiorno = route.query?.giorno;
   const qWeek = route.query?.week;
   const qTarget = route.query?.targetEx || localStorage.getItem('woapp_target_scroll_exercise') || localStorage.getItem('ultimoEsercizioDettaglio');
+  const qAction = route.query?.action;
 
   if (qGiorno) {
     const g = String(qGiorno).trim().toUpperCase();
@@ -6802,6 +6999,29 @@ const gestisciNavigazioneDaQuery = () => {
       setTimeout(tryScroll, 120);
     });
   }
+
+  if (qAction && !caricamento.value) {
+    const actionToRun = String(qAction).toLowerCase();
+    const filtroToRun = route.query?.filtro;
+    // Pulisci query params per prevenire riaperture indesiderate su refresh
+    router.replace({ query: { ...route.query, action: undefined, filtro: undefined } });
+
+    nextTick(() => {
+      if (actionToRun === 'gradimenti' || actionToRun === 'gradimenti_mancanti') {
+        const f = actionToRun === 'gradimenti_mancanti' ? 'mancanti' : (filtroToRun || 'tutti');
+        apriDialogGradimenti(f);
+      } else if (actionToRun === 'w6' || actionToRun === 'w6_incompleti') {
+        const f = actionToRun === 'w6_incompleti' ? 'incompleti' : (filtroToRun || 'tutti');
+        apriDialogInsW6Fatica(f);
+      } else if (actionToRun === 'qualita' && ruolo.value === 'coach') {
+        apriDialogControlloQualita();
+      } else if (actionToRun === 'ricerca') {
+        dialogRicercaGlobaleScheda.value = true;
+      } else if (actionToRun === 'menu' || actionToRun === 'azioni') {
+        sheetAzioniScheda.value = true;
+      }
+    });
+  }
 };
 
 onMounted(() => {
@@ -6829,7 +7049,9 @@ watch(globalStoryboard, () => {
 watch(loadingStoryboard, (newVal) => {
   caricamento.value = newVal;
   if (!newVal) {
-    if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
+    if (route.query?.action) {
+      gestisciNavigazioneDaQuery();
+    } else if (localStorage.getItem('scrollPrimoEsercizioDaFare') === 'true') {
       gestisciScrollIniziale();
     } else {
       gestisciNavigazioneDaQuery();

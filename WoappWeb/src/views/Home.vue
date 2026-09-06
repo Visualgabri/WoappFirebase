@@ -406,6 +406,175 @@
             </v-col>
           </v-row>
 
+          <!-- Feedback & Azioni Rapide Mesociclo (Soluzione Ibrida Touch-Friendly) -->
+          <div class="text-left mb-2.5 d-flex align-center justify-space-between">
+            <span class="text-super-caption text-muted font-weight-black uppercase tracking-widest" style="font-size: 0.62rem;">
+              Feedback & Azioni Scheda
+            </span>
+            <v-chip 
+              v-if="numeroTotaleAzioniInAttesaHome > 0" 
+              size="x-small" 
+              color="amber-darken-3" 
+              variant="flat" 
+              class="font-weight-black px-2 py-0 text-white animate-pulse"
+              style="height: 18px; font-size: 0.58rem;"
+            >
+              {{ numeroTotaleAzioniInAttesaHome }} in attesa
+            </v-chip>
+            <v-chip 
+              v-else-if="tuttiEserciziMesocicloHome.length > 0" 
+              size="x-small" 
+              color="green-darken-3" 
+              variant="flat" 
+              class="font-weight-black px-2 py-0 text-white"
+              style="height: 18px; font-size: 0.58rem;"
+            >
+              Tutto Aggiornato ✓
+            </v-chip>
+          </div>
+
+          <div class="d-flex flex-column gap-2.5 mb-5">
+            <!-- 1. GRADIMENTI & FEELING ESERCIZI -->
+            <v-card 
+              class="home-action-touch-card rounded-2xl pa-3.5 text-left d-flex align-center justify-space-between"
+              :class="{ 'is-pending': eserciziSenzaGradimentoHome.length > 0 }"
+              @click="navigaVersoWorkout('gradimenti')"
+              id="home-card-gradimenti"
+            >
+              <div class="d-flex align-center gap-3 min-width-0">
+                <v-avatar color="amber-lighten-5" size="44" class="border-amber flex-shrink-0">
+                  <v-icon color="amber-darken-3" size="24">mdi-star</v-icon>
+                </v-avatar>
+                <div class="min-width-0">
+                  <div class="d-flex align-center gap-1.5 flex-wrap">
+                    <span class="text-body-2 font-weight-black text-slate-dark">Gradimenti & Feeling</span>
+                    <v-chip 
+                      v-if="eserciziSenzaGradimentoHome.length > 0" 
+                      size="x-small" 
+                      color="amber-darken-4" 
+                      variant="flat" 
+                      class="font-weight-black text-white px-1.5 py-0"
+                      style="height: 18px; font-size: 0.6rem;"
+                    >
+                      {{ eserciziSenzaGradimentoHome.length }} da votare
+                    </v-chip>
+                    <v-chip 
+                      v-else-if="tuttiEserciziMesocicloHome.length > 0" 
+                      size="x-small" 
+                      color="green-darken-3" 
+                      variant="flat" 
+                      class="font-weight-black text-white px-1.5 py-0"
+                      style="height: 18px; font-size: 0.6rem;"
+                    >
+                      100% Votati 🎉
+                    </v-chip>
+                  </div>
+                  <div class="text-caption text-muted mt-0.5 text-truncate">
+                    <span v-if="eserciziSenzaGradimentoHome.length > 0">
+                      {{ eserciziConGradimentoHome.length }} di {{ tuttiEserciziMesocicloHome.length }} valutati • Vota per il Coach
+                    </span>
+                    <span v-else-if="tuttiEserciziMesocicloHome.length > 0" class="text-green-darken-2 font-weight-bold">
+                      Feedback completo • Media gradimento: {{ mediaGradimentiHome }}/5 ⭐
+                    </span>
+                    <span v-else>
+                      Nessun esercizio da valutare
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex align-center gap-1 flex-shrink-0 ml-2">
+                <v-icon color="grey-lighten-1" size="22">mdi-chevron-right</v-icon>
+              </div>
+            </v-card>
+
+            <!-- 2. VERIFICA CARICHI W6 & FATICA -->
+            <v-card 
+              class="home-action-touch-card rounded-2xl pa-3.5 text-left d-flex align-center justify-space-between"
+              :class="{ 'is-pending': eserciziIncompletiW6Home.length > 0 }"
+              @click="navigaVersoWorkout('w6')"
+              id="home-card-insw6-fatica"
+            >
+              <div class="d-flex align-center gap-3 min-width-0">
+                <v-avatar color="deep-orange-lighten-5" size="44" class="border-deep-orange flex-shrink-0">
+                  <v-icon color="deep-orange-darken-2" size="24">mdi-lightning-bolt</v-icon>
+                </v-avatar>
+                <div class="min-width-0">
+                  <div class="d-flex align-center gap-1.5 flex-wrap">
+                    <span class="text-body-2 font-weight-black text-slate-dark">Verifica Carichi W6 & Fatica</span>
+                    <v-chip 
+                      v-if="eserciziIncompletiW6Home.length > 0" 
+                      size="x-small" 
+                      color="deep-orange-darken-3" 
+                      variant="flat" 
+                      class="font-weight-black text-white px-1.5 py-0"
+                      style="height: 18px; font-size: 0.6rem;"
+                    >
+                      {{ eserciziIncompletiW6Home.length }} incompleti
+                    </v-chip>
+                    <v-chip 
+                      v-else-if="eserciziEligibiliW6Home.length > 0" 
+                      size="x-small" 
+                      color="green-darken-3" 
+                      variant="flat" 
+                      class="font-weight-black text-white px-1.5 py-0"
+                      style="height: 18px; font-size: 0.6rem;"
+                    >
+                      100% Completo ✓
+                    </v-chip>
+                  </div>
+                  <div class="text-caption text-muted mt-0.5 text-truncate">
+                    <span v-if="eserciziIncompletiW6Home.length > 0">
+                      {{ eserciziCompletiW6Home.length }} di {{ eserciziEligibiliW6Home.length }} completi ({{ percentualeCompletatiW6Home }}%)
+                    </span>
+                    <span v-else-if="eserciziEligibiliW6Home.length > 0" class="text-green-darken-2 font-weight-bold">
+                      Tutti i massimali e le fatiche di scarico/test registrati
+                    </span>
+                    <span v-else>
+                      Nessun test carichi previsto
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex align-center gap-1 flex-shrink-0 ml-2">
+                <v-icon color="grey-lighten-1" size="22">mdi-chevron-right</v-icon>
+              </div>
+            </v-card>
+
+            <!-- 3. CONTROLLO QUALITA SCHEDA (COACH ONLY) -->
+            <v-card 
+              v-if="ruolo === 'coach'"
+              class="home-action-touch-card rounded-2xl pa-3.5 text-left d-flex align-center justify-space-between"
+              @click="navigaVersoWorkout('qualita')"
+              id="home-card-controllo-qualita"
+            >
+              <div class="d-flex align-center gap-3 min-width-0">
+                <v-avatar color="green-lighten-5" size="44" class="border-green flex-shrink-0">
+                  <v-icon color="green-darken-3" size="24">mdi-shield-check</v-icon>
+                </v-avatar>
+                <div class="min-width-0">
+                  <div class="d-flex align-center gap-1.5 flex-wrap">
+                    <span class="text-body-2 font-weight-black text-slate-dark">Controllo Qualità Scheda</span>
+                    <v-chip 
+                      size="x-small" 
+                      color="green-darken-3" 
+                      variant="tonal" 
+                      class="font-weight-bold px-1.5 py-0"
+                      style="height: 18px; font-size: 0.58rem;"
+                    >
+                      Pannello Coach
+                    </v-chip>
+                  </div>
+                  <div class="text-caption text-muted mt-0.5 text-truncate">
+                    Audit automatico coerenza, salti carichi e progressioni
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex align-center gap-1 flex-shrink-0 ml-2">
+                <v-icon color="grey-lighten-1" size="22">mdi-chevron-right</v-icon>
+              </div>
+            </v-card>
+          </div>
+
           <!-- Silhouette Anatomica / Heatmap Muscolare (Collapsible/Visual Panel) -->
           <v-card 
             class="mesocycle-progress-card rounded-2xl border text-left pa-3 mb-5"
@@ -1053,6 +1222,7 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import GuidaFlexCoachModal from '../components/GuidaFlexCoachModal.vue';
+import { isCorpoLiberoEsercizio } from '../utils/loadParser.js';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { 
@@ -1671,6 +1841,93 @@ const coachMessage = ref('');
 const filmatiList = ref([]);
 const testList = ref([]);
 const allExercises = ref([]);
+
+// ==========================================================================
+// Soluzione Ibrida Touch-Friendly: Calcoli Feedback & Azioni Scheda
+// ==========================================================================
+const tuttiEserciziMesocicloHome = computed(() => {
+  if (!allExercises.value || allExercises.value.length === 0) return [];
+  return allExercises.value.filter(item => parseInt(item.num_riga_giorno) > 0);
+});
+
+const eserciziSenzaGradimentoHome = computed(() => {
+  return tuttiEserciziMesocicloHome.value.filter(ex => {
+    const val = parseInt(ex.ind_reps_start);
+    return isNaN(val) || val < 1 || val > 5;
+  });
+});
+
+const eserciziConGradimentoHome = computed(() => {
+  return tuttiEserciziMesocicloHome.value.filter(ex => {
+    const val = parseInt(ex.ind_reps_start);
+    return !isNaN(val) && val >= 1 && val <= 5;
+  });
+});
+
+const mediaGradimentiHome = computed(() => {
+  const votati = eserciziConGradimentoHome.value;
+  if (votati.length === 0) return 0;
+  const somma = votati.reduce((acc, ex) => acc + parseInt(ex.ind_reps_start), 0);
+  return parseFloat((somma / votati.length).toFixed(1));
+});
+
+const haInsW6Home = (ex) => {
+  if (!ex) return false;
+  const v = (ex.num_ins6 !== undefined && ex.num_ins6 !== null && String(ex.num_ins6).trim() !== '') 
+    ? String(ex.num_ins6).trim() 
+    : '';
+  return v !== '' && v !== '-';
+};
+
+const haFaticaHome = (ex) => {
+  if (!ex) return false;
+  const f = (ex.num_faticaw6 || '').trim();
+  return f !== '';
+};
+
+const isCompletoW6Home = (ex) => haInsW6Home(ex) && haFaticaHome(ex);
+
+const isEligibileW6Home = (ex) => {
+  if (!ex || parseInt(ex.num_riga_giorno) === 0) return false;
+  if (ex.flg_perc && String(ex.flg_perc).includes('V%')) return false;
+  if (isCorpoLiberoEsercizio(ex)) return false;
+  return true;
+};
+
+const eserciziEligibiliW6Home = computed(() => {
+  return tuttiEserciziMesocicloHome.value.filter(isEligibileW6Home);
+});
+
+const eserciziCompletiW6Home = computed(() => {
+  return eserciziEligibiliW6Home.value.filter(isCompletoW6Home);
+});
+
+const eserciziIncompletiW6Home = computed(() => {
+  return eserciziEligibiliW6Home.value.filter(ex => !isCompletoW6Home(ex));
+});
+
+const percentualeCompletatiW6Home = computed(() => {
+  const tot = eserciziEligibiliW6Home.value.length;
+  if (tot === 0) return 0;
+  return Math.round((eserciziCompletiW6Home.value.length / tot) * 100);
+});
+
+const numeroTotaleAzioniInAttesaHome = computed(() => {
+  let count = 0;
+  if (eserciziSenzaGradimentoHome.value && eserciziSenzaGradimentoHome.value.length > 0) {
+    count += eserciziSenzaGradimentoHome.value.length;
+  }
+  if (eserciziIncompletiW6Home.value && eserciziIncompletiW6Home.value.length > 0) {
+    count += eserciziIncompletiW6Home.value.length;
+  }
+  return count;
+});
+
+const navigaVersoWorkout = (azione) => {
+  vibraTattile(12);
+  router.push({ path: '/', query: { action: azione } });
+};
+
 
 // Muscle Heatmap States and Helpers
 const heatmapScope = ref('giorno'); // 'giorno' or 'settimana'

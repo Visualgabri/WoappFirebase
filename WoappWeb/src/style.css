@@ -2796,6 +2796,146 @@ textarea:focus,
   color: #15803d !important;
 }
 
+/* ==========================================================================
+   TOUCH-FRIENDLY HYBRID ACTIONS & BOTTOM SHEET SYSTEM (TOP TIER ERGONOMICS)
+   ========================================================================== */
+.btn-header-touch {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  touch-action: manipulation;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.btn-header-touch:active {
+  transform: scale(0.92) !important;
+}
+
+/* Bottom Sheet Menu Card */
+.bottom-sheet-menu-card {
+  background: var(--card-bg-dark) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-top-left-radius: 26px !important;
+  border-top-right-radius: 26px !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.45) !important;
+  padding-bottom: max(18px, env(safe-area-inset-bottom, 18px)) !important;
+}
+
+[data-theme="light"] .bottom-sheet-menu-card {
+  background: #ffffff !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Bottom Sheet Drag Handle */
+.bottom-sheet-handle {
+  width: 44px;
+  height: 4.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  margin-bottom: 4px;
+}
+
+[data-theme="light"] .bottom-sheet-handle {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Action Sheet Row */
+.action-sheet-row {
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.action-sheet-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  transform: translateX(2px);
+}
+
+.action-sheet-row:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.action-sheet-row.has-pending-action {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+[data-theme="light"] .action-sheet-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .action-sheet-row:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .action-sheet-row.has-pending-action {
+  border-color: rgba(217, 119, 6, 0.35) !important;
+  background: #fffbeb;
+}
+
+/* Home Action Touch Cards */
+.home-action-touch-card {
+  min-height: 68px;
+  background: var(--card-bg-glass) !important;
+  border: 1px solid var(--card-border) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.home-action-touch-card:hover {
+  border-color: rgba(249, 115, 22, 0.4) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;
+}
+
+.home-action-touch-card:active {
+  transform: scale(0.985);
+}
+
+.home-action-touch-card.is-pending {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, var(--card-bg-glass) 100%) !important;
+}
+
+[data-theme="light"] .home-action-touch-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .home-action-touch-card:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .home-action-touch-card.is-pending {
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%) !important;
+  border-color: #fde68a !important;
+}
+
+
 
 
 

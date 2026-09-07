@@ -109,6 +109,12 @@ export const updateMetaThemeColor = (colorHex) => {
     }
     mediaMeta.setAttribute('content', colorHex);
   });
+
+  // 3. Forzatura globale su qualsiasi meta tag theme-color esistente nel documento
+  const allMetas = document.querySelectorAll('meta[name="theme-color"]');
+  allMetas.forEach((m) => {
+    m.setAttribute('content', colorHex);
+  });
 };
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh

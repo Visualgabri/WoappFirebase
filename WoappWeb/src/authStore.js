@@ -89,31 +89,23 @@ export const getThemeHex = (themeColor) => {
 export const updateMetaThemeColor = (colorHex) => {
   if (typeof document === 'undefined') return;
   
-  // 1. Aggiorna o crea il meta tag generico
-  let genericMeta = document.querySelector('meta[name="theme-color"]:not([media])');
-  if (!genericMeta) {
-    genericMeta = document.createElement('meta');
-    genericMeta.name = 'theme-color';
-    document.head.appendChild(genericMeta);
-  }
-  genericMeta.setAttribute('content', colorHex);
+  // 1. Rimuovi tutti i vecchi tag theme-color per forzare il browser (Chrome/Android) a recepire la mutazione DOM
+  const oldMetas = document.querySelectorAll('meta[name="theme-color"]');
+  oldMetas.forEach((m) => m.remove());
 
-  // 2. Aggiorna o crea i tag con media query (richiesti da Chrome su Android in dark mode per la status bar)
+  // 2. Crea il meta tag generico
+  const genericMeta = document.createElement('meta');
+  genericMeta.name = 'theme-color';
+  genericMeta.content = colorHex;
+  document.head.appendChild(genericMeta);
+
+  // 3. Crea i tag con media query (richiesti da Android in dark mode o light mode per la status bar)
   ['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)'].forEach((media) => {
-    let mediaMeta = document.querySelector(`meta[name="theme-color"][media="${media}"]`);
-    if (!mediaMeta) {
-      mediaMeta = document.createElement('meta');
-      mediaMeta.name = 'theme-color';
-      mediaMeta.setAttribute('media', media);
-      document.head.appendChild(mediaMeta);
-    }
-    mediaMeta.setAttribute('content', colorHex);
-  });
-
-  // 3. Forzatura globale su qualsiasi meta tag theme-color esistente nel documento
-  const allMetas = document.querySelectorAll('meta[name="theme-color"]');
-  allMetas.forEach((m) => {
-    m.setAttribute('content', colorHex);
+    const mediaMeta = document.createElement('meta');
+    mediaMeta.name = 'theme-color';
+    mediaMeta.setAttribute('media', media);
+    mediaMeta.content = colorHex;
+    document.head.appendChild(mediaMeta);
   });
 };
 

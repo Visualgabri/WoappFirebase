@@ -28,6 +28,28 @@ export const STOP_WORDS = [
   'num.', 'n°', 'pos', 'pos.', '#', ':', '::', '@', 'at', 'con', 'e', 'o', 'per'
 ];
 
+export const OVERSHOOT_KEYWORDS = [
+  'sbagliato', 'sbagliata', 'sbagliati', 'sbagliate', 'sbaglio', 'errore',
+  'devastante', 'devastanti',
+  'troppo pesante', 'troppo duro', 'troppo dura', 'troppo carico', 'troppo alto', 'troppo alta', 'esagerato', 'esagerata',
+  'scalato', 'scalata', 'scalati', 'scalate', 'sceso', 'scesa', 'abbassato', 'abbassata', 'calato', 'calata',
+  'fallito', 'fallita', 'falliti', 'fallite', 'abortito', 'abortita', 'mollato', 'mollata',
+  'non saliva', 'non andava', 'non riuscivo', 'impossibile',
+  'ceduto subito', 'ceduto a meta', 'ceduto a metà', 'fail', 'overshoot'
+];
+
+/**
+ * Verifica se un testo contiene indicazioni esplicite di errore, overshoot o carico sbagliato/scalato.
+ * @param {string} str
+ * @returns {boolean}
+ */
+export const isNotaDiErroreOOvershoot = (str) => {
+  if (!str) return false;
+  const clean = String(str).toLowerCase().trim();
+  if (!clean) return false;
+  return OVERSHOOT_KEYWORDS.some(kw => clean.includes(kw));
+};
+
 /**
  * Determina se un esercizio appartiene al settore cardio.
  * Regola: il settore contiene la parola 'cardio' (des_settore o des_settore_princ).
@@ -429,6 +451,17 @@ export const estraiPesoDaInput = (str, options = {}) => {
     return null;
   }
 
+  // Se è attivo il filtro overshoot e sono presenti più righe, esclude le righe contrassegnate da errore/overshoot se esistono righe valide
+  if (options.filtraOvershoot) {
+    const lines = raw.split(/[\n;\r]+/);
+    if (lines.length > 1) {
+      const nonOvershootLines = lines.filter(l => !isNotaDiErroreOOvershoot(l));
+      if (nonOvershootLines.length > 0 && nonOvershootLines.length < lines.length) {
+        return estraiPesoDaInput(nonOvershootLines.join('\n'), { ...options, filtraOvershoot: false });
+      }
+    }
+  }
+
   let clean = raw.toLowerCase().replace(/,/g, '.').trim();
 
   // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
@@ -694,6 +727,17 @@ export const estraiRepsDaInput = (str, options = {}) => {
 
   const isCorpoLibero = options.isCorpoLibero ?? false;
   const repsPresc = options.repsPresc || options.defaultReps || null;
+
+  // Se è attivo il filtro overshoot e sono presenti più righe, esclude le righe contrassegnate da errore/overshoot se esistono righe valide
+  if (options.filtraOvershoot) {
+    const lines = strVal.split(/[\n;\r]+/);
+    if (lines.length > 1) {
+      const nonOvershootLines = lines.filter(l => !isNotaDiErroreOOvershoot(l));
+      if (nonOvershootLines.length > 0 && nonOvershootLines.length < lines.length) {
+        return estraiRepsDaInput(nonOvershootLines.join('\n'), { ...options, filtraOvershoot: false });
+      }
+    }
+  }
 
   // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
   // per escludere note, stripping, commenti ed impostazioni dai calcoli!
@@ -1060,30 +1104,94 @@ export const valutaOpportunitaPR = ({
 };
 
 /**
+ * Analizza un input utente (anche multi-riga o separato da ;) scomponendolo
+ * nelle singole serie atomiche, preservando per ciascuna serie il proprio carico,
+ * le proprie reps e l'eventuale indicazione di errore/overshoot.
+ *
+ * @param {string} strVal Testo ins_week (es. "22,5 (ho sbagliato infatti devastante)\n17,5x16r")
+ * @param {Object} [options={}] Opzioni { isCorpoLibero, defaultReps, isCavo }
+ * @returns {Array<{ raw: string, peso: number|null, reps: number|null, isExplicitReps: boolean, isOvershoot: boolean, e1rm: number }>}
+ */
+export const analizzaSerieInputMultiplo = (strVal, options = {}) => {
+  if (!strVal) return [];
+  const rawStr = String(strVal).trim();
+  if (!rawStr || rawStr === '-') return [];
+
+  const isCorpoLibero = options.isCorpoLibero ?? false;
+  const defaultReps = options.defaultReps || 10;
+  const isCavo = options.isCavo ?? false;
+
+  const rawLines = rawStr.split(/[\n;\r]+/);
+  const sets = [];
+
+  rawLines.forEach((line) => {
+    const l = line.trim();
+    if (!l) return;
+
+    const isOvershoot = isNotaDiErroreOOvershoot(l);
+    const pesoStr = estraiPesoDaInput(l, { isCorpoLibero, filtraOvershoot: false });
+    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+    const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero, filtraOvershoot: false }) : null;
+    const reps = (explicitReps && explicitReps > 0) ? explicitReps : (hasExplicitReps ? null : defaultReps);
+    const peso = pesoStr ? parseFloat(pesoStr) : null;
+
+    let e1rm = 0;
+    if (peso && peso > 0 && reps && reps > 0) {
+      e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
+    } else if (isCorpoLibero && reps && reps > 0) {
+      e1rm = reps;
+    }
+
+    sets.push({
+      raw: l,
+      peso: (peso !== null && !isNaN(peso)) ? peso : null,
+      reps: (reps !== null && !isNaN(reps)) ? reps : null,
+      isExplicitReps: Boolean(hasExplicitReps && explicitReps),
+      isOvershoot,
+      e1rm
+    });
+  });
+
+  return sets;
+};
+
+/**
  * Estrae la migliore prestazione singola (carico, reps, e1rm) da un log (anche multi-riga).
  * @param {string} strVal Testo ins_week
  * @param {number} [defaultReps=10]
  * @param {boolean} [isCavo=false]
  * @param {boolean} [isCorpoLibero=false]
- * @returns {{ peso: number, reps: number, e1rm: number, isZavorrato: boolean }|null}
+ * @param {boolean} [isCardio=false]
+ * @param {Object} [options={}] Opzioni: { filtraOvershoot: boolean }
+ * @returns {{ peso: number, reps: number, e1rm: number, isZavorrato: boolean, isOvershoot: boolean }|null}
  */
-export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo = false, isCorpoLibero = false, isCardio = false) => {
+export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo = false, isCorpoLibero = false, isCardio = false, options = {}) => {
   if (!strVal || isCardio) return null;
   const str = String(strVal).trim();
   if (!str || str === '-') return null;
 
+  const filtraOvershoot = options.filtraOvershoot ?? false;
   const lines = str.split(/[\n;\r]+/);
+  let linesToProcess = lines;
+
+  if (filtraOvershoot && lines.length > 1) {
+    const nonOvershoot = lines.filter(l => !isNotaDiErroreOOvershoot(l));
+    if (nonOvershoot.length > 0) {
+      linesToProcess = nonOvershoot;
+    }
+  }
+
   let bestPerf = null;
   let maxE1RM = -1;
   const hasZavorra = haSovraccaricoEsplicito(str);
 
-  lines.forEach(line => {
+  linesToProcess.forEach(line => {
     const l = line.trim();
     if (!l) return;
 
-    const pesoStr = estraiPesoDaInput(l, { isCorpoLibero });
+    const pesoStr = estraiPesoDaInput(l, { isCorpoLibero, filtraOvershoot: false });
     const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-    const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero }) : null;
+    const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero, filtraOvershoot: false }) : null;
     const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
 
     if (pesoStr) {
@@ -1092,14 +1200,14 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
         const e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
         if (e1rm > maxE1RM) {
           maxE1RM = e1rm;
-          bestPerf = { peso, reps, e1rm, isZavorrato: isCorpoLibero && hasZavorra };
+          bestPerf = { peso, reps, e1rm, isZavorrato: isCorpoLibero && hasZavorra, isOvershoot: isNotaDiErroreOOvershoot(l) };
         }
       }
     } else if (isCorpoLibero && explicitReps) {
       // Corpo libero puro (senza sovraccarico)
       if (explicitReps > maxE1RM) {
         maxE1RM = explicitReps;
-        bestPerf = { peso: 0, reps: explicitReps, e1rm: explicitReps, isZavorrato: false };
+        bestPerf = { peso: 0, reps: explicitReps, e1rm: explicitReps, isZavorrato: false, isOvershoot: isNotaDiErroreOOvershoot(l) };
       }
     }
   });

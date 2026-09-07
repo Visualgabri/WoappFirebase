@@ -6353,7 +6353,12 @@ import {
   estraiTempoDaPrescrizione,
   estraiTempoDaInput,
   formattaTempoDisplay,
-  descriviPrescrizioneCardio
+  descriviPrescrizioneCardio,
+  isNotaDiErroreOOvershoot,
+  analizzaSerieInputMultiplo,
+  estraiMigliorPrestazioneInput as estraiMigliorPrestazioneInputCentral,
+  estraiRepsDaInput as estraiRepsDaInputCentral,
+  estraiPesoDaInput as estraiPesoDaInputCentral
 } from '../utils/loadParser.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
@@ -7985,7 +7990,9 @@ const isInputIndicaLimiteOStallo = (insText, noteText, faticaText) => {
   const keywords = [
     'difficile', 'durissimo', 'durissima', 'duro', 'dura', 'limite', 'al limite', 'a limite',
     'pesante', 'troppo pesante', 'cedimento', 'faticoso', 'sofferto', 'max', 'stallo', 'incerto',
-    'fatica alta', 'rpe 9.5', 'rpe 10', 'rpe9.5', 'rpe10', 'molto faticoso'
+    'fatica alta', 'rpe 9.5', 'rpe 10', 'rpe9.5', 'rpe10', 'molto faticoso',
+    'devastante', 'devastanti', 'sbagliato', 'sbagliata', 'sbagliati', 'sbagliate', 'sbaglio', 'errore',
+    'scalato', 'scalata', 'scalati', 'scalate', 'troppo', 'impossibile', 'non saliva', 'fallito', 'abortito', 'fail'
   ];
 
   return keywords.some(kw => text.includes(kw));
@@ -10166,11 +10173,18 @@ const calcolaRecordOverviewData = (sett) => {
       for (let w = sett - 1; w >= 1; w--) {
         const ins = inputSettimane.value[w]?.ins;
         if (ins) {
-          const p = parseFloat(estraiPesoDaInput(ins));
-          if (p > 0) {
-            pesoDaPrecedenti = p;
-            repsDaPrecedenti = estraiRepsDaInput(ins) || getRepsPerWeek(w);
+          const perf = estraiMigliorPrestazioneInput(ins, getRepsPerWeek(w), isCavo, isCorpoLibero);
+          if (perf && perf.peso > 0) {
+            pesoDaPrecedenti = perf.peso;
+            repsDaPrecedenti = perf.reps;
             break;
+          } else {
+            const p = parseFloat(estraiPesoDaInput(ins));
+            if (p > 0) {
+              pesoDaPrecedenti = p;
+              repsDaPrecedenti = estraiRepsDaInput(ins) || getRepsPerWeek(w);
+              break;
+            }
           }
         }
       }
@@ -16745,278 +16759,34 @@ function estraiRepsDaInputSingle(str) {
   return res ? res.val : null;
 }
 
-function estraiMigliorPrestazioneInput(strVal, defaultReps = 10, isCavo = false, isCorpoLibero = false) {
-  if (!strVal) return null;
-  const str = String(strVal).trim();
-  if (!str || str === '-') return null;
-
-  const lines = str.split(/[\n;\r]+/);
-  let bestPerf = null;
-  let maxE1RM = -1;
-
-  lines.forEach(line => {
-    const l = line.trim();
-    if (!l) return;
-    const pesoStr = estraiPesoDaInput(l, { isCorpoLibero });
-    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-    const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero }) : null;
-    const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
-
-    if (pesoStr) {
-      const peso = parseFloat(pesoStr);
-      if (!isNaN(peso) && peso > 0) {
-        const e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
-        if (e1rm > maxE1RM) {
-          maxE1RM = e1rm;
-          bestPerf = { peso, reps, e1rm };
-        }
-      }
-    } else if (isCorpoLibero && explicitReps) {
-      if (explicitReps > maxE1RM) {
-        maxE1RM = explicitReps;
-        bestPerf = { peso: 0, reps: explicitReps, e1rm: explicitReps };
-      }
-    }
+function estraiMigliorPrestazioneInput(strVal, defaultReps = 10, isCavo = false, isCorpoLibero = false, isCardio = false, options = {}) {
+  const opt = typeof isCardio === 'object' ? isCardio : options;
+  const cardio = typeof isCardio === 'boolean' ? isCardio : false;
+  return estraiMigliorPrestazioneInputCentral(strVal, defaultReps, isCavo, isCorpoLibero, cardio, {
+    filtraOvershoot: ghostAnalisiNoteAttiva.value,
+    ...opt
   });
-
-  return bestPerf;
 }
 
-function estraiRepsDaInput(str, defaultOrTargetReps = null) {
-  if (!str) return null;
-  const strVal = String(str);
-
-  // IMPORTANT: Rimuovi QUALSIASI contenuto tra parentesi prima di estrarre delta reps o ripetizioni
-  const cleanStr = rimuoviContenutoTraParentesi(strVal);
-  if (!cleanStr) return defaultOrTargetReps || null;
-
-  // Riconoscimento "+N rep" / "+N reps" / "+Nr" (es. "14 +1 rep", "+2 reps")
-  // Richiede obbligatoriamente suffisso reps esplicito e non ammette numeri decimali
-  const matchDeltaReps = cleanStr.match(/(?:^|\s)\+\s*(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
-  if (matchDeltaReps) {
-    const delta = parseInt(matchDeltaReps[1], 10);
-    if (!isNaN(delta) && delta > 0 && delta <= 30) {
-      if (defaultOrTargetReps && defaultOrTargetReps > 0) {
-        return defaultOrTargetReps + delta;
-      }
-      return delta;
-    }
-  }
-
-  const lines = cleanStr.split(/[\n;\r]+/);
-  const results = lines.map(l => estraiRepsDaInputExplicitSingle(l)).filter(v => v !== null && !isNaN(v.val) && Number.isInteger(v.val) && v.val > 0 && v.val <= 50);
-  if (results.length === 0) return null;
-  const explicitResults = results.filter(v => v.explicit);
-  if (explicitResults.length > 0) {
-    return Math.max(...explicitResults.map(v => v.val));
-  }
-  return Math.max(...results.map(v => v.val));
+function estraiRepsDaInput(str, defaultOrTargetReps = null, options = {}) {
+  const opt = typeof defaultOrTargetReps === 'object' && defaultOrTargetReps !== null ? defaultOrTargetReps : options;
+  const defReps = typeof defaultOrTargetReps === 'number' ? defaultOrTargetReps : null;
+  return estraiRepsDaInputCentral(str, {
+    defaultReps: defReps,
+    filtraOvershoot: ghostAnalisiNoteAttiva.value,
+    ...opt
+  });
 }
 
 function estraiPesoDaInput(str, options = {}) {
-  if (!str) return null;
-  
-  const isCorpoLibero = options.isCorpoLibero !== undefined 
-    ? options.isCorpoLibero 
-    : (typeof workout !== 'undefined' && workout.value ? isCorpoLiberoEsercizio(workout.value) : false);
-
-  let clean = String(str).toLowerCase().replace(/,/g, '.').trim();
-  
-  // Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...} per escludere note ed impostazioni dai calcoli
-  clean = rimuoviContenutoTraParentesi(clean).toLowerCase();
-  if (!clean) return null;
-  
-  // Rimuove notazioni TUT (es. "TUT323", "TUT 323", "TUT 3-2-3", "tut 511", "TUT511")
-  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
-
-  // Rimuove espressioni di RPE (es. "Rpe: 93 - 99", "RPE 8.5", "RPE: 9-10", "rpe 93-99", "rpe@9")
-  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
-
-  // Rimuove completamente espressioni di Rest-Pause / Drop-Set (es. "rp20", "rp 15", "+2r RP", "RP+3")
-  clean = clean.replace(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?:?\s*@?\s*\+?\s*\d+(?:[\.,]\d+)?(?:\s*(?:sec|secondi|s|r|reps?|rip))?/gi, ' ').trim();
-  clean = clean.replace(/\+\s*\d+(?:[\.,]\d+)?\s*(?:r|reps?)?\s*(?:rp|rest\s*pause)/gi, ' ').trim();
-  clean = clean.replace(/\b(?:rp|rest\s*pause|drop\s*set|cluster)\b/gi, ' ').trim();
-  
-  // Rimuove espressioni di impostazioni/metadati (es. "PIN 12", "buco 3", "sedile 15", "sedile a 15")
-  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|gradi|grado|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|set|sets|serie|reps|rep|ripetizioni|rip|colpi|colpo|giro|giri|circuiti|circuito|volte|volta|passi|passo|tut|t\.u\.t\.|sedile|schienale|poggiapiede|poggiapiedi|schiena|rullo|perno|distanza|ampiezza|impugnatura|presa|busto|manubrio|cavo|puleggia|tacchetta|tacchette)\b\s*(?:a\s*)?\d+(?:\.\d+)?/gi;
-  clean = clean.replace(cleanSettingsRegex, '').trim();
-  
-  // Rimuove gradi (es. "30°")
-  clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, '').trim();
-
-  // 0a. Riconoscimento speciale "fatte [reps] [peso]" (es. "Fatte 15 3,75", "fatte 15 da 3.75", "fatto 12 con 50")
-  const matchFatteRepsWeight = clean.match(/\b(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\s+(\d+(?:\.\d+)?)\s*(?:a|da|con|@)?\s+(\d+(?:\.\d+)?)\s*(?:kg)?\b/i);
-  if (matchFatteRepsWeight) {
-    const w = parseFloat(matchFatteRepsWeight[2]);
-    if (!isNaN(w) && w > 0) {
-      return String(w);
-    }
-  }
-
-  // 0b. Riconoscimento speciale "[peso] fatte [reps]" (es. "3,75 fatte 19", "3.75 fatte 19", "3,75 fatte a 19", "50 fatte 12")
-  const matchWeightFatteReps = clean.match(/\b(\d+(?:\.\d+)?)\s*(?:kg)?\s*(?:fatte?|fatti|fatta|eseguite?|eseguiti|eseguito|completate?|completati|completato|chiuse?|chiusi|chiuso)\s*(?:a|da|con|@)?\s+(\d+(?:\.\d+)?)\s*(?:r|reps?|rip)?\b/i);
-  if (matchWeightFatteReps) {
-    const w = parseFloat(matchWeightFatteReps[1]);
-    if (!isNaN(w) && w > 0) {
-      return String(w);
-    }
-  }
-
-  // Rileva formato tipo "30x12r", "30 x12r" o "3x12"
-  const matchSxR = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*([rR])?\b)?\s*$/);
-  if (matchSxR) {
-    const num1 = parseFloat(matchSxR[1]);
-    const isExplicitKg = /kg|kgs|kgb|lbs|\+/i.test(clean);
-    // Se è corpo libero e non ha kg esplicito, "2x17" o "1x14" indica serie e reps, non peso!
-    if (isCorpoLibero && !isExplicitKg) {
-      return null;
-    }
-    // Se è un numero intero piccolo (es. 1, 2, 3, 4) senza indicazione esplicita di kg,
-    // in 1x13, 2x15, 3x12, 4x10 la prima cifra indica il numero di serie (sets), non i kg!
-    if (isExplicitKg || num1 >= 5 || String(matchSxR[1]).includes('.')) {
-      return String(num1);
-    }
-    return null;
-  }
-  
-  // 1. Rimuoviamo il prefisso delle reps (es. "3x10", "4 x 12") se è [serie]x[reps]
-  clean = clean.replace(/^\s*[1-5]\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g, '').trim();
-  
-  // Trova tutti i numeri decimali o interi presenti nella stringa
-  const numberRegex = /\d+(?:\.\d+)?/g;
-  
-  let match;
-  const validWeights = [];
-  
-  // Lista di parole chiave relative ad impostazioni/macchine/metadati da escludere
-  const settingKeywords = [
-    'panca', 'inclinazione', 'inclinata', 'inclinato', 'buco', 'buca', 'buchi', 
-    'foro', 'fori', 'tacca', 'tacche', 'tacchetta', 'tacchette', 'posizione', 'pos', 'altezza', 
-    'inc', 'gradi', 'grado', '°', 'seduto', 'seduta', 'step', 'pin', 'livello', 'liv', 
-    'regolazione', 'tacc', 'tassello', 'tavoletta', 'board', 'catena', 'catene', 'elastico', 
-    'elastici', 'blocco', 'blocchi', 'box', 'serie', 'set', 'sets', 'reps', 'rep', 
-    'ripetizioni', 'rip', 'colpi', 'colpo', 'giro', 'giri', 'circuiti', 'circuito', 
-    'volte', 'volta', 'passi', 'passo', 'speed', 'velocità', 'vel', 'tempo', 'tut', 't.u.t.',
-    'sedile', 'schienale', 'poggiapiede', 'poggiapiedi', 'schiena', 'rullo', 'perno', 
-    'distanza', 'ampiezza', 'impugnatura', 'presa', 'busto', 'manubrio', 'cavo', 'puleggia',
-    'sopra', 'sotto', 'rp', 'rest'
-  ];
-  
-  // Stopwords da ignorare prima del numero per trovare il prefisso reale
-  const stopWords = [
-    'a', 'di', 'su', 'in', 'da', 'alla', 'al', 'del', 'della', 'n', 'n.', 'num', 
-    'num.', 'n°', 'pos', 'pos.', '#', ':', '::', '@', 'at', 'con', 'e', 'o', 'per'
-  ];
-
-  // Helper per verificare se l'indice cade all'interno di parentesi tonde (...)
-  const isInsideParentheses = (fullStr, index) => {
-    const openIdx = fullStr.lastIndexOf('(', index);
-    if (openIdx === -1) return false;
-    const closeIdx = fullStr.indexOf(')', openIdx);
-    return closeIdx > index;
-  };
-  
-  while ((match = numberRegex.exec(clean)) !== null) {
-    const numStr = match[0];
-    const numVal = parseFloat(numStr);
-    const startIdx = match.index;
-    const endIdx = startIdx + numStr.length;
-    
-    if (isNaN(numVal)) continue;
-    
-    // 1. Analisi del Suffisso (quello che segue il numero)
-    const suffixStr = clean.substring(endIdx);
-    const suffixClean = suffixStr.trim();
-    const isExplicitKg = suffixClean.toLowerCase().startsWith('k') || /^(?:kg|kgs|kgb|lbs|zavorr)/i.test(suffixClean);
-    const insideParens = isInsideParentheses(clean, startIdx);
-    
-    // Se c'è esplicitamente "kg" dopo il numero (es. "10kg", "10 kg", "10 k"), lo accettiamo sempre come peso
-    if (isExplicitKg) {
-      validWeights.push({ val: numVal, hasKg: true, isOutside: !insideParens, idx: startIdx });
-      continue;
-    }
-    
-    // Se il suffisso è ripetizioni (es. "r", "R", "reps", "rep", "rip") o serie (es. "s", "set", "sets", "serie"), lo escludiamo dal peso
-    if (suffixClean.toLowerCase().match(/^r(?![a-z])/i) || 
-        suffixClean.toLowerCase().startsWith('rep') || 
-        suffixClean.toLowerCase().startsWith('rip') ||
-        suffixClean.toLowerCase().startsWith('set') ||
-        suffixClean.toLowerCase().startsWith('serie')) {
-      continue;
-    }
-    
-    // Se il suffisso inizia con il simbolo dei gradi ° o parole di configurazione/volume
-    const suffixTokens = suffixClean.split(/[\s\-+:=@]+/);
-    const suffixToken = (suffixTokens[0] || '').toLowerCase().trim();
-    
-    if (suffixClean.startsWith('°') || settingKeywords.some(word => suffixToken.includes(word) || suffixClean.toLowerCase().startsWith(word))) {
-      continue; // Ignorato (è un parametro di setting o gradi o ripetizioni)
-    }
-    
-    // Esclusioni standard per il suffisso (es. "/", "%", "rpe", "sec", "min", ecc.)
-    if (suffixToken) {
-      const suffixExclusions = ['/', '%', 'rpe', 'sec', 'secondi', 'secondo', 'min', 'minuti', 'minuto', 'metri', 'metro'];
-      if (suffixToken.startsWith('/') || suffixExclusions.includes(suffixToken) || (suffixToken === 's' || suffixToken === 'm')) {
-        continue;
-      }
-    }
-    
-    // 2. Analisi del Prefisso (quello che precede il numero)
-    const prefixStr = clean.substring(0, startIdx);
-    const prefixTokens = prefixStr.trim().split(/[\s\-+:=@°]+/);
-    
-    let prefixWord = '';
-    for (let i = prefixTokens.length - 1; i >= 0; i--) {
-      const token = prefixTokens[i].toLowerCase().trim();
-      if (!token) continue;
-      if (stopWords.includes(token)) {
-        continue; // Salta le preposizioni o caratteri di stop
-      }
-      prefixWord = token;
-      break;
-    }
-    
-    // Se la parola significativa prima del numero è un'impostazione o rpe/rp o moltiplicatore 'x', escludiamo il numero
-    if (prefixWord) {
-      if (['fatte', 'fatto', 'fatti', 'fatta', 'eseguite', 'eseguiti', 'eseguito', 'completate', 'chiuse', 'chiuso'].includes(prefixWord) && !isExplicitKg) {
-        continue;
-      }
-      if (settingKeywords.some(word => prefixWord === word || prefixWord.includes(word)) || prefixWord === 'rpe' || prefixWord === 'rp') {
-        continue; // Ignorato
-      }
-      // Se il prefisso è 'x' (es. "47.5 x2" -> per il 2 il prefisso è 'x' o '47.5x'), il 2 è il moltiplicatore di serie/reps e non un peso
-      if (prefixWord === 'x' || prefixWord.endsWith('x')) {
-        continue;
-      }
-    }
-    
-    validWeights.push({ val: numVal, hasKg: false, isOutside: !insideParens, idx: startIdx });
-  }
-  
-  if (validWeights.length > 0) {
-    // 1. Se ci sono pesi con 'kg' esplicito, usiamo il massimo tra essi
-    const withKg = validWeights.filter(w => w.hasKg);
-    if (withKg.length > 0) {
-      return String(Math.max(...withKg.map(w => w.val)));
-    }
-
-    // Se l'esercizio è a corpo libero e NESSUN peso ha 'kg'/'zavorra' esplicito, non estrarre peso (sono reps/set/note)
-    if (isCorpoLibero) {
-      return null;
-    }
-
-    // 2. Se ci sono pesi fuori dalle parentesi, ignoriamo quelli dentro le parentesi
-    const outside = validWeights.filter(w => w.isOutside);
-    if (outside.length > 0) {
-      return String(Math.max(...outside.map(w => w.val)));
-    }
-
-    // 3. Fallback: massimo di tutti i pesi validi trovati
-    return String(Math.max(...validWeights.map(w => w.val)));
-  }
-  
-  return null;
-};
+  return estraiPesoDaInputCentral(str, {
+    isCorpoLibero: options.isCorpoLibero !== undefined 
+      ? options.isCorpoLibero 
+      : (typeof workout !== 'undefined' && workout.value ? isCorpoLiberoEsercizio(workout.value) : false),
+    filtraOvershoot: ghostAnalisiNoteAttiva.value,
+    ...options
+  });
+}
 
 const getTestWeight = (sett) => {
   if (!workout.value) return '';

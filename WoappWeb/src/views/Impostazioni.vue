@@ -394,7 +394,7 @@
             <div class="d-flex align-center justify-space-between py-0.5" style="min-height: 34px;">
               <div>
                 <span class="text-caption font-weight-bold text-cyan-lighten-2 d-block" style="font-size: 0.72rem;">Analisi Sforzo da Note</span>
-                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Legge parole come "difficile/duro" per frenare il carico</span>
+                <span class="text-super-caption text-muted d-block" style="font-size: 0.58rem; line-height: 1.1;">Legge parole come "difficile/duro/devastante" e serie sbagliate/scalate per frenare o correggere il carico</span>
               </div>
               <div class="compact-switch">
                 <v-switch

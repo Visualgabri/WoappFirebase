@@ -72,6 +72,45 @@ export const getTemaDefaultPerSesso = (sesso) => {
   return 'blu';
 };
 
+// Helper per convertire il nome del colore tema nel codice hex corrispondente (per status bar e meta tag)
+export const getThemeHex = (themeColor) => {
+  switch (themeColor) {
+    case 'blu': return '#1d4ed8';
+    case 'verde': return '#059669';
+    case 'fucsia': return '#db2777';
+    case 'giallo': return '#ca8a04';
+    case 'arancio':
+    default:
+      return '#ea580c';
+  }
+};
+
+// Aggiorna dinamicamente tutti i meta tag theme-color (generico e con media query dark/light per smartphone)
+export const updateMetaThemeColor = (colorHex) => {
+  if (typeof document === 'undefined') return;
+  
+  // 1. Aggiorna o crea il meta tag generico
+  let genericMeta = document.querySelector('meta[name="theme-color"]:not([media])');
+  if (!genericMeta) {
+    genericMeta = document.createElement('meta');
+    genericMeta.name = 'theme-color';
+    document.head.appendChild(genericMeta);
+  }
+  genericMeta.setAttribute('content', colorHex);
+
+  // 2. Aggiorna o crea i tag con media query (richiesti da Chrome su Android in dark mode per la status bar)
+  ['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)'].forEach((media) => {
+    let mediaMeta = document.querySelector(`meta[name="theme-color"][media="${media}"]`);
+    if (!mediaMeta) {
+      mediaMeta = document.createElement('meta');
+      mediaMeta.name = 'theme-color';
+      mediaMeta.setAttribute('media', media);
+      document.head.appendChild(mediaMeta);
+    }
+    mediaMeta.setAttribute('content', colorHex);
+  });
+};
+
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
 const emailSalvata = localStorage.getItem('utenteEmail');
 let initialRuolo = localStorage.getItem('ruolo') || 'atleta';
@@ -128,7 +167,8 @@ if (typeof document !== 'undefined') {
   const sesso = getSessoAtleta(activeAthlete);
   const defaultThemeColor = getTemaDefaultPerSesso(sesso);
   const savedTheme = localStorage.getItem('woapp_tema_header_giorno');
-  const initThemeColor = (savedTheme && savedTheme !== 'arancio') ? savedTheme : defaultThemeColor;
+  const validColors = ['arancio', 'blu', 'verde', 'fucsia', 'giallo'];
+  const initThemeColor = validColors.includes(savedTheme) ? savedTheme : (savedTheme || defaultThemeColor || 'arancio');
 
   document.documentElement.setAttribute('data-theme', initTheme);
   document.body.setAttribute('data-theme', initTheme);
@@ -137,14 +177,7 @@ if (typeof document !== 'undefined') {
   document.documentElement.setAttribute('data-theme-color', initThemeColor);
   document.body.setAttribute('data-theme-color', initThemeColor);
 
-  let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-  if (!metaThemeColor) {
-    metaThemeColor = document.createElement('meta');
-    metaThemeColor.name = 'theme-color';
-    document.head.appendChild(metaThemeColor);
-  }
-  const themeHex = initThemeColor === 'blu' ? '#1d4ed8' : (initThemeColor === 'verde' ? '#059669' : (initThemeColor === 'fucsia' ? '#db2777' : (initThemeColor === 'giallo' ? '#ca8a04' : '#ea580c')));
-  metaThemeColor.setAttribute('content', themeHex);
+  updateMetaThemeColor(getThemeHex(initThemeColor));
 }
 
 // Stato di selezione globale Atleta e Scheda (in stile AppSheet)
@@ -1120,7 +1153,8 @@ export const comportamentoPlayGlobal = ref((savedComportamentoPlay && savedCompo
 const activeAthleteInit = localStorage.getItem('selectedAthlete') || '1';
 const defaultThemeColorInit = getTemaDefaultPerSesso(getSessoAtleta(activeAthleteInit));
 const savedThemeInit = localStorage.getItem('woapp_tema_header_giorno');
-export const temaHeaderGiornoGlobal = ref((savedThemeInit && savedThemeInit !== 'arancio') ? savedThemeInit : defaultThemeColorInit);
+const validThemesList = ['arancio', 'blu', 'verde', 'fucsia', 'giallo'];
+export const temaHeaderGiornoGlobal = ref(validThemesList.includes(savedThemeInit) ? savedThemeInit : (savedThemeInit || defaultThemeColorInit || 'arancio'));
 
 // Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
 export const globalStoryboard = ref([]);
@@ -1914,22 +1948,15 @@ watch(margineBottomGhostNoticeGlobal, (newVal) => {
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {
-  const targetColor = (newVal === 'blu' || newVal === 'verde' || newVal === 'fucsia' || newVal === 'giallo') ? newVal : 'arancio';
+  const targetColor = (newVal === 'blu' || newVal === 'verde' || newVal === 'fucsia' || newVal === 'giallo' || newVal === 'arancio') ? newVal : 'arancio';
   localStorage.setItem('woapp_tema_header_giorno', targetColor);
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme-color', targetColor);
     document.body.setAttribute('data-theme-color', targetColor);
 
-    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (!metaThemeColor) {
-      metaThemeColor = document.createElement('meta');
-      metaThemeColor.name = 'theme-color';
-      document.head.appendChild(metaThemeColor);
-    }
-    const themeHex = targetColor === 'blu' ? '#1d4ed8' : (targetColor === 'verde' ? '#059669' : (targetColor === 'fucsia' ? '#db2777' : (targetColor === 'giallo' ? '#ca8a04' : '#ea580c')));
-    metaThemeColor.setAttribute('content', themeHex);
+    updateMetaThemeColor(getThemeHex(targetColor));
   }
-  salvaClienteConfigFirestore();
+  salvaClienteConfigFirestore(true);
 });
 
 // --- CONFIGURAZIONE PERSONALE CLIENTE CENTRALIZZATA (Firestore: UTENTI_CONFIG/{atletaId}) ---
@@ -2015,7 +2042,7 @@ let isSyncingClienteConfigFromFirestore = false;
 let clienteConfigDebounceTimeout = null;
 let clienteConfigUnsubscribe = null;
 
-export const salvaClienteConfigFirestore = () => {
+export const salvaClienteConfigFirestore = (immediate = false) => {
   if (isSyncingClienteConfigFromFirestore) return;
   const atletaId = getActiveAtletaId();
   if (!atletaId) return;
@@ -2024,7 +2051,7 @@ export const salvaClienteConfigFirestore = () => {
     clearTimeout(clienteConfigDebounceTimeout);
   }
 
-  clienteConfigDebounceTimeout = setTimeout(async () => {
+  const doSave = async () => {
     try {
       const docRef = doc(db, 'UTENTI_CONFIG', String(atletaId));
       const payload = {
@@ -2066,7 +2093,13 @@ export const salvaClienteConfigFirestore = () => {
     } catch (err) {
       console.error("[Firestore Sync] Errore salvataggio impostazioni cliente:", err);
     }
-  }, 800);
+  };
+
+  if (immediate) {
+    doSave();
+  } else {
+    clienteConfigDebounceTimeout = setTimeout(doSave, 800);
+  }
 };
 
 export const syncClienteConfigListener = () => {
@@ -2164,16 +2197,25 @@ export const syncClienteConfigListener = () => {
       if (ui.userLightStyle !== undefined && ui.userLightStyle !== currentLightStyle.value) {
         setLightStyle(ui.userLightStyle);
       }
-      if (ui.temaHeaderGiorno !== undefined && ui.temaHeaderGiorno !== 'arancio') {
+      if (ui.temaHeaderGiorno !== undefined) {
         temaHeaderGiornoGlobal.value = ui.temaHeaderGiorno;
         localStorage.setItem('woapp_tema_header_giorno', ui.temaHeaderGiorno);
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme-color', ui.temaHeaderGiorno);
+          document.body.setAttribute('data-theme-color', ui.temaHeaderGiorno);
+          updateMetaThemeColor(getThemeHex(ui.temaHeaderGiorno));
+        }
       } else {
         const sesso = getSessoAtleta(atletaId);
         const defaultColor = getTemaDefaultPerSesso(sesso);
         const currentSaved = localStorage.getItem('woapp_tema_header_giorno');
-        if (!currentSaved || currentSaved === 'arancio') {
-          temaHeaderGiornoGlobal.value = defaultColor;
-          localStorage.setItem('woapp_tema_header_giorno', defaultColor);
+        const finalColor = currentSaved || defaultColor || 'arancio';
+        temaHeaderGiornoGlobal.value = finalColor;
+        localStorage.setItem('woapp_tema_header_giorno', finalColor);
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme-color', finalColor);
+          document.body.setAttribute('data-theme-color', finalColor);
+          updateMetaThemeColor(getThemeHex(finalColor));
         }
       }
       if (ui.layoutEsercizi !== undefined) {
@@ -2221,9 +2263,13 @@ export const syncClienteConfigListener = () => {
       const sesso = getSessoAtleta(atletaId);
       const defaultColor = getTemaDefaultPerSesso(sesso);
       const currentSaved = localStorage.getItem('woapp_tema_header_giorno');
-      if (!currentSaved || currentSaved === 'arancio') {
-        temaHeaderGiornoGlobal.value = defaultColor;
-        localStorage.setItem('woapp_tema_header_giorno', defaultColor);
+      const finalColor = currentSaved || defaultColor || 'arancio';
+      temaHeaderGiornoGlobal.value = finalColor;
+      localStorage.setItem('woapp_tema_header_giorno', finalColor);
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme-color', finalColor);
+        document.body.setAttribute('data-theme-color', finalColor);
+        updateMetaThemeColor(getThemeHex(finalColor));
       }
       salvaClienteConfigFirestore();
     }

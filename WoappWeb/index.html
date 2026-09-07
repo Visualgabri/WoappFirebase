@@ -11,7 +11,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FlexCoach" />
     <link rel="apple-touch-icon" href="/logo.png" />
-    <meta name="theme-color" content="#059669" />
+    <meta name="theme-color" content="#ea580c" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ea580c" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ea580c" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('woapp_tema_header_giorno');
+          var colors = { blu: '#1d4ed8', verde: '#059669', fucsia: '#db2777', giallo: '#ca8a04', arancio: '#ea580c' };
+          var hex = (saved && colors[saved]) ? colors[saved] : '#ea580c';
+          var metas = document.querySelectorAll('meta[name="theme-color"]');
+          metas.forEach(function(m) { m.setAttribute('content', hex); });
+        } catch (e) {}
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
   </head>
   <body>

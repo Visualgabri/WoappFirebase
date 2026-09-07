@@ -94,6 +94,7 @@
           rounded="lg"
           class="w-100 card-glass border"
           style="height: 32px;"
+          @update:model-value="cambiaColoreTemaDaImpostazioni"
         >
           <v-btn value="arancio" class="font-weight-bold flex-grow-1 px-0.5" style="font-size: 0.62rem; min-width: 0;">
             🍊 Arancio
@@ -519,6 +520,34 @@
           </div>
         </div>
       </div>
+    </v-card>
+
+    <!-- SEZIONE AGGIORNAMENTO & CACHE -->
+    <v-card 
+      v-show="activeTab === 'generali'"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
+      elevation="1"
+    >
+      <div class="d-flex align-center justify-space-between mb-2">
+        <div class="d-flex align-center">
+          <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" class="mr-2" size="17">mdi-refresh</v-icon>
+          <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.72rem;">Sincronizzazione e Cache</span>
+        </div>
+      </div>
+      <div class="text-caption text-muted mb-3" style="font-size: 0.65rem; line-height: 1.35;">
+        Se hai appena effettuato un aggiornamento o noti che la barra superiore del telefono non ha recepito il nuovo colore, premi per svuotare la cache e ricaricare subito l'app.
+      </div>
+      <v-btn
+        block
+        variant="tonal"
+        color="primary"
+        class="font-weight-bold rounded-lg"
+        style="font-size: 0.72rem; height: 36px;"
+        @click="forzaRicaricaECache"
+      >
+        <v-icon size="16" class="mr-1.5">mdi-cached</v-icon>
+        Svuota Cache e Ricarica App
+      </v-btn>
     </v-card>
 
     <!-- SEZIONE 4.1: ELENCO STEP INCREMENTO PERSONALIZZATI (Nuova Schermata/Card Dedicata) -->
@@ -998,6 +1027,10 @@ import {
   timerThemeGlobal,
   comportamentoPlayGlobal,
   temaHeaderGiornoGlobal,
+  salvaClienteConfigFirestore,
+  accettaEAggiornaDeploy,
+  updateMetaThemeColor,
+  getThemeHex,
   ottimizzaDigitazioneGlobal,
   regolaProgressioneW2Global,
   inviaNotificaDeploy,
@@ -1254,6 +1287,24 @@ const vibraTattile = (ms = 12) => {
   if (navigator.vibrate) {
     navigator.vibrate(ms);
   }
+};
+
+const cambiaColoreTemaDaImpostazioni = (val) => {
+  if (!val) return;
+  vibraTattile(15);
+  temaHeaderGiornoGlobal.value = val;
+  localStorage.setItem('woapp_tema_header_giorno', val);
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme-color', val);
+    document.body.setAttribute('data-theme-color', val);
+    updateMetaThemeColor(getThemeHex(val));
+  }
+  salvaClienteConfigFirestore(true);
+};
+
+const forzaRicaricaECache = () => {
+  vibraTattile(25);
+  accettaEAggiornaDeploy();
 };
 
 // Logout

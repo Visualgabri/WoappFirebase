@@ -1276,8 +1276,13 @@
                   </div>
                 </div>
 
-                <!-- RIGA 2: Dettagli di Riferimento Storico (Muted, più piccolo) -->
-                <div v-if="getGhostRenderInfo(sett).hasReference" class="text-muted mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.60rem' }" style="padding-left: 16px; text-transform: none;">
+                <!-- RIGA 2: Range Proposto (Subito sotto al Carico Consigliato per qualsiasi settimana) -->
+                <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-left mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem', paddingLeft: '16px' }">
+                  <span class="text-green-accent-3 font-weight-bold">↔ {{ getGhostWeightsRangeText(sett) }}</span>
+                </div>
+
+                <!-- RIGA 3: Dettagli di Riferimento Storico (Muted, più piccolo, sotto al range) -->
+                <div v-if="getGhostRenderInfo(sett).hasReference" class="text-muted mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.60rem' }" style="padding-left: 16px; text-transform: none; line-height: 1.3;">
                   <!-- Caso Week 1 -->
                   <template v-if="getGhostLiftSmart(sett).isWeek1">
                     (prec. W{{ getGhostLiftSmart(sett).proposta?.settimanaBase || 6 }}: 
@@ -1299,16 +1304,10 @@
                   <!-- Caso Scarico -->
                   <template v-else-if="getGhostLiftSmart(sett).isScarico">
                     <template v-if="getGhostLiftSmart(sett).isRepExercise">
-                      Usa <span class="text-green-accent-3 font-weight-bold">{{ scaricoWeek4Weights.textW2 || (formatRepsDisplay(getGhostLiftSmart(sett).peso) || 'W2') }}</span> (W2)
-                      <span v-if="scaricoWeek4Weights.textW3">
-                        • prec. W3: <strong class="text-slate-light">{{ scaricoWeek4Weights.textW3 }}</strong>
-                      </span>
+                      Usa <span class="text-green-accent-3 font-weight-bold">{{ scaricoWeek4Weights.textW2 || (formatRepsDisplay(getGhostLiftSmart(sett).peso) || 'W2') }}</span> (W2 consigliato)<span v-if="scaricoWeek4Weights.textW3 && scaricoWeek4Weights.textW3 !== scaricoWeek4Weights.textW2">, altrimenti W3 (<strong class="text-slate-light">{{ scaricoWeek4Weights.textW3 }}</strong>)</span>
                     </template>
                     <template v-else>
-                      Usa <span class="text-green-accent-3 font-weight-bold">{{ formatWeight(getGhostLiftSmart(sett).peso) }} kg</span> (W2)
-                      <span v-if="scaricoWeek4Weights.textW3 || scaricoWeek4Weights.pesoW3">
-                        • prec. W3: <strong class="text-slate-light">{{ scaricoWeek4Weights.textW3 || (formatWeight(scaricoWeek4Weights.pesoW3) + ' kg') }}</strong>
-                      </span>
+                      Usa peso W2 (<span class="text-green-accent-3 font-weight-bold">{{ formatWeight(getGhostLiftSmart(sett).peso) }} kg</span>) consigliato<span v-if="scaricoWeek4Weights.pesoW3 && scaricoWeek4Weights.pesoW3 !== getGhostLiftSmart(sett).peso">, altrimenti W3 (<strong class="text-slate-light">{{ formatWeight(scaricoWeek4Weights.pesoW3) }} kg</strong>)</span>
                     </template>
                   </template>
                   
@@ -1322,8 +1321,8 @@
               </div>
             </div>
             
-            <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', lineSpace: 1.2, letterSpacing: '0.02em' }">
-              💡 Se reputi il carico troppo leggero, puoi fare 1+ rep in più e registrarla (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}x{{ getRepsPerWeek(sett) + 1 }}r</span>).
+            <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.55rem', paddingLeft: '16px', lineHeight: 1.25, letterSpacing: '0.01em' }">
+              💡 Troppo leggero? Non aumentare il peso, semmai fai +1 rep (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
             <!-- 1. AVVISO FATICA / DIFFICILE A X REPS (Sopra il Range) -->
@@ -1334,11 +1333,6 @@
             <!-- 2. AVVISO TENTATIVO SFIDANTE W5/W6 CON INDICAZIONE ULTIMA SERIE -->
             <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).sfidanteNotice" class="text-super-caption font-weight-bold text-amber-lighten-1 text-left px-1 mt-0.5 mb-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em', lineHeight: 1.35 }">
               {{ getGhostRenderInfo(sett).sfidanteNotice }}
-            </div>
-
-            <!-- 3. GHOST RANGE (STILE CLASSICO LINEARE, POSIZIONATO SOTTO L'AVVISO DIFFICILE) -->
-            <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-left px-1 mt-0.5 mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem' }">
-              <span class="text-green-accent-3 font-weight-bold">↔ {{ getGhostWeightsRangeText(sett) }}</span>
             </div>
 
 
@@ -9025,24 +9019,53 @@ function getGhostWeightsRangeForWeekRaw(sett) {
   }
 
   if (ghost.isScarico) {
+    if (ghost.isRepExercise) {
+      const textW2 = scaricoWeek4Weights.value?.textW2 || (formatRepsDisplay(ghost.peso) || 'W2');
+      const textW3 = scaricoWeek4Weights.value?.textW3 || '';
+      return {
+        prudenziale: {
+          value: textW2,
+          display: textW2,
+          label: 'W2'
+        },
+        consigliato: {
+          value: textW2,
+          display: textW2,
+          label: 'W2 (Consigliato)'
+        },
+        sfidante: {
+          value: textW3 || textW2,
+          display: textW3 || textW2,
+          label: textW3 ? 'W3' : 'W2'
+        }
+      };
+    }
+
     let scaricoPeso = ghost.peso || 0;
     if (isManubri) scaricoPeso = arrotondaManubrioCommerciale(scaricoPeso);
-    const repsVolume = Math.max(repsTarget + 1, repsBaseVal + 1);
+
+    // In scarico (W4), coerente con "Cosa faccio oggi":
+    // Opzione consigliata = peso W2 (scarico)
+    // Alternativa = peso W3 (se presente ed eventualmente diverso da W2)
+    const w3Peso = scaricoWeek4Weights.value?.pesoW3;
+    let pesoAltW3 = (w3Peso && !isNaN(w3Peso) && w3Peso > 0) ? (isManubri ? arrotondaManubrioCommerciale(w3Peso) : w3Peso) : null;
+    const pesoMax = (pesoAltW3 && pesoAltW3 > scaricoPeso) ? pesoAltW3 : scaricoPeso;
+
     return {
       prudenziale: {
         value: String(scaricoPeso),
         display: `${formatWeight(scaricoPeso)} kg`,
-        label: 'Scarico'
+        label: 'Usa W2 (Consigliato)'
       },
       consigliato: {
-        value: `${scaricoPeso}x${repsVolume}r`,
-        display: `${formatWeight(scaricoPeso)}x${repsVolume}r`,
-        label: 'Consigliato (+1r)'
+        value: String(scaricoPeso),
+        display: `${formatWeight(scaricoPeso)} kg`,
+        label: 'Consigliato (W2)'
       },
       sfidante: {
-        value: `${scaricoPeso}x${repsVolume + 1}r`,
-        display: `${formatWeight(scaricoPeso)}x${repsVolume + 1}r`,
-        label: 'Sfidante (+2r)'
+        value: String(pesoMax),
+        display: `${formatWeight(pesoMax)} kg`,
+        label: pesoMax > scaricoPeso ? 'Usa W3' : 'Scarico'
       }
     };
   }
@@ -9279,12 +9302,17 @@ const getGhostWeightsRangeText = (sett) => {
   if (!range) return '';
   const first = range.prudenziale.display.replace(/\s*kg/gi, '').trim();
   const last = range.sfidante.display.replace(/\s*kg/gi, '').trim();
-  if (first === last) return first;
+  if (first === last) {
+    return first.includes('r') ? first : `${first} kg`;
+  }
   
   const info = getBaseWeekInfo(sett);
   const targetR = info ? info.repsTarget : getRepsPerWeek(sett);
   if (last === `${first}x${targetR}r` || last === `${first}x${targetR}`) {
-    return first;
+    return first.includes('r') ? first : `${first} kg`;
+  }
+  if (!first.includes('r') && !last.includes('r')) {
+    return `${first} - ${last} kg`;
   }
   return `${first} - ${last}`;
 };

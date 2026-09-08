@@ -7972,7 +7972,17 @@ const targetPrescrizioneAttiva = computed(() => {
 
 const isInputIndicaLimiteOStallo = (insText, noteText, faticaText) => {
   // Se l'analisi note è disattivata dall'utente (default), non leggiamo le parole libere inserite nei campi
-  const noteInsText = ghostAnalisiNoteAttiva.value ? `${insText || ''} ${noteText || ''}` : '';
+  let cleanInsText = insText || '';
+  if (ghostAnalisiNoteAttiva.value && cleanInsText) {
+    const lines = String(cleanInsText).split(/[\n;\r]+/);
+    if (lines.length > 1) {
+      const nonOvershoot = lines.filter(l => !isNotaDiErroreOOvershoot(l));
+      if (nonOvershoot.length > 0) {
+        cleanInsText = nonOvershoot.join(' ');
+      }
+    }
+  }
+  const noteInsText = ghostAnalisiNoteAttiva.value ? `${cleanInsText} ${noteText || ''}` : '';
 
   // Gestione fatica esplicita e sensibilità fatica
   let explicitFatica = faticaText || '';
@@ -16514,8 +16524,9 @@ const getGhostStatus = (sett) => {
   const currentReps = estraiRepsDaInput(currentInput) || targetReps;
 
   const baseInfo = getBaseWeekInfo(sett);
-  const refPesoStr = estraiPesoDaInput(baseInfo?.baseInsText || ghost.text);
-  const refPeso = refPesoStr ? parseFloat(refPesoStr) : (ghost.peso || 0);
+  const refPeso = (baseInfo && baseInfo.pesoBase !== null && baseInfo.pesoBase > 0)
+    ? baseInfo.pesoBase
+    : (estraiPesoDaInput(baseInfo?.baseInsText || ghost.text) ? parseFloat(estraiPesoDaInput(baseInfo?.baseInsText || ghost.text)) : (ghost.peso || 0));
   const refReps = baseInfo?.repsBase || 10;
 
   // 1. Controllo se nella scheda attuale a pari targetReps esiste una settimana precedente di confronto (es. W3 vs W6)

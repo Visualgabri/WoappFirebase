@@ -1130,7 +1130,7 @@
             </div>
 
             <div class="d-flex align-center gap-2">
-              <span v-if="!getGhostRenderInfo(sett) && !isEsercizioVPercentuale && !isCorpoLiberoPuro" class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Strategia">
+              <span v-if="!getGhostRenderInfo(sett) && !isCorpoLiberoPuro" class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Storico Massimali & Forza">
                 💡
               </span>
 
@@ -3644,8 +3644,286 @@
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
           <div v-if="activeTabAnalisi === 0 && !isCorpoLiberoPuro" class="pt-0">
 
-            <!-- CASO SCARICO WEEK 4 -->
-            <div v-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-2.5 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
+            <!-- CASO 0: ESERCIZIO CON CARICO FISSO DEL COACH (STRENGTH HUB) -->
+            <div v-if="isEsercizioCaricoFissoCoach" class="mb-3 text-left animate-fade-in">
+              <!-- 1. Hero Card: Prescrizione Ufficiale Coach -->
+              <div class="mb-3 pa-3 rounded-2xl border bg-slate-900 position-relative overflow-hidden" style="border-color: rgba(249, 115, 22, 0.4) !important; background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%) !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
+                <div class="d-flex align-center justify-space-between mb-2">
+                  <div class="d-flex align-center gap-1.5">
+                    <v-chip color="orange-darken-3" size="x-small" variant="flat" class="font-weight-black text-white px-2" style="font-size: 0.58rem; height: 20px; letter-spacing: 0.04em;">
+                      🎯 PRESCRIZIONE COACH
+                    </v-chip>
+                    <span class="text-super-caption text-orange-lighten-3 font-weight-black uppercase" style="font-size: 0.58rem;">
+                      Carico Fisso Stabilito
+                    </span>
+                  </div>
+                  <v-chip size="x-small" variant="outlined" color="orange-lighten-2" class="font-weight-black px-1.5" style="font-size: 0.52rem; height: 18px; border-color: rgba(249, 115, 22, 0.35) !important;">
+                    WEEK {{ aiutoWeek }}
+                  </v-chip>
+                </div>
+
+                <!-- Dettaglio Carico & Target -->
+                <div class="d-flex align-center justify-space-between bg-slate-950/80 rounded-xl pa-2.5 border mb-2" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+                  <div>
+                    <span class="text-super-caption text-muted font-weight-black uppercase d-block" style="font-size: 0.52rem;">
+                      Target Prescritto Oggi
+                    </span>
+                    <div class="d-flex align-baseline gap-1.5 mt-0.5">
+                      <span class="font-weight-black text-white" style="font-size: 1.35rem; line-height: 1;">
+                        {{ currentCoachLoadInfo?.pesoDisplay || currentCoachLoadInfo?.peso || '--' }} <span class="text-caption text-orange-lighten-3 font-weight-bold" style="font-size: 0.72rem;">KG</span>
+                      </span>
+                      <span v-if="currentCoachLoadInfo?.reps" class="text-caption font-weight-black text-amber-lighten-2" style="font-size: 0.75rem;">
+                        {{ currentCoachLoadInfo.reps }}
+                      </span>
+                      <span v-if="currentCoachLoadInfo?.maxPct" class="text-super-caption text-cyan-lighten-2 font-weight-bold ml-1" style="font-size: 0.60rem;">
+                        ({{ currentCoachLoadInfo.maxPct }})
+                      </span>
+                    </div>
+                    <div v-if="currentCoachLoadInfo?.sideWeight" class="text-super-caption text-slate-400 font-weight-medium mt-0.5" style="font-size: 0.54rem;">
+                      ⚡ Carico lato bilanciere: <strong class="text-amber-200">{{ currentCoachLoadInfo.sideWeight }} kg</strong>
+                    </div>
+                  </div>
+
+                  <!-- Pulsante Applica Carico -->
+                  <v-btn
+                    color="orange-darken-3"
+                    size="small"
+                    class="font-weight-black text-white px-3 text-none rounded-lg elevation-2"
+                    style="font-size: 0.68rem; height: 32px;"
+                    :disabled="!currentCoachLoadInfo?.peso"
+                    @click="applicaCaricoPrescrittoCoach(currentCoachLoadInfo?.peso)"
+                  >
+                    <v-icon start size="14">mdi-check</v-icon>
+                    Applica Carico
+                  </v-btn>
+                </div>
+
+                <div class="text-super-caption text-slate-300 font-weight-medium d-flex align-center gap-1.5" style="font-size: 0.56rem; line-height: 1.3;">
+                  <v-icon size="13" color="orange-lighten-2">mdi-shield-check</v-icon>
+                  <span>Il carico è stato impostato direttamente dal coach. Non sono previste proposte o variazioni automatiche.</span>
+                </div>
+              </div>
+
+              <!-- 2. KPI Grid: Riepilogo Massimali Precedenti -->
+              <div class="mb-3">
+                <div class="d-flex align-center justify-space-between mb-1.5 px-0.5">
+                  <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.05em;">
+                    Riepilogo Massimali Precedenti
+                  </span>
+                  <span v-if="massimaliEsercizio.length > 0" class="text-super-caption text-slate-400 font-weight-bold" style="font-size: 0.52rem;">
+                    {{ massimaliEsercizio.length }} test registrati
+                  </span>
+                </div>
+
+                <v-row dense>
+                  <!-- Card 1: Miglior 1RM Diretto -->
+                  <v-col cols="6">
+                    <div class="pa-2.5 rounded-xl border bg-slate-950 text-left h-100 d-flex flex-column justify-space-between" style="border-color: rgba(16, 185, 129, 0.3) !important; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.9) 100%) !important;">
+                      <div>
+                        <div class="d-flex align-center justify-space-between mb-1">
+                          <span class="text-super-caption font-weight-black text-emerald-400 uppercase" style="font-size: 0.50rem; letter-spacing: 0.02em;">
+                            🥇 1RM DIRETTO (REALE)
+                          </span>
+                        </div>
+                        <div class="font-weight-black text-white" style="font-size: 1.15rem; line-height: 1.1;">
+                          {{ massimaliKPI.bestDirect ? massimaliKPI.bestDirect.kg + ' kg' : 'N.D.' }}
+                        </div>
+                      </div>
+                      <div class="mt-1.5 text-super-caption text-slate-400 font-weight-medium" style="font-size: 0.48rem; line-height: 1.2;">
+                        <template v-if="massimaliKPI.bestDirect">
+                          {{ massimaliKPI.bestDirect.rawDate }}
+                          <span v-if="massimaliKPI.bestDirect.rappBW" class="text-emerald-300 font-weight-bold ml-1">
+                            ({{ massimaliKPI.bestDirect.rappBW }}x BW)
+                          </span>
+                        </template>
+                        <template v-else>Nessun test diretto</template>
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <!-- Card 2: Miglior 1RMT Indiretto / Teorico -->
+                  <v-col cols="6">
+                    <div class="pa-2.5 rounded-xl border bg-slate-950 text-left h-100 d-flex flex-column justify-space-between" style="border-color: rgba(6, 182, 212, 0.3) !important; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(15, 23, 42, 0.9) 100%) !important;">
+                      <div>
+                        <div class="d-flex align-center justify-space-between mb-1">
+                          <span class="text-super-caption font-weight-black text-cyan-lighten-2 uppercase" style="font-size: 0.50rem; letter-spacing: 0.02em;">
+                            ⚡ 1RMT TEORICO (STIMA)
+                          </span>
+                        </div>
+                        <div class="font-weight-black text-cyan-lighten-2" style="font-size: 1.15rem; line-height: 1.1;">
+                          {{ massimaliKPI.bestIndirect ? massimaliKPI.bestIndirect.kg + ' kg' : 'N.D.' }}
+                        </div>
+                      </div>
+                      <div class="mt-1.5 text-super-caption text-slate-400 font-weight-medium text-truncate" style="font-size: 0.48rem; line-height: 1.2;">
+                        <template v-if="massimaliKPI.bestIndirect">
+                          {{ massimaliKPI.bestIndirect.rawDate }}
+                          <span v-if="massimaliKPI.bestIndirect.des_note" class="text-cyan-200 ml-1">
+                            · {{ massimaliKPI.bestIndirect.des_note }}
+                          </span>
+                        </template>
+                        <template v-else>Nessun test teorico</template>
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <!-- Card 3: Rapporto BW / Peso Corporeo -->
+                  <v-col cols="6">
+                    <div class="pa-2 rounded-xl border bg-slate-950 text-left h-100 d-flex flex-column justify-space-between" style="border-color: rgba(168, 85, 247, 0.25) !important; background: rgba(15, 23, 42, 0.7) !important;">
+                      <span class="text-super-caption font-weight-black text-purple-lighten-3 uppercase" style="font-size: 0.48rem;">
+                        ⚖️ RAPPORTO FORZA / PESO
+                      </span>
+                      <div class="font-weight-black text-white mt-0.5" style="font-size: 0.95rem; line-height: 1;">
+                        {{ massimaliKPI.lastBwRatio ? massimaliKPI.lastBwRatio + 'x BW' : '--' }}
+                      </div>
+                      <span class="text-super-caption text-slate-400 mt-0.5" style="font-size: 0.46rem;">
+                        {{ massimaliKPI.lastPesoCorp ? 'Peso: ' + massimaliKPI.lastPesoCorp + ' kg' : 'Peso non registrato' }}
+                      </span>
+                    </div>
+                  </v-col>
+
+                  <!-- Card 4: Livello Forza Attuale -->
+                  <v-col cols="6">
+                    <div class="pa-2 rounded-xl border bg-slate-950 text-left h-100 d-flex flex-column justify-space-between" style="border-color: rgba(245, 158, 11, 0.25) !important; background: rgba(15, 23, 42, 0.7) !important;">
+                      <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.48rem;">
+                        ⭐ LIVELLO ATTUALE
+                      </span>
+                      <div class="d-flex align-center gap-1 mt-0.5">
+                        <span class="font-weight-black text-amber-200" style="font-size: 0.85rem; line-height: 1;">
+                          {{ parsedRmt(workout?.des_esercizio_2)?.livelloTesto || 'Standard' }}
+                        </span>
+                        <div class="d-flex align-center">
+                          <v-icon v-for="i in (parsedRmt(workout?.des_esercizio_2)?.stelle || 0)" :key="i" color="amber-darken-2" size="11">mdi-star</v-icon>
+                        </div>
+                      </div>
+                      <span class="text-super-caption text-slate-400 mt-0.5" style="font-size: 0.46rem;">
+                        {{ parsedRmt(workout?.des_esercizio_2)?.variazione ? 'Variazione: ' + parsedRmt(workout?.des_esercizio_2)?.variazione : 'Benchmark verificato' }}
+                      </span>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+
+              <!-- 3. Grafico Andamento Forza nel Tempo (Chart.js) -->
+              <div class="mb-3">
+                <div class="d-flex align-center justify-space-between mb-1.5 px-0.5 flex-wrap gap-1">
+                  <div class="d-flex align-center gap-1 text-orange-lighten-2 font-weight-black uppercase" style="font-size: 0.62rem;">
+                    <v-icon size="14" color="orange-lighten-2">mdi-chart-line</v-icon>
+                    <span>ANDAMENTO FORZA NEL TEMPO</span>
+                  </div>
+
+                  <!-- Controlli Rapidi Grafico -->
+                  <div class="d-flex align-center gap-1">
+                    <v-btn-toggle
+                      v-model="filtroTipoMassimale"
+                      mandatory
+                      density="compact"
+                      rounded="pill"
+                      class="border"
+                      style="height: 24px; background: rgba(15, 23, 42, 0.9); border-color: rgba(255, 255, 255, 0.12) !important;"
+                    >
+                      <v-btn value="tutti" class="px-2 text-none font-weight-bold" style="font-size: 0.52rem; min-height: 22px; height: 22px;">Tutti</v-btn>
+                      <v-btn value="diretti" class="px-2 text-none font-weight-bold text-emerald-400" style="font-size: 0.52rem; min-height: 22px; height: 22px;">Diretti</v-btn>
+                      <v-btn value="indiretti" class="px-2 text-none font-weight-bold text-cyan-lighten-2" style="font-size: 0.52rem; min-height: 22px; height: 22px;">Teorici</v-btn>
+                    </v-btn-toggle>
+
+                    <!-- Toggle Curva Peso Corporeo -->
+                    <v-btn
+                      size="x-small"
+                      variant="flat"
+                      density="compact"
+                      rounded="pill"
+                      class="px-2 text-none font-weight-bold"
+                      :style="mostraCurvaPesoCorporeo ? 'background: rgba(168, 85, 247, 0.25); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.5);' : 'background: rgba(255, 255, 255, 0.06); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1);'"
+                      style="font-size: 0.50rem; height: 24px;"
+                      @click="mostraCurvaPesoCorporeo = !mostraCurvaPesoCorporeo"
+                      title="Mostra / Nascondi peso corporeo nel tempo"
+                    >
+                      <v-icon size="11" class="mr-1">mdi-scale-bathroom</v-icon>
+                      BW
+                    </v-btn>
+                  </div>
+                </div>
+
+                <!-- Contenitore Grafico Line -->
+                <div class="bg-slate-950 border border-soft rounded-xl pa-2" style="background-color: var(--card-bg-soft) !important;">
+                  <div v-if="caricandoMassimali" class="text-center py-8">
+                    <v-progress-circular indeterminate color="orange" size="24" class="mb-1"></v-progress-circular>
+                    <p class="text-super-caption text-muted mb-0">Caricamento storico massimali...</p>
+                  </div>
+                  <div v-else-if="massimaliFiltrati.length === 0" class="text-center py-8">
+                    <v-icon size="28" color="orange-darken-1" class="mb-1">mdi-information-outline</v-icon>
+                    <p class="text-super-caption text-muted mb-0">Nessun massimale registrato per questo esercizio.</p>
+                  </div>
+                  <div v-else style="position: relative; height: 240px; width: 100%;">
+                    <Line :data="massimaliChartData" :options="massimaliChartOptions" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Tabella Cronologia Massimali Completa -->
+              <div v-if="massimaliEsercizio.length > 0" class="mb-3">
+                <div class="d-flex align-center justify-space-between mb-1.5 px-0.5">
+                  <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.05em;">
+                    Archivio Test & Stime
+                  </span>
+                </div>
+
+                <div class="rounded-xl border border-soft overflow-hidden bg-slate-950" style="background-color: var(--card-bg-soft) !important;">
+                  <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                    <table class="w-100" style="border-collapse: collapse; font-size: 0.65rem;">
+                      <thead>
+                        <tr style="background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                          <th class="pa-1.5 text-left text-muted font-weight-black">DATA</th>
+                          <th class="pa-1.5 text-center text-muted font-weight-black">TIPO</th>
+                          <th class="pa-1.5 text-right text-muted font-weight-black">1RM</th>
+                          <th class="pa-1.5 text-right text-muted font-weight-black">PESO BW</th>
+                          <th class="pa-1.5 text-right text-muted font-weight-black">BW RATIO</th>
+                          <th class="pa-1.5 text-left text-muted font-weight-black">NOTE / FORMULA</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr 
+                          v-for="(test, tIdx) in [...massimaliFiltrati].reverse()" 
+                          :key="test.id || tIdx"
+                          style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);"
+                        >
+                          <td class="pa-1.5 font-weight-bold text-white text-truncate" style="max-width: 75px;">
+                            {{ test.rawDate }}
+                          </td>
+                          <td class="pa-1.5 text-center">
+                            <v-chip
+                              size="x-small"
+                              density="compact"
+                              class="font-weight-black px-1"
+                              :color="test.isTeorico ? 'cyan-darken-3' : 'emerald-darken-3'"
+                              :variant="test.isTeorico ? 'tonal' : 'flat'"
+                              style="font-size: 0.48rem; height: 16px;"
+                            >
+                              {{ test.isTeorico ? '1RMT TEORICO' : '1RM DIRETTO' }}
+                            </v-chip>
+                          </td>
+                          <td class="pa-1.5 text-right font-weight-black" :class="test.isTeorico ? 'text-cyan-lighten-2' : 'text-emerald-400'">
+                            {{ test.kg }} kg
+                          </td>
+                          <td class="pa-1.5 text-right text-slate-300 font-weight-medium">
+                            {{ test.pesoCorp ? test.pesoCorp + ' kg' : '--' }}
+                          </td>
+                          <td class="pa-1.5 text-right font-weight-bold text-purple-lighten-3">
+                            {{ test.rappBW ? test.rappBW + 'x' : '--' }}
+                          </td>
+                          <td class="pa-1.5 text-left text-slate-400 text-truncate font-weight-regular" style="max-width: 140px;" :title="test.des_note || ''">
+                            {{ test.des_note || '--' }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CASO SCARICO WEEK 4 (PER ESERCIZI STANDARD NON A CARICO FISSO) -->
+            <div v-else-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-2.5 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
               <div class="d-flex align-center justify-space-between mb-1.5">
                 <span class="text-super-caption text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
                   🔋 SCARICO ATTIVO (W4)
@@ -3685,21 +3963,6 @@
                 >
                   Applica W3
                 </v-btn>
-              </div>
-            </div>
-
-            <!-- CASO GHOST COACH SET -->
-            <div v-else-if="getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-2.5 text-left animate-fade-in">
-              <div class="pa-3 rounded-xl border bg-slate-900" style="border-color: rgba(251, 191, 36, 0.3) !important; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.02) 100%) !important;">
-                <div class="d-flex align-center gap-2 mb-1">
-                  <v-icon color="amber-darken-2" size="18">mdi-alert-decagram-outline</v-icon>
-                  <span class="text-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.72rem; letter-spacing: 0.04em;">
-                    Carichi impostati dal Coach
-                  </span>
-                </div>
-                <div class="text-super-caption text-slate-light font-weight-bold" style="font-size: 0.68rem; line-height: 1.4;">
-                  I carichi per questo esercizio di forza sono già impostati dal coach, per cui non c'è alcuna proposta o variazione da consigliare.
-                </div>
               </div>
             </div>
 
@@ -5612,7 +5875,22 @@
           </div>
         </div>
 
-        <v-card-actions class="px-0 pt-4 pb-0 mt-2">
+        <v-card-actions class="px-0 pt-4 pb-0 mt-2 d-flex flex-column gap-2">
+          <!-- Pulsante Storico Massimali & Grafico Forza -->
+          <v-btn
+            color="orange-darken-3"
+            block
+            variant="outlined"
+            rounded="lg"
+            @click="apriStoricoMassimaliDaLivelloForza"
+            class="font-weight-black text-none mb-1 text-orange-lighten-2 border-orange-darken-3"
+            height="40"
+            style="font-size: 0.82rem; border-color: rgba(249, 115, 22, 0.6) !important;"
+          >
+            <v-icon start size="18" class="mr-1">mdi-chart-timeline-variant-shimmer</v-icon>
+            Storico Massimali & Grafico Forza
+          </v-btn>
+
           <v-btn color="orange-darken-3" block variant="flat" rounded="lg" @click="dialogLivelloForza = false" class="text-white font-weight-black text-none" height="42" style="font-size: 0.85rem;">
             Continua a Spingere! ⚡
           </v-btn>
@@ -6972,6 +7250,7 @@ const attivaEvidenziazioneEsercizio = () => {
 
 const chiudiDialogStorico = () => {
   dialogStorico.value = false;
+  forzaVisualizzazioneMassimali.value = false;
   attivaEvidenziazioneEsercizio();
 };
 
@@ -7774,6 +8053,7 @@ const getRiferimentoSfidaRecord = (sett) => {
 
 const analizzaRecordSettimana = (sett) => {
   if (!workout.value) return null;
+  if (isEsercizioCaricoFissoCoach.value || getGhostLiftSmart(sett)?.isCoachSet) return null;
   if (sett === 4 && isWeek4Scarico.value) return null;
   const targetReps = getRepsPerWeek(sett);
   const recordPuntuale = ottieniRecordStoricoPerReps(targetReps);
@@ -9359,8 +9639,9 @@ const calcolaAvvisoFaticaConsigliato = (sett, numConsigliato, repsTarget, repsPr
 
 const getGhostRenderInfo = (sett) => {
   if (isCardio.value) return null;
+  if (isEsercizioCaricoFissoCoach.value) return null;
   const ghost = getGhostLiftSmart(sett);
-  if (!ghost) return null;
+  if (!ghost || ghost.isCoachSet) return null;
 
   // Se l'esercizio è a corpo libero / ripetizioni puro SENZA peso inserito, NON mostriamo il banner CONSIGLIATO del Ghost
   if (ghost.isRepExercise || (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value)) {
@@ -11463,12 +11744,18 @@ const apriAiutoCaricoDettagliato = async (sett) => {
   // Non mostrare proposta carico per esercizi a corpo libero puro
   if (isCorpoLiberoPuro.value) return;
   vibraTattile(10);
+  if (sett) {
+    aiutoWeek.value = sett;
+  }
   activeTabAnalisi.value = 0; // Tab Proposta Carico
   showSimulatoreCarico.value = false;
   showPercheConsiglio.value = false;
   showStoricoCompleto.value = false;
   showCambioPalestra.value = false;
   dialogStorico.value = true;
+  if (isEsercizioCaricoFissoCoach.value) {
+    caricaMassimaliEsercizio();
+  }
   if (!storicoEsercizio.value || storicoEsercizio.value.length === 0) {
     await caricaDatiAnalisi(sett);
   }
@@ -16068,15 +16355,9 @@ const getGhostLiftStandard = (sett) => {
 
   const prescrizione = String(workout.value['des_week' + sett] || '');
 
-  // Se la settimana o l'esercizio è a percentuale, non proponiamo il carico ombra (Caso 1)
-  const hasPercFlag = workout.value.flg_perc && String(workout.value.flg_perc).includes('V%');
-  if (prescrizione.includes('%') || hasPercFlag) {
-    return null;
-  }
-
-  // Quando un esercizio è di forza e già impostato nelle settimane col carico, il Ghost non consiglia nulla ma segnala Coach Set
+  // Quando un esercizio ha un carico impostato dal coach (es. 2x8(62%)|142,5KG o 4x6 [80KG] o RMT con carico)
   const isStrengthEx = !!parsedRmt(workout.value.des_esercizio_2);
-  if (isStrengthEx && hasCoachLoad(prescrizione)) {
+  if ((isStrengthEx && hasCoachLoad(prescrizione)) || (hasCoachLoad(prescrizione) && !prescrizione.includes('V%'))) {
     return {
       isCoachSet: true,
       text: 'Impostato dal Coach',
@@ -16084,6 +16365,12 @@ const getGhostLiftStandard = (sett) => {
       peso: 0,
       isRepExercise: false
     };
+  }
+
+  // Se la settimana o l'esercizio è a percentuale pura (V%), non proponiamo il carico ombra (Caso 1)
+  const hasPercFlag = workout.value.flg_perc && String(workout.value.flg_perc).includes('V%');
+  if (prescrizione.includes('%') || hasPercFlag) {
+    return null;
   }
 
   // Rileva se è un esercizio a corpo libero (reps, non kg) o incentrato sul volume SENZA peso inserito
@@ -19736,6 +20023,9 @@ const caricaDatiAnalisi = async (sett, reqId = currentExerciseRequestId) => {
       caricandoStorico.value = false;
       caricandoAiutoCarico.value = false;
       rigeneraGraficoStorico();
+      if (isEsercizioCaricoFissoCoach.value) {
+        caricaMassimaliEsercizio();
+      }
     }
   }
 };
@@ -20657,6 +20947,455 @@ const vPercStats = computed(() => {
     diffPct: diffPctNum >= 0 ? `+${diffPctNum}` : `${diffPctNum}`
   };
 });
+
+// =========================================================================
+// GESTIONE MASSIMALI (WOAPP_MASSIMALI_R) & STRENGTH HUB PER CARICHI FISSI
+// =========================================================================
+
+const massimaliEsercizio = ref([]);
+const caricandoMassimali = ref(false);
+const massimaliChartReady = ref(false);
+const filtroTipoMassimale = ref('tutti'); // 'tutti' | 'diretti' | 'indiretti'
+const mostraCurvaPesoCorporeo = ref(true);
+const forzaVisualizzazioneMassimali = ref(false);
+
+const getCoachPrescribedLoad = (sett) => {
+  if (!workout.value) return null;
+  const prescrizione = String(workout.value['des_week' + sett] || '');
+  if (!prescrizione) return null;
+
+  // 1. Prova con parsePrescription (formato a pipe: "2x8(65%)|148,7KG|63,7L 81%" o "3x12|95KG")
+  const parsed = parsePrescription(prescrizione);
+  if (parsed && parsed.total) {
+    const totalNum = parseFloat(String(parsed.total).replace(',', '.'));
+    if (!isNaN(totalNum) && totalNum > 0) {
+      return {
+        peso: totalNum,
+        pesoDisplay: parsed.total,
+        reps: parsed.reps,
+        maxPct: parsed.max,
+        sideWeight: parsed.side,
+        effort: parsed.effort,
+        raw: prescrizione,
+        isCoachFixed: true
+      };
+    }
+  }
+
+  // 2. Prova con hasCoachLoad (es: "4x6 [80KG]" o "4x6 | 80KG")
+  if (hasCoachLoad(prescrizione)) {
+    const clean = pulisciParentesiQuadre(prescrizione);
+    let extractedWeight = null;
+    const parts = clean.split('|');
+    if (parts.length >= 2) {
+      const part2 = parts[1].trim();
+      const cleanPart2 = part2.replace(/KG/i, '').trim();
+      const p = parseFloat(cleanPart2.replace(',', '.'));
+      if (!isNaN(p) && p > 0) extractedWeight = p;
+    }
+    if (!extractedWeight) {
+      const mKg = prescrizione.match(/\[\s*(\d+(?:[,\.]\d+)?)\s*KG\s*\]/i) || prescrizione.match(/(\d+(?:[,\.]\d+)?)\s*KG/i);
+      if (mKg) {
+        const p = parseFloat(mKg[1].replace(',', '.'));
+        if (!isNaN(p) && p > 0) extractedWeight = p;
+      }
+    }
+    if (!extractedWeight) {
+      const p = parseFloat(estraiPesoDaInput(prescrizione));
+      if (!isNaN(p) && p > 0) extractedWeight = p;
+    }
+    if (extractedWeight) {
+      const reps = estraiRepsDaPrescrizione(prescrizione) || 0;
+      return {
+        peso: extractedWeight,
+        pesoDisplay: formatWeight(extractedWeight),
+        reps: reps ? `${reps}r` : '',
+        maxPct: '',
+        sideWeight: null,
+        effort: '',
+        raw: prescrizione,
+        isCoachFixed: true
+      };
+    }
+  }
+
+  // 3. Fallback: ghost isCoachSet
+  const ghost = getGhostLiftSmart(sett);
+  if (ghost && ghost.isCoachSet) {
+    return {
+      peso: ghost.peso || 0,
+      pesoDisplay: ghost.peso ? formatWeight(ghost.peso) : '',
+      reps: '',
+      maxPct: '',
+      sideWeight: null,
+      effort: '',
+      raw: prescrizione,
+      isCoachFixed: true
+    };
+  }
+
+  return null;
+};
+
+const isEsercizioCaricoFissoCoach = computed(() => {
+  if (forzaVisualizzazioneMassimali.value) return true;
+  if (!workout.value) return false;
+  if (isCardio.value || isCorpoLiberoPuro.value) return false;
+
+  const targetWeek = aiutoWeek.value || settimanaAttiva.value || 1;
+  const coachLoad = getCoachPrescribedLoad(targetWeek);
+  if (coachLoad && coachLoad.isCoachFixed) return true;
+
+  const ghost = getGhostLiftSmart(targetWeek);
+  if (ghost && ghost.isCoachSet) return true;
+
+  // Se qualsiasi settimana dell'esercizio ha un carico prescritto dal coach o isCoachSet o hasCoachLoad
+  for (let w = 1; w <= 6; w++) {
+    if (getCoachPrescribedLoad(w)?.isCoachFixed) return true;
+    if (getGhostLiftSmart(w)?.isCoachSet) return true;
+    if (hasCoachLoad(workout.value['des_week' + w])) return true;
+  }
+
+  const isStrengthEx = !!parsedRmt(workout.value.des_esercizio_2);
+  if (isStrengthEx) {
+    for (let w = 1; w <= 6; w++) {
+      if (hasCoachLoad(workout.value['des_week' + w])) return true;
+    }
+  }
+
+  return false;
+});
+
+const currentCoachLoadInfo = computed(() => {
+  const targetWeek = aiutoWeek.value || settimanaAttiva.value || 1;
+  let info = getCoachPrescribedLoad(targetWeek);
+  if (!info || !info.peso) {
+    for (let w = 1; w <= 6; w++) {
+      const cand = getCoachPrescribedLoad(w);
+      if (cand && cand.peso > 0) {
+        info = cand;
+        break;
+      }
+    }
+  }
+  return info;
+});
+
+async function caricaMassimaliEsercizio() {
+  if (!workout.value) return;
+  const { id: atletaId } = getAtletaInfo(workout.value);
+  const nomeEs = String(workout.value.des_esercizio || '').trim().toLowerCase();
+  const idEs = workout.value.ID_esercizio ? String(workout.value.ID_esercizio).trim() : null;
+
+  if (!atletaId || !nomeEs) return;
+
+  caricandoMassimali.value = true;
+  try {
+    const q = query(
+      collection(db, 'WOAPP_MASSIMALI_R'),
+      where('ID_cliente', '==', String(atletaId))
+    );
+    const snap = await getDocs(q);
+    const list = [];
+
+    snap.forEach((docSnap) => {
+      const d = docSnap.data();
+      if (d.flg_escludi === true || String(d.flg_escludi).toLowerCase() === 'true') return;
+
+      const dNome = String(d.des_esercizio || '').trim().toLowerCase();
+      const dId = d.ID_esercizio ? String(d.ID_esercizio).trim() : null;
+
+      const matchesName = dNome === nomeEs || dNome.includes(nomeEs) || nomeEs.includes(dNome);
+      const matchesId = idEs && dId && dId === idEs;
+
+      if (matchesName || matchesId) {
+        const kg = parseFloat(String(d.num_kg || 0).replace(',', '.'));
+        const pesoCorp = parseFloat(String(d.num_peso || 0).replace(',', '.'));
+        let rappBW = parseFloat(String(d.num_rapp_BW || 0).replace(',', '.'));
+        if ((!rappBW || isNaN(rappBW)) && kg > 0 && pesoCorp > 0) {
+          rappBW = parseFloat((kg / pesoCorp).toFixed(2));
+        }
+
+        const rawDate = String(d.dat_data || '').trim();
+        let timestamp = 0;
+        if (rawDate.includes('/')) {
+          const parts = rawDate.split('/');
+          if (parts.length === 3) {
+            const year = parts[2].length === 2 ? parseInt('20' + parts[2]) : parseInt(parts[2]);
+            timestamp = new Date(year, parseInt(parts[1]) - 1, parseInt(parts[0])).getTime();
+          }
+        } else if (rawDate) {
+          timestamp = new Date(rawDate).getTime();
+        }
+
+        list.push({
+          id: docSnap.id,
+          ...d,
+          kg,
+          pesoCorp,
+          rappBW: !isNaN(rappBW) ? rappBW : null,
+          isTeorico: d.flg_rm_teorico === true || String(d.flg_rm_teorico).toLowerCase() === 'true',
+          rawDate,
+          timestamp: isNaN(timestamp) ? 0 : timestamp
+        });
+      }
+    });
+
+    // Se la lista non contiene il benchmark del workout corrente in des_esercizio_2, lo integriamo per completezza
+    const rmtObj = parsedRmt(workout.value.des_esercizio_2);
+    if (rmtObj && rmtObj.massimale) {
+      const rmtKg = parseFloat(String(rmtObj.massimale).replace(',', '.'));
+      const rmtDate = String(rmtObj.data || '').trim();
+      const isAlreadyIncluded = list.some(item => Math.abs(item.kg - rmtKg) < 0.2 && item.rawDate === rmtDate);
+      if (!isAlreadyIncluded && rmtKg > 0) {
+        let timestamp = 0;
+        if (rmtDate.includes('/')) {
+          const parts = rmtDate.split('/');
+          if (parts.length === 3) {
+            const year = parts[2].length === 2 ? parseInt('20' + parts[2]) : parseInt(parts[2]);
+            timestamp = new Date(year, parseInt(parts[1]) - 1, parseInt(parts[0])).getTime();
+          }
+        }
+        list.push({
+          id: 'rmt_current_benchmark',
+          des_esercizio: workout.value.des_esercizio,
+          kg: rmtKg,
+          pesoCorp: 0,
+          rappBW: null,
+          isTeorico: String(workout.value.des_esercizio_2).toUpperCase().includes('RMT'),
+          des_note: 'Benchmark scheda attuale',
+          rawDate: rmtDate,
+          timestamp: isNaN(timestamp) ? Date.now() : timestamp
+        });
+      }
+    }
+
+    list.sort((a, b) => a.timestamp - b.timestamp);
+    massimaliEsercizio.value = list;
+    massimaliChartReady.value = true;
+  } catch (err) {
+    console.error('Errore nel caricamento dei massimali da WOAPP_MASSIMALI_R:', err);
+  } finally {
+    caricandoMassimali.value = false;
+  }
+}
+
+const massimaliFiltrati = computed(() => {
+  if (filtroTipoMassimale.value === 'diretti') {
+    return massimaliEsercizio.value.filter(m => !m.isTeorico);
+  }
+  if (filtroTipoMassimale.value === 'indiretti') {
+    return massimaliEsercizio.value.filter(m => m.isTeorico);
+  }
+  return massimaliEsercizio.value;
+});
+
+const massimaliKPI = computed(() => {
+  const all = massimaliEsercizio.value;
+  if (!all || all.length === 0) {
+    const rmtObj = parsedRmt(workout.value?.des_esercizio_2);
+    return {
+      bestDirect: null,
+      bestIndirect: rmtObj ? { kg: parseFloat(rmtObj.massimale), rawDate: rmtObj.data, des_note: 'RMT Scheda' } : null,
+      lastBwRatio: null,
+      lastPesoCorp: null,
+      totalCount: rmtObj ? 1 : 0
+    };
+  }
+
+  const diretti = all.filter(m => !m.isTeorico);
+  const indiretti = all.filter(m => m.isTeorico);
+
+  let bestDirect = null;
+  if (diretti.length > 0) {
+    bestDirect = diretti.reduce((max, cur) => cur.kg > max.kg ? cur : max, diretti[0]);
+  }
+
+  let bestIndirect = null;
+  if (indiretti.length > 0) {
+    bestIndirect = indiretti.reduce((max, cur) => cur.kg > max.kg ? cur : max, indiretti[0]);
+  }
+
+  const conBw = [...all].reverse().find(m => m.rappBW && m.rappBW > 0);
+  const ultimoTest = all[all.length - 1];
+
+  return {
+    bestDirect,
+    bestIndirect,
+    lastBwRatio: conBw ? conBw.rappBW : null,
+    lastPesoCorp: conBw ? conBw.pesoCorp : (ultimoTest?.pesoCorp || null),
+    totalCount: all.length
+  };
+});
+
+const massimaliChartData = computed(() => {
+  const points = massimaliFiltrati.value;
+  if (!points || points.length === 0) {
+    return { labels: [], datasets: [] };
+  }
+
+  const labels = points.map(p => p.rawDate || 'Data N.D.');
+  const dataDiretti = points.map(p => (!p.isTeorico ? p.kg : null));
+  const dataIndiretti = points.map(p => (p.isTeorico ? p.kg : null));
+  const dataPesoCorp = points.map(p => (p.pesoCorp && p.pesoCorp > 0 ? p.pesoCorp : null));
+
+  const datasets = [
+    {
+      label: '1RM Diretto (Reale)',
+      data: dataDiretti,
+      borderColor: '#10b981',
+      backgroundColor: '#10b981',
+      pointBackgroundColor: '#10b981',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      borderWidth: 2.5,
+      tension: 0.2,
+      spanGaps: true,
+      yAxisID: 'y'
+    },
+    {
+      label: '1RMT Indiretto (Teorico)',
+      data: dataIndiretti,
+      borderColor: '#06b6d4',
+      backgroundColor: '#06b6d4',
+      pointBackgroundColor: '#06b6d4',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointStyle: 'rectRot',
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      borderDash: [5, 4],
+      borderWidth: 2,
+      tension: 0.2,
+      spanGaps: true,
+      yAxisID: 'y'
+    }
+  ];
+
+  if (mostraCurvaPesoCorporeo.value && dataPesoCorp.some(v => v !== null)) {
+    datasets.push({
+      label: 'Peso Corporeo (BW)',
+      data: dataPesoCorp,
+      borderColor: '#a855f7',
+      backgroundColor: 'rgba(168, 85, 247, 0.1)',
+      pointBackgroundColor: '#a855f7',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1.5,
+      pointRadius: 3.5,
+      pointHoverRadius: 5,
+      borderDash: [2, 2],
+      borderWidth: 1.5,
+      tension: 0.2,
+      spanGaps: true,
+      yAxisID: 'y1'
+    });
+  }
+
+  return { labels, datasets };
+});
+
+const massimaliChartOptions = computed(() => {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          color: '#cbd5e1',
+          font: { size: 10, weight: 'bold' },
+          boxWidth: 12,
+          padding: 8
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        titleColor: '#f97316',
+        bodyColor: '#e2e8f0',
+        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderWidth: 1,
+        padding: 10,
+        boxPadding: 4,
+        callbacks: {
+          title: (items) => {
+            const idx = items[0]?.dataIndex;
+            const pt = massimaliFiltrati.value[idx];
+            return pt ? `📅 Data: ${pt.rawDate}` : '';
+          },
+          label: (context) => {
+            const val = context.parsed.y;
+            if (val === null || val === undefined) return null;
+            return ` ${context.dataset.label}: ${val} kg`;
+          },
+          afterBody: (items) => {
+            const idx = items[0]?.dataIndex;
+            const pt = massimaliFiltrati.value[idx];
+            if (!pt) return [];
+            const lines = [];
+            lines.push(`🎯 Tipo: ${pt.isTeorico ? '1RMT Indiretto / Stima' : '1RM Diretto / Reale'}`);
+            if (pt.pesoCorp > 0) lines.push(`⚖️ Peso Atleta: ${pt.pesoCorp} kg`);
+            if (pt.rappBW > 0) lines.push(`📈 Rapporto BW: ${pt.rappBW}x`);
+            if (pt.des_note) lines.push(`📝 Note: ${pt.des_note}`);
+            return lines;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        ticks: { color: '#94a3b8', font: { size: 9 } }
+      },
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        title: {
+          display: true,
+          text: 'Carico (kg)',
+          color: '#cbd5e1',
+          font: { size: 10, weight: 'bold' }
+        },
+        grid: { color: 'rgba(255, 255, 255, 0.06)' },
+        ticks: { color: '#94a3b8', font: { size: 9 } }
+      },
+      y1: {
+        type: 'linear',
+        display: mostraCurvaPesoCorporeo.value && massimaliFiltrati.value.some(p => p.pesoCorp > 0),
+        position: 'right',
+        title: {
+          display: true,
+          text: 'Peso BW (kg)',
+          color: '#a855f7',
+          font: { size: 9, weight: 'bold' }
+        },
+        grid: { drawOnChartArea: false },
+        ticks: { color: '#a855f7', font: { size: 8 } }
+      }
+    }
+  };
+});
+
+const applicaCaricoPrescrittoCoach = (peso) => {
+  applicaPropostaCaricoStorico(peso);
+};
+
+const apriStoricoMassimaliDaLivelloForza = async () => {
+  vibraTattile(12);
+  dialogLivelloForza.value = false;
+  forzaVisualizzazioneMassimali.value = true;
+  aiutoWeek.value = settimanaAttiva.value || 1;
+  activeTabAnalisi.value = 0;
+  dialogStorico.value = true;
+  await caricaMassimaliEsercizio();
+};
 
 const haColonnaDestraAlta = computed(() => {
   if (!workout.value) return false;

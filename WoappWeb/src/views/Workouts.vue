@@ -3904,17 +3904,17 @@ const formattaCaricoCompatto = (val) => {
 
 const parseRmtString = (str) => {
   if (!str) return null;
-  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*)\s*1RMT?:\s*([\d,.]+)\s*KG\s*~([\d,.]+)(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
+  const regex = /(?:\(+)?\s*(?:(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*?)\s*)?(?:1)?RMT?:\s*([\d,.]+)\s*KG(?:\s*~([\d,.]+))?(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
   const match = str.trim().match(regex);
   if (match) {
-    const rawStelle = match[1];
+    const rawStelle = match[1] || '';
     const starsCount = (rawStelle.match(/\*/g) || []).length;
     const subLevel = rawStelle.replace(/\*/g, ''); // Estragge il superscript
     return {
-      stelle: '*'.repeat(starsCount),
+      stelle: starsCount > 0 ? '*'.repeat(starsCount) : '',
       subLivello: subLevel,
       massimale: match[2],
-      prossimo: match[3],
+      prossimo: match[3] || '',
       data: match[4],
       variazione: match[5] || ''
     };
@@ -3926,11 +3926,11 @@ const formattaRmtSemplice = (str) => {
   if (!str) return '';
   const parsed = parseRmtString(str);
   if (parsed) {
-    let result = `Livello Forza: ${parsed.stelle}`;
+    let result = parsed.stelle ? `Livello Forza: ${parsed.stelle}` : '1RMT';
     if (parsed.subLivello) {
       result += `${parsed.subLivello}`;
     }
-    result += ` • 1RMT: ${parsed.massimale} kg (Target: ~${parsed.prossimo} kg)`;
+    result += ` • 1RMT: ${parsed.massimale} kg${parsed.prossimo ? ` (Target: ~${parsed.prossimo} kg)` : ''}`;
     if (parsed.variazione) {
       result += ` • Delta: ${parsed.variazione}`;
     }

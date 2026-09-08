@@ -383,7 +383,7 @@
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center gap-1 flex-wrap">
               <span class="text-caption text-muted font-weight-black uppercase mr-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem' }">Livello Forza:</span>
-              <div class="d-flex align-center gap-0.5">
+              <div v-if="parsedRmt(workout.des_esercizio_2).stelle > 0" class="d-flex align-center gap-0.5">
                 <v-icon
                   v-for="i in parsedRmt(workout.des_esercizio_2).stelle"
                   :key="i"
@@ -440,7 +440,9 @@
           <!-- RPG Level-up Progress Bar -->
           <div v-if="layoutCorrente !== 'super_compatto'" class="mt-2.5 px-1 border-top-soft pt-2">
             <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">Progresso Stella</span>
+              <span class="text-super-caption text-muted font-weight-black uppercase" style="font-size: 0.6rem;">
+                {{ parsedRmt(workout.des_esercizio_2).stelle > 0 ? 'Progresso Stella' : 'Progresso Target' }}
+              </span>
               <span class="text-super-caption text-amber-darken-2 font-weight-black" style="font-size: 0.6rem;">
                 {{ getRmtProgress(parsedRmt(workout.des_esercizio_2)) }}%
               </span>
@@ -12411,7 +12413,8 @@ const getStrengthGreeting = (livello) => {
     'Principiante': 'Ottimo inizio, stai progredendo! 💪',
     'Intermedio': 'Sei sulla buona strada, continuiamo a spingere! 🔥',
     'Avanzato': 'Livello impressionante! Sei tra i migliori! 🎖️',
-    'Elite': 'Sei una macchina da guerra! Livello Elite assoluto! 🏆'
+    'Elite': 'Sei una macchina da guerra! Livello Elite assoluto! 🏆',
+    'Standard': 'Obiettivo di forza impostato! 🎯'
   };
   return map[livello] || 'Grande livello di forza!';
 };
@@ -12426,7 +12429,8 @@ const getStrengthSpeech = (rmt) => {
     'Principiante': `Massimale (1RMT): ${massimaleStr} kg. Stai consolidando tecnica esecutiva e coordinazione motoria: con costanza i carichi saliranno regolarmente in sicurezza.`,
     'Intermedio': `Massimale (1RMT): ${massimaleStr} kg. Fase iniziale superata: i muscoli rispondono bene alla programmazione e la dedizione porta risultati.`,
     'Avanzato': `Massimale (1RMT): ${massimaleStr} kg. Livello avanzato: ogni chilo extra richiede impegno costante, tecnica millimetrica e massima intensità.`,
-    'Elite': `Massimale (1RMT): ${massimaleStr} kg. Top assoluto nell'esercizio: coordinazione, tecnica e resilienza fisica sono al massimo potenziale.`
+    'Elite': `Massimale (1RMT): ${massimaleStr} kg. Top assoluto nell'esercizio: coordinazione, tecnica e resilienza fisica sono al massimo potenziale.`,
+    'Standard': `Massimale (1RMT): ${massimaleStr} kg. Carico target di riferimento per la programmazione: continua a spingere verso i tuoi obiettivi.`
   };
   return map[livello] || `Massimale (1RMT): ${massimaleStr} kg. Continua a spingere per migliorare ancora.`;
 };
@@ -12450,7 +12454,8 @@ const getNextLevelRequirement = (rmt) => {
     const current = parseFloat(rmt.massimale.replace(',', '.')) || 0;
     const targetDiff = parseFloat(rmt.prossimoLivello.replace(',', '.')) || 0;
     const targetPeso = Math.round((current + targetDiff) * 10) / 10;
-    return `Mancano circa ${rmt.prossimoLivello} kg (target: ${targetPeso} kg) per sbloccare la prossima stella e avanzare di livello.`;
+    const targetDesc = (rmt.stelle && rmt.stelle > 0) ? 'la prossima stella e avanzare di livello' : 'il prossimo step di forza';
+    return `Mancano circa ${rmt.prossimoLivello} kg (target: ${targetPeso} kg) per sbloccare ${targetDesc}.`;
   }
   return 'Livello massimo raggiunto! Continua a consolidare questa prestazione.';
 };
@@ -17192,10 +17197,10 @@ const parsedTut = computed(() => {
 
 const parsedRmt = (str) => {
   if (!str) return null;
-  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*?)\s*(?:1)?RMT?:\s*([\d,.]+)\s*KG(?:\s*~\s*([\d,.]+))?(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
+  const regex = /(?:\(+)?\s*(?:(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*?)\s*)?(?:1)?RMT?:\s*([\d,.]+)\s*KG(?:\s*~\s*([\d,.]+))?(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
   const match = str.trim().match(regex);
   if (match) {
-    const rawStelle = match[1];
+    const rawStelle = match[1] || '';
     const starsCount = (rawStelle.match(/\*/g) || []).length;
     const subLevel = rawStelle.replace(/\*/g, '').trim(); // Estrae il superscript (es. '⁴')
     
@@ -17207,7 +17212,8 @@ const parsedRmt = (str) => {
     const stelleCalcolate = subLevel ? (mapSup[subLevel] || starsCount) : starsCount;
     
     const getLivelloTesto = (s) => {
-      if (s <= 1) return 'Neofita';
+      if (s <= 0) return 'Standard';
+      if (s === 1) return 'Neofita';
       if (s === 2) return 'Principiante';
       if (s === 3) return 'Intermedio';
       if (s === 4) return 'Avanzato';
@@ -17220,7 +17226,8 @@ const parsedRmt = (str) => {
         'Principiante': 'blue-darken-2',
         'Intermedio': 'teal-darken-2',
         'Avanzato': 'orange-darken-3',
-        'Elite': 'deep-purple-darken-2'
+        'Elite': 'deep-purple-darken-2',
+        'Standard': 'orange-darken-3'
       };
       return colori[testo] || 'orange-darken-3';
     };

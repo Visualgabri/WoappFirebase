@@ -960,10 +960,10 @@ const parseVolumeString = (str) => {
 
 const parsedRmt = (str) => {
   if (!str) return null;
-  const regex = /(?:\(+)?\s*(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*?)\s*(?:1)?RMT?:\s*([\d,.]+)\s*KG(?:\s*~\s*([\d,.]+))?(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
+  const regex = /(?:\(+)?\s*(?:(\*+[¹²³⁴⁵⁶⁷⁸⁹\d]*?)\s*)?(?:1)?RMT?:\s*([\d,.]+)\s*KG(?:\s*~\s*([\d,.]+))?(?:\s*KG)?\s*(?:del|del\s+)?\s*([\d/]+)(?:\s*([↓↑]\s*\d+%))?\s*(?:\)+)?/i;
   const match = str.trim().match(regex);
   if (match) {
-    const rawStelle = match[1];
+    const rawStelle = match[1] || '';
     const starsCount = (rawStelle.match(/\*/g) || []).length;
     const subLevel = rawStelle.replace(/\*/g, '').trim(); // Estrae il superscript (es. '⁴')
     
@@ -975,7 +975,8 @@ const parsedRmt = (str) => {
     const stelleCalcolate = subLevel ? (mapSup[subLevel] || starsCount) : starsCount;
     
     const getLivelloTesto = (s) => {
-      if (s <= 1) return 'Neofita';
+      if (s <= 0) return 'Standard';
+      if (s === 1) return 'Neofita';
       if (s === 2) return 'Principiante';
       if (s === 3) return 'Intermedio';
       if (s === 4) return 'Avanzato';
@@ -988,7 +989,8 @@ const parsedRmt = (str) => {
         'Principiante': 'blue-darken-2',
         'Intermedio': 'teal-darken-2',
         'Avanzato': 'orange-darken-3',
-        'Elite': 'deep-purple-darken-2'
+        'Elite': 'deep-purple-darken-2',
+        'Standard': 'orange-darken-3'
       };
       return colori[testo] || 'orange-darken-3';
     };

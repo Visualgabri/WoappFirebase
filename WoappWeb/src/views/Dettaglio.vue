@@ -4696,15 +4696,18 @@
             <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (Segmented Hero Card Unificata a 2 Colonne - Centrata) -->
             <div v-if="suggerimentoRecord || (isCardio && recordMaxAssolutoInfo?.tempoSec > 0)" class="my-2 text-center">
               <div 
-                class="rounded-xl border overflow-hidden d-flex align-stretch w-100 min-width-0 position-relative"
+                class="rounded-xl border overflow-hidden d-flex align-stretch w-100 min-width-0 position-relative hero-record-container"
+                :class="{
+                  'single-record-assoluto-frame': isCardio || !(suggerimentoRecord?.record > 0 || suggerimentoRecord?.recordRepsValue > 0)
+                }"
                 style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(2, 6, 23, 0.95) 100%); border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);"
               >
                 <!-- Se Cardio -->
                 <template v-if="isCardio">
                   <!-- Colonna 1 Cardio: Target Settimana Corrente -->
                   <div 
-                    class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors select-none min-width-0" 
-                    style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.04) 100%); border-right: 1px solid rgba(255, 255, 255, 0.08); flex: 1 1 0%;"
+                    class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors select-none min-width-0 hero-card-reps-pr" 
+                    style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.04) 100%); flex: 1 1 0%;"
                   >
                     <div>
                       <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
@@ -4728,9 +4731,9 @@
 
                   <!-- Colonna 2 Cardio: Record Assoluto Durata -->
                   <div 
-                    class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0" 
-                    style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.14) 0%, rgba(6, 182, 212, 0.03) 100%); flex: 1 1 0%;"
-                    @click="recordMaxAssolutoInfo?.itemAtMaxWeight && vaiADettaglioStorico(recordMaxAssolutoInfo.itemAtMaxWeight)"
+                    class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0 hero-card-record-assoluto" 
+                    style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.16) 0%, rgba(6, 182, 212, 0.04) 100%); flex: 1 1 0%;"
+                    @click="evidenziaInTabella('assoluto')"
                   >
                     <div>
                       <div class="d-flex align-center justify-center gap-1 mb-1 text-truncate min-width-0">
@@ -4745,10 +4748,11 @@
                         </span>
                       </div>
                     </div>
-                    <div class="font-weight-medium mt-2 d-flex align-center justify-center gap-1.5 flex-wrap text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
+                    <div class="font-weight-medium mt-1 d-flex align-center justify-center gap-1.5 flex-wrap text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
                       <span 
-                        class="text-truncate"
+                        class="text-truncate cursor-pointer hover-underline"
                         :class="recordMaxAssolutoInfo?.isCurrentMeso ? 'text-green-accent-3 font-weight-bold' : ''"
+                        @click.stop="recordMaxAssolutoInfo?.itemAtMaxWeight && vaiADettaglioStorico(recordMaxAssolutoInfo.itemAtMaxWeight)"
                       >
                         <template v-if="recordMaxAssolutoInfo?.isCurrentMeso">
                           Sch. {{ (String(recordMaxAssolutoInfo?.sheet || workout?.num_scheda || '').match(/\d+/) || ['-'])[0] }} · questa scheda
@@ -4758,6 +4762,10 @@
                         </template>
                       </span>
                     </div>
+                    <div class="d-flex align-center justify-center gap-1 mt-1 text-cyan-accent-2 font-weight-bold" style="font-size: 0.48rem;">
+                      <v-icon size="10" color="#22d3ee">mdi-target</v-icon>
+                      <span>Tocca per trovare in tabella</span>
+                    </div>
                   </div>
                 </template>
 
@@ -4766,9 +4774,9 @@
                 <!-- Colonna 1: Record a Stesse Reps (Ambra - Centrato) -->
                 <div 
                   v-if="suggerimentoRecord.record > 0 || suggerimentoRecord.recordRepsValue > 0" 
-                  class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0" 
-                  style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.04) 100%); border-right: 1px solid rgba(255, 255, 255, 0.08); flex: 1 1 0%;"
-                  @click="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
+                  class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0 hero-card-reps-pr" 
+                  style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.05) 100%); flex: 1 1 0%;"
+                  @click="evidenziaInTabella('reps')"
                 >
                   <div>
                     <div class="d-flex align-center justify-center mb-1 gap-1 min-width-0">
@@ -4805,10 +4813,11 @@
                     </div>
                   </div>
 
-                  <div class="font-weight-medium mt-2 d-flex align-center justify-center gap-1.5 flex-wrap text-slate-400 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
+                  <div class="font-weight-medium mt-1 d-flex align-center justify-center gap-1.5 flex-wrap text-slate-400 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
                     <span 
-                      class="text-truncate"
+                      class="text-truncate cursor-pointer hover-underline"
                       :class="String(suggerimentoRecord.recordRepsSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '') ? 'text-green-accent-3 font-weight-bold' : ''"
+                      @click.stop="vaiADettaglioStorico(suggerimentoRecord.recordRepsItem || suggerimentoRecord.recordRepsId)"
                     >
                       <template v-if="String(suggerimentoRecord.recordRepsSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '')">
                         Sch. {{ (String(suggerimentoRecord.recordRepsSheet || '').match(/\d+/) || ['-'])[0] }} · questa scheda
@@ -4825,14 +4834,18 @@
                       1RM: {{ formatWeight(suggerimentoRecord.recordRepsE1RM) }} kg
                     </span>
                   </div>
+                  <div class="d-flex align-center justify-center gap-1 mt-1 text-amber-accent-2 font-weight-bold" style="font-size: 0.48rem;">
+                    <v-icon size="10" color="#fbbf24">mdi-target</v-icon>
+                    <span>Tocca per trovare in tabella</span>
+                  </div>
                 </div>
 
                 <!-- Colonna 2: Record Assoluto di Sempre (Ciano - Centrato) -->
                 <div 
                   v-if="suggerimentoRecord.recordAbsolute > 0 || (isCorpoLiberoEsercizio(workout) && (suggerimentoRecord.recordAbsoluteReps > 0 || suggerimentoRecord.recordRepsValue > 0))" 
-                  class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0" 
-                  style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.14) 0%, rgba(6, 182, 212, 0.03) 100%); flex: 1 1 0%;"
-                  @click="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
+                  class="pa-2.5 text-center d-flex flex-column justify-space-between transition-colors cursor-pointer select-none min-width-0 hero-card-record-assoluto" 
+                  style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.16) 0%, rgba(6, 182, 212, 0.04) 100%); flex: 1 1 0%;"
+                  @click="evidenziaInTabella('assoluto')"
                 >
                   <div>
                     <div class="d-flex align-center justify-center gap-1 mb-1 text-truncate min-width-0">
@@ -4869,10 +4882,11 @@
                     </div>
                   </div>
 
-                  <div class="font-weight-medium mt-2 d-flex align-center justify-center gap-1.5 flex-wrap text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
+                  <div class="font-weight-medium mt-1 d-flex align-center justify-center gap-1.5 flex-wrap text-cyan-lighten-3 min-width-0" style="font-size: 0.48rem; line-height: 1.2;">
                     <span 
-                      class="text-truncate"
+                      class="text-truncate cursor-pointer hover-underline"
                       :class="String(suggerimentoRecord.recordAbsoluteSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '') ? 'text-green-accent-3 font-weight-bold' : ''"
+                      @click.stop="vaiADettaglioStorico(suggerimentoRecord.recordAbsoluteItem || suggerimentoRecord.recordAbsoluteId)"
                     >
                       <template v-if="String(suggerimentoRecord.recordAbsoluteSheet || '').replace(/\D+/g, '') === String(workout?.num_scheda || '').replace(/\D+/g, '')">
                         Sch. {{ (String(suggerimentoRecord.recordAbsoluteSheet || '').match(/\d+/) || ['-'])[0] }} · questa scheda
@@ -4888,6 +4902,10 @@
                     >
                       1RM: {{ formatWeight(suggerimentoRecord.recordAbsoluteE1RM) }} kg
                     </span>
+                  </div>
+                  <div class="d-flex align-center justify-center gap-1 mt-1 text-cyan-accent-2 font-weight-bold" style="font-size: 0.48rem;">
+                    <v-icon size="10" color="#22d3ee">mdi-target</v-icon>
+                    <span>Tocca per trovare in tabella</span>
                   </div>
                 </div>
                 </template>
@@ -4954,15 +4972,18 @@
               <div 
                 v-for="prevEx in storicoFiltrato" 
                 :key="prevEx.id" 
+                :data-timeline-scheda="String(prevEx.num_scheda).replace(/\D+/g, '')"
                 class="rounded-xl border bg-slate-950 p-2.5 text-left position-relative" 
                 :class="{
                   'border-emerald-500 shadow-emerald': String(prevEx.num_scheda) === String(workout?.num_scheda),
-                  'border-soft': String(prevEx.num_scheda) !== String(workout?.num_scheda)
+                  'border-cyan-500 shadow-cyan': hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda),
+                  'border-amber-500 shadow-amber': hasRepsPrRow(prevEx) && !hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda),
+                  'border-soft': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !hasRecordAssolutoRow(prevEx) && !hasRepsPrRow(prevEx)
                 }"
                 :style="{
                   cursor: 'pointer',
-                  borderColor: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'rgba(34, 197, 94, 0.55)' : '',
-                  boxShadow: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '0 0 12px rgba(34, 197, 94, 0.18)' : ''
+                  borderColor: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'rgba(34, 197, 94, 0.55)' : (hasRecordAssolutoRow(prevEx) ? 'rgba(6, 182, 212, 0.65)' : (hasRepsPrRow(prevEx) ? 'rgba(245, 158, 11, 0.65)' : '')),
+                  boxShadow: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '0 0 12px rgba(34, 197, 94, 0.18)' : (hasRecordAssolutoRow(prevEx) ? '0 0 14px rgba(6, 182, 212, 0.22)' : (hasRepsPrRow(prevEx) ? '0 0 14px rgba(245, 158, 11, 0.22)' : ''))
                 }"
                 @click="vaiADettaglioStorico(prevEx)"
               >
@@ -4997,6 +5018,26 @@
                       style="font-size: 0.54rem; height: 18px; background: rgba(34, 197, 94, 0.25); color: #4ade80 !important; border: 1px solid rgba(34, 197, 94, 0.5);"
                     >
                       🟢 SCHEDA ATTUALE
+                    </v-chip>
+                    <v-chip
+                      v-if="hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda)"
+                      size="x-small"
+                      density="compact"
+                      class="font-weight-black text-cyan-accent-2 px-1.5"
+                      variant="flat"
+                      style="font-size: 0.54rem; height: 18px; background: rgba(6, 182, 212, 0.25); color: #22d3ee !important; border: 1px solid rgba(6, 182, 212, 0.5);"
+                    >
+                      🔥 RECORD ASSOLUTO
+                    </v-chip>
+                    <v-chip
+                      v-else-if="hasRepsPrRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda)"
+                      size="x-small"
+                      density="compact"
+                      class="font-weight-black text-amber-accent-2 px-1.5"
+                      variant="flat"
+                      style="font-size: 0.54rem; height: 18px; background: rgba(245, 158, 11, 0.25); color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.5);"
+                    >
+                      🏆 REPS PR
                     </v-chip>
                     <v-chip
                       v-if="!isCardio && calcola1RMW6Prescritto(prevEx)"
@@ -5064,13 +5105,26 @@
                   <!-- RIGA 1: W1, W2, W3 -->
                   <v-col v-for="w in [1, 2, 3]" :key="w" cols="4" class="pa-1 text-center bg-slate-900 border-bottom" :style="w !== 3 ? 'border-right: 1px solid rgba(255,255,255,0.06);' : ''">
                     <div 
-                      class="py-1 rounded" 
+                      class="py-1 rounded position-relative" 
                       :class="{
                         'border-right': w !== 3,
-                        'timeline-red-cell': isMatchingReps(prevEx, w)
+                        'timeline-red-cell': isMatchingReps(prevEx, w),
+                        'timeline-record-assoluto-cell': isRecordAssolutoCell(prevEx, w),
+                        'timeline-reps-pr-cell': isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
+                        'pr-pulse-highlight': activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
                       }"
                       :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
                     >
+                      <div v-if="isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                        <span class="pr-badge-pill pr-badge-cyan">
+                          <v-icon size="8" color="#00e5ff">mdi-fire</v-icon> RECORD
+                        </span>
+                      </div>
+                      <div v-else-if="isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                        <span class="pr-badge-pill pr-badge-amber">
+                          <v-icon size="8" color="#fbbf24">mdi-trophy</v-icon> REPS PR
+                        </span>
+                      </div>
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
                         {{ prevEx['des_week' + w] ? (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w])) : 'N.D.' }}
@@ -5087,13 +5141,26 @@
                   <!-- RIGA 2: W4, W5, W6 -->
                   <v-col v-for="w in [4, 5, 6]" :key="w" cols="4" class="pa-1 text-center bg-slate-900" :style="w !== 6 ? 'border-right: 1px solid rgba(255,255,255,0.06);' : ''">
                     <div 
-                      class="py-1 rounded" 
+                      class="py-1 rounded position-relative" 
                       :class="{
                         'border-right': w !== 3 && w !== 6,
-                        'timeline-red-cell': isMatchingReps(prevEx, w)
+                        'timeline-red-cell': isMatchingReps(prevEx, w),
+                        'timeline-record-assoluto-cell': isRecordAssolutoCell(prevEx, w),
+                        'timeline-reps-pr-cell': isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
+                        'pr-pulse-highlight': activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
                       }"
                       :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
                     >
+                      <div v-if="isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                        <span class="pr-badge-pill pr-badge-cyan">
+                          <v-icon size="8" color="#00e5ff">mdi-fire</v-icon> RECORD
+                        </span>
+                      </div>
+                      <div v-else-if="isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                        <span class="pr-badge-pill pr-badge-amber">
+                          <v-icon size="8" color="#fbbf24">mdi-trophy</v-icon> REPS PR
+                        </span>
+                      </div>
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
                         {{ prevEx['des_week' + w] ? (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w])) : 'N.D.' }}
@@ -5141,20 +5208,37 @@
                   <tr 
                     v-for="prevEx in storicoFiltrato" 
                     :key="prevEx.id" 
+                    :data-scheda="String(prevEx.num_scheda).replace(/\D+/g, '')"
                     class="table-row" 
                     style="cursor: pointer;" 
                     @click="vaiADettaglioStorico(prevEx)"
                   >
                     <td 
                       class="sticky-col body-cell text-left" 
-                      :class="{'red-scheda-cell': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !soloCorrispondenti && haSettimanaCorrispondente(prevEx)}"
+                      :class="{
+                        'red-scheda-cell': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !soloCorrispondenti && haSettimanaCorrispondente(prevEx),
+                        'scheda-has-record-assoluto': hasRecordAssolutoRow(prevEx),
+                        'scheda-has-reps-pr': hasRepsPrRow(prevEx) && !hasRecordAssolutoRow(prevEx)
+                      }"
                       :style="{
                         width: '88px !important',
                         minWidth: '88px !important',
                         maxWidth: '88px !important',
                         padding: '6px 8px !important',
-                        background: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#092518 !important' : '#0b1329 !important',
-                        borderLeft: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '3.5px solid #22c55e !important' : ''
+                        background: String(prevEx.num_scheda) === String(workout?.num_scheda) 
+                          ? '#092518 !important' 
+                          : (hasRecordAssolutoRow(prevEx) 
+                              ? 'linear-gradient(90deg, rgba(6, 182, 212, 0.20), #0b1329 85%) !important' 
+                              : (hasRepsPrRow(prevEx) 
+                                  ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.20), #0b1329 85%) !important' 
+                                  : '#0b1329 !important')),
+                        borderLeft: String(prevEx.num_scheda) === String(workout?.num_scheda) 
+                          ? '3.5px solid #22c55e !important' 
+                          : (hasRecordAssolutoRow(prevEx) 
+                              ? '3.5px solid #06b6d4 !important' 
+                              : (hasRepsPrRow(prevEx) 
+                                  ? '3.5px solid #f59e0b !important' 
+                                  : ''))
                       }"
                     >
                       <!-- Titolo Scheda -->
@@ -5163,7 +5247,9 @@
                         :style="{
                           fontSize: '0.80rem',
                           lineHeight: '1.2',
-                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '#4ade80 !important' : ''
+                          color: String(prevEx.num_scheda) === String(workout?.num_scheda) 
+                            ? '#4ade80 !important' 
+                            : (hasRecordAssolutoRow(prevEx) ? '#38bdf8 !important' : (hasRepsPrRow(prevEx) ? '#fbbf24 !important' : ''))
                         }"
                       >
                         S. {{ prevEx.num_scheda }}
@@ -5176,6 +5262,26 @@
                           style="font-size: 0.48rem; line-height: 1.1; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.45); white-space: nowrap;"
                         >
                           <span style="font-size: 0.38rem;">●</span> IN CORSO
+                        </span>
+                      </div>
+
+                      <!-- Badge Scheda con Record Assoluto -->
+                      <div v-else-if="hasRecordAssolutoRow(prevEx)" class="my-0.5">
+                        <span 
+                          class="font-weight-black uppercase px-1 py-0.2 rounded d-inline-flex align-center gap-0.5" 
+                          style="font-size: 0.44rem; line-height: 1.1; background: rgba(6, 182, 212, 0.25); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.5); white-space: nowrap;"
+                        >
+                          <v-icon size="8" color="#22d3ee">mdi-fire</v-icon> RECORD
+                        </span>
+                      </div>
+
+                      <!-- Badge Scheda con Reps PR -->
+                      <div v-else-if="hasRepsPrRow(prevEx)" class="my-0.5">
+                        <span 
+                          class="font-weight-black uppercase px-1 py-0.2 rounded d-inline-flex align-center gap-0.5" 
+                          style="font-size: 0.44rem; line-height: 1.1; background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5); white-space: nowrap;"
+                        >
+                          <v-icon size="8" color="#fbbf24">mdi-trophy</v-icon> REPS PR
                         </span>
                       </div>
 
@@ -5209,7 +5315,38 @@
                       </div>
                     </td>
                     
-                    <td v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="body-cell font-weight-bold text-center" :class="{'red-cell': isMatchingReps(prevEx, w)}" style="word-wrap: break-word;" :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }">
+                    <td 
+                      v-for="w in [1, 2, 3, 4, 5, 6]" 
+                      :key="w" 
+                      :id="'cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w"
+                      class="body-cell font-weight-bold text-center" 
+                      :class="{
+                        'red-cell': isMatchingReps(prevEx, w),
+                        'record-assoluto-cell': isRecordAssolutoCell(prevEx, w),
+                        'reps-pr-cell': isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
+                        'pr-pulse-highlight': activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
+                      }" 
+                      style="word-wrap: break-word;" 
+                      :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
+                    >
+                      <!-- Badge Record Assoluto o Reps PR -->
+                      <div v-if="isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                        <span 
+                          class="pr-badge-pill pr-badge-cyan" 
+                          :title="isRepsPrCell(prevEx, w) ? 'Record Assoluto e Reps PR' : 'Record Assoluto'"
+                        >
+                          <v-icon size="8" color="#00e5ff">mdi-fire</v-icon>
+                          <span>RECORD</span>
+                          <v-icon v-if="isRepsPrCell(prevEx, w)" size="8" color="#f59e0b" class="ml-0.5">mdi-trophy</v-icon>
+                        </span>
+                      </div>
+                      <div v-else-if="isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                        <span class="pr-badge-pill pr-badge-amber" title="Reps PR">
+                          <v-icon size="8" color="#fbbf24">mdi-trophy</v-icon>
+                          <span>REPS PR</span>
+                        </span>
+                      </div>
+
                       <div v-if="prevEx['des_week' + w]" class="table-prescription-text text-super-caption font-weight-medium" style="font-size: 0.65rem; line-height: 1;">
                         {{ isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) }}
                       </div>
@@ -5225,7 +5362,7 @@
                     </td>
                     
                     <td v-if="!isCardio" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
-                      {{ prevEx.num_ins6 ? (isCorpoLiberoEsercizio(workout) ? (String(prevEx.num_ins6).toLowerCase().endsWith('r') ? prevEx.num_ins6 : prevEx.num_ins6 + 'r') : (String(prevEx.num_ins6).toLowerCase().includes('kg') ? prevEx.num_ins6 : prevEx.num_ins6 + ' kg')) : '-' }}
+                      {{ (prevEx.num_ins6 || prevEx.ins_week6) ? (isCorpoLiberoEsercizio(workout) ? (String(prevEx.num_ins6 || prevEx.ins_week6).toLowerCase().endsWith('r') ? (prevEx.num_ins6 || prevEx.ins_week6) : (prevEx.num_ins6 || prevEx.ins_week6) + 'r') : (String(prevEx.num_ins6 || prevEx.ins_week6).toLowerCase().includes('kg') ? (prevEx.num_ins6 || prevEx.ins_week6) : (prevEx.num_ins6 || prevEx.ins_week6) + ' kg')) : '-' }}
                     </td>
                     <td v-if="!isCardio" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
                       {{ formatta1RMW6Prescritto(prevEx) }}
@@ -20852,6 +20989,119 @@ const apriStoricoEsercizio = async () => {
   eseguiScrollStorico();
 };
 
+// --- LOGICA EVIDENZIAZIONE RECORD ASSOLUTO E REPS PR ---
+const activePulseCell = ref(null);
+
+const normalizeSchedaNum = (s) => String(s || '').replace(/\D+/g, '');
+
+const isRecordAssolutoCell = (prevEx, w) => {
+  if (!prevEx || !w) return false;
+  
+  if (isCardio.value) {
+    if (!recordMaxAssolutoInfo.value) return false;
+    const isSheet = normalizeSchedaNum(prevEx.num_scheda) === normalizeSchedaNum(recordMaxAssolutoInfo.value.sheet);
+    const isW = Number(w) === Number(recordMaxAssolutoInfo.value.week);
+    return isSheet && isW;
+  }
+  
+  if (!suggerimentoRecord.value) return false;
+  const sRec = suggerimentoRecord.value;
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const hasAbs = sRec.recordAbsolute > 0 || (isCorpoLibero && (sRec.recordAbsoluteReps > 0 || sRec.recordRepsValue > 0));
+  if (!hasAbs) return false;
+  
+  const isSheet = (sRec.recordAbsoluteId && String(prevEx.id || prevEx.num_riga) === String(sRec.recordAbsoluteId)) ||
+                  (normalizeSchedaNum(prevEx.num_scheda) === normalizeSchedaNum(sRec.recordAbsoluteSheet));
+  const isW = Number(w) === Number(sRec.recordAbsoluteWeek);
+  return isSheet && isW;
+};
+
+const isRepsPrCell = (prevEx, w) => {
+  if (!prevEx || !w || isCardio.value) return false;
+  if (!suggerimentoRecord.value) return false;
+  const sRec = suggerimentoRecord.value;
+  const hasReps = sRec.record > 0 || sRec.recordRepsValue > 0;
+  if (!hasReps) return false;
+  
+  const isSheet = (sRec.recordRepsId && String(prevEx.id || prevEx.num_riga) === String(sRec.recordRepsId)) ||
+                  (normalizeSchedaNum(prevEx.num_scheda) === normalizeSchedaNum(sRec.recordRepsSheet));
+  const isW = Number(w) === Number(sRec.recordRepsWeek);
+  return isSheet && isW;
+};
+
+const hasRecordAssolutoRow = (prevEx) => {
+  if (!prevEx) return false;
+  for (let w = 1; w <= 6; w++) {
+    if (isRecordAssolutoCell(prevEx, w)) return true;
+  }
+  return false;
+};
+
+const hasRepsPrRow = (prevEx) => {
+  if (!prevEx) return false;
+  for (let w = 1; w <= 6; w++) {
+    if (isRepsPrCell(prevEx, w)) return true;
+  }
+  return false;
+};
+
+const evidenziaInTabella = (tipoRecord) => {
+  vibraTattile(15);
+  if (stileStorico.value === 'grafico') {
+    stileStorico.value = 'tabella';
+  }
+  
+  let targetSheet = null;
+  let targetWeek = null;
+  
+  if (tipoRecord === 'assoluto') {
+    if (isCardio.value) {
+      targetSheet = recordMaxAssolutoInfo.value?.sheet;
+      targetWeek = recordMaxAssolutoInfo.value?.week;
+    } else if (suggerimentoRecord.value) {
+      targetSheet = suggerimentoRecord.value.recordAbsoluteSheet;
+      targetWeek = suggerimentoRecord.value.recordAbsoluteWeek;
+    }
+  } else if (tipoRecord === 'reps') {
+    if (suggerimentoRecord.value) {
+      targetSheet = suggerimentoRecord.value.recordRepsSheet;
+      targetWeek = suggerimentoRecord.value.recordRepsWeek;
+    }
+  }
+  
+  if (!targetSheet || !targetWeek) return;
+  
+  const normSheet = normalizeSchedaNum(targetSheet);
+  const cellKey = `cell_${normSheet}_${targetWeek}`;
+  activePulseCell.value = cellKey;
+  
+  setTimeout(() => {
+    if (activePulseCell.value === cellKey) {
+      activePulseCell.value = null;
+    }
+  }, 4500);
+  
+  nextTick(() => {
+    if (stileStorico.value === 'tabella' && storicoTableContainer.value) {
+      const colWidth = 110;
+      const scrollPosHoriz = Math.max(0, (Number(targetWeek) - 1) * colWidth - 20);
+      const rowEl = storicoTableContainer.value.querySelector(`[data-scheda="${normSheet}"]`);
+      const rowTop = rowEl ? Math.max(0, rowEl.offsetTop - 60) : 0;
+      
+      storicoTableContainer.value.scrollTo({
+        left: scrollPosHoriz,
+        top: rowTop,
+        behavior: 'smooth'
+      });
+    } else if (stileStorico.value === 'timeline') {
+      const cardEl = document.querySelector(`[data-timeline-scheda="${normSheet}"]`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  });
+};
+
 const vaiADettaglioStorico = (prevExIdOrObj) => {
   vibraTattile(12);
   if (!prevExIdOrObj) return;
@@ -22262,6 +22512,122 @@ th.sticky-col {
 .red-scheda-header {
   background-color: #2b1116 !important;
   border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+/* --- Evidenziazione Riquadri Record Assoluto e Reps PR --- */
+.single-record-assoluto-frame {
+  border: 1.5px solid rgba(6, 182, 212, 0.75) !important;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.22), inset 0 0 12px rgba(6, 182, 212, 0.10) !important;
+}
+
+.hero-card-record-assoluto {
+  position: relative;
+  transition: all 0.2s ease;
+}
+.hero-card-record-assoluto:hover,
+.hero-card-record-assoluto:active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.24) 0%, rgba(6, 182, 212, 0.08) 100%) !important;
+}
+
+.hero-card-reps-pr {
+  position: relative;
+  border-right: 1.5px solid rgba(245, 158, 11, 0.35) !important;
+  transition: all 0.2s ease;
+}
+.hero-card-reps-pr:hover,
+.hero-card-reps-pr:active {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.24) 0%, rgba(217, 119, 6, 0.08) 100%) !important;
+}
+
+/* Evidenziazione Cella Tabella: Record Assoluto */
+.record-assoluto-cell {
+  background: radial-gradient(circle at center, rgba(6, 182, 212, 0.26) 0%, rgba(6, 182, 212, 0.10) 100%) !important;
+  border: 2px solid #06b6d4 !important;
+  box-shadow: inset 0 0 10px rgba(6, 182, 212, 0.35), 0 0 10px rgba(6, 182, 212, 0.40) !important;
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+.record-assoluto-cell strong,
+.record-assoluto-cell div.font-weight-black {
+  color: #38bdf8 !important;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+/* Evidenziazione Cella Tabella: Reps PR */
+.reps-pr-cell {
+  background: radial-gradient(circle at center, rgba(245, 158, 11, 0.26) 0%, rgba(245, 158, 11, 0.10) 100%) !important;
+  border: 2px solid #f59e0b !important;
+  box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.35), 0 0 10px rgba(245, 158, 11, 0.40) !important;
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+.reps-pr-cell strong,
+.reps-pr-cell div.font-weight-black {
+  color: #fbbf24 !important;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+/* Badge pills */
+.pr-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5px;
+  font-size: 0.48rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.pr-badge-cyan {
+  background: rgba(6, 182, 212, 0.32);
+  color: #22d3ee;
+  border: 1px solid rgba(6, 182, 212, 0.65);
+}
+.pr-badge-amber {
+  background: rgba(245, 158, 11, 0.32);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.65);
+}
+
+/* Timeline Cards (Layout 1) */
+.timeline-record-assoluto-cell {
+  border: 1.5px solid #06b6d4 !important;
+  background: rgba(6, 182, 212, 0.18) !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.28) !important;
+}
+
+.timeline-reps-pr-cell {
+  border: 1.5px solid #f59e0b !important;
+  background: rgba(245, 158, 11, 0.18) !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.28) !important;
+}
+
+/* Animazione di localizzazione con pulsazione */
+@keyframes prHighlightPulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+    box-shadow: inset 0 0 10px rgba(6, 182, 212, 0.4), 0 0 10px rgba(6, 182, 212, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.25);
+    box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.8), 0 0 22px rgba(6, 182, 212, 0.85);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+    box-shadow: inset 0 0 10px rgba(6, 182, 212, 0.4), 0 0 10px rgba(6, 182, 212, 0.4);
+  }
+}
+.pr-pulse-highlight {
+  animation: prHighlightPulse 1.2s ease-in-out infinite !important;
+  z-index: 10 !important;
 }
 
 .note-cell {

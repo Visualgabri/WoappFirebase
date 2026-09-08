@@ -4949,7 +4949,7 @@ const isOndaProgression = (ex) => {
 const isEsercizioEligibileW6 = (ex) => {
   if (!ex || parseInt(ex.num_riga_giorno) === 0) return false;
   if (ex.flg_perc && String(ex.flg_perc).includes('V%')) return false;
-  if (isCorpoLiberoEsercizio(ex) && !isOndaProgression(ex)) return false;
+  if (isCorpoLiberoEsercizio(ex)) return false;
   return true;
 };
 

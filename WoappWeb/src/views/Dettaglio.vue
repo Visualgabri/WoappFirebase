@@ -12844,14 +12844,14 @@ const isOndaProgression = (ex) => {
   if (!ex) return false;
   
   const getReps = (w) => {
-    if (ex['reps_week' + w]) {
-      const val = parseInt(ex['reps_week' + w], 10);
-      if (!isNaN(val)) return val;
-    }
     const presc = ex['des_week' + w];
     if (presc) {
       const val = estraiRepsDaPrescrizione(presc);
       if (val !== null && !isNaN(val)) return val;
+    }
+    if (ex['reps_week' + w]) {
+      const val = parseInt(ex['reps_week' + w], 10);
+      if (!isNaN(val)) return val;
     }
     return 10; // default fallback
   };
@@ -12867,7 +12867,7 @@ function isEsercizioEligibileW6(ex) {
   if (!ex || parseInt(ex.num_riga_giorno) === 0) return false;
   if (isCardioEsercizio(ex)) return false;
   if (ex.flg_perc && (String(ex.flg_perc).includes('V%') || String(ex.flg_perc).includes('%V') || String(ex.flg_perc).includes('V_PERC'))) return false;
-  if (isCorpoLiberoEsercizio(ex) && !isOndaProgression(ex)) return false;
+  if (isCorpoLiberoEsercizio(ex)) return false;
   return true;
 }
 

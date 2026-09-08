@@ -2853,6 +2853,34 @@ textarea:focus,
   background: rgba(0, 0, 0, 0.2);
 }
 
+/* Modal Azioni Scheda Responsive: Bottom Sheet su smartphone, Dialog centrato su Web / Desktop */
+@media (min-width: 600px) {
+  .v-bottom-sheet.responsive-azioni-sheet > .v-bottom-sheet__content.v-overlay__content {
+    align-self: center !important;
+    margin: auto !important;
+    border-radius: 26px !important;
+    max-height: calc(100vh - 60px) !important;
+  }
+
+  .responsive-azioni-sheet .bottom-sheet-menu-card {
+    border-radius: 26px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65) !important;
+    padding-bottom: 18px !important;
+    overflow-y: auto !important;
+    max-height: calc(100vh - 60px) !important;
+  }
+
+  [data-theme="light"] .responsive-azioni-sheet .bottom-sheet-menu-card {
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16) !important;
+  }
+
+  .responsive-azioni-sheet .bottom-sheet-handle {
+    display: none !important;
+  }
+}
+
 /* Action Sheet Row */
 .action-sheet-row {
   min-height: 60px;

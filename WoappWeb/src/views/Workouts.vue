@@ -55,7 +55,7 @@
           <v-icon size="20">mdi-magnify</v-icon>
         </v-btn>
 
-        <!-- 2. Menu Rapido Azioni Scheda (Target touch 38x38px con badge notifiche e Bottom Sheet) -->
+        <!-- 2. Menu Rapido Azioni Scheda -->
         <v-btn 
           icon 
           color="amber-darken-3" 
@@ -65,16 +65,7 @@
           title="Azioni e verifiche scheda"
           id="btn-apri-menu-azioni-header"
         >
-          <v-badge 
-            v-if="numeroTotaleAzioniInAttesa > 0" 
-            color="red-darken-2" 
-            :content="numeroTotaleAzioniInAttesa" 
-            floating 
-            style="font-size: 0.58rem;"
-          >
-            <v-icon size="20">mdi-dots-horizontal</v-icon>
-          </v-badge>
-          <v-icon v-else size="20">mdi-dots-horizontal</v-icon>
+          <v-icon size="20">mdi-dots-horizontal</v-icon>
         </v-btn>
       </div>
     </div>
@@ -2005,8 +1996,8 @@
 
     </div>
 
-    <!-- Bottom Sheet Azioni Rapide Scheda (Soluzione Ibrida Touch-Friendly) -->
-    <v-bottom-sheet v-model="sheetAzioniScheda" inset max-width="560">
+    <!-- Bottom Sheet Azioni Rapide Scheda (Adattivo: Bottom Sheet su Mobile, Dialog centrato su Web) -->
+    <v-bottom-sheet v-model="sheetAzioniScheda" inset max-width="560" class="responsive-azioni-sheet">
       <v-card class="bottom-sheet-menu-card pa-4 pt-3 text-left">
         <!-- Drag Handle Indicator -->
         <div class="d-flex justify-center mb-3">

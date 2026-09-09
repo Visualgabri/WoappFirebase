@@ -13071,50 +13071,48 @@ function estraiDiscrepanzaInputPrescrizione(ex, w) {
 
   const prescritteReps = parseInt(ex.reps_week6, 10) || estraiRepsDaPrescrizione(ex.des_week6) || 10;
   const isCavo = isCavoOMacchinaEsercizio(ex);
-  
-  // Analizza riga per riga per separare carichi a reps sottointese e carichi con reps esplicite
-  const lines = String(insW6).split(/[\n;\r]+/);
-  let maxPesoSottointeso = 0;
-  let bestExplicitPerf = null; // { peso, reps, e1rm }
-  let maxExplicitE1RM = -1;
+  const isCorpoLibero = isCorpoLiberoEsercizio(ex);
 
-  lines.forEach(line => {
-    const l = line.trim();
-    if (!l) return;
-    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-    const pStr = estraiPesoDaInput(l);
-    const peso = pStr ? parseFloat(pStr) : 0;
-    if (peso <= 0) return;
+  // Scompone l'input in set atomici preservando per ogni serie il proprio carico e le proprie ripetizioni
+  const sets = analizzaSerieInputMultiplo(insW6, {
+    defaultReps: prescritteReps,
+    isCavo,
+    isCorpoLibero
+  });
 
-    if (hasExplicitReps) {
-      const explicitReps = estraiRepsDaInput(l);
-      if (explicitReps && explicitReps > 0) {
-        const e1rm = calcolaE1RMSmorzato(peso, explicitReps, isCavo);
-        if (e1rm > maxExplicitE1RM) {
-          maxExplicitE1RM = e1rm;
-          bestExplicitPerf = { peso, reps: explicitReps, e1rm };
-        }
-      }
-    } else {
-      if (peso > maxPesoSottointeso) {
-        maxPesoSottointeso = peso;
-      }
+  if (!sets || sets.length === 0) return null;
+
+  // Separa le serie con reps esplicite diverse dalla prescrizione da quelle a reps prescritte (implicite o conformi)
+  const explicitSets = sets.filter(s => s.isExplicitReps && !s.isOvershoot && s.reps && s.reps !== prescritteReps);
+  const implicitSets = sets.filter(s => !s.isOvershoot && (!s.isExplicitReps || s.reps === prescritteReps));
+
+  // Se nessuna serie ha reps diverse dalla prescrizione, non c'è alcuna discrepanza
+  if (explicitSets.length === 0) return null;
+
+  let maxImplicitE1RM = -1;
+  implicitSets.forEach(s => {
+    if (s.e1rm > maxImplicitE1RM) {
+      maxImplicitE1RM = s.e1rm;
     }
   });
 
-  if (bestExplicitPerf) {
-    const e1rmSottointeso = maxPesoSottointeso > 0 ? calcolaE1RMSmorzato(maxPesoSottointeso, prescritteReps, isCavo) : 0;
-    // Se la serie con reps esplicite ha una prestazione (e1RM) superiore o uguale a quella sottointesa (o se non ci sono carichi sottointesi)
-    if (bestExplicitPerf.e1rm >= e1rmSottointeso) {
-      if (bestExplicitPerf.reps !== prescritteReps) {
-        return {
-          hasDiscrepancy: true,
-          peso: bestExplicitPerf.peso,
-          repsEseguite: bestExplicitPerf.reps,
-          repsPrescritte: prescritteReps
-        };
-      }
+  let bestExplicitSet = null;
+  let maxExplicitE1RM = -1;
+  explicitSets.forEach(s => {
+    if (s.e1rm > maxExplicitE1RM) {
+      maxExplicitE1RM = s.e1rm;
+      bestExplicitSet = s;
     }
+  });
+
+  // Mostra la discrepanza solo se la serie con reps esplicite rappresenta la prestazione reale top (o pari)
+  if (bestExplicitSet && maxExplicitE1RM >= maxImplicitE1RM) {
+    return {
+      hasDiscrepancy: true,
+      peso: bestExplicitSet.peso,
+      repsEseguite: bestExplicitSet.reps,
+      repsPrescritte: prescritteReps
+    };
   }
 
   return null;
@@ -18507,15 +18505,12 @@ const recordMaxAssolutoInfo = computed(() => {
       for (let w = 1; w <= 6; w++) {
         const ins = prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null);
         if (ins) {
-          const lines = String(ins).split(/[\n;\r]+/);
-          lines.forEach(line => {
-            const l = line.trim();
-            if (!l) return;
-            const pStr = estraiPesoDaInput(l, { isCorpoLibero });
-            const p = pStr ? parseFloat(pStr) : 0;
-            const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-            const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
-            const r = (explicitReps && explicitReps > 0) ? explicitReps : (estraiRepsDaPrescrizione(prevEx['des_week' + w]) || 10);
+          const defReps = estraiRepsDaPrescrizione(prevEx['des_week' + w]) || 10;
+          const sets = analizzaSerieInputMultiplo(ins, { isCorpoLibero, defaultReps: defReps });
+          sets.forEach(s => {
+            if (s.isOvershoot) return;
+            const p = s.peso || 0;
+            const r = s.reps || defReps;
 
             if (isCorpoLibero && !haPesoEsercizio.value) {
               if (r > repsAtMaxWeight) {
@@ -18556,15 +18551,12 @@ const recordMaxAssolutoInfo = computed(() => {
   for (let w = 1; w <= 6; w++) {
     const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
     if (ins) {
-      const lines = String(ins).split(/[\n;\r]+/);
-      lines.forEach(line => {
-        const l = line.trim();
-        if (!l) return;
-        const pStr = estraiPesoDaInput(l);
-        const p = pStr ? parseFloat(pStr) : 0;
-        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
-        const r = (explicitReps && explicitReps > 0) ? explicitReps : getRepsPerWeek(w);
+      const defReps = getRepsPerWeek(w) || 10;
+      const sets = analizzaSerieInputMultiplo(ins, { isCorpoLibero, defaultReps: defReps });
+      sets.forEach(s => {
+        if (s.isOvershoot) return;
+        const p = s.peso || 0;
+        const r = s.reps || defReps;
 
         if (isCorpoLibero && !haPesoEsercizio.value) {
           if (r > repsAtMaxWeight) {

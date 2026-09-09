@@ -751,7 +751,7 @@
                 <div class="d-flex align-center justify-space-between mb-1.5 gap-1">
                   <div class="d-flex align-baseline gap-1 text-truncate">
                     <span class="hero-progress-val-now font-weight-bold text-slate-lighten-2" style="font-size: 0.82rem;">
-                      {{ formatWeight(heroRecordComparison.maxWeight) }}
+                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia > 0 ? heroRecordComparison.caricoTeoricoEguaglia : heroRecordComparison.maxWeight) }}
                     </span>
                     <span class="hero-progress-arrow font-weight-bold mx-0.5 text-amber-accent-2">→</span>
                     <span class="hero-progress-val-target font-weight-black text-amber-accent-2" style="font-size: 0.95rem;">
@@ -777,7 +777,7 @@
                 <div class="d-flex align-center justify-space-between mb-2">
                   <div class="d-flex align-baseline gap-1.5">
                     <span class="hero-progress-val-now font-weight-bold text-slate-lighten-2">
-                      {{ formatWeight(heroRecordComparison.maxWeight) }} kg
+                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia > 0 ? heroRecordComparison.caricoTeoricoEguaglia : heroRecordComparison.maxWeight) }} kg
                     </span>
                     <span class="hero-progress-arrow font-weight-bold mx-1 text-amber-accent-2">→</span>
                     <span class="hero-progress-val-target font-weight-black text-amber-accent-2">
@@ -813,9 +813,9 @@
               <div class="d-flex align-center justify-space-between mt-1">
                 <div class="d-flex flex-column text-left">
                   <span class="hero-foot-val font-weight-black text-white">
-                    {{ formatWeight(heroRecordComparison.maxWeight) }} kg
+                    {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia > 0 ? heroRecordComparison.caricoTeoricoEguaglia : heroRecordComparison.maxWeight) }} kg
                   </span>
-                  <span class="hero-foot-sub">record storico</span>
+                  <span class="hero-foot-sub">record a {{ heroRecordComparison.targetReps }}r</span>
                 </div>
                 <div class="d-flex flex-column text-right">
                   <span class="hero-foot-val font-weight-black text-amber-accent-2">

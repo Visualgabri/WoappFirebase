@@ -1310,10 +1310,7 @@ export const estraiMigliorPrestazionePerReps = (strVal, targetReps, defaultReps 
   const targetNum = Number(targetReps);
   const matchingSets = sets.filter(s => {
     if (s.isOvershoot) return false;
-    if (s.reps === targetNum) return true;
-    // Se ha fatto più ripetizioni del target con un carico positivo, ha validato e superato il target
-    if (s.peso > 0 && s.reps > targetNum && s.reps <= targetNum + 4) return true;
-    return false;
+    return s.reps === targetNum;
   });
 
   if (matchingSets.length === 0) return null;

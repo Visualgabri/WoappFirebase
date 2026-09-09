@@ -14242,9 +14242,7 @@ const isMatchingReps = (prevEx, w) => {
       const targetNum = Number(target);
       const hasTargetSet = sets.some(s => {
         if (s.isOvershoot) return false;
-        if (s.reps === targetNum) return true;
-        if (s.peso > 0 && s.reps > targetNum && s.reps <= targetNum + 4) return true;
-        return false;
+        return s.reps === targetNum;
       });
       if (hasTargetSet) return true;
     }
@@ -18068,7 +18066,11 @@ const suggerimentoRecord = computed(() => {
           absW6Weight = pesoW6Num;
         }
 
-        if (valToCompare > currentGenVal) {
+        const e1rmCandW6 = calcE1RM(pesoW6Num, repsW6Num);
+        const e1rmCurrentGenW6 = (absGenWeight > 0 && absGenReps > 0) ? calcE1RM(absGenWeight, absGenReps) : 0;
+        const isBetterGenW6 = valToCompare > currentGenVal || (valToCompare === currentGenVal && e1rmCandW6 > e1rmCurrentGenW6);
+
+        if (isBetterGenW6) {
           absGenWeight = pesoW6Num;
           absGenReps = repsW6Num;
           absGenHasWeight = pesoW6Num > 0;
@@ -18133,7 +18135,11 @@ const suggerimentoRecord = computed(() => {
           }
 
           // Controllo PR Generale (All-Time)
-          if (valToCompare > currentGenVal) {
+          const e1rmCand = calcE1RM(pesoNum, repsNum);
+          const e1rmCurrentGen = (absGenWeight > 0 && absGenReps > 0) ? calcE1RM(absGenWeight, absGenReps) : 0;
+          const isBetterGen = valToCompare > currentGenVal || (valToCompare === currentGenVal && e1rmCand > e1rmCurrentGen);
+
+          if (isBetterGen) {
             absGenWeight = pesoNum;
             absGenReps = repsNum;
             absGenHasWeight = pesoNum > 0;
@@ -18155,10 +18161,11 @@ const suggerimentoRecord = computed(() => {
             const valMatchingToCompare = (isCorpoLibero && !haPesoEsercizio.value) ? repsMatching : (pesoMatching > 0 ? pesoMatching : repsMatching);
 
             const currentRepsVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absRepsReps || 0) : (absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0));
-            // Sanity check: L'e1RM di un record a stesse reps non può essere >15% superiore all'e1RM del Max Assoluto (evita anomalie/refusi da vecchie schede)
+            // Sanity check: non bloccare mai la scheda corrente o carichi validi
+            const isCurrentSheet = String(prevEx.num_scheda).replace(/\D+/g, '') === String(currentNumScheda);
             const e1rmRecord = calcE1RM(pesoMatching, repsMatching);
             const e1rmMaxGen = absGenWeight > 0 ? calcE1RM(absGenWeight, absGenReps || 1) : 0;
-            const isAnomalo = !isCorpoLibero && e1rmMaxGen > 0 && e1rmRecord > e1rmMaxGen * 1.15;
+            const isAnomalo = !isCurrentSheet && !isCorpoLibero && e1rmMaxGen > 0 && e1rmRecord > e1rmMaxGen * 1.30;
 
             if (valMatchingToCompare > currentRepsVal && !isAnomalo) {
               absRepsWeight = pesoMatching;

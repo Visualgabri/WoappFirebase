@@ -1165,21 +1165,25 @@ export const estraiSerieDaSingolaRiga = (line, options = {}) => {
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, ' ').trim();
   clean = clean.replace(/^\s*[1-5]\s*[xX]\s+(?=\d)/g, '').trim();
 
-  // 3. Regex universale per tokenizzare i singoli set (carico + reps opzionali attaccate o staccate)
-  const setRegex = /(?:^|\s)([0-9]+(?:\.[0-9]+)?)\s*(?:kg|k\b)?(?:\s*(?:[xX]\s*([0-9]+(?:\.[0-9]+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)?|([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)|\+\s*([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)))?(?=\s|$|[;,]|\()/gi;
+  // 3. Regex universale per tokenizzare i singoli set (carico + reps opzionali attaccate o staccate, oppure sole reps con suffisso r)
+  const setRegex = /(?:^|\s)([0-9]+(?:\.[0-9]+)?)\s*(?:kg|k\b)?(?:\s*([rR]\b|reps?|rip(?:etizioni)?|colpi)|\s*[xX]\s*([0-9]+(?:\.[0-9]+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)?|(?:\s*(?:kg|k\b)\s*|\s+)([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)|\s*\+\s*([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi))?(?=\s|$|[;,]|\()/gi;
 
   const matches = [];
   let m;
   while ((m = setRegex.exec(clean)) !== null) {
     const rawMatch = m[0].trim();
-    const pesoVal = parseFloat(m[1]);
-    if (isNaN(pesoVal) || pesoVal <= 0 || pesoVal > 1000) continue;
+    const numVal = parseFloat(m[1]);
+    if (isNaN(numVal) || numVal <= 0 || numVal > 1000) continue;
 
+    const isNum1Reps = Boolean(m[2]);
     let explicitReps = null;
     let isExplicit = false;
 
-    if (m[2] !== undefined && m[2] !== null) {
-      const rVal = parseFloat(m[2]);
+    if (isNum1Reps) {
+      explicitReps = Math.round(numVal);
+      isExplicit = true;
+    } else if (m[3] !== undefined && m[3] !== null) {
+      const rVal = parseFloat(m[3]);
       if (!isNaN(rVal) && rVal > 0) {
         const hasRSuffix = /(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)/i.test(m[0]);
         if (hasRSuffix || rVal >= 6) {
@@ -1187,32 +1191,42 @@ export const estraiSerieDaSingolaRiga = (line, options = {}) => {
           isExplicit = true;
         }
       }
-    } else if (m[3] !== undefined && m[3] !== null) {
-      const rVal = parseFloat(m[3]);
+    } else if (m[4] !== undefined && m[4] !== null) {
+      const rVal = parseFloat(m[4]);
       if (!isNaN(rVal) && rVal > 0 && rVal <= 100) {
         explicitReps = Math.round(rVal);
         isExplicit = true;
       }
-    } else if (m[4] !== undefined && m[4] !== null) {
-      const delta = parseInt(m[4], 10);
+    } else if (m[5] !== undefined && m[5] !== null) {
+      const delta = parseInt(m[5], 10);
       if (!isNaN(delta) && delta > 0 && delta <= 30) {
         explicitReps = (defaultReps || 10) + delta;
         isExplicit = true;
       }
     }
 
-    const finalReps = isExplicit && explicitReps ? explicitReps : defaultReps;
+    let finalPeso = 0;
+    let finalReps = defaultReps;
+
+    if (isNum1Reps) {
+      finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : (hasZavorra ? (parseFloat(estraiPesoDaInput(l, { isCorpoLibero: true })) || 0) : null);
+      finalReps = explicitReps;
+    } else {
+      finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : numVal;
+      finalReps = (isCorpoLibero && !hasZavorra && !isExplicit) ? numVal : (isExplicit && explicitReps ? explicitReps : defaultReps);
+    }
+
     let e1rm = 0;
-    if (pesoVal > 0 && finalReps > 0) {
-      e1rm = calcolaE1RMSmorzato(pesoVal, finalReps, isCavo);
+    if (finalPeso && finalPeso > 0 && finalReps > 0) {
+      e1rm = calcolaE1RMSmorzato(finalPeso, finalReps, isCavo);
     } else if (isCorpoLibero && finalReps > 0) {
       e1rm = finalReps;
     }
 
     matches.push({
       raw: rawMatch,
-      peso: (isCorpoLibero && !hasZavorra) ? 0 : pesoVal,
-      reps: (isCorpoLibero && !hasZavorra) ? pesoVal : finalReps,
+      peso: finalPeso,
+      reps: finalReps,
       isExplicitReps: isExplicit,
       isOvershoot,
       e1rm,

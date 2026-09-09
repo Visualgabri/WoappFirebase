@@ -532,10 +532,10 @@
                   TARGET {{ formattaTempoDisplay(getTempoPerWeek(settimanaAttiva)) }}
                 </template>
                 <template v-else-if="isCorpoLiberoPuro">
-                  TARGET {{ String(heroRecordComparison?.targetReps || getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
+                  TARGET {{ String(estraiRepsDaPrescrizione(workout?.['des_week' + settimanaAttiva]) || heroRecordComparison?.targetReps || getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
                 </template>
                 <template v-else-if="heroRecordComparison?.targetReps">
-                  TARGET {{ heroRecordComparison.targetReps }} REPS
+                  TARGET {{ estraiRepsDaPrescrizione(workout?.['des_week' + settimanaAttiva]) || heroRecordComparison.targetReps }} REPS
                 </template>
                 <template v-else-if="recordOverviewData?.bestReal?.weight > 0">
                   TARGET {{ String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
@@ -18602,24 +18602,26 @@ const recordMaxRepsInfo = computed(() => {
 
 const currentWeekLoggedWeight = computed(() => {
   if (isCardio.value) return null;
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const w = settimanaAttiva.value;
   const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
   if (!ins) return null;
-  const perf = estraiMigliorPrestazioneInput(ins, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value));
+  const perf = estraiMigliorPrestazioneInput(ins, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value), isCorpoLibero);
   if (perf && perf.peso > 0) return perf.peso;
-  const pStr = estraiPesoDaInput(ins);
+  const pStr = estraiPesoDaInput(ins, { isCorpoLibero });
   const p = pStr ? parseFloat(pStr) : null;
   return (p && !isNaN(p) && p > 0) ? p : null;
 });
 
 const currentWeekLoggedReps = computed(() => {
   if (isCardio.value) return null;
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const w = settimanaAttiva.value;
   const ins = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
   if (!ins) return null;
-  const perf = estraiMigliorPrestazioneInput(ins, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value));
+  const perf = estraiMigliorPrestazioneInput(ins, getRepsPerWeek(w), isCavoOMacchinaEsercizio(workout.value), isCorpoLibero);
   if (perf && perf.reps > 0) return perf.reps;
-  const r = estraiRepsDaInput(ins);
+  const r = estraiRepsDaInput(ins, { isCorpoLibero });
   return (r && !isNaN(r) && r > 0) ? r : getRepsPerWeek(w);
 });
 
@@ -18854,7 +18856,7 @@ const heroRecordComparison = computed(() => {
   const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
 
   const sett = settimanaAttiva.value || 1;
-  const targetReps = getRepsPerWeek(sett) || 10;
+  const targetReps = estraiRepsDaPrescrizione(workout.value?.['des_week' + sett]) || getRepsPerWeek(sett) || 10;
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
   const stepKg = stepCaricoEsercizioEffettivo?.value ? stepCaricoEsercizioEffettivo.value : (isManubriEsercizio(workout.value) ? 1.0 : (isCavo ? 1.25 : 2.5));
 

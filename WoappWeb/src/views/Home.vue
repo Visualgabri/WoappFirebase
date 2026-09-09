@@ -255,13 +255,13 @@
                 <v-col cols="6" class="border-right-soft pr-3">
                   <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">Data Inizio</div>
                   <div class="text-subtitle-2 font-weight-black text-slate-dark mt-1">
-                    📅 {{ workoutTData?.dat_data || dataInizio }}
+                    📅 {{ workoutTData?.dat_data || dataInizio || '—' }}
                   </div>
                 </v-col>
                 <v-col cols="6" class="pl-3">
                   <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">Scadenza</div>
                   <div class="text-subtitle-2 font-weight-black text-orange-lighten-1 mt-1">
-                    🏁 {{ workoutTData?.dat_scadenza || dataFine }}
+                    🏁 {{ workoutTData?.dat_scadenza || dataFine || '—' }}
                   </div>
                 </v-col>
               </v-row>
@@ -1762,14 +1762,36 @@ const reportProgressioni = computed(() => {
   return result;
 });
 
+// Caching locale per caricamento istantaneo di WORKOUT_T (0ms)
+const getCachedWorkoutT = (athleteId, sheetNum) => {
+  if (!athleteId || !sheetNum) return null;
+  try {
+    const raw = localStorage.getItem(`woapp_workoutT_${athleteId}_${sheetNum}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedWorkoutT = (athleteId, sheetNum, data) => {
+  if (!athleteId || !sheetNum || !data) return;
+  try {
+    localStorage.setItem(`woapp_workoutT_${athleteId}_${sheetNum}`, JSON.stringify(data));
+  } catch {}
+};
+
 // Dati dinamici scheda
 const nomeAtleta = ref('');
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
 const giornoAttivo = ref(localStorage.getItem('giornoAttivo_' + selectedAthlete.value) || 'C');
-const dataInizio = ref('18 mag 26');
-const dataFine = ref('28 giu 26');
-const descrizioneMesociclo = ref('');
-const workoutTData = ref(null);
+const initialCachedWT = getCachedWorkoutT(selectedAthlete.value, selectedSheet.value);
+const workoutTData = ref(initialCachedWT);
+const dataInizio = ref(initialCachedWT?.dat_data || '');
+const dataFine = ref(initialCachedWT?.dat_scadenza || '');
+const descrizioneMesociclo = ref(initialCachedWT?.des_descrizione || '');
+if (initialCachedWT?.des_note) {
+  coachMessage.value = initialCachedWT.des_note;
+}
 
 watch([selectedAthlete, MAPPA_CLIENTI_DINAMICI], () => {
   const n = getNomeAtleta(selectedAthlete.value);
@@ -2051,6 +2073,19 @@ const parseDateString = (str) => {
   if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
     const parts = s.split(' ')[0].split('/');
     return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+  }
+  const itMatch = s.match(/^(\d{1,2})\s+([a-zA-Z]{3})\s+(\d{2,4})$/);
+  if (itMatch) {
+    const monthsMap = {
+      gen: 0, feb: 1, mar: 2, apr: 3, mag: 4, giu: 5,
+      lug: 6, ago: 7, set: 8, ott: 9, nov: 10, dic: 11
+    };
+    const mKey = itMatch[2].toLowerCase();
+    if (monthsMap[mKey] !== undefined) {
+      let yr = parseInt(itMatch[3], 10);
+      if (yr < 100) yr += 2000;
+      return new Date(yr, monthsMap[mKey], parseInt(itMatch[1], 10));
+    }
   }
   const t = Date.parse(s);
   if (!isNaN(t)) {
@@ -3371,6 +3406,27 @@ const caricaWorkouts = async () => {
     });
 
     workoutsList.value = tempDocs;
+
+    // Cache di tutti i record WORKOUT_T trovati per questo atleta
+    tempDocs.forEach(d => {
+      if (d.ID_cliente && d.num_scheda) {
+        setCachedWorkoutT(d.ID_cliente, d.num_scheda, d);
+      }
+    });
+
+    // Se la scheda attiva è presente nella lista, sincronizza subito i dati
+    const activeTarget = tempDocs.find(
+      x => String(x.num_scheda).trim() === String(selectedSheet.value).trim() || Number(x.num_scheda) === Number(selectedSheet.value)
+    );
+    if (activeTarget) {
+      workoutTData.value = activeTarget;
+      dataInizio.value = activeTarget.dat_data || '';
+      dataFine.value = activeTarget.dat_scadenza || '';
+      descrizioneMesociclo.value = activeTarget.des_descrizione || '';
+      if (activeTarget.des_note) {
+        coachMessage.value = activeTarget.des_note;
+      }
+    }
     
     // Se non c'è una scheda selezionata, o se quella selezionata non appartiene alla lista, imposta l'ultima
     if (tempDocs.length > 0) {
@@ -3378,6 +3434,13 @@ const caricaWorkouts = async () => {
         const ultima = tempDocs[0].num_scheda;
         schedaSelezionata.value = ultima;
         setSelectedSheet(ultima);
+        workoutTData.value = tempDocs[0];
+        dataInizio.value = tempDocs[0].dat_data || '';
+        dataFine.value = tempDocs[0].dat_scadenza || '';
+        descrizioneMesociclo.value = tempDocs[0].des_descrizione || '';
+        if (tempDocs[0].des_note) {
+          coachMessage.value = tempDocs[0].des_note;
+        }
       }
     }
   } catch (error) {
@@ -3409,22 +3472,42 @@ const gestisciSelezioneScheda = (scheda) => {
   vibraTattile(12);
   schedaSelezionata.value = scheda;
   setSelectedSheet(scheda);
+  const match = workoutsList.value.find(
+    x => String(x.num_scheda).trim() === String(scheda).trim() || Number(x.num_scheda) === Number(scheda)
+  ) || getCachedWorkoutT(selectedAthlete.value, scheda);
+  if (match) {
+    workoutTData.value = match;
+    dataInizio.value = match.dat_data || '';
+    dataFine.value = match.dat_scadenza || '';
+    descrizioneMesociclo.value = match.des_descrizione || '';
+    if (match.des_note) coachMessage.value = match.des_note;
+  }
 };
 
 const caricaDatiWorkoutT = async () => {
-  dataInizio.value = '18 mag 26';
-  dataFine.value = '28 giu 26';
-  descrizioneMesociclo.value = '';
-  coachMessage.value = '';
-
   if (!selectedAthlete.value || !selectedSheet.value) return;
 
-  try {
-    const athleteIdStr = String(selectedAthlete.value).trim();
-    const athleteIdNum = Number(athleteIdStr);
-    const sheetNumStr = String(selectedSheet.value).trim();
-    const sheetNumNum = Number(sheetNumStr);
+  const athleteIdStr = String(selectedAthlete.value).trim();
+  const athleteIdNum = Number(athleteIdStr);
+  const sheetNumStr = String(selectedSheet.value).trim();
+  const sheetNumNum = Number(sheetNumStr);
 
+  // Risposta istantanea da workoutsList o cache locale (0ms)
+  const matchLocale = workoutsList.value.find(
+    x => String(x.num_scheda).trim() === sheetNumStr || Number(x.num_scheda) === sheetNumNum
+  ) || getCachedWorkoutT(athleteIdStr, sheetNumStr);
+
+  if (matchLocale) {
+    workoutTData.value = matchLocale;
+    dataInizio.value = matchLocale.dat_data || '';
+    dataFine.value = matchLocale.dat_scadenza || '';
+    descrizioneMesociclo.value = matchLocale.des_descrizione || '';
+    if (matchLocale.des_note) {
+      coachMessage.value = matchLocale.des_note;
+    }
+  }
+
+  try {
     let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr)));
     if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
 
@@ -3441,18 +3524,27 @@ const caricaDatiWorkoutT = async () => {
 
     if (targetDocData) {
       workoutTData.value = targetDocData;
-      dataInizio.value = targetDocData.dat_data || '18 mag 26';
-      dataFine.value = targetDocData.dat_scadenza || '28 giu 26';
+      dataInizio.value = targetDocData.dat_data || '';
+      dataFine.value = targetDocData.dat_scadenza || '';
       descrizioneMesociclo.value = targetDocData.des_descrizione || '';
       if (targetDocData.des_note) {
         coachMessage.value = targetDocData.des_note;
       }
-    } else {
+      setCachedWorkoutT(athleteIdStr, sheetNumStr, targetDocData);
+    } else if (!matchLocale) {
       workoutTData.value = null;
+      dataInizio.value = '';
+      dataFine.value = '';
+      descrizioneMesociclo.value = '';
     }
   } catch (err) {
-    workoutTData.value = null;
-    console.warn("Errore caricamento da WORKOUT_T, uso i default:", err);
+    if (!matchLocale) {
+      workoutTData.value = null;
+      dataInizio.value = '';
+      dataFine.value = '';
+      descrizioneMesociclo.value = '';
+    }
+    console.warn("Errore caricamento da WORKOUT_T:", err);
   }
 };
 
@@ -3981,6 +4073,16 @@ watch([selectedAthlete, selectedSheet], async ([newAthlete, newSheet], [oldAthle
   }
   if (newSheet !== oldSheet) {
     schedaSelezionata.value = newSheet;
+    const match = workoutsList.value.find(
+      x => String(x.num_scheda).trim() === String(newSheet).trim() || Number(x.num_scheda) === Number(newSheet)
+    ) || getCachedWorkoutT(newAthlete || selectedAthlete.value, newSheet);
+    if (match) {
+      workoutTData.value = match;
+      dataInizio.value = match.dat_data || '';
+      dataFine.value = match.dat_scadenza || '';
+      descrizioneMesociclo.value = match.des_descrizione || '';
+      if (match.des_note) coachMessage.value = match.des_note;
+    }
   }
   await caricaDatiScheda();
   settimanaAttiva.value = parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2;

@@ -14917,7 +14917,7 @@ const caricaDataMesociclo = async (atletaId, numScheda) => {
       const year = String(minDate.getFullYear()).slice(-2);
       dataMesociclo.value = `${day} ${month} ${year}`;
     } else {
-      dataMesociclo.value = '18 mag 26'; // Valore di default usato in Home Wo
+      dataMesociclo.value = '';
     }
   }
 };

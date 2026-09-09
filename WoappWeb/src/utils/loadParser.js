@@ -1112,6 +1112,152 @@ export const valutaOpportunitaPR = ({
  * @param {Object} [options={}] Opzioni { isCorpoLibero, defaultReps, isCavo }
  * @returns {Array<{ raw: string, peso: number|null, reps: number|null, isExplicitReps: boolean, isOvershoot: boolean, e1rm: number }>}
  */
+/**
+ * Scompone una singola riga di testo (ins_week) nei singoli set atomici,
+ * gestendo sia set singoli che sequenze orizzontali di carichi/ripetizioni.
+ * Supporta formati con reps attaccate o staccate (es. "50 55 55 x15r", "50 55 55x15r", "8x15r 10x15r 12").
+ *
+ * @param {string} line Riga di testo
+ * @param {Object} options { isCorpoLibero, defaultReps, isCavo, isOvershoot }
+ * @returns {Array<{ raw: string, peso: number|null, reps: number|null, isExplicitReps: boolean, isOvershoot: boolean, e1rm: number, isZavorrato: boolean }>}
+ */
+export const estraiSerieDaSingolaRiga = (line, options = {}) => {
+  if (!line) return [];
+  const l = String(line).trim();
+  if (!l || l === '-') return [];
+
+  const isCorpoLibero = options.isCorpoLibero ?? false;
+  const defaultReps = options.defaultReps || 10;
+  const isCavo = options.isCavo ?? false;
+  const isOvershoot = options.isOvershoot ?? isNotaDiErroreOOvershoot(l);
+  const hasZavorra = haSovraccaricoEsplicito(l);
+
+  // 1. Caso corpo libero puro con formato [serie]x[reps] (es. "3x14", "3x14r")
+  const matchPureSxR = l.toLowerCase().replace(/,/g, '.').match(/^\s*(\d+)\s*[xX]\s*(\d+)(?:\s*[rR]\b)?\s*$/);
+  if (matchPureSxR && isCorpoLibero && !hasZavorra) {
+    const nSets = parseInt(matchPureSxR[1], 10);
+    const nReps = parseInt(matchPureSxR[2], 10);
+    if (nSets >= 1 && nSets <= 10 && nReps >= 1 && nReps <= 100) {
+      const sets = [];
+      for (let s = 0; s < nSets; s++) {
+        sets.push({
+          raw: `${nReps}r`,
+          peso: 0,
+          reps: nReps,
+          isExplicitReps: true,
+          isOvershoot,
+          e1rm: nReps,
+          isZavorrato: false
+        });
+      }
+      return sets;
+    }
+  }
+
+  // 2. Pulizia preliminare impostazioni attrezzo (es. "pin 3", "panca 45°", "buco 2", "tut 313", "rpe 9")
+  let clean = l.toLowerCase().replace(/,/g, '.').trim();
+  clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
+  clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
+
+  const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|tut|t\.u\.t\.|sedile|schienale|poggiapiede|poggiapiedi|schiena|rullo|perno|distanza|ampiezza|impugnatura|presa|busto|manubrio|cavo|puleggia|tacchetta|tacchette|panca)\b\s*(?:a\s*)?\d+(?:\.\d+)?/gi;
+  clean = clean.replace(cleanSettingsRegex, ' ').trim();
+  clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, ' ').trim();
+  clean = clean.replace(/^\s*[1-5]\s*[xX]\s+(?=\d)/g, '').trim();
+
+  // 3. Regex universale per tokenizzare i singoli set (carico + reps opzionali attaccate o staccate)
+  const setRegex = /(?:^|\s)([0-9]+(?:\.[0-9]+)?)\s*(?:kg|k\b)?(?:\s*(?:[xX]\s*([0-9]+(?:\.[0-9]+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)?|([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)|\+\s*([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)))?(?=\s|$|[;,]|\()/gi;
+
+  const matches = [];
+  let m;
+  while ((m = setRegex.exec(clean)) !== null) {
+    const rawMatch = m[0].trim();
+    const pesoVal = parseFloat(m[1]);
+    if (isNaN(pesoVal) || pesoVal <= 0 || pesoVal > 1000) continue;
+
+    let explicitReps = null;
+    let isExplicit = false;
+
+    if (m[2] !== undefined && m[2] !== null) {
+      const rVal = parseFloat(m[2]);
+      if (!isNaN(rVal) && rVal > 0) {
+        const hasRSuffix = /(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)/i.test(m[0]);
+        if (hasRSuffix || rVal >= 6) {
+          explicitReps = Math.round(rVal);
+          isExplicit = true;
+        }
+      }
+    } else if (m[3] !== undefined && m[3] !== null) {
+      const rVal = parseFloat(m[3]);
+      if (!isNaN(rVal) && rVal > 0 && rVal <= 100) {
+        explicitReps = Math.round(rVal);
+        isExplicit = true;
+      }
+    } else if (m[4] !== undefined && m[4] !== null) {
+      const delta = parseInt(m[4], 10);
+      if (!isNaN(delta) && delta > 0 && delta <= 30) {
+        explicitReps = (defaultReps || 10) + delta;
+        isExplicit = true;
+      }
+    }
+
+    const finalReps = isExplicit && explicitReps ? explicitReps : defaultReps;
+    let e1rm = 0;
+    if (pesoVal > 0 && finalReps > 0) {
+      e1rm = calcolaE1RMSmorzato(pesoVal, finalReps, isCavo);
+    } else if (isCorpoLibero && finalReps > 0) {
+      e1rm = finalReps;
+    }
+
+    matches.push({
+      raw: rawMatch,
+      peso: (isCorpoLibero && !hasZavorra) ? 0 : pesoVal,
+      reps: (isCorpoLibero && !hasZavorra) ? pesoVal : finalReps,
+      isExplicitReps: isExplicit,
+      isOvershoot,
+      e1rm,
+      isZavorrato: isCorpoLibero && hasZavorra
+    });
+  }
+
+  if (matches.length > 0) {
+    return matches;
+  }
+
+  // Fallback sul parsing tradizionale a riga intera
+  const pesoStr = estraiPesoDaInput(l, { isCorpoLibero, filtraOvershoot: false });
+  const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
+  const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero, filtraOvershoot: false }) : null;
+  const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
+  const peso = pesoStr ? parseFloat(pesoStr) : null;
+
+  let e1rm = 0;
+  if (peso && peso > 0 && reps && reps > 0) {
+    e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
+  } else if (isCorpoLibero && reps && reps > 0) {
+    e1rm = reps;
+  }
+
+  return [{
+    raw: l,
+    peso: (peso !== null && !isNaN(peso)) ? peso : (isCorpoLibero && !hasZavorra ? 0 : null),
+    reps: (reps !== null && !isNaN(reps)) ? reps : null,
+    isExplicitReps: Boolean(hasExplicitReps && explicitReps),
+    isOvershoot,
+    e1rm,
+    isZavorrato: isCorpoLibero && hasZavorra
+  }];
+};
+
+/**
+ * Analizza un input utente (anche multi-riga o separato da ; o sequenze orizzontali)
+ * scomponendolo nelle singole serie atomiche, preservando per ciascuna serie il proprio carico,
+ * le proprie reps e l'eventuale indicazione di errore/overshoot.
+ *
+ * @param {string} strVal Testo ins_week (es. "50 55 55 x15r", "22,5 (ho sbagliato)\n17,5x16r")
+ * @param {Object} [options={}] Opzioni { isCorpoLibero, defaultReps, isCavo, filtraOvershoot }
+ * @returns {Array<{ raw: string, peso: number|null, reps: number|null, isExplicitReps: boolean, isOvershoot: boolean, e1rm: number, isZavorrato: boolean }>}
+ */
 export const analizzaSerieInputMultiplo = (strVal, options = {}) => {
   if (!strVal) return [];
   const rawStr = String(strVal).trim();
@@ -1120,43 +1266,77 @@ export const analizzaSerieInputMultiplo = (strVal, options = {}) => {
   const isCorpoLibero = options.isCorpoLibero ?? false;
   const defaultReps = options.defaultReps || 10;
   const isCavo = options.isCavo ?? false;
+  const filtraOvershoot = options.filtraOvershoot ?? false;
 
   const rawLines = rawStr.split(/[\n;\r]+/);
-  const sets = [];
+  let linesToProcess = rawLines;
 
-  rawLines.forEach((line) => {
+  if (filtraOvershoot && rawLines.length > 1) {
+    const nonOvershoot = rawLines.filter(l => !isNotaDiErroreOOvershoot(l));
+    if (nonOvershoot.length > 0) {
+      linesToProcess = nonOvershoot;
+    }
+  }
+
+  const allSets = [];
+  linesToProcess.forEach((line) => {
     const l = line.trim();
     if (!l) return;
-
-    const isOvershoot = isNotaDiErroreOOvershoot(l);
-    const pesoStr = estraiPesoDaInput(l, { isCorpoLibero, filtraOvershoot: false });
-    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-    const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero, filtraOvershoot: false }) : null;
-    const reps = (explicitReps && explicitReps > 0) ? explicitReps : (hasExplicitReps ? null : defaultReps);
-    const peso = pesoStr ? parseFloat(pesoStr) : null;
-
-    let e1rm = 0;
-    if (peso && peso > 0 && reps && reps > 0) {
-      e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
-    } else if (isCorpoLibero && reps && reps > 0) {
-      e1rm = reps;
-    }
-
-    sets.push({
-      raw: l,
-      peso: (peso !== null && !isNaN(peso)) ? peso : null,
-      reps: (reps !== null && !isNaN(reps)) ? reps : null,
-      isExplicitReps: Boolean(hasExplicitReps && explicitReps),
-      isOvershoot,
-      e1rm
-    });
+    const isLineOvershoot = isNotaDiErroreOOvershoot(l);
+    const lineSets = estraiSerieDaSingolaRiga(l, { isCorpoLibero, defaultReps, isCavo, isOvershoot: isLineOvershoot });
+    allSets.push(...lineSets);
   });
 
-  return sets;
+  return allSets;
 };
 
 /**
- * Estrae la migliore prestazione singola (carico, reps, e1rm) da un log (anche multi-riga).
+ * Estrae la migliore prestazione specifica per un target esatto di ripetizioni.
+ * Scompone l'input in tutte le serie atomiche ed individua la serie con carico più alto
+ * che soddisfa le ripetizioni richieste (o che le supera con carico valido).
+ *
+ * @param {string} strVal Testo ins_week (es. "50 55 55 x15r")
+ * @param {number} targetReps Ripetizioni target richieste (es. 14)
+ * @param {number} [defaultReps=10] Ripetizioni default/prescritte
+ * @param {boolean} [isCavo=false]
+ * @param {boolean} [isCorpoLibero=false]
+ * @returns {{ peso: number|null, reps: number, isExplicitReps: boolean, e1rm: number }|null}
+ */
+export const estraiMigliorPrestazionePerReps = (strVal, targetReps, defaultReps = 10, isCavo = false, isCorpoLibero = false) => {
+  if (!strVal || !targetReps) return null;
+  const sets = analizzaSerieInputMultiplo(strVal, { defaultReps, isCavo, isCorpoLibero, filtraOvershoot: true });
+  if (!sets || sets.length === 0) return null;
+
+  const targetNum = Number(targetReps);
+  const matchingSets = sets.filter(s => {
+    if (s.isOvershoot) return false;
+    if (s.reps === targetNum) return true;
+    // Se ha fatto più ripetizioni del target con un carico positivo, ha validato e superato il target
+    if (s.peso > 0 && s.reps > targetNum && s.reps <= targetNum + 4) return true;
+    return false;
+  });
+
+  if (matchingSets.length === 0) return null;
+
+  let best = matchingSets[0];
+  matchingSets.forEach(s => {
+    const valS = (isCorpoLibero && !s.isZavorrato) ? (s.reps || 0) : (s.peso || 0);
+    const valBest = (isCorpoLibero && !best.isZavorrato) ? (best.reps || 0) : (best.peso || 0);
+    if (valS > valBest) {
+      best = s;
+    }
+  });
+
+  return {
+    peso: best.peso,
+    reps: targetNum,
+    isExplicitReps: best.isExplicitReps,
+    e1rm: calcolaE1RMSmorzato(best.peso || 0, targetNum, isCavo)
+  };
+};
+
+/**
+ * Estrae la migliore prestazione singola (carico, reps, e1rm) da un log (anche multi-riga o sequenza orizzontale).
  * @param {string} strVal Testo ins_week
  * @param {number} [defaultReps=10]
  * @param {boolean} [isCavo=false]
@@ -1171,43 +1351,40 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
   if (!str || str === '-') return null;
 
   const filtraOvershoot = options.filtraOvershoot ?? false;
-  const lines = str.split(/[\n;\r]+/);
-  let linesToProcess = lines;
+  const sets = analizzaSerieInputMultiplo(str, {
+    defaultReps,
+    isCavo,
+    isCorpoLibero,
+    filtraOvershoot
+  });
 
-  if (filtraOvershoot && lines.length > 1) {
-    const nonOvershoot = lines.filter(l => !isNotaDiErroreOOvershoot(l));
-    if (nonOvershoot.length > 0) {
-      linesToProcess = nonOvershoot;
-    }
-  }
+  if (!sets || sets.length === 0) return null;
 
   let bestPerf = null;
   let maxE1RM = -1;
-  const hasZavorra = haSovraccaricoEsplicito(str);
 
-  linesToProcess.forEach(line => {
-    const l = line.trim();
-    if (!l) return;
-
-    const pesoStr = estraiPesoDaInput(l, { isCorpoLibero, filtraOvershoot: false });
-    const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-    const explicitReps = hasExplicitReps ? estraiRepsDaInput(l, { isCorpoLibero, filtraOvershoot: false }) : null;
-    const reps = (explicitReps && explicitReps > 0) ? explicitReps : defaultReps;
-
-    if (pesoStr) {
-      const peso = parseFloat(pesoStr);
-      if (!isNaN(peso) && peso > 0) {
-        const e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
-        if (e1rm > maxE1RM) {
-          maxE1RM = e1rm;
-          bestPerf = { peso, reps, e1rm, isZavorrato: isCorpoLibero && hasZavorra, isOvershoot: isNotaDiErroreOOvershoot(l) };
-        }
+  sets.forEach(set => {
+    if (set.peso !== null && set.peso > 0) {
+      if (set.e1rm > maxE1RM) {
+        maxE1RM = set.e1rm;
+        bestPerf = {
+          peso: set.peso,
+          reps: set.reps || defaultReps,
+          e1rm: set.e1rm,
+          isZavorrato: set.isZavorrato,
+          isOvershoot: set.isOvershoot
+        };
       }
-    } else if (isCorpoLibero && explicitReps) {
-      // Corpo libero puro (senza sovraccarico)
-      if (explicitReps > maxE1RM) {
-        maxE1RM = explicitReps;
-        bestPerf = { peso: 0, reps: explicitReps, e1rm: explicitReps, isZavorrato: false, isOvershoot: isNotaDiErroreOOvershoot(l) };
+    } else if (isCorpoLibero && set.reps && set.reps > 0) {
+      if (set.reps > maxE1RM) {
+        maxE1RM = set.reps;
+        bestPerf = {
+          peso: 0,
+          reps: set.reps,
+          e1rm: set.reps,
+          isZavorrato: false,
+          isOvershoot: set.isOvershoot
+        };
       }
     }
   });

@@ -6767,6 +6767,7 @@ import {
   descriviPrescrizioneCardio,
   isNotaDiErroreOOvershoot,
   analizzaSerieInputMultiplo,
+  estraiMigliorPrestazionePerReps,
   estraiMigliorPrestazioneInput as estraiMigliorPrestazioneInputCentral,
   estraiRepsDaInput as estraiRepsDaInputCentral,
   estraiPesoDaInput as estraiPesoDaInputCentral
@@ -14229,7 +14230,26 @@ const isMatchingReps = (prevEx, w) => {
   }
   const target = targetRepsRange.value;
   if (!target) return false;
-  
+
+  const insVal = prevEx ? (prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null)) : null;
+  const pReps = prevEx ? (estraiRepsDaPrescrizione(prevEx['des_week' + w]) || target) : target;
+  const isCavo = isCavoOMacchinaEsercizio(workout.value || prevEx);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value || prevEx);
+
+  if (insVal) {
+    const sets = analizzaSerieInputMultiplo(insVal, { defaultReps: pReps, isCavo, isCorpoLibero, filtraOvershoot: true });
+    if (sets && sets.length > 0) {
+      const targetNum = Number(target);
+      const hasTargetSet = sets.some(s => {
+        if (s.isOvershoot) return false;
+        if (s.reps === targetNum) return true;
+        if (s.peso > 0 && s.reps > targetNum && s.reps <= targetNum + 4) return true;
+        return false;
+      });
+      if (hasTargetSet) return true;
+    }
+  }
+
   const reps = estraiRepsEsercizioWeek(prevEx, w, target);
   return reps === target;
 };
@@ -18062,11 +18082,15 @@ const suggerimentoRecord = computed(() => {
           absGenItem = prevEx;
         }
         if (isMatchingReps(prevEx, 6)) {
+          const perfMatchingW6 = estraiMigliorPrestazionePerReps(rawInsW6, targetReps, prescW6Reps, isCavo, isCorpoLibero);
+          const pesoMatchingW6 = perfMatchingW6 ? perfMatchingW6.peso : pesoW6Num;
+          const repsMatchingW6 = perfMatchingW6 ? perfMatchingW6.reps : targetReps;
+          const valMatchingW6ToCompare = (isCorpoLibero && !haPesoEsercizio.value) ? repsMatchingW6 : (pesoMatchingW6 > 0 ? pesoMatchingW6 : repsMatchingW6);
           const currentRepsVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absRepsReps || 0) : (absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0));
-          if (valToCompare >= currentRepsVal) {
-            absRepsWeight = pesoW6Num;
-            absRepsReps = repsW6Num;
-            absRepsHasWeight = pesoW6Num > 0;
+          if (valMatchingW6ToCompare >= currentRepsVal) {
+            absRepsWeight = pesoMatchingW6;
+            absRepsReps = repsMatchingW6;
+            absRepsHasWeight = pesoMatchingW6 > 0;
             absRepsWeek = 6;
             absRepsSheet = prevEx.num_scheda;
             absRepsDay = prevEx.des_giorno;
@@ -18125,16 +18149,21 @@ const suggerimentoRecord = computed(() => {
 
           // Controllo PR a Stesse Reps (isMatchingReps)
           if (isMatchingReps(prevEx, i)) {
+            const perfMatching = estraiMigliorPrestazionePerReps(val, targetReps, prescReps, isCavo, isCorpoLibero);
+            const pesoMatching = perfMatching ? perfMatching.peso : pesoNum;
+            const repsMatching = perfMatching ? perfMatching.reps : repsNum;
+            const valMatchingToCompare = (isCorpoLibero && !haPesoEsercizio.value) ? repsMatching : (pesoMatching > 0 ? pesoMatching : repsMatching);
+
             const currentRepsVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absRepsReps || 0) : (absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0));
             // Sanity check: L'e1RM di un record a stesse reps non può essere >15% superiore all'e1RM del Max Assoluto (evita anomalie/refusi da vecchie schede)
-            const e1rmRecord = calcE1RM(pesoNum, repsNum);
+            const e1rmRecord = calcE1RM(pesoMatching, repsMatching);
             const e1rmMaxGen = absGenWeight > 0 ? calcE1RM(absGenWeight, absGenReps || 1) : 0;
             const isAnomalo = !isCorpoLibero && e1rmMaxGen > 0 && e1rmRecord > e1rmMaxGen * 1.15;
 
-            if (valToCompare > currentRepsVal && !isAnomalo) {
-              absRepsWeight = pesoNum;
-              absRepsReps = repsNum;
-              absRepsHasWeight = pesoNum > 0;
+            if (valMatchingToCompare > currentRepsVal && !isAnomalo) {
+              absRepsWeight = pesoMatching;
+              absRepsReps = repsMatching;
+              absRepsHasWeight = pesoMatching > 0;
               absRepsWeek = i;
               absRepsSheet = prevEx.num_scheda;
               absRepsDay = prevEx.des_giorno;

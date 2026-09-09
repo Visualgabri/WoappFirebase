@@ -7009,7 +7009,9 @@ import {
   formattaTempoDisplay,
   descriviPrescrizioneCardio,
   isNotaDiErroreOOvershoot,
+  isNotaDiFaticaOStallo,
   analizzaSerieInputMultiplo,
+  valutaGerarchiaEDropOffSerie,
   estraiMigliorPrestazionePerReps,
   estraiMigliorPrestazioneInput as estraiMigliorPrestazioneInputCentral,
   estraiRepsDaInput as estraiRepsDaInputCentral,
@@ -8628,9 +8630,8 @@ const targetPrescrizioneAttiva = computed(() => {
 });
 
 const isInputIndicaLimiteOStallo = (insText, noteText, faticaText) => {
-  // Se l'analisi note è disattivata dall'utente (default), non leggiamo le parole libere inserite nei campi
   let cleanInsText = insText || '';
-  if (ghostAnalisiNoteAttiva.value && cleanInsText) {
+  if (cleanInsText) {
     const lines = String(cleanInsText).split(/[\n;\r]+/);
     if (lines.length > 1) {
       const nonOvershoot = lines.filter(l => !isNotaDiErroreOOvershoot(l));
@@ -8639,7 +8640,11 @@ const isInputIndicaLimiteOStallo = (insText, noteText, faticaText) => {
       }
     }
   }
-  const noteInsText = ghostAnalisiNoteAttiva.value ? `${cleanInsText} ${noteText || ''}` : '';
+
+  // Se l'analisi note globale è attiva consideriamo tutto; se disattivata,
+  // intercettiamo comunque feedback in-line evidenti di limite/cedimento (es. "difficili", "pesanti", "cedimento")
+  const inlineHasFatica = isNotaDiFaticaOStallo(cleanInsText);
+  const noteInsText = (ghostAnalisiNoteAttiva.value || inlineHasFatica) ? `${cleanInsText} ${noteText || ''}` : `${noteText || ''}`;
 
   // Gestione fatica esplicita e sensibilità fatica
   let explicitFatica = faticaText || '';
@@ -8655,9 +8660,12 @@ const isInputIndicaLimiteOStallo = (insText, noteText, faticaText) => {
   if (!text.trim()) return false;
 
   const keywords = [
-    'difficile', 'durissimo', 'durissima', 'duro', 'dura', 'limite', 'al limite', 'a limite',
-    'pesante', 'troppo pesante', 'cedimento', 'faticoso', 'sofferto', 'max', 'stallo', 'incerto',
-    'fatica alta', 'rpe 9.5', 'rpe 10', 'rpe9.5', 'rpe10', 'molto faticoso',
+    'difficile', 'difficili', 'durissimo', 'durissima', 'durissimi', 'durissime',
+    'duro', 'dura', 'duri', 'dure', 'limite', 'al limite', 'a limite',
+    'pesante', 'pesanti', 'troppo pesante', 'troppo pesanti',
+    'cedimento', 'a cedimento', 'ceduto', 'faticoso', 'faticosa', 'faticosi', 'faticose',
+    'sofferto', 'sofferta', 'sofferti', 'sofferte', 'max', 'stallo', 'incerto', 'incerti',
+    'fatica alta', 'rpe 9.5', 'rpe 10', 'rpe9.5', 'rpe10', 'molto faticoso', 'molto faticosa', 'molto faticosi',
     'devastante', 'devastanti', 'sbagliato', 'sbagliata', 'sbagliati', 'sbagliate', 'sbaglio', 'errore',
     'scalato', 'scalata', 'scalati', 'scalate', 'troppo', 'impossibile', 'non saliva', 'fallito', 'abortito', 'fail'
   ];
@@ -8738,6 +8746,7 @@ const getBaseWeekInfo = (sett) => {
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
 
+  let dropInfo = null;
   if (isPreviousWorkoutW6) {
     if (previousWorkout.value) {
       const prevW6Text = previousWorkout.value.num_ins6 || previousWorkout.value.ins_week6;
@@ -8766,19 +8775,36 @@ const getBaseWeekInfo = (sett) => {
     const prescReps = estraiRepsDaPrescrizione(workout.value['des_week' + baseWNum]) || 10;
     if (baseIns) {
       baseInsText = String(baseIns);
-      const perf = estraiMigliorPrestazioneInput(baseIns, prescReps, isCavo, isCorpoLibero);
-      if (perf) {
-        pesoBase = perf.peso;
-        repsBase = perf.reps;
+      const isMan = isManubriEsercizio(workout.value);
+      const stepVal = getWeightStep(isMan, 50);
+
+      dropInfo = valutaGerarchiaEDropOffSerie(baseIns, {
+        defaultReps: prescReps,
+        isCavo,
+        isCorpoLibero,
+        stepKg: stepVal
+      });
+
+      // Nelle settimane ordinarie (sett < 6), se c'è drop-off evidente da fatica (>6% o reps perse su carichi calanti),
+      // il carico base diventa il carico sostenibile reale
+      if (sett < 6 && dropInfo && dropInfo.hasFatiqueDropOff && dropInfo.caricoSostenibile !== null && dropInfo.caricoSostenibile > 0) {
+        pesoBase = dropInfo.caricoSostenibile;
+        repsBase = dropInfo.repsSostenibili || prescReps;
       } else {
-        const pStr = estraiPesoDaInput(baseIns, { isCorpoLibero });
-        pesoBase = pStr ? parseFloat(pStr) : null;
-        
-        const repsEseguite = estraiRepsDaInput(baseIns);
-        if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 50) {
-          repsBase = repsEseguite;
+        const perf = estraiMigliorPrestazioneInput(baseIns, prescReps, isCavo, isCorpoLibero);
+        if (perf) {
+          pesoBase = perf.peso;
+          repsBase = perf.reps;
         } else {
-          repsBase = prescReps;
+          const pStr = estraiPesoDaInput(baseIns, { isCorpoLibero });
+          pesoBase = pStr ? parseFloat(pStr) : null;
+          
+          const repsEseguite = estraiRepsDaInput(baseIns);
+          if (repsEseguite !== null && !isNaN(repsEseguite) && repsEseguite > 0 && repsEseguite <= 50) {
+            repsBase = repsEseguite;
+          } else {
+            repsBase = prescReps;
+          }
         }
       }
     } else {
@@ -8796,7 +8822,10 @@ const getBaseWeekInfo = (sett) => {
     pesoBase,
     baseInsText,
     noteText,
-    faticaText
+    faticaText,
+    hasFatiqueDropOff: Boolean(sett < 6 && dropInfo && dropInfo.hasFatiqueDropOff),
+    dropInfo: dropInfo || null,
+    caricoTopSet: dropInfo?.caricoTopSet || pesoBase
   };
 };
 
@@ -9146,7 +9175,7 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
     if (rotta && rotta.curvaProiettata && rotta.curvaProiettata[sett - 1]) {
       // Se non ci sono carichi loggati successivi divergenti, proponiamo il punto della curva
       const infoBase = getBaseWeekInfo(sett);
-      const isDifficile = infoBase && isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText);
+      const isDifficile = infoBase && (isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText) || (sett < 6 && infoBase.hasFatiqueDropOff));
       if (!isDifficile) {
         let propostoRotta = rotta.curvaProiettata[sett - 1].peso;
 
@@ -9222,8 +9251,8 @@ const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   const pesoBase = infoBase && infoBase.pesoBase !== null && !isNaN(infoBase.pesoBase) ? infoBase.pesoBase : 0;
   const step = getWeightStep(isManubri, pesoBase);
 
-  // Se l'utente ha segnalato che l'esercizio era al limite/difficile, consiglia di mantenere il peso base per progressione su reps
-  if (infoBase && isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText) && pesoBase > 0) {
+  // Se l'utente ha segnalato che l'esercizio era al limite/difficile o c'è stato drop-off da cedimento, consiglia di mantenere il peso base per progressione su reps
+  if (infoBase && (isInputIndicaLimiteOStallo(infoBase.baseInsText, infoBase.noteText, infoBase.faticaText) || (sett < 6 && infoBase.hasFatiqueDropOff)) && pesoBase > 0) {
     return pesoBase;
   }
   
@@ -9739,7 +9768,7 @@ function getGhostWeightsRangeForWeekRaw(sett) {
   const isEsuberoReps = repsBaseVal >= repsTarget + 2;
   const isRepsIncomplete = repsBaseVal < repsBaseTarget;
 
-  const isDifficileOStallo = info ? isInputIndicaLimiteOStallo(info.baseInsText, info.noteText, info.faticaText) : false;
+  const isDifficileOStallo = info ? (isInputIndicaLimiteOStallo(info.baseInsText, info.noteText, info.faticaText) || (sett < 6 && info.hasFatiqueDropOff)) : false;
 
   // Controllo se nella scheda attuale a pari repsTarget l'atleta ha già eseguito questo peso (es. W3 = 12 kg a 10 reps per W6 con 10 reps)
   let prevMatchingRepsRecord = null;
@@ -9796,25 +9825,31 @@ function getGhostWeightsRangeForWeekRaw(sett) {
     pesoSfidante = arrotondaManubrioCommerciale(pesoSfidante);
   }
 
-  // Scenario Sforzo Elevato / Difficile / Limite: mantiene lo stesso peso (senza forzare +1r nel consigliato)
+  // Scenario Sforzo Elevato / Difficile / Limite / Drop-off: mantiene lo stesso peso sostenibile (senza forzare +1r nel consigliato)
   if (isDifficileOStallo && pesoBase > 0) {
     const repsSfidanteReps = Math.max(repsTarget + 1, repsBaseVal + 1);
-    const pesoSfidanteCarico = isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step;
+    const sfidanteCarico = (info && info.caricoTopSet && info.caricoTopSet > pesoBase)
+      ? info.caricoTopSet
+      : (isManubri ? getDumbbellSequenceWeight(pesoBase, 'up') : pesoBase + step);
+    const sfidanteLabel = (info && info.caricoTopSet && info.caricoTopSet > pesoBase)
+      ? `Sfidante (Set 1: ${formatWeight(info.caricoTopSet)}kg)`
+      : 'Sfidante (+Kg)';
+    const prudenzialePeso = isManubri ? getDumbbellSequenceWeight(pesoBase, 'down') : Math.max(step, pesoBase - step);
     return {
       prudenziale: {
-        value: String(pesoBase),
-        display: `${formatWeight(pesoBase)} kg`,
+        value: String(prudenzialePeso),
+        display: `${formatWeight(prudenzialePeso)} kg`,
         label: 'Prudenziale'
       },
       consigliato: {
         value: String(pesoBase),
         display: `${formatWeight(pesoBase)} kg`,
-        label: 'Consigliato (Stesso peso)'
+        label: info?.hasFatiqueDropOff ? 'Consigliato (Consolida)' : 'Consigliato (Stesso peso)'
       },
       sfidante: {
-        value: String(pesoSfidanteCarico),
-        display: `${formatWeight(pesoSfidanteCarico)} kg`,
-        label: 'Sfidante (+Kg)'
+        value: String(sfidanteCarico),
+        display: `${formatWeight(sfidanteCarico)} kg`,
+        label: sfidanteLabel
       }
     };
   }
@@ -10108,6 +10143,9 @@ const getGhostRenderInfo = (sett) => {
       lbl = sett === 6 ? 'Consigliato (Spinta W6):' : 'Consigliato (Spinta):';
     } else if (sensibilitaFaticaGhost.value === 'conservativa') {
       lbl = valConsigliato.includes('r') ? 'Consigliato (Prudente +1r):' : 'Consigliato (Prudente):';
+    } else if (baseInfo?.hasFatiqueDropOff && sett < 6) {
+      lbl = 'Consigliato (Consolida):';
+      ic = 'mdi-shield-check-outline';
     } else if (isAumentoPeso) {
       lbl = sett === 6 ? 'Consigliato (Picco W6):' : 'Consigliato (Aumento):';
     } else if (isAumentoReps) {
@@ -10119,7 +10157,11 @@ const getGhostRenderInfo = (sett) => {
     if (numConsigliato > 0 && prevPeso > 0) {
       const repsTarget = getRepsPerWeek(sett);
       const repsPrev = baseInfo?.repsBase || 10;
-      maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
+      if (baseInfo?.hasFatiqueDropOff && sett < 6) {
+        maxEffortNotice = `🛡️ Consolidamento volume: mantieni ${formatWeight(numConsigliato)} kg stabili per chiudere tutte le ${repsTarget} reps senza drop-off.`;
+      } else {
+        maxEffortNotice = calcolaAvvisoFaticaConsigliato(sett, numConsigliato, repsTarget, repsPrev, prevPeso);
+      }
     }
 
     return { valConsigliato, ic, col, lbl };
@@ -13593,9 +13635,22 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const prescBaseReps = estraiRepsDaPrescrizione(workout.value['des_week' + baseWeekNum]) || 10;
+  const isMan = isManubriEsercizio(workout.value);
+  const stepVal = getWeightStep(isMan, 50);
+
+  const dropInfo = valutaGerarchiaEDropOffSerie(baseInsText, {
+    defaultReps: prescBaseReps,
+    isCavo,
+    isCorpoLibero,
+    stepKg: stepVal
+  });
+
   const perf = estraiMigliorPrestazioneInput(baseInsText, prescBaseReps, isCavo, isCorpoLibero);
 
-  let pesoBase = perf ? perf.peso : parseFloat(estraiPesoDaInput(baseInsText, { isCorpoLibero }));
+  let pesoBase = (targetWeek < 6 && dropInfo && dropInfo.hasFatiqueDropOff && dropInfo.caricoSostenibile > 0)
+    ? dropInfo.caricoSostenibile
+    : (perf ? perf.peso : parseFloat(estraiPesoDaInput(baseInsText, { isCorpoLibero })));
+
   if (isNaN(pesoBase) || pesoBase <= 0) return null;
   
   if (!consenteProgressioneIntensita(workout.value, targetWeek)) {
@@ -13604,7 +13659,7 @@ const proponiProgressioneCaricoRIR = (targetWeek, baseWeekNum, baseInsText) => {
   
   const noteBase = inputSettimane.value[baseWeekNum]?.not || '';
   const faticaBase = inputSettimane.value[baseWeekNum]?.fatica || '';
-  if (isInputIndicaLimiteOStallo(baseInsText, noteBase, faticaBase)) {
+  if (isInputIndicaLimiteOStallo(baseInsText, noteBase, faticaBase) || (targetWeek < 6 && dropInfo && dropInfo.hasFatiqueDropOff)) {
     return pesoBase;
   }
   

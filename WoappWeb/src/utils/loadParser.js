@@ -50,6 +50,28 @@ export const isNotaDiErroreOOvershoot = (str) => {
   return OVERSHOOT_KEYWORDS.some(kw => clean.includes(kw));
 };
 
+export const FATICA_KEYWORDS = [
+  'difficile', 'difficili', 'durissimo', 'durissima', 'durissimi', 'durissime',
+  'duro', 'dura', 'duri', 'dure', 'limite', 'al limite', 'a limite',
+  'pesante', 'pesanti', 'troppo pesante', 'troppo pesanti',
+  'cedimento', 'a cedimento', 'ceduto', 'faticoso', 'faticosa', 'faticosi', 'faticose',
+  'sofferto', 'sofferta', 'sofferti', 'sofferte', 'max', 'stallo', 'incerto', 'incerti',
+  'rpe 9.5', 'rpe 10', 'rpe9.5', 'rpe10', 'rpe 9', 'rpe9', 'rpe 10/10',
+  'molto faticoso', 'molto faticosa', 'molto faticosi'
+];
+
+/**
+ * Verifica se un testo contiene indicazioni esplicite o feedback in-line di fatica elevata, limite o stallo.
+ * @param {string} str
+ * @returns {boolean}
+ */
+export const isNotaDiFaticaOStallo = (str) => {
+  if (!str) return false;
+  const clean = String(str).toLowerCase().trim();
+  if (!clean) return false;
+  return FATICA_KEYWORDS.some(kw => clean.includes(kw));
+};
+
 /**
  * Determina se un esercizio appartiene al settore cardio.
  * Regola: il settore contiene la parola 'cardio' (des_settore o des_settore_princ).
@@ -1305,6 +1327,191 @@ export const analizzaSerieInputMultiplo = (strVal, options = {}) => {
 };
 
 /**
+ * Valuta la gerarchia delle serie registrate in un input (anche multilinea),
+ * analizzando l'andamento cronologico per distinguere tra:
+ * - Carico Costante (Straight Sets: 50-50-50)
+ * - Curva Ascendente (Ramp-up / Piramidale: 40-42.5-45)
+ * - Curva Discendente (Fatique Drop-off da cedimento anticipato: 52.5 -> 50x10r -> 45)
+ *
+ * @param {string|Array} inputVal Stringa di input (es. "52,5 difficili\n50x10r\n45") o array di serie già parsate
+ * @param {Object} [options={}] Opzioni: { defaultReps, isCavo, isCorpoLibero, stepKg }
+ * @returns {{
+ *   hasFatiqueDropOff: boolean,
+ *   isVolumeChiuso: boolean,
+ *   isRampUp: boolean,
+ *   isStraightSets: boolean,
+ *   dropOffPercentuale: number,
+ *   repsPerse: boolean,
+ *   caricoTopSet: number|null,
+ *   caricoSostenibile: number|null,
+ *   repsSostenibili: number,
+ *   mediaCarico: number,
+ *   sets: Array
+ * }}
+ */
+export const valutaGerarchiaEDropOffSerie = (inputVal, options = {}) => {
+  const defaultReps = options.defaultReps || 10;
+  const isCavo = options.isCavo ?? false;
+  const isCorpoLibero = options.isCorpoLibero ?? false;
+  const stepKg = options.stepKg || (isCavo ? 2.5 : 2.5);
+
+  let sets = Array.isArray(inputVal)
+    ? inputVal
+    : analizzaSerieInputMultiplo(inputVal, { defaultReps, isCavo, isCorpoLibero, filtraOvershoot: false });
+
+  if (!sets || sets.length === 0) {
+    return {
+      hasFatiqueDropOff: false,
+      isVolumeChiuso: false,
+      isRampUp: false,
+      isStraightSets: false,
+      dropOffPercentuale: 0,
+      repsPerse: false,
+      caricoTopSet: null,
+      caricoSostenibile: null,
+      repsSostenibili: defaultReps,
+      mediaCarico: 0,
+      sets: []
+    };
+  }
+
+  // Filtriamo eventuali serie nulle
+  const validSets = sets.filter(s => {
+    if (isCorpoLibero && !s.isZavorrato) {
+      return s.reps !== null && s.reps > 0;
+    }
+    return s.peso !== null && s.peso > 0;
+  });
+
+  if (validSets.length === 0) {
+    return {
+      hasFatiqueDropOff: false,
+      isVolumeChiuso: false,
+      isRampUp: false,
+      isStraightSets: false,
+      dropOffPercentuale: 0,
+      repsPerse: false,
+      caricoTopSet: null,
+      caricoSostenibile: null,
+      repsSostenibili: defaultReps,
+      mediaCarico: 0,
+      sets
+    };
+  }
+
+  // Se c'è una sola serie valida, non c'è drop-off
+  if (validSets.length === 1) {
+    const singleSet = validSets[0];
+    const valSingle = isCorpoLibero && !singleSet.isZavorrato ? singleSet.reps : singleSet.peso;
+    return {
+      hasFatiqueDropOff: false,
+      isVolumeChiuso: true,
+      isRampUp: false,
+      isStraightSets: true,
+      dropOffPercentuale: 0,
+      repsPerse: false,
+      caricoTopSet: valSingle,
+      caricoSostenibile: valSingle,
+      repsSostenibili: singleSet.reps || defaultReps,
+      mediaCarico: valSingle,
+      sets
+    };
+  }
+
+  const values = validSets.map(s => (isCorpoLibero && !s.isZavorrato ? (s.reps || defaultReps) : s.peso));
+  const firstVal = values[0];
+  const lastVal = values[values.length - 1];
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+
+  // Calcolo reps perse rispetto al target prescritto (es. 10r quando prescritto era 11r)
+  const repsPerse = validSets.some(s => s.reps !== null && s.reps < defaultReps);
+
+  // 1. Curva Ascendente (Ramp-up / Piramidale classico es. 40 - 42.5 - 45)
+  // Se la serie finale è maggiore di quella iniziale e non ci sono crolli intermedi
+  const isAscendente = (lastVal > firstVal) && (minVal === firstVal || values[1] >= firstVal);
+  if (isAscendente) {
+    return {
+      hasFatiqueDropOff: false,
+      isVolumeChiuso: !repsPerse,
+      isRampUp: true,
+      isStraightSets: false,
+      dropOffPercentuale: 0,
+      repsPerse,
+      caricoTopSet: maxVal,
+      caricoSostenibile: maxVal,
+      repsSostenibili: validSets[validSets.length - 1].reps || defaultReps,
+      mediaCarico: maxVal,
+      sets
+    };
+  }
+
+  // 2. Calcolo Drop-off rispetto alla prima serie
+  const dropOffPercentuale = firstVal > 0 ? (firstVal - minVal) / firstVal : 0;
+  
+  // Straight Sets: tutte le serie con lo stesso carico (tolleranza <= 2%)
+  const isStraightSets = dropOffPercentuale <= 0.02 && !repsPerse;
+
+  // Condizione di Fatigue Drop-off:
+  // - Calo di carico tra prima serie e successive >= 6% (es. 52.5 a 50 è 4.8%, ma a 45 è 14.3%)
+  // - OPPURE calo di carico anche lieve (> 2%) accompagnato da reps perse sotto il target (es. 52.5 -> 50x10r con target 11)
+  // - OPPURE presenza di note di fatica elevata/stallo in serie con carichi decrescenti
+  const hasTextFatica = validSets.some(s => isNotaDiFaticaOStallo(s.raw));
+  const hasFatiqueDropOff = (dropOffPercentuale >= 0.06) || 
+                            (dropOffPercentuale > 0.02 && repsPerse) ||
+                            (dropOffPercentuale > 0.03 && hasTextFatica);
+
+  // Calcolo Carico Sostenibile (Media ponderata per serie, arrotondata allo step attrezzo)
+  let pesoSostenibile = firstVal;
+  let repsSostenibili = defaultReps;
+
+  if (hasFatiqueDropOff) {
+    if (isCorpoLibero && !validSets[0].isZavorrato) {
+      const avgReps = values.reduce((a, b) => a + b, 0) / values.length;
+      repsSostenibili = Math.round(avgReps);
+      pesoSostenibile = 0;
+    } else {
+      let totalTonnage = 0;
+      let totalReps = 0;
+      validSets.forEach(s => {
+        const p = s.peso || 0;
+        const r = s.reps || defaultReps;
+        totalTonnage += (p * r);
+        totalReps += r;
+      });
+
+      const mediaPonderata = totalReps > 0 ? (totalTonnage / totalReps) : (values.reduce((a, b) => a + b, 0) / values.length);
+      pesoSostenibile = Math.round(mediaPonderata / stepKg) * stepKg;
+
+      // Se per qualche arrotondamento supera o eguaglia firstVal, limitiamo a firstVal - stepKg
+      if (pesoSostenibile >= firstVal) {
+        pesoSostenibile = Math.max(stepKg, firstVal - stepKg);
+      }
+      
+      repsSostenibili = Math.round(totalReps / validSets.length);
+    }
+  } else {
+    pesoSostenibile = maxVal;
+  }
+
+  const isVolumeChiuso = !hasFatiqueDropOff && !repsPerse && dropOffPercentuale <= 0.03;
+
+  return {
+    hasFatiqueDropOff,
+    isVolumeChiuso,
+    isRampUp: false,
+    isStraightSets,
+    dropOffPercentuale,
+    repsPerse,
+    caricoTopSet: maxVal,
+    caricoSostenibile: pesoSostenibile,
+    repsSostenibili,
+    mediaCarico: pesoSostenibile,
+    sets
+  };
+};
+
+/**
  * Estrae la migliore prestazione specifica per un target esatto di ripetizioni.
  * Scompone l'input in tutte le serie atomiche ed individua la serie con carico più alto
  * che soddisfa le ripetizioni richieste (o che le supera con carico valido).
@@ -1370,6 +1577,27 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
   });
 
   if (!sets || sets.length === 0) return null;
+
+  // Se è richiesta la modalità sostenibile (settimane ordinarie di volume) e viene rilevato un drop-off evidente da fatica
+  if (options.usaCaricoSostenibileSeDropOff) {
+    const dropInfo = valutaGerarchiaEDropOffSerie(sets, {
+      defaultReps,
+      isCavo,
+      isCorpoLibero,
+      stepKg: options.stepKg || 2.5
+    });
+    if (dropInfo.hasFatiqueDropOff && dropInfo.caricoSostenibile !== null && dropInfo.caricoSostenibile > 0) {
+      return {
+        peso: dropInfo.caricoSostenibile,
+        reps: dropInfo.repsSostenibili || defaultReps,
+        e1rm: calcolaE1RMSmorzato(dropInfo.caricoSostenibile, dropInfo.repsSostenibili || defaultReps, isCavo),
+        isZavorrato: false,
+        isOvershoot: false,
+        hasFatiqueDropOff: true,
+        caricoTopSet: dropInfo.caricoTopSet
+      };
+    }
+  }
 
   let bestPerf = null;
   let maxE1RM = -1;

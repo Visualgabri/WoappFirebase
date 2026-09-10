@@ -264,7 +264,7 @@ export const analizzaQualitaScheda = (records, options = {}) => {
             haSovraccarico: false,
             prescrizione: prescVal,
             repsPreviste: repsPresc,
-            seriePreviste: seriePreviste,
+            seriePreviste: seriePresc,
             livello: 'errore',
             tipo: 'formato_ambiguo_sxr',
             titolo: 'Formato ambiguo: mancano i kg del carico',

@@ -1396,8 +1396,8 @@ export const accettaEAggiornaDeploy = async () => {
 
     // 2. Elimina completamente tutte le cache (Workbox e PWA cache)
     if ('caches' in window) {
-      const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      const cacheNames = await window.caches.keys();
+      await Promise.all(cacheNames.map(name => window.caches.delete(name)));
     }
   } catch (err) {
     console.warn("Pulizia cache SW durante aggiornamento:", err);

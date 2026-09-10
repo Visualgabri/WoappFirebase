@@ -8081,7 +8081,7 @@ const impostaCaricoLimite = () => {
       : 'Carico ancora al limite dal mesociclo precedente';
   }
 
-  salvaNoteEsercizio();
+  salvaDatoGenerale('ins_esercizio', noteEsercizio.value);
   salvaDatoSettimanale(sett, 'ins');
   snackbarMessaggio.value = `🏋️ Segnalato al Coach: Carico al limite per W${sett}`;
   snackbarSalvataggio.value = true;
@@ -10641,6 +10641,7 @@ const valoreConsigliatoHeroDialog = computed(() => {
 const calcolaRecordOverviewData = (sett) => {
   if (!workout.value) return null;
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isManubri = isManubriEsercizio(workout.value);
   const currentNumScheda = parseInt(workout.value.num_scheda);
   const targetReps = getRepsPerWeek(sett);
   const cleanTargetReps = String(targetReps).replace(/r$/i, '');
@@ -14924,8 +14925,9 @@ const caricaDataMesociclo = async (atletaId, numScheda) => {
   } else {
     // Fallback identico a Home Wo (cerca la prima data di start_wo o usa il default)
     let minDate = null;
-    if (allExercises.value && allExercises.value.length > 0) {
-      for (const rec of allExercises.value) {
+    const allExList = (globalStoryboard.value && globalStoryboard.value.length > 0) ? globalStoryboard.value : (tuttiEserciziScheda.value || []);
+    if (allExList && allExList.length > 0) {
+      for (const rec of allExList) {
         if (parseInt(rec.num_riga_giorno) === 0) {
           const dates = [rec.start_wo, rec.start2_wo, rec.start3_wo, rec.start4_wo, rec.start5_wo, rec.start6_wo].filter(Boolean);
           for (const dStr of dates) {
@@ -15310,8 +15312,8 @@ const vaiAlGiornoAllenamento = async () => {
     if (sessionObj) sessionId = sessionObj.id;
   }
   
-  if (!sessionId && allExercises.value && allExercises.value.length > 0) {
-    const sessionObj = allExercises.value.find(item => 
+  if (!sessionId && tuttiEserciziScheda.value && tuttiEserciziScheda.value.length > 0) {
+    const sessionObj = tuttiEserciziScheda.value.find(item => 
       String(item.des_giorno).trim().toUpperCase() === sessionGiorno && parseInt(item.num_riga_giorno) === 0
     );
     if (sessionObj) sessionId = sessionObj.id;
@@ -19449,6 +19451,11 @@ function analizzaRottaProgressione({
   };
 }
 
+const calcWeightForReps = (targetE1RM, targetReps) => {
+  if (!targetE1RM || targetE1RM <= 0) return 0;
+  return calcolaPesoDaE1RMSmorzato(targetE1RM, targetReps, isCavoOMacchinaEsercizio(workout.value));
+};
+
 // Computed unificata reattiva per la rotta predittiva (Unica fonte di verità per Ghost, Rotta PR e Strategia Coach)
 const rottaPredittivaEsercizio = computed(() => {
   if (!workout.value) return null;
@@ -21621,7 +21628,6 @@ const vaiADettaglioStorico = (prevExIdOrObj) => {
     dialogProgressioniStoricoSingolo.value = true;
   } else {
     dialogStorico.value = false;
-    dialogAiutoProposta.value = false;
     const targetId = String(typeof prevExIdOrObj === 'object' ? (prevExIdOrObj.id || prevExIdOrObj.num_riga) : prevExIdOrObj);
     if (targetId) {
       router.push({ name: 'DettaglioWorkout', params: { id: targetId } });

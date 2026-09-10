@@ -3458,7 +3458,7 @@ import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
-import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio } from '../utils/loadParser.js';
+import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio, isCorpoLiberoEsercizio } from '../utils/loadParser.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -4884,47 +4884,7 @@ const filtroInsW6Fatica = ref('tutti'); // 'tutti' | 'incompleti' | 'senza_insw6
 const ricercaInsW6Fatica = ref('');
 const salvataggioInsW6FaticaInCorso = ref(null);
 
-const isCorpoLiberoEsercizio = (ex) => {
-  if (!ex) return false;
-  const name = String(ex.des_esercizio || '').toLowerCase();
-  const note = String(ex.des_note_attrezzo || '').toLowerCase();
-  const attr = String(ex.des_note_gen_attr || '').toLowerCase();
-  const desNote = String(ex.des_note || '').toLowerCase();
-  const settore = String(ex.des_settore || '').toLowerCase();
-  const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
-
-  const weightKeywords = [
-    'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
-    'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
-    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
-    'con sovraccarico', 'con cavigliera', 'con cavigliere',
-    'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley'
-  ];
-  const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
-  if (hasWeightKeyword) return false;
-
-  const keywords = [
-    'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
-    'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup', 
-    'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
-    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
-    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
-    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
-    'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
-    'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
-    'pino', 'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
-    'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
-  ];
-  
-  const hasKeyword = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k));
-  if (hasKeyword) return true;
-
-  if (note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno')) {
-    return true;
-  }
-
-  return false;
-};
+// isCorpoLiberoEsercizio è importato direttamente da loadParser.js per consistenza centralizzata con flg_corpo_libero
 
 const isOndaProgression = (ex) => {
   if (!ex) return false;

@@ -3183,6 +3183,28 @@
               hide-details
             ></v-text-field>
 
+            <!-- Tipologia / Carico Esercizio: Corpo Libero Sì/No -->
+            <div class="d-flex align-center justify-space-between pa-3 rounded-lg my-1" style="background: rgba(255, 255, 255, 0.04); border: 1.5px solid rgba(255, 255, 255, 0.1);">
+              <div class="pr-2">
+                <div class="d-flex align-center gap-1.5">
+                  <v-icon :color="modificaForm.flg_corpo_libero ? 'amber-lighten-2' : 'cyan-lighten-2'" size="18">
+                    {{ modificaForm.flg_corpo_libero ? 'mdi-human' : 'mdi-weight-lifter' }}
+                  </v-icon>
+                  <span class="text-subtitle-2 font-weight-black text-white">Corpo Libero Puro</span>
+                </div>
+                <div class="text-caption text-slate" style="font-size: 0.72rem; line-height: 1.3;">
+                  {{ modificaForm.flg_corpo_libero ? 'SÌ: a sole ripetizioni (es. crunch a terra, trazioni libere)' : 'NO: con sovraccarico / macchina / kg (es. leg curl, panca)' }}
+                </div>
+              </div>
+              <v-switch
+                v-model="modificaForm.flg_corpo_libero"
+                color="orange-darken-3"
+                hide-details
+                inset
+                density="compact"
+              ></v-switch>
+            </div>
+
             <v-divider class="my-2 border-soft"></v-divider>
 
             <!-- Note & Setup -->
@@ -3443,6 +3465,33 @@
         </v-card-title>
 
         <v-card-text class="pa-4 text-left" style="max-height: 75vh;">
+          <!-- SWITCH RAPIDO MODALITÀ: CORPO LIBERO VS CARICO -->
+          <div class="pa-2.5 rounded-xl border mb-3 d-flex align-center justify-space-between" style="background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1) !important;">
+            <div class="d-flex align-center gap-2">
+              <v-icon :color="isCorpoLiberoPuro ? 'amber-lighten-2' : 'cyan-lighten-2'" size="20">
+                {{ isCorpoLiberoPuro ? 'mdi-human' : 'mdi-weight-lifter' }}
+              </v-icon>
+              <div>
+                <div class="font-weight-black text-white text-caption" style="letter-spacing: 0.02em;">
+                  Modalità: {{ isCorpoLiberoPuro ? '🤸 Corpo Libero (reps)' : '🏋️ Con Sovraccarico (kg)' }}
+                </div>
+                <div class="text-slate text-super-caption" style="font-size: 0.65rem;">
+                  {{ isCorpoLiberoPuro ? 'Impostato a sole ripetizioni' : 'Impostato con carico in kg ed e1RM' }}
+                </div>
+              </div>
+            </div>
+            <v-btn
+              size="x-small"
+              :color="isCorpoLiberoPuro ? 'cyan-darken-3' : 'amber-darken-3'"
+              class="font-weight-black text-none"
+              rounded="lg"
+              :loading="salvandoModalitaCorpoLibero"
+              @click="toggleCorpoLiberoRapido"
+            >
+              {{ isCorpoLiberoPuro ? 'Imposta a Carico (kg)' : 'Imposta a Corpo Libero' }}
+            </v-btn>
+          </div>
+
           <!-- BANNER NARRATIVO DIAGNOSI -->
           <div 
             class="pa-3 rounded-xl border mb-3" 
@@ -7004,6 +7053,7 @@ import {
   valutaOpportunitaPR,
   estraiSerieDaPrescrizione,
   isCardioEsercizio,
+  isCorpoLiberoEsercizio as isCorpoLiberoEsercizioCentral,
   estraiTempoDaPrescrizione,
   estraiTempoDaInput,
   formattaTempoDisplay,
@@ -13138,47 +13188,8 @@ const getAtletaInfo = (wObj) => {
 };
 
 function isCorpoLiberoEsercizio(ex) {
-  if (!ex) return false;
-  const name = String(ex.des_esercizio || '').toLowerCase();
-  const note = String(ex.des_note_attrezzo || '').toLowerCase();
-  const attr = String(ex.des_note_gen_attr || '').toLowerCase();
-  const desNote = String(ex.des_note || '').toLowerCase();
-  const settore = String(ex.des_settore || '').toLowerCase();
-  const settorePrinc = String(ex.des_settore_princ || '').toLowerCase();
-
-  // Se l'esercizio contiene esplicita indicazione di peso o zavorra, NON è corpo libero puro
-  const weightKeywords = [
-    'con peso', 'zavorra', 'zavorrat', 'con zavorra', 'weighted', 'con carico',
-    'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
-    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'sovraccarico',
-    'con sovraccarico', 'con cavigliera', 'con cavigliere',
-    'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley'
-  ];
-  const hasWeightKeyword = weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k));
-  if (hasWeightKeyword) return false;
-
-  const keywords = [
-    'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
-    'trazioni', 'piegamenti', 'push up', 'push-up', 'pushup', 
-    'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp', 
-    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
-    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
-    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
-    'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
-    'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
-    'pino', 'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
-    'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
-  ];
-  
-  const hasKeyword = keywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k));
-  if (hasKeyword) return true;
-
-  if (note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno')) {
-    return true;
-  }
-
-  return false;
-};
+  return isCorpoLiberoEsercizioCentral(ex);
+}
 
 
 const getPrescriptionReps = (ex, w) => {
@@ -14179,8 +14190,16 @@ const currentWeekLoggedTempo = computed(() => {
 const haPesoEsercizio = computed(() => {
   if (!workout.value) return false;
   if (isCardio.value) return false;
+
+  // 0. Priorità al flag esplicito su Database / UI
+  if (workout.value.flg_corpo_libero === false || workout.value.flg_corpo_libero === 'false' || workout.value.modalita_carico === 'peso') {
+    return true;
+  }
+  if (workout.value.flg_corpo_libero === true || workout.value.flg_corpo_libero === 'true' || workout.value.modalita_carico === 'corpo_libero') {
+    return false;
+  }
   
-  // 1. Se staticamente NON è corpo libero (es. Panca, Lat Machine, Squat), ha sempre peso
+  // 1. Se staticamente NON è corpo libero (es. Panca, Lat Machine, Squat, Leg Curl), ha sempre peso
   if (!isCorpoLiberoEsercizio(workout.value)) {
     return true;
   }
@@ -14193,17 +14212,15 @@ const haPesoEsercizio = computed(() => {
     }
   }
   
-  // 3. Controlla se nel mesociclo precedente o nella proposta W1 c'era peso esplicito
-  if (propostaWeek1.value && propostaWeek1.value.prevPeso && propostaWeek1.value.prevPeso > 0) {
-    if (previousWorkout.value) {
-      const prevW6Text = previousWorkout.value.num_ins6 || previousWorkout.value.ins_week6;
-      if (prevW6Text && haPesoEsplicitoInInput(prevW6Text)) {
+  // 3. Controlla se nel mesociclo precedente c'era peso esplicito (senza chiamare propostaWeek1.value per evitare loop circolare!)
+  if (previousWorkout.value) {
+    const prevW6Text = previousWorkout.value.num_ins6 || previousWorkout.value.ins_week6;
+    if (prevW6Text && haPesoEsplicitoInInput(prevW6Text)) {
+      return true;
+    }
+    for (let w = 1; w <= 6; w++) {
+      if (haPesoEsplicitoInInput(previousWorkout.value['ins_week' + w])) {
         return true;
-      }
-      for (let w = 1; w <= 6; w++) {
-        if (haPesoEsplicitoInInput(previousWorkout.value['ins_week' + w])) {
-          return true;
-        }
       }
     }
   }
@@ -18279,6 +18296,11 @@ const apriDialogModifica = () => {
   vibraTattile(12);
   if (!workout.value) return;
   modificaForm.value = {
+    flg_corpo_libero: (workout.value.flg_corpo_libero === true || workout.value.flg_corpo_libero === 'true')
+      ? true
+      : ((workout.value.flg_corpo_libero === false || workout.value.flg_corpo_libero === 'false')
+          ? false
+          : isCorpoLiberoEsercizio(workout.value)),
     des_esercizio: workout.value.des_esercizio || '',
     des_settore: workout.value.des_settore || '',
     des_giorno: workout.value.des_giorno || '',
@@ -18302,6 +18324,22 @@ const apriDialogModifica = () => {
   dialogModifica.value = true;
 };
 
+const salvandoModalitaCorpoLibero = ref(false);
+const toggleCorpoLiberoRapido = async () => {
+  if (!workout.value) return;
+  salvandoModalitaCorpoLibero.value = true;
+  try {
+    const nuovoStato = !isCorpoLiberoPuro.value;
+    await aggiornaDatoECommit({ flg_corpo_libero: nuovoStato });
+    snackbarMessaggio.value = nuovoStato ? "Esercizio impostato a Corpo Libero (reps)" : "Esercizio impostato a Sovraccarico (kg)";
+    snackbarSalvataggio.value = true;
+  } catch (e) {
+    console.error("Errore salvataggio rapido modalità:", e);
+  } finally {
+    salvandoModalitaCorpoLibero.value = false;
+  }
+};
+
 const salvaModificheEsercizio = async () => {
   if (!workout.value) return;
   vibraTattile(20);
@@ -18309,6 +18347,7 @@ const salvaModificheEsercizio = async () => {
   try {
     // Aggiorna tramite la funzione esistente aggiornaDatoECommit
     await aggiornaDatoECommit({
+      flg_corpo_libero: Boolean(modificaForm.value.flg_corpo_libero),
       des_esercizio: modificaForm.value.des_esercizio,
       des_settore: modificaForm.value.des_settore,
       des_giorno: (modificaForm.value.des_giorno || '').trim().toUpperCase(),

@@ -93,40 +93,71 @@ export const isCardioEsercizio = (ex) => {
  */
 export const isCorpoLiberoEsercizio = (ex) => {
   if (!ex) return false;
+
+  // 1. Priorità assoluta al flag esplicito su Database / UI (Sì / No)
+  if (typeof ex === 'object') {
+    if (ex.flg_corpo_libero === true || ex.flg_corpo_libero === 'true') return true;
+    if (ex.flg_corpo_libero === false || ex.flg_corpo_libero === 'false') return false;
+    if (ex.modalita_carico === 'corpo_libero') return true;
+    if (ex.modalita_carico === 'peso') return false;
+  }
+
   const name = typeof ex === 'string' ? ex.toLowerCase() : String(ex.des_esercizio || '').toLowerCase();
   const note = typeof ex === 'object' ? String(ex.des_note_attrezzo || '').toLowerCase() : '';
   const attr = typeof ex === 'object' ? String(ex.des_note_gen_attr || '').toLowerCase() : '';
-  const desNote = typeof ex === 'object' ? String(ex.des_note || '').toLowerCase() : '';
   const settore = typeof ex === 'object' ? String(ex.des_settore || '').toLowerCase() : '';
   const settorePrinc = typeof ex === 'object' ? String(ex.des_settore_princ || '').toLowerCase() : '';
 
-  // Se contiene esplicitamente attrezzi a carico esterno nel nome o note, non è corpo libero puro
+  // 2. Se contiene esplicitamente attrezzi a carico esterno nel nome o note attrezzo, NON è corpo libero puro
   const weightKeywords = [
     'con peso', 'con manubrio', 'con manubri', 'con disco', 'con dischi', 'con bilanciere',
-    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato',
+    'con kgb', 'con kb', 'con kettlebell', 'giubbotto zavorrato', 'zavorrat', 'con zavorra',
     'multipower', 'smith', 'macchina', 'machine', 'cavo', 'cavi', 'cable', 'pulley',
-    'pressa', 'leg press', 'hack squat', 'lat machine', 'pulldown', 'pectoral'
+    'pressa', 'leg press', 'hack squat', 'lat machine', 'pulldown', 'pectoral',
+    'leg curl', 'leg extension', 'calf machine', 'seated calf', 'standing calf'
   ];
-  if (weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k))) {
+  if (weightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k))) {
     return false;
   }
 
+  // Se il nome indica tipologie tipiche di attrezzo / bilanciere / manubrio e non contiene "corpo libero"
+  const machineOrBarbellNames = [
+    'curl', 'panca', 'squat', 'stacco', 'deadlift', 'press', 'croci', 'alzate', 'spinte', 'french', 'affondi'
+  ];
+  const hasExplicitBodyweightPhrase = name.includes('corpo libero') || note.includes('corpo libero') || attr.includes('corpo libero') ||
+    name.includes('senza attrezzi') || note.includes('senza attrezzi') || attr.includes('nessun attrezzo') || note.includes('nessuno') || attr.includes('nessuno');
+
+  if (machineOrBarbellNames.some(k => name.includes(k)) && !hasExplicitBodyweightPhrase) {
+    return false;
+  }
+
+  // 3. Esercizi intrinsecamente a corpo libero (per nome esercizio o setup attrezzo esplicito)
+  // NOTA: NON includere des_note o parole generiche di muscoli ('addome', 'glutei') che sono istruzioni posturali del coach
   const bodyweightKeywords = [
     'corpo libero', 'corpolibero', 'corpo_libero', 'peso corporeo', 'bodyweight', 'senza attrezzi', 'nessun attrezzo',
     'trazioni', 'dip', 'piegamenti', 'push up', 'push-up', 'pushup',
     'crunch', 'plank', 'side plank', 'sit up', 'sit-up', 'situp',
-    'addominali', 'addome', 'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
-    'dragon', 'ab roll', 'ab-roll', 'rotella', 'ruota', 'rollout',
-    'bridge', 'side bridge', 'glute bridge', 'abduzione', 'adduzione',
+    'leg raise', 'knee raise', 'hyperextension', 'back extension', 'iperestensioni',
+    'dragon', 'ab roll', 'ab-roll', 'rotella', 'rollout',
+    'bridge', 'side bridge', 'glute bridge',
     'hollow', 'arch hold', 'superman', 'dead bug', 'bird dog',
     'v-up', 'v up', 'vup', 'toe touch', 'l-sit', 'l sit', 'lsit',
     'handstand', 'verticale', 'mountain climber', 'burpee', 'skipping',
     'chin up', 'chin-up', 'chinup', 'pull up', 'pull-up', 'pullup', 'muscle up', 'muscle-up'
   ];
 
-  return bodyweightKeywords.some(k =>
-    name.includes(k) || note.includes(k) || attr.includes(k) || desNote.includes(k) || settore.includes(k) || settorePrinc.includes(k)
-  ) || note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno');
+  if (bodyweightKeywords.some(k => name.includes(k) || note.includes(k) || attr.includes(k))) {
+    return true;
+  }
+
+  // Per il settore Addome/Core, sono corpo libero solo se il nome non indica macchine, cavi, dischi o manubri
+  if (settore.includes('addome') || settore.includes('core') || settorePrinc.includes('addome') || settorePrinc.includes('core')) {
+    if (!name.includes('macchina') && !name.includes('cavo') && !name.includes('cavi') && !name.includes('disco') && !name.includes('manubr')) {
+      return true;
+    }
+  }
+
+  return note.includes('a terra') || note.includes('decubito') || note.includes('nessuno') || attr.includes('nessuno');
 };
 
 /**

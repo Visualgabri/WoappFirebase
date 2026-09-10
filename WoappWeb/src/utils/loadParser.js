@@ -1599,6 +1599,44 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
     }
   }
 
+  // Valutiamo la gerarchia delle serie per curve ascendenti (Ramp-up / Piramidale classico)
+  const dropInfo = valutaGerarchiaEDropOffSerie(sets, {
+    defaultReps,
+    isCavo,
+    isCorpoLibero,
+    stepKg: options.stepKg || 2.5
+  });
+
+  if (dropInfo.isRampUp && dropInfo.caricoTopSet !== null && dropInfo.caricoTopSet > 0) {
+    const topSet = sets.slice().reverse().find(s => s.peso === dropInfo.caricoTopSet) || sets[sets.length - 1];
+    return {
+      peso: dropInfo.caricoTopSet,
+      reps: topSet?.reps || dropInfo.repsSostenibili || defaultReps,
+      e1rm: calcolaE1RMSmorzato(dropInfo.caricoTopSet, topSet?.reps || dropInfo.repsSostenibili || defaultReps, isCavo),
+      isZavorrato: topSet?.isZavorrato || false,
+      isOvershoot: false,
+      isRampUp: true,
+      caricoTopSet: dropInfo.caricoTopSet
+    };
+  }
+
+  // Opzione esplicita per privilegiare il carico massimo (es. Week 6 picco)
+  if (options.privilegiaCaricoMassimo) {
+    const validPesiSets = sets.filter(s => s.peso !== null && s.peso > 0 && !s.isOvershoot);
+    if (validPesiSets.length > 0) {
+      const maxP = Math.max(...validPesiSets.map(s => s.peso));
+      const topSet = validPesiSets.slice().reverse().find(s => s.peso === maxP) || validPesiSets[0];
+      return {
+        peso: topSet.peso,
+        reps: topSet.reps || defaultReps,
+        e1rm: calcolaE1RMSmorzato(topSet.peso, topSet.reps || defaultReps, isCavo),
+        isZavorrato: topSet.isZavorrato || false,
+        isOvershoot: false,
+        caricoTopSet: maxP
+      };
+    }
+  }
+
   let bestPerf = null;
   let maxE1RM = -1;
 

@@ -7437,7 +7437,9 @@ const onBlurWeek = (sett, val) => {
       annullaAvvisoFaticaW6();
       dialogAvvisoFaticaW6.value = false;
     } else if (!numIns6ModificatoManualmente.value) {
-      const estratto = estraiNumeroMassimo(valStr);
+      const pReps = parseInt(workout.value?.reps_week6, 10) || estraiRepsDaPrescrizione(workout.value?.des_week6) || 10;
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
+      const estratto = estraiNumeroMassimo(valStr, pReps, isCavo);
       if (estratto !== null) {
         numIns6Val.value = String(estratto);
         salvaDatoGenerale('num_ins6', String(estratto));
@@ -7534,7 +7536,9 @@ const confermaEditorEspanso = () => {
         annullaAvvisoFaticaW6();
         dialogAvvisoFaticaW6.value = false;
       } else if (!numIns6ModificatoManualmente.value) {
-        const estratto = estraiNumeroMassimo(valStr);
+        const pReps = parseInt(workout.value?.reps_week6, 10) || estraiRepsDaPrescrizione(workout.value?.des_week6) || 10;
+        const isCavo = isCavoOMacchinaEsercizio(workout.value);
+        const estratto = estraiNumeroMassimo(valStr, pReps, isCavo);
         if (estratto !== null) {
           numIns6Val.value = String(estratto);
           salvaDatoGenerale('num_ins6', String(estratto));
@@ -13390,8 +13394,19 @@ function estraiDiscrepanzaInputPrescrizione(ex, w) {
     }
   });
 
+  let maxImplicitPeso = -1;
+  implicitSets.forEach(s => {
+    if (s.peso > maxImplicitPeso) {
+      maxImplicitPeso = s.peso;
+    }
+  });
+
   // Mostra la discrepanza solo se la serie con reps esplicite rappresenta la prestazione reale top (o pari)
+  // E NON se è una serie a carico inferiore rispetto a serie successive a carico più alto chiuse a target!
   if (bestExplicitSet && maxExplicitE1RM >= maxImplicitE1RM) {
+    if (maxImplicitPeso > 0 && bestExplicitSet.peso < maxImplicitPeso) {
+      return null;
+    }
     return {
       hasDiscrepancy: true,
       peso: bestExplicitSet.peso,
@@ -15498,6 +15513,21 @@ const caricaDatiEsercizio = async () => {
     numIns6ModificatoManualmente.value = false;
     numFaticaw6Val.value = workout.value.num_faticaw6 || '';
     indRepsStartVal.value = workout.value.ind_reps_start || '';
+
+    // Auto-allineamento correttivo W6: se nelle note W6 è presente un carico chiuso a target superiore
+    // (es. correzione retroattiva da vecchio calcolo e1RM dove una serie leggera scavalcava il top set)
+    if (isEsercizioEligibileW6(workout.value) && workout.value.ins_week6) {
+      const pRepsW6 = parseInt(workout.value.reps_week6, 10) || estraiRepsDaPrescrizione(workout.value.des_week6) || 10;
+      const isCavoW6 = isCavoOMacchinaEsercizio(workout.value);
+      const estrattoW6 = estraiNumeroMassimo(workout.value.ins_week6, pRepsW6, isCavoW6);
+      if (estrattoW6 !== null) {
+        const currNum = parseFloat(String(numIns6Val.value).replace(',', '.'));
+        if (isNaN(currNum) || currNum < estrattoW6) {
+          numIns6Val.value = String(estrattoW6);
+          aggiornaDatoECommit({ num_ins6: String(estrattoW6) });
+        }
+      }
+    }
 
     // Nascondi immediatamente lo spinner per apertura istantanea
     caricamento.value = false;
@@ -17777,10 +17807,32 @@ const estraiNumeroMassimo = (str, prescritteRepsFallback = 10, isCavo = false) =
   const strClean = rimuoviContenutoTraParentesi(str);
   if (!strClean) return null;
 
-  const lines = String(strClean).split(/[\n;\r]+/);
-  let bestPeso = null;
-  let maxE1RM = -1;
+  // 1. Usa l'analizzatore centralizzato delle serie atomiche (escludendo overshoot e fail)
+  const sets = analizzaSerieInputMultiplo(str, {
+    defaultReps: prescritteRepsFallback,
+    isCavo,
+    isCorpoLibero: false,
+    filtraOvershoot: true
+  });
 
+  if (sets && sets.length > 0) {
+    const validSets = sets.filter(s => s.peso !== null && !isNaN(s.peso) && s.peso > 0 && !s.isOvershoot);
+    if (validSets.length > 0) {
+      // In Week 6 ("MAX RAGGIUNTO" / feedback W6) e in caso di Curva Ascendente (Ramp-up),
+      // la regola stabilita richiede sempre il CARICO PIÙ ALTO CHIUSO A TARGET.
+      // Una serie precedente a carico inferiore e reps maggiori (es. 70x10r prima di 77.5 a target)
+      // non deve MAI scavalcare il carico effettivo massimo (77.5 kg).
+      const pesi = validSets.map(s => s.peso);
+      const maxPeso = Math.max(...pesi);
+      if (maxPeso > 0) {
+        return maxPeso;
+      }
+    }
+  }
+
+  // 2. Fallback su singole righe con estraiPesoDaInput
+  const lines = String(strClean).split(/[\n;\r]+/);
+  const pesiEstratti = [];
   lines.forEach(line => {
     const l = line.trim();
     if (!l) return;
@@ -17788,24 +17840,20 @@ const estraiNumeroMassimo = (str, prescritteRepsFallback = 10, isCavo = false) =
     if (pesoStr) {
       const peso = parseFloat(pesoStr);
       if (!isNaN(peso) && peso > 0) {
-        const hasExplicitReps = /\d+\s*[rR]\b|\d+\s*[xX]\s*\d+\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b|\b\d+\s*(?:reps?|rip(?:etizioni)?|colpi)\b/i.test(l);
-        const explicitReps = hasExplicitReps ? estraiRepsDaInput(l) : null;
-        const reps = (explicitReps && explicitReps > 0) ? explicitReps : prescritteRepsFallback;
-        const e1rm = calcolaE1RMSmorzato(peso, reps, isCavo);
-        if (e1rm > maxE1RM) {
-          maxE1RM = e1rm;
-          bestPeso = peso;
-        }
+        pesiEstratti.push(peso);
       }
     }
   });
 
-  if (bestPeso !== null) return bestPeso;
+  if (pesiEstratti.length > 0) {
+    return Math.max(...pesiEstratti);
+  }
 
+  // 3. Fallback finale con scansione numerica regex
   const cleanStr = strClean.replace(/,/g, '.');
   const matches = cleanStr.match(/\b\d+(?:\.\d+)?\b/g);
   if (matches && matches.length > 0) {
-    const nums = matches.map(n => parseFloat(n)).filter(n => !isNaN(n));
+    const nums = matches.map(n => parseFloat(n)).filter(n => !isNaN(n) && n > 0 && n <= 1000);
     if (nums.length > 0) return Math.max(...nums);
   }
   return null;
@@ -22185,7 +22233,9 @@ const salvaModifichePendenti = async () => {
           updates.num_faticaw6 = '';
           numIns6ModificatoManualmente.value = false;
         } else if (!numIns6ModificatoManualmente.value) {
-          const estratto = estraiNumeroMassimo(valNuovo);
+          const pReps = parseInt(workout.value?.reps_week6, 10) || estraiRepsDaPrescrizione(workout.value?.des_week6) || 10;
+          const isCavo = isCavoOMacchinaEsercizio(workout.value);
+          const estratto = estraiNumeroMassimo(valNuovo, pReps, isCavo);
           if (estratto !== null) {
             numIns6Val.value = String(estratto);
             updates.num_ins6 = String(estratto);

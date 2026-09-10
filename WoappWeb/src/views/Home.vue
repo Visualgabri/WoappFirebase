@@ -1821,9 +1821,7 @@ const workoutTData = ref(initialCachedWT);
 const dataInizio = ref(initialCachedWT?.dat_data || '');
 const dataFine = ref(initialCachedWT?.dat_scadenza || '');
 const descrizioneMesociclo = ref(initialCachedWT?.des_descrizione || '');
-if (initialCachedWT?.des_note) {
-  coachMessage.value = initialCachedWT.des_note;
-}
+const coachMessage = ref(initialCachedWT?.des_note || '');
 
 watch([selectedAthlete, MAPPA_CLIENTI_DINAMICI], () => {
   const n = getNomeAtleta(selectedAthlete.value);
@@ -2210,7 +2208,6 @@ const mostraTest = ref(false);
 const confermaReset = ref(false);
 const resettando = ref(false);
 
-const coachMessage = ref('');
 const filmatiList = ref([]);
 const testList = ref([]);
 const allExercises = ref([]);
@@ -3609,7 +3606,7 @@ const gestisciCambioAtleta = async (nuovoAtleta) => {
   }
 
   setSelectedAthlete(nuovoAtleta);
-  atletaSelezionato.value = nuevoAtleta;
+  atletaSelezionato.value = nuovoAtleta;
   setSelectedSheet(''); // Azzera la scheda salvata dal precedente atleta
   schedaSelezionata.value = '';
   await caricaWorkouts();

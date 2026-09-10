@@ -255,48 +255,80 @@
                 <v-col cols="6" class="border-right-soft pr-3">
                   <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">Data Inizio</div>
                   <div class="text-subtitle-2 font-weight-black text-slate-dark mt-1">
-                    📅 {{ workoutTData?.dat_data || dataInizio || '—' }}
+                    📅 {{ formatDataBreve(workoutTData?.dat_data || dataInizio) }}
                   </div>
                 </v-col>
                 <v-col cols="6" class="pl-3">
-                  <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">Scadenza</div>
-                  <div class="text-subtitle-2 font-weight-black text-orange-lighten-1 mt-1">
-                    🏁 {{ workoutTData?.dat_scadenza || dataFine || '—' }}
+                  <div class="text-super-caption text-muted uppercase font-weight-black" style="font-size: 0.55rem;">
+                    {{ allineamentoProgramma?.status === 'ritardo' ? 'Scadenza Reale' : 'Scadenza' }}
+                  </div>
+                  <div 
+                    class="text-subtitle-2 font-weight-black mt-1"
+                    :class="allineamentoProgramma?.status === 'ritardo' ? 'text-red-lighten-1' : 'text-orange-lighten-1'"
+                  >
+                    🏁 {{ formatDataBreve((allineamentoProgramma?.status === 'ritardo' ? scadenzaRealeData : null) || workoutTData?.dat_scadenza || dataFine) }}
+                  </div>
+                  <div 
+                    v-if="allineamentoProgramma?.status === 'ritardo'" 
+                    class="text-super-caption text-muted font-weight-medium mt-0.5" 
+                    style="font-size: 0.56rem;"
+                  >
+                    (Prev: {{ formatDataBreve(workoutTData?.dat_scadenza || dataFine) }})
                   </div>
                 </v-col>
               </v-row>
 
-              <!-- Giorni alla Scadenza -->
-              <div v-if="giorniAllaScadenza !== null" class="mt-3.5 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
-                <span class="text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.65rem;">Tempo alla scadenza:</span>
+              <!-- Settimane Mancanti -->
+              <div class="mt-3.5 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
+                <span class="text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.65rem;">
+                  Mancanti:
+                </span>
                 <v-chip
-                  :color="giorniAllaScadenza < 0 ? 'red-darken-3' : (giorniAllaScadenza <= 7 ? 'orange-darken-3' : 'green-darken-3')"
+                  :color="allineamentoProgramma?.status === 'ritardo' ? 'orange-darken-3' : 'blue-darken-3'"
+                  size="x-small"
+                  class="font-weight-black text-white px-2 py-0.5"
+                  variant="flat"
+                  style="font-size: 0.62rem; height: 20px;"
+                >
+                  <v-icon size="11" class="mr-1">mdi-timer-sand</v-icon>
+                  {{ displaySettimaneMancantiText }}
+                </v-chip>
+              </div>
+
+              <!-- Tempo alla Scadenza (Giorni Effettivi) -->
+              <div v-if="tempoAllaScadenzaDisplay" class="mt-3.5 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2">
+                <span class="text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.65rem;">
+                  Alla scadenza:
+                </span>
+                <v-chip
+                  :color="tempoAllaScadenzaColor"
                   size="x-small"
                   class="font-weight-black text-white px-2 py-0.5"
                   variant="flat"
                   style="font-size: 0.62rem; height: 20px;"
                 >
                   <v-icon size="11" class="mr-1">
-                    {{ giorniAllaScadenza < 0 ? 'mdi-clock-alert-outline' : 'mdi-clock-outline' }}
+                    {{ tempoAllaScadenzaIcon }}
                   </v-icon>
-                  {{ giorniAllaScadenzaText }}
+                  {{ tempoAllaScadenzaDisplay }}
                 </v-chip>
               </div>
               
               <!-- Allineamento Programma -->
               <div v-if="allineamentoProgramma" class="mt-3.5 pt-3 border-top-soft d-flex align-center justify-space-between flex-wrap gap-2 mb-1">
-                <span class="text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.65rem;">Stato Programma:</span>
+                <span class="text-super-caption text-slate-dark font-weight-bold" style="font-size: 0.65rem;">Stato:</span>
                 <v-chip
                   :color="allineamentoProgramma.status === 'in-linea' ? 'green-darken-3' : (allineamentoProgramma.status === 'ritardo' ? 'red-darken-3' : 'blue-darken-3')"
                   size="x-small"
-                  class="font-weight-black text-white px-2 py-0.5 pulse-badge"
+                  class="font-weight-black text-white px-2 py-0.5"
+                  :class="allineamentoProgramma.status === 'ritardo' ? 'pulse-badge-red' : 'pulse-badge'"
                   variant="flat"
                   style="font-size: 0.62rem; height: 20px;"
                 >
                   <v-icon size="11" class="mr-1">
                     {{ allineamentoProgramma.status === 'in-linea' ? 'mdi-check-circle' : (allineamentoProgramma.status === 'ritardo' ? 'mdi-alert-circle' : 'mdi-trending-up') }}
                   </v-icon>
-                  {{ allineamentoProgramma.status === 'in-linea' ? 'IN LINEA' : (allineamentoProgramma.status === 'ritardo' ? 'RITARDO W' + allineamentoProgramma.deltaAbs : 'ANTICIPO W' + allineamentoProgramma.deltaAbs) }}
+                  {{ statoProgrammaText }}
                 </v-chip>
               </div>
             </div>
@@ -2094,6 +2126,19 @@ const parseDateString = (str) => {
   return null;
 };
 
+const formatDataBreve = (str) => {
+  if (!str) return '—';
+  const s = String(str).trim();
+  const parsed = parseDateString(s);
+  if (!parsed || isNaN(parsed.getTime())) {
+    return s.replace(/\/20(\d{2})/, '/$1');
+  }
+  const d = String(parsed.getDate()).padStart(2, '0');
+  const m = String(parsed.getMonth() + 1).padStart(2, '0');
+  const y = String(parsed.getFullYear()).slice(-2);
+  return `${d}/${m}/${y}`;
+};
+
 const applicaFallbackWorkoutT = (tempExercises) => {
   if (workoutTData.value || tempExercises.length === 0) return;
 
@@ -2599,6 +2644,108 @@ const getProgressionLineFillWidth = computed(() => {
   if (closed <= 0) return '0%';
   if (closed >= 6) return '100%';
   return (closed / 5 * 100) + '%';
+});
+
+// Testo formattato per lo stato del programma con "di" (es: "RITARDO DI 3 SETTIMANE")
+const statoProgrammaText = computed(() => {
+  if (!allineamentoProgramma.value) return '';
+  if (allineamentoProgramma.value.status === 'in-linea') {
+    return 'IN LINEA';
+  }
+  const d = allineamentoProgramma.value.deltaAbs;
+  if (allineamentoProgramma.value.status === 'ritardo') {
+    return d === 1 ? 'RITARDO DI 1 SETTIMANA' : `RITARDO DI ${d} SETTIMANE`;
+  }
+  return d === 1 ? 'ANTICIPO DI 1 SETTIMANA' : `ANTICIPO DI ${d} SETTIMANE`;
+});
+
+// Calcola la data di scadenza reale/stimata sommando i giorni di ritardo alla scadenza programmata
+const scadenzaRealeData = computed(() => {
+  if (!allineamentoProgramma.value || allineamentoProgramma.value.status !== 'ritardo') return null;
+  const dataScad = workoutTData.value?.dat_scadenza || dataFine.value;
+  if (!dataScad) return null;
+  const parsedExp = parseDateString(dataScad);
+  if (!parsedExp) return null;
+
+  const ritardoGiorni = allineamentoProgramma.value.deltaAbs * 7;
+  const realExp = new Date(parsedExp.getTime() + ritardoGiorni * 24 * 60 * 60 * 1000);
+
+  const d = String(realExp.getDate()).padStart(2, '0');
+  const m = String(realExp.getMonth() + 1).padStart(2, '0');
+  const y = realExp.getFullYear();
+  return `${d}/${m}/${y}`;
+});
+
+// Calcola i giorni effettivi che mancano alla scadenza reale ricalcolata
+const giorniAllaScadenzaReale = computed(() => {
+  if (!scadenzaRealeData.value) return null;
+  const parsedRealExp = parseDateString(scadenzaRealeData.value);
+  if (!parsedRealExp) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  parsedRealExp.setHours(0, 0, 0, 0);
+
+  const diffTime = parsedRealExp.getTime() - today.getTime();
+  return Math.max(0, Math.round(diffTime / (1000 * 60 * 60 * 24)));
+});
+
+// Calcola quante settimane mancano per concludere il mesociclo (totale 6 settimane)
+const settimaneMancanti = computed(() => {
+  const activeW = Number(settimanaAttiva.value) || 1;
+  const closedW = Number(settimaneChiuse.value) || 0;
+  if (closedW >= 6) return 0;
+  return Math.max(1, 6 - activeW + 1);
+});
+
+const settimaneMancantiText = computed(() => {
+  const m = settimaneMancanti.value;
+  if (m === 0) return '0 settimane';
+  if (m === 1) return '1 settimana';
+  return `${m} settimane`;
+});
+
+const displaySettimaneMancantiText = computed(() => {
+  const m = settimaneMancanti.value;
+  const w = Number(settimanaAttiva.value) || 1;
+  if (m <= 0) return 'Completata';
+  if (m === 1) return `1 settimana (W${w} su 6)`;
+  return `${m} settimane (W${w} su 6)`;
+});
+
+const tempoAllaScadenzaDisplay = computed(() => {
+  if (allineamentoProgramma.value?.status === 'ritardo') {
+    if (giorniAllaScadenzaReale.value === null) return '';
+    if (giorniAllaScadenzaReale.value === 0) return 'Scade oggi!';
+    if (giorniAllaScadenzaReale.value < 0) {
+      const absDays = Math.abs(giorniAllaScadenzaReale.value);
+      return `Scaduto da ${absDays} giorn${absDays === 1 ? 'o' : 'i'}`;
+    }
+    const gg = giorniAllaScadenzaReale.value;
+    return `Mancano ~${gg} giorn${gg === 1 ? 'o' : 'i'} effettivi`;
+  }
+  return giorniAllaScadenzaText.value;
+});
+
+const tempoAllaScadenzaColor = computed(() => {
+  if (allineamentoProgramma.value?.status === 'ritardo') {
+    const gg = giorniAllaScadenzaReale.value;
+    if (gg === null) return 'grey-darken-2';
+    if (gg < 0) return 'red-darken-4';
+    if (gg <= 7) return 'red-darken-3';
+    return 'orange-darken-3';
+  }
+  if (giorniAllaScadenza.value === null) return 'grey-darken-2';
+  if (giorniAllaScadenza.value < 0) return 'red-darken-3';
+  if (giorniAllaScadenza.value <= 7) return 'orange-darken-3';
+  return 'green-darken-3';
+});
+
+const tempoAllaScadenzaIcon = computed(() => {
+  if (allineamentoProgramma.value?.status === 'ritardo') {
+    return 'mdi-clock-alert-outline';
+  }
+  return (giorniAllaScadenza.value !== null && giorniAllaScadenza.value < 0) ? 'mdi-clock-alert-outline' : 'mdi-clock-outline';
 });
 
 // Calcola il primo giorno non completato della settimana attiva
@@ -4697,6 +4844,22 @@ const apriTest = () => {
   100% {
     transform: scale(1.05);
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.pulse-badge-red {
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  animation: pulse-red 1.5s infinite alternate;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
   }
 }
 

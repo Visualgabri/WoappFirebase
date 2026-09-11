@@ -87,6 +87,20 @@ export const isCardioEsercizio = (ex) => {
 };
 
 /**
+ * Determina se un esercizio appartiene al settore postura.
+ * Regola: il settore contiene la parola 'postur' (des_settore o des_settore_princ o nome).
+ * @param {Object|string} ex Esercizio o oggetto riga
+ * @returns {boolean}
+ */
+export const isPosturaEsercizio = (ex) => {
+  if (!ex) return false;
+  const settore = typeof ex === 'object' ? String(ex.des_settore || '').toLowerCase() : '';
+  const settorePrinc = typeof ex === 'object' ? String(ex.des_settore_princ || '').toLowerCase() : '';
+  const raw = typeof ex === 'string' ? ex.toLowerCase() : (typeof ex === 'object' ? String(ex.des_esercizio || '').toLowerCase() : '');
+  return settore.includes('postur') || settorePrinc.includes('postur') || raw.includes('postur');
+};
+
+/**
  * Determina se un esercizio è intrinsecamente a corpo libero (bodyweight).
  * @param {Object|string} ex Esercizio o nome esercizio
  * @returns {boolean}

@@ -107,6 +107,7 @@
               <v-list class="bg-slate-900 border border-slate-700 py-1" density="compact" width="220" style="backdrop-filter: blur(20px);">
                 <!-- Step Incremento Carico (Nuovo) -->
                 <v-list-item
+                  v-if="!isPostura"
                   @click="apriDialogStepEsercizio"
                   class="px-2.5 py-1 min-h-0"
                   id="btn-menu-step-carico"
@@ -124,7 +125,7 @@
                   </template>
                 </v-list-item>
 
-                <v-divider class="my-0.5 border-slate-700"></v-divider>
+                <v-divider v-if="!isPostura && ruolo === 'coach'" class="my-0.5 border-slate-700"></v-divider>
 
                 <!-- Modifica Esercizio (Coach) -->
                 <v-list-item
@@ -372,7 +373,7 @@
 
         <!-- Visualizzazione RMT Formattata Premium Gamified -->
         <div 
-          v-if="parsedRmt(workout.des_esercizio_2)" 
+          v-if="!isPostura && parsedRmt(workout.des_esercizio_2)" 
           class="rmt-premium-card card-glass border-orange-darken-3-op"
           :class="[
             layoutCorrente === 'super_compatto' ? 'rounded-sm mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'rounded-lg mt-2 pa-2.5' : 'rounded-xl mt-3 pa-3')
@@ -461,7 +462,7 @@
  
         <!-- Alternativo se des_esercizio_2 è una stringa Volume speciale -->
         <div 
-          v-else-if="isVolumeString(workout.des_esercizio_2)" 
+          v-else-if="!isPostura && isVolumeString(workout.des_esercizio_2)" 
           class="card-glass border-soft"
           :class="[
             layoutCorrente === 'super_compatto' ? 'rounded-sm mt-1.5 pa-2' : (layoutCorrente === 'compatto' ? 'rounded-lg mt-2 pa-2.5' : 'rounded-xl mt-3 pa-3')
@@ -495,9 +496,8 @@
         </div>
 
         <!-- Alternativo: Card Record Assoluto & Record a Reps per esercizi senza Livello Forza (RMT) -->
-        <!-- Alternativo: Card Record Assoluto & Record a Reps per esercizi senza Livello Forza (RMT) -->
         <div 
-          v-else 
+          v-else-if="!isPostura" 
           class="rmt-premium-card cursor-pointer"
           :class="[
             layoutCorrente === 'super_compatto' ? 'rmt-super-compatto' : (layoutCorrente === 'compatto' ? 'rmt-compatto' : 'rmt-standard')
@@ -1140,7 +1140,7 @@
         </div>
 
         <div 
-          v-if="parsedTut || (workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2))"
+          v-if="!isPostura && (parsedTut || (workout.des_esercizio_2 && !parsedRmt(workout.des_esercizio_2) && !isVolumeString(workout.des_esercizio_2)))"
           :class="[layoutCorrente === 'super_compatto' ? 'mt-0.5 gap-1' : (layoutCorrente === 'compatto' ? 'mt-1 gap-1.25' : 'mt-1 gap-1.5'), 'text-caption font-weight-bold text-slate d-flex align-center flex-wrap']"
         >
           <!-- 1. Chip TUT (se presente) -->
@@ -1172,7 +1172,7 @@
         <!-- Spiegazione espandibile del TUT -->
         <v-expand-transition>
           <v-card
-            v-if="parsedTut && mostraSpiegazioneTut"
+            v-if="!isPostura && parsedTut && mostraSpiegazioneTut"
             class="py-2.5 px-3.5 mt-3 text-left border card-glass"
             :style="{
               background: 'rgba(249, 115, 22, 0.08) !important',
@@ -1236,7 +1236,7 @@
 
       <!-- Banner Avviso Coach: Stallo Mesociclo Precedente -->
       <v-card
-        v-if="settimanaAttiva === 1 && isStalledInPreviousMesocycle"
+        v-if="!isPostura && settimanaAttiva === 1 && isStalledInPreviousMesocycle"
         class="text-left border d-flex flex-column mb-3 animate-pulse"
         style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.18), rgba(239, 68, 68, 0.08)) !important; border: 1.5px solid rgba(249, 115, 22, 0.5) !important; border-left: 4px solid #f97316 !important; border-radius: 12px !important; padding: 12px;"
       >
@@ -1365,7 +1365,7 @@
               </v-icon>
               <span class="text-caption font-weight-black d-flex align-center flex-wrap gap-1" :class="sett === settimanaAttiva ? 'text-orange-darken-3' : 'text-slate-dark'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.7rem !important' : '0.8rem !important' }">
                 WEEK {{ sett }}
-                <span v-if="parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
+                <span v-if="!isPostura && parsedPrescription(workout['des_week' + sett])" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
                   ({{ parsedPrescription(workout['des_week' + sett]).reps }})
                 </span>
                 <span v-else-if="workout['des_week' + sett]" class="ml-1 font-weight-black" :class="sett === settimanaAttiva ? 'text-orange-lighten-2' : 'text-slate'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.95rem !important' : '1.1rem !important' }">
@@ -1375,7 +1375,7 @@
             </div>
 
             <div class="d-flex align-center gap-2">
-              <span v-if="!getGhostRenderInfo(sett) && !isCorpoLiberoPuro" class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Storico Massimali & Forza">
+              <span v-if="!isPostura && !getGhostRenderInfo(sett) && !isCorpoLiberoPuro" class="cursor-pointer text-muted font-weight-bold" @click.stop="apriAiutoCaricoDettagliato(sett)" style="font-size: 0.75rem;" title="Storico Massimali & Forza">
                 💡
               </span>
 
@@ -1395,7 +1395,7 @@
           </div>
 
           <!-- Prescrizione Tecnica Formattata (senza simboli strani) -->
-          <div v-if="parsedPrescription(workout['des_week' + sett])" :class="layoutCorrente === 'super_compatto' ? 'mb-1 px-0.5' : 'mb-2 px-1'">
+          <div v-if="!isPostura && parsedPrescription(workout['des_week' + sett])" :class="layoutCorrente === 'super_compatto' ? 'mb-1 px-0.5' : 'mb-2 px-1'">
             <!-- Rigo Unico con Dettagli Carico e Intensità -->
             <v-row dense>
               <!-- Carico Totale -->
@@ -1480,7 +1480,7 @@
           </div>
 
           <div :class="[layoutCorrente === 'super_compatto' ? 'mt-1 mb-0.5' : (layoutCorrente === 'compatto' ? 'mt-2 mb-0.5' : 'mt-3.5 mb-1'), 'position-relative']">
-            <div v-if="getGhostRenderInfo(sett)" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5 px-1 animate-fade-in' : 'mb-1.5 px-1 animate-fade-in'">
+            <div v-if="!isPostura && getGhostRenderInfo(sett)" :class="layoutCorrente === 'super_compatto' ? 'mb-0.5 px-1 animate-fade-in' : 'mb-1.5 px-1 animate-fade-in'">
               <div class="d-flex flex-column text-left">
                 <!-- RIGA 1: Carico Consigliato + Badge / Icone -->
                 <div class="d-flex align-center justify-space-between w-100">
@@ -1566,24 +1566,24 @@
               </div>
             </div>
             
-            <div v-if="getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.55rem', paddingLeft: '16px', lineHeight: 1.25, letterSpacing: '0.01em' }">
+            <div v-if="!isPostura && getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.55rem', paddingLeft: '16px', lineHeight: 1.25, letterSpacing: '0.01em' }">
               💡 Troppo leggero? Non aumentare il peso, semmai fai +1 rep (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}x{{ getRepsPerWeek(sett) + 1 }}r</span>).
             </div>
 
             <!-- 1. AVVISO FATICA / DIFFICILE A X REPS (Sopra il Range) -->
-            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-1 mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em', marginBottom: (margineBottomGhostNoticeGlobal ?? 10) + 'px !important' }">
+            <div v-if="!isPostura && getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-1 mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em', marginBottom: (margineBottomGhostNoticeGlobal ?? 10) + 'px !important' }">
               {{ getGhostRenderInfo(sett).maxEffortNotice }}
             </div>
 
             <!-- 2. AVVISO TENTATIVO SFIDANTE W5/W6 CON INDICAZIONE ULTIMA SERIE -->
-            <div v-if="getGhostRenderInfo(sett) && getGhostRenderInfo(sett).sfidanteNotice" class="text-super-caption font-weight-bold text-amber-lighten-1 text-left px-1 mt-0.5 mb-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em', lineHeight: 1.35 }">
+            <div v-if="!isPostura && getGhostRenderInfo(sett) && getGhostRenderInfo(sett).sfidanteNotice" class="text-super-caption font-weight-bold text-amber-lighten-1 text-left px-1 mt-0.5 mb-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em', lineHeight: 1.35 }">
               {{ getGhostRenderInfo(sett).sfidanteNotice }}
             </div>
 
 
             <!-- BOTTONI DI SUGGERIMENTO RAPIDO PER ATTIVA (Soluzione 3: Multi-Chip) -->
             <div 
-              v-if="sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'multichip' || stileVisualizzazioneGhost === 'forma')"
+              v-if="!isPostura && sett === settimanaAttiva && !isSchedaPassata && getGhostLiftSmart(sett) && !getGhostLiftSmart(sett).isRepExercise && getGhostWeightsRangeForWeek(sett) && (stileVisualizzazioneGhost === 'multichip' || stileVisualizzazioneGhost === 'forma')"
               class="d-flex flex-wrap gap-1.5 mt-1.5 mb-2.5 w-100 align-center justify-space-between animate-fade-in"
             >
               <div class="w-100 text-super-caption text-left text-muted mb-1 d-flex align-center justify-space-between" style="font-size: 0.58rem !important; letter-spacing: 0.05em;">
@@ -1784,7 +1784,7 @@
 
             <!-- Suggerimento Formattazione Reps (es. 3x12 -> 3x12r) -->
             <div
-              v-if="(!ottimizzaDigitazione || activeEditingWeek !== sett) && getRepFormattingSuggestion(sett)"
+              v-if="!isPostura && (!ottimizzaDigitazione || activeEditingWeek !== sett) && getRepFormattingSuggestion(sett)"
               class="d-flex align-center mt-1.5 px-2.5 py-1.5 rounded-lg cursor-pointer animate-fade-in text-left"
               style="border: 1px solid rgba(245, 158, 11, 0.4) !important; background: rgba(245, 158, 11, 0.08) !important;"
               @click="applicaSuggerimentoFormattazioneReps(sett, getRepFormattingSuggestion(sett).suggested)"
@@ -1798,7 +1798,7 @@
 
           <!-- BANNER SMART STAGNATION GUARD & CHIP RAPIDI (Soluzione 1) -->
           <div 
-            v-if="isStagnazioneSettimana(sett)" 
+            v-if="!isPostura && isStagnazioneSettimana(sett)" 
             class="my-2 pa-2.5 rounded-xl border text-left animate-fade-in"
             style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%) !important; border: 1.5px solid rgba(168, 85, 247, 0.35) !important;"
           >
@@ -1835,7 +1835,7 @@
 
           <!-- BADGE PROGRESSIONE QUALITATIVA ACCREDITATA -->
           <div 
-            v-else-if="haDriverQualitativoAccreditato(sett) && (inputSettimane[sett]?.ins)" 
+            v-else-if="!isPostura && haDriverQualitativoAccreditato(sett) && (inputSettimane[sett]?.ins)" 
             class="my-1.5 px-2.5 py-1 rounded-lg border d-flex align-center gap-1.5 bg-slate-900 text-left"
             style="border-color: rgba(168, 85, 247, 0.3) !important;"
           >
@@ -1847,7 +1847,7 @@
 
           <!-- RESOCONTO AUDIT STALLO WEEK 6 - SGRIDATA BONARIA DEL COACH (Soluzione 3) -->
           <v-card
-            v-if="sett === 6 && auditStalloW6.hasStall"
+            v-if="!isPostura && sett === 6 && auditStalloW6.hasStall"
             class="mt-3 mb-2 pa-3 rounded-xl border text-left animate-fade-in"
             style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%) !important; border: 1.5px solid rgba(245, 158, 11, 0.4) !important;"
             elevation="0"
@@ -1880,7 +1880,7 @@
 
           <!-- Card Premium Feedback e Miglior Carico per Week 6 -->
           <div 
-            v-if="sett === 6 && isEsercizioEligibileW6(workout)" 
+            v-if="!isPostura && sett === 6 && isEsercizioEligibileW6(workout)" 
             class="w6-feedback-premium-box pt-3 pb-2.5 px-3 rounded-2xl border"
             :class="layoutCorrente === 'super_compatto' ? 'pt-2 pb-2 px-2' : ''"
             :style="{
@@ -2440,7 +2440,7 @@
       
       <!-- Analisi Ripetizioni (Continuità o Storico) - CLICCABILE -->
       <v-card 
-        v-else-if="previousWorkout && analisiRipetizioniCiclo"
+        v-else-if="!isPostura && previousWorkout && analisiRipetizioniCiclo"
         class="premium-card card-glass text-left border-soft clickable-timer-chip"
         :class="[
           layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
@@ -2484,7 +2484,7 @@
 
       <!-- Fallback Sicurezza (Se JSON non ha ancora scaricato l'oggetto previousWorkout) -->
       <v-card 
-        v-else-if="workout && (workout.dat_scheda_ult_ex || workout.timestamp)"
+        v-else-if="!isPostura && workout && (workout.dat_scheda_ult_ex || workout.timestamp)"
         class="premium-card card-glass text-center border-soft"
         :class="[
           layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
@@ -2618,7 +2618,7 @@
 
                 <!-- Card Premium Feedback e Miglior Carico W6 Precedente -->
                 <div 
-                  v-if="w === 6 && isEsercizioEligibileW6(previousWorkout)" 
+                  v-if="!isPostura && w === 6 && isEsercizioEligibileW6(previousWorkout)" 
                   class="w6-feedback-premium-box mt-3 pt-3 pb-2.5 px-3 rounded-2xl border"
                 >
                   <!-- Header Box W6 Precedente -->
@@ -2821,7 +2821,7 @@
 
                 <!-- Card Feedback e Miglior Carico W6 Storico -->
                 <div 
-                  v-if="w === 6 && isEsercizioEligibileW6(selectedStoricoWorkout)" 
+                  v-if="!isPostura && w === 6 && isEsercizioEligibileW6(selectedStoricoWorkout)" 
                   class="w6-feedback-premium-box mt-3 pt-3 pb-2.5 px-3 rounded-2xl border"
                 >
                   <div class="d-flex align-center justify-center gap-1.5 mb-2 text-center">
@@ -3902,7 +3902,7 @@
           </div>
           
           <!-- Tabs Unificati: visibili solo se l'esercizio ha pesi/sovraccarichi (tab proposta carico + storico) -->
-          <v-tabs v-if="!isCorpoLiberoPuro" v-model="activeTabAnalisi" color="orange-darken-3" grow class="border-top" style="border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)) !important; height: 38px;">
+          <v-tabs v-if="!isCorpoLiberoPuro && !isPostura" v-model="activeTabAnalisi" color="orange-darken-3" grow class="border-top" style="border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)) !important; height: 38px;">
             <v-tab :value="0" class="font-weight-black text-none" :style="{ color: activeTabAnalisi === 0 ? 'var(--theme-primary, #f97316)' : 'var(--text-dark, #1e293b)' }" style="font-size: 0.75rem; height: 38px;">
               <v-icon start size="15" class="mr-1">mdi-lightbulb-on-outline</v-icon>
               Cosa faccio oggi
@@ -3916,13 +3916,16 @@
           <!-- Rigo 2: Subheader WEEK & REPS unificato per entrambi i tab -->
           <div class="px-3 py-2 border-top d-flex align-center justify-center position-relative" :style="{ background: 'var(--card-bg-soft, #020617)', borderColor: 'var(--card-border, rgba(255, 255, 255, 0.08))' }">
             <v-chip size="x-small" class="font-weight-black text-white px-2 position-absolute" variant="flat" :style="{ background: 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))', fontSize: '0.65rem', height: '20px', left: '12px' }">
-              WEEK {{ (activeTabAnalisi === 0 && !isCorpoLiberoPuro) ? aiutoWeek : settimanaAttiva }}
+              WEEK {{ (!isPostura && activeTabAnalisi === 0 && !isCorpoLiberoPuro) ? aiutoWeek : settimanaAttiva }}
             </v-chip>
-            <span class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.90rem', letterSpacing: '0.02em' }">
+            <span v-if="isPostura" class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.90rem', letterSpacing: '0.02em' }">
+              {{ pulisciParentesiQuadre(workout?.['des_week' + settimanaAttiva]) || 'Postura' }}
+            </span>
+            <span v-else class="text-caption font-weight-black text-center" :style="{ color: 'var(--theme-primary-light, #fb923c)', fontSize: '0.90rem', letterSpacing: '0.02em' }">
               {{ (activeTabAnalisi === 0 && !isCorpoLiberoPuro) ? String(targetRepsAttive).replace(/r$/i, '') : String(getRepsPerWeek(settimanaAttiva)).replace(/r$/i, '') }} REPS
             </span>
             <v-chip
-              v-if="activeTabAnalisi === 0 && !isCorpoLiberoPuro && ghostPRAttackAttivo"
+              v-if="!isPostura && activeTabAnalisi === 0 && !isCorpoLiberoPuro && ghostPRAttackAttivo"
               size="x-small"
               class="font-weight-black text-purple-lighten-2 px-1.5 position-absolute"
               variant="outlined"
@@ -3936,7 +3939,7 @@
         <v-card-text ref="storicoScrollContainer" class="px-3 pt-2 pb-2 scrollbar-custom flex-grow-1" style="overflow-y: auto;">
 
           <!-- TAB 0: PROPOSTA CARICO (SMART & HIERARCHICAL) -->
-          <div v-if="activeTabAnalisi === 0 && !isCorpoLiberoPuro" class="pt-0">
+          <div v-if="!isPostura && activeTabAnalisi === 0 && !isCorpoLiberoPuro" class="pt-0">
 
             <!-- CASO 0: ESERCIZIO CON CARICO FISSO DEL COACH (STRENGTH HUB) -->
             <div v-if="isEsercizioCaricoFissoCoach" class="mb-3 text-left animate-fade-in">
@@ -4983,10 +4986,10 @@
           </div>
 
           <!-- TAB 1: CRONOLOGIA (STORICO) -->
-          <div v-show="activeTabAnalisi === 1 || isCorpoLiberoPuro" class="d-flex flex-column w-100" style="min-height: 0;">
+          <div v-show="activeTabAnalisi === 1 || isCorpoLiberoPuro || isPostura" class="d-flex flex-column w-100" style="min-height: 0;">
             
             <!-- 1. DUE RECORD ASSOLUTI PER CRONOLOGIA (Segmented Hero Card Unificata a 2 Colonne - Centrata) -->
-            <div v-if="suggerimentoRecord || (isCardio && recordMaxAssolutoInfo?.tempoSec > 0)" class="my-2 text-center">
+            <div v-if="!isPostura && (suggerimentoRecord || (isCardio && recordMaxAssolutoInfo?.tempoSec > 0))" class="my-2 text-center">
               <div 
                 class="rounded-xl border overflow-hidden d-flex align-stretch w-100 min-width-0 position-relative hero-record-container"
                 :class="{
@@ -5207,7 +5210,7 @@
             <!-- Controlli Visualizzazione Cronologia (Toolbar Snella e Moderna con bottoni ampi) -->
             <div class="mt-2 mb-4 d-flex align-center justify-space-between gap-2 flex-shrink-0 min-width-0">
               <!-- Chip Pill Filtro Stesse Reps / Stesso Tempo -->
-              <div class="min-width-0">
+              <div v-if="!isPostura" class="min-width-0">
                 <v-btn
                   v-if="stileStorico !== 'grafico'"
                   variant="flat"
@@ -5242,7 +5245,7 @@
                   <v-icon size="17">mdi-view-sequential</v-icon>
                 </v-btn>
                 <!-- GRAFICO -->
-                <v-btn value="grafico" class="px-3.5" style="min-width: 48px; height: 32px;" title="Vista Grafico" @click="passaAVistaGrafico">
+                <v-btn v-if="!isPostura" value="grafico" class="px-3.5" style="min-width: 48px; height: 32px;" title="Vista Grafico" @click="passaAVistaGrafico">
                   <v-icon size="17">mdi-chart-line</v-icon>
                 </v-btn>
               </v-btn-toggle>
@@ -5268,14 +5271,14 @@
                 class="rounded-xl border bg-slate-950 p-2.5 text-left position-relative" 
                 :class="{
                   'border-emerald-500 shadow-emerald': String(prevEx.num_scheda) === String(workout?.num_scheda),
-                  'border-cyan-500 shadow-cyan': hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda),
-                  'border-amber-500 shadow-amber': hasRepsPrRow(prevEx) && !hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda),
-                  'border-soft': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !hasRecordAssolutoRow(prevEx) && !hasRepsPrRow(prevEx)
+                  'border-cyan-500 shadow-cyan': !isPostura && hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda),
+                  'border-amber-500 shadow-amber': !isPostura && hasRepsPrRow(prevEx) && !hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda),
+                  'border-soft': isPostura || (String(prevEx.num_scheda) !== String(workout?.num_scheda) && !hasRecordAssolutoRow(prevEx) && !hasRepsPrRow(prevEx))
                 }"
                 :style="{
                   cursor: 'pointer',
-                  borderColor: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'rgba(34, 197, 94, 0.55)' : (hasRecordAssolutoRow(prevEx) ? 'rgba(6, 182, 212, 0.65)' : (hasRepsPrRow(prevEx) ? 'rgba(245, 158, 11, 0.65)' : '')),
-                  boxShadow: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '0 0 12px rgba(34, 197, 94, 0.18)' : (hasRecordAssolutoRow(prevEx) ? '0 0 14px rgba(6, 182, 212, 0.22)' : (hasRepsPrRow(prevEx) ? '0 0 14px rgba(245, 158, 11, 0.22)' : ''))
+                  borderColor: String(prevEx.num_scheda) === String(workout?.num_scheda) ? 'rgba(34, 197, 94, 0.55)' : ((!isPostura && hasRecordAssolutoRow(prevEx)) ? 'rgba(6, 182, 212, 0.65)' : ((!isPostura && hasRepsPrRow(prevEx)) ? 'rgba(245, 158, 11, 0.65)' : '')),
+                  boxShadow: String(prevEx.num_scheda) === String(workout?.num_scheda) ? '0 0 12px rgba(34, 197, 94, 0.18)' : ((!isPostura && hasRecordAssolutoRow(prevEx)) ? '0 0 14px rgba(6, 182, 212, 0.22)' : ((!isPostura && hasRepsPrRow(prevEx)) ? '0 0 14px rgba(245, 158, 11, 0.22)' : ''))
                 }"
                 @click="vaiADettaglioStorico(prevEx)"
               >
@@ -5312,7 +5315,7 @@
                       🟢 SCHEDA ATTUALE
                     </v-chip>
                     <v-chip
-                      v-if="hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda)"
+                      v-if="!isPostura && hasRecordAssolutoRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda)"
                       size="x-small"
                       density="compact"
                       class="font-weight-black text-cyan-accent-2 px-1.5"
@@ -5322,7 +5325,7 @@
                       🔥 RECORD ASSOLUTO
                     </v-chip>
                     <v-chip
-                      v-else-if="hasRepsPrRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda)"
+                      v-else-if="!isPostura && hasRepsPrRow(prevEx) && String(prevEx.num_scheda) !== String(workout?.num_scheda)"
                       size="x-small"
                       density="compact"
                       class="font-weight-black text-amber-accent-2 px-1.5"
@@ -5332,7 +5335,7 @@
                       🏆 REPS PR
                     </v-chip>
                     <v-chip
-                      v-if="!isCardio && calcola1RMW6Prescritto(prevEx)"
+                      v-if="!isPostura && !isCardio && calcola1RMW6Prescritto(prevEx)"
                       size="x-small"
                       density="compact"
                       class="font-weight-black text-cyan-accent-2 px-1.5"
@@ -5400,26 +5403,26 @@
                       class="py-1 rounded position-relative" 
                       :class="{
                         'border-right': w !== 3,
-                        'timeline-red-cell': isMatchingReps(prevEx, w),
-                        'timeline-record-assoluto-cell': isRecordAssolutoCell(prevEx, w),
-                        'timeline-reps-pr-cell': isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
-                        'pr-pulse-highlight': activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
+                        'timeline-red-cell': !isPostura && isMatchingReps(prevEx, w),
+                        'timeline-record-assoluto-cell': !isPostura && isRecordAssolutoCell(prevEx, w),
+                        'timeline-reps-pr-cell': !isPostura && isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
+                        'pr-pulse-highlight': !isPostura && activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
                       }"
-                      :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
+                      :style="{ opacity: (!isPostura && soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
                     >
-                      <div v-if="isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                      <div v-if="!isPostura && isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
                         <span class="pr-badge-pill pr-badge-cyan">
                           <v-icon size="8" color="#00e5ff">mdi-fire</v-icon> RECORD
                         </span>
                       </div>
-                      <div v-else-if="isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                      <div v-else-if="!isPostura && isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
                         <span class="pr-badge-pill pr-badge-amber">
                           <v-icon size="8" color="#fbbf24">mdi-trophy</v-icon> REPS PR
                         </span>
                       </div>
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
-                        {{ prevEx['des_week' + w] ? (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w])) : 'N.D.' }}
+                        {{ prevEx['des_week' + w] ? (isPostura ? prevEx['des_week' + w] : (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]))) : 'N.D.' }}
                       </span>
                       <strong 
                         class="font-weight-black d-block mt-1" 
@@ -5436,26 +5439,26 @@
                       class="py-1 rounded position-relative" 
                       :class="{
                         'border-right': w !== 3 && w !== 6,
-                        'timeline-red-cell': isMatchingReps(prevEx, w),
-                        'timeline-record-assoluto-cell': isRecordAssolutoCell(prevEx, w),
-                        'timeline-reps-pr-cell': isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
-                        'pr-pulse-highlight': activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
+                        'timeline-red-cell': !isPostura && isMatchingReps(prevEx, w),
+                        'timeline-record-assoluto-cell': !isPostura && isRecordAssolutoCell(prevEx, w),
+                        'timeline-reps-pr-cell': !isPostura && isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
+                        'pr-pulse-highlight': !isPostura && activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
                       }"
-                      :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
+                      :style="{ opacity: (!isPostura && soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
                     >
-                      <div v-if="isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                      <div v-if="!isPostura && isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
                         <span class="pr-badge-pill pr-badge-cyan">
                           <v-icon size="8" color="#00e5ff">mdi-fire</v-icon> RECORD
                         </span>
                       </div>
-                      <div v-else-if="isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                      <div v-else-if="!isPostura && isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
                         <span class="pr-badge-pill pr-badge-amber">
                           <v-icon size="8" color="#fbbf24">mdi-trophy</v-icon> REPS PR
                         </span>
                       </div>
                       <span class="text-super-caption text-muted font-weight-bold d-block uppercase" style="font-size: 0.48rem; line-height: 1;">W{{ w }}</span>
                       <span class="table-prescription-text text-super-caption font-weight-medium d-block text-truncate px-0.5" style="font-size: 0.6rem; line-height: 1;">
-                        {{ prevEx['des_week' + w] ? (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w])) : 'N.D.' }}
+                        {{ prevEx['des_week' + w] ? (isPostura ? prevEx['des_week' + w] : (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]))) : 'N.D.' }}
                       </span>
                       <strong 
                         class="font-weight-black d-block mt-1" 
@@ -5463,7 +5466,7 @@
                         :style="getInsWeekTextStyle(prevEx, w)"
                         v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
                       ></strong>
-                      <span v-if="w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold d-block mt-0.5" style="font-size: 0.50rem; line-height: 1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
+                      <span v-if="!isPostura && w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold d-block mt-0.5" style="font-size: 0.50rem; line-height: 1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
                         {{ prevEx.num_faticaw6 }}
                       </span>
                     </div>
@@ -5479,15 +5482,15 @@
               class="table-responsive-wrapper rounded-xl border border-soft scrollbar-hidden flex-grow-1 w-100"
               style="min-height: 300px; flex: 1 1 auto;"
             >
-              <table class="premium-storico-table" style="width: 1840px; table-layout: fixed; border-collapse: collapse;">
+              <table class="premium-storico-table" :style="{ width: isPostura ? '1400px' : '1840px', tableLayout: 'fixed', borderCollapse: 'collapse' }">
                 <thead>
                   <tr>
                     <th class="sticky-col header-cell text-left" style="width: 88px;">Scheda</th>
-                    <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}" :style="{ opacity: (soloCorrispondenti && (isCardio ? (getTempoPerWeek(w) !== getTempoPerWeek(settimanaAttiva)) : (getRepsPerWeek(w) !== targetRepsRange))) ? 0.45 : 1.0 }">
+                    <th v-for="w in [1, 2, 3, 4, 5, 6]" :key="w" class="header-cell" style="width: 110px;" :class="{'bg-orange-darken-4': w === settimanaAttiva}" :style="{ opacity: (!isPostura && soloCorrispondenti && (isCardio ? (getTempoPerWeek(w) !== getTempoPerWeek(settimanaAttiva)) : (getRepsPerWeek(w) !== targetRepsRange))) ? 0.45 : 1.0 }">
                       <div class="table-header-title font-weight-bold">W{{ w }}</div>
                     </th>
-                    <th v-if="!isCardio" class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
-                    <th v-if="!isCardio" class="header-cell text-cyan-accent-2" style="width: 85px;">1RM W6</th>
+                    <th v-if="!isCardio && !isPostura" class="header-cell text-amber-lighten-1" style="width: 80px;">Miglior W6</th>
+                    <th v-if="!isCardio && !isPostura" class="header-cell text-cyan-accent-2" style="width: 85px;">1RM W6</th>
                     <th v-if="isCardio" class="header-cell text-amber-lighten-1" style="width: 100px;">Max Tempo</th>
                     <th class="header-cell" style="width: 75px;">Peso Corp.</th>
                     <th class="header-cell" style="width: 110px;">Giorno</th>
@@ -5508,9 +5511,9 @@
                     <td 
                       class="sticky-col body-cell text-left" 
                       :class="{
-                        'red-scheda-cell': String(prevEx.num_scheda) !== String(workout?.num_scheda) && !soloCorrispondenti && haSettimanaCorrispondente(prevEx),
-                        'scheda-has-record-assoluto': hasRecordAssolutoRow(prevEx),
-                        'scheda-has-reps-pr': hasRepsPrRow(prevEx) && !hasRecordAssolutoRow(prevEx)
+                        'red-scheda-cell': !isPostura && String(prevEx.num_scheda) !== String(workout?.num_scheda) && !soloCorrispondenti && haSettimanaCorrispondente(prevEx),
+                        'scheda-has-record-assoluto': !isPostura && hasRecordAssolutoRow(prevEx),
+                        'scheda-has-reps-pr': !isPostura && hasRepsPrRow(prevEx) && !hasRecordAssolutoRow(prevEx)
                       }"
                       :style="{
                         width: '88px !important',
@@ -5519,16 +5522,16 @@
                         padding: '6px 8px !important',
                         background: String(prevEx.num_scheda) === String(workout?.num_scheda) 
                           ? '#092518 !important' 
-                          : (hasRecordAssolutoRow(prevEx) 
+                          : (!isPostura && hasRecordAssolutoRow(prevEx) 
                               ? 'linear-gradient(90deg, rgba(6, 182, 212, 0.20), #0b1329 85%) !important' 
-                              : (hasRepsPrRow(prevEx) 
+                              : (!isPostura && hasRepsPrRow(prevEx) 
                                   ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.20), #0b1329 85%) !important' 
                                   : '#0b1329 !important')),
                         borderLeft: String(prevEx.num_scheda) === String(workout?.num_scheda) 
                           ? '3.5px solid #22c55e !important' 
-                          : (hasRecordAssolutoRow(prevEx) 
+                          : (!isPostura && hasRecordAssolutoRow(prevEx) 
                               ? '3.5px solid #06b6d4 !important' 
-                              : (hasRepsPrRow(prevEx) 
+                              : (!isPostura && hasRepsPrRow(prevEx) 
                                   ? '3.5px solid #f59e0b !important' 
                                   : ''))
                       }"
@@ -5541,7 +5544,7 @@
                           lineHeight: '1.2',
                           color: String(prevEx.num_scheda) === String(workout?.num_scheda) 
                             ? '#4ade80 !important' 
-                            : (hasRecordAssolutoRow(prevEx) ? '#38bdf8 !important' : (hasRepsPrRow(prevEx) ? '#fbbf24 !important' : ''))
+                            : (!isPostura && hasRecordAssolutoRow(prevEx) ? '#38bdf8 !important' : (!isPostura && hasRepsPrRow(prevEx) ? '#fbbf24 !important' : ''))
                         }"
                       >
                         S. {{ prevEx.num_scheda }}
@@ -5558,7 +5561,7 @@
                       </div>
 
                       <!-- Badge Scheda con Record Assoluto -->
-                      <div v-else-if="hasRecordAssolutoRow(prevEx)" class="my-0.5">
+                      <div v-else-if="!isPostura && hasRecordAssolutoRow(prevEx)" class="my-0.5">
                         <span 
                           class="font-weight-black uppercase px-1 py-0.2 rounded d-inline-flex align-center gap-0.5" 
                           style="font-size: 0.44rem; line-height: 1.1; background: rgba(6, 182, 212, 0.25); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.5); white-space: nowrap;"
@@ -5568,7 +5571,7 @@
                       </div>
 
                       <!-- Badge Scheda con Reps PR -->
-                      <div v-else-if="hasRepsPrRow(prevEx)" class="my-0.5">
+                      <div v-else-if="!isPostura && hasRepsPrRow(prevEx)" class="my-0.5">
                         <span 
                           class="font-weight-black uppercase px-1 py-0.2 rounded d-inline-flex align-center gap-0.5" 
                           style="font-size: 0.44rem; line-height: 1.1; background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5); white-space: nowrap;"
@@ -5613,16 +5616,16 @@
                       :id="'cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w"
                       class="body-cell font-weight-bold text-center" 
                       :class="{
-                        'red-cell': isMatchingReps(prevEx, w),
-                        'record-assoluto-cell': isRecordAssolutoCell(prevEx, w),
-                        'reps-pr-cell': isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
-                        'pr-pulse-highlight': activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
+                        'red-cell': !isPostura && isMatchingReps(prevEx, w),
+                        'record-assoluto-cell': !isPostura && isRecordAssolutoCell(prevEx, w),
+                        'reps-pr-cell': !isPostura && isRepsPrCell(prevEx, w) && !isRecordAssolutoCell(prevEx, w),
+                        'pr-pulse-highlight': !isPostura && activePulseCell === ('cell_' + String(prevEx.num_scheda).replace(/\D+/g, '') + '_' + w)
                       }" 
                       style="word-wrap: break-word;" 
-                      :style="{ opacity: (soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
+                      :style="{ opacity: (!isPostura && soloCorrispondenti && !isMatchingReps(prevEx, w)) ? 0.45 : 1.0 }"
                     >
                       <!-- Badge Record Assoluto o Reps PR -->
-                      <div v-if="isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                      <div v-if="!isPostura && isRecordAssolutoCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
                         <span 
                           class="pr-badge-pill pr-badge-cyan" 
                           :title="isRepsPrCell(prevEx, w) ? 'Record Assoluto e Reps PR' : 'Record Assoluto'"
@@ -5632,7 +5635,7 @@
                           <v-icon v-if="isRepsPrCell(prevEx, w)" size="8" color="#f59e0b" class="ml-0.5">mdi-trophy</v-icon>
                         </span>
                       </div>
-                      <div v-else-if="isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
+                      <div v-else-if="!isPostura && isRepsPrCell(prevEx, w)" class="d-flex align-center justify-center mb-0.5">
                         <span class="pr-badge-pill pr-badge-amber" title="Reps PR">
                           <v-icon size="8" color="#fbbf24">mdi-trophy</v-icon>
                           <span>REPS PR</span>
@@ -5640,7 +5643,7 @@
                       </div>
 
                       <div v-if="prevEx['des_week' + w]" class="table-prescription-text text-super-caption font-weight-medium" style="font-size: 0.65rem; line-height: 1;">
-                        {{ isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w]) }}
+                        {{ isPostura ? prevEx['des_week' + w] : (isCardio ? (formattaTempoDisplay(estraiTempoDaPrescrizione(prevEx['des_week' + w])) || prevEx['des_week' + w]) : (parsedPrescription(prevEx['des_week' + w])?.reps || prevEx['des_week' + w])) }}
                       </div>
                       <div 
                         class="font-weight-black mt-1" 
@@ -5648,15 +5651,15 @@
                         :style="getInsWeekTextStyle(prevEx, w)"
                         v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
                       ></div>
-                      <div v-if="w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold mt-0.5" style="font-size: 0.55rem; line-height: 1.1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
+                      <div v-if="!isPostura && w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold mt-0.5" style="font-size: 0.55rem; line-height: 1.1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
                         {{ prevEx.num_faticaw6 }}
                       </div>
                     </td>
                     
-                    <td v-if="!isCardio" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
+                    <td v-if="!isCardio && !isPostura" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
                       {{ (prevEx.num_ins6 || prevEx.ins_week6) ? (isCorpoLiberoEsercizio(workout) ? (String(prevEx.num_ins6 || prevEx.ins_week6).toLowerCase().endsWith('r') ? (prevEx.num_ins6 || prevEx.ins_week6) : (prevEx.num_ins6 || prevEx.ins_week6) + 'r') : (String(prevEx.num_ins6 || prevEx.ins_week6).toLowerCase().includes('kg') ? (prevEx.num_ins6 || prevEx.ins_week6) : (prevEx.num_ins6 || prevEx.ins_week6) + ' kg')) : '-' }}
                     </td>
-                    <td v-if="!isCardio" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
+                    <td v-if="!isCardio && !isPostura" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
                       {{ formatta1RMW6Prescritto(prevEx) }}
                     </td>
                     <td v-if="isCardio" class="body-cell font-weight-black text-center text-amber-lighten-1" style="font-size: 0.95rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);">
@@ -7053,6 +7056,7 @@ import {
   valutaOpportunitaPR,
   estraiSerieDaPrescrizione,
   isCardioEsercizio,
+  isPosturaEsercizio,
   isCorpoLiberoEsercizio as isCorpoLiberoEsercizioCentral,
   estraiTempoDaPrescrizione,
   estraiTempoDaInput,
@@ -7142,7 +7146,7 @@ const dialogDettaglioSfidantePR = ref(false);
 const dettaglioSfidantePRData = ref(null);
 
 const apriDettaglioSfidantePR = (detail) => {
-  if (!detail) return;
+  if (isPostura.value || !detail) return;
   dettaglioSfidantePRData.value = detail;
   dialogDettaglioSfidantePR.value = true;
 };
@@ -7165,7 +7169,7 @@ const apriResocontoCoachPR = () => {
     clearTimeout(pressTimerPR);
     pressTimerPR = null;
   }
-  if (!workout.value) return;
+  if (!workout.value || isPostura.value) return;
   const sett = (dialogStorico.value && activeTabAnalisi.value === 0) ? (aiutoWeek.value || 1) : (settimanaAttiva.value || 1);
   const targetReps = getRepsPerWeek(sett);
   const cleanTargetReps = String(targetReps).replace(/r$/i, '');
@@ -7511,7 +7515,7 @@ const onBlurWeek = (sett, val) => {
   salvaDatoSettimanale(sett, 'ins');
 
   // Controllo Diretto: Se in una settimana AMRAP l'utente inserisce solo il carico senza le reps
-  if (workout.value && !isCorpoLiberoEsercizio(workout.value)) {
+  if (!isPostura.value && workout.value && !isCorpoLiberoEsercizio(workout.value)) {
     const presc = String(workout.value['des_week' + sett] || '');
     const isAmrap = /amrap|max\s*reps?|massim[ae]\s*rip|cedimento/i.test(presc) || (sett === 6 && /amrap/i.test(workout.value.des_rec_report || ''));
     const parsedLoad = estraiPesoDaInput(finalVal);
@@ -7658,7 +7662,7 @@ const segnalaClickFatica = () => {
 
 const richiediAvvisoFaticaW6 = (delay = 280) => {
   annullaAvvisoFaticaW6();
-  if (isCliccandoFatica.value || (numFaticaw6Val && numFaticaw6Val.value)) return;
+  if (isPostura.value || isCliccandoFatica.value || (numFaticaw6Val && numFaticaw6Val.value)) return;
   timerAvvisoFaticaW6 = setTimeout(() => {
     if (!numFaticaw6Val.value && !isCliccandoFatica.value) {
       dialogAvvisoFaticaW6.value = true;
@@ -8268,6 +8272,7 @@ const descrizioneStepAuto = computed(() => {
 });
 
 const apriDialogStepEsercizio = () => {
+  if (isPostura.value) return;
   inputStepCustom.value = (stepPersonalizzatoEsercizio.value && stepPersonalizzatoEsercizio.value > 0) ? String(stepPersonalizzatoEsercizio.value) : '';
   dialogStepEsercizio.value = true;
 };
@@ -12221,7 +12226,11 @@ const strategieProgressione = computed(() => {
 });
 
 const apriAiutoCaricoDettagliato = async (sett) => {
-  // Non mostrare proposta carico per esercizi a corpo libero puro
+  // Non mostrare proposta carico per esercizi di postura o a corpo libero puro
+  if (isPostura.value) {
+    apriStoricoEsercizio();
+    return;
+  }
   if (isCorpoLiberoPuro.value) return;
   vibraTattile(10);
   if (sett) {
@@ -14148,6 +14157,10 @@ const isCardio = computed(() => {
   return isCardioEsercizio(workout.value);
 });
 
+const isPostura = computed(() => {
+  return isPosturaEsercizio(workout.value);
+});
+
 function getTempoPerWeek(sett) {
   if (!workout.value) return null;
   return getTempoEsercizioWeek(workout.value, sett);
@@ -14190,7 +14203,7 @@ const currentWeekLoggedTempo = computed(() => {
 
 const haPesoEsercizio = computed(() => {
   if (!workout.value) return false;
-  if (isCardio.value) return false;
+  if (isCardio.value || isPostura.value) return false;
 
   // 0. Priorità al flag esplicito su Database / UI
   if (workout.value.flg_corpo_libero === false || workout.value.flg_corpo_libero === 'false' || workout.value.modalita_carico === 'peso') {
@@ -14230,7 +14243,7 @@ const haPesoEsercizio = computed(() => {
 });
 
 const isCorpoLiberoPuro = computed(() => {
-  return Boolean(isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value && !isCardio.value);
+  return Boolean(isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value && !isCardio.value && !isPostura.value);
 });
 
 let currentExerciseRequestId = 0;
@@ -21444,18 +21457,20 @@ function eseguiScrollStorico() {
 const apriStoricoEsercizio = async () => {
   vibraTattile(10);
   const isCL = workout.value ? isCorpoLiberoEsercizio(workout.value) : false;
+  const isPost = isPostura.value;
   const hasPeso = haPesoEsercizio.value;
   const isCLPuro = isCorpoLiberoPuro.value;
   console.log('[DEBUG STORICO] === apriStoricoEsercizio START ===');
   console.log('[DEBUG STORICO] Esercizio:', workout.value?.des_esercizio);
   console.log('[DEBUG STORICO] isCorpoLiberoEsercizio:', isCL);
+  console.log('[DEBUG STORICO] isPostura:', isPost);
   console.log('[DEBUG STORICO] haPesoEsercizio:', hasPeso);
   console.log('[DEBUG STORICO] isCorpoLiberoPuro:', isCLPuro);
   console.log('[DEBUG STORICO] settimanaAttiva:', settimanaAttiva.value);
   activeTabAnalisi.value = 1;
   dialogStorico.value = true;
   stileStorico.value = 'tabella';
-  soloCorrispondenti.value = isCL ? false : true;
+  soloCorrispondenti.value = (isCL || isPost) ? false : true;
   console.log('[DEBUG STORICO] soloCorrispondenti impostato a:', soloCorrispondenti.value);
   console.log('[DEBUG STORICO] dialogStorico:', dialogStorico.value);
   console.log('[DEBUG STORICO] Inizio caricaDatiAnalisi...');
@@ -21464,7 +21479,7 @@ const apriStoricoEsercizio = async () => {
   console.log('[DEBUG STORICO] storicoEsercizio.length:', storicoEsercizio.value?.length);
   console.log('[DEBUG STORICO] storicoFiltrato.length:', storicoFiltrato.value?.length);
   // Ri-forza soloCorrispondenti dopo il caricamento per proteggere da race condition con i watchers
-  soloCorrispondenti.value = isCL ? false : true;
+  soloCorrispondenti.value = (isCL || isPost) ? false : true;
   console.log('[DEBUG STORICO] soloCorrispondenti DOPO ri-forza:', soloCorrispondenti.value);
   console.log('[DEBUG STORICO] storicoFiltrato.length DOPO ri-forza:', storicoFiltrato.value?.length);
   console.log('[DEBUG STORICO] caricandoStorico:', caricandoStorico.value);
@@ -21479,6 +21494,7 @@ const activePulseCell = ref(null);
 const normalizeSchedaNum = (s) => String(s || '').replace(/\D+/g, '');
 
 const isRecordAssolutoCell = (prevEx, w) => {
+  if (isPostura.value) return false;
   if (!prevEx || !w) return false;
   
   if (isCardio.value) {
@@ -21501,6 +21517,7 @@ const isRecordAssolutoCell = (prevEx, w) => {
 };
 
 const isRepsPrCell = (prevEx, w) => {
+  if (isPostura.value) return false;
   if (!prevEx || !w || isCardio.value) return false;
   if (!suggerimentoRecord.value) return false;
   const sRec = suggerimentoRecord.value;
@@ -21530,6 +21547,7 @@ const hasRepsPrRow = (prevEx) => {
 };
 
 const evidenziaInTabella = (tipoRecord) => {
+  if (isPostura.value) return;
   vibraTattile(15);
   if (stileStorico.value === 'grafico') {
     stileStorico.value = 'tabella';

@@ -15,6 +15,7 @@
 
 import {
   isCorpoLiberoEsercizio,
+  isPosturaEsercizio,
   isCavoOMacchinaEsercizio,
   isManubriEsercizio,
   isPercentualeEsercizio,
@@ -98,6 +99,11 @@ export const analizzaQualitaScheda = (records, options = {}) => {
 
     if (!riepilogoPerGiorno[giorno]) {
       riepilogoPerGiorno[giorno] = { total: 0, errori: 0, anomalie: 0, particolari: 0, validi: 0 };
+    }
+
+    if (isPosturaEsercizio(ex)) {
+      riepilogoPerGiorno[giorno].validi++;
+      return;
     }
 
     const isCorpoLibero = isCorpoLiberoEsercizio(ex);

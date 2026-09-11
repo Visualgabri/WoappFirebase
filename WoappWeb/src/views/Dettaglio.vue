@@ -777,55 +777,31 @@
               <!-- Modalità Compatta / Super Compatta -->
               <template v-if="['compatto', 'super_compatto'].includes(layoutCorrente)">
                 <div class="d-flex align-center justify-space-between mb-1.5 gap-1">
-                  <div class="d-flex align-baseline gap-1 text-truncate">
-                    <span class="hero-progress-val-now font-weight-bold text-slate-lighten-2" style="font-size: 0.82rem;">
-                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia > 0 ? heroRecordComparison.caricoTeoricoEguaglia : heroRecordComparison.maxWeight) }}
-                    </span>
-                    <span class="hero-progress-arrow font-weight-bold mx-0.5 text-amber-accent-2">→</span>
-                    <span class="hero-progress-val-target font-weight-black text-amber-accent-2" style="font-size: 0.95rem;">
-                      🔥 {{ formatWeight(heroRecordComparison.todayWeight) }} kg
+                  <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center hero-badge-sfondamento">
+                    <span class="font-weight-black text-amber-accent-2">
+                      {{ heroRecordComparison.isNewPeak ? '🏆 NUOVO PR' : '🔥 ATTACCO PR' }} +{{ formatWeight(heroRecordComparison.deltaOverKg) }} kg
                     </span>
                   </div>
-
-                  <div class="d-flex flex-column align-end flex-shrink-0">
-                    <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center hero-badge-sfondamento">
-                      <span class="font-weight-black text-amber-accent-2">
-                        {{ heroRecordComparison.isNewPeak ? '🏆 NUOVO PR' : '🔥 ATTACCO PR' }} +{{ formatWeight(heroRecordComparison.deltaOverKg) }} kg
-                      </span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-0.5 text-amber-accent-2">
-                      {{ heroRecordComparison.proximityPct }}% del record
-                    </span>
-                  </div>
+                  <span class="hero-proximity-pct font-weight-bold text-amber-accent-2">
+                    {{ heroRecordComparison.proximityPct }}% del record
+                  </span>
                 </div>
               </template>
 
               <!-- Modalità Standard -->
               <template v-else>
                 <div class="d-flex align-center justify-space-between mb-2">
-                  <div class="d-flex align-baseline gap-1.5">
-                    <span class="hero-progress-val-now font-weight-bold text-slate-lighten-2">
-                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia > 0 ? heroRecordComparison.caricoTeoricoEguaglia : heroRecordComparison.maxWeight) }} kg
+                  <div class="hero-mancano-badge text-center hero-badge-sfondamento">
+                    <span class="hero-mancano-label d-block text-amber-accent-2">
+                      {{ heroRecordComparison.isNewPeak ? '🏆 Record Battuto' : '🔥 Sfondamento PR' }}
                     </span>
-                    <span class="hero-progress-arrow font-weight-bold mx-1 text-amber-accent-2">→</span>
-                    <span class="hero-progress-val-target font-weight-black text-amber-accent-2">
-                      🔥 {{ formatWeight(heroRecordComparison.todayWeight) }} kg
-                    </span>
-                  </div>
-
-                  <div class="d-flex flex-column align-end flex-shrink-0 ml-2">
-                    <div class="hero-mancano-badge text-center hero-badge-sfondamento">
-                      <span class="hero-mancano-label d-block text-amber-accent-2">
-                        {{ heroRecordComparison.isNewPeak ? '🏆 Record Battuto' : '🔥 Sfondamento PR' }}
-                      </span>
-                      <span class="hero-mancano-val font-weight-black d-block text-white">
-                        +{{ formatWeight(heroRecordComparison.deltaOverKg) }} kg
-                      </span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-1 text-amber-accent-2">
-                      {{ heroRecordComparison.proximityPct }}% del vecchio record
+                    <span class="hero-mancano-val font-weight-black d-block text-white">
+                      +{{ formatWeight(heroRecordComparison.deltaOverKg) }} kg
                     </span>
                   </div>
+                  <span class="hero-proximity-pct font-weight-bold text-amber-accent-2">
+                    {{ heroRecordComparison.proximityPct }}% del vecchio record
+                  </span>
                 </div>
               </template>
 
@@ -858,54 +834,30 @@
 
             <!-- CASO A (SOLUZIONE 2): RECORD EGUAGLIATO CON PROIEZIONE VERSO IL PROSSIMO PR -->
             <template v-else-if="heroRecordComparison.isEqualedPeak && rottaProssimoObiettivo">
-              <!-- Modalità Compatta / Super Compatta: Pesi a sinistra, Badge verso WX a destra -->
+              <!-- Modalità Compatta / Super Compatta -->
               <template v-if="['compatto', 'super_compatto'].includes(layoutCorrente)">
                 <div class="d-flex align-center justify-space-between mb-1.5 gap-1">
-                  <div class="d-flex align-baseline gap-1 text-truncate">
-                    <span class="hero-progress-val-now font-weight-black text-white">
-                      {{ formatWeight(heroRecordComparison.todayWeight) }}
-                    </span>
-                    <span class="hero-progress-arrow font-weight-bold mx-0.5">→</span>
-                    <span class="hero-progress-val-target font-weight-black text-green-accent-3">
-                      {{ formatWeight(rottaProssimoObiettivo.peso) }} kg
+                  <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center" style="border-color: rgba(74, 222, 128, 0.45); background: rgba(74, 222, 128, 0.12); color: #4ade80;">
+                    <span class="font-weight-black">
+                      W{{ rottaProssimoObiettivo.week }}: +{{ formatWeight(rottaProssimoObiettivo.deltaKg) }} kg
                     </span>
                   </div>
-
-                  <div class="d-flex flex-column align-end flex-shrink-0">
-                    <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center" style="border-color: rgba(74, 222, 128, 0.45); background: rgba(74, 222, 128, 0.12); color: #4ade80;">
-                      <span class="font-weight-black">
-                        W{{ rottaProssimoObiettivo.week }}: +{{ formatWeight(rottaProssimoObiettivo.deltaKg) }} kg
-                      </span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-0.5 text-green-accent-3">
-                      Nuovo PR stimato
-                    </span>
-                  </div>
+                  <span class="hero-proximity-pct font-weight-bold text-green-accent-3">
+                    Nuovo PR stimato
+                  </span>
                 </div>
               </template>
 
               <!-- Modalità Standard -->
               <template v-else>
                 <div class="d-flex align-center justify-space-between mb-2">
-                  <div class="d-flex align-baseline gap-1.5">
-                    <span class="hero-progress-val-now font-weight-black text-white">
-                      {{ formatWeight(heroRecordComparison.todayWeight) }} kg
-                    </span>
-                    <span class="hero-progress-arrow font-weight-bold mx-1">→</span>
-                    <span class="hero-progress-val-target font-weight-black text-green-accent-3">
-                      {{ formatWeight(rottaProssimoObiettivo.peso) }} kg
-                    </span>
+                  <div class="hero-mancano-badge text-center" style="border-color: rgba(74, 222, 128, 0.45); background: rgba(74, 222, 128, 0.10);">
+                    <span class="hero-mancano-label d-block text-green-accent-3">Verso W{{ rottaProssimoObiettivo.week }}</span>
+                    <span class="hero-mancano-val font-weight-black d-block text-white">+{{ formatWeight(rottaProssimoObiettivo.deltaKg) }} kg</span>
                   </div>
-
-                  <div class="d-flex flex-column align-end flex-shrink-0 ml-2">
-                    <div class="hero-mancano-badge text-center" style="border-color: rgba(74, 222, 128, 0.45); background: rgba(74, 222, 128, 0.10);">
-                      <span class="hero-mancano-label d-block text-green-accent-3">Verso W{{ rottaProssimoObiettivo.week }}</span>
-                      <span class="hero-mancano-val font-weight-black d-block text-white">+{{ formatWeight(rottaProssimoObiettivo.deltaKg) }} kg</span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-1 text-green-accent-3">
-                      Nuovo PR stimato
-                    </span>
-                  </div>
+                  <span class="hero-proximity-pct font-weight-bold text-green-accent-3">
+                    Nuovo PR stimato
+                  </span>
                 </div>
               </template>
 
@@ -941,40 +893,24 @@
             <template v-else-if="heroRecordComparison.isEqualedPeak">
               <template v-if="['compatto', 'super_compatto'].includes(layoutCorrente)">
                 <div class="d-flex align-center justify-space-between mb-1.5 gap-1">
-                  <div class="d-flex align-baseline gap-1 text-truncate">
-                    <span class="hero-progress-val-now font-weight-black text-amber-accent-2">
-                      👑 {{ formatWeight(heroRecordComparison.todayWeight) }} kg
-                    </span>
+                  <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center">
+                    <span class="font-weight-black">Eguagliato!</span>
                   </div>
-
-                  <div class="d-flex flex-column align-end flex-shrink-0">
-                    <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center">
-                      <span class="font-weight-black">Eguagliato!</span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-0.5">
-                      100% del record
-                    </span>
-                  </div>
+                  <span class="hero-proximity-pct font-weight-bold">
+                    100% del record
+                  </span>
                 </div>
               </template>
 
               <template v-else>
                 <div class="d-flex align-center justify-space-between mb-2">
-                  <div class="d-flex align-baseline gap-1.5">
-                    <span class="hero-progress-val-now font-weight-black text-amber-accent-2">
-                      👑 {{ formatWeight(heroRecordComparison.todayWeight) }} kg
-                    </span>
+                  <div class="hero-mancano-badge text-center">
+                    <span class="hero-mancano-label d-block text-amber-accent-2">Record</span>
+                    <span class="hero-mancano-val font-weight-black d-block">Eguagliato!</span>
                   </div>
-
-                  <div class="d-flex flex-column align-end flex-shrink-0 ml-2">
-                    <div class="hero-mancano-badge text-center">
-                      <span class="hero-mancano-label d-block text-amber-accent-2">Record</span>
-                      <span class="hero-mancano-val font-weight-black d-block">Eguagliato!</span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-1">
-                      100% del record
-                    </span>
-                  </div>
+                  <span class="hero-proximity-pct font-weight-bold">
+                    100% del record
+                  </span>
                 </div>
               </template>
 
@@ -1000,76 +936,50 @@
 
             <!-- CASO C: DEFAULT ORIGINALE (Inseguimento o Nuovo Record Oggi) -->
             <template v-else>
-              <!-- Modalità Compatta / Super Compatta: Pesi a sinistra, Badge e percentuale a destra -->
+              <!-- Modalità Compatta / Super Compatta -->
               <template v-if="['compatto', 'super_compatto'].includes(layoutCorrente)">
                 <div class="d-flex align-center justify-space-between mb-1.5 gap-1">
-                  <div class="d-flex align-baseline gap-1 text-truncate">
-                    <span class="hero-progress-val-now font-weight-black text-white">
-                      {{ formatWeight(heroRecordComparison.todayWeight) }}
-                    </span>
-                    <span class="hero-progress-arrow font-weight-bold mx-0.5">→</span>
-                    <span class="hero-progress-val-target font-weight-black">
-                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
-                    </span>
-                  </div>
-
-                  <div class="d-flex flex-column align-end flex-shrink-0">
-                    <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center">
-                      <span class="font-weight-black">
-                        <template v-if="heroRecordComparison.isNewPeak">
-                          Nuovo +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
-                        </template>
-                        <template v-else-if="heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0'">
-                          Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
-                        </template>
-                        <template v-else>
-                          Eguagliato!
-                        </template>
-                      </span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-0.5">
-                      ≈ {{ heroRecordComparison.proximityPct }}% del record
+                  <div class="hero-mancano-badge-compact px-1.5 py-0.5 rounded text-center">
+                    <span class="font-weight-black">
+                      <template v-if="heroRecordComparison.isNewPeak">
+                        Nuovo +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
+                      </template>
+                      <template v-else-if="heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0'">
+                        Mancano ≈ {{ formatWeight(heroRecordComparison.deltaKg) }} kg
+                      </template>
+                      <template v-else>
+                        Eguagliato!
+                      </template>
                     </span>
                   </div>
+                  <span class="hero-proximity-pct font-weight-bold">
+                    ≈ {{ heroRecordComparison.proximityPct }}% del record
+                  </span>
                 </div>
               </template>
 
-              <!-- Modalità Standard: Layout generoso a 2 colonne senza titolo PROGRESSO X REPS -->
+              <!-- Modalità Standard -->
               <template v-else>
                 <div class="d-flex align-center justify-space-between mb-2">
-                  <!-- Sinistra: Pesi con Freccia -->
-                  <div class="d-flex align-baseline gap-1.5">
-                    <span class="hero-progress-val-now font-weight-black text-white">
-                      {{ formatWeight(heroRecordComparison.todayWeight) }} kg
+                  <div class="hero-mancano-badge text-center">
+                    <span class="hero-mancano-label d-block">
+                      {{ heroRecordComparison.isNewPeak ? 'Nuovo' : ((heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0') ? 'Mancano ≈' : 'Record') }}
                     </span>
-                    <span class="hero-progress-arrow font-weight-bold mx-1">→</span>
-                    <span class="hero-progress-val-target font-weight-black">
-                      {{ formatWeight(heroRecordComparison.caricoTeoricoEguaglia) }} kg
-                    </span>
-                  </div>
-
-                  <!-- Destra: Box Mancano ≈ e Percentuale del record -->
-                  <div class="d-flex flex-column align-end flex-shrink-0 ml-2">
-                    <div class="hero-mancano-badge text-center">
-                      <span class="hero-mancano-label d-block">
-                        {{ heroRecordComparison.isNewPeak ? 'Nuovo' : ((heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0') ? 'Mancano ≈' : 'Record') }}
-                      </span>
-                      <span class="hero-mancano-val font-weight-black d-block">
-                        <template v-if="heroRecordComparison.isNewPeak">
-                          +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
-                        </template>
-                        <template v-else-if="heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0'">
-                          {{ formatWeight(heroRecordComparison.deltaKg) }} kg
-                        </template>
-                        <template v-else>
-                          Eguagliato!
-                        </template>
-                      </span>
-                    </div>
-                    <span class="hero-proximity-pct font-weight-bold mt-1">
-                      ≈ {{ heroRecordComparison.proximityPct }}% del record
+                    <span class="hero-mancano-val font-weight-black d-block">
+                      <template v-if="heroRecordComparison.isNewPeak">
+                        +{{ formatWeight(Math.round((heroRecordComparison.todayE1RM - heroRecordComparison.maxE1RM) * 10) / 10) }} kg
+                      </template>
+                      <template v-else-if="heroRecordComparison.deltaKg > 0.2 && formatWeight(heroRecordComparison.deltaKg) !== '0'">
+                        {{ formatWeight(heroRecordComparison.deltaKg) }} kg
+                      </template>
+                      <template v-else>
+                        Eguagliato!
+                      </template>
                     </span>
                   </div>
+                  <span class="hero-proximity-pct font-weight-bold">
+                    ≈ {{ heroRecordComparison.proximityPct }}% del record
+                  </span>
                 </div>
               </template>
 

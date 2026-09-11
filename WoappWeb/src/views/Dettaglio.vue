@@ -125,7 +125,35 @@
                   </template>
                 </v-list-item>
 
-                <v-divider v-if="!isPostura && ruolo === 'coach'" class="my-0.5 border-slate-700"></v-divider>
+                <!-- Tipologia / A Corpo Libero (Accessibile a tutti gli utenti, inclusi gli atleti) -->
+                <v-list-item
+                  v-if="!isPostura && !isCardio"
+                  @click="toggleCorpoLiberoRapido"
+                  :disabled="salvandoModalitaCorpoLibero"
+                  class="px-2.5 py-1 min-h-0"
+                  id="btn-menu-corpo-libero"
+                >
+                  <template v-slot:prepend>
+                    <v-icon :color="isCorpoLiberoPuro ? 'amber-lighten-2' : 'cyan-lighten-2'" size="17" class="mr-2 flex-shrink-0">
+                      {{ isCorpoLiberoPuro ? 'mdi-human' : 'mdi-weight-lifter' }}
+                    </v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    A Corpo Libero
+                  </v-list-item-title>
+                  <template v-slot:append>
+                    <v-chip 
+                      size="x-small" 
+                      :color="isCorpoLiberoPuro ? 'amber-darken-3' : 'slate-700'" 
+                      class="px-1.5 py-0 font-weight-black text-white ml-1 text-truncate" 
+                      style="height: 18px; font-size: 0.58rem;"
+                    >
+                      {{ isCorpoLiberoPuro ? 'SÌ (reps)' : 'NO (kg)' }}
+                    </v-chip>
+                  </template>
+                </v-list-item>
+
+                <v-divider v-if="!isPostura" class="my-0.5 border-slate-700"></v-divider>
 
                 <!-- Modifica Esercizio (Coach) -->
                 <v-list-item
@@ -3465,33 +3493,6 @@
         </v-card-title>
 
         <v-card-text class="pa-4 text-left" style="max-height: 75vh;">
-          <!-- SWITCH RAPIDO MODALITÀ: CORPO LIBERO VS CARICO -->
-          <div class="pa-2.5 rounded-xl border mb-3 d-flex align-center justify-space-between" style="background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1) !important;">
-            <div class="d-flex align-center gap-2">
-              <v-icon :color="isCorpoLiberoPuro ? 'amber-lighten-2' : 'cyan-lighten-2'" size="20">
-                {{ isCorpoLiberoPuro ? 'mdi-human' : 'mdi-weight-lifter' }}
-              </v-icon>
-              <div>
-                <div class="font-weight-black text-white text-caption" style="letter-spacing: 0.02em;">
-                  Modalità: {{ isCorpoLiberoPuro ? '🤸 Corpo Libero (reps)' : '🏋️ Con Sovraccarico (kg)' }}
-                </div>
-                <div class="text-slate text-super-caption" style="font-size: 0.65rem;">
-                  {{ isCorpoLiberoPuro ? 'Impostato a sole ripetizioni' : 'Impostato con carico in kg ed e1RM' }}
-                </div>
-              </div>
-            </div>
-            <v-btn
-              size="x-small"
-              :color="isCorpoLiberoPuro ? 'cyan-darken-3' : 'amber-darken-3'"
-              class="font-weight-black text-none"
-              rounded="lg"
-              :loading="salvandoModalitaCorpoLibero"
-              @click="toggleCorpoLiberoRapido"
-            >
-              {{ isCorpoLiberoPuro ? 'Imposta a Carico (kg)' : 'Imposta a Corpo Libero' }}
-            </v-btn>
-          </div>
-
           <!-- BANNER NARRATIVO DIAGNOSI -->
           <div 
             class="pa-3 rounded-xl border mb-3" 

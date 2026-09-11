@@ -1549,7 +1549,25 @@
                   </div>
                 </div>
 
-                <!-- RIGA 2: Range Proposto (Subito sotto al Carico Consigliato per qualsiasi settimana) -->
+                <!-- AVVISO FATICA / REPS (es. ⚠️ Se non chiudi X reps fai Y+Zr in Rest Pause) -->
+                <div 
+                  v-if="getGhostRenderInfo(sett).maxEffortNotice" 
+                  class="text-super-caption font-weight-bold text-amber-lighten-2 text-left mt-0.5" 
+                  :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.55rem', paddingLeft: '16px', letterSpacing: '0.02em', lineHeight: 1.3 }"
+                >
+                  {{ getGhostRenderInfo(sett).maxEffortNotice }}
+                </div>
+
+                <!-- AVVISO SFIDANTE (es. ⚡ Almeno in ultima serie) -->
+                <div 
+                  v-if="getGhostRenderInfo(sett).sfidanteNotice" 
+                  class="text-super-caption font-weight-bold text-amber-lighten-1 text-left mt-0.5" 
+                  :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', paddingLeft: '16px', letterSpacing: '0.02em', lineHeight: 1.35 }"
+                >
+                  {{ getGhostRenderInfo(sett).sfidanteNotice }}
+                </div>
+
+                <!-- RIGA 2: Range Proposto (Subito sotto al Carico Consigliato / Avvisi per qualsiasi settimana) -->
                 <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-left mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem', paddingLeft: '16px' }">
                   <span class="text-green-accent-3 font-weight-bold">↔ {{ getGhostWeightsRangeText(sett) }}</span>
                 </div>
@@ -1596,16 +1614,6 @@
             
             <div v-if="!isPostura && getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.55rem', paddingLeft: '16px', lineHeight: 1.25, letterSpacing: '0.01em' }">
               💡 Troppo leggero? Non aumentare il peso, semmai fai +1 rep (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}x{{ getRepsPerWeek(sett) + 1 }}r</span>).
-            </div>
-
-            <!-- 1. AVVISO FATICA / DIFFICILE A X REPS (Sopra il Range) -->
-            <div v-if="!isPostura && getGhostRenderInfo(sett) && getGhostRenderInfo(sett).maxEffortNotice" class="text-super-caption font-weight-bold text-amber-lighten-2 text-left px-1 mt-1 mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.5rem' : '0.55rem', letterSpacing: '0.02em', marginBottom: (margineBottomGhostNoticeGlobal ?? 10) + 'px !important' }">
-              {{ getGhostRenderInfo(sett).maxEffortNotice }}
-            </div>
-
-            <!-- 2. AVVISO TENTATIVO SFIDANTE W5/W6 CON INDICAZIONE ULTIMA SERIE -->
-            <div v-if="!isPostura && getGhostRenderInfo(sett) && getGhostRenderInfo(sett).sfidanteNotice" class="text-super-caption font-weight-bold text-amber-lighten-1 text-left px-1 mt-0.5 mb-1.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.58rem', letterSpacing: '0.02em', lineHeight: 1.35 }">
-              {{ getGhostRenderInfo(sett).sfidanteNotice }}
             </div>
 
 
@@ -1924,7 +1932,7 @@
                 </span>
               </div>
               <span class="text-super-caption font-weight-bold text-slate" style="font-size: 0.58rem; letter-spacing: 0.05em;">
-                • RIFERIMENTO PROX MESO
+                • PROSSIMO MESO
               </span>
             </div>
 
@@ -1933,9 +1941,6 @@
               <div class="d-flex flex-column text-center flex-grow-1 pl-1">
                 <span class="font-weight-black text-slate-dark text-uppercase tracking-wider" style="font-size: 0.68rem; line-height: 1.1;">
                   Max Raggiunto
-                </span>
-                <span class="text-super-caption text-slate" style="font-size: 0.54rem;">
-                  Carico top chiuso a target
                 </span>
               </div>
 
@@ -2049,7 +2054,7 @@
                 class="text-super-caption text-orange-lighten-3 font-weight-medium"
                 :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.62rem' }"
               >
-                🔄 Fine Giro! Recupera prima di ricominciare.
+                🔄 Fine Giro! Recupera e riparti
               </span>
               <v-chip
                 color="orange-darken-3"
@@ -2059,7 +2064,7 @@
                 style="font-size: 0.62rem; height: auto; min-height: 22px; cursor: pointer; line-height: 1.2; text-align: center;"
                 @click="avviaTimerRecupero(workout.des_rec_report, workout.des_esercizio)"
               >
-                ⏱️ AVVIA RECUPERO: {{ workout.des_rec_report }}
+                ⏱️ AVVIA: {{ workout.des_rec_report }}
               </v-chip>
             </div>
 
@@ -10110,7 +10115,7 @@ const calcolaAvvisoFaticaConsigliato = (sett, numConsigliato, repsTarget, repsPr
   if (e1rmConsigliato > (e1rmPrev + 3.5)) {
     const r1 = repsTarget <= 5 ? Math.max(1, repsTarget - 1) : Math.max(1, Math.round(repsTarget * 0.75));
     const r2 = repsTarget - r1;
-    return `⚠️ Difficile a ${repsTarget} rep. Se cedi, usa Rest-Pause (es. ${formatWeight(numConsigliato)}x${r1}+${r2}r RP).`;
+    return `⚠️ Se non chiudi ${repsTarget} reps fai ${r1}+${r2}r in Rest Pause`;
   }
   return '';
 };
@@ -10181,7 +10186,7 @@ const getGhostRenderInfo = (sett) => {
     let lbl = '';
 
     if (isSfidanteTarget) {
-      lbl = (sett === 5 || sett === 6) ? 'Sfidante (Attacco PR):' : 'Consigliato (Sfidante PR):';
+      lbl = (sett === 5 || sett === 6) ? 'Sfidante PR:' : 'Consigliato (Sfidante PR):';
       ic = 'mdi-rocket-launch';
       col = isLight ? '#b45309' : '#fbbf24';
 
@@ -10196,7 +10201,7 @@ const getGhostRenderInfo = (sett) => {
 
       if (isCompatibile) {
         sfidanteNotice = (nSets > 1)
-          ? `⚡ Tentativo Sfidante: prova questo carico almeno nell'ultima serie (S${nSets}) puntando a completare le ${targetReps} reps previste.`
+          ? `⚡ Almeno in ultima serie`
           : `⚡ Tentativo Sfidante: punta a completare le ${targetReps} reps previste con questo carico.`;
       }
     } else if (sensibilitaFaticaGhost.value === 'aggressiva') {

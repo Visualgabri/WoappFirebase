@@ -350,12 +350,14 @@
           :style="gifColonnaStyle"
         >
           <v-card 
-            class="image-premium-frame overflow-hidden elevation-2 bg-black w-100 position-relative" 
+            class="image-premium-frame overflow-hidden elevation-2 bg-black w-100 position-relative cursor-pointer" 
             :class="[
               layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded-lg',
               { 'gif-frame-vertical': isGifVertical }
             ]"
             :style="gifCardStyle"
+            style="cursor: pointer;"
+            @click="dialogGifFullScreen = true"
           >
             <v-img
               :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
@@ -363,8 +365,8 @@
               class="bg-black"
               height="100%"
               width="100%"
-              :style="{ cursor: 'pointer', objectFit: isGifVertical ? 'cover' : 'contain' }"
-              @click="dialogGifFullScreen = true"
+              style="cursor: pointer;"
+              @click.stop="dialogGifFullScreen = true"
               @load="onGifImageLoad"
             >
               <template v-slot:placeholder>
@@ -379,9 +381,11 @@
         <!-- GIF dell'Esercizio Standard (per layout normale, adattiva) -->
         <v-card 
           v-else
-          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0 mx-auto mb-3 rounded-xl position-relative" 
+          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0 mx-auto mb-3 rounded-xl position-relative cursor-pointer" 
           :class="{ 'gif-frame-vertical': isGifVertical }"
           :style="gifStandardCardStyle"
+          style="cursor: pointer;"
+          @click="dialogGifFullScreen = true"
         >
           <v-img
             :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
@@ -389,8 +393,8 @@
             class="bg-black"
             height="100%"
             width="100%"
-            :style="{ cursor: 'pointer', objectFit: isGifVertical ? 'cover' : 'contain' }"
-            @click="dialogGifFullScreen = true"
+            style="cursor: pointer;"
+            @click.stop="dialogGifFullScreen = true"
             @load="onGifImageLoad"
           >
             <template v-slot:placeholder>
@@ -5985,8 +5989,8 @@
     </v-dialog>
 
     <!-- Dialog per GIF a tutto schermo -->
-    <v-dialog v-model="dialogGifFullScreen" :max-width="isGifVertical ? '480px' : '95vw'" max-height="95vh">
-      <v-card class="bg-black border-0 rounded-2xl position-relative d-flex justify-center align-center overflow-hidden mx-auto" :style="{ height: '100%', maxHeight: '95vh', width: isGifVertical ? 'fit-content' : '100%' }">
+    <v-dialog v-model="dialogGifFullScreen" max-width="95vw" max-height="95vh">
+      <v-card class="bg-black border-0 rounded-2xl position-relative d-flex justify-center align-center overflow-hidden" style="height: 100%; max-height: 95vh;">
         <v-btn
           icon="mdi-close"
           variant="flat"

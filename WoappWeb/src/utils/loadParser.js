@@ -82,7 +82,7 @@ export const isCardioEsercizio = (ex) => {
   if (!ex) return false;
   const settore = typeof ex === 'object' ? String(ex.des_settore || '').toLowerCase() : '';
   const settorePrinc = typeof ex === 'object' ? String(ex.des_settore_princ || '').toLowerCase() : '';
-  const raw = typeof ex === 'string' ? ex.toLowerCase() : '';
+  const raw = typeof ex === 'string' ? ex.toLowerCase() : (typeof ex === 'object' ? String(ex.des_esercizio || ex.des_esercizio_2 || '').toLowerCase() : '');
   return settore.includes('cardio') || settorePrinc.includes('cardio') || raw.includes('cardio');
 };
 

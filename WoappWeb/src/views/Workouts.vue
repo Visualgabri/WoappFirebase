@@ -3458,7 +3458,7 @@ import { db } from '../firebase.js';
 import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
-import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio, isCorpoLiberoEsercizio } from '../utils/loadParser.js';
+import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio, isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -5377,7 +5377,7 @@ const esisteInSchedaPrecedente = (ex) => {
 
 // Funzione che rileva lo STALLO (nessuna progressione tra W1 e W6) nel mesociclo precedente
 const stalloInSchedaPrecedente = (ex) => {
-  if (!ex || !allExercisesBackup.value.length) return false;
+  if (!ex || !allExercisesBackup.value.length || isCardioEsercizio(ex) || isPosturaEsercizio(ex)) return false;
   
   // Se è un esercizio di forza con carichi impostati dal coach, non segnalare stallo
   const isStrengthEx = !!parseRmtString(ex.des_esercizio_2);
@@ -7416,7 +7416,7 @@ const scaricaReportPDF = () => {
   const items = listaAllenamenti.value || [];
   
   items.forEach(ex => {
-    if (parseInt(ex.num_riga_giorno) === 0) return;
+    if (parseInt(ex.num_riga_giorno) === 0 || isCardioEsercizio(ex) || isPosturaEsercizio(ex)) return;
     
     const weekData = {};
     let hasAny = false;
@@ -7842,7 +7842,7 @@ const reportProgressioni = computed(() => {
   };
 
   listaAllenamenti.value.forEach(ex => {
-    if (parseInt(ex.num_riga_giorno) === 0) return;
+    if (parseInt(ex.num_riga_giorno) === 0 || isCardioEsercizio(ex) || isPosturaEsercizio(ex)) return;
 
     const feeling = parseInt(ex.ind_reps_start);
     if (feeling > 0) {

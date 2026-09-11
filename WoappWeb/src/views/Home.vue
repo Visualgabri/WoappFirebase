@@ -1546,7 +1546,7 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import GuidaFlexCoachModal from '../components/GuidaFlexCoachModal.vue';
-import { isCorpoLiberoEsercizio } from '../utils/loadParser.js';
+import { isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -1689,7 +1689,7 @@ const reportProgressioni = computed(() => {
   let countFeeling = 0;
 
   allExercises.value.forEach(ex => {
-    if (parseInt(ex.num_riga_giorno) === 0) return;
+    if (parseInt(ex.num_riga_giorno) === 0 || isCardioEsercizio(ex) || isPosturaEsercizio(ex)) return;
 
     const feeling = parseInt(ex.ind_reps_start);
     if (feeling > 0) {
@@ -3085,7 +3085,7 @@ const scaricaReportPDF = () => {
   const items = allExercises.value || [];
   
   items.forEach(ex => {
-    if (parseInt(ex.num_riga_giorno) === 0) return;
+    if (parseInt(ex.num_riga_giorno) === 0 || isCardioEsercizio(ex) || isPosturaEsercizio(ex)) return;
     
     const weekData = {};
     let hasAny = false;

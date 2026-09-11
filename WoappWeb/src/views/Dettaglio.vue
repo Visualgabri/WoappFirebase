@@ -1264,7 +1264,7 @@
 
       <!-- Banner Avviso Coach: Stallo Mesociclo Precedente -->
       <v-card
-        v-if="!isPostura && settimanaAttiva === 1 && isStalledInPreviousMesocycle"
+        v-if="!isPostura && !isCardio && settimanaAttiva === 1 && isStalledInPreviousMesocycle"
         class="text-left border d-flex flex-column mb-3 animate-pulse"
         style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.18), rgba(239, 68, 68, 0.08)) !important; border: 1.5px solid rgba(249, 115, 22, 0.5) !important; border-left: 4px solid #f97316 !important; border-radius: 12px !important; padding: 12px;"
       >
@@ -1820,7 +1820,7 @@
 
             <!-- Suggerimento Formattazione Reps (es. 3x12 -> 3x12r) -->
             <div
-              v-if="!isPostura && (!ottimizzaDigitazione || activeEditingWeek !== sett) && getRepFormattingSuggestion(sett)"
+              v-if="!isPostura && !isCardio && (!ottimizzaDigitazione || activeEditingWeek !== sett) && getRepFormattingSuggestion(sett)"
               class="d-flex align-center mt-1.5 px-2.5 py-1.5 rounded-lg cursor-pointer animate-fade-in text-left"
               style="border: 1px solid rgba(245, 158, 11, 0.4) !important; background: rgba(245, 158, 11, 0.08) !important;"
               @click="applicaSuggerimentoFormattazioneReps(sett, getRepFormattingSuggestion(sett).suggested)"
@@ -1834,7 +1834,7 @@
 
           <!-- BANNER SMART STAGNATION GUARD & CHIP RAPIDI (Soluzione 1) -->
           <div 
-            v-if="!isPostura && isStagnazioneSettimana(sett)" 
+            v-if="!isPostura && !isCardio && isStagnazioneSettimana(sett)" 
             class="my-2 pa-2.5 rounded-xl border text-left animate-fade-in"
             style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%) !important; border: 1.5px solid rgba(168, 85, 247, 0.35) !important;"
           >
@@ -1871,7 +1871,7 @@
 
           <!-- BADGE PROGRESSIONE QUALITATIVA ACCREDITATA -->
           <div 
-            v-else-if="!isPostura && haDriverQualitativoAccreditato(sett) && (inputSettimane[sett]?.ins)" 
+            v-else-if="!isPostura && !isCardio && haDriverQualitativoAccreditato(sett) && (inputSettimane[sett]?.ins)" 
             class="my-1.5 px-2.5 py-1 rounded-lg border d-flex align-center gap-1.5 bg-slate-900 text-left"
             style="border-color: rgba(168, 85, 247, 0.3) !important;"
           >
@@ -1883,7 +1883,7 @@
 
           <!-- RESOCONTO AUDIT STALLO WEEK 6 - SGRIDATA BONARIA DEL COACH (Soluzione 3) -->
           <v-card
-            v-if="!isPostura && sett === 6 && auditStalloW6.hasStall"
+            v-if="!isPostura && !isCardio && sett === 6 && auditStalloW6.hasStall"
             class="mt-3 mb-2 pa-3 rounded-xl border text-left animate-fade-in"
             style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%) !important; border: 1.5px solid rgba(245, 158, 11, 0.4) !important;"
             elevation="0"
@@ -1916,7 +1916,7 @@
 
           <!-- Card Premium Feedback e Miglior Carico per Week 6 -->
           <div 
-            v-if="!isPostura && sett === 6 && isEsercizioEligibileW6(workout)" 
+            v-if="!isPostura && !isCardio && sett === 6 && isEsercizioEligibileW6(workout)" 
             class="w6-feedback-premium-box pt-3 pb-2.5 px-3 rounded-2xl border"
             :class="layoutCorrente === 'super_compatto' ? 'pt-2 pb-2 px-2' : ''"
             :style="{
@@ -2473,7 +2473,7 @@
       
       <!-- Analisi Ripetizioni (Continuità o Storico) - CLICCABILE -->
       <v-card 
-        v-else-if="!isPostura && previousWorkout && analisiRipetizioniCiclo"
+        v-else-if="!isPostura && !isCardio && previousWorkout && analisiRipetizioniCiclo"
         class="premium-card card-glass text-left border-soft clickable-timer-chip"
         :class="[
           layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
@@ -7857,6 +7857,7 @@ const haDriverQualitativoAccreditato = (sett) => {
 
 const isStagnazioneSettimana = (sett) => {
   if (sett <= 1) return false;
+  if (isCardio.value || isPostura.value) return false;
 
   // Se c'è un vincolo esplicito di carico dal coach (es. [KG W5] o ghost.isMandatory), NON è stagnazione!
   const ghost = getGhostLift(sett);
@@ -7968,7 +7969,7 @@ const applicaDriverProgressione = (sett, labelChip) => {
 };
 
 const auditStalloW6 = computed(() => {
-  if (!workout.value) return { hasStall: false };
+  if (!workout.value || isCardio.value || isPostura.value) return { hasStall: false };
   let countStagnant = 0;
   let lastPeso = null;
 
@@ -7988,7 +7989,7 @@ const auditStalloW6 = computed(() => {
 });
 
 const isStalledInPreviousMesocycle = computed(() => {
-  if (!workout.value || !previousWorkout.value) return false;
+  if (!workout.value || !previousWorkout.value || isCardio.value || isPostura.value) return false;
   
   // Se è un esercizio di forza con carichi impostati dal coach, non mostrare il warning di stallo
   const isStrengthEx = !!parsedRmt(workout.value.des_esercizio_2);
@@ -11608,7 +11609,7 @@ const calcolaRepsTargetPerPeso = (pesoCustom, pesoRef, repsRef) => {
 };
 
 const calcolaProgressioneRepCustom = computed(() => {
-  if (!workout.value) return null;
+  if (!workout.value || isCardio.value || isPostura.value) return null;
   const sett = aiutoWeek.value;
   const infoBase = getBaseWeekInfo(sett);
   
@@ -11757,7 +11758,7 @@ const simulatoreDinamicoData = computed(() => {
 
 // 5. COMPUTED ANDAMENTO CARICO NEL MESOCICLO
 const andamentoMesocicloData = computed(() => {
-  if (!workout.value) return null;
+  if (!workout.value || isCardio.value || isPostura.value) return null;
   const sett = aiutoWeek.value;
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
   const isCorpoLiberoPuro = isCorpoLibero && !haPesoEsercizio.value;
@@ -13146,7 +13147,7 @@ watch(workout, () => {
 });
 
 const analisiRipetizioniCiclo = computed(() => {
-  if (!workout.value || !previousWorkout.value) return null;
+  if (!workout.value || !previousWorkout.value || isCardio.value || isPostura.value) return null;
   
   const currentScheda = parseInt(workout.value.num_scheda);
   const prevScheda = parseInt(previousWorkout.value.num_scheda);
@@ -17438,7 +17439,7 @@ const getGhostFieldClass = (sett) => {
 };
 
 const getRepFormattingSuggestion = (sett) => {
-  if (!workout.value) return null;
+  if (!workout.value || isCardio.value || isPostura.value) return null;
   const val = inputSettimane.value[sett]?.ins;
   if (!val) return null;
   const clean = String(val).trim();

@@ -343,24 +343,29 @@
         :class="{'d-flex align-start': ['compatto', 'super_compatto'].includes(layoutCorrente)}" 
         :style="['compatto', 'super_compatto'].includes(layoutCorrente) ? 'gap: 12px;' : ''"
       >
-        <!-- Colonna Sinistra (solo compatto/super_compatto): GIF + Azioni Rapide per riempire lo spazio vuoto -->
+        <!-- Colonna Sinistra (solo compatto/super_compatto): GIF dell'Esercizio (adattiva per verticale/orizzontale) -->
         <div 
           v-if="['compatto', 'super_compatto'].includes(layoutCorrente)"
           class="d-flex flex-column align-center flex-shrink-0"
-          :style="{ width: layoutCorrente === 'super_compatto' ? '90px' : '120px' }"
+          :style="gifColonnaStyle"
         >
           <v-card 
             class="image-premium-frame overflow-hidden elevation-2 bg-black w-100 position-relative" 
-            :class="layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded-lg'"
-            :style="{ height: layoutCorrente === 'super_compatto' ? '70px' : '95px' }"
+            :class="[
+              layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded-lg',
+              { 'gif-frame-vertical': isGifVertical }
+            ]"
+            :style="gifCardStyle"
           >
             <v-img
               :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
-              contain
+              :cover="isGifVertical"
               class="bg-black"
               height="100%"
-              style="cursor: pointer;"
+              width="100%"
+              :style="{ cursor: 'pointer', objectFit: isGifVertical ? 'cover' : 'contain' }"
               @click="dialogGifFullScreen = true"
+              @load="onGifImageLoad"
             >
               <template v-slot:placeholder>
                 <div class="fill-height d-flex align-center justify-center bg-black">
@@ -369,23 +374,24 @@
               </template>
             </v-img>
           </v-card>
-
         </div>
 
-        <!-- GIF dell'Esercizio Standard (per layout normale) -->
+        <!-- GIF dell'Esercizio Standard (per layout normale, adattiva) -->
         <v-card 
           v-else
           class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0 mx-auto mb-3 rounded-xl position-relative" 
-          max-width="280px"
-          height="150px"
+          :class="{ 'gif-frame-vertical': isGifVertical }"
+          :style="gifStandardCardStyle"
         >
           <v-img
             :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
-            contain
+            :cover="isGifVertical"
             class="bg-black"
             height="100%"
-            style="cursor: pointer;"
+            width="100%"
+            :style="{ cursor: 'pointer', objectFit: isGifVertical ? 'cover' : 'contain' }"
             @click="dialogGifFullScreen = true"
+            @load="onGifImageLoad"
           >
             <template v-slot:placeholder>
               <div class="fill-height d-flex align-center justify-center bg-black">
@@ -5979,8 +5985,8 @@
     </v-dialog>
 
     <!-- Dialog per GIF a tutto schermo -->
-    <v-dialog v-model="dialogGifFullScreen" max-width="95vw" max-height="95vh">
-      <v-card class="bg-black border-0 rounded-2xl position-relative d-flex justify-center align-center overflow-hidden" style="height: 100%; max-height: 95vh;">
+    <v-dialog v-model="dialogGifFullScreen" :max-width="isGifVertical ? '480px' : '95vw'" max-height="95vh">
+      <v-card class="bg-black border-0 rounded-2xl position-relative d-flex justify-center align-center overflow-hidden mx-auto" :style="{ height: '100%', maxHeight: '95vh', width: isGifVertical ? 'fit-content' : '100%' }">
         <v-btn
           icon="mdi-close"
           variant="flat"
@@ -14743,6 +14749,106 @@ const getGifUrl = (url) => {
   return url;
 };
 
+// --- Gestione Adattiva Orientamento GIF (Verticale vs Orizzontale) ---
+const isGifVertical = ref(false);
+const gifAspectRatio = ref(null);
+
+const rilevaOrientamentoGif = (url) => {
+  if (!url) {
+    isGifVertical.value = false;
+    gifAspectRatio.value = null;
+    return;
+  }
+  const resolvedUrl = getGifUrl(url);
+  if (!resolvedUrl) {
+    isGifVertical.value = false;
+    gifAspectRatio.value = null;
+    return;
+  }
+  const img = new Image();
+  img.onload = () => {
+    if (img.naturalWidth && img.naturalHeight) {
+      isGifVertical.value = img.naturalHeight > img.naturalWidth;
+      gifAspectRatio.value = img.naturalWidth / img.naturalHeight;
+    }
+  };
+  img.onerror = () => {
+    isGifVertical.value = false;
+    gifAspectRatio.value = null;
+  };
+  img.src = resolvedUrl;
+  if (img.complete && img.naturalWidth && img.naturalHeight) {
+    isGifVertical.value = img.naturalHeight > img.naturalWidth;
+    gifAspectRatio.value = img.naturalWidth / img.naturalHeight;
+  }
+};
+
+const onGifImageLoad = (event) => {
+  const target = event?.target || event?.srcElement;
+  if (target && target.naturalWidth && target.naturalHeight) {
+    isGifVertical.value = target.naturalHeight > target.naturalWidth;
+    gifAspectRatio.value = target.naturalWidth / target.naturalHeight;
+  }
+};
+
+watch(
+  () => [workout.value?.UrlNormal, workout.value?.id],
+  ([newUrl]) => {
+    rilevaOrientamentoGif(newUrl);
+  },
+  { immediate: true }
+);
+
+const gifColonnaStyle = computed(() => {
+  if (!isGifVertical.value) {
+    return {
+      width: layoutCorrente.value === 'super_compatto' ? '90px' : '120px',
+      transition: 'width 0.2s ease'
+    };
+  }
+  const ratio = gifAspectRatio.value || 0.6;
+  if (layoutCorrente.value === 'super_compatto') {
+    const w = Math.min(96, Math.max(78, Math.round(145 * ratio)));
+    return { width: `${w}px`, transition: 'width 0.2s ease' };
+  } else {
+    // layout compatto
+    const w = Math.min(130, Math.max(105, Math.round(195 * ratio)));
+    return { width: `${w}px`, transition: 'width 0.2s ease' };
+  }
+});
+
+const gifCardStyle = computed(() => {
+  if (!isGifVertical.value) {
+    return {
+      height: layoutCorrente.value === 'super_compatto' ? '70px' : '95px',
+      transition: 'height 0.2s ease'
+    };
+  }
+  return {
+    height: layoutCorrente.value === 'super_compatto' ? '145px' : '195px',
+    transition: 'height 0.2s ease'
+  };
+});
+
+const gifStandardCardStyle = computed(() => {
+  if (!isGifVertical.value) {
+    return {
+      maxWidth: '280px',
+      height: '150px',
+      width: '100%',
+      transition: 'all 0.2s ease'
+    };
+  }
+  const ratio = gifAspectRatio.value || 0.6;
+  const w = Math.min(220, Math.max(150, Math.round(280 * ratio)));
+  return {
+    width: `${w}px`,
+    maxWidth: '240px',
+    height: '280px',
+    transition: 'all 0.2s ease'
+  };
+});
+
 // Snackbar
 const snackbarSalvataggio = ref(false);
 
@@ -22485,6 +22591,12 @@ const tornaIndietro = () => {
 .image-premium-frame {
   border: 4px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5) !important;
+  transition: all 0.25s ease;
+}
+
+.image-premium-frame.gif-frame-vertical {
+  border: 2.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* Cartellino note del Coach (stile AppSheet originale) */

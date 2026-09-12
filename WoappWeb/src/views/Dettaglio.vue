@@ -14132,16 +14132,30 @@ const haPesoEsercizio = computed(() => {
   if (!workout.value) return false;
   if (isCardio.value || isPostura.value) return false;
 
-  // 0. Priorità al flag esplicito su Database / UI
-  if (workout.value.flg_corpo_libero === false || workout.value.flg_corpo_libero === 'false' || workout.value.modalita_carico === 'peso') {
+  // 0. Priorità al flag ufficiale flg_forza_reps_salita o flag esplicito su Database / UI
+  const isExplicitBodyweight = 
+    workout.value.flg_forza_reps_salita === true || 
+    workout.value.flg_forza_reps_salita === 'true' || 
+    workout.value.flg_forza_reps_salita === 1 || 
+    workout.value.flg_forza_reps_salita === -1 ||
+    workout.value.flg_corpo_libero === true || 
+    workout.value.flg_corpo_libero === 'true' || 
+    workout.value.modalita_carico === 'corpo_libero';
+
+  const isExplicitOverload = 
+    workout.value.flg_forza_reps_salita === false || 
+    workout.value.flg_forza_reps_salita === 'false' || 
+    workout.value.flg_forza_reps_salita === 0 ||
+    workout.value.flg_corpo_libero === false || 
+    workout.value.flg_corpo_libero === 'false' || 
+    workout.value.modalita_carico === 'peso';
+
+  if (isExplicitOverload && !isExplicitBodyweight) {
     return true;
   }
-  if (workout.value.flg_corpo_libero === true || workout.value.flg_corpo_libero === 'true' || workout.value.modalita_carico === 'corpo_libero') {
-    return false;
-  }
-  
+
   // 1. Se staticamente NON è corpo libero (es. Panca, Lat Machine, Squat, Leg Curl), ha sempre peso
-  if (!isCorpoLiberoEsercizio(workout.value)) {
+  if (!isExplicitBodyweight && !isCorpoLiberoEsercizio(workout.value)) {
     return true;
   }
   
@@ -18372,7 +18386,10 @@ const toggleCorpoLiberoRapido = async () => {
   salvandoModalitaCorpoLibero.value = true;
   try {
     const nuovoStato = !isCorpoLiberoPuro.value;
-    await aggiornaDatoECommit({ flg_corpo_libero: nuovoStato });
+    await aggiornaDatoECommit({ 
+      flg_corpo_libero: nuovoStato,
+      flg_forza_reps_salita: nuovoStato
+    });
     snackbarMessaggio.value = nuovoStato ? "Esercizio impostato a Corpo Libero (reps)" : "Esercizio impostato a Sovraccarico (kg)";
     snackbarSalvataggio.value = true;
   } catch (e) {
@@ -18387,9 +18404,11 @@ const salvaModificheEsercizio = async () => {
   vibraTattile(20);
   modificandoEsercizio.value = true;
   try {
+    const isCl = Boolean(modificaForm.value.flg_corpo_libero);
     // Aggiorna tramite la funzione esistente aggiornaDatoECommit
     await aggiornaDatoECommit({
-      flg_corpo_libero: Boolean(modificaForm.value.flg_corpo_libero),
+      flg_corpo_libero: isCl,
+      flg_forza_reps_salita: isCl,
       des_esercizio: modificaForm.value.des_esercizio,
       des_settore: modificaForm.value.des_settore,
       des_giorno: (modificaForm.value.des_giorno || '').trim().toUpperCase(),

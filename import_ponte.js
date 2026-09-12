@@ -1,13 +1,15 @@
+
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 
-// 1. Parsing argomenti da riga di comando
+// 1. Parsing degli argomenti da riga di comando
 const args = process.argv.slice(2);
 let idCliente = null;
 let numScheda = null;
 let tipo = null; // 'Nuovo' o 'Refresh'
+let jsonExtraPathArg = null;
 
 args.forEach(arg => {
   if (arg.startsWith('--idCliente=')) {
@@ -16,12 +18,14 @@ args.forEach(arg => {
     numScheda = arg.split('=')[1].trim();
   } else if (arg.startsWith('--tipo=')) {
     tipo = arg.split('=')[1].trim();
+  } else if (arg.startsWith('--jsonExtra=')) {
+    jsonExtraPathArg = arg.split('=')[1].trim().replace(/^"|"$/g, '');
   }
 });
 
 if (!idCliente || !numScheda || !tipo) {
   console.error("[Import Ponte] Errore: Parametri obbligatori mancanti.");
-  console.error("Uso: node import_ponte.js --idCliente=<ID> --numScheda=<NUM> --tipo=<Nuovo|Refresh>");
+  console.error("Uso: node import_ponte.js --idCliente=<ID> --numScheda=<NUM> --tipo=<Nuovo|Refresh> [--jsonExtra=<PATH>]");
   process.exit(1);
 }
 
@@ -30,6 +34,7 @@ if (tipo !== 'Nuovo' && tipo !== 'Refresh') {
   process.exit(1);
 }
 
+// Percorsi file Excel ponte
 const GOOGLE_DRIVE_PATH = "C:\\Users\\visua\\Google Drive\\WoApp_ponte.xlsx";
 const LOCAL_PATH = path.join(__dirname, "WoApp_ponte.xlsx");
 const EXCEL_PATH = fs.existsSync(GOOGLE_DRIVE_PATH) ? GOOGLE_DRIVE_PATH : LOCAL_PATH;
@@ -37,6 +42,19 @@ const EXCEL_PATH = fs.existsSync(GOOGLE_DRIVE_PATH) ? GOOGLE_DRIVE_PATH : LOCAL_
 if (!fs.existsSync(EXCEL_PATH)) {
   console.error(`[Import Ponte] Errore: Il file Excel '${EXCEL_PATH}' non esiste.`);
   process.exit(1);
+}
+
+// Individuazione del file JSON Dati Extra
+const DEFAULT_EXTRA_GDRIVE = "C:\\Users\\visua\\Google Drive\\WoApp_extra.json";
+const DEFAULT_EXTRA_LOCAL = path.join(__dirname, "WoApp_extra.json");
+let EXTRA_JSON_PATH = null;
+
+if (jsonExtraPathArg && fs.existsSync(jsonExtraPathArg)) {
+  EXTRA_JSON_PATH = jsonExtraPathArg;
+} else if (fs.existsSync(DEFAULT_EXTRA_GDRIVE)) {
+  EXTRA_JSON_PATH = DEFAULT_EXTRA_GDRIVE;
+} else if (fs.existsSync(DEFAULT_EXTRA_LOCAL)) {
+  EXTRA_JSON_PATH = DEFAULT_EXTRA_LOCAL;
 }
 
 // 2. Inizializzazione Firebase Admin SDK
@@ -105,15 +123,16 @@ const BOOLEAN_FIELDS = new Set([
   'flg_sic',
   'flg_ramp_test',
   'flg_da_finire',
-  'flg_attivo'
+  'flg_attivo',
+  'flg_forza_reps_salita' // Aggiunto ai booleani gestiti
 ]);
 
 function parseBooleanFlag(val) {
   if (typeof val === 'boolean') return val;
-  if (typeof val === 'number') return val === 1;
+  if (typeof val === 'number') return val === 1 || val === -1;
   if (typeof val === 'string') {
     const s = val.trim().toLowerCase();
-    return s === 'true' || s === 'vero' || s === '1' || s === 'si';
+    return s === 'true' || s === 'vero' || s === '1' || s === '-1' || s === 'si';
   }
   return false;
 }
@@ -124,7 +143,7 @@ function areRecordsEqual(rec1, rec2) {
   const allKeys = new Set([...keys1, ...keys2]);
   
   for (const key of allKeys) {
-    if (key === 'timestamp' || key === 'timestamp_ute') continue; // Salta i timestamp automatici di importazione
+    if (key === 'timestamp' || key === 'timestamp_ute') continue; // Salta i timestamp automatici
     const rawVal1 = rec1[key];
     const rawVal2 = rec2[key];
     
@@ -147,6 +166,49 @@ function areRecordsEqual(rec1, rec2) {
 async function run() {
   console.log(`[Import Ponte] Avvio sincronizzazione: idCliente=${idCliente}, numScheda=${numScheda}, tipo=${tipo}`);
   console.log(`[Import Ponte] Lettura del file Excel: ${EXCEL_PATH}`);
+
+  // === FASE 0: CARICAMENTO DATI EXTRA DA FILE JSON CON VERIFICA DI SICUREZZA ===
+  const extraExerciseMap = {};
+  const extraExerciseByCoord = {};
+  if (EXTRA_JSON_PATH && fs.existsSync(EXTRA_JSON_PATH)) {
+    try {
+      console.log(`[Import Ponte] Lettura dati extra JSON: ${EXTRA_JSON_PATH}`);
+      const rawJson = fs.readFileSync(EXTRA_JSON_PATH, 'utf8').replace(/^\uFEFF/, '');
+      const extraPayload = JSON.parse(rawJson);
+
+      const jsonIdCliente = String(extraPayload.ID_cliente || '').trim();
+      const jsonNumScheda = String(extraPayload.num_scheda || '').trim();
+
+      // Controllo di coerenza: verifichiamo che il JSON appartenga esattamente a QUESTO cliente e scheda
+      if (jsonIdCliente !== String(idCliente).trim() || jsonNumScheda !== String(numScheda).trim()) {
+        console.warn(`[Import Ponte] ATTENZIONE: Il file JSON extra appartiene a un altro cliente/scheda (ID: ${jsonIdCliente}, Scheda: ${jsonNumScheda}).`);
+        console.warn(`[Import Ponte] File extra ignorato per sicurezza per evitare contaminazioni di dati.`);
+      } else {
+        const extraList = extraPayload.esercizi || [];
+        extraList.forEach(item => {
+          const exId = String(item.ID_esercizio || item.id_esercizio || '').trim();
+          const flagVal = parseBooleanFlag(item.flg_forza_reps_salita);
+          if (exId) {
+            extraExerciseMap[exId] = flagVal;
+          }
+          const g = String(item.des_giorno || '').trim().toUpperCase();
+          const r = String(item.num_riga_giorno || '').trim();
+          if (g && r) {
+            extraExerciseByCoord[`${g}_${r}`] = {
+              flag: flagVal,
+              id: exId,
+              name: String(item.des_esercizio || '').trim()
+            };
+          }
+        });
+        console.log(`[Import Ponte] Caricati con successo attributi extra per ${extraList.length} esercizi.`);
+      }
+    } catch (e) {
+      console.warn(`[Import Ponte] Attenzione: Errore durante la lettura del file JSON extra: ${e.message}`);
+    }
+  } else {
+    console.log(`[Import Ponte] Nessun file JSON extra trovato (il campo flg_forza_reps_salita utilizzerà il valore default).`);
+  }
 
   const workbook = XLSX.readFile(EXCEL_PATH);
 
@@ -220,7 +282,6 @@ async function run() {
       const clientDocSnap = await clientDocRef.get();
 
       if (!clientDocSnap.exists) {
-        // Default di abilitazione per un nuovo cliente se non esplicitamente specificato
         if (clientRecord.flg_attivo === undefined) {
           clientRecord.flg_attivo = true;
         }
@@ -231,7 +292,6 @@ async function run() {
         console.log(`[Import Ponte] Record CLIENTE creato per '${idClienteStr}' (nuovo documento abilitato, con email, sesso, data nascita, altezza).`);
       } else {
         const existingClientData = clientDocSnap.data();
-        // Se nel record esistente flg_attivo è già valorizzato e in excel non era presente, preservalo
         if (clientRecord.flg_attivo === undefined && existingClientData.flg_attivo !== undefined) {
           clientRecord.flg_attivo = existingClientData.flg_attivo;
         }
@@ -364,7 +424,7 @@ async function run() {
     let massimaliUpdated = 0;
     let massimaliInserted = 0;
 
-    // Passo 1: Ricerca match esatti (nessuna scrittura se identico)
+    // Passo 1: Ricerca match esatti
     const remainingIncoming = [];
     for (const excelRec of newMassimaliRecords) {
       const exactIdx = unmatchedExistingDocs.findIndex(d => areRecordsEqual(excelRec, d.data));
@@ -376,7 +436,7 @@ async function run() {
       }
     }
 
-    // Passo 2: Ricerca candidati da aggiornare (stesso esercizio, data e tipologia RM)
+    // Passo 2: Ricerca candidati da aggiornare
     for (const excelRec of remainingIncoming) {
       const ex1 = String(excelRec.ID_esercizio || excelRec.des_esercizio || '').trim().toLowerCase();
       const dat1 = String(excelRec.dat_data || '').trim();
@@ -405,7 +465,6 @@ async function run() {
         });
         massimaliUpdated++;
       } else {
-        // Passo 3: Nuovo record non presente in Firestore
         const newDocRef = massimaliRef.doc();
         massimaliOps.push({
           ref: newDocRef,
@@ -455,6 +514,26 @@ async function run() {
         }
       }
     }
+
+    // Integrazione del nuovo campo flg_forza_reps_salita tramite colonna Excel o JSON extra (coordinate o ID)
+    const g = String(cleanRow.des_giorno || '').trim().toUpperCase();
+    const r = String(cleanRow.num_riga_giorno || '').trim();
+    const coordKey = `${g}_${r}`;
+    const exId = String(cleanRow.ID_esercizio || cleanRow.id_esercizio || '').trim();
+
+    if (cleanRow['flg_forza_reps_salita'] !== undefined && cleanRow['flg_forza_reps_salita'] !== '') {
+      cleanRow['flg_forza_reps_salita'] = parseBooleanFlag(cleanRow['flg_forza_reps_salita']);
+    } else if (extraExerciseByCoord[coordKey] !== undefined) {
+      cleanRow['flg_forza_reps_salita'] = extraExerciseByCoord[coordKey].flag;
+      if (!cleanRow.ID_esercizio && extraExerciseByCoord[coordKey].id) {
+        cleanRow['ID_esercizio'] = extraExerciseByCoord[coordKey].id;
+      }
+    } else if (exId && extraExerciseMap[exId] !== undefined) {
+      cleanRow['flg_forza_reps_salita'] = extraExerciseMap[exId];
+    } else {
+      cleanRow['flg_forza_reps_salita'] = false;
+    }
+
     return cleanRow;
   });
 
@@ -490,7 +569,6 @@ async function run() {
   } else if (tipo === 'Refresh') {
     console.log("[Import Ponte] Modalità 'Refresh': Allineamento intelligente...");
     
-    // Mappa dei record esistenti per des_giorno + num_riga_giorno
     const existingDocsMap = {};
     querySnap.forEach(docSnap => {
       const data = docSnap.data();
@@ -544,7 +622,7 @@ async function run() {
             }
           });
           
-          // Verifica se ci sono reali cambiamenti (esclusi timestamp) per evitare di sprecare quote di scrittura
+          // Verifica se ci sono reali cambiamenti (esclusi timestamp, verifica anche flg_forza_reps_salita)
           if (!areRecordsEqual(mergedRecord, existing.data)) {
             shouldWrite = true;
             updatedCount++;
@@ -583,7 +661,7 @@ async function run() {
       const data = docSnap.data();
       const rigaNum = parseInt(data.num_riga_giorno);
       if (rigaNum === 0) {
-        // Preserva la riga 0 (contiene note, tempi e chiusure settimanali dell'atleta)
+        // Preserva la riga 0
         return;
       }
       if (!processedDocIds.has(docSnap.id)) {
@@ -598,7 +676,7 @@ async function run() {
 
     console.log(`[Import Ponte] Punti di riepilogo per il Refresh:`);
     console.log(` - Record già allineati (scrittura saltata): ${skippedCount}`);
-    console.log(` - Record aggiornati (prescrizioni cambiate, log preservati): ${updatedCount}`);
+    console.log(` - Record aggiornati (prescrizioni/salita cambiate, log preservati): ${updatedCount}`);
     console.log(` - Record aggiornati con cambio es. (log puliti): ${replacedCount}`);
     console.log(` - Nuovi record aggiunti: ${insertedCount}`);
     console.log(` - Vecchi record rimossi: ${deletedCount}`);

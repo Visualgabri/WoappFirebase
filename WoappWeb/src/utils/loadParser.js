@@ -110,6 +110,10 @@ export const isCorpoLiberoEsercizio = (ex) => {
 
   // 1. Priorità assoluta al flag esplicito su Database / UI (Sì / No)
   if (typeof ex === 'object') {
+    // Flag ufficiale importato da ponte / Firebase
+    if (ex.flg_forza_reps_salita === true || ex.flg_forza_reps_salita === 'true' || ex.flg_forza_reps_salita === 1 || ex.flg_forza_reps_salita === -1) return true;
+    if (ex.flg_forza_reps_salita === false || ex.flg_forza_reps_salita === 'false' || ex.flg_forza_reps_salita === 0) return false;
+
     if (ex.flg_corpo_libero === true || ex.flg_corpo_libero === 'true') return true;
     if (ex.flg_corpo_libero === false || ex.flg_corpo_libero === 'false') return false;
     if (ex.modalita_carico === 'corpo_libero') return true;

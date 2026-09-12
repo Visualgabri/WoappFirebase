@@ -307,13 +307,70 @@ export const estraiRepsDaPrescrizione = (prescrizioneStr) => {
 };
 
 /**
- * Estrae le serie previste dalla prescrizione (es. "3x10" -> 3, "4x8" -> 4, "1x14" -> 1).
+/**
+ * Riconosce e analizza la notazione di prescrizione per tecniche basate su MAX REPS
+ * (es. "3MAXREPS", "(3MAXREPS)", "3MAX+1", "(3MAX+1)", "2MAX+4", "4xMAX+2", "3 MAX + 1", "3MAX").
+ *
+ * @param {string} prescrizioneStr
+ * @returns {{
+ *   isMaxReps: boolean,
+ *   numSerie: number,
+ *   deltaReps: number,
+ *   isTestWeek: boolean,
+ *   rawCode: string
+ * } | null}
+ */
+export const parseMaxRepsPrescription = (prescrizioneStr) => {
+  if (!prescrizioneStr) return null;
+  const raw = String(prescrizioneStr).split('|')[0].trim();
+  const clean = raw.replace(/[()\[\]]/g, '').trim();
+
+  // Pattern: (\d+)\s*[xX]?\s*MAX(?:\s*REPS?)?(?:\s*\+\s*(\d+))?
+  const match = clean.match(/^(\d+)\s*[xX]?\s*MAX(?:\s*REPS?)?(?:\s*\+\s*(\d+))?$/i);
+  if (match) {
+    const numSerie = parseInt(match[1], 10);
+    const deltaReps = match[2] ? parseInt(match[2], 10) : 0;
+    const isTestWeek = deltaReps === 0;
+    return {
+      isMaxReps: true,
+      numSerie: numSerie > 0 ? numSerie : 3,
+      deltaReps,
+      isTestWeek,
+      rawCode: clean.toUpperCase()
+    };
+  }
+
+  // Pattern generico senza numero serie iniziale (es. "MAXREPS", "MAX+1")
+  const matchNoSerie = clean.match(/^MAX(?:\s*REPS?)?(?:\s*\+\s*(\d+))?$/i);
+  if (matchNoSerie) {
+    const deltaReps = matchNoSerie[1] ? parseInt(matchNoSerie[1], 10) : 0;
+    return {
+      isMaxReps: true,
+      numSerie: 3,
+      deltaReps,
+      isTestWeek: deltaReps === 0,
+      rawCode: clean.toUpperCase()
+    };
+  }
+
+  return null;
+};
+
+/**
+ * Estrae le serie previste dalla prescrizione (es. "3x10" -> 3, "4x8" -> 4, "1x14" -> 1, "(3MAXREPS)" -> 3, "(2MAX+4)" -> 2).
  * @param {string} prescrizioneStr
  * @returns {number|null}
  */
 export const estraiSerieDaPrescrizione = (prescrizioneStr) => {
   if (!prescrizioneStr) return null;
   const part = String(prescrizioneStr).split('|')[0].trim();
+
+  // Supporto per pattern MAX REPS (es. "(3MAXREPS)", "2MAX+4")
+  const maxInfo = parseMaxRepsPrescription(part);
+  if (maxInfo && maxInfo.numSerie) {
+    return maxInfo.numSerie;
+  }
+
   const cleanPart = part.replace(/\([^)]+\)/g, '').trim();
 
   const matchX = cleanPart.match(/(\d+)\s*[xX]\s*\d+/);
@@ -1795,4 +1852,208 @@ export const haProgressioneQualitativa = (strVal) => {
     /\+(?:1|2|3)\s*(?:rep|colpo|reps)?\b/i.test(cleanOutside)
   );
 };
+
+/**
+ * Estrae le singole serie di ripetizioni inserite dall'atleta
+ * (es. "14 12 10", "14-12-10", "14, 12, 10", "14 / 12 / 10", "36", "14 12 10r").
+ *
+ * @param {string} strVal Stringa inserita nel campo week
+ * @param {number|null} [expectedSets=null] Numero di serie atteso
+ * @returns {{
+ *   sets: number[],
+ *   numSerie: number,
+ *   totaleReps: number,
+ *   mediaReps: number,
+ *   isValido: boolean,
+ *   raw: string
+ * }}
+ */
+export const estraiSerieRepsDaInput = (strVal, expectedSets = null) => {
+  if (!strVal) {
+    return {
+      sets: [],
+      numSerie: 0,
+      totaleReps: 0,
+      mediaReps: 0,
+      isValido: false,
+      raw: ''
+    };
+  }
+
+  let clean = String(strVal).trim().toLowerCase();
+  // Rimuove eventuali commenti fra parentesi
+  clean = clean.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+  // Rimuove parole chiave tipiche e metadati
+  clean = clean.replace(/\b(?:kg|k|reps?|rip(?:etizioni)?|colpi|serie|cedimento|max|tot|totale)\b/gi, ' ');
+  // Normalizza separatori comuni (trattini, barre, virgole, punti e virgola) in spazi
+  clean = clean.replace(/[,;|\/\-]+/g, ' ');
+
+  // Estrae tutti i numeri interi positivi (da 1 a 250 reps)
+  const tokens = clean.split(/\s+/).filter(Boolean);
+  const sets = [];
+  tokens.forEach(tok => {
+    const num = parseInt(tok, 10);
+    if (!isNaN(num) && num > 0 && num <= 250) {
+      sets.push(num);
+    }
+  });
+
+  if (sets.length === 0) {
+    return {
+      sets: [],
+      numSerie: 0,
+      totaleReps: 0,
+      mediaReps: 0,
+      isValido: false,
+      raw: String(strVal)
+    };
+  }
+
+  const totaleReps = sets.reduce((acc, v) => acc + v, 0);
+  const numSerie = sets.length;
+  const mediaReps = Math.round((totaleReps / numSerie) * 10) / 10;
+
+  return {
+    sets,
+    numSerie,
+    totaleReps,
+    mediaReps,
+    isValido: true,
+    raw: String(strVal)
+  };
+};
+
+/**
+ * Calcola la proposta dinamica del Ghost per la tecnica MAX REPS
+ * con autoregolazione fisiologica (Soluzione 3) e gestione dinamica
+ * delle variazioni di serie (uguali, meno, più serie).
+ *
+ * @param {Object} params
+ * @param {Object} params.prevLog Dati esecuzione settimana precedente (da estraiSerieRepsDaInput)
+ * @param {Object} params.currentMaxPresc Prescrizione settimana corrente (da parseMaxRepsPrescription)
+ * @param {Object|null} [params.prevMaxPresc=null] Prescrizione settimana precedente
+ * @param {number|null} [params.prevTargetTotal=null] Target totale suggerito dal Ghost la settimana precedente
+ * @param {string} [params.sensibilitaFatica='bilanciata'] 'conservativa' | 'bilanciata' | 'aggressiva'
+ * @param {boolean} [params.autoregolazioneAttiva=true] Flag autoregolazione reps
+ * @returns {{
+ *   targetTotale: number,
+ *   targetMediaPerSerie: number,
+ *   breakdownSuggerito: number[],
+ *   isRecalibrated: boolean,
+ *   motivoRicalibrazione: string,
+ *   tipoVariazioneSerie: 'uguali' | 'meno' | 'piu',
+ *   spiegazioneFisiologica: string
+ * }}
+ */
+export const calcolaGhostMaxRepsProgressione = ({
+  prevLog,
+  currentMaxPresc,
+  prevMaxPresc = null,
+  prevTargetTotal = null,
+  sensibilitaFatica = 'bilanciata',
+  autoregolazioneAttiva = true
+}) => {
+  const currentSets = currentMaxPresc?.numSerie || 3;
+  const currentDelta = currentMaxPresc?.deltaReps || 0;
+  const prevSets = prevMaxPresc?.numSerie || (prevLog?.numSerie > 0 ? prevLog.numSerie : 3);
+  const prevDelta = prevMaxPresc?.deltaReps || 0;
+
+  // Step incrementale teorico programmato (es. W1->W2 step=1, W2->W3 step=1, W4->W5 step=1)
+  const stepIncremento = Math.max(1, currentDelta - prevDelta);
+
+  const prevTotale = prevLog?.totaleReps || 0;
+  const prevMedia = prevLog?.mediaReps || (prevTotale > 0 ? prevTotale / prevSets : 10);
+
+  // Verifica underperformance rispetto al target atteso
+  let isUnderperformance = false;
+  let deficit = 0;
+  if (prevTargetTotal && prevTargetTotal > 0 && prevTotale > 0) {
+    if (prevTotale < prevTargetTotal) {
+      isUnderperformance = true;
+      deficit = prevTargetTotal - prevTotale;
+    }
+  }
+
+  // Identifica variazione serie
+  let tipoVariazioneSerie = 'uguali';
+  if (currentSets < prevSets) tipoVariazioneSerie = 'meno';
+  else if (currentSets > prevSets) tipoVariazioneSerie = 'piu';
+
+  let targetMedia = prevMedia;
+  let isRecalibrated = false;
+  let motivoRicalibrazione = '';
+  let spiegazioneFisiologica = '';
+
+  if (autoregolazioneAttiva && isUnderperformance) {
+    isRecalibrated = true;
+    if (sensibilitaFatica === 'conservativa') {
+      // Nessun incremento: consolidamento del volume reale
+      targetMedia = prevMedia;
+      motivoRicalibrazione = 'Consolidamento del volume reale (fatica rilevata)';
+      spiegazioneFisiologica = `Target riallineato a ${Math.round(prevMedia)} reps per serie per consentire pieno recupero neuromuscolare prima di sovraccaricare.`;
+    } else if (sensibilitaFatica === 'aggressiva') {
+      // Secondo tentativo o pareggio target precedente
+      const prevTargetMedia = prevTargetTotal ? (prevTargetTotal / prevSets) : prevMedia + stepIncremento;
+      targetMedia = prevTargetMedia;
+      motivoRicalibrazione = 'Secondo tentativo: pareggio del target';
+      spiegazioneFisiologica = `Oggi punta a pareggiare l'obiettivo non completato la settimana precedente (~${Math.round(targetMedia)} reps/serie).`;
+    } else {
+      // Bilanciata: incremento parziale/smorzato sulla performance reale
+      const incrementoSmorzato = Math.max(0.5, stepIncremento * 0.5);
+      targetMedia = prevMedia + incrementoSmorzato;
+      motivoRicalibrazione = 'Incremento smorzato per supercompensazione';
+      spiegazioneFisiologica = `Ricalibrazione fisiologica (+${incrementoSmorzato} rep/set sul reale) per stimolare l'adattamento senza andare in overshoot.`;
+    }
+  } else {
+    // Target raggiunto o prima progressione normale
+    targetMedia = prevMedia + stepIncremento;
+    if (tipoVariazioneSerie === 'meno') {
+      spiegazioneFisiologica = `Riduzione a ${currentSets} serie: dissipazione della fatica per esprimere massima intensità (+${stepIncremento} reps/set).`;
+    } else if (tipoVariazioneSerie === 'piu') {
+      spiegazioneFisiologica = `Aumento a ${currentSets} serie: stimolo di volume progressivo con compensazione del calo fisiologico.`;
+    } else {
+      spiegazioneFisiologica = `Progressione standard (+${stepIncremento} rep per serie rispetto alla prestazione precedente).`;
+    }
+  }
+
+  // Calcolo del target totale in base al numero di serie
+  let targetTotale = 0;
+  const breakdownSuggerito = [];
+
+  if (tipoVariazioneSerie === 'piu') {
+    // Serie extra: applica decadimento fisiologico sulle ultime serie (drop-off 10-12%)
+    let sum = 0;
+    for (let s = 1; s <= currentSets; s++) {
+      let repSet = targetMedia;
+      if (s > prevSets) {
+        repSet = Math.max(1, Math.round(targetMedia * 0.88));
+      } else {
+        repSet = Math.round(targetMedia);
+      }
+      breakdownSuggerito.push(repSet);
+      sum += repSet;
+    }
+    targetTotale = sum;
+  } else {
+    // Serie uguali o inferiori
+    const repPerSet = Math.max(1, Math.round(targetMedia));
+    for (let s = 1; s <= currentSets; s++) {
+      breakdownSuggerito.push(repPerSet);
+    }
+    targetTotale = repPerSet * currentSets;
+  }
+
+  const targetMediaPerSerie = Math.round((targetTotale / currentSets) * 10) / 10;
+
+  return {
+    targetTotale,
+    targetMediaPerSerie,
+    breakdownSuggerito,
+    isRecalibrated,
+    motivoRicalibrazione,
+    tipoVariazioneSerie,
+    spiegazioneFisiologica
+  };
+};
+
 

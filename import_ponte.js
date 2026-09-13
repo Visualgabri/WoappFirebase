@@ -13,11 +13,11 @@ let jsonExtraPathArg = null;
 
 args.forEach(arg => {
   if (arg.startsWith('--idCliente=')) {
-    idCliente = arg.split('=')[1].trim();
+    idCliente = arg.split('=')[1].trim().replace(/^"|"$/g, '');
   } else if (arg.startsWith('--numScheda=')) {
-    numScheda = arg.split('=')[1].trim();
+    numScheda = arg.split('=')[1].trim().replace(/^"|"$/g, '');
   } else if (arg.startsWith('--tipo=')) {
-    tipo = arg.split('=')[1].trim();
+    tipo = arg.split('=')[1].trim().replace(/^"|"$/g, '');
   } else if (arg.startsWith('--jsonExtra=')) {
     jsonExtraPathArg = arg.split('=')[1].trim().replace(/^"|"$/g, '');
   }
@@ -211,6 +211,29 @@ async function run() {
   }
 
   const workbook = XLSX.readFile(EXCEL_PATH);
+
+  // === FASE 0.5: CONTROLLO DI COERENZA RIGOROSO ATLETA/SCHEDA TRA EXCEL E PARAMETRI CLI ===
+  const preWrSheet = workbook.Sheets['WORKOUT_R'];
+  if (preWrSheet) {
+    const preWrRows = XLSX.utils.sheet_to_json(preWrSheet, { defval: "" });
+    if (preWrRows.length > 0) {
+      const excelIdCliente = String(preWrRows[0].ID_cliente || '').trim();
+      const excelNumScheda = String(preWrRows[0].num_scheda || '').trim();
+
+      if (excelIdCliente && excelIdCliente !== String(idCliente).trim()) {
+        console.error(`\n❌ [Import Ponte] ERRORE BLOCCANTE DI SICUREZZA:`);
+        console.error(`   L'atleta nel file Excel è '${excelIdCliente}', mentre da riga di comando hai specificato --idCliente='${idCliente}'.`);
+        console.error(`   Operazione annullata IMMEDIATAMENTE prima di qualsiasi scrittura su Firestore per prevenire duplicazioni.\n`);
+        process.exit(1);
+      }
+      if (excelNumScheda && excelNumScheda !== String(numScheda).trim()) {
+        console.error(`\n❌ [Import Ponte] ERRORE BLOCCANTE DI SICUREZZA:`);
+        console.error(`   La scheda nel file Excel è '${excelNumScheda}', mentre da riga di comando hai specificato --numScheda='${numScheda}'.`);
+        console.error(`   Operazione annullata IMMEDIATAMENTE prima di qualsiasi scrittura su Firestore per prevenire duplicazioni.\n`);
+        process.exit(1);
+      }
+    }
+  }
 
   // === FASE 1: CLIENTE E METADATA ===
   console.log(`[Import Ponte] Elaborazione foglio 'CLIENTI'...`);
@@ -496,6 +519,23 @@ async function run() {
 
   const wrRows = XLSX.utils.sheet_to_json(wrSheet, { defval: "" });
   console.log(`[Import Ponte] Record letti da Excel: ${wrRows.length}`);
+
+  // Controllo di coerenza rigoroso: verifichiamo che i dati nel foglio Excel corrispondano all'atleta e scheda indicati
+  if (wrRows.length > 0) {
+    const excelIdCliente = String(wrRows[0].ID_cliente || '').trim();
+    const excelNumScheda = String(wrRows[0].num_scheda || '').trim();
+
+    if (excelIdCliente && excelIdCliente !== String(idCliente).trim()) {
+      console.error(`[Import Ponte] ERRORE BLOCCANTE: L'atleta nel file Excel (${excelIdCliente}) non corrisponde al parametro --idCliente (${idCliente}).`);
+      console.error(`Importazione interrotta per sicurezza per prevenire contaminazioni o duplicazioni di schede.`);
+      process.exit(1);
+    }
+    if (excelNumScheda && excelNumScheda !== String(numScheda).trim()) {
+      console.error(`[Import Ponte] ERRORE BLOCCANTE: Il numero scheda nel file Excel (${excelNumScheda}) non corrisponde al parametro --numScheda (${numScheda}).`);
+      console.error(`Importazione interrotta per sicurezza per prevenire contaminazioni o duplicazioni di schede.`);
+      process.exit(1);
+    }
+  }
 
   const newExcelRecords = wrRows.map(row => {
     const cleanRow = {};

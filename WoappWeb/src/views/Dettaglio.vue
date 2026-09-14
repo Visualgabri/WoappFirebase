@@ -1806,7 +1806,7 @@
               <div class="d-flex align-center gap-1.5">
                 <v-icon size="16" color="purple-lighten-2">mdi-alert-decagram</v-icon>
                 <span class="font-weight-black text-purple-lighten-2 text-super-caption uppercase" style="letter-spacing: 0.04em; font-size: 0.60rem;">
-                  Progressione Non Rilevata su kg/reps
+                  {{ isMaxRepsExercise ? 'Progressione Non Rilevata su Totale Reps' : 'Progressione Non Rilevata su kg/reps' }}
                 </span>
               </div>
               <v-chip color="purple-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.5rem; height: 16px;">
@@ -1814,7 +1814,7 @@
               </v-chip>
             </div>
             <p class="text-super-caption text-slate-light mb-2" style="font-size: 0.65rem; line-height: 1.35; color: #cbd5e1 !important;">
-              Stesso peso di W{{ sett - 1 }} senza ripetizioni in più. Hai migliorato uno di questi parametri qualitativi oggi?
+              {{ isMaxRepsExercise ? `Totale ripetizioni pari o inferiore a W${sett - 1} senza incremento. Hai migliorato uno di questi parametri qualitativi oggi?` : `Stesso peso di W${sett - 1} senza ripetizioni in più. Hai migliorato uno di questi parametri qualitativi oggi?` }}
             </p>
             <div class="d-flex flex-wrap gap-1">
               <v-chip
@@ -7851,7 +7851,32 @@ const isStagnazioneSettimana = (sett) => {
   
   if (haDriverQualitativoAccreditato(sett)) return false;
 
-  const perfCurr = estraiMigliorPrestazioneInput(currentIns, getRepsPerWeek(sett), isCavoOMacchinaEsercizio(workout.value));
+  // --- LOGICA SPECIALE PER TECNICA MAX REPS (Progressione su totale reps a cedimento) ---
+  if (isMaxRepsExercise.value) {
+    const sCurr = estraiSerieRepsDaInput(currentIns);
+    if (!sCurr || !sCurr.isValido || sCurr.totaleReps <= 0) return false;
+
+    let prevW = sett - 1;
+    let sPrev = null;
+    while (prevW >= 1) {
+      const prevVal = inputSettimane.value[prevW]?.ins || workout.value?.['ins_week' + prevW];
+      if (prevVal && String(prevVal).trim() !== '' && String(prevVal).trim() !== '-') {
+        const parsed = estraiSerieRepsDaInput(prevVal);
+        if (parsed && parsed.isValido && parsed.totaleReps > 0) {
+          sPrev = parsed;
+          break;
+        }
+      }
+      prevW--;
+    }
+
+    if (!sPrev) return false;
+
+    // Se le ripetizioni totali attuali superano quelle precedenti, C'È PROGRESSIONE! Non è stagnazione.
+    return sCurr.totaleReps <= sPrev.totaleReps;
+  }
+
+  const perfCurr = estraiMigliorPrestazioneInput(currentIns, getRepsPerWeek(sett), isCavoOMacchinaEsercizio(workout.value), isCorpoLiberoPuro.value);
   const currentPeso = perfCurr ? perfCurr.peso : (parseFloat(estraiPesoDaInput(currentIns)) || 0);
   if (currentPeso <= 0) return false;
 
@@ -7864,7 +7889,7 @@ const isStagnazioneSettimana = (sett) => {
   if (prevW < 1) return false;
 
   const prevIns = inputSettimane.value[prevW]?.ins;
-  const perfPrev = estraiMigliorPrestazioneInput(prevIns, getRepsPerWeek(prevW), isCavoOMacchinaEsercizio(workout.value));
+  const perfPrev = estraiMigliorPrestazioneInput(prevIns, getRepsPerWeek(prevW), isCavoOMacchinaEsercizio(workout.value), isCorpoLiberoPuro.value);
   const prevPeso = perfPrev ? perfPrev.peso : (parseFloat(estraiPesoDaInput(prevIns)) || 0);
   if (prevPeso <= 0) return false;
 
@@ -7905,12 +7930,21 @@ const applicaDriverProgressione = (sett, labelChip) => {
     const isExtraRep = labelChip.toLowerCase().includes('rep') || labelChip.includes('+');
 
     if (isExtraRep) {
-      // Se l'utente ha scritto ad es. "10 x12r", incrementiamo le reps da 12 a 13 e aggiungiamo [+1 Rep Extra]
-      const matchReps = currentVal.match(/(x\s*|reps?\s*|r\s*)(\d+)/i) || currentVal.match(/(\d+)\s*r\b/i);
-      if (matchReps && matchReps[2]) {
-        const oldReps = parseInt(matchReps[2], 10);
-        const newReps = oldReps + 1;
-        currentVal = currentVal.replace(matchReps[0], matchReps[0].replace(String(oldReps), String(newReps)));
+      if (isMaxRepsExercise.value) {
+        const sInfo = estraiSerieRepsDaInput(currentVal);
+        if (sInfo && sInfo.isValido && sInfo.sets.length > 0) {
+          const sets = [...sInfo.sets];
+          sets[sets.length - 1] += 1;
+          currentVal = sets.join(' ');
+        }
+      } else {
+        // Se l'utente ha scritto ad es. "10 x12r", incrementiamo le reps da 12 a 13 e aggiungiamo [+1 Rep Extra]
+        const matchReps = currentVal.match(/(x\s*|reps?\s*|r\s*)(\d+)/i) || currentVal.match(/(\d+)\s*r\b/i);
+        if (matchReps && matchReps[2]) {
+          const oldReps = parseInt(matchReps[2], 10);
+          const newReps = oldReps + 1;
+          currentVal = currentVal.replace(matchReps[0], matchReps[0].replace(String(oldReps), String(newReps)));
+        }
       }
       if (!currentVal.toLowerCase().includes('extra') && !currentVal.includes('+1')) {
         currentVal = currentVal ? `${currentVal} [+1 Rep Extra]` : `[+1 Rep Extra]`;
@@ -7956,7 +7990,7 @@ const auditStalloW6 = computed(() => {
 });
 
 const isStalledInPreviousMesocycle = computed(() => {
-  if (!workout.value || !previousWorkout.value || isCardio.value || isPostura.value) return false;
+  if (!workout.value || !previousWorkout.value || isCardio.value || isPostura.value || isMaxRepsExercise.value) return false;
   
   // Se è un esercizio di forza con carichi impostati dal coach, non mostrare il warning di stallo
   const isStrengthEx = !!parsedRmt(workout.value.des_esercizio_2);

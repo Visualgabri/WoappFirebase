@@ -1766,24 +1766,18 @@
               </div>
             </div>
 
-            <!-- Badge Guida e Conteggio Istantaneo Serie MAX REPS -->
+            <!-- Badge Conteggio Istantaneo Serie MAX REPS (visibile solo a serie valide inserite) -->
             <div
-              v-if="!isPostura && !isCardio && isMaxRepsWeek(sett)"
+              v-if="!isPostura && !isCardio && isMaxRepsWeek(sett) && getSerieMaxRepsInfo(sett).isValido"
               class="d-flex align-center justify-space-between mt-1.5 px-2.5 py-1.5 rounded-lg animate-fade-in text-left"
-              :style="{
-                background: getSerieMaxRepsInfo(sett).isValido ? 'rgba(74, 222, 128, 0.08)' : 'rgba(56, 189, 248, 0.08)',
-                border: '1px solid ' + (getSerieMaxRepsInfo(sett).isValido ? 'rgba(74, 222, 128, 0.25)' : 'rgba(56, 189, 248, 0.25)')
-              }"
+              style="background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.25);"
             >
               <div class="d-flex align-center gap-1.5 min-width-0 w-100">
-                <v-icon :color="getSerieMaxRepsInfo(sett).isValido ? 'green-accent-3' : 'cyan-lighten-2'" size="15" class="flex-shrink-0">
-                  {{ getSerieMaxRepsInfo(sett).isValido ? 'mdi-check-circle-outline' : 'mdi-information-outline' }}
+                <v-icon color="green-accent-3" size="15" class="flex-shrink-0">
+                  mdi-check-circle-outline
                 </v-icon>
-                <span v-if="getSerieMaxRepsInfo(sett).isValido" class="font-weight-bold text-truncate flex-grow-1" style="font-size: 0.68rem; color: #86efac;">
+                <span class="font-weight-bold text-truncate flex-grow-1" style="font-size: 0.68rem; color: #86efac;">
                   <strong>{{ getSerieMaxRepsInfo(sett).numSerie }} {{ getSerieMaxRepsInfo(sett).numSerie === 1 ? 'serie' : 'serie' }}</strong>: {{ getSerieMaxRepsInfo(sett).sets.join(' - ') }} · Totale: <strong>{{ getSerieMaxRepsInfo(sett).totaleReps }} reps</strong> (media: {{ getSerieMaxRepsInfo(sett).mediaReps }})
-                </span>
-                <span v-else class="text-slate-300 font-weight-medium text-truncate flex-grow-1" style="font-size: 0.68rem;">
-                  {{ sett === 1 ? 'Test:' : 'Guida:' }} Inserisci le reps delle singole serie (es. <strong class="text-white">{{ getEsempioSerieMaxReps(sett) }}</strong>)
                 </span>
               </div>
             </div>
@@ -10114,7 +10108,7 @@ const getGhostRenderInfo = (sett) => {
         refText: mrGhost.spiegazioneFisiologica,
         hasReference: Boolean(mrGhost.spiegazioneFisiologica),
         isMaxRepsGhost: true,
-        maxEffortNotice: mrGhost.motivoRicalibrazione,
+        maxEffortNotice: mrGhost.isTestWeek ? '' : (mrGhost.motivoRicalibrazione || ''),
         sfidanteNotice: mrGhost.breakdownSuggerito ? `Ripartizione: ${mrGhost.breakdownSuggerito.join(' - ')} reps` : ''
       };
     }
@@ -14331,7 +14325,7 @@ const getGhostMaxRepsProgressione = (sett) => {
       targetMediaPerSerie: null,
       breakdownSuggerito: null,
       isRecalibrated: false,
-      motivoRicalibrazione: 'Test Massimale Week 1',
+      motivoRicalibrazione: '',
       tipoVariazioneSerie: 'uguali',
       spiegazioneFisiologica: `Esegui ${currPresc.numSerie || 3} serie portate al vero cedimento concentrico e scrivi le reps di ciascuna (es. ${getEsempioSerieMaxReps(sett)}).`
     };

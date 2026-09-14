@@ -50,6 +50,56 @@
       <v-tab value="step" class="text-caption font-weight-bold" style="text-transform: none;">⚖️ Salti di Carico</v-tab>
     </v-tabs>
 
+    <!-- SEZIONE PWA: SCHERMATA HOME & APP -->
+    <v-card 
+      v-show="activeTab === 'generali'"
+      class="premium-card rounded-xl text-left border mb-2.5 animate-slide-down pa-3"
+      elevation="1"
+    >
+      <div class="d-flex align-center justify-space-between mb-2">
+        <div class="d-flex align-center">
+          <v-icon :style="{ color: 'var(--theme-primary, #f97316)' }" class="mr-2" size="17">mdi-cellphone-arrow-down</v-icon>
+          <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :style="{ color: 'var(--theme-primary-light, #fb923c)' }" style="font-size: 0.72rem;">Schermata Home & App</span>
+        </div>
+
+        <!-- Badge di stato se già installata -->
+        <v-chip 
+          v-if="isStandalone" 
+          color="green-darken-2" 
+          size="x-small" 
+          variant="flat" 
+          class="font-weight-black text-white px-2"
+          style="font-size: 0.65rem; height: 20px;"
+        >
+          <v-icon size="12" class="mr-1">mdi-check-decagram</v-icon>
+          Installata
+        </v-chip>
+      </div>
+
+      <div v-if="isStandalone" class="text-caption text-muted" style="font-size: 0.72rem; line-height: 1.35;">
+        FlexCoach è attualmente avviata in modalità <strong>App Nativa Standalone</strong> a schermo intero.
+      </div>
+
+      <div v-else>
+        <p class="text-caption text-muted mb-2.5" style="font-size: 0.72rem; line-height: 1.35;">
+          Aggiungi FlexCoach alla schermata Home del tuo {{ deviceInfo.isIOS ? 'iPhone / iPad' : (deviceInfo.isAndroid ? 'telefono Android' : 'dispositivo') }} per usarla come una vera app nativa a tutto schermo, senza barre del browser.
+        </p>
+
+        <v-btn
+          block
+          color="orange-darken-3"
+          variant="flat"
+          class="rounded-lg font-weight-black text-white text-none"
+          style="font-size: 0.74rem; height: 34px;"
+          @click="apriInstallazionePwa"
+          id="btn-impostazioni-installa-pwa"
+        >
+          <v-icon size="15" class="mr-1.5">{{ deviceInfo.isIOS ? 'mdi-apple' : 'mdi-download' }}</v-icon>
+          {{ deviceInfo.isIOS ? 'Come aggiungere a Home su iPhone' : (canInstallAndroid ? 'Installa FlexCoach Ora' : 'Istruzioni Schermata Home') }}
+        </v-btn>
+      </div>
+    </v-card>
+
     <!-- SEZIONE 2: TEMA & ASPETTO -->
     <v-card 
       v-show="activeTab === 'generali'"
@@ -1009,6 +1059,7 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { usePwaInstall } from '../utils/usePwaInstall.js';
 import { useTheme } from 'vuetify';
 import { collection, query, where, getDocs, writeBatch, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -1069,6 +1120,22 @@ import {
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
+
+const {
+  isStandalone,
+  canInstallAndroid,
+  deviceInfo,
+  openInstallGuide,
+  triggerInstall
+} = usePwaInstall();
+
+const apriInstallazionePwa = () => {
+  if (deviceInfo.isAndroid) {
+    triggerInstall();
+  } else {
+    openInstallGuide();
+  }
+};
 const activeTab = ref('generali');
 const selectedTheme = ref(currentTheme.value);
 const selectedLightStyle = ref(currentLightStyle.value);

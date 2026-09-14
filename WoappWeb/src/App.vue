@@ -621,8 +621,11 @@
     <!-- EASTER EGG VIDEO JULIE ("profiamma") -->
     <JulieEasterEgg v-model="mostraJulieEasterEgg" />
 
-    <!-- EASTER EGG VIDEO CHRIS PANNEMEN ("pannemen") -->
-    <PannemenEasterEgg v-model="mostraPannemenEasterEgg" />
+    <!-- BANNER PWA FLUTTUANTE (Aggiungi a Schermata Home) -->
+    <InstallBanner :is-user-logged-in="!!utente" />
+
+    <!-- MODALE GUIDATA PWA (Installazione iOS Safari / Android) -->
+    <InstallPromptModal />
 
   </v-app>
 </template>
@@ -634,6 +637,9 @@ import { useTheme } from 'vuetify';
 import JulieEasterEgg from './components/JulieEasterEgg.vue';
 import PannemenEasterEgg from './components/PannemenEasterEgg.vue';
 import GuidaFlexCoachModal from './components/GuidaFlexCoachModal.vue';
+import InstallBanner from './components/InstallBanner.vue';
+import InstallPromptModal from './components/InstallPromptModal.vue';
+import { initPwaListeners } from './utils/usePwaInstall.js';
 import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, setGlobalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero } from './authStore.js';
 
 const router = useRouter();
@@ -774,6 +780,7 @@ const toggleTema = () => {
 };
 
 onMounted(() => {
+  initPwaListeners();
   setTheme(currentTheme.value, vuetifyTheme);
   window.addEventListener('keydown', handleGlobalKeydown);
   window.addEventListener('input', handleGlobalInput, true);

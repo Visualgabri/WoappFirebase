@@ -129,6 +129,23 @@
       <div class="text-center mt-6 text-caption text-muted font-italic">
         L'accesso è consentito esclusivamente agli account Google pre-autorizzati.
       </div>
+
+      <!-- Suggerimento Installazione PWA su Schermata Home per Mobile -->
+      <div v-if="!isStandalone && deviceInfo.isMobile" class="mt-5 pt-3 border-top text-center">
+        <v-btn
+          variant="tonal"
+          color="orange-darken-3"
+          size="small"
+          rounded="xl"
+          class="font-weight-black text-none px-3"
+          style="font-size: 0.72rem; height: 32px;"
+          @click="apriInstallazione"
+          id="btn-login-pwa-install"
+        >
+          <v-icon size="14" class="mr-1.5">{{ deviceInfo.isIOS ? 'mdi-apple' : 'mdi-download' }}</v-icon>
+          {{ deviceInfo.isIOS ? 'Come installare FlexCoach su iPhone' : 'Installa FlexCoach come App' }}
+        </v-btn>
+      </div>
     </v-card>
   </v-container>
 </template>
@@ -139,6 +156,7 @@ import { useRouter } from 'vue-router';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { signInWithPopup } from 'firebase/auth';
 import { db, auth, googleProvider } from '../firebase.js';
+import { usePwaInstall } from '../utils/usePwaInstall.js';
 import { 
   inizializzaSessione, 
   utente, 
@@ -152,6 +170,16 @@ import {
 } from '../authStore.js';
 
 const router = useRouter();
+
+const { isStandalone, deviceInfo, openInstallGuide, triggerInstall } = usePwaInstall();
+
+const apriInstallazione = () => {
+  if (deviceInfo.isAndroid) {
+    triggerInstall();
+  } else {
+    openInstallGuide();
+  }
+};
 
 // Stato UI
 const caricando = ref(false);

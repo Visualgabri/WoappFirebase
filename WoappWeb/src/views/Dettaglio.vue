@@ -14423,11 +14423,19 @@ const normalizzaNomeEsercizio = (nome) => {
 };
 
 const applicaStoricoSincrono = (wObj) => {
-  if (!wObj) return false;
+  if (!wObj) {
+    storicoEsercizio.value = [];
+    storicoEsercizioPerAiuto.value = [];
+    return false;
+  }
   const { key: keyIdCliente, id: atletaId } = getAtletaInfo(wObj);
   const desEsercizioClean = normalizzaNomeEsercizio(wObj.des_esercizio);
   const currentNumScheda = parseInt(wObj.num_scheda);
-  if (!atletaId || !desEsercizioClean || isNaN(currentNumScheda)) return false;
+  if (!atletaId || !desEsercizioClean || isNaN(currentNumScheda)) {
+    storicoEsercizio.value = wObj ? [wObj] : [];
+    storicoEsercizioPerAiuto.value = wObj ? [wObj] : [];
+    return false;
+  }
 
   const mappaSchede = new Map();
 
@@ -14495,12 +14503,30 @@ const applicaStoricoSincrono = (wObj) => {
 };
 
 const applicaEsercizioPrecedenteSincrono = (wObj) => {
-  if (!wObj) return false;
+  if (!wObj) {
+    previousWorkout.value = null;
+    for (let w = 1; w <= 6; w++) {
+      inputSettimanePrecedente.value[w].ins = '';
+      inputSettimanePrecedente.value[w].reps = '';
+    }
+    numIns6ValPrecedente.value = '';
+    numFaticaw6ValPrecedente.value = '';
+    return false;
+  }
   const { key: keyIdCliente, id: atletaId } = getAtletaInfo(wObj);
   const currentNumScheda = parseInt(wObj.num_scheda);
   const desEsercizioNorm = normalizzaNomeEsercizio(wObj.des_esercizio);
   
-  if (!atletaId || isNaN(currentNumScheda) || !desEsercizioNorm) return false;
+  if (!atletaId || isNaN(currentNumScheda) || !desEsercizioNorm) {
+    previousWorkout.value = null;
+    for (let w = 1; w <= 6; w++) {
+      inputSettimanePrecedente.value[w].ins = '';
+      inputSettimanePrecedente.value[w].reps = '';
+    }
+    numIns6ValPrecedente.value = '';
+    numFaticaw6ValPrecedente.value = '';
+    return false;
+  }
 
   let bestPrev = null;
 
@@ -14551,7 +14577,7 @@ const applicaEsercizioPrecedenteSincrono = (wObj) => {
     });
   }
 
-  if (bestPrev) {
+  if (bestPrev && normalizzaNomeEsercizio(bestPrev.des_esercizio) === desEsercizioNorm) {
     previousWorkout.value = applicaModificheLocali(bestPrev);
     for (let w = 1; w <= 6; w++) {
       inputSettimanePrecedente.value[w].ins = previousWorkout.value['ins_week' + w] || '';
@@ -14560,8 +14586,17 @@ const applicaEsercizioPrecedenteSincrono = (wObj) => {
     numIns6ValPrecedente.value = previousWorkout.value.num_ins6 || '';
     numFaticaw6ValPrecedente.value = previousWorkout.value.num_faticaw6 || '';
     return true;
+  } else {
+    // Reset rigoroso se l'esercizio non ha storico per evitare persistenza dati/ghost precedente
+    previousWorkout.value = null;
+    for (let w = 1; w <= 6; w++) {
+      inputSettimanePrecedente.value[w].ins = '';
+      inputSettimanePrecedente.value[w].reps = '';
+    }
+    numIns6ValPrecedente.value = '';
+    numFaticaw6ValPrecedente.value = '';
+    return false;
   }
-  return false;
 };
 
 const caricaEsercizioPrecedente = async (reqId = currentExerciseRequestId) => {
@@ -14572,18 +14607,42 @@ const caricaEsercizioPrecedente = async (reqId = currentExerciseRequestId) => {
   const desEsercizio = workout.value.des_esercizio;
   const desEsercizioNorm = normalizzaNomeEsercizio(desEsercizio);
   
-  if (!atletaId || !currentNumScheda || !desEsercizioNorm) return;
+  if (!atletaId || !currentNumScheda || !desEsercizioNorm) {
+    if (reqId === currentExerciseRequestId) {
+      previousWorkout.value = null;
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = '';
+        inputSettimanePrecedente.value[w].reps = '';
+      }
+      numIns6ValPrecedente.value = '';
+      numFaticaw6ValPrecedente.value = '';
+    }
+    return;
+  }
   
   try {
     const currentSchedaNum = parseInt(currentNumScheda);
     if (isNaN(currentSchedaNum)) return;
+
+    // Se previousWorkout in memoria appartiene a un altro esercizio, azzeralo immediatamente
+    if (previousWorkout.value && normalizzaNomeEsercizio(previousWorkout.value.des_esercizio) !== desEsercizioNorm) {
+      previousWorkout.value = null;
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = '';
+        inputSettimanePrecedente.value[w].reps = '';
+      }
+      numIns6ValPrecedente.value = '';
+      numFaticaw6ValPrecedente.value = '';
+    }
 
     // Se già trovato e coincide con la scheda esattamente precedente (currentSchedaNum - 1), non serve interrogare Firestore
     if (previousWorkout.value && parseInt(previousWorkout.value.num_scheda) === currentSchedaNum - 1 && normalizzaNomeEsercizio(previousWorkout.value.des_esercizio) === desEsercizioNorm) {
       return;
     }
 
-    let bestPrev = previousWorkout.value ? { ...previousWorkout.value } : null;
+    let bestPrev = (previousWorkout.value && normalizzaNomeEsercizio(previousWorkout.value.des_esercizio) === desEsercizioNorm)
+      ? { ...previousWorkout.value }
+      : null;
 
     // 1. Cerca dallo storyboard_backup.json locale (istantaneo) se non ancora in memoria
     if (!bestPrev) {
@@ -14632,7 +14691,7 @@ const caricaEsercizioPrecedente = async (reqId = currentExerciseRequestId) => {
       return;
     }
 
-    if (bestPrev) {
+    if (bestPrev && normalizzaNomeEsercizio(bestPrev.des_esercizio) === desEsercizioNorm) {
       integraElementiInIndice([bestPrev]);
       previousWorkout.value = applicaModificheLocali(bestPrev);
       for (let w = 1; w <= 6; w++) {
@@ -14643,11 +14702,23 @@ const caricaEsercizioPrecedente = async (reqId = currentExerciseRequestId) => {
       numFaticaw6ValPrecedente.value = previousWorkout.value.num_faticaw6 || '';
     } else {
       previousWorkout.value = null;
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = '';
+        inputSettimanePrecedente.value[w].reps = '';
+      }
+      numIns6ValPrecedente.value = '';
+      numFaticaw6ValPrecedente.value = '';
     }
   } catch (error) {
     console.error("Errore caricamento esercizio precedente:", error);
     if (reqId === currentExerciseRequestId) {
       previousWorkout.value = null;
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = '';
+        inputSettimanePrecedente.value[w].reps = '';
+      }
+      numIns6ValPrecedente.value = '';
+      numFaticaw6ValPrecedente.value = '';
     }
   }
 };
@@ -15766,6 +15837,17 @@ const caricaDatiEsercizio = async () => {
     const schemaRef = workout.value?.num_scheda;
     const desGiorno = workout.value?.des_giorno;
 
+    // Reset preventivo immediato per evitare leak dello stato dell'esercizio precedente (ghost e scorso)
+    previousWorkout.value = null;
+    for (let w = 1; w <= 6; w++) {
+      inputSettimanePrecedente.value[w].ins = '';
+      inputSettimanePrecedente.value[w].reps = '';
+    }
+    numIns6ValPrecedente.value = '';
+    numFaticaw6ValPrecedente.value = '';
+    storicoEsercizio.value = [workout.value];
+    storicoEsercizioPerAiuto.value = [workout.value];
+
     // Sincronizzazione immediata di Riga 0 e Settimana Attiva dalla cache in memoria
     let cachedRiga0 = tuttiEserciziGiorno.value.find(ex => parseInt(ex.num_riga_giorno) === 0 || ex.riga === 0);
     if (!cachedRiga0 && globalStoryboard.value && globalStoryboard.value.length > 0) {
@@ -15898,6 +15980,18 @@ const caricaDatiEsercizio = async () => {
     if (docSnap && docSnap.exists()) {
       const dati = docSnap.data();
       workout.value = applicaModificheLocali({ id: targetDocId || docSnap.id, ...dati });
+
+      // Reset preventivo per evitare leak dell'esercizio precedente
+      previousWorkout.value = null;
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = '';
+        inputSettimanePrecedente.value[w].reps = '';
+      }
+      numIns6ValPrecedente.value = '';
+      numFaticaw6ValPrecedente.value = '';
+      storicoEsercizio.value = [workout.value];
+      storicoEsercizioPerAiuto.value = [workout.value];
+
       applicaEsercizioPrecedenteSincrono(workout.value);
 
       // Recupera la settimana attiva impostata nella Home per l'atleta specifico
@@ -15994,6 +16088,18 @@ const caricaEsercizioDaBackup = async () => {
     });
     if (found) {
       workout.value = applicaModificheLocali(found);
+
+      // Reset preventivo per evitare leak dell'esercizio precedente
+      previousWorkout.value = null;
+      for (let w = 1; w <= 6; w++) {
+        inputSettimanePrecedente.value[w].ins = '';
+        inputSettimanePrecedente.value[w].reps = '';
+      }
+      numIns6ValPrecedente.value = '';
+      numFaticaw6ValPrecedente.value = '';
+      storicoEsercizio.value = [workout.value];
+      storicoEsercizioPerAiuto.value = [workout.value];
+
       applicaEsercizioPrecedenteSincrono(workout.value);
       const keyIdCliente = Object.keys(found).find(k => k.includes('ID_cliente')) || 'ID_cliente';
       const atletaId = found[keyIdCliente] || '';
@@ -20878,6 +20984,8 @@ const caricaDatiAnalisi = async (sett, reqId = currentExerciseRequestId) => {
       if (reqId === currentExerciseRequestId) {
         caricandoStorico.value = false;
         caricandoAiutoCarico.value = false;
+        storicoEsercizio.value = workout.value ? [workout.value] : [];
+        storicoEsercizioPerAiuto.value = workout.value ? [workout.value] : [];
       }
       return;
     }
@@ -20957,6 +21065,10 @@ const caricaDatiAnalisi = async (sett, reqId = currentExerciseRequestId) => {
     storicoEsercizioPerAiuto.value = list;
   } catch (err) {
     console.error('[DEBUG STORICO] Errore caricamento dati analisi:', err);
+    if (reqId === currentExerciseRequestId) {
+      storicoEsercizio.value = workout.value ? [workout.value] : [];
+      storicoEsercizioPerAiuto.value = workout.value ? [workout.value] : [];
+    }
   } finally {
     if (reqId === currentExerciseRequestId) {
       caricandoStorico.value = false;

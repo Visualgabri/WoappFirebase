@@ -8769,7 +8769,10 @@ const getBaseWeekInfo = (sett) => {
   } else if (sett === 3) {
     baseWNum = 2;
   } else if (sett === 4) {
-    baseWNum = 2;
+    const isScaricoW4 = (typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined)
+      ? isWeek4Scarico.value
+      : (getRepsPerWeek(4) > getRepsPerWeek(3));
+    baseWNum = isScaricoW4 ? 2 : 3;
   } else if (sett === 5) {
     const isCavo = isCavoOMacchinaEsercizio(workout.value);
     const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
@@ -9925,15 +9928,35 @@ function getGhostWeightsRangeForWeekRaw(sett) {
   if (repsTarget < repsBaseVal) {
     const e1rmBase = pesoBase * (1 + repsBaseVal / 30);
     const e1rmConsigliato = pesoConsigliato * (1 + repsTarget / 30);
-    // Un peso senza reps per le repsTarget è valido solo se è aumentato rispetto a W1 e pareggia o supera l'1RM base (entro il 95%) o se allineamento rotta è attivo
-    const isValidoTargetReps = (pesoConsigliato > pesoBase) && (allineamentoRottaGhost.value || (e1rmConsigliato >= (e1rmBase * 0.95)));
+    // Un peso senza reps per le repsTarget è valido se pareggia o supera l'1RM base (entro il 95%) o se allineamento rotta è attivo
+    const isValidoTargetReps = (pesoConsigliato >= pesoBase) && (allineamentoRottaGhost.value || (e1rmConsigliato >= (e1rmBase * 0.95)));
 
     // Se l'atleta vuole progredire a parità di peso base (Safe):
     // Per avere una progressione reale di volume rispetto a quanto già fatto (repsBaseVal), propone +1 rep (es. 36x10r o 65x14r)
     const repsProgressioneBase = repsBaseVal + 1;
     const repsSfidanteBase = repsBaseVal + 2;
 
-    const prudenzialeValStr = `${pesoBase}x${repsProgressioneBase}r`;
+    let prudenzialeValStr;
+    let prudenzialeDisplayStr;
+    let prudenzialeLabelStr;
+
+    if (isValidoTargetReps) {
+      if (pesoConsigliato > pesoBase) {
+        prudenzialeValStr = String(pesoBase);
+        prudenzialeDisplayStr = `${formatWeight(pesoBase)} kg`;
+        prudenzialeLabelStr = 'Prudenziale (Stesso peso)';
+      } else {
+        const step = getWeightStep(isManubri, pesoBase);
+        const pDown = isManubri ? getDumbbellSequenceWeight(pesoBase, 'down') : Math.max(step, pesoBase - step);
+        prudenzialeValStr = String(pDown);
+        prudenzialeDisplayStr = `${formatWeight(pDown)} kg`;
+        prudenzialeLabelStr = 'Prudenziale (-Kg)';
+      }
+    } else {
+      prudenzialeValStr = `${pesoBase}x${repsProgressioneBase}r`;
+      prudenzialeDisplayStr = `${formatWeight(pesoBase)}x${repsProgressioneBase}r`;
+      prudenzialeLabelStr = 'Prudenziale (+1r)';
+    }
     
     let consigliatoValStr;
     let consigliatoDisplayStr;
@@ -9948,7 +9971,9 @@ function getGhostWeightsRangeForWeekRaw(sett) {
       } else {
         consigliatoValStr = String(pesoConsigliato);
         consigliatoDisplayStr = `${formatWeight(pesoConsigliato)} kg`;
-        consigliatoLabelStr = sett === 6 ? 'Consigliato (Picco W6)' : 'Consigliato (Aumento)';
+        consigliatoLabelStr = sett === 6 
+          ? 'Consigliato (Picco W6)' 
+          : (pesoConsigliato > pesoBase ? 'Consigliato (Aumento)' : 'Consigliato (Stesso peso)');
       }
     } else {
       consigliatoValStr = `${pesoBase}x${repsProgressioneBase}r`;
@@ -9963,8 +9988,8 @@ function getGhostWeightsRangeForWeekRaw(sett) {
     return {
       prudenziale: {
         value: prudenzialeValStr,
-        display: `${formatWeight(pesoBase)}x${repsProgressioneBase}r`,
-        label: 'Prudenziale (+1r)'
+        display: prudenzialeDisplayStr,
+        label: prudenzialeLabelStr
       },
       consigliato: {
         value: consigliatoValStr,
@@ -17321,8 +17346,8 @@ const getGhostLiftStandard = (sett) => {
   }
 
   if (haParentesiQuadre) {
-    // CASO 2: Presenza di parentesi quadre (Logica attuale con dicitura overload se reps scendono, tranne per week 4 che viene esclusa)
-    if (sett === 4) return null;
+    // CASO 2: Presenza di parentesi quadre (Logica attuale con dicitura overload se reps scendono, tranne per week 4 di scarico che viene esclusa)
+    if (sett === 4 && isWeek4Scarico.value) return null;
 
     // Rileva vincoli espliciti di carico (es. [K W1], [KG W1] o [Kg W1]) in modo non case-sensitive.
     const matchKgW = prescrizione.match(/\[\s*KG?\s*W\s*(\d+)\s*\]?/i);
@@ -19688,12 +19713,13 @@ function analizzaRottaProgressione({
   const t3 = adjustVal(p2 + getStepForVal(p2));
   const p3 = l3 || t3;
 
-  // W4 scarico: se l4 è inserito usa l4, altrimenti teorico da p2
-  const t4 = adjustVal(p2);
+  // W4 scarico: se l4 è inserito usa l4, altrimenti teorico da p2 se scarico, o progressione da p3 se non scarico
+  const isW4ScaricoRotta = (r4 && r3) ? (r4 > r3) : true;
+  const t4 = isW4ScaricoRotta ? adjustVal(p2) : adjustVal(p3 + getStepForVal(p3));
   const p4 = l4 || t4;
 
   // W5: se in W4 è stato completato un carico >= W3 (l4 >= p3), W5 riparte da p4!
-  const baseForW5 = (l4 && l4 >= p3) ? p4 : p3;
+  const baseForW5 = (l4 && l4 >= p3) ? p4 : (isW4ScaricoRotta ? p3 : p4);
   const t5 = adjustVal(baseForW5 + getStepForVal(baseForW5));
   const p5 = l5 || t5;
 
@@ -19719,7 +19745,7 @@ function analizzaRottaProgressione({
     { week: 1, peso: t1, reps: reps1, e1rm: e1rmW1, isScarico: false },
     { week: 2, peso: t2, reps: reps2, e1rm: e1rmW2, isScarico: false },
     { week: 3, peso: t3, reps: reps3, e1rm: e1rmW3, isScarico: false },
-    { week: 4, peso: t4, reps: reps4, e1rm: e1rmW4, isScarico: true },
+    { week: 4, peso: t4, reps: reps4, e1rm: e1rmW4, isScarico: isW4ScaricoRotta },
     { week: 5, peso: t5, reps: reps5, e1rm: e1rmW5, isScarico: false },
     { week: 6, peso: t6, reps: reps6, e1rm: e1rmW6, isScarico: false }
   ];
@@ -20580,11 +20606,18 @@ const strategiaCoachData = computed(() => {
       if (isComfortAttivo) {
         pesoProiettato = targetPeso;
       } else if (w === 4) {
-        const valW2 = workout.value?.['ins_week2'];
-        const pW2 = valW2 ? parseFloat(estraiPesoDaInput(valW2)) : 0;
-        if (pW2 > 0) pesoProiettato = pW2;
-        else if (peakLoggedPreScarico > 0 && !w4Target) pesoProiettato = Math.max(peakLoggedPreScarico - getStepFor(peakLoggedPreScarico), isManubri ? 4 : 10);
-        else pesoProiettato = targetPeso;
+        const isScaricoW4Roadmap = (typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined)
+          ? isWeek4Scarico.value
+          : (r4 > r3);
+        if (isScaricoW4Roadmap) {
+          const valW2 = workout.value?.['ins_week2'];
+          const pW2 = valW2 ? parseFloat(estraiPesoDaInput(valW2)) : 0;
+          if (pW2 > 0) pesoProiettato = pW2;
+          else if (peakLoggedPreScarico > 0 && !w4Target) pesoProiettato = Math.max(peakLoggedPreScarico - getStepFor(peakLoggedPreScarico), isManubri ? 4 : 10);
+          else pesoProiettato = targetPeso;
+        } else {
+          pesoProiettato = targetPeso;
+        }
       } else if (w === 5) {
         if (peakLoggedPreScarico > 0 && !w5Target) pesoProiettato = peakLoggedPreScarico + getStepFor(peakLoggedPreScarico);
         else pesoProiettato = targetPeso;
@@ -20602,6 +20635,8 @@ const strategiaCoachData = computed(() => {
       repsRealiText = targetRepsStr;
     }
 
+    const isScaricoStep = (w === 4 && ((typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined) ? isWeek4Scarico.value : (r4 > r3)));
+
     return {
       week: w,
       fase,
@@ -20613,7 +20648,7 @@ const strategiaCoachData = computed(() => {
       isLogged,
       caricoReale: caricoRealeText,
       repsReali: repsRealiText,
-      isScarico: (w === 4)
+      isScarico: isScaricoStep
     };
   };
 
@@ -20628,7 +20663,7 @@ const strategiaCoachData = computed(() => {
     buildStepData(1, 'Accumulo & Tecnica', 'cyan', 'RPE 7-8', 'Volume sicuro. Focus su controllo e ritmo esecutivo.', w1Target, `3x${r1} reps`),
     buildStepData(2, 'Progressione Carico', 'amber', 'RPE 8', 'Incremento sostenibile. Mantieni la stessa qualità esecutiva.', w2Target, `3x${r2} reps`),
     buildStepData(3, 'Pareggio PR Storico', 'orange', 'RPE 8.5-9', 'Test di pareggio del tuo record storico passato.', w3Target, `3x${r3} reps`),
-    buildStepData(4, 'Scarico Rigenerativo', 'blue', 'RPE 6-7', 'Riduzione del carico per permettere il recupero neurale.', w4Target, `3x${r4} reps`),
+    buildStepData(4, (r4 > r3 ? 'Scarico Rigenerativo' : 'Intensificazione Carico'), (r4 > r3 ? 'blue' : 'amber'), (r4 > r3 ? 'RPE 6-7' : 'RPE 8-8.5'), (r4 > r3 ? 'Riduzione del carico per permettere il recupero neurale.' : 'Aumento del carico su ripetizioni ridotte rispetto a W3.'), w4Target, `3x${r4} reps`),
     buildStepData(5, 'Picco Intensità (Rottura Stallo)', 'purple', 'RPE 9-9.5', 'Supera il tetto dei kg storici lavorando a intensità elevata.', w5Target, `3x${Math.max(r5 - 2, 1)}-${r5} reps`),
     buildStepData(6, 'Test Nuovo Record Assoluto', 'green', 'RPE 10', 'Test finale per consolidare il nuovo PR assoluto.', w6Target, `3x${r6} reps`)
   ];

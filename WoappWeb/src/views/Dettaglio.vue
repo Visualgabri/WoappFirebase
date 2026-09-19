@@ -8257,7 +8257,18 @@ const stimaRecordStoricoPerReps = (targetReps) => {
     for (let w = 1; w <= 6; w++) {
       const insVal = prevEx['ins_week' + w];
       if (insVal && String(insVal).trim() !== '' && String(insVal).trim() !== '-') {
-        const perf = estraiMigliorPrestazioneInput(insVal, getRepsForWeek(w, prevEx) || targetReps, isCavo);
+        const desW = String(prevEx['des_week' + w] || '');
+        const isRamp1RM = /ramp\s*\+?\s*test|ramp\s*test|test\s*1rm|massimale\s*1rm|singol[ae]/i.test(desW);
+        const isAmrapW = /amrap|max\s*reps?|massim[ae]\s*rip|cedimento/i.test(desW);
+        let defaultWeekReps = targetReps;
+        if (isRamp1RM) {
+          defaultWeekReps = 1;
+        } else if (isAmrapW) {
+          defaultWeekReps = (w > 1 ? estraiRepsDaPrescrizione(prevEx['des_week' + (w - 1)]) : null) || targetReps || 8;
+        } else {
+          defaultWeekReps = getRepsForWeek(w, prevEx) || targetReps;
+        }
+        const perf = estraiMigliorPrestazioneInput(insVal, defaultWeekReps, isCavo);
         if (perf) {
           if (perf.e1rm > best1RM) {
             best1RM = perf.e1rm;
@@ -8437,7 +8448,9 @@ const calcolaDettaglioMassimale1RMPuro = () => {
       for (let w = 1; w <= 6; w++) {
         const val = prevEx['ins_week' + w] || (w === 6 ? prevEx.num_ins6 : null);
         if (val) {
-          const prescReps = estraiRepsDaPrescrizione(prevEx['des_week' + w]) || 6;
+          const desW = String(prevEx['des_week' + w] || '');
+          const isRamp1RM = /ramp\s*\+?\s*test|ramp\s*test|test\s*1rm|massimale\s*1rm|singol[ae]/i.test(desW);
+          const prescReps = isRamp1RM ? 1 : (estraiRepsDaPrescrizione(prevEx['des_week' + w]) || 6);
           const perf = estraiMigliorPrestazioneInput(val, prescReps, isCavo, isCorpoLibero);
           if (perf && (perf.peso > 0 || (isCorpoLibero && perf.reps > 0))) {
             if (perf.e1rm > best1RM) {
@@ -8671,6 +8684,11 @@ const analizzaRecordSettimana = (sett) => {
     };
   } else if ((sett === 2 || sett === 3) || pesoDaValutare >= recordVal * 0.95 || pesoDaValutare >= recordVal - 2.5 || (caricoTargetPR > pesoDaValutare && caricoTargetPR <= pesoDaValutare + (stepKg * 2))) {
     const diffDisplay = diffMancanteRecord > 0 ? diffMancanteRecord : diffPerSuperare;
+    // Guardrail: mostra l'avvicinamento al record solo se il carico attuale è plausibilmente vicino (almeno 80% o entro 3 step / 20%)
+    const isPlausibileAvvicinamento = pesoDaValutare >= recordVal * 0.80 || diffDisplay <= Math.max(stepKg * 3, recordVal * 0.20);
+    if (!isPlausibileAvvicinamento) {
+      return null;
+    }
     const badge = (sett === 2 || sett === 3)
       ? `🔥 -${formatWeight(diffDisplay)}kg`
       : `🔥 Quasi (-${formatWeight(diffDisplay)}kg)`;
@@ -9721,8 +9739,16 @@ function getGhostWeightsRangeForWeekRaw(sett) {
           r6: getRepsPerWeek(6)
         });
         if (rotta && rotta.w1Consigliato && rotta.w1Consigliato > medio) {
-          max = Math.max(max, rotta.w1Consigliato);
-          sfidanteLabel = 'Sfidante (Rotta PR W6)';
+          // Guardrail di plausibilità W1: lo Sfidante non può superare il Consigliato oltre il 25% o 2 step
+          const stepLim = isManubri ? getWeightStep(true, medio) * 2 : step * 2;
+          const maxPlausibileSfidante = Math.min(medio * 1.25, medio + stepLim);
+          if (rotta.w1Consigliato <= maxPlausibileSfidante) {
+            max = Math.max(max, rotta.w1Consigliato);
+            sfidanteLabel = 'Sfidante (Rotta PR W6)';
+          } else {
+            max = isManubri ? getDumbbellSequenceWeight(medio, 'up') : medio + step;
+            sfidanteLabel = 'Sfidante';
+          }
         }
       }
 
@@ -13742,6 +13768,11 @@ function estraiRepsDaPrescrizione(prescrizioneStr) {
   const rawStr = String(prescrizioneStr).trim();
   const part = rawStr.split('|')[0].trim();
   
+  // RAMP+TEST o test massimale 1RM -> per definizione 1 singola ripetizione target
+  if (/ramp\s*\+?\s*test|ramp\s*test|test\s*1rm|massimale\s*1rm|singol[ae]/i.test(part)) {
+    return 1;
+  }
+
   // 1. Cerca prima pattern "NxM" con o senza suffissi tecnici (es. "4x13RP++", "3x20", "3x20 52", "(3x20 52)", "4X15")
   const matchX = part.match(/\b\d+\s*[xX]\s*(\d+)/);
   if (matchX) {
@@ -18964,7 +18995,17 @@ const suggerimentoRecord = computed(() => {
     // Priorità 1: Miglior Carico W6 (num_ins6 / ins_week6) se presente per le stesse reps target
     const rawInsW6 = prevEx.ins_week6 || prevEx.num_ins6;
     if (rawInsW6) {
-      const prescW6Reps = estraiRepsDaPrescrizione(prevEx.des_week6) || targetReps || 10;
+      const desW6Text = String(prevEx.des_week6 || '');
+      const isW6RampTest = /ramp\s*\+?\s*test|ramp\s*test|test\s*1rm|massimale\s*1rm|singol[ae]/i.test(desW6Text);
+      const isW6Amrap = /amrap|max\s*reps?|massim[ae]\s*rip|cedimento/i.test(desW6Text);
+      let prescW6Reps = targetReps || 10;
+      if (isW6RampTest) {
+        prescW6Reps = 1;
+      } else if (isW6Amrap) {
+        prescW6Reps = estraiRepsDaPrescrizione(prevEx.des_week5) || targetReps || 8;
+      } else {
+        prescW6Reps = estraiRepsDaPrescrizione(prevEx.des_week6) || targetReps || 10;
+      }
       const isCavo = isCavoOMacchinaEsercizio(workout.value || prevEx);
       const perfW6 = estraiMigliorPrestazioneInput(rawInsW6, prescW6Reps, isCavo, isCorpoLibero);
 
@@ -19939,7 +19980,12 @@ function analizzaRottaProgressione({
 
   // Calcolo W1 consigliato per rotta bilanciata ideale (attacco W5 / W6)
   const rawW1Ideale = (e1rmStorico * 0.85) / (1 + r1 / 30);
-  const w1Consigliato = adjustVal(Math.max(Math.round(rawW1Ideale / effectiveStep) * effectiveStep, isManubri ? 4 : 10));
+  let targetW1 = Math.round(rawW1Ideale / effectiveStep) * effectiveStep;
+  // Se w1Weight è noto e rawW1Ideale diverge oltre 2 step da w1Weight, ancora a w1Weight + step per evitare salti inverosimili
+  if (w1Weight && w1Weight > 0 && targetW1 > w1Weight + (effectiveStep * 2)) {
+    targetW1 = w1Weight + effectiveStep;
+  }
+  const w1Consigliato = adjustVal(Math.max(targetW1, isManubri ? 4 : 10));
 
   if (!weekSfidaPR) {
     if (p6 >= prWeight || (p1 >= w1Consigliato && w1Consigliato > 0)) {

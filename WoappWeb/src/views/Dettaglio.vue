@@ -125,6 +125,26 @@
                   </template>
                 </v-list-item>
 
+                <!-- Tara Bilanciere (per esercizi con bilanciere) -->
+                <v-list-item
+                  v-if="!isPostura && !isCardio && isBilanciereEsercizio(workout)"
+                  @click="apriDialogStepEsercizio"
+                  class="px-2.5 py-1 min-h-0"
+                  id="btn-menu-tara-bilanciere"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="amber-lighten-2" size="17" class="mr-2 flex-shrink-0">mdi-dumbbell</v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    Tara Bilanciere
+                  </v-list-item-title>
+                  <template v-slot:append>
+                    <v-chip size="x-small" color="amber-darken-3" class="px-1.5 py-0 font-weight-black text-white ml-1 text-truncate" style="height: 18px; font-size: 0.58rem;">
+                      {{ pesoBilanciereAttuale }} kg
+                    </v-chip>
+                  </template>
+                </v-list-item>
+
                 <!-- Tipologia / A Corpo Libero (Accessibile a tutti gli utenti, inclusi gli atleti) -->
                 <v-list-item
                   v-if="!isPostura && !isCardio"
@@ -1796,6 +1816,51 @@
                 {{ getRepFormattingSuggestion(sett).message }} <strong class="text-white text-decoration-underline ml-1">Tocca per formattare</strong>
               </span>
             </div>
+
+            <!-- HELPER CONVERSIONE BILANCIERE (Lato <-> Totale) -->
+            <div
+              v-if="!isPostura && !isCardio && getBilanciereHelperInfo(sett)"
+              class="d-flex align-center justify-space-between mt-1.5 px-2.5 py-1.5 rounded-lg animate-fade-in text-left border"
+              style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.28) !important;"
+            >
+              <div class="d-flex align-center gap-1.5 min-width-0">
+                <v-icon color="cyan-accent-3" size="14" class="flex-shrink-0">mdi-dumbbell</v-icon>
+                <span class="text-caption font-weight-bold text-cyan-lighten-2" style="font-size: 0.68rem; line-height: 1.3;">
+                  <template v-if="getBilanciereHelperInfo(sett).tipo === 'per_lato'">
+                    <strong>{{ getBilanciereHelperInfo(sett).valoreIniziale }} kg/lato</strong> = <span class="text-white font-weight-black">{{ getBilanciereHelperInfo(sett).totale }} kg tot.</span>
+                    <span 
+                      class="text-slate-400 font-weight-normal ml-1 cursor-pointer text-decoration-underline"
+                      title="Tocca per modificare tara bilanciere"
+                      @click.stop="apriDialogStepEsercizio"
+                    >
+                      (bil. {{ getBilanciereHelperInfo(sett).barWeight }}kg ✏️)
+                    </span>
+                  </template>
+                  <template v-else>
+                    <strong>{{ getBilanciereHelperInfo(sett).valoreIniziale }} kg tot.</strong> = <span class="text-white font-weight-black">{{ getBilanciereHelperInfo(sett).perLato }} kg/lato</span>
+                    <span 
+                      class="text-slate-400 font-weight-normal ml-1 cursor-pointer text-decoration-underline"
+                      title="Tocca per modificare tara bilanciere"
+                      @click.stop="apriDialogStepEsercizio"
+                    >
+                      (bil. {{ getBilanciereHelperInfo(sett).barWeight }}kg ✏️)
+                    </span>
+                  </template>
+                </span>
+              </div>
+              <v-btn
+                v-if="getBilanciereHelperInfo(sett).canToggle"
+                variant="text"
+                size="x-small"
+                density="compact"
+                color="cyan-lighten-3"
+                class="text-none font-weight-black px-1.5 ml-1 flex-shrink-0 rounded"
+                style="font-size: 0.60rem; height: 20px; background: rgba(56, 189, 248, 0.12);"
+                @click.stop="toggleModalitaInputBilanciere(sett)"
+              >
+                In {{ getBilanciereHelperInfo(sett).tipo === 'per_lato' ? 'totale' : 'per lato' }}
+              </v-btn>
+            </div>
           </div>
 
           <!-- BANNER SMART STAGNATION GUARD & CHIP RAPIDI (Soluzione 1) -->
@@ -3377,6 +3442,66 @@
             >
               Salva
             </v-btn>
+          </div>
+
+          <!-- Sezione Tara Bilanciere (visibile per esercizi con bilanciere) -->
+          <div v-if="isBilanciereEsercizio(workout)" class="mt-3 pt-3 border-top-soft">
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <div class="d-flex align-center gap-1.5">
+                <v-icon color="amber-accent-3" size="18">mdi-dumbbell</v-icon>
+                <span class="text-caption font-weight-black text-white" style="font-size: 0.76rem;">
+                  Tara Bilanciere
+                </span>
+              </div>
+              <span class="text-super-caption text-amber-lighten-2 font-weight-black px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-500/30" style="font-size: 0.62rem;">
+                Attuale: {{ pesoBilanciereAttuale }} kg
+              </span>
+            </div>
+            <div class="text-super-caption text-slate-300 mb-2 font-weight-medium" style="font-size: 0.64rem; line-height: 1.35;">
+              Peso del bilanciere vuoto per la conversione automatica totale / per lato.
+            </div>
+            <!-- Opzioni Rapide Bilanciere -->
+            <div class="d-flex flex-wrap gap-1.5 justify-center mb-2.5">
+              <v-btn
+                v-for="b in [10, 12.5, 15, 20]"
+                :key="b"
+                size="small"
+                :variant="pesoBilanciereAttuale === b ? 'flat' : 'outlined'"
+                :color="pesoBilanciereAttuale === b ? 'amber-darken-2' : 'slate-600'"
+                class="font-weight-black text-white px-2 rounded-lg"
+                :class="{ 'border-amber': pesoBilanciereAttuale === b }"
+                :style="{ minWidth: '48px', height: '32px', fontSize: '0.72rem' }"
+                @click="selezionaPesoBilanciere(b)"
+              >
+                {{ b }} kg
+              </v-btn>
+            </div>
+            <!-- Input Tara Personalizzata -->
+            <div class="d-flex align-center gap-2">
+              <v-text-field
+                v-model="inputPesoBilanciereCustom"
+                placeholder="Altra tara (es. 8 o 17.5)"
+                type="number"
+                step="0.5"
+                density="compact"
+                variant="outlined"
+                color="amber-accent-3"
+                hide-details
+                class="flex-grow-1"
+                style="font-size: 0.78rem;"
+              ></v-text-field>
+              <v-btn
+                color="amber-darken-2"
+                variant="flat"
+                size="small"
+                class="font-weight-bold text-none px-3 text-white rounded-lg"
+                style="height: 38px; font-size: 0.75rem;"
+                :disabled="!inputPesoBilanciereCustom || parseFloat(inputPesoBilanciereCustom) <= 0"
+                @click="selezionaPesoBilanciere(parseFloat(inputPesoBilanciereCustom))"
+              >
+                Salva
+              </v-btn>
+            </div>
           </div>
         </v-card-text>
       </v-card>
@@ -8194,6 +8319,8 @@ const ottieniDettaglioRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length) return null;
   const currentNumScheda = parseInt(workout.value.num_scheda);
   if (isNaN(currentNumScheda)) return null;
+  const isBarbell = isBilanciereEsercizio(workout.value);
+  const currentBaseline = getCurrentExerciseBaselineWeight();
 
   let maxWeight = 0;
   let bestRecord = null;
@@ -8215,11 +8342,17 @@ const ottieniDettaglioRecordStoricoPerReps = (targetReps) => {
               repsNum = inputReps;
             }
             if (repsNum === targetReps) {
-              if (weight > maxWeight) {
-                maxWeight = weight;
+              let normWeight = weight;
+              if (isBarbell) {
+                const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+                normWeight = normalizzaCaricoBilanciere(weight, insVal, currentBaseline, prevBarWeight, true);
+              }
+              if (normWeight > maxWeight) {
+                maxWeight = normWeight;
                 const dEx = getExecutionDate(prevEx, storicoEsercizio.value, workout.value);
                 bestRecord = {
-                  peso: weight,
+                  peso: normWeight,
+                  rawWeight: weight,
                   id: prevEx.id || prevEx.num_riga,
                   numScheda: prevEx.num_scheda,
                   date: dEx,
@@ -8247,6 +8380,8 @@ const stimaRecordStoricoPerReps = (targetReps) => {
   if (!workout.value || !storicoEsercizio.value.length || !targetReps) return null;
   const currentNumScheda = parseInt(workout.value.num_scheda);
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isBarbell = isBilanciereEsercizio(workout.value);
+  const currentBaseline = getCurrentExerciseBaselineWeight();
   
   let best1RM = 0;
 
@@ -8270,8 +8405,17 @@ const stimaRecordStoricoPerReps = (targetReps) => {
         }
         const perf = estraiMigliorPrestazioneInput(insVal, defaultWeekReps, isCavo);
         if (perf) {
-          if (perf.e1rm > best1RM) {
-            best1RM = perf.e1rm;
+          let perfPeso = perf.peso;
+          let perfE1rm = perf.e1rm;
+          if (isBarbell && perfPeso > 0) {
+            const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+            perfPeso = normalizzaCaricoBilanciere(perfPeso, insVal, currentBaseline, prevBarWeight, true);
+            if (perfPeso !== perf.peso) {
+              perfE1rm = calcE1RM(perfPeso, perf.reps);
+            }
+          }
+          if (perfE1rm > best1RM) {
+            best1RM = perfE1rm;
           }
         }
       }
@@ -8292,6 +8436,7 @@ const stimaRecordStoricoPerReps = (targetReps) => {
 // --- GESTIONE STEP INCREMENTO CARICO PERSONALIZZATO PER ESERCIZIO ---
 const dialogStepEsercizio = ref(false);
 const inputStepCustom = ref('');
+const inputPesoBilanciereCustom = ref('');
 const opzioniStepRapidi = [
   { val: 0, label: 'Auto' },
   { val: 0.5, label: '0.5 kg' },
@@ -8372,6 +8517,7 @@ const descrizioneStepAuto = computed(() => {
 const apriDialogStepEsercizio = () => {
   if (isPostura.value) return;
   inputStepCustom.value = (stepPersonalizzatoEsercizio.value && stepPersonalizzatoEsercizio.value > 0) ? String(stepPersonalizzatoEsercizio.value) : '';
+  inputPesoBilanciereCustom.value = '';
   dialogStepEsercizio.value = true;
 };
 
@@ -8394,6 +8540,104 @@ const selezionaStepEsercizio = async (nuovoStep) => {
   }
   
   dialogStepEsercizio.value = false;
+};
+
+const pesoBilanciereAttuale = computed(() => {
+  return getPesoBilanciereEsercizio(workout.value);
+});
+
+const selezionaPesoBilanciere = async (nuovoPeso) => {
+  const barVal = parseFloat(nuovoPeso);
+  if (isNaN(barVal) || barVal <= 0) return;
+  vibraTattile(15);
+  if (workout.value) {
+    workout.value.num_peso_bilanciere = barVal;
+    await aggiornaDatoECommit({ num_peso_bilanciere: barVal });
+  }
+  inputPesoBilanciereCustom.value = '';
+};
+
+const getBilanciereHelperInfo = (sett) => {
+  if (isPostura.value || isCardio.value) return null;
+  if (!isBilanciereEsercizio(workout.value)) return null;
+
+  const rawVal = (activeEditingWeek.value === sett && localEditingRaw[sett] !== undefined)
+    ? localEditingRaw[sett]
+    : (inputSettimane.value[sett]?.ins || workout.value?.['ins_week' + sett] || '');
+
+  if (!rawVal || String(rawVal).trim() === '' || String(rawVal).trim() === '-') return null;
+
+  const peso = parseFloat(estraiPesoDaInput(rawVal));
+  if (isNaN(peso) || peso <= 0) return null;
+
+  const barWeight = getPesoBilanciereEsercizio(workout.value);
+  const text = String(rawVal).toLowerCase();
+  const hasExplicitSide = /\b(?:l|lato|xlato|x lato)\b/i.test(text);
+  const hasExplicitTotal = /\b(?:tot|totale|c\/bil|c\/b)\b/i.test(text);
+
+  const isPerLato = hasExplicitSide || (!hasExplicitTotal && peso <= 45);
+
+  if (isPerLato) {
+    const totale = Math.round((peso * 2 + barWeight) * 100) / 100;
+    return {
+      tipo: 'per_lato',
+      valoreIniziale: formatWeight(peso),
+      totale: formatWeight(totale),
+      barWeight: formatWeight(barWeight),
+      canToggle: true
+    };
+  } else {
+    if (peso <= barWeight) return null;
+    const perLato = Math.round(((peso - barWeight) / 2) * 100) / 100;
+    return {
+      tipo: 'totale',
+      valoreIniziale: formatWeight(peso),
+      perLato: formatWeight(perLato),
+      barWeight: formatWeight(barWeight),
+      canToggle: true
+    };
+  }
+};
+
+const toggleModalitaInputBilanciere = async (sett) => {
+  const info = getBilanciereHelperInfo(sett);
+  if (!info) return;
+
+  vibraTattile(15);
+  const currentVal = (activeEditingWeek.value === sett && localEditingRaw[sett] !== undefined)
+    ? localEditingRaw[sett]
+    : (inputSettimane.value[sett]?.ins || workout.value?.['ins_week' + sett] || '');
+
+  let nuovoValore = '';
+  if (info.tipo === 'per_lato') {
+    const cleaned = String(currentVal)
+      .replace(new RegExp(String(info.valoreIniziale).replace(',', '[.,]'), 'i'), formatWeight(info.totale))
+      .replace(/\b(?:l|lato|xlato|x lato)\b/gi, '')
+      .trim();
+    nuovoValore = cleaned.includes(formatWeight(info.totale)) ? cleaned : `${formatWeight(info.totale)}`;
+  } else {
+    const cleaned = String(currentVal)
+      .replace(new RegExp(String(info.valoreIniziale).replace(',', '[.,]'), 'i'), `${formatWeight(info.perLato)}L`)
+      .replace(/\b(?:tot|totale|c\/bil|c\/b)\b/gi, '')
+      .trim();
+    nuovoValore = cleaned.includes(formatWeight(info.perLato)) ? cleaned : `${formatWeight(info.perLato)}L`;
+  }
+
+  if (!inputSettimane.value[sett]) {
+    inputSettimane.value[sett] = { ins: '', reps: '' };
+  }
+  inputSettimane.value[sett].ins = nuovoValore;
+  if (localEditingRaw[sett] !== undefined) {
+    localEditingRaw[sett] = nuovoValore;
+  }
+  if (localEditingIns.value) {
+    localEditingIns.value[sett] = nuovoValore;
+  }
+
+  if (activeEditingWeek.value !== sett) {
+    const campo = 'ins_week' + sett;
+    await aggiornaDatoECommit({ [campo]: nuovoValore });
+  }
 };
 
 function arrotondaAStepEsercizio(val) {
@@ -8440,6 +8684,9 @@ const calcolaDettaglioMassimale1RMPuro = () => {
 
   // 1. Cerca il miglior 1RM su tutte le schede precedenti (W1-W6) solo se suggerimentoRecord non ha dati
   if (best1RM === 0 && storicoEsercizio.value && storicoEsercizio.value.length > 0) {
+    const isBarbell = isBilanciereEsercizio(workout.value);
+    const currentBaseline = getCurrentExerciseBaselineWeight();
+
     storicoEsercizio.value.forEach(prevEx => {
       const sNum = parseInt(prevEx.num_scheda);
       if (!isNaN(sNum) && sNum >= currentNumScheda) return;
@@ -8453,11 +8700,20 @@ const calcolaDettaglioMassimale1RMPuro = () => {
           const prescReps = isRamp1RM ? 1 : (estraiRepsDaPrescrizione(prevEx['des_week' + w]) || 6);
           const perf = estraiMigliorPrestazioneInput(val, prescReps, isCavo, isCorpoLibero);
           if (perf && (perf.peso > 0 || (isCorpoLibero && perf.reps > 0))) {
-            if (perf.e1rm > best1RM) {
-              best1RM = perf.e1rm;
+            let perfPeso = perf.peso;
+            let perfE1rm = perf.e1rm;
+            if (isBarbell && perfPeso > 0) {
+              const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+              perfPeso = normalizzaCaricoBilanciere(perfPeso, val, currentBaseline, prevBarWeight, true);
+              if (perfPeso !== perf.peso) {
+                perfE1rm = calcE1RM(perfPeso, perf.reps);
+              }
+            }
+            if (perfE1rm > best1RM) {
+              best1RM = perfE1rm;
               bestSource = {
                 id: prevEx.id || prevEx.num_riga,
-                peso: perf.peso,
+                peso: perfPeso,
                 rawWeight: perf.peso,
                 reps: perf.reps,
                 rawReps: perf.reps,
@@ -10863,6 +11119,9 @@ const calcolaRecordOverviewData = (sett) => {
   let pastRepsFatica = null;
   let pastRepsId = null;
 
+  const isBarbell = isBilanciereEsercizio(workout.value);
+  const currentBaseline = getCurrentExerciseBaselineWeight();
+
   // Scandisci storico passato per le stesse reps
   if (storicoEsercizio.value && storicoEsercizio.value.length) {
     storicoEsercizio.value.forEach(prevEx => {
@@ -10879,7 +11138,11 @@ const calcolaRecordOverviewData = (sett) => {
           tokens.forEach(tok => {
             const t = tok.trim();
             if (!t || t.startsWith('(') || t.startsWith('[') || t.startsWith('Note') || t.startsWith('Provato') || t.startsWith('ok')) return;
-            const p = parseFloat(estraiPesoDaInput(t, { isCorpoLibero })) || 0;
+            let p = parseFloat(estraiPesoDaInput(t, { isCorpoLibero })) || 0;
+            if (isBarbell && p > 0) {
+              const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+              p = normalizzaCaricoBilanciere(p, t, currentBaseline, prevBarWeight, true);
+            }
             const explicitR = estraiRepsDaInput(t, { isCorpoLibero });
             const r = (explicitR && explicitR > 0) ? explicitR : defaultR;
             const isMatching = r === targetReps || (w === sett && parseInt(prevEx['reps_week' + w]) === targetReps);
@@ -13693,6 +13956,120 @@ function isCavoOMacchinaEsercizio(ex) {
   );
 };
 
+function isBilanciereEsercizio(ex) {
+  if (!ex) return false;
+  if (isManubriEsercizio(ex) || isCorpoLiberoEsercizio(ex)) return false;
+  const name = String(ex.des_esercizio || '').toLowerCase();
+  const noteAttr = String(ex.des_note_attrezzo || '').toLowerCase();
+  const noteGen = String(ex.des_note_gen_attr || '').toLowerCase();
+  const noteCoach = String(ex.des_note || '').toLowerCase();
+  const insEsercizio = String(ex.ins_esercizio || '').toLowerCase();
+  const all = `${name} ${noteAttr} ${noteGen} ${noteCoach} ${insEsercizio}`;
+  
+  if (all.includes('bilanciere') || all.includes('barbell') || /\bbil\b/i.test(all) || all.includes('bil.') || all.includes('ez bar') || all.includes('sagomato')) {
+    return true;
+  }
+  const barbellExercises = [
+    'panca', 'bench', 'squat', 'stacco', 'deadlift', 'seal row', 'rematore', 
+    'military', 'overhead', 'hip thrust', 'clean', 'snatch', 'good morning', 
+    'skull crusher', 'french press', 'lento avanti'
+  ];
+  if (barbellExercises.some(b => name.includes(b)) && !isCavoOMacchinaEsercizio(ex)) {
+    return true;
+  }
+  return false;
+}
+
+function getPesoBilanciereEsercizio(ex) {
+  const targetEx = ex || workout.value;
+  if (!targetEx) return 20;
+  
+  if (targetEx.num_peso_bilanciere && parseFloat(targetEx.num_peso_bilanciere) > 0) {
+    return parseFloat(targetEx.num_peso_bilanciere);
+  }
+
+  const texts = [
+    targetEx.des_note_attrezzo,
+    targetEx.des_note_gen_attr,
+    targetEx.des_note,
+    targetEx.ins_esercizio,
+    targetEx.des_esercizio
+  ].map(s => String(s || '').toLowerCase()).join(' ');
+
+  const m = texts.match(/(?:bilanciere|bil\b|asta|barbell)?[^\d]{0,10}(\d+(?:[,\.]\d+)?)\s*kg/i);
+  if (m) {
+    const val = parseFloat(m[1].replace(',', '.'));
+    if (val >= 5 && val <= 35) {
+      return val;
+    }
+  }
+
+  if (texts.includes('ez') || texts.includes('sagomato') || texts.includes('piccolo') || texts.includes('curl')) {
+    return 10;
+  }
+
+  return 20;
+}
+
+function getCurrentExerciseBaselineWeight() {
+  if (inputSettimane.value) {
+    for (let w = 6; w >= 1; w--) {
+      const ins = inputSettimane.value[w]?.ins;
+      const p = parseFloat(estraiPesoDaInput(ins));
+      if (!isNaN(p) && p > 0) return p;
+    }
+  }
+  if (workout.value) {
+    for (let w = 6; w >= 1; w--) {
+      const ins = workout.value['ins_week' + w];
+      const p = parseFloat(estraiPesoDaInput(ins));
+      if (!isNaN(p) && p > 0) return p;
+    }
+  }
+  if (propostaWeek1.value?.peso && propostaWeek1.value.peso > 0) {
+    return propostaWeek1.value.peso;
+  }
+  const g1 = getGhostLiftSmart(1);
+  if (g1?.peso && g1.peso > 0) {
+    return g1.peso;
+  }
+  if (previousWorkout.value) {
+    for (let w = 6; w >= 1; w--) {
+      const ins = previousWorkout.value['ins_week' + w];
+      const p = parseFloat(estraiPesoDaInput(ins));
+      if (!isNaN(p) && p > 0) return p;
+    }
+  }
+  return null;
+}
+
+function normalizzaCaricoBilanciere(pesoInput, rawText, baselineWeight, barWeight = 20, isBarbell = true) {
+  if (!isBarbell || !pesoInput || pesoInput <= 0) return pesoInput;
+  if (!baselineWeight || baselineWeight <= 0) return pesoInput;
+
+  const text = String(rawText || '').toLowerCase().trim();
+  const isExplicitSide = /\b(?:l|lato|xlato|x lato)\b/i.test(text);
+  const isExplicitTotal = /\b(?:tot|totale|c\/bil|c\/b)\b/i.test(text);
+
+  // CASO 1: baseline è "per lato" (<= 50kg) e pesoInput è "totale" (>= 45kg e > 1.65 * baseline, oppure esplicitamente 'tot')
+  if (baselineWeight <= 50 && (isExplicitTotal || (pesoInput >= 45 && pesoInput >= baselineWeight * 1.65))) {
+    const sideEquivalent = (pesoInput - barWeight) / 2;
+    if (sideEquivalent > 0 && sideEquivalent <= baselineWeight * 1.75) {
+      return Math.round(sideEquivalent * 100) / 100;
+    }
+  }
+
+  // CASO 2: baseline è "totale" (>= 50kg) e pesoInput è "per lato" (<= 45kg e <= baseline * 0.60, oppure esplicitamente 'L')
+  if (baselineWeight >= 50 && (isExplicitSide || (pesoInput <= 45 && pesoInput <= baselineWeight * 0.60))) {
+    const totalEquivalent = (pesoInput * 2) + barWeight;
+    if (totalEquivalent >= baselineWeight * 0.60 && totalEquivalent <= baselineWeight * 1.75) {
+      return Math.round(totalEquivalent * 100) / 100;
+    }
+  }
+
+  return pesoInput;
+}
+
 // ✅ NUOVA LOGICA CON STEP PERSONALIZZATO E FALLBACK
 function getWeightStep(isManubri, baseWeight, exObj = null) {
   const targetEx = exObj || workout.value;
@@ -14165,6 +14542,18 @@ const propostaWeek1 = computed(() => {
   }
 
   if (w6PesoCandidate !== null && w6PesoCandidate > 0) {
+    if (isBilanciereEsercizio(previousWorkout.value || workout.value)) {
+      let prevWeeksMaxPeso = 0;
+      for (let pw = 1; pw <= 5; pw++) {
+        const pVal = previousWorkout.value['ins_week' + pw];
+        const pNum = parseFloat(estraiPesoDaInput(pVal));
+        if (!isNaN(pNum) && pNum > prevWeeksMaxPeso) prevWeeksMaxPeso = pNum;
+      }
+      if (prevWeeksMaxPeso > 0) {
+        const barWeight = getPesoBilanciereEsercizio(previousWorkout.value);
+        w6PesoCandidate = normalizzaCaricoBilanciere(w6PesoCandidate, w6InsText, prevWeeksMaxPeso, barWeight, true);
+      }
+    }
     const haPesoEsplicito = /kg|lbs|libbre|\+/i.test(w6InsText);
     
     basePeso = isRepEx && !haPesoEsplicito ? 0 : w6PesoCandidate;
@@ -18957,6 +19346,8 @@ const suggerimentoRecord = computed(() => {
   const targetReps = getRepsPerWeek(w);
   const currentNumScheda = parseInt(workout.value?.num_scheda);
   const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const isBarbell = isBilanciereEsercizio(workout.value);
+  const currentBaseline = getCurrentExerciseBaselineWeight();
 
   // 1. Record Assoluto Generale dell'Esercizio (PR di sempre su qualsiasi rep)
   let absGenWeight = 0;
@@ -19012,6 +19403,11 @@ const suggerimentoRecord = computed(() => {
       let pesoW6Num = perfW6 ? perfW6.peso : (parseFloat(estraiPesoDaInput(rawInsW6, { isCorpoLibero })) || 0);
       let repsW6Num = perfW6 ? perfW6.reps : estraiRepsEsercizioWeek(prevEx, 6, targetReps);
 
+      if (isBarbell && pesoW6Num > 0) {
+        const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+        pesoW6Num = normalizzaCaricoBilanciere(pesoW6Num, rawInsW6, currentBaseline, prevBarWeight, true);
+      }
+
       if (isCorpoLibero && !haPesoEsercizio.value) {
         pesoW6Num = 0;
         repsW6Num = perfW6?.reps || estraiRepsDaInput(rawInsW6, { isCorpoLibero }) || parseFloat(rawInsW6) || repsW6Num || 0;
@@ -19048,7 +19444,11 @@ const suggerimentoRecord = computed(() => {
         }
         if (isMatchingReps(prevEx, 6)) {
           const perfMatchingW6 = estraiMigliorPrestazionePerReps(rawInsW6, targetReps, prescW6Reps, isCavo, isCorpoLibero);
-          const pesoMatchingW6 = perfMatchingW6 ? perfMatchingW6.peso : pesoW6Num;
+          let pesoMatchingW6 = perfMatchingW6 ? perfMatchingW6.peso : pesoW6Num;
+          if (isBarbell && pesoMatchingW6 > 0) {
+            const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+            pesoMatchingW6 = normalizzaCaricoBilanciere(pesoMatchingW6, rawInsW6, currentBaseline, prevBarWeight, true);
+          }
           const repsMatchingW6 = perfMatchingW6 ? perfMatchingW6.reps : targetReps;
           const valMatchingW6ToCompare = (isCorpoLibero && !haPesoEsercizio.value) ? repsMatchingW6 : (pesoMatchingW6 > 0 ? pesoMatchingW6 : repsMatchingW6);
           const currentRepsVal = (isCorpoLibero && !haPesoEsercizio.value) ? (absRepsReps || 0) : (absRepsWeight > 0 ? absRepsWeight : (absRepsReps || 0));
@@ -19079,6 +19479,11 @@ const suggerimentoRecord = computed(() => {
 
         let pesoNum = perf ? perf.peso : (parseFloat(estraiPesoDaInput(val, { isCorpoLibero })) || 0);
         let repsNum = perf ? perf.reps : estraiRepsEsercizioWeek(prevEx, i, targetReps);
+
+        if (isBarbell && pesoNum > 0) {
+          const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+          pesoNum = normalizzaCaricoBilanciere(pesoNum, val, currentBaseline, prevBarWeight, true);
+        }
 
         if (isCorpoLibero && !haPesoEsercizio.value) {
           pesoNum = 0;
@@ -19119,7 +19524,11 @@ const suggerimentoRecord = computed(() => {
           // Controllo PR a Stesse Reps (isMatchingReps)
           if (isMatchingReps(prevEx, i)) {
             const perfMatching = estraiMigliorPrestazionePerReps(val, targetReps, prescReps, isCavo, isCorpoLibero);
-            const pesoMatching = perfMatching ? perfMatching.peso : pesoNum;
+            let pesoMatching = perfMatching ? perfMatching.peso : pesoNum;
+            if (isBarbell && pesoMatching > 0) {
+              const prevBarWeight = getPesoBilanciereEsercizio(prevEx);
+              pesoMatching = normalizzaCaricoBilanciere(pesoMatching, val, currentBaseline, prevBarWeight, true);
+            }
             const repsMatching = perfMatching ? perfMatching.reps : repsNum;
             const valMatchingToCompare = (isCorpoLibero && !haPesoEsercizio.value) ? repsMatching : (pesoMatching > 0 ? pesoMatching : repsMatching);
 

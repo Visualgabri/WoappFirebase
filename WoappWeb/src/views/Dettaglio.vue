@@ -1510,8 +1510,8 @@
                   {{ getGhostRenderInfo(sett).sfidanteNotice }}
                 </div>
 
-                <!-- RIGA 2: Range Proposto (Subito sotto al Carico Consigliato / Avvisi per qualsiasi settimana) -->
-                <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett)" class="text-left mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem', paddingLeft: '16px' }">
+                <!-- RIGA 2: Range Proposto (Subito sotto al Carico Consigliato / Avvisi per qualsiasi settimana; omesso in scarico per evitare ridondanze) -->
+                <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett) && !getGhostLiftSmart(sett)?.isScarico" class="text-left mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem', paddingLeft: '16px' }">
                   <span class="text-green-accent-3 font-weight-bold">↔ {{ getGhostWeightsRangeText(sett) }}</span>
                 </div>
 
@@ -1558,13 +1558,12 @@
             </div>
             
             <div v-if="!isPostura && getGhostLiftSmart(sett) && getGhostLiftSmart(sett).isScarico" class="text-super-caption font-weight-medium text-amber-lighten-1" :class="layoutCorrente === 'super_compatto' ? 'mt-0.5' : 'mt-1'" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.50rem' : '0.55rem', paddingLeft: '16px', lineHeight: 1.25, letterSpacing: '0.01em' }">
-              💡 Troppo leggero? Non aumentare il peso, semmai fai +1 rep (es. <span class="text-green-accent-3 font-weight-black">{{ formatWeight(getGhostLiftSmart(sett).peso) }}x{{ (getRepsPerWeek(sett) || 10) + 1 }}r</span>).
-              <span v-if="isW2TroppoLeggera && scaricoWeek4Weights.pesoW3 && scaricoWeek4Weights.pesoW3 > getGhostLiftSmart(sett).peso" class="d-block mt-0.5 text-amber-accent-2 font-weight-bold">
+              <template v-if="isW2TroppoLeggera && scaricoWeek4Weights.pesoW3 && scaricoWeek4Weights.pesoW3 > getGhostLiftSmart(sett).peso">
                 ⚡ W2 è risultata molto leggera: puoi valutare W3 ({{ scaricoWeek4Weights.pesoW3 }} kg) come ultima spiaggia.
-              </span>
-              <span v-else-if="scaricoWeek4Weights.pesoW3 && scaricoWeek4Weights.pesoW3 > getGhostLiftSmart(sett).peso" class="d-block mt-0.5 text-slate-400 font-weight-regular" style="opacity: 0.85;">
-                (W3 a {{ scaricoWeek4Weights.pesoW3 }} kg solo se W2 era totalmente a vuoto, vedi 💡)
-              </span>
+              </template>
+              <template v-else>
+                💡 Troppo leggero? Fai +1 rep ({{ (getRepsPerWeek(sett) || 10) + 1 }}r) invece di aumentare il carico.
+              </template>
             </div>
 
 
@@ -4193,91 +4192,124 @@
             </div>
 
             <!-- CASO SCARICO WEEK 4 (PER ESERCIZI STANDARD NON A CARICO FISSO) -->
-            <div v-else-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="mb-2.5 pa-2.5 rounded-xl text-left" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.04) 100%); border: 1.5px solid rgba(251, 191, 36, 0.35) !important;">
-              <div class="d-flex align-center justify-space-between mb-1.5">
-                <span class="text-super-caption text-amber-lighten-1 font-weight-black uppercase" style="font-size: 0.58rem; letter-spacing: 0.04em;">
-                  🔋 SCARICO ATTIVO (W4)
-                </span>
-                <v-chip color="amber-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.5rem; height: 16px;">
-                  RECUPERO ATTIVO
-                </v-chip>
-              </div>
+            <div v-else-if="aiutoWeek === 4 && isWeek4Scarico && !getGhostLiftSmart(aiutoWeek)?.isCoachSet" class="d-flex flex-column gap-3.5 py-1 text-left">
               
-              <!-- Opzione 1: W2 (Consigliata) -->
-              <div class="d-flex align-center justify-space-between bg-slate-900 border rounded-lg pa-1.5 mb-1.5" style="border-color: rgba(255,255,255,0.05) !important;">
-                <div class="d-flex flex-column">
-                  <span class="text-caption dialog-text-primary font-weight-black" style="font-size: 0.72rem;">
-                    🔋 Consigliato (W2): <strong class="text-green-accent-3">{{ scaricoWeek4Weights.pesoW2 ? (getRepsPerWeek(4) ? `${scaricoWeek4Weights.pesoW2}kg x ${getRepsPerWeek(4)}r` : `${scaricoWeek4Weights.pesoW2} kg`) : 'N.D.' }}</strong>
-                  </span>
-                  <span class="text-super-caption text-slate-400" style="font-size: 0.55rem;">
-                    Carico W2 al target reps di W4 (recupero attivo)
+              <!-- CARD 1: HERO SCARICO CONSIGLIATO (W2) -->
+              <v-card 
+                class="pa-4 rounded-2xl border text-center position-relative transition-all overflow-hidden"
+                style="border-color: rgba(74, 222, 128, 0.85) !important; background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%) !important; box-shadow: 0 0 20px rgba(74, 222, 128, 0.22), 0 4px 16px rgba(0, 0, 0, 0.4);"
+                elevation="0"
+              >
+                <!-- Badge in alto -->
+                <div class="mb-2 d-flex justify-center">
+                  <span class="font-weight-black uppercase px-2.5 py-0.5 rounded-full text-white text-no-wrap" style="background: #15803d; font-size: 0.55rem; letter-spacing: 0.04em;">
+                    ✓ SCARICO CONSIGLIATO • W2
                   </span>
                 </div>
+
+                <!-- Carico grande e ben leggibile -->
+                <div class="my-2 d-flex align-center justify-center gap-1.5">
+                  <span class="font-weight-black text-green-accent-3" style="font-size: 1.85rem; line-height: 1;">
+                    {{ scaricoWeek4Weights.pesoW2 ? formatWeight(scaricoWeek4Weights.pesoW2) : '--' }}
+                  </span>
+                  <span class="text-caption text-slate-300 font-weight-bold" style="font-size: 0.85rem;">KG</span>
+                  <span v-if="getRepsPerWeek(4)" class="text-caption text-slate-400 font-weight-bold ml-1.5" style="font-size: 0.80rem;">
+                    ({{ getRepsPerWeek(4) }} reps)
+                  </span>
+                </div>
+
+                <div class="text-super-caption text-slate-400 mb-3" style="font-size: 0.62rem;">
+                  Recupero attivo neuromuscolare e articolare
+                </div>
+
+                <!-- Bottone touch-friendly grande -->
                 <v-btn
                   color="green-darken-2"
-                  size="x-small"
-                  class="font-weight-black text-white px-2 text-none"
-                  rounded="md"
-                  style="font-size: 0.62rem; height: 24px;"
+                  size="large"
+                  block
+                  class="font-weight-black text-white rounded-xl text-none shadow-sm"
+                  style="height: 46px; font-size: 0.82rem;"
                   :disabled="!scaricoWeek4Weights.pesoW2"
-                  @click="applicaPropostaCaricoStorico(getRepsPerWeek(4) ? `${scaricoWeek4Weights.pesoW2}x${getRepsPerWeek(4)}r` : scaricoWeek4Weights.pesoW2)"
+                  @click="applicaPropostaCaricoStorico(scaricoWeek4Weights.pesoW2)"
                 >
-                  Applica W2
+                  <v-icon start size="18" class="mr-1">mdi-check-circle-outline</v-icon>
+                  Applica Scarico {{ scaricoWeek4Weights.pesoW2 ? formatWeight(scaricoWeek4Weights.pesoW2) + ' kg' : '' }}
+                </v-btn>
+              </v-card>
+
+              <!-- CARD 2: SE TROPPO LEGGERO (+1 REP) -->
+              <v-card 
+                v-if="getRepsPerWeek(4) && scaricoWeek4Weights.pesoW2"
+                class="pa-4 rounded-2xl border text-center position-relative transition-all overflow-hidden"
+                style="border-color: rgba(251, 191, 36, 0.75) !important; background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(15, 23, 42, 0.95) 100%) !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);"
+                elevation="0"
+              >
+                <!-- Badge in alto -->
+                <div class="mb-2 d-flex justify-center">
+                  <span class="font-weight-black uppercase px-2.5 py-0.5 rounded-full text-amber-950 bg-amber-400 text-no-wrap" style="font-size: 0.55rem; letter-spacing: 0.04em;">
+                    ⚡ SE TROPPO LEGGERO • +1 REP
+                  </span>
+                </div>
+
+                <!-- Carico & Target Reps -->
+                <div class="my-2 d-flex align-center justify-center gap-1.5">
+                  <span class="font-weight-black text-amber-accent-2" style="font-size: 1.65rem; line-height: 1;">
+                    {{ formatWeight(scaricoWeek4Weights.pesoW2) }}
+                  </span>
+                  <span class="text-caption text-slate-300 font-weight-bold" style="font-size: 0.85rem;">KG</span>
+                  <span class="font-weight-black text-amber-lighten-2 ml-1" style="font-size: 1.15rem;">
+                    × {{ getRepsPerWeek(4) + 1 }}r
+                  </span>
+                </div>
+
+                <div class="text-super-caption text-slate-400 mb-3" style="font-size: 0.62rem;">
+                  Aumenta solo le ripetizioni senza alzare il carico
+                </div>
+
+                <!-- Bottone touch-friendly grande -->
+                <v-btn
+                  color="amber-darken-2"
+                  size="large"
+                  block
+                  class="font-weight-black text-white rounded-xl text-none shadow-sm"
+                  style="height: 46px; font-size: 0.82rem;"
+                  @click="applicaPropostaCaricoStorico(`${scaricoWeek4Weights.pesoW2}x${getRepsPerWeek(4) + 1}r`)"
+                >
+                  <v-icon start size="18" class="mr-1">mdi-flash</v-icon>
+                  Applica {{ formatWeight(scaricoWeek4Weights.pesoW2) }} kg × {{ getRepsPerWeek(4) + 1 }} reps
+                </v-btn>
+              </v-card>
+
+              <!-- CARD 3: ULTIMA SPIAGGIA W3 (Se presente e > W2) -->
+              <div 
+                v-if="scaricoWeek4Weights.pesoW3 && scaricoWeek4Weights.pesoW3 > (scaricoWeek4Weights.pesoW2 || 0)"
+                class="pa-3.5 rounded-2xl text-center"
+                style="background: rgba(15, 23, 42, 0.7); border: 1.5px dashed rgba(245, 158, 11, 0.35) !important;"
+              >
+                <div class="d-flex align-center justify-center gap-1.5 mb-1.5">
+                  <v-icon size="16" color="amber-lighten-2">mdi-alert-outline</v-icon>
+                  <span class="text-super-caption font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.60rem; letter-spacing: 0.04em;">
+                    Ultima Spiaggia: Carico W3 ({{ formatWeight(scaricoWeek4Weights.pesoW3) }} kg)
+                  </span>
+                </div>
+
+                <div class="text-super-caption text-slate-400 mb-2.5 px-2" style="font-size: 0.58rem; line-height: 1.3;">
+                  Sconsigliato in scarico. Da usare <strong>solo ed esclusivamente</strong> se in W2 il carico era totalmente a vuoto.
+                </div>
+
+                <v-btn
+                  color="grey-darken-3"
+                  variant="tonal"
+                  size="default"
+                  block
+                  class="font-weight-bold text-amber-lighten-2 rounded-xl text-none border"
+                  style="height: 40px; font-size: 0.75rem; border-color: rgba(245, 158, 11, 0.3) !important;"
+                  @click="applicaPropostaCaricoStorico(scaricoWeek4Weights.pesoW3)"
+                >
+                  Forza Carico W3 ({{ formatWeight(scaricoWeek4Weights.pesoW3) }} kg)
                 </v-btn>
               </div>
 
-              <!-- Opzione 2: Se leggero (+1 rep) -->
-              <div v-if="getRepsPerWeek(4) && scaricoWeek4Weights.pesoW2" class="d-flex align-center justify-space-between bg-slate-900 border rounded-lg pa-1.5 mb-1.5" style="border-color: rgba(255,255,255,0.05) !important;">
-                <div class="d-flex flex-column">
-                  <span class="text-caption dialog-text-primary font-weight-black" style="font-size: 0.72rem;">
-                    ⚡ Se hai margine: <strong class="text-amber-lighten-2">{{ scaricoWeek4Weights.pesoW2 }}kg x {{ getRepsPerWeek(4) + 1 }}r</strong>
-                  </span>
-                  <span class="text-super-caption text-slate-400" style="font-size: 0.55rem;">
-                    +1 rep a parità di peso senza sovraccaricare
-                  </span>
-                </div>
-                <v-btn
-                  color="amber-darken-2"
-                  size="x-small"
-                  class="font-weight-black text-white px-2 text-none"
-                  rounded="md"
-                  style="font-size: 0.62rem; height: 24px;"
-                  @click="applicaPropostaCaricoStorico(`${scaricoWeek4Weights.pesoW2}x${getRepsPerWeek(4) + 1}r`)"
-                >
-                  Applica +1 rep
-                </v-btn>
-              </div>
-              
-              <!-- Opzione 3: W3 (Ultima Spiaggia) -->
-              <div v-if="scaricoWeek4Weights.pesoW3 && scaricoWeek4Weights.pesoW3 > (scaricoWeek4Weights.pesoW2 || 0)" class="pa-2 rounded-lg mt-1" style="background: rgba(15, 23, 42, 0.7); border: 1px dashed rgba(245, 158, 11, 0.4) !important;">
-                <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-super-caption font-weight-black text-amber-lighten-3" style="font-size: 0.58rem; letter-spacing: 0.03em;">
-                    ⚠️ ULTIMA SPIAGGIA: CARICO W3
-                  </span>
-                  <v-chip color="grey-darken-3" size="x-small" density="compact" class="text-amber-lighten-3 font-weight-bold" style="font-size: 0.48rem; height: 16px;">
-                    ECCEZIONE
-                  </v-chip>
-                </div>
-                <div class="text-super-caption text-slate-400 mb-1.5" style="font-size: 0.56rem; line-height: 1.25;">
-                  Sconsigliato in scarico. Da usare <strong>esclusivamente</strong> se in W2 il carico era totalmente a vuoto e persino facendo +1 rep non sentiresti stimolo.
-                </div>
-                <div class="d-flex align-center justify-space-between">
-                  <span class="text-caption font-weight-bold text-slate-300" style="font-size: 0.68rem;">
-                    Carico W3: <strong class="text-slate-100">{{ scaricoWeek4Weights.pesoW3 }} kg</strong>
-                  </span>
-                  <v-btn
-                    color="grey-darken-3"
-                    variant="tonal"
-                    size="x-small"
-                    class="font-weight-bold text-amber-lighten-2 px-2 text-none border"
-                    rounded="md"
-                    style="font-size: 0.60rem; height: 22px; border-color: rgba(245, 158, 11, 0.3) !important;"
-                    @click="applicaPropostaCaricoStorico(scaricoWeek4Weights.pesoW3)"
-                  >
-                    Forza W3
-                  </v-btn>
-                </div>
-              </div>
             </div>
 
             <!-- CASO WEEK 1 PROPOSTA ERROR -->
@@ -9855,8 +9887,8 @@ function getGhostWeightsRangeForWeekRaw(sett) {
     const repsTarget = getRepsPerWeek(sett) || (workout.value?.['reps_week' + sett] ? parseInt(workout.value['reps_week' + sett], 10) : estraiRepsDaPrescrizione(workout.value?.['des_week' + sett]));
     const hasReps = repsTarget && repsTarget > 0;
 
-    const w2ConsigliatoVal = hasReps ? `${scaricoPeso}x${repsTarget}r` : String(scaricoPeso);
-    const w2ConsigliatoDisplay = hasReps ? `${formatWeight(scaricoPeso)}x${repsTarget}r` : `${formatWeight(scaricoPeso)} kg`;
+    const w2ConsigliatoVal = String(scaricoPeso);
+    const w2ConsigliatoDisplay = `${formatWeight(scaricoPeso)} kg`;
 
     const w2SfidanteVal = hasReps ? `${scaricoPeso}x${repsTarget + 1}r` : String(scaricoPeso);
     const w2SfidanteDisplay = hasReps ? `${formatWeight(scaricoPeso)}x${repsTarget + 1}r` : `${formatWeight(scaricoPeso)} kg`;
@@ -10356,11 +10388,8 @@ const getGhostRenderInfo = (sett) => {
     icon = 'mdi-battery-charging-40';
     color = isLight ? '#b45309' : '#fbbf24';
     label = 'Scarico:';
-    const repsTarget = getRepsPerWeek(sett) || (workout.value?.['reps_week' + sett] ? parseInt(workout.value['reps_week' + sett], 10) : estraiRepsDaPrescrizione(workout.value?.['des_week' + sett]));
     if (ghost.isRepExercise) {
       valueText = scaricoWeek4Weights.value?.textW2 || (formatRepsDisplay(ghost.peso) || 'W2');
-    } else if (repsTarget && repsTarget > 0) {
-      valueText = `${formatWeight(ghost.peso)}x${repsTarget}r`;
     } else {
       valueText = `${formatWeight(ghost.peso)} kg`;
     }

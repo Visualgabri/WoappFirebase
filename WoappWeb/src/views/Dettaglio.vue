@@ -1817,50 +1817,6 @@
               </span>
             </div>
 
-            <!-- HELPER CONVERSIONE BILANCIERE (Lato <-> Totale) -->
-            <div
-              v-if="!isPostura && !isCardio && getBilanciereHelperInfo(sett)"
-              class="d-flex align-center justify-space-between mt-1.5 px-2.5 py-1.5 rounded-lg animate-fade-in text-left border"
-              style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.28) !important;"
-            >
-              <div class="d-flex align-center gap-1.5 min-width-0">
-                <v-icon color="cyan-accent-3" size="14" class="flex-shrink-0">mdi-dumbbell</v-icon>
-                <span class="text-caption font-weight-bold text-cyan-lighten-2" style="font-size: 0.68rem; line-height: 1.3;">
-                  <template v-if="getBilanciereHelperInfo(sett).tipo === 'per_lato'">
-                    <strong>{{ getBilanciereHelperInfo(sett).valoreIniziale }} kg/lato</strong> = <span class="text-white font-weight-black">{{ getBilanciereHelperInfo(sett).totale }} kg tot.</span>
-                    <span 
-                      class="text-slate-400 font-weight-normal ml-1 cursor-pointer text-decoration-underline"
-                      title="Tocca per modificare tara bilanciere"
-                      @click.stop="apriDialogStepEsercizio"
-                    >
-                      (bil. {{ getBilanciereHelperInfo(sett).barWeight }}kg ✏️)
-                    </span>
-                  </template>
-                  <template v-else>
-                    <strong>{{ getBilanciereHelperInfo(sett).valoreIniziale }} kg tot.</strong> = <span class="text-white font-weight-black">{{ getBilanciereHelperInfo(sett).perLato }} kg/lato</span>
-                    <span 
-                      class="text-slate-400 font-weight-normal ml-1 cursor-pointer text-decoration-underline"
-                      title="Tocca per modificare tara bilanciere"
-                      @click.stop="apriDialogStepEsercizio"
-                    >
-                      (bil. {{ getBilanciereHelperInfo(sett).barWeight }}kg ✏️)
-                    </span>
-                  </template>
-                </span>
-              </div>
-              <v-btn
-                v-if="getBilanciereHelperInfo(sett).canToggle"
-                variant="text"
-                size="x-small"
-                density="compact"
-                color="cyan-lighten-3"
-                class="text-none font-weight-black px-1.5 ml-1 flex-shrink-0 rounded"
-                style="font-size: 0.60rem; height: 20px; background: rgba(56, 189, 248, 0.12);"
-                @click.stop="toggleModalitaInputBilanciere(sett)"
-              >
-                In {{ getBilanciereHelperInfo(sett).tipo === 'per_lato' ? 'totale' : 'per lato' }}
-              </v-btn>
-            </div>
           </div>
 
           <!-- BANNER SMART STAGNATION GUARD & CHIP RAPIDI (Soluzione 1) -->
@@ -2678,6 +2634,21 @@
                     @focus="activeEditingWeekPrecedente = w"
                     @blur="onBlurWeekPrecedente(w)"
                   ></textarea>
+
+                  <!-- Badge Avviso Discrepanza Bilanciere (Precedente) -->
+                  <div 
+                    v-if="getDiscrepanzaBilanciereCella(previousWorkout, w)"
+                    class="d-flex align-center justify-start mt-1 cursor-pointer animate-fade-in"
+                    @click.stop="mostraInfoDiscrepanza(getDiscrepanzaBilanciereCella(previousWorkout, w))"
+                  >
+                    <span 
+                      class="discrepancy-badge-pill"
+                      :title="getDiscrepanzaBilanciereCella(previousWorkout, w).tooltip"
+                    >
+                      <v-icon size="10" color="#f59e0b" class="mr-1">mdi-scale-balance</v-icon>
+                      <span>{{ getDiscrepanzaBilanciereCella(previousWorkout, w).badgeText }} • {{ getDiscrepanzaBilanciereCella(previousWorkout, w).tooltipShort }}</span>
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Card Premium Feedback e Miglior Carico W6 Precedente -->
@@ -2881,6 +2852,21 @@
                     @focus="activeEditingWeekStoricoSingolo = w"
                     @blur="salvaDatoSettimanaleStoricoSingolo(w, 'ins'); activeEditingWeekStoricoSingolo = null"
                   ></textarea>
+
+                  <!-- Badge Avviso Discrepanza Bilanciere (Storico Singolo) -->
+                  <div 
+                    v-if="getDiscrepanzaBilanciereCella(selectedStoricoWorkout, w)"
+                    class="d-flex align-center justify-start mt-1 cursor-pointer animate-fade-in"
+                    @click.stop="mostraInfoDiscrepanza(getDiscrepanzaBilanciereCella(selectedStoricoWorkout, w))"
+                  >
+                    <span 
+                      class="discrepancy-badge-pill"
+                      :title="getDiscrepanzaBilanciereCella(selectedStoricoWorkout, w).tooltip"
+                    >
+                      <v-icon size="10" color="#f59e0b" class="mr-1">mdi-scale-balance</v-icon>
+                      <span>{{ getDiscrepanzaBilanciereCella(selectedStoricoWorkout, w).badgeText }} • {{ getDiscrepanzaBilanciereCella(selectedStoricoWorkout, w).tooltipShort }}</span>
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Card Feedback e Miglior Carico W6 Storico -->
@@ -5604,6 +5590,19 @@
                         :style="getInsWeekTextStyle(prevEx, w)"
                         v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
                       ></strong>
+                      <div 
+                        v-if="getDiscrepanzaBilanciereCella(prevEx, w)"
+                        class="d-flex align-center justify-center mt-1 cursor-pointer animate-fade-in"
+                        @click.stop="mostraInfoDiscrepanza(getDiscrepanzaBilanciereCella(prevEx, w))"
+                      >
+                        <span 
+                          class="discrepancy-badge-pill"
+                          :title="getDiscrepanzaBilanciereCella(prevEx, w).tooltip"
+                        >
+                          <v-icon size="8" color="#f59e0b" class="mr-0.5">mdi-scale-balance</v-icon>
+                          <span>{{ getDiscrepanzaBilanciereCella(prevEx, w).badgeText }}</span>
+                        </span>
+                      </div>
                     </div>
                   </v-col>
                   
@@ -5640,6 +5639,19 @@
                         :style="getInsWeekTextStyle(prevEx, w)"
                         v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
                       ></strong>
+                      <div 
+                        v-if="getDiscrepanzaBilanciereCella(prevEx, w)"
+                        class="d-flex align-center justify-center mt-1 cursor-pointer animate-fade-in"
+                        @click.stop="mostraInfoDiscrepanza(getDiscrepanzaBilanciereCella(prevEx, w))"
+                      >
+                        <span 
+                          class="discrepancy-badge-pill"
+                          :title="getDiscrepanzaBilanciereCella(prevEx, w).tooltip"
+                        >
+                          <v-icon size="8" color="#f59e0b" class="mr-0.5">mdi-scale-balance</v-icon>
+                          <span>{{ getDiscrepanzaBilanciereCella(prevEx, w).badgeText }}</span>
+                        </span>
+                      </div>
                       <span v-if="!isPostura && w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold d-block mt-0.5" style="font-size: 0.50rem; line-height: 1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
                         {{ prevEx.num_faticaw6 }}
                       </span>
@@ -5825,6 +5837,19 @@
                         :style="getInsWeekTextStyle(prevEx, w)"
                         v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
                       ></div>
+                      <div 
+                        v-if="getDiscrepanzaBilanciereCella(prevEx, w)"
+                        class="d-flex align-center justify-center mt-1 cursor-pointer animate-fade-in"
+                        @click.stop="mostraInfoDiscrepanza(getDiscrepanzaBilanciereCella(prevEx, w))"
+                      >
+                        <span 
+                          class="discrepancy-badge-pill"
+                          :title="getDiscrepanzaBilanciereCella(prevEx, w).tooltip"
+                        >
+                          <v-icon size="8" color="#f59e0b" class="mr-0.5">mdi-scale-balance</v-icon>
+                          <span>{{ getDiscrepanzaBilanciereCella(prevEx, w).badgeText }}</span>
+                        </span>
+                      </div>
                       <div v-if="!isPostura && w === 6 && prevEx.num_faticaw6" class="text-super-caption font-weight-bold mt-0.5" style="font-size: 0.55rem; line-height: 1.1;" :style="getColoreFaticaStyle(prevEx.num_faticaw6)">
                         {{ prevEx.num_faticaw6 }}
                       </div>
@@ -5832,6 +5857,19 @@
                     
                     <td v-if="!isCardio && !isPostura" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="getW6BestColorStyle(prevEx)">
                       {{ (prevEx.num_ins6 || prevEx.ins_week6) ? (isCorpoLiberoEsercizio(workout) ? (String(prevEx.num_ins6 || prevEx.ins_week6).toLowerCase().endsWith('r') ? (prevEx.num_ins6 || prevEx.ins_week6) : (prevEx.num_ins6 || prevEx.ins_week6) + 'r') : (String(prevEx.num_ins6 || prevEx.ins_week6).toLowerCase().includes('kg') ? (prevEx.num_ins6 || prevEx.ins_week6) : (prevEx.num_ins6 || prevEx.ins_week6) + ' kg')) : '-' }}
+                      <div 
+                        v-if="getDiscrepanzaBilanciereCella(prevEx, 6)"
+                        class="d-flex align-center justify-center mt-1 cursor-pointer animate-fade-in"
+                        @click.stop="mostraInfoDiscrepanza(getDiscrepanzaBilanciereCella(prevEx, 6))"
+                      >
+                        <span 
+                          class="discrepancy-badge-pill"
+                          :title="getDiscrepanzaBilanciereCella(prevEx, 6).tooltip"
+                        >
+                          <v-icon size="8" color="#f59e0b" class="mr-0.5">mdi-scale-balance</v-icon>
+                          <span>{{ getDiscrepanzaBilanciereCella(prevEx, 6).badgeText }}</span>
+                        </span>
+                      </div>
                     </td>
                     <td v-if="!isCardio && !isPostura" class="body-cell font-weight-black text-center" style="font-size: 1rem; word-wrap: break-word; border-left: 1px solid rgba(255,255,255,0.1);" :style="get1RMW6ColorStyle(prevEx)">
                       {{ formatta1RMW6Prescritto(prevEx) }}
@@ -8557,87 +8595,177 @@ const selezionaPesoBilanciere = async (nuovoPeso) => {
   inputPesoBilanciereCustom.value = '';
 };
 
-const getBilanciereHelperInfo = (sett) => {
-  if (isPostura.value || isCardio.value) return null;
-  if (!isBilanciereEsercizio(workout.value)) return null;
+const getDiscrepanzaBilanciereCella = (prevEx, w) => {
+  if (!prevEx || isPostura.value || isCardio.value) return null;
+  const isBarbell = isBilanciereEsercizio(prevEx) || (workout.value && isBilanciereEsercizio(workout.value));
+  if (!isBarbell) return null;
 
-  const rawVal = (activeEditingWeek.value === sett && localEditingRaw[sett] !== undefined)
-    ? localEditingRaw[sett]
-    : (inputSettimane.value[sett]?.ins || workout.value?.['ins_week' + sett] || '');
+  let rawVal = prevEx['ins_week' + w];
+  if (w === 6 && (rawVal === undefined || rawVal === null || String(rawVal).trim() === '' || String(rawVal).trim() === '-')) {
+    rawVal = prevEx.num_ins6;
+  }
+  if (prevEx === previousWorkout.value && inputSettimanePrecedente.value?.[w]?.ins) {
+    rawVal = inputSettimanePrecedente.value[w].ins;
+  } else if (prevEx === selectedStoricoWorkout.value && inputSettimaneStoricoSingolo.value?.[w]?.ins) {
+    rawVal = inputSettimaneStoricoSingolo.value[w].ins;
+  }
 
   if (!rawVal || String(rawVal).trim() === '' || String(rawVal).trim() === '-') return null;
 
   const peso = parseFloat(estraiPesoDaInput(rawVal));
   if (isNaN(peso) || peso <= 0) return null;
 
-  const barWeight = getPesoBilanciereEsercizio(workout.value);
+  const barWeight = getPesoBilanciereEsercizio(prevEx || workout.value) || 20;
   const text = String(rawVal).toLowerCase();
   const hasExplicitSide = /\b(?:l|lato|xlato|x lato)\b/i.test(text);
   const hasExplicitTotal = /\b(?:tot|totale|c\/bil|c\/b)\b/i.test(text);
 
-  const isPerLato = hasExplicitSide || (!hasExplicitTotal && peso <= 45);
+  // Raccogli i carichi delle altre settimane dello stesso mesociclo
+  const otherWeights = [];
+  let otherExplicitSide = 0;
+  let otherExplicitTotal = 0;
 
-  if (isPerLato) {
-    const totale = Math.round((peso * 2 + barWeight) * 100) / 100;
-    return {
-      tipo: 'per_lato',
-      valoreIniziale: formatWeight(peso),
-      totale: formatWeight(totale),
-      barWeight: formatWeight(barWeight),
-      canToggle: true
-    };
-  } else {
-    if (peso <= barWeight) return null;
-    const perLato = Math.round(((peso - barWeight) / 2) * 100) / 100;
-    return {
-      tipo: 'totale',
-      valoreIniziale: formatWeight(peso),
-      perLato: formatWeight(perLato),
-      barWeight: formatWeight(barWeight),
-      canToggle: true
-    };
+  for (let i = 1; i <= 6; i++) {
+    if (i === w) continue;
+    let oVal = prevEx['ins_week' + i];
+    if (i === 6 && (oVal === undefined || oVal === null || String(oVal).trim() === '')) {
+      oVal = prevEx.num_ins6;
+    }
+    if (prevEx === previousWorkout.value && inputSettimanePrecedente.value?.[i]?.ins) {
+      oVal = inputSettimanePrecedente.value[i].ins;
+    } else if (prevEx === selectedStoricoWorkout.value && inputSettimaneStoricoSingolo.value?.[i]?.ins) {
+      oVal = inputSettimaneStoricoSingolo.value[i].ins;
+    }
+
+    if (oVal && String(oVal).trim() !== '' && String(oVal).trim() !== '-') {
+      const oText = String(oVal).toLowerCase();
+      if (/\b(?:l|lato|xlato|x lato)\b/i.test(oText)) otherExplicitSide++;
+      if (/\b(?:tot|totale|c\/bil|c\/b)\b/i.test(oText)) otherExplicitTotal++;
+      const p = parseFloat(estraiPesoDaInput(oVal));
+      if (!isNaN(p) && p > 0) {
+        otherWeights.push(p);
+      }
+    }
   }
+
+  // Se ci sono altre settimane nel mesociclo
+  if (otherWeights.length > 0) {
+    const sorted = otherWeights.slice().sort((a, b) => a - b);
+    const baseline = sorted[Math.floor(sorted.length / 2)];
+
+    // Caso 1: Cella inserita come Totale mentre il resto della scheda è per lato
+    const isTotaleSuLato = (hasExplicitTotal && (baseline <= 50 || otherExplicitSide > 0)) ||
+      (!hasExplicitSide && baseline <= 50 && peso >= 45 && peso >= baseline * 1.60 && peso >= baseline + 20);
+
+    if (isTotaleSuLato && peso > barWeight) {
+      const equivSide = Math.round(((peso - barWeight) / 2) * 100) / 100;
+      return {
+        tipo: 'totale_su_lato',
+        peso,
+        barWeight,
+        equivalente: equivSide,
+        tipoEquivalente: 'per lato',
+        badgeText: `Tot. ≈ ${formatWeight(equivSide)}L`,
+        tooltipShort: `Totale (${formatWeight(peso)}kg) = ≈${formatWeight(equivSide)}kg/lato`,
+        tooltip: `Discrepanza Bilanciere: carico inserito come peso totale (${formatWeight(peso)} kg con bil. ${formatWeight(barWeight)} kg). Equivale a circa ${formatWeight(equivSide)} kg per lato, coerente con le altre settimane (${formatWeight(baseline)} kg).`
+      };
+    }
+
+    // Caso 2: Cella inserita per lato mentre il resto della scheda è in peso totale
+    const isLatoSuTotale = (hasExplicitSide && (baseline >= 50 || otherExplicitTotal > 0)) ||
+      (!hasExplicitTotal && baseline >= 50 && peso <= 45 && peso <= baseline * 0.65);
+
+    if (isLatoSuTotale) {
+      const equivTotal = Math.round((peso * 2 + barWeight) * 100) / 100;
+      return {
+        tipo: 'lato_su_totale',
+        peso,
+        barWeight,
+        equivalente: equivTotal,
+        tipoEquivalente: 'totale',
+        badgeText: `Lato ≈ ${formatWeight(equivTotal)}kg`,
+        tooltipShort: `Per lato (${formatWeight(peso)}kg) = ≈${formatWeight(equivTotal)}kg tot`,
+        tooltip: `Discrepanza Bilanciere: carico inserito per lato (${formatWeight(peso)} kg). Con bilanciere (${formatWeight(barWeight)} kg) equivale a circa ${formatWeight(equivTotal)} kg totali, coerente con le altre settimane (${formatWeight(baseline)} kg).`
+      };
+    }
+  } else {
+    // Se è l'unica settimana della scheda ma ha etichette esplicite
+    if (hasExplicitTotal && peso > barWeight) {
+      const equivSide = Math.round(((peso - barWeight) / 2) * 100) / 100;
+      return {
+        tipo: 'totale_esplicito',
+        peso,
+        barWeight,
+        equivalente: equivSide,
+        tipoEquivalente: 'per lato',
+        badgeText: `Tot. ≈ ${formatWeight(equivSide)}L`,
+        tooltipShort: `Totale (${formatWeight(peso)}kg) = ≈${formatWeight(equivSide)}kg/lato`,
+        tooltip: `Carico totale specificato (${formatWeight(peso)} kg con bil. ${formatWeight(barWeight)} kg) = circa ${formatWeight(equivSide)} kg per lato.`
+      };
+    }
+    if (hasExplicitSide) {
+      const equivTotal = Math.round((peso * 2 + barWeight) * 100) / 100;
+      return {
+        tipo: 'lato_esplicito',
+        peso,
+        barWeight,
+        equivalente: equivTotal,
+        tipoEquivalente: 'totale',
+        badgeText: `Lato ≈ ${formatWeight(equivTotal)}kg`,
+        tooltipShort: `Per lato (${formatWeight(peso)}kg) = ≈${formatWeight(equivTotal)}kg tot`,
+        tooltip: `Carico per lato specificato (${formatWeight(peso)} kg) = circa ${formatWeight(equivTotal)} kg totali con bilanciere (${formatWeight(barWeight)} kg).`
+      };
+    }
+
+    // Fallback con il baseline dell'esercizio in corso se disponibile
+    if (workout.value && String(workout.value.num_scheda) !== String(prevEx.num_scheda)) {
+      const currentWeights = [];
+      for (let k = 1; k <= 6; k++) {
+        const cVal = inputSettimane.value?.[k]?.ins || workout.value['ins_week' + k];
+        if (cVal) {
+          const cp = parseFloat(estraiPesoDaInput(cVal));
+          if (!isNaN(cp) && cp > 0) currentWeights.push(cp);
+        }
+      }
+      if (currentWeights.length > 0) {
+        const curBaseline = currentWeights.reduce((a, b) => a + b, 0) / currentWeights.length;
+        if (curBaseline <= 45 && peso >= 55 && peso >= curBaseline * 1.65 && peso > barWeight) {
+          const equivSide = Math.round(((peso - barWeight) / 2) * 100) / 100;
+          return {
+            tipo: 'totale_su_lato',
+            peso,
+            barWeight,
+            equivalente: equivSide,
+            tipoEquivalente: 'per lato',
+            badgeText: `Tot. ≈ ${formatWeight(equivSide)}L`,
+            tooltipShort: `Totale (${formatWeight(peso)}kg) = ≈${formatWeight(equivSide)}kg/lato`,
+            tooltip: `Discrepanza Bilanciere: questo carico (${formatWeight(peso)} kg) sembra registrato come peso totale. Equivale a circa ${formatWeight(equivSide)} kg per lato con bil. ${formatWeight(barWeight)} kg.`
+          };
+        } else if (curBaseline >= 55 && peso <= 45 && peso <= curBaseline * 0.65) {
+          const equivTotal = Math.round((peso * 2 + barWeight) * 100) / 100;
+          return {
+            tipo: 'lato_su_totale',
+            peso,
+            barWeight,
+            equivalente: equivTotal,
+            tipoEquivalente: 'totale',
+            badgeText: `Lato ≈ ${formatWeight(equivTotal)}kg`,
+            tooltipShort: `Per lato (${formatWeight(peso)}kg) = ≈${formatWeight(equivTotal)}kg tot`,
+            tooltip: `Discrepanza Bilanciere: questo carico (${formatWeight(peso)} kg) sembra registrato per lato. Con bilanciere (${formatWeight(barWeight)} kg) equivale a circa ${formatWeight(equivTotal)} kg totali.`
+          };
+        }
+      }
+    }
+  }
+
+  return null;
 };
 
-const toggleModalitaInputBilanciere = async (sett) => {
-  const info = getBilanciereHelperInfo(sett);
+const mostraInfoDiscrepanza = (info) => {
   if (!info) return;
-
   vibraTattile(15);
-  const currentVal = (activeEditingWeek.value === sett && localEditingRaw[sett] !== undefined)
-    ? localEditingRaw[sett]
-    : (inputSettimane.value[sett]?.ins || workout.value?.['ins_week' + sett] || '');
-
-  let nuovoValore = '';
-  if (info.tipo === 'per_lato') {
-    const cleaned = String(currentVal)
-      .replace(new RegExp(String(info.valoreIniziale).replace(',', '[.,]'), 'i'), formatWeight(info.totale))
-      .replace(/\b(?:l|lato|xlato|x lato)\b/gi, '')
-      .trim();
-    nuovoValore = cleaned.includes(formatWeight(info.totale)) ? cleaned : `${formatWeight(info.totale)}`;
-  } else {
-    const cleaned = String(currentVal)
-      .replace(new RegExp(String(info.valoreIniziale).replace(',', '[.,]'), 'i'), `${formatWeight(info.perLato)}L`)
-      .replace(/\b(?:tot|totale|c\/bil|c\/b)\b/gi, '')
-      .trim();
-    nuovoValore = cleaned.includes(formatWeight(info.perLato)) ? cleaned : `${formatWeight(info.perLato)}L`;
-  }
-
-  if (!inputSettimane.value[sett]) {
-    inputSettimane.value[sett] = { ins: '', reps: '' };
-  }
-  inputSettimane.value[sett].ins = nuovoValore;
-  if (localEditingRaw[sett] !== undefined) {
-    localEditingRaw[sett] = nuovoValore;
-  }
-  if (localEditingIns.value) {
-    localEditingIns.value[sett] = nuovoValore;
-  }
-
-  if (activeEditingWeek.value !== sett) {
-    const campo = 'ins_week' + sett;
-    await aggiornaDatoECommit({ [campo]: nuovoValore });
-  }
+  snackbarMessaggio.value = `⚖️ ${info.tooltip}`;
+  snackbarSalvataggio.value = true;
 };
 
 function arrotondaAStepEsercizio(val) {
@@ -24120,6 +24248,30 @@ th.sticky-col {
   background: rgba(245, 158, 11, 0.32);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.65);
+}
+.discrepancy-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.50rem;
+  font-weight: 800;
+  padding: 1px 4.5px;
+  border-radius: 4px;
+  line-height: 1.15;
+  white-space: nowrap;
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.65);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.discrepancy-badge-pill:hover,
+.discrepancy-badge-pill:active {
+  background: rgba(245, 158, 11, 0.38);
+  border-color: rgba(245, 158, 11, 0.95);
+  color: #fef3c7;
+  transform: translateY(-0.5px);
 }
 
 /* Timeline Cards (Layout 1) */

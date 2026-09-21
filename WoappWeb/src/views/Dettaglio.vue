@@ -9255,32 +9255,45 @@ const getBaseWeekInfo = (sett) => {
       : (getRepsPerWeek(4) > getRepsPerWeek(3));
     baseWNum = isScaricoW4 ? 2 : 3;
   } else if (sett === 5) {
-    const isCavo = isCavoOMacchinaEsercizio(workout.value);
-    const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+    const isScaricoW4 = (typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined)
+      ? isWeek4Scarico.value
+      : (getRepsPerWeek(4) > getRepsPerWeek(3));
 
-    const w4Ins = inputSettimane.value?.[4]?.ins || workout.value?.ins_week4;
-    const w3Ins = inputSettimane.value?.[3]?.ins || workout.value?.ins_week3;
-    const prescRepsW4 = estraiRepsDaPrescrizione(workout.value?.des_week4) || 10;
-    const prescRepsW3 = estraiRepsDaPrescrizione(workout.value?.des_week3) || 8;
-
-    const perfW4 = w4Ins ? estraiMigliorPrestazioneInput(w4Ins, prescRepsW4, isCavo, isCorpoLibero) : null;
-    const perfW3 = w3Ins ? estraiMigliorPrestazioneInput(w3Ins, prescRepsW3, isCavo, isCorpoLibero) : null;
-
-    const pW4 = perfW4 ? perfW4.peso : (w4Ins ? parseFloat(estraiPesoDaInput(w4Ins, { isCorpoLibero })) : null);
-    const pW3 = perfW3 ? perfW3.peso : (w3Ins ? parseFloat(estraiPesoDaInput(w3Ins, { isCorpoLibero })) : null);
-
-    const rW4 = perfW4 ? perfW4.reps : (w4Ins ? (estraiRepsDaInput(w4Ins) || prescRepsW4) : 0);
-    const rW3 = perfW3 ? perfW3.reps : (w3Ins ? (estraiRepsDaInput(w3Ins) || prescRepsW3) : 0);
-
-    const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
-    const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
-
-    // Se in W4 viene completato un carico uguale o superiore a quello della W3, usa W4 come nuova baseline
-    if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
-      baseWNum = 4;
+    if (isScaricoW4) {
+      // Se la Week 4 è di scarico, la base per Week 5 DEVE SEMPRE essere Week 3!
+      baseWNum = 3;
+      if (propostaBaseWeek5.value && propostaBaseWeek5.value !== 'W4') {
+        baseWNum = parseInt(propostaBaseWeek5.value.replace('W', ''), 10) || 3;
+      }
     } else {
-      // Se in W4 viene eseguito il carico di scarico previsto, calcola la W5 prendendo come riferimento la W3
-      baseWNum = parseInt(propostaBaseWeek5.value.replace('W', ''), 10) || 3;
+      // Se la Week 4 NON è di scarico, è una normale settimana di progressione (usa W4 se valida, altrimenti W3)
+      const isCavo = isCavoOMacchinaEsercizio(workout.value);
+      const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+
+      const w4Ins = inputSettimane.value?.[4]?.ins || workout.value?.ins_week4;
+      const w3Ins = inputSettimane.value?.[3]?.ins || workout.value?.ins_week3;
+      const prescRepsW4 = estraiRepsDaPrescrizione(workout.value?.des_week4) || 10;
+      const prescRepsW3 = estraiRepsDaPrescrizione(workout.value?.des_week3) || 8;
+
+      const perfW4 = w4Ins ? estraiMigliorPrestazioneInput(w4Ins, prescRepsW4, isCavo, isCorpoLibero) : null;
+      const perfW3 = w3Ins ? estraiMigliorPrestazioneInput(w3Ins, prescRepsW3, isCavo, isCorpoLibero) : null;
+
+      const pW4 = perfW4 ? perfW4.peso : (w4Ins ? parseFloat(estraiPesoDaInput(w4Ins, { isCorpoLibero })) : null);
+      const pW3 = perfW3 ? perfW3.peso : (w3Ins ? parseFloat(estraiPesoDaInput(w3Ins, { isCorpoLibero })) : null);
+
+      const rW4 = perfW4 ? perfW4.reps : (w4Ins ? (estraiRepsDaInput(w4Ins) || prescRepsW4) : 0);
+      const rW3 = perfW3 ? perfW3.reps : (w3Ins ? (estraiRepsDaInput(w3Ins) || prescRepsW3) : 0);
+
+      const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
+      const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
+
+      if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
+        baseWNum = 4;
+      } else if (pW4 !== null && pW4 > 0) {
+        baseWNum = 4;
+      } else {
+        baseWNum = parseInt(propostaBaseWeek5.value.replace('W', ''), 10) || 3;
+      }
     }
   } else if (sett === 6) {
     baseWNum = parseInt(propostaBaseWeek6.value.replace('W', ''), 10) || 5;
@@ -13843,29 +13856,39 @@ const consenteProgressioneIntensita = (ex, targetWeek) => {
   
   let prevWeek = targetWeek - 1;
   if (targetWeek === 5) {
-    const isCavo = isCavoOMacchinaEsercizio(ex);
-    const isCorpoLibero = isCorpoLiberoEsercizio(ex);
-    const w4Ins = inputSettimane.value?.[4]?.ins || ex?.ins_week4;
-    const w3Ins = inputSettimane.value?.[3]?.ins || ex?.ins_week3;
-    const prescRepsW4 = estraiRepsDaPrescrizione(ex?.des_week4) || 10;
-    const prescRepsW3 = estraiRepsDaPrescrizione(ex?.des_week3) || 8;
-
-    const perfW4 = w4Ins ? estraiMigliorPrestazioneInput(w4Ins, prescRepsW4, isCavo, isCorpoLibero) : null;
-    const perfW3 = w3Ins ? estraiMigliorPrestazioneInput(w3Ins, prescRepsW3, isCavo, isCorpoLibero) : null;
-
-    const pW4 = perfW4 ? perfW4.peso : (w4Ins ? parseFloat(estraiPesoDaInput(w4Ins, { isCorpoLibero })) : null);
-    const pW3 = perfW3 ? perfW3.peso : (w3Ins ? parseFloat(estraiPesoDaInput(w3Ins, { isCorpoLibero })) : null);
-
-    const rW4 = perfW4 ? perfW4.reps : (w4Ins ? (estraiRepsDaInput(w4Ins) || prescRepsW4) : 0);
-    const rW3 = perfW3 ? perfW3.reps : (w3Ins ? (estraiRepsDaInput(w3Ins) || prescRepsW3) : 0);
-
-    const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
-    const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
-    
-    if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
-      prevWeek = 4;
-    } else {
+    if (isOndaProgression(ex)) {
+      return true;
+    }
+    const isScaricoW4 = (typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined)
+      ? isWeek4Scarico.value
+      : (getRepsPerWeek(4) > getRepsPerWeek(3));
+    if (isScaricoW4) {
       prevWeek = 3;
+    } else {
+      const isCavo = isCavoOMacchinaEsercizio(ex);
+      const isCorpoLibero = isCorpoLiberoEsercizio(ex);
+      const w4Ins = inputSettimane.value?.[4]?.ins || ex?.ins_week4;
+      const w3Ins = inputSettimane.value?.[3]?.ins || ex?.ins_week3;
+      const prescRepsW4 = estraiRepsDaPrescrizione(ex?.des_week4) || 10;
+      const prescRepsW3 = estraiRepsDaPrescrizione(ex?.des_week3) || 8;
+
+      const perfW4 = w4Ins ? estraiMigliorPrestazioneInput(w4Ins, prescRepsW4, isCavo, isCorpoLibero) : null;
+      const perfW3 = w3Ins ? estraiMigliorPrestazioneInput(w3Ins, prescRepsW3, isCavo, isCorpoLibero) : null;
+
+      const pW4 = perfW4 ? perfW4.peso : (w4Ins ? parseFloat(estraiPesoDaInput(w4Ins, { isCorpoLibero })) : null);
+      const pW3 = perfW3 ? perfW3.peso : (w3Ins ? parseFloat(estraiPesoDaInput(w3Ins, { isCorpoLibero })) : null);
+
+      const rW4 = perfW4 ? perfW4.reps : (w4Ins ? (estraiRepsDaInput(w4Ins) || prescRepsW4) : 0);
+      const rW3 = perfW3 ? perfW3.reps : (w3Ins ? (estraiRepsDaInput(w3Ins) || prescRepsW3) : 0);
+
+      const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
+      const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
+      
+      if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
+        prevWeek = 4;
+      } else {
+        prevWeek = 3;
+      }
     }
   }
 
@@ -18193,12 +18216,26 @@ const getGhostLiftStandard = (sett) => {
       const e1rmW4 = perfW4 ? perfW4.e1rm : ((pW4 && pW4 > 0) ? calcolaE1RMSmorzato(pW4, rW4, isCavo) : 0);
       const e1rmW3 = perfW3 ? perfW3.e1rm : ((pW3 && pW3 > 0) ? calcolaE1RMSmorzato(pW3, rW3, isCavo) : 0);
 
-      let baseW = propostaBaseWeek5.value; // e.g. "W3"
-      let baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
+      let baseW = 'W3';
+      let baseWNum = 3;
 
-      if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
-        baseW = 'W4';
-        baseWNum = 4;
+      if (isWeek4Scarico.value) {
+        // Se la Week 4 è di scarico, W5 deve SEMPRE prendere come base W3 (post-scarico)
+        baseW = (propostaBaseWeek5.value && propostaBaseWeek5.value !== 'W4') ? propostaBaseWeek5.value : 'W3';
+        baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
+      } else {
+        // Se la Week 4 NON è di scarico, è una normale settimana di progressione:
+        // usa W4 se completata/valida, altrimenti fallback su W3
+        if (pW4 !== null && pW3 !== null && (pW4 >= pW3 || e1rmW4 >= e1rmW3)) {
+          baseW = 'W4';
+          baseWNum = 4;
+        } else if (pW4 !== null && pW4 > 0) {
+          baseW = 'W4';
+          baseWNum = 4;
+        } else {
+          baseW = propostaBaseWeek5.value || 'W3';
+          baseWNum = parseInt(baseW.replace('W', ''), 10) || 3;
+        }
       }
 
       const baseIns = inputSettimane.value[baseWNum]?.ins || workout.value?.['ins_week' + baseWNum];
@@ -20415,8 +20452,8 @@ function analizzaRottaProgressione({
   const t4 = isW4ScaricoRotta ? adjustVal(p2) : adjustVal(p3 + getStepForVal(p3));
   const p4 = l4 || t4;
 
-  // W5: se in W4 è stato completato un carico >= W3 (l4 >= p3), W5 riparte da p4!
-  const baseForW5 = (l4 && l4 >= p3) ? p4 : (isW4ScaricoRotta ? p3 : p4);
+  // W5: se W4 è scarico, la progressione riparte da W3 (p3); altrimenti riparte da W4 (p4)
+  const baseForW5 = isW4ScaricoRotta ? p3 : p4;
   const t5 = adjustVal(baseForW5 + getStepForVal(baseForW5));
   const p5 = l5 || t5;
 
@@ -21213,19 +21250,32 @@ const strategiaCoachData = computed(() => {
 
   // Rilevamento disarmonie tra settimane inserite
   const disarmonie = [];
+  const isScaricoW4Prog = (typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined)
+    ? isWeek4Scarico.value
+    : (r4 && r3 && r4 > r3);
+
   for (let w = 2; w <= 6; w++) {
-    const vPrev = workout.value?.['ins_week' + (w - 1)];
-    const vCurr = workout.value?.['ins_week' + w];
+    // Se W4 è di scarico:
+    // - W4 è scarico programmato, quindi il calo fisiologico rispetto a W3 non è una disarmonia
+    // - W5 deve confrontare la progressione rispetto a W3 (non rispetto allo scarico di W4!)
+    if (isScaricoW4Prog && w === 4) {
+      continue;
+    }
+
+    const prevWeekIdx = (isScaricoW4Prog && w === 5) ? 3 : (w - 1);
+    const vPrev = inputSettimane.value?.[prevWeekIdx]?.ins || workout.value?.['ins_week' + prevWeekIdx];
+    const vCurr = inputSettimane.value?.[w]?.ins || workout.value?.['ins_week' + w];
+
     if (vPrev && vCurr) {
       const pPrev = parseFloat(estraiPesoDaInput(vPrev));
       const pCurr = parseFloat(estraiPesoDaInput(vCurr));
       if (!isNaN(pPrev) && !isNaN(pCurr) && pPrev > 0 && pCurr > 0) {
         const delta = pCurr - pPrev;
         const maxStepConsentito = (isManubri ? 2.5 : 5.0);
-        if (w !== 4 && delta > maxStepConsentito) {
-          disarmonie.push(`Salto eccessivo (+${formatWeight(delta)}kg) da W${w - 1} a W${w}`);
-        } else if (w !== 4 && delta < 0) {
-          disarmonie.push(`Calo anomalo di peso (-${formatWeight(Math.abs(delta))}kg) da W${w - 1} a W${w}`);
+        if (delta > maxStepConsentito) {
+          disarmonie.push(`Salto eccessivo (+${formatWeight(delta)}kg) da W${prevWeekIdx} a W${w}`);
+        } else if (delta < 0) {
+          disarmonie.push(`Calo anomalo di peso (-${formatWeight(Math.abs(delta))}kg) da W${prevWeekIdx} a W${w}`);
         }
       }
     }

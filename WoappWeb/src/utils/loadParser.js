@@ -599,8 +599,8 @@ export const estraiPesoDaInput = (str, options = {}) => {
   // Rimuove notazioni TUT (es. "TUT323", "TUT 3-2-3", "tut 511")
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
 
-  // Rimuove espressioni di RPE (es. "Rpe: 93 - 99", "RPE 8.5", "RPE: 9-10", "rpe 93-99", "rpe@9")
-  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
+  // Rimuove espressioni di RPE (es. "Rpe: 93 - 99", "RPE 8.5", "RPE: 9-10", "rpe 93-99", "rpe@9", "rpe: 90 85 84")
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/,]\s*\d+(?:[\.,]\d+)?|\s+\d+(?:[\.,]\d+)?(?!\s*(?:kg\b|k\b|[xX]|[rR]\b|reps?|rip|colpi)))*/gi, ' ').trim();
 
   // Rimuove espressioni di Rest-Pause / Drop-Set (es. "rp20", "rp 15", "+2r RP", "RP+3")
   clean = clean.replace(/(?:\+|\bpoi\b)?\s*(?:rp|rest\s*pause|drop\s*set|cluster)\s*(?:fino\s*a\s*)?:?\s*@?\s*\+?\s*\d+(?:[\.,]\d+)?(?:\s*(?:sec|secondi|s|r|reps?|rip))?/gi, ' ').trim();
@@ -771,7 +771,7 @@ export function estraiRepsDaInputExplicitSingle(str) {
 
   // 1. Rimuove TUT, RPE, tempi di recupero e impostazioni
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
-  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/,]\s*\d+(?:[\.,]\d+)?|\s+\d+(?:[\.,]\d+)?(?!\s*(?:kg\b|k\b|[xX]|[rR]\b|reps?|rip|colpi)))*/gi, ' ').trim();
   clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
   clean = clean.replace(/\b(?:pin|buco|buca|foro|tacca|altezza|pos|step|livello)\b\s*\d+(?:\.\d+)?/gi, '').trim();
 
@@ -1282,16 +1282,21 @@ export const estraiSerieDaSingolaRiga = (line, options = {}) => {
     }
   }
 
+  // 1b. Rimuove QUALSIASI contenuto tra parentesi tonde (...), quadre [...] o graffe {...}
+  let clean = rimuoviContenutoTraParentesi(l).toLowerCase().replace(/,/g, '.').trim();
+  if (!clean) return [];
+
   // 2. Pulizia preliminare impostazioni attrezzo (es. "pin 3", "panca 45°", "buco 2", "tut 313", "rpe 9")
-  let clean = l.toLowerCase().replace(/,/g, '.').trim();
   clean = clean.replace(/\b(?:tut|t\.u\.t\.)\s*:?\s*@?\s*\d*(?:\s*[\-\/\.]?\s*\d+)*/gi, ' ').trim();
-  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/]\s*\d+(?:[\.,]\d+)?)*/gi, ' ').trim();
+  clean = clean.replace(/\b(?:rpe|r\.p\.e\.)\s*:?\s*@?\s*\d+(?:[\.,]\d+)?(?:\s*[\-\/,]\s*\d+(?:[\.,]\d+)?|\s+\d+(?:[\.,]\d+)?(?!\s*(?:kg\b|k\b|[xX]|[rR]\b|reps?|rip|colpi)))*/gi, ' ').trim();
   clean = clean.replace(/\b\d+(?:\.\d+)?\s*(?:sec|secondi|sec\.?|s|rec|recupero|min|minuti)\b/gi, ' ').trim();
 
   const cleanSettingsRegex = /\b(?:pin|buco|buca|buchi|foro|fori|tacca|tacche|altezza|pos|posizione|inc|inclinazione|step|level|livello|liv|regolazione|tacc|tassello|tavoletta|board|box|tut|t\.u\.t\.|sedile|schienale|poggiapiede|poggiapiedi|schiena|rullo|perno|distanza|ampiezza|impugnatura|presa|busto|manubrio|cavo|puleggia|tacchetta|tacchette|panca)\b\s*(?:a\s*)?\d+(?:\.\d+)?/gi;
   clean = clean.replace(cleanSettingsRegex, ' ').trim();
   clean = clean.replace(/\d+(?:\.\d+)?\s*°/g, ' ').trim();
   clean = clean.replace(/^\s*[1-5]\s*[xX]\s+(?=\d)/g, '').trim();
+
+  if (!clean) return [];
 
   // 3. Regex universale per tokenizzare i singoli set (carico + reps opzionali attaccate o staccate, oppure sole reps con suffisso r)
   const setRegex = /(?:^|\s)([0-9]+(?:\.[0-9]+)?)\s*(?:kg|k\b)?(?:\s*([rR]\b|reps?|rip(?:etizioni)?|colpi)|\s*[xX]\s*([0-9]+(?:\.[0-9]+)?)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)?|(?:\s*(?:kg|k\b)\s*|\s+)([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)|\s*\+\s*([0-9]+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi))?(?=\s|$|[;,]|\()/gi;

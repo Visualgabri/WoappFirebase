@@ -8125,12 +8125,16 @@ const isStagnazioneSettimana = (sett) => {
   const currentReps = perfCurr ? perfCurr.reps : (estraiRepsDaInput(currentIns) || getRepsPerWeek(sett));
 
   let prevW = sett - 1;
-  while (prevW >= 1 && (!inputSettimane.value[prevW]?.ins || String(inputSettimane.value[prevW]?.ins).trim() === '' || String(inputSettimane.value[prevW]?.ins).trim() === '-')) {
+  while (prevW >= 1) {
+    const pVal = inputSettimane.value[prevW]?.ins || workout.value?.['ins_week' + prevW];
+    if (pVal && String(pVal).trim() !== '' && String(pVal).trim() !== '-') {
+      break;
+    }
     prevW--;
   }
   if (prevW < 1) return false;
 
-  const prevIns = inputSettimane.value[prevW]?.ins;
+  const prevIns = inputSettimane.value[prevW]?.ins || workout.value?.['ins_week' + prevW];
   const perfPrev = estraiMigliorPrestazioneInput(prevIns, getRepsPerWeek(prevW), isCavoOMacchinaEsercizio(workout.value), isCorpoLiberoPuro.value);
   const prevPeso = perfPrev ? perfPrev.peso : (parseFloat(estraiPesoDaInput(prevIns)) || 0);
   if (prevPeso <= 0) return false;

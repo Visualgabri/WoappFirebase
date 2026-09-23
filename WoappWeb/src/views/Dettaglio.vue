@@ -4650,7 +4650,7 @@
                       <v-icon start size="14" class="mr-1">
                         {{ (strategiaConsigliataCard.tipo === 'sfidante') ? 'mdi-rocket-launch' : 'mdi-check' }}
                       </v-icon>
-                      Applica {{ (workout && isCorpoLiberoEsercizio(workout) && !haPesoEsercizio) ? (String(strategiaConsigliataCard.pesoToApply).endsWith('r') ? strategiaConsigliataCard.pesoToApply : strategiaConsigliataCard.pesoToApply + ' reps') : (formatWeight(strategiaConsigliataCard.pesoToApply) + ' kg') }}
+                      Applica {{ (workout && isCorpoLiberoEsercizio(workout) && !haPesoEsercizio) ? (String(strategiaConsigliataCard.pesoToApply).endsWith('r') ? strategiaConsigliataCard.pesoToApply : strategiaConsigliataCard.pesoToApply + ' reps') : (String(strategiaConsigliataCard.pesoToApply).includes('r') ? (formatWeight(estraiPesoDaInput(strategiaConsigliataCard.pesoToApply)) + ' kg × ' + estraiRepsDaInput(strategiaConsigliataCard.pesoToApply) + 'r') : (formatWeight(strategiaConsigliataCard.pesoToApply) + ' kg')) }}
                     </v-btn>
                   </div>
                 </v-card>
@@ -4722,14 +4722,18 @@
                         </div>
 
                         <v-btn
-                          :color="(card.tipo === 'sfidante') ? 'orange-darken-3' : ((card.tipo === 'safe') ? 'blue-darken-3' : 'green-darken-2')"
                           size="x-small"
-                          :variant="(card.tipo === 'sfidante' && card.isAttaccoPROpzione) ? 'flat' : 'tonal'"
+                          variant="flat"
                           class="font-weight-bold text-white text-none w-100 rounded-lg text-no-wrap"
                           :style="{
                             fontSize: '0.55rem',
                             height: '24px',
-                            background: (card.tipo === 'sfidante' && card.isAttaccoPROpzione) ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important' : ''
+                            background: (card.tipo === 'sfidante')
+                              ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important'
+                              : ((card.tipo === 'safe')
+                                ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important'
+                                : 'linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important'),
+                            color: (card.tipo === 'sfidante' && card.isAttaccoPROpzione) ? '#451a03 !important' : '#ffffff !important'
                           }"
                           @click="applicaPropostaCaricoStorico(card.pesoToApply)"
                         >
@@ -10443,27 +10447,9 @@ function getGhostWeightsRangeForWeekRaw(sett) {
     const repsProgressioneBase = repsBaseVal + 1;
     const repsSfidanteBase = repsBaseVal + 2;
 
-    let prudenzialeValStr;
-    let prudenzialeDisplayStr;
-    let prudenzialeLabelStr;
-
-    if (isValidoTargetReps) {
-      if (pesoConsigliato > pesoBase) {
-        prudenzialeValStr = String(pesoBase);
-        prudenzialeDisplayStr = `${formatWeight(pesoBase)} kg`;
-        prudenzialeLabelStr = 'Prudenziale (Stesso peso)';
-      } else {
-        const step = getWeightStep(isManubri, pesoBase);
-        const pDown = isManubri ? getDumbbellSequenceWeight(pesoBase, 'down') : Math.max(step, pesoBase - step);
-        prudenzialeValStr = String(pDown);
-        prudenzialeDisplayStr = `${formatWeight(pDown)} kg`;
-        prudenzialeLabelStr = 'Prudenziale (-Kg)';
-      }
-    } else {
-      prudenzialeValStr = `${pesoBase}x${repsProgressioneBase}r`;
-      prudenzialeDisplayStr = `${formatWeight(pesoBase)}x${repsProgressioneBase}r`;
-      prudenzialeLabelStr = 'Prudenziale (+1r)';
-    }
+    const prudenzialeValStr = `${pesoBase}x${repsProgressioneBase}r`;
+    const prudenzialeDisplayStr = `${formatWeight(pesoBase)}x${repsProgressioneBase}r`;
+    const prudenzialeLabelStr = 'Prudenziale (+1r)';
     
     let consigliatoValStr;
     let consigliatoDisplayStr;
@@ -10982,7 +10968,10 @@ const applicaPropostaCaricoRapida = (sett, peso) => {
     salvaDatoSettimanale(sett, 'ins');
     
     // Mostra snackbar di successo
-    snackbarMessaggio.value = `Applicato carico ${pesoFormattato} kg per W${sett}!`;
+    const haUnita = String(pesoFormattato).toLowerCase().includes('r') || String(pesoFormattato).toLowerCase().includes('kg');
+    snackbarMessaggio.value = haUnita 
+      ? `Applicato ${pesoFormattato} per W${sett}!` 
+      : `Applicato carico ${pesoFormattato} kg per W${sett}!`;
     snackbarSalvataggio.value = true;
   }
 };
@@ -11919,6 +11908,10 @@ const formatCaricoConReps = (valore, targetReps) => {
   const pNum = p !== null ? parseFloat(p) : (parseFloat(strVal.replace(',', '.')) || null);
   
   if (pNum !== null && !isNaN(pNum)) {
+    const haRepsEsplicite = /[xX]\s*\d+\s*[rR]?|\d+\s*[rR]\b/i.test(strVal);
+    if (haRepsEsplicite && r !== null && !isNaN(r) && r > 0) {
+      return `${formatWeight(pNum)} kg × ${r}r`;
+    }
     if (r !== null && !isNaN(r) && r > 0 && r !== targetReps) {
       return `${formatWeight(pNum)} kg × ${r}r`;
     }
@@ -12095,7 +12088,7 @@ const strategieAlternativeCards = computed(() => {
     nome: 'SAFE',
     isConsigliato: !sfidanteIsProtagonista && tipoConsigliato === 'safe',
     isProtagonista: false,
-    valoreDisplay: formatCaricoConReps(range.prudenziale.value, targetReps),
+    valoreDisplay: String(range.prudenziale.value).includes('r') ? range.prudenziale.display : formatCaricoConReps(range.prudenziale.value, targetReps),
     pesoToApply: isCorpoLiberoPuro ? range.prudenziale.value : (range.prudenziale.value || safeVal),
     targetReps,
     sottotitolo: safeSottotitolo,

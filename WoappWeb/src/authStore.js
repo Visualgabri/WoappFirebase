@@ -1510,7 +1510,7 @@ export const formattaECleanupNota = (str) => {
 };
 
 // Helper per evidenziare in modo intelligente carichi, ripetizioni e note sui campi ins_week
-export const formattaInsWeekHtml = (str) => {
+export const formattaInsWeekHtml = (str, options = {}) => {
   if (!str) return '';
   const strVal = String(str);
   if (!strVal.trim()) return '';
@@ -1539,6 +1539,9 @@ export const formattaInsWeekHtml = (str) => {
   ];
 
   const stopWords = ['a', 'di', 'su', 'in', 'da', 'alla', 'al', 'del', 'della', 'n', 'n.', 'num', 'num.', 'n°', 'pos', 'pos.', '#', ':', '::', '@', 'at', 'con', 'e', 'o', 'per'];
+
+  const refPeso = (options && options.refPeso !== null && options.refPeso !== undefined) ? Number(options.refPeso) : null;
+  const refReps = (options && options.refReps !== null && options.refReps !== undefined) ? Number(options.refReps) : null;
 
   // Segmenta la stringa isolando parentesi tonde (...), quadre [...] e graffe {...}
   // Qualsiasi contenuto racchiuso tra parentesi rimane SEMPRE piccolo (ins-text-muted)
@@ -1581,30 +1584,69 @@ export const formattaInsWeekHtml = (str) => {
     segments.push({ text: currentSegment, isParen: parenDepth > 0 });
   }
 
+  let hasUnderlinedRef = false;
+
   const formatOutsideText = (text) => {
     const numberRegex = /([+-]?\d+(?:[.,]\d+)?)/g;
-    let lastIndex = 0;
-    let match;
-    let out = '';
+    const rawMatches = [];
+    let m;
+    while ((m = numberRegex.exec(text)) !== null) {
+      rawMatches.push({
+        numStr: m[0],
+        startIdx: m.index,
+        endIdx: m.index + m[0].length
+      });
+    }
 
-    while ((match = numberRegex.exec(text)) !== null) {
-      const numStr = match[0];
-      const startIdx = match.index;
-      const endIdx = startIdx + numStr.length;
+    if (rawMatches.length === 0) {
+      return text ? `<span class="ins-text-muted">${escapeHtml(text)}</span>` : '';
+    }
+
+    const parsedItems = [];
+    let activeTechnique = false;
+
+    for (let i = 0; i < rawMatches.length; i++) {
+      const item = rawMatches[i];
+      const numStr = item.numStr;
+      const startIdx = item.startIdx;
+      const endIdx = item.endIdx;
 
       const suffix = text.substring(endIdx);
       const suffixClean = suffix.trimStart();
       const prefix = text.substring(0, startIdx);
       const prefixTrimmed = prefix.trimEnd();
 
+      // Controllo del testo compreso tra il match precedente e quello attuale
+      const prevEndIdx = i > 0 ? rawMatches[i - 1].endIdx : 0;
+      const interText = text.substring(prevEndIdx, startIdx);
+
+      // Se compare un indicatore di tecnica nel testo intermedio (es. "+RP", "rp", "rest pause", "drop set", "cluster")
+      if (/(?:^|[\s+])(?:rp|rest\s*pause|drop\s*set|cluster)\b/i.test(interText)) {
+        activeTechnique = true;
+      }
+
+      // Se compare una nuova riga o punto e virgola, chiude qualsiasi tecnica attiva
+      if (/[\n\r;]/.test(interText)) {
+        activeTechnique = false;
+      }
+
       // Riconoscimento del moltiplicatore x o X nel prefisso (es. "45 x7r", "45x7", "x14r", "1x14")
       const matchPrecedingX = prefixTrimmed.match(/(?:^|[\s\d])([xX])\s*$/i);
       const isAfterX = !!matchPrecedingX;
       const isBeforeX = /^\s*[xX](?![a-zA-Z])\s*\d/.test(suffix);
 
-      // Riconoscimento tecnica Rest-Pause nel prefisso (es. "+ RP 14", "rp 12")
-      const matchPrecedingRP = prefixTrimmed.match(/\b(rp|rest\s*pause|drop\s*set|cluster)\s*$/i);
-      const isAfterRP = !!matchPrecedingRP;
+      // Controllo se il carico è seguito da sole serie (es. "15 x2s" o "15 x 2serie" o "15 x 2set")
+      const isFollowedBySetsOnly = /^\s*[xX]\s*\d+\s*(?:s\b|serie\b|set\b|sets\b)/i.test(suffix);
+
+      // Se c'è una combinazione carico + reps (es. "15 x14" o "15 x11"), un nuovo set inizia e la tecnica precedente si interrompe
+      if (isBeforeX && !isFollowedBySetsOnly) {
+        activeTechnique = false;
+      }
+
+      // Se siamo subito dopo la 'x' di un set (es. "x11"), siamo nel set principale, non nella tecnica
+      if (isAfterX && !activeTechnique) {
+        activeTechnique = false;
+      }
 
       // Riconoscimento suffissi espliciti di ripetizioni (es. "r", "reps", "rip", "colpi")
       const matchExplicitRep = suffix.match(/^\s*(r\b(?!pe)|reps?\b|rip(?:etizioni)?\b|colpi\b)/i);
@@ -1629,31 +1671,41 @@ export const formattaInsWeekHtml = (str) => {
 
       let classification = 'load';
 
-      if (isDegreesSuffix || isTimeSuffix || isSetsSuffix || isPrecededBySetting || isPrecededByRpeTut) {
+      if (isDegreesSuffix || isTimeSuffix || isSetsSuffix || isPrecededBySetting || isPrecededByRpeTut || activeTechnique || isFollowedBySetsOnly) {
         classification = 'muted';
-      } else if (isExplicitRepSuffix || isAfterRP || (isAfterX && !isExplicitKgSuffix)) {
+      } else if (isExplicitRepSuffix || (isAfterX && !isExplicitKgSuffix)) {
         classification = 'rep';
-      } else if (isBeforeX && !isExplicitKgSuffix && parseFloat(numStr.replace(',', '.')) <= 5 && !prefixTrimmed) {
-        classification = 'rep'; // es. 3x12: sia 3 che 12 fanno parte del blocco serie/ripetizioni
       } else {
         classification = 'load';
       }
 
-      let precedingText = text.substring(lastIndex, startIdx);
+      parsedItems.push({
+        numStr,
+        startIdx,
+        endIdx,
+        classification,
+        matchPrecedingX,
+        matchExplicitRep,
+        numVal: parseFloat(numStr.replace(',', '.'))
+      });
+    }
+
+    let out = '';
+    let lastIndex = 0;
+
+    for (let i = 0; i < parsedItems.length; i++) {
+      const item = parsedItems[i];
+      const nextItem = parsedItems[i + 1];
+
+      let precedingText = text.substring(lastIndex, item.startIdx);
       let repPrefix = '';
 
-      if (classification === 'rep') {
-        if (matchPrecedingX) {
-          const xPos = precedingText.lastIndexOf(matchPrecedingX[1]);
+      if (item.classification === 'rep') {
+        if (item.matchPrecedingX) {
+          const xPos = precedingText.lastIndexOf(item.matchPrecedingX[1]);
           if (xPos !== -1) {
             repPrefix = precedingText.substring(xPos);
             precedingText = precedingText.substring(0, xPos);
-          }
-        } else if (matchPrecedingRP) {
-          const rpPos = precedingText.toLowerCase().lastIndexOf(matchPrecedingRP[1].toLowerCase());
-          if (rpPos !== -1) {
-            repPrefix = precedingText.substring(rpPos);
-            precedingText = precedingText.substring(0, rpPos);
           }
         }
       }
@@ -1663,20 +1715,68 @@ export const formattaInsWeekHtml = (str) => {
       }
 
       let repSuffix = '';
-      if (classification === 'rep' && matchExplicitRep) {
-        repSuffix = matchExplicitRep[0];
-        lastIndex = endIdx + matchExplicitRep[0].length;
-        numberRegex.lastIndex = lastIndex;
+      if (item.classification === 'rep' && item.matchExplicitRep) {
+        repSuffix = item.matchExplicitRep[0];
+        lastIndex = item.endIdx + item.matchExplicitRep[0].length;
       } else {
-        lastIndex = endIdx;
+        lastIndex = item.endIdx;
       }
 
-      if (classification === 'load') {
-        out += `<span class="ins-num-highlight">${escapeHtml(numStr)}</span>`;
-      } else if (classification === 'rep') {
-        out += `<span class="ins-rep-highlight">${escapeHtml(repPrefix + numStr + repSuffix)}</span>`;
+      // Riconoscimento della serie di riferimento Ghost:
+      let isRefPair = false;
+      let isRefSingle = false;
+      let isRefRepSingle = false;
+
+      if (!hasUnderlinedRef) {
+        if (refPeso !== null && refPeso > 0) {
+          if (item.classification === 'load' && nextItem && nextItem.classification === 'rep') {
+            const textBetween = text.substring(item.endIdx, nextItem.startIdx);
+            if (/^\s*[xX]?\s*$/.test(textBetween)) {
+              const pesoMatches = Math.abs(item.numVal - refPeso) < 0.05;
+              const repsMatch = refReps === null || Math.abs(nextItem.numVal - refReps) < 0.05;
+              if (pesoMatches && repsMatch) {
+                isRefPair = true;
+              }
+            }
+          } else if (item.classification === 'load' && Math.abs(item.numVal - refPeso) < 0.05 && (!nextItem || nextItem.classification !== 'rep')) {
+            isRefSingle = true;
+          }
+        } else if ((refPeso === 0 || refPeso === null) && refReps !== null && item.classification === 'rep' && Math.abs(item.numVal - refReps) < 0.05) {
+          isRefRepSingle = true;
+        }
+      }
+
+      if (isRefPair) {
+        hasUnderlinedRef = true;
+        const textBetween = text.substring(item.endIdx, nextItem.startIdx);
+        let nextRepPrefix = '';
+        if (nextItem.matchPrecedingX) {
+          nextRepPrefix = nextItem.matchPrecedingX[1];
+        }
+        let nextRepSuffix = '';
+        if (nextItem.matchExplicitRep) {
+          nextRepSuffix = nextItem.matchExplicitRep[0];
+          lastIndex = nextItem.endIdx + nextItem.matchExplicitRep[0].length;
+        } else {
+          lastIndex = nextItem.endIdx;
+        }
+
+        const spaceBetween = textBetween.replace(/[xX]/g, '');
+
+        out += `<span class="ins-ghost-underline"><span class="ins-num-highlight">${escapeHtml(item.numStr)}</span>${escapeHtml(spaceBetween)}<span class="ins-rep-highlight">${escapeHtml((nextRepPrefix || '') + nextItem.numStr + nextRepSuffix)}</span></span>`;
+        i++; // Saltiamo nextItem perché è unito nella coppia
+      } else if (isRefSingle) {
+        hasUnderlinedRef = true;
+        out += `<span class="ins-ghost-underline"><span class="ins-num-highlight">${escapeHtml(item.numStr)}</span></span>`;
+      } else if (isRefRepSingle) {
+        hasUnderlinedRef = true;
+        out += `<span class="ins-ghost-underline"><span class="ins-rep-highlight">${escapeHtml(repPrefix + item.numStr + repSuffix)}</span></span>`;
+      } else if (item.classification === 'load') {
+        out += `<span class="ins-num-highlight">${escapeHtml(item.numStr)}</span>`;
+      } else if (item.classification === 'rep') {
+        out += `<span class="ins-rep-highlight">${escapeHtml(repPrefix + item.numStr + repSuffix)}</span>`;
       } else {
-        out += `<span class="ins-text-muted">${escapeHtml(numStr)}</span>`;
+        out += `<span class="ins-text-muted">${escapeHtml(item.numStr)}</span>`;
       }
     }
 

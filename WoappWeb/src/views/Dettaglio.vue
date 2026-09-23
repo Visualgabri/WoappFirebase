@@ -1678,7 +1678,7 @@
               <div 
                 class="flex-grow-1 text-left pr-2 font-weight-medium"
                 style="white-space: pre-wrap; word-break: break-word; font-size: 0.92rem; line-height: 1.45;"
-                v-html="formattaInsWeekHtml(inputSettimane[sett].ins)"
+                v-html="formattaInsWeekHtml(inputSettimane[sett].ins, getGhostReferenceForWeek(sett))"
               ></div>
 
               <!-- Icone Azioni Rapide (Editor Espanso se abilitato + Recupero) -->
@@ -10008,6 +10008,47 @@ const getGhostLiftSmart = (sett) => {
   }
   
   return smartGhost;
+};
+
+const getGhostReferenceForWeek = (sett) => {
+  if (!workout.value) return null;
+  const insVal = inputSettimane.value[sett]?.ins;
+  if (!insVal || !String(insVal).trim() || String(insVal).trim() === '-') return null;
+
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+  const prescReps = getRepsPerWeek(sett) || 10;
+
+  const isMan = isManubriEsercizio(workout.value);
+  const stepVal = getWeightStep(isMan, 50);
+  const dropInfo = valutaGerarchiaEDropOffSerie(insVal, {
+    defaultReps: prescReps,
+    isCavo,
+    isCorpoLibero,
+    stepKg: stepVal
+  });
+
+  if (dropInfo && dropInfo.hasFatiqueDropOff && dropInfo.caricoSostenibile > 0) {
+    return {
+      refPeso: dropInfo.caricoSostenibile,
+      refReps: dropInfo.repsSostenibili || prescReps
+    };
+  }
+
+  const perf = estraiMigliorPrestazioneInput(insVal, prescReps, isCavo, isCorpoLibero);
+  if (perf) {
+    return {
+      refPeso: perf.peso,
+      refReps: perf.reps
+    };
+  }
+
+  const p = parseFloat(estraiPesoDaInput(insVal, { isCorpoLibero }));
+  const r = estraiRepsDaInput(insVal, { isCorpoLibero }) || prescReps;
+  return {
+    refPeso: !isNaN(p) ? p : null,
+    refReps: r
+  };
 };
 
 const getGhostWeightsRangeForWeek = (sett) => {

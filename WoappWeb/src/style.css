@@ -1975,6 +1975,14 @@ textarea:focus,
 }
 
 /* Stili per risalto carichi, ripetizioni e note nei campi ins_week */
+.ins-ghost-underline {
+  border-bottom: 2.5px solid currentColor;
+  padding-bottom: 1.5px;
+  display: inline-block;
+  line-height: 1.15;
+  border-radius: 1px;
+}
+
 .ins-num-highlight,
 .ins-load-highlight {
   font-weight: 900 !important;

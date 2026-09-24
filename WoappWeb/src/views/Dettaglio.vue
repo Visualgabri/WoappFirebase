@@ -1741,7 +1741,7 @@
                 @input="e => onInputWeek(sett, e.target.value)"
                 @focus="onFocusWeek(sett)"
                 @blur="e => onBlurWeek(sett, e.target.value)"
-                :placeholder="isCardio ? 'Tempo o note (es. 7min o 3x7min)' : (isMaxRepsWeek(sett) ? ('Scrivi le singole serie (es. ' + getEsempioSerieMaxReps(sett) + ')') : (getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'))"
+                :placeholder="isCardio ? 'Tempo o note (es. 7min o 3x7min)' : (isMaxRepsWeek(sett) ? ('Scrivi le singole serie (es. ' + getEsempioSerieMaxReps(sett) + ')') : (isTestMaxRepsWeek(sett) && getTestWeightNum(sett) > 0 ? ('Carico o note (es. ' + formatWeight(getTestWeightNum(sett)) + 'kg x 12r)') : (getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)')))"
                 class="native-week-textarea flex-grow-1 text-left pr-2 font-weight-black"
                 rows="1"
                 style="background: transparent; border: none; outline: none; resize: none; width: 100%; color: inherit; font-size: 0.92rem; line-height: 1.45; font-family: inherit; box-sizing: border-box; padding: 0; margin: 0; min-height: 24px; field-sizing: content;"
@@ -8993,9 +8993,79 @@ const getRiferimentoSfidaRecord = (sett) => {
   };
 };
 
+// ==========================================
+// TEST-MAXREPS / AMRAP HELPERS
+// ==========================================
+const isTestMaxRepsWeek = (sett) => {
+  if (!workout.value || isCardio.value || isPostura.value) return false;
+  const presc = String(workout.value['des_week' + sett] || '').toUpperCase();
+  if (presc.includes('AMRAP') || presc.includes('MAXREPS') || presc.includes('MAX REPS') || presc.includes('TEST-MAXREPS')) {
+    return true;
+  }
+  if (sett === 6) {
+    const endNote = String(workout.value.des_estesa_end || '').toLowerCase();
+    const coachNote = String(workout.value.des_note || '').toLowerCase();
+    if (endNote.includes('massime ripetizioni') || endNote.includes('massimo di ripetizioni') || endNote.includes('amrap') || coachNote.includes('amrap')) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const getTestWeight = (sett) => {
+  if (!workout.value) return '';
+  
+  // 1. Carico prescritto per la settimana del test (sett 6)
+  const prescrizioneAttiva = parsedPrescription(workout.value['des_week' + sett]);
+  if (prescrizioneAttiva && prescrizioneAttiva.total) {
+    const peso = prescrizioneAttiva.total.trim();
+    if (peso && parseFloat(peso.replace(',', '.')) > 0) {
+      return `${peso} KG`;
+    }
+  }
+
+  // 2. Carico inserito dall'utente nella settimana precedente (week 5, poi 4, 3, etc.)
+  for (let w = sett - 1; w >= 1; w--) {
+    const inputVal = inputSettimane.value[w]?.ins || workout.value?.['ins_week' + w];
+    if (inputVal && String(inputVal).trim() && String(inputVal).trim() !== '-') {
+      const pesoEstratto = estraiPesoDaInput(String(inputVal));
+      if (pesoEstratto && parseFloat(pesoEstratto.replace(',', '.')) > 0) {
+        return `${pesoEstratto} KG`;
+      }
+    }
+  }
+
+  // 3. Carico prescritto nella settimana precedente (week 5)
+  const prescrizionePrecedente = parsedPrescription(workout.value['des_week' + (sett - 1)]);
+  if (prescrizionePrecedente && prescrizionePrecedente.total) {
+    const pesoPrev = prescrizionePrecedente.total.trim();
+    if (pesoPrev && parseFloat(pesoPrev.replace(',', '.')) > 0) {
+      return `${pesoPrev} KG`;
+    }
+  }
+
+  // 4. Carico esplicitamente indicato dal coach nella nota finale di esecuzione
+  if (workout.value.des_estesa_end) {
+    const matchCoach = String(workout.value.des_estesa_end).match(/(?:carico(?:\s+reale)?(?:\s+di)?\s*)(\d+(?:[.,]\d+)?)\s*kg/i);
+    if (matchCoach && matchCoach[1]) {
+      return `${matchCoach[1]} KG`;
+    }
+  }
+
+  return '';
+};
+
+const getTestWeightNum = (sett) => {
+  const str = getTestWeight(sett);
+  if (!str) return 0;
+  const match = str.match(/[\d.,]+/);
+  return match ? parseFloat(match[0].replace(',', '.')) : 0;
+};
+
 const analizzaRecordSettimana = (sett) => {
   if (!workout.value) return null;
   if (isEsercizioCaricoFissoCoach.value || getGhostLiftSmart(sett)?.isCoachSet) return null;
+  if (isTestMaxRepsWeek(sett)) return null;
   if (sett === 4 && isWeek4Scarico.value) return null;
   const targetReps = getRepsPerWeek(sett);
   const recordPuntuale = ottieniRecordStoricoPerReps(targetReps);
@@ -9709,6 +9779,12 @@ const getVolumeProgressionInfoForWeek = (sett) => {
 const getCaricoConsigliatoViaDiMezzoForWeek = (sett) => {
   if (!workout.value) return null;
 
+  // Intercettazione per TEST-MAXREPS / AMRAP a carico fisso
+  if (isTestMaxRepsWeek(sett)) {
+    const testP = getTestWeightNum(sett);
+    if (testP > 0) return testP;
+  }
+
   // 0. Se la settimana ha un carico prescritto dal coach (es. progressione di forza preimpostata)
   const presc = parsedPrescription(workout.value['des_week' + sett]);
   if (presc && presc.total) {
@@ -10078,6 +10154,32 @@ const getGhostWeightsRangeForWeek = (sett) => {
 
 function getGhostWeightsRangeForWeekRaw(sett) {
   if (!workout.value) return null;
+
+  // Intercettazione per TEST-MAXREPS / AMRAP a carico fisso stabilito dal coach
+  if (isTestMaxRepsWeek(sett)) {
+    const testWeightNum = getTestWeightNum(sett);
+    if (testWeightNum > 0) {
+      const valStr = String(testWeightNum);
+      const dispStr = `${formatWeight(testWeightNum)} kg`;
+      return {
+        prudenziale: {
+          value: valStr,
+          display: dispStr,
+          label: 'Carico Test'
+        },
+        consigliato: {
+          value: valStr,
+          display: dispStr,
+          label: 'Carico Test (Max Reps)'
+        },
+        sfidante: {
+          value: valStr,
+          display: dispStr,
+          label: 'Carico Test'
+        }
+      };
+    }
+  }
 
   // Se è a corpo libero puro (rep exercise senza sovraccarico), genera SEMPRE un range dedicato basato su ripetizioni
   if (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) {
@@ -10643,6 +10745,7 @@ function getGhostWeightsRangeForWeekRaw(sett) {
 };
 
 const getGhostWeightsRangeText = (sett) => {
+  if (isTestMaxRepsWeek(sett)) return ''; // Nessun range spurio per test a carico fisso
   const range = getGhostWeightsRangeForWeek(sett);
   if (!range) return '';
   const first = range.prudenziale.display.replace(/\s*kg/gi, '').trim();
@@ -10705,6 +10808,25 @@ const calcolaAvvisoFaticaConsigliato = (sett, numConsigliato, repsTarget, repsPr
 const getGhostRenderInfo = (sett) => {
   if (isCardio.value) return null;
   if (isEsercizioCaricoFissoCoach.value) return null;
+
+  // Intercettazione per TEST-MAXREPS / AMRAP a carico fisso stabilito dal coach
+  if (isTestMaxRepsWeek(sett)) {
+    const testWeightNum = getTestWeightNum(sett);
+    if (testWeightNum > 0) {
+      const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light';
+      return {
+        icon: 'mdi-target',
+        color: isLight ? '#c2410c' : '#ffb74d',
+        label: 'CARICO TEST:',
+        valueText: `${formatWeight(testWeightNum)} kg`,
+        refText: '',
+        hasReference: false,
+        isTestMaxReps: true,
+        maxEffortNotice: '🎯 Punta al massimo delle ripetizioni possibili con questo carico',
+        sfidanteNotice: ''
+      };
+    }
+  }
 
   // Intercettazione speciale per la tecnica MAX REPS (Soluzione 3)
   if (isMaxRepsExercise.value && isMaxRepsWeek(sett)) {
@@ -10984,6 +11106,14 @@ const triggerGhostInfo = (sett) => {
   vibraTattile(20);
   const info = getGhostRenderInfo(sett);
   if (!info) return;
+
+  if (info.isTestMaxReps) {
+    const testWeightNum = getTestWeightNum(sett);
+    if (testWeightNum > 0) {
+      applicaPropostaCaricoRapida(sett, testWeightNum);
+      return;
+    }
+  }
 
   if (info.deltaW1) {
     const d = info.deltaW1;
@@ -18390,6 +18520,19 @@ const getGhostLiftStandard = (sett) => {
 
     // Proposta specifica per Week 6 (configurabile)
     if (sett === 6) {
+      if (isTestMaxRepsWeek(6)) {
+        const testP = getTestWeightNum(6);
+        if (testP > 0) {
+          return {
+            text: `${testP} kg`,
+            peso: testP,
+            pesoProposto: testP,
+            label: 'Test Max Reps',
+            isRepExercise: false,
+            isTestMaxReps: true
+          };
+        }
+      }
       const baseW = propostaBaseWeek6.value; // e.g. "W5"
       const baseWNum = parseInt(baseW.replace('W', ''), 10) || 5;
       const baseIns = inputSettimane.value[baseWNum]?.ins;
@@ -18795,40 +18938,7 @@ function estraiPesoDaInput(str, options = {}) {
   });
 }
 
-const getTestWeight = (sett) => {
-  if (!workout.value) return '';
-  
-  // 1. Carico prescritto per la settimana del test (sett 6)
-  const prescrizioneAttiva = parsedPrescription(workout.value['des_week' + sett]);
-  if (prescrizioneAttiva && prescrizioneAttiva.total) {
-    const peso = prescrizioneAttiva.total.trim();
-    if (peso && parseFloat(peso.replace(',', '.')) > 0) {
-      return `${peso} KG`;
-    }
-  }
-
-  // 2. Carico inserito dall'utente nella settimana precedente (week 5, poi 4, 3, etc.)
-  for (let w = sett - 1; w >= 1; w--) {
-    const inputVal = inputSettimane.value[w]?.ins;
-    if (inputVal && inputVal.trim()) {
-      const pesoEstratto = estraiPesoDaInput(inputVal);
-      if (pesoEstratto) {
-        return `${pesoEstratto} KG`;
-      }
-    }
-  }
-
-  // 3. Carico prescritto nella settimana precedente (week 5)
-  const prescrizionePrecedente = parsedPrescription(workout.value['des_week' + (sett - 1)]);
-  if (prescrizionePrecedente && prescrizionePrecedente.total) {
-    const pesoPrev = prescrizionePrecedente.total.trim();
-    if (pesoPrev && parseFloat(pesoPrev.replace(',', '.')) > 0) {
-      return `${pesoPrev} KG`;
-    }
-  }
-
-  return '';
-};
+// getTestWeight è definito in alto insieme agli helper per TEST-MAXREPS
 
 const formattaIstruzioneFine = (testo, sett) => {
   if (!testo) return '';

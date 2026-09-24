@@ -2618,7 +2618,7 @@
                     :class="getGhostFieldClassPrecedente(w)"
                     style="padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; white-space: pre-wrap; word-break: break-word; font-size: 0.92rem; line-height: 1.45; box-sizing: border-box;"
                     @click="attivaEditingWeekPrecedente(w)"
-                    v-html="formattaInsWeekHtml(inputSettimanePrecedente[w].ins)"
+                    v-html="formattaInsWeekHtml(inputSettimanePrecedente[w].ins, getGhostReferenceForExercise(previousWorkout, w, inputSettimanePrecedente[w]?.ins))"
                   ></div>
 
                   <!-- Textarea Editabile (in digitazione o se vuoto o se risalto disattivo) -->
@@ -2837,7 +2837,7 @@
                     :class="getGhostFieldClassPrecedente(w)"
                     style="padding: 8px 12px; border-radius: 8px; text-align: left; min-height: 38px; white-space: pre-wrap; word-break: break-word; font-size: 0.92rem; line-height: 1.45; box-sizing: border-box;"
                     @click="activeEditingWeekStoricoSingolo = w"
-                    v-html="formattaInsWeekHtml(inputSettimaneStoricoSingolo[w].ins)"
+                    v-html="formattaInsWeekHtml(inputSettimaneStoricoSingolo[w].ins, getGhostReferenceForExercise(selectedStoricoWorkout, w, inputSettimaneStoricoSingolo[w]?.ins))"
                   ></div>
 
                   <textarea
@@ -5590,9 +5590,9 @@
                       </span>
                       <strong 
                         class="font-weight-black d-block mt-1" 
-                        style="font-size: 0.95rem; line-height: 1;" 
+                        style="font-size: 0.95rem; line-height: 1.15;" 
                         :style="getInsWeekTextStyle(prevEx, w)"
-                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
+                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w], getGhostReferenceForExercise(prevEx, w)) || '-'"
                       ></strong>
                       <div 
                         v-if="getDiscrepanzaBilanciereCella(prevEx, w)"
@@ -5639,9 +5639,9 @@
                       </span>
                       <strong 
                         class="font-weight-black d-block mt-1" 
-                        style="font-size: 0.95rem; line-height: 1;" 
+                        style="font-size: 0.95rem; line-height: 1.15;" 
                         :style="getInsWeekTextStyle(prevEx, w)"
-                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
+                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w], getGhostReferenceForExercise(prevEx, w)) || '-'"
                       ></strong>
                       <div 
                         v-if="getDiscrepanzaBilanciereCella(prevEx, w)"
@@ -5837,9 +5837,9 @@
                       </div>
                       <div 
                         class="font-weight-black mt-1" 
-                        style="font-size: 0.9rem; line-height: 1.1; letter-spacing: -0.02em;" 
+                        style="font-size: 0.9rem; line-height: 1.15; letter-spacing: -0.02em;" 
                         :style="getInsWeekTextStyle(prevEx, w)"
-                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w]) || '-'"
+                        v-html="formattaInsWeekHtml(prevEx['ins_week' + w], getGhostReferenceForExercise(prevEx, w)) || '-'"
                       ></div>
                       <div 
                         v-if="getDiscrepanzaBilanciereCella(prevEx, w)"
@@ -10010,17 +10010,28 @@ const getGhostLiftSmart = (sett) => {
   return smartGhost;
 };
 
-const getGhostReferenceForWeek = (sett) => {
-  if (!workout.value) return null;
-  const insVal = inputSettimane.value[sett]?.ins;
+const getGhostReferenceForExercise = (rawEx, w, customIns = null) => {
+  if (!rawEx || !w) return null;
+  const ex = rawEx.value || rawEx;
+  if (!ex) return null;
+
+  const insVal = customIns !== null ? customIns : ex['ins_week' + w];
   if (!insVal || !String(insVal).trim() || String(insVal).trim() === '-') return null;
 
-  const isCavo = isCavoOMacchinaEsercizio(workout.value);
-  const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
-  const prescReps = getRepsPerWeek(sett) || 10;
+  const isCavo = isCavoOMacchinaEsercizio(ex);
+  const isCorpoLibero = isCorpoLiberoEsercizio(ex);
 
-  const isMan = isManubriEsercizio(workout.value);
-  const stepVal = getWeightStep(isMan, 50);
+  let prescReps = 10;
+  if (ex === (workout.value || workout) && typeof getRepsPerWeek === 'function') {
+    prescReps = getRepsPerWeek(w) || 10;
+  } else {
+    prescReps = (ex['des_week' + w] ? estraiRepsDaPrescrizione(ex['des_week' + w]) : null)
+      || (typeof getRepsPerWeek === 'function' ? getRepsPerWeek(w) : 10)
+      || 10;
+  }
+
+  const isMan = isManubriEsercizio(ex);
+  const stepVal = getWeightStep(isMan, 50, ex);
   const dropInfo = valutaGerarchiaEDropOffSerie(insVal, {
     defaultReps: prescReps,
     isCavo,
@@ -10049,6 +10060,10 @@ const getGhostReferenceForWeek = (sett) => {
     refPeso: !isNaN(p) ? p : null,
     refReps: r
   };
+};
+
+const getGhostReferenceForWeek = (sett) => {
+  return getGhostReferenceForExercise(workout.value, sett, inputSettimane.value[sett]?.ins);
 };
 
 const getGhostWeightsRangeForWeek = (sett) => {

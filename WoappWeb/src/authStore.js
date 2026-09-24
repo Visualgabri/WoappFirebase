@@ -1734,7 +1734,8 @@ export const formattaInsWeekHtml = (str, options = {}) => {
             if (/^\s*[xX]?\s*$/.test(textBetween)) {
               const pesoMatches = Math.abs(item.numVal - refPeso) < 0.05;
               const repsMatch = refReps === null || Math.abs(nextItem.numVal - refReps) < 0.05;
-              if (pesoMatches && repsMatch) {
+              const isOnlyLoadMatching = !parsedItems.some((other, idx) => idx !== i && other.classification === 'load' && Math.abs(other.numVal - refPeso) < 0.05);
+              if (pesoMatches && (repsMatch || isOnlyLoadMatching)) {
                 isRefPair = true;
               }
             }

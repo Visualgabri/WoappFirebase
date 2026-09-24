@@ -104,7 +104,7 @@
                   <v-icon size="20">mdi-dots-vertical</v-icon>
                 </v-btn>
               </template>
-              <v-list class="bg-slate-900 border border-slate-700 py-1" density="compact" width="220" style="backdrop-filter: blur(20px);">
+              <v-list class="bg-slate-900 border border-slate-700 py-1 menu-opzioni-compatto" density="compact" min-width="255" max-width="290" style="backdrop-filter: blur(20px); overflow-x: hidden;">
                 <!-- Step Incremento Carico (Nuovo) -->
                 <v-list-item
                   v-if="!isPostura"
@@ -23714,6 +23714,8 @@ const tornaIndietro = () => {
 .max-width-container {
   max-width: 600px;
   margin: 0 auto;
+}
+
 .sticky-timeline-header {
   position: sticky;
   top: -12px; /* Compensa esattamente il padding del dialog per incollarsi in alto */
@@ -23722,6 +23724,31 @@ const tornaIndietro = () => {
   backdrop-filter: blur(10px);
 }
 
+:deep(.menu-opzioni-compatto) {
+  --v-list-prepend-gap: 0px !important;
+  overflow-x: hidden !important;
+}
+
+:deep(.menu-opzioni-compatto .v-list-item) {
+  min-height: 32px !important;
+  padding-inline-start: 10px !important;
+  padding-inline-end: 10px !important;
+}
+
+:deep(.menu-opzioni-compatto .v-list-item__spacer) {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:deep(.menu-opzioni-compatto .v-list-item__prepend) {
+  margin-inline-end: 0 !important;
+}
+
+:deep(.menu-opzioni-compatto .v-list-item__append) {
+  margin-inline-start: 6px !important;
 }
 
 .min-height-screen {

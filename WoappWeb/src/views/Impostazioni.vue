@@ -363,10 +363,10 @@
             style="height: 34px;"
           >
             <v-btn value="range" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
-              <v-icon size="14" class="mr-1">mdi-text-box-outline</v-icon> Classico (Come prima)
+              <v-icon size="14" class="mr-1">mdi-text-box-outline</v-icon> Classico
             </v-btn>
             <v-btn value="multichip" class="font-weight-bold flex-grow-1 px-1" style="font-size: 0.65rem;">
-              <v-icon size="14" class="mr-1">mdi-view-grid-plus-outline</v-icon> Multi-Chip (Soluzione 3)
+              <v-icon size="14" class="mr-1">mdi-view-grid-plus-outline</v-icon> Multi-Chip
             </v-btn>
           </v-btn-toggle>
           <div class="text-super-caption text-slate-400 mb-2.5 px-0.5" style="font-size: 0.58rem; line-height: 1.25;">

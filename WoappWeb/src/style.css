@@ -743,6 +743,36 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   MENU OPZIONI COMPATTO (Rimuove gap 32px Vuetify tra icona e testo)
+   ═══════════════════════════════════════════════════════════════════ */
+.menu-opzioni-compatto {
+  --v-list-prepend-gap: 0px !important;
+  overflow-x: hidden !important;
+}
+
+.menu-opzioni-compatto .v-list-item {
+  min-height: 32px !important;
+  padding-inline-start: 10px !important;
+  padding-inline-end: 10px !important;
+}
+
+.menu-opzioni-compatto .v-list-item__spacer {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.menu-opzioni-compatto .v-list-item__prepend {
+  margin-inline-end: 0 !important;
+}
+
+.menu-opzioni-compatto .v-list-item__append {
+  margin-inline-start: 6px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    V-BTN-TOGGLE & TOGGLE GROUPS
    ═══════════════════════════════════════════════════════════════════ */
 

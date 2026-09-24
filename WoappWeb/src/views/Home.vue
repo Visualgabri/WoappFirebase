@@ -212,10 +212,10 @@
           >
             <div>
               <h4 class="text-subtitle-2 font-weight-black text-orange-lighten-2 mb-1" style="font-size: 0.85rem !important; line-height: 1.25;">
-                Tempo di preparare il prossimo programma!
+                Prepara la prossima scheda!
               </h4>
               <p class="text-slate font-weight-medium mb-2" style="font-size: 0.75rem; line-height: 1.45; color: var(--text-slate) !important;">
-                Hai superato la metà della 5° settimana di allenamento. Contatta il Coach Gabriele per fargli sapere come sta andando e permettergli di preparare la tua prossima scheda in tempo!
+                Sei nella 5ª settimana. Avvisa il Coach così può preparare in tempo il prossimo programma.
               </p>
               <v-btn
                 color="orange-darken-3"
@@ -2067,7 +2067,7 @@ const contattaCoachWhatsApp = () => {
   vibraTattile(12);
   const numeroCoach = '393495525181'; // Coach Gabriele (+39)
   const nScheda = schedaSelezionata.value || '';
-  const messaggio = `Ciao Coach Gabriele, ho superato la metà della settimana 5 dell'allenamento (Scheda ${nScheda}). Posso chiederti di preparare il prossimo programma? Grazie!`;
+  const messaggio = `Ciao Coach, sono alla settimana 5 (Scheda ${nScheda}). Posso chiederti di preparare il prossimo programma? Grazie!`;
   const url = `https://wa.me/${numeroCoach}?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');
 };

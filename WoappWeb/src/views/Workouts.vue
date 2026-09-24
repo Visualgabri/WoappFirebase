@@ -3408,7 +3408,7 @@
             <p class="text-slate font-weight-medium mb-0" style="font-size: 0.76rem; line-height: 1.45; color: #cbd5e1 !important;">
               La scheda successiva non è ancora presente in app. 
               <br><br>
-              • Se il tuo Coach Gabriele Belmonte l'ha già preparata, tocca <strong>"Aggiorna Schede"</strong> per sincronizzarla.
+              • Se il Coach l'ha già preparata, tocca <strong>"Aggiorna Schede"</strong> per sincronizzarla.
               <br>
               • Altrimenti, inviagli subito un messaggio su WhatsApp per richiederla!
             </p>

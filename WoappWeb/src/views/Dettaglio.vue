@@ -3414,14 +3414,15 @@
             <v-text-field
               v-model="inputStepCustom"
               placeholder="Altro step (es. 1.5)"
-              type="number"
-              step="0.25"
+              type="text"
+              inputmode="decimal"
               density="compact"
               variant="outlined"
               color="cyan-accent-3"
               hide-details
               class="flex-grow-1"
               style="font-size: 0.78rem;"
+              @keydown.enter="selezionaStepEsercizio(inputStepCustom)"
             ></v-text-field>
             <v-btn
               color="cyan-darken-2"
@@ -3429,15 +3430,15 @@
               size="small"
               class="font-weight-bold text-none px-3 text-white rounded-lg"
               style="height: 38px; font-size: 0.75rem;"
-              :disabled="!inputStepCustom || parseFloat(inputStepCustom) <= 0"
-              @click="selezionaStepEsercizio(parseFloat(inputStepCustom))"
+              :disabled="!inputStepCustom || isNaN(parseFloat(String(inputStepCustom).replace(',', '.'))) || parseFloat(String(inputStepCustom).replace(',', '.')) <= 0"
+              @click="selezionaStepEsercizio(inputStepCustom)"
             >
               Salva
             </v-btn>
           </div>
 
-          <!-- Sezione Tara Bilanciere (visibile per esercizi con bilanciere) -->
-          <div v-if="isBilanciereEsercizio(workout)" class="mt-3 pt-3 border-top-soft">
+          <!-- Sezione Tara Bilanciere (visibile per esercizi con bilanciere o squat/pressa o se configurata) -->
+          <div v-if="isBilanciereEsercizio(workout) || (workout?.num_peso_bilanciere !== undefined && workout?.num_peso_bilanciere !== null) || String(workout?.des_esercizio || '').toLowerCase().includes('squat')" class="mt-3 pt-3 border-top-soft">
             <div class="d-flex align-center justify-space-between mb-1.5">
               <div class="d-flex align-center gap-1.5">
                 <v-icon color="amber-accent-3" size="18">mdi-dumbbell</v-icon>
@@ -3446,14 +3447,25 @@
                 </span>
               </div>
               <span class="text-super-caption text-amber-lighten-2 font-weight-black px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-500/30" style="font-size: 0.62rem;">
-                Attuale: {{ pesoBilanciereAttuale }} kg
+                Attuale: {{ pesoBilanciereAttuale === 0 ? '0 kg (No bilanciere)' : `${pesoBilanciereAttuale} kg` }}
               </span>
             </div>
             <div class="text-super-caption text-slate-300 mb-2 font-weight-medium" style="font-size: 0.64rem; line-height: 1.35;">
-              Peso del bilanciere vuoto per la conversione automatica totale / per lato.
+              Peso del bilanciere vuoto per la conversione e il calcolo dei dischi.
             </div>
             <!-- Opzioni Rapide Bilanciere -->
             <div class="d-flex flex-wrap gap-1.5 justify-center mb-2.5">
+              <v-btn
+                size="small"
+                :variant="pesoBilanciereAttuale === 0 ? 'flat' : 'outlined'"
+                :color="pesoBilanciereAttuale === 0 ? 'amber-darken-2' : 'slate-600'"
+                class="font-weight-black text-white px-2.5 rounded-lg"
+                :class="{ 'border-amber': pesoBilanciereAttuale === 0 }"
+                :style="{ height: '32px', fontSize: '0.72rem' }"
+                @click="selezionaPesoBilanciere(0)"
+              >
+                🚫 0 kg (No bilanciere)
+              </v-btn>
               <v-btn
                 v-for="b in [10, 12.5, 15, 20]"
                 :key="b"
@@ -3472,15 +3484,16 @@
             <div class="d-flex align-center gap-2">
               <v-text-field
                 v-model="inputPesoBilanciereCustom"
-                placeholder="Altra tara (es. 8 o 17.5)"
-                type="number"
-                step="0.5"
+                placeholder="Altra tara (es. 0, 8 o 17.5)"
+                type="text"
+                inputmode="decimal"
                 density="compact"
                 variant="outlined"
                 color="amber-accent-3"
                 hide-details
                 class="flex-grow-1"
                 style="font-size: 0.78rem;"
+                @keydown.enter="selezionaPesoBilanciere(inputPesoBilanciereCustom)"
               ></v-text-field>
               <v-btn
                 color="amber-darken-2"
@@ -3488,8 +3501,8 @@
                 size="small"
                 class="font-weight-bold text-none px-3 text-white rounded-lg"
                 style="height: 38px; font-size: 0.75rem;"
-                :disabled="!inputPesoBilanciereCustom || parseFloat(inputPesoBilanciereCustom) <= 0"
-                @click="selezionaPesoBilanciere(parseFloat(inputPesoBilanciereCustom))"
+                :disabled="inputPesoBilanciereCustom === '' || inputPesoBilanciereCustom === null || isNaN(parseFloat(String(inputPesoBilanciereCustom).replace(',', '.'))) || parseFloat(String(inputPesoBilanciereCustom).replace(',', '.')) < 0"
+                @click="selezionaPesoBilanciere(inputPesoBilanciereCustom)"
               >
                 Salva
               </v-btn>
@@ -8574,7 +8587,8 @@ const apriDialogStepEsercizio = () => {
 };
 
 const selezionaStepEsercizio = async (nuovoStep) => {
-  const stepVal = parseFloat(nuovoStep);
+  const cleanStr = String(nuovoStep !== undefined && nuovoStep !== null ? nuovoStep : inputStepCustom.value).trim().replace(',', '.');
+  const stepVal = parseFloat(cleanStr);
   if (isNaN(stepVal) || stepVal < 0) return;
   
   vibraTattile(15);
@@ -8591,7 +8605,12 @@ const selezionaStepEsercizio = async (nuovoStep) => {
     await setCustomExerciseStep(workout.value.des_esercizio, stepVal);
   }
   
+  inputStepCustom.value = '';
   dialogStepEsercizio.value = false;
+  snackbarMessaggio.value = stepVal > 0 
+    ? `Step personalizzato impostato a ${formatWeight(stepVal)} kg per ${workout.value?.des_esercizio || 'questo esercizio'}!` 
+    : `Step impostato su Auto!`;
+  snackbarSalvataggio.value = true;
 };
 
 const pesoBilanciereAttuale = computed(() => {
@@ -8599,14 +8618,26 @@ const pesoBilanciereAttuale = computed(() => {
 });
 
 const selezionaPesoBilanciere = async (nuovoPeso) => {
-  const barVal = parseFloat(nuovoPeso);
-  if (isNaN(barVal) || barVal <= 0) return;
+  const cleanStr = String(nuovoPeso !== undefined && nuovoPeso !== null ? nuovoPeso : inputPesoBilanciereCustom.value).trim().replace(',', '.');
+  const barVal = parseFloat(cleanStr);
+  if (isNaN(barVal) || barVal < 0) return;
+  
   vibraTattile(15);
+  
   if (workout.value) {
     workout.value.num_peso_bilanciere = barVal;
     await aggiornaDatoECommit({ num_peso_bilanciere: barVal });
+    if (workout.value.des_esercizio) {
+      localStorage.setItem(`tara_bilanciere_${workout.value.des_esercizio.toLowerCase().trim()}`, String(barVal));
+    }
   }
+  
   inputPesoBilanciereCustom.value = '';
+  dialogStepEsercizio.value = false;
+  snackbarMessaggio.value = barVal > 0 
+    ? `Tara bilanciere impostata a ${formatWeight(barVal)} kg!` 
+    : `Tara impostata a 0 kg (Nessun bilanciere)!`;
+  snackbarSalvataggio.value = true;
 };
 
 const getDiscrepanzaBilanciereCella = (prevEx, w) => {
@@ -14163,8 +14194,27 @@ function getPesoBilanciereEsercizio(ex) {
   const targetEx = ex || workout.value;
   if (!targetEx) return 20;
   
-  if (targetEx.num_peso_bilanciere && parseFloat(targetEx.num_peso_bilanciere) > 0) {
-    return parseFloat(targetEx.num_peso_bilanciere);
+  if (targetEx.num_peso_bilanciere !== undefined && targetEx.num_peso_bilanciere !== null && targetEx.num_peso_bilanciere !== '') {
+    const p = parseFloat(targetEx.num_peso_bilanciere);
+    if (!isNaN(p) && p >= 0) {
+      return p;
+    }
+  }
+
+  // Controlla cache locale per esercizio
+  if (targetEx.des_esercizio) {
+    const cached = localStorage.getItem(`tara_bilanciere_${targetEx.des_esercizio.toLowerCase().trim()}`);
+    if (cached !== null && cached !== undefined && cached !== '') {
+      const pCached = parseFloat(cached);
+      if (!isNaN(pCached) && pCached >= 0) {
+        return pCached;
+      }
+    }
+  }
+
+  const exName = String(targetEx.des_esercizio || '').toLowerCase();
+  if (exName.includes('belt squat') || exName.includes('pressa') || exName.includes('leg press') || isCavoOMacchinaEsercizio(targetEx)) {
+    return 0;
   }
 
   const texts = [

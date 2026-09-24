@@ -2440,12 +2440,11 @@
       <!-- Stato Esercizio Mai Fatto -->
       <v-card 
         v-if="workout && (workout.flg_ex_mai_fatto === 'false' || workout.flg_ex_mai_fatto === false) && String(workout.num_scheda) !== '1'"
-        class="premium-card card-glass text-center border-soft"
+        class="premium-card text-center"
         :class="[
           layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
         ]"
-        elevation="1"
-        style="border: 1px solid rgba(255, 255, 255, 0.08);"
+        elevation="2"
       >
         <div class="text-super-caption text-muted font-weight-black uppercase mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
           Stato Esercizio
@@ -2461,62 +2460,63 @@
       <!-- Analisi Ripetizioni (Continuità o Storico) - CLICCABILE -->
       <v-card 
         v-else-if="!isPostura && !isCardio && previousWorkout && analisiRipetizioniCiclo"
-        class="premium-card card-glass text-left border-soft clickable-timer-chip"
         :class="[
-          layoutCorrente === 'super_compatto' ? 'pa-2 rounded-sm mb-2.5' : (layoutCorrente === 'compatto' ? 'pa-2.5 rounded-lg mb-3' : 'pa-3 rounded-xl mb-4')
+          layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6'),
+          'premium-card'
         ]"
         elevation="2"
-        style="border: 1px solid rgba(255, 255, 255, 0.08);"
+        style="cursor: pointer;"
         @click="vibraTattile(12); dialogProgressioniPrecedente = true"
       >
-        <div class="d-flex align-center justify-space-between mb-1">
-          <span class="text-super-caption text-muted font-weight-black uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
-            {{ analisiRipetizioniCiclo.isContinuitato ? 'Continuità Mesociclo' : 'Richiamo Esercizio Storico' }}
-          </span>
-          <v-icon color="orange-lighten-2" :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-open-in-new</v-icon>
-        </div>
-        
-        <!-- Riga 1: Provenienza + Stimolo Repetizioni -->
-        <div 
-          class="font-weight-medium text-slate-dark d-flex align-center flex-wrap gap-1" 
-          :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
-          style="line-height: 1.35;"
-        >
-          <span v-if="analisiRipetizioniCiclo.isContinuitato">
-            Dalla <strong>Scheda {{ previousWorkout.num_scheda }}</strong> ({{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }})
-          </span>
-          <span v-else>
-            Da <strong>Wo {{ previousWorkout.num_scheda }}</strong> ({{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }})
-          </span>
-          <span class="text-muted">•</span>
-          <span class="d-inline-flex align-center gap-1">
-            <strong :class="'text-' + analisiRipetizioniCiclo.color" style="text-transform: capitalize;">{{ analisiRipetizioniCiclo.testo }}</strong>
-            <v-icon :color="analisiRipetizioniCiclo.color" :size="layoutCorrente === 'super_compatto' ? 14 : 16">{{ analisiRipetizioniCiclo.icon }}</v-icon>
-          </span>
-        </div>
-        
-        <!-- Riga 2: Data & Tempo Trascorso -->
-        <div 
-          v-if="getExecutionDate(previousWorkout, storicoEsercizio, workout)"
-          class="text-super-caption text-muted mt-1 d-flex align-center"
-          :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.62rem' }"
-        >
-          <span>Ultima volta: {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>
-          <span v-if="tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout))" class="text-slate-dark ml-1 font-weight-bold">
-            ({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})
-          </span>
+        <div class="text-left">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <span class="text-caption font-weight-black text-slate-dark uppercase" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
+              {{ analisiRipetizioniCiclo.isContinuitato ? 'Continuità Mesociclo' : 'Richiamo Esercizio Storico' }}
+            </span>
+            <v-icon color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : 16">mdi-open-in-new</v-icon>
+          </div>
+          
+          <!-- Riga 1: Provenienza + Stimolo Repetizioni -->
+          <div 
+            class="font-weight-medium text-slate-dark d-flex align-center flex-wrap gap-1.5" 
+            :class="layoutCorrente === 'super_compatto' ? 'text-super-caption' : 'text-body-2'"
+            style="line-height: 1.45;"
+          >
+            <span v-if="analisiRipetizioniCiclo.isContinuitato">
+              Dalla <strong>Scheda {{ previousWorkout.num_scheda }}</strong> ({{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }})
+            </span>
+            <span v-else>
+              Da <strong>Wo {{ previousWorkout.num_scheda }}</strong> ({{ previousWorkout.des_giorno }}{{ previousWorkout.num_riga_giorno }})
+            </span>
+            <span class="text-muted">•</span>
+            <span class="d-inline-flex align-center gap-1">
+              <strong :class="'text-' + analisiRipetizioniCiclo.color" style="text-transform: capitalize;">{{ analisiRipetizioniCiclo.testo }}</strong>
+              <v-icon :color="analisiRipetizioniCiclo.color" :size="layoutCorrente === 'super_compatto' ? 14 : 16">{{ analisiRipetizioniCiclo.icon }}</v-icon>
+            </span>
+          </div>
+          
+          <!-- Riga 2: Data & Tempo Trascorso -->
+          <div 
+            v-if="getExecutionDate(previousWorkout, storicoEsercizio, workout)"
+            class="text-super-caption text-muted mt-2 d-flex align-center"
+            :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.52rem' : '0.62rem' }"
+          >
+            <span>Ultima volta: {{ formattaDataStorico(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }}</span>
+            <span v-if="tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout))" class="text-slate-dark ml-1 font-weight-bold">
+              ({{ tempoTrascorso(getExecutionDate(previousWorkout, storicoEsercizio, workout)) }})
+            </span>
+          </div>
         </div>
       </v-card>
 
       <!-- Fallback Sicurezza (Se JSON non ha ancora scaricato l'oggetto previousWorkout) -->
       <v-card 
         v-else-if="!isPostura && workout && (workout.dat_scheda_ult_ex || workout.timestamp)"
-        class="premium-card card-glass text-center border-soft"
+        class="premium-card text-center"
         :class="[
           layoutCorrente === 'super_compatto' ? 'pa-2.5 rounded-sm mb-3' : (layoutCorrente === 'compatto' ? 'pa-3 rounded-lg mb-4.5' : 'pa-4 rounded-2xl mb-6')
         ]"
-        elevation="1"
-        style="border: 1px solid rgba(255, 255, 255, 0.08);"
+        elevation="2"
       >
         <div class="text-super-caption text-muted font-weight-black uppercase mb-1" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.58rem' : '0.65rem', letterSpacing: '0.05em' }">
           Tempo Trascorso dall'Ultima Esecuzione

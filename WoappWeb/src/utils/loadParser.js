@@ -640,20 +640,28 @@ export const estraiPesoDaInput = (str, options = {}) => {
   if (matchSxR) {
     const num1 = parseFloat(matchSxR[1]);
     const num2 = parseFloat(matchSxR[2]);
-    const isExplicitKg = /kg|kgs|kgb|lbs|\+/i.test(raw);
+    const rawWithoutBrackets = raw.replace(/\[.*?\]|\(.*?\)/g, '');
+    const isExplicitKg = /kg|kgs|kgb|lbs|\+/i.test(clean) || /(?:\d+(?:\.\d+)?)\s*(?:kg|kgs|kgb|lbs)\b/i.test(rawWithoutBrackets);
 
-    // Se num1 è intero piccolo [1..5] e num2 >= 6, in assenza di "kg", num1 è il numero di serie e num2 sono le reps
-    if (!isExplicitKg && num1 <= 5 && Number.isInteger(num1) && num2 >= 6) {
+    // Se num1 è decimale (es. 12.5x10) o è specificato esplicitamente 'kg', è sicuramente un carico
+    if (isExplicitKg || String(matchSxR[1]).includes('.')) {
+      return String(num1);
+    }
+
+    // Se num1 è un intero tipico di serie (1-10) senza indicazione di kg e num2 <= 50:
+    // è una prescrizione o indicazione di serie x reps (es. 4x6, 5x5, 6x4, 6x5, 3x4, 3x10, 10x10), NON un carico in kg!
+    if (Number.isInteger(num1) && num1 <= 10 && num2 <= 50) {
       return null;
     }
-    if (isExplicitKg || num1 >= 5 || String(matchSxR[1]).includes('.')) {
+
+    if (num1 >= 11) {
       return String(num1);
     }
     return null;
   }
 
-  // Rimuove il prefisso delle serie (es. "3x10", "4 x 12") se è [serie 1-5]x[reps]
-  clean = clean.replace(/^\s*[1-5]\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g, ' ').trim();
+  // Rimuove il prefisso delle serie (es. "3x10", "4 x 12", "6x4") se è [serie 1-10]x[reps]
+  clean = clean.replace(/^\s*(?:[1-9]|10)\s*[xX]\s*\d+(?:\s*[a-zA-Z+]*\b)?/g, ' ').trim();
 
   // Trova tutti i numeri decimali o interi presenti nella stringa
   const numberRegex = /\d+(?:\.\d+)?/g;

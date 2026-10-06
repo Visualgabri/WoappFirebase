@@ -66,8 +66,15 @@ function estraiPesoDaInput(str) {
   const matchSxR = clean.match(/^\s*(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)(?:\s*([rR])?\b)?\s*$/);
   if (matchSxR) {
     const num1 = parseFloat(matchSxR[1]);
-    const hasExplicitReps = !!matchSxR[3];
-    if (hasExplicitReps || num1 > 5) {
+    const num2 = parseFloat(matchSxR[2]);
+    const isExplicitKg = /kg|kgs|kgb|lbs|\+/i.test(clean);
+    if (isExplicitKg || String(matchSxR[1]).includes('.')) {
+      return String(num1);
+    }
+    if (Number.isInteger(num1) && num1 <= 10 && num2 <= 50) {
+      return null;
+    }
+    if (num1 >= 11) {
       return String(num1);
     }
     return null;

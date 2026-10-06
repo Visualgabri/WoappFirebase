@@ -18010,8 +18010,20 @@ const hasCoachLoad = (str) => {
     const peso = parseFloat(cleanPart2.replace(',', '.'));
     if (!isNaN(peso) && peso > 0) return true;
   }
-  const extracted = parseFloat(estraiPesoDaInput(str));
-  return !isNaN(extracted) && extracted > 0;
+  // Se ci sono parentesi quadre con indicazione esplicita di peso (es. [80KG] o [80 KG])
+  const matchKgInQuadre = str.match(/\[\s*(\d+(?:[,\.]\d+)?)\s*KG\s*\]/i);
+  if (matchKgInQuadre) {
+    const peso = parseFloat(matchKgInQuadre[1].replace(',', '.'));
+    if (!isNaN(peso) && peso > 0) return true;
+  }
+  // Se c'è un'indicazione esplicita di KG nella prescrizione (es. "80KG" o "80 kg")
+  // escludendo vincoli di riferimento settimana come [KG W1]
+  const matchExplicitKg = str.match(/\b(\d+(?:[,\.]\d+)?)\s*KG\b/i);
+  if (matchExplicitKg && !/\[\s*KG?\s*W\s*\d+\s*\]/i.test(str)) {
+    const peso = parseFloat(matchExplicitKg[1].replace(',', '.'));
+    if (!isNaN(peso) && peso > 0) return true;
+  }
+  return false;
 };
 
 const getGhostLiftStandard = (sett) => {
@@ -18092,8 +18104,34 @@ const getGhostLiftStandard = (sett) => {
   }
 
   if (haParentesiQuadre) {
-    // CASO 2: Presenza di parentesi quadre (Logica attuale con dicitura overload se reps scendono, tranne per week 4 di scarico che viene esclusa)
-    if (sett === 4 && isWeek4Scarico.value) return null;
+    // CASO 2: Presenza di parentesi quadre (Logica attuale con dicitura overload se reps scendono, mentre per week 4 di scarico propone W2)
+    if (sett === 4 && isWeek4Scarico.value) {
+      if (isRepEx) {
+        const w3Ins = inputSettimane.value[3]?.ins || workout.value?.ins_week3;
+        if (!w3Ins) return null;
+        return { text: w3Ins, peso: 0, label: 'W3', isRepExercise: true };
+      }
+      const w2Ins = inputSettimane.value[2]?.ins || workout.value?.ins_week2;
+      if (w2Ins) {
+        const isCavo = isCavoOMacchinaEsercizio(workout.value);
+        const isCorpoLibero = isCorpoLiberoEsercizio(workout.value);
+        const repsBase = workout.value['reps_week2'] ? parseInt(workout.value['reps_week2'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week2']) || 10);
+        const perfW2 = estraiMigliorPrestazioneInput(w2Ins, repsBase, isCavo, isCorpoLibero);
+        const pesoBase = perfW2 ? perfW2.peso : parseFloat(estraiPesoDaInput(w2Ins, { isCorpoLibero }));
+        if (pesoBase && !isNaN(pesoBase)) {
+          const repsTarget = workout.value['reps_week4'] ? parseInt(workout.value['reps_week4'], 10) : (estraiRepsDaPrescrizione(workout.value['des_week4']) || 10);
+          const isCorpoLiberoRepsSalgono = (isCorpoLiberoEsercizio(workout.value) && !haPesoEsercizio.value) && repsTarget > repsBase;
+          return {
+            text: w2Ins,
+            peso: pesoBase,
+            label: 'W2',
+            isScarico: !isCorpoLiberoRepsSalgono,
+            isRepExercise: isRepEx
+          };
+        }
+      }
+      return null;
+    }
 
     // Rileva vincoli espliciti di carico (es. [K W1], [KG W1] o [Kg W1]) in modo non case-sensitive.
     const matchKgW = prescrizione.match(/\[\s*KG?\s*W\s*(\d+)\s*\]?/i);
@@ -18402,7 +18440,7 @@ const getGhostLiftStandard = (sett) => {
       }
       const baseW = propostaBaseWeek6.value; // e.g. "W5"
       const baseWNum = parseInt(baseW.replace('W', ''), 10) || 5;
-      const baseIns = inputSettimane.value[baseWNum]?.ins;
+      const baseIns = inputSettimane.value[baseWNum]?.ins || workout.value?.['ins_week' + baseWNum];
       if (!baseIns) return null;
       if (isRepEx) return { text: baseIns, peso: 0, label: baseW, isRepExercise: true };
       const isCavo = isCavoOMacchinaEsercizio(workout.value);
@@ -22985,15 +23023,11 @@ const getCoachPrescribedLoad = (sett) => {
       if (!isNaN(p) && p > 0) extractedWeight = p;
     }
     if (!extractedWeight) {
-      const mKg = prescrizione.match(/\[\s*(\d+(?:[,\.]\d+)?)\s*KG\s*\]/i) || prescrizione.match(/(\d+(?:[,\.]\d+)?)\s*KG/i);
+      const mKg = prescrizione.match(/\[\s*(\d+(?:[,\.]\d+)?)\s*KG\s*\]/i) || prescrizione.match(/\b(\d+(?:[,\.]\d+)?)\s*KG\b/i);
       if (mKg) {
         const p = parseFloat(mKg[1].replace(',', '.'));
         if (!isNaN(p) && p > 0) extractedWeight = p;
       }
-    }
-    if (!extractedWeight) {
-      const p = parseFloat(estraiPesoDaInput(prescrizione));
-      if (!isNaN(p) && p > 0) extractedWeight = p;
     }
     if (extractedWeight) {
       const reps = estraiRepsDaPrescrizione(prescrizione) || 0;

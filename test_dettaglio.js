@@ -1301,17 +1301,40 @@ const calcolaProposteStoricoPerSettimana = (targetW) => {
 async function run() {
   const collectionRef = db.collection('STORYBOARD');
 
-  console.log("--- GETTING ALL B5 HISTORY DOCUMENTS ---");
   const snap = await collectionRef
     .where('ID_cliente', '==', '1')
     .where('des_esercizio', '==', 'Push down con triangolo gomiti larghi')
     .get();
 
-  console.log(`Found ${snap.size} documents in B5 history:`);
+  let w68 = null, w69 = null;
   snap.forEach(doc => {
     const d = doc.data();
-    console.log(`Sheet: ${d.num_scheda} | W1:${d.reps_week1} | W2:${d.reps_week2} | W3:${d.reps_week3} | W4:${d.reps_week4} | W5:${d.reps_week5} | W6:${d.reps_week6}`);
+    if (d.num_scheda === '68') w68 = d;
+    if (d.num_scheda === '69') w69 = d;
   });
+
+  const estraiRepsTargetWeek1 = (wObj) => {
+    if (!wObj) return 0;
+    const fromDes = estraiRepsDaPrescrizione(wObj.des_week1);
+    if (fromDes && fromDes > 0 && fromDes <= 100) return fromDes;
+    const fromReps = parseInt(wObj.reps_week1, 10);
+    if (!isNaN(fromReps) && fromReps > 0 && fromReps <= 100) return fromReps;
+    return fromDes || 0;
+  };
+
+  const prevReps = estraiRepsTargetWeek1(w68);
+  const currReps = estraiRepsTargetWeek1(w69);
+
+  console.log(`Scheda 68 (W1 target): ${prevReps} (des_week1: "${w68?.des_week1}", reps_week1: "${w68?.reps_week1}")`);
+  console.log(`Scheda 69 (W1 target): ${currReps} (des_week1: "${w69?.des_week1}", reps_week1: "${w69?.reps_week1}")`);
+
+  if (currReps > prevReps) {
+    console.log(`RESULT: Ripetizioni Più Alte (${prevReps} ➡️ ${currReps}) ▲`);
+  } else if (currReps < prevReps) {
+    console.log(`RESULT: Ripetizioni Più Basse (${prevReps} ➡️ ${currReps}) ▼`);
+  } else {
+    console.log(`RESULT: Stesse Ripetizioni (${currReps})`);
+  }
 
   process.exit(0);
 }

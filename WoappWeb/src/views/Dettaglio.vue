@@ -13803,6 +13803,19 @@ watch(workout, () => {
   ghostSbloccato.value = false;
 });
 
+const estraiRepsTargetWeek1 = (wObj) => {
+  if (!wObj) return 0;
+  // 1. Massima priorità alla prescrizione ufficiale formattata (es. "3x20" -> 20)
+  const fromDes = estraiRepsDaPrescrizione(wObj.des_week1);
+  if (fromDes && fromDes > 0 && fromDes <= 100) return fromDes;
+
+  // 2. Fallback al campo legacy reps_week1 solo se numero plausibile (1-100)
+  const fromReps = parseInt(wObj.reps_week1, 10);
+  if (!isNaN(fromReps) && fromReps > 0 && fromReps <= 100) return fromReps;
+
+  return fromDes || 0;
+};
+
 const analisiRipetizioniCiclo = computed(() => {
   if (!workout.value || !previousWorkout.value || isCardio.value || isPostura.value) return null;
   
@@ -13815,8 +13828,8 @@ const analisiRipetizioniCiclo = computed(() => {
   const isContinuitato = prevScheda === currentScheda - 1;
 
   // Estraiamo le reps di partenza (Week 1) per confrontare il target del blocco di lavoro
-  const prevReps = parseInt(previousWorkout.value.reps_week1) || estraiRepsDaPrescrizione(previousWorkout.value.des_week1) || 0;
-  const currReps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 0;
+  const prevReps = estraiRepsTargetWeek1(previousWorkout.value);
+  const currReps = estraiRepsTargetWeek1(workout.value);
 
   let trend, icon, color, testo;
 
@@ -13847,8 +13860,8 @@ const analisiRipetizioniCiclo = computed(() => {
 
 const trendFreccia = computed(() => {
   if (!workout.value || !previousWorkout.value) return '';
-  const prevReps = parseInt(previousWorkout.value.reps_week1) || estraiRepsDaPrescrizione(previousWorkout.value.des_week1) || 0;
-  const currReps = parseInt(workout.value.reps_week1) || estraiRepsDaPrescrizione(workout.value.des_week1) || 0;
+  const prevReps = estraiRepsTargetWeek1(previousWorkout.value);
+  const currReps = estraiRepsTargetWeek1(workout.value);
   if (prevReps === 0 || currReps === 0) return '';
   if (currReps > prevReps) return '▲';
   if (currReps < prevReps) return '▼';

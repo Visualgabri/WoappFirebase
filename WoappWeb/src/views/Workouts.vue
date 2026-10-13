@@ -4163,26 +4163,7 @@ const getDurataMediaEffettivaMinuti = (header) => {
     return Math.round(sum / count);
   }
 
-  // 2. Se questo giorno non ne ha, controlla la media effettiva degli altri giorni della scheda/programma
-  if (listaAllenamenti?.value && listaAllenamenti.value.length > 0) {
-    let progSum = 0;
-    let progCount = 0;
-    listaAllenamenti.value.forEach(item => {
-      if (parseInt(item.num_riga_giorno) === 0) {
-        const m1 = getDurataMinuti(item.start_wo, item.end_wo);
-        if (m1 > 0) { progSum += m1; progCount++; }
-        for (let w = 2; w <= 6; w++) {
-          const m = getDurataMinuti(item[`start${w}_wo`], item[`end${w}_wo`]);
-          if (m > 0) { progSum += m; progCount++; }
-        }
-      }
-    });
-    if (progCount > 0) {
-      return Math.round(progSum / progCount);
-    }
-  }
-
-  // 3. Fallback: target programmato da des_esercizio o 60 min
+  // 2. Fallback: target programmato standard dal giorno (des_esercizio) o 60 min
   const parsed = parseDayHeader(header.des_esercizio);
   if (parsed) {
     const w = (typeof settimanaAttivaGiorno !== 'undefined' && settimanaAttivaGiorno?.value) ? settimanaAttivaGiorno.value : 1;
@@ -4197,21 +4178,20 @@ const getDurataMediaEffettivaMinuti = (header) => {
 const getDinamicoTempo = (header, type) => {
   if (!header) return '';
   const parsed = parseDayHeader(header.des_esercizio);
-  if (!parsed) return '';
   
   if (type === 1) {
     const start = header.start_wo;
     const end = header.end_wo;
     const mins = getDurataMinuti(start, end);
-    return mins > 0 ? formattaDurataLeggibile(mins) : formattaDurataLeggibile(parsed.tempo1Mins);
+    return mins > 0 ? formattaDurataLeggibile(mins) : (parsed?.tempo1Mins ? formattaDurataLeggibile(parsed.tempo1Mins) : '');
   } else if (type === 6) {
     const start = header.start6_wo;
     const end = header.end6_wo;
     const mins = getDurataMinuti(start, end);
-    return mins > 0 ? formattaDurataLeggibile(mins) : formattaDurataLeggibile(parsed.tempo2Mins);
+    return mins > 0 ? formattaDurataLeggibile(mins) : (parsed?.tempo2Mins ? formattaDurataLeggibile(parsed.tempo2Mins) : '');
   } else if (type === 'media') {
     const mins = getDurataMediaEffettivaMinuti(header);
-    return formattaDurataLeggibile(mins);
+    return mins > 0 ? formattaDurataLeggibile(mins) : '';
   }
   return '';
 };

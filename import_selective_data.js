@@ -6,8 +6,24 @@ const args = process.argv.slice(2);
 const isCommit = args.includes('--commit');
 const isSimula = !isCommit || args.includes('--simula');
 
+// Supporto per filtro singolo cliente da CLI, es: --client 269 o --client=269
+let cliClientId = null;
+const clientArgIdx = args.findIndex(a => a === '--client' || a === '--cliente');
+if (clientArgIdx !== -1 && args[clientArgIdx + 1]) {
+  cliClientId = args[clientArgIdx + 1];
+} else {
+  const inlineClientArg = args.find(a => a.startsWith('--client=') || a.startsWith('--cliente='));
+  if (inlineClientArg) {
+    cliClientId = inlineClientArg.split('=')[1];
+  }
+}
+
 console.log(`=== Sincronizzazione Selettiva da CSV a Firestore (Versione Protetta) ===`);
-console.log(`Modalità: ${isCommit ? '🔥 SCRITTURA REALE (--commit)' : '🛡️ SIMULAZIONE (--simula / default)'}\n`);
+console.log(`Modalità: ${isCommit ? '🔥 SCRITTURA REALE (--commit)' : '🛡️ SIMULAZIONE (--simula / default)'}`);
+if (cliClientId) {
+  console.log(`Filtro Atleta: 🎯 Solo ID '${cliClientId}'`);
+}
+console.log('');
 
 // 2. Inizializzazione Firebase Admin SDK
 const serviceAccount = require('./woapp-56ae7-firebase-adminsdk-fbsvc-1080ce0316.json');
@@ -19,8 +35,11 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // 3. Definizione Clienti in Scope
-// 4 clienti attivi su Firebase + clienti con nuove schede nel CSV
-const TARGET_CLIENTS = new Set(['245', '304', '312', '321', '125', '188', '237', '243', '249', '269', '297']);
+// Default: 4 clienti attivi su Firebase + clienti con nuove schede nel CSV
+const DEFAULT_CLIENTS = ['245', '304', '312', '321', '125', '188', '237', '243', '249', '269', '297'];
+const TARGET_CLIENTS = cliClientId 
+  ? new Set([String(cliClientId).trim()]) 
+  : new Set(DEFAULT_CLIENTS);
 
 // Gabriele (1) e Jessica (57) restano tassativamente ESCLUSI
 const EXCLUDED_CLIENTS = new Set(['1', '57']);
@@ -93,7 +112,12 @@ async function run() {
 
   // Fase 1: Caricamento database Firestore in memoria
   console.log("Fase 1: Caricamento database Firestore in memoria...");
-  const snap = await db.collection('STORYBOARD').get();
+  let query = db.collection('STORYBOARD');
+  if (cliClientId) {
+    console.log(`Ottimizzazione lettura: carico solo i record per ID_cliente == '${cliClientId}'...`);
+    query = query.where('ID_cliente', '==', String(cliClientId).trim());
+  }
+  const snap = await query.get();
   console.log(`Scaricati ${snap.size} record totali da Firestore.`);
 
   // Mappatura multi-record per gestire in sicurezza superserie o righe duplicate

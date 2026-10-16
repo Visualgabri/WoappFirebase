@@ -230,6 +230,20 @@
                     Cerca Esercizio
                   </v-list-item-title>
                 </v-list-item>
+
+                <!-- Guida Come Scrivere i Pesi (Soluzione 1 + Strategia C) -->
+                <v-list-item
+                  @click="dialogEducazionePesi = true"
+                  class="px-2.5 py-1 min-h-0"
+                  id="btn-menu-guida-pesi"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="amber-accent-3" size="17" class="mr-2 flex-shrink-0">mdi-lightbulb-on-outline</v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-bold text-slate-100 text-truncate" style="font-size: 0.72rem; line-height: 1.2;">
+                    Come scrivere i pesi
+                  </v-list-item-title>
+                </v-list-item>
               </v-list>
             </v-menu>
           </teleport>
@@ -3509,6 +3523,91 @@
             </div>
           </div>
         </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Smart Coach: Educazione Scrittura Pesi (Soluzione 1 + Strategia C) -->
+    <v-dialog v-model="dialogEducazionePesi" max-width="480" persistent>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: #0b111e !important; border: 1.5px solid rgba(245, 158, 11, 0.45) !important;">
+        <!-- Header -->
+        <v-card-title class="pa-4 pb-2.5 d-flex align-center justify-space-between bg-slate-900 border-bottom">
+          <div class="d-flex align-center gap-2">
+            <v-avatar size="32" color="amber-darken-4" class="elevation-2">
+              <v-icon color="amber-lighten-2" size="20">mdi-lightbulb-on</v-icon>
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-2 font-weight-black text-white" style="line-height: 1.2;">
+                Consiglio del Coach
+              </div>
+              <div class="text-super-caption text-amber-lighten-3 font-weight-bold" style="font-size: 0.65rem;">
+                COME SCRIVERE I PESI NELLE CASELLE
+              </div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="confermaEducazionePesi(false)"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-4 text-left" style="max-height: 75vh; overflow-y: auto;">
+          <!-- Frase Introduttiva -->
+          <div class="pa-3 rounded-xl mb-3 text-slate-200" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.84rem; line-height: 1.45;">
+            Scrivi i pesi di tutte le serie <strong>separati da uno spazio</strong>, puoi anche andare a capo, tanto le caselle di testo sono intelligenti.
+          </div>
+
+          <!-- Card Esempio 1: Ramping -->
+          <div class="pa-3 rounded-xl mb-3" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.28);">
+            <div class="d-flex align-center gap-1.5 mb-1.5">
+              <v-icon color="amber-accent-3" size="18">mdi-arrow-decision-outline</v-icon>
+              <span class="text-caption font-weight-black text-amber-lighten-2 text-uppercase" style="letter-spacing: 0.03em;">
+                Esempio 1 — Ramping (es. un 4x9)
+              </span>
+            </div>
+            <div class="pa-2 rounded-lg font-mono font-weight-black text-amber-lighten-3 text-center mb-2 tracking-wider" style="background: rgba(0, 0, 0, 0.5); border: 1px dashed rgba(245, 158, 11, 0.4); font-size: 0.95rem;">
+              45 45 47,5 50
+            </div>
+            <p class="text-caption text-slate-300 mb-0" style="font-size: 0.78rem; line-height: 1.4;">
+              Così il sistema capisce anche che hai fatto un ramping. Prenderà poi il peso maggiore come riferimento per calcolarti il carico da utilizzare nella week successiva. I pesi che utilizza come riferimento li trovi <u>sottolineati</u>.
+            </p>
+          </div>
+
+          <!-- Card Esempio 2: Più Ripetizioni -->
+          <div class="pa-3 rounded-xl mb-2" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.28);">
+            <div class="d-flex align-center gap-1.5 mb-1.5">
+              <v-icon color="sky-lighten-2" size="18">mdi-numeric-positive-1</v-icon>
+              <span class="text-caption font-weight-black text-sky-lighten-2 text-uppercase" style="letter-spacing: 0.03em;">
+                Esempio 2 — Più Reps (stesso peso, +2 reps)
+              </span>
+            </div>
+            <div class="pa-2 rounded-lg font-mono font-weight-black text-sky-lighten-3 text-center mb-2 tracking-wider" style="background: rgba(0, 0, 0, 0.5); border: 1px dashed rgba(56, 189, 248, 0.4); font-size: 0.95rem;">
+              42,5x11r
+            </div>
+            <p class="text-caption text-slate-300 mb-0" style="font-size: 0.78rem; line-height: 1.4;">
+              Se invece, per esempio, nella prima serie utilizzi lo stesso peso della week precedente ma fai due ripetizioni in più rispetto a quelle prescritte, scrivi <strong>"42,5x11r"</strong>: così il sistema capisce che sei salito con le reps e ne tiene conto per la progressione successiva.
+            </p>
+          </div>
+        </v-card-text>
+
+        <!-- Footer Azioni -->
+        <v-card-actions class="pa-3 border-top bg-slate-900 d-flex flex-column gap-2">
+          <v-btn
+            variant="flat"
+            color="amber-darken-3"
+            class="font-weight-black text-none text-white w-100 rounded-xl"
+            style="background: linear-gradient(135deg, #d97706, #f59e0b) !important; height: 42px; font-size: 0.85rem;"
+            @click="confermaEducazionePesi(true)"
+          >
+            <v-icon start size="18">mdi-check-circle-outline</v-icon>
+            Ho capito, non mostrare più
+          </v-btn>
+          <v-btn
+            variant="text"
+            color="grey-lighten-1"
+            size="x-small"
+            class="text-none font-weight-bold"
+            @click="confermaEducazionePesi(false)"
+          >
+            Chiudi per ora
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -6854,9 +6953,22 @@
 
           <!-- Toolbar di Inserimento Rapido Simboli e Token -->
           <div class="mb-2">
-            <span class="text-super-caption font-weight-black text-slate uppercase d-block mb-1.5" style="font-size: 0.58rem;">
-              Inserimento Rapido Simboli
-            </span>
+            <div class="d-flex align-center justify-space-between mb-1.5">
+              <span class="text-super-caption font-weight-black text-slate uppercase d-block" style="font-size: 0.58rem;">
+                Inserimento Rapido Simboli
+              </span>
+              <v-btn
+                variant="text"
+                size="x-small"
+                color="amber-accent-3"
+                class="px-1 font-weight-black text-none"
+                style="height: 18px; font-size: 0.65rem;"
+                @click="dialogEducazionePesi = true"
+              >
+                <v-icon size="13" class="mr-1">mdi-lightbulb-on-outline</v-icon>
+                Guida pesi
+              </v-btn>
+            </div>
             <div class="d-flex flex-wrap gap-1.5">
               <v-chip
                 v-for="chip in [
@@ -7669,6 +7781,78 @@ const activeEditingWeek = ref(null);
 const localEditingRaw = { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' };
 const localEditingIns = ref({ 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' });
 
+// Educazione Pesi Smart Coach (Strategia C + Soluzione 1)
+const dialogEducazionePesi = ref(false);
+const sessioneErroriSintassiCount = ref(0);
+
+const isSintassiPesiAnomala = (rawStr) => {
+  if (!rawStr) return false;
+  const s = String(rawStr).trim();
+  if (!s || s === '-' || s === '0') return false;
+
+  // Rimuove note tra parentesi tonde o quadre prima del controllo (es. '45 (fatta panca 30°)' è lecito)
+  const clean = s.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ').trim();
+  if (!clean) return false;
+
+  // 1. Separatori errati tra serie (trattini o slash tra numeri, es: 40-40-45 o 40 - 45 o 40/45/50)
+  if (/\b\d+(?:[\.,]\d+)?\s*[\-\/]\s*\d+(?:[\.,]\d+)?\b/.test(clean)) {
+    // Escludi se è un range reps noto esplicito tipo 10-12r
+    if (!/\b\d+\s*[\-\/]\s*\d+\s*(?:r\b|reps?|rip)/i.test(clean)) {
+      return true;
+    }
+  }
+
+  // Separazione serie tramite virgola anziché spazio (es. 40, 45 o 40, 45, 50)
+  if (/\b\d+\s*,\s+[0-9]/.test(clean) || /\b\d+\s*,\s*\d+\s*,\s*\d+/.test(clean)) {
+    return true;
+  }
+
+  // 2. Frasi ibride parlate (es. '4x9 con 45', '4 serie da 40', 'serie 1 40')
+  if (/\b\d+\s*[xX]\s*\d+\s*(?:con|a|@|da)\s*\d+/i.test(clean)) return true;
+  if (/\b(?:serie\s*\d+|fatto\s*con|fatti\s*a|carico\s*da)\b/i.test(clean)) return true;
+
+  // 3. Simboli non convenzionali tra numeri (es. 45*10, 45@10, 45#10)
+  if (/\d+\s*[\*@#:]\s*\d+/.test(clean)) return true;
+
+  // 4. Testo lungo senza numeri estraibili
+  const hasNumbers = /\d+/.test(clean);
+  if (!hasNumbers && clean.length >= 3) return true;
+
+  return false;
+};
+
+const verificaEducazioneSintassiPesi = (valStr) => {
+  // Se l'atleta ha già cliccato "Ho capito, non mostrare più", non mostrare automaticamente
+  try {
+    if (localStorage.getItem('woapp_educazione_pesi_dismissed') === 'true') {
+      return;
+    }
+  } catch (e) {}
+
+  // Salta cardio e postura
+  if (isCardio.value || isPostura.value) return;
+  if (workout.value && (isCardioEsercizio(workout.value) || isPosturaEsercizio(workout.value))) return;
+
+  if (isSintassiPesiAnomala(valStr)) {
+    sessioneErroriSintassiCount.value++;
+    // Strategia C: interviene solo se l'utente sbaglia su almeno 2 esercizi / errori ripetuti nella sessione
+    if (sessioneErroriSintassiCount.value >= 2) {
+      dialogEducazionePesi.value = true;
+      vibraTattile(25);
+    }
+  }
+};
+
+const confermaEducazionePesi = (nonMostrarePiu = false) => {
+  if (nonMostrarePiu) {
+    try {
+      localStorage.setItem('woapp_educazione_pesi_dismissed', 'true');
+    } catch (e) {}
+  }
+  sessioneErroriSintassiCount.value = 0;
+  dialogEducazionePesi.value = false;
+};
+
 // Controllo Diretto: Mancano Ripetizioni AMRAP
 const dialogMancanoRepsAmrap = ref(false);
 const settimanaMancanoReps = ref(6);
@@ -7766,8 +7950,12 @@ const onBlurWeek = (sett, val) => {
       inputRepsManualeAmrap.value = '';
       dialogMancanoRepsAmrap.value = true;
       vibraTattile(25);
+      return;
     }
   }
+
+  // Educazione Pesi Smart Coach (Strategia C + Soluzione 1)
+  verificaEducazioneSintassiPesi(finalVal);
 };
 
 const getInitialRows = (text) => {
@@ -7852,6 +8040,7 @@ const confermaEditorEspanso = () => {
     salvaDatoSettimanale(sett, 'ins');
     snackbarMessaggio.value = `Note W${sett} aggiornate con successo!`;
     snackbarSalvataggio.value = true;
+    verificaEducazioneSintassiPesi(tempEspansoText.value);
   }
   dialogEditorEspanso.value = false;
 };

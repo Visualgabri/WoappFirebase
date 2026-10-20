@@ -8292,9 +8292,9 @@ const isStagnazioneSettimana = (sett) => {
   if (sett <= 1) return false;
   if (isCardio.value || isPostura.value) return false;
 
-  // 1. Se c'è un vincolo esplicito di carico dal coach o il carico è impostato dal coach (es. [KG W5], ghost.isMandatory, ghost.isCoachSet), NON è stagnazione!
+  // Se c'è un vincolo esplicito di carico dal coach (es. [KG W5] o ghost.isMandatory), NON è stagnazione!
   const ghost = getGhostLift(sett);
-  if (ghost && (ghost.isMandatory || ghost.mandatoryLabel || ghost.isCoachSet)) return false;
+  if (ghost && (ghost.isMandatory || ghost.mandatoryLabel)) return false;
 
   // Se la settimana è di scarico (W4 scarico o ghost.isScarico), NON è stagnazione!
   if ((sett === 4 && isWeek4Scarico?.value) || (ghost && ghost.isScarico)) return false;
@@ -8342,29 +8342,6 @@ const isStagnazioneSettimana = (sett) => {
     }
   }
 
-  // --- SOLUZIONE 3: SCUDO PRESCRIZIONE COACH (SMART PRESCRIZIONE SHIELD) ---
-  const prescCurrStr = String(workout.value?.['des_week' + sett] || '');
-  const rangeCurr = estraiRangeRepsDaPrescrizione(prescCurrStr);
-  if (rangeCurr && rangeCurr.min > 0) {
-    const perfCurrCheck = estraiMigliorPrestazioneInput(currentIns, getRepsPerWeek(sett), isCavoOMacchinaEsercizio(workout.value), isCorpoLiberoPuro.value);
-    const rCurrCheck = perfCurrCheck ? perfCurrCheck.reps : (estraiRepsDaInput(currentIns) || getRepsPerWeek(sett));
-    if (rCurrCheck >= rangeCurr.min) {
-      let prevWCheck = sett - 1;
-      while (prevWCheck >= 1) {
-        const pValCheck = inputSettimane.value[prevWCheck]?.ins || workout.value?.['ins_week' + prevWCheck];
-        if (pValCheck && String(pValCheck).trim() !== '' && String(pValCheck).trim() !== '-') break;
-        prevWCheck--;
-      }
-      if (prevWCheck >= 1) {
-        const prescPrevStr = String(workout.value?.['des_week' + prevWCheck] || '');
-        const rangePrev = estraiRangeRepsDaPrescrizione(prescPrevStr);
-        // Se lo schema del coach è variato rispetto alla settimana precedente (reps o testo) ed il target è raggiunto
-        if (rangePrev && (rangePrev.min !== rangeCurr.min || rangePrev.max !== rangeCurr.max || prescCurrStr !== prescPrevStr)) {
-          return false;
-        }
-      }
-    }
-  }
 
   // --- LOGICA SPECIALE PER TECNICA MAX REPS (Progressione su totale reps a cedimento) ---
   if (isMaxRepsExercise.value) {

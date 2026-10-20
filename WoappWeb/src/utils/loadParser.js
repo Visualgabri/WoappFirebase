@@ -1353,19 +1353,8 @@ export const estraiSerieDaSingolaRiga = (line, options = {}) => {
       finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : (hasZavorra ? (parseFloat(estraiPesoDaInput(l, { isCorpoLibero: true })) || 0) : null);
       finalReps = explicitReps;
     } else {
-      // Controllo speciale per serie x reps (es. "3x6", "4x8"):
-      // Se numVal <= 10, m[3] esiste, rVal <= 50 e non ci sono kg espliciti nel match o nella riga,
-      // numVal rappresenta il NUMERO DI SERIE e rVal le RIPETIZIONI (non un carico in kg!).
-      const hasExplicitKgInMatch = /kg|kgs|kgb|lbs|\+/i.test(rawMatch) || /kg|kgs|kgb|lbs|\+/i.test(l);
-      const isSxRFormat = !hasExplicitKgInMatch && Number.isInteger(numVal) && numVal <= 10 && m[3] !== undefined && m[3] !== null && !String(m[1]).includes('.');
-
-      if (isSxRFormat) {
-        finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : (hasZavorra ? (parseFloat(estraiPesoDaInput(l, { isCorpoLibero: true })) || 0) : null);
-        finalReps = explicitReps || Math.round(parseFloat(m[3])) || defaultReps;
-      } else {
-        finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : numVal;
-        finalReps = (isCorpoLibero && !hasZavorra && !isExplicit) ? numVal : (isExplicit && explicitReps ? explicitReps : defaultReps);
-      }
+      finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : numVal;
+      finalReps = (isCorpoLibero && !hasZavorra && !isExplicit) ? numVal : (isExplicit && explicitReps ? explicitReps : defaultReps);
     }
 
     let e1rm = 0;
@@ -1782,7 +1771,7 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
           isOvershoot: set.isOvershoot
         };
       }
-    } else if (set.reps && set.reps > 0) {
+    } else if (isCorpoLibero && set.reps && set.reps > 0) {
       if (set.reps > maxE1RM) {
         maxE1RM = set.reps;
         bestPerf = {

@@ -1341,6 +1341,9 @@ export const syncDeployVersionListener = () => {
           const isTargetedAthlete = ruolo.value === 'atleta' && String(idCliente.value) === String(data.target_atleta_id);
           if (isTargetedAthlete) {
             deployCustomNoteForMe.value = (data.notes_per_athlete && data.notes_per_athlete[idCliente.value]) || data.message_general || data.titolo || '';
+            if (data.tipo === 'guida_pesi') {
+              try { localStorage.removeItem('woapp_educazione_pesi_dismissed'); } catch (e) {}
+            }
             showDeployBanner.value = true;
           } else {
             // Se sono il coach o un altro atleta, NON mostrare il banner del messaggio privato
@@ -1354,7 +1357,17 @@ export const syncDeployVersionListener = () => {
           } else {
             deployCustomNoteForMe.value = '';
           }
-          showDeployBanner.value = true;
+          if (data.tipo === 'guida_pesi') {
+            try { localStorage.removeItem('woapp_educazione_pesi_dismissed'); } catch (e) {}
+            // Mostra a tutti gli atleti; se è il coach a trasmettere, evita di bloccare la sua schermata impostazioni
+            if (ruolo.value === 'atleta') {
+              showDeployBanner.value = true;
+            } else {
+              showDeployBanner.value = false;
+            }
+          } else {
+            showDeployBanner.value = true;
+          }
         }
       }
     }
@@ -1420,9 +1433,9 @@ export const inviaNotificaDeploy = async (payload) => {
     const dataToSave = {
       version_id: newVersionId,
       timestamp: new Date().toISOString(),
-      tipo: payload.tipo || 'deploy', // 'deploy' oppure 'messaggio'
-      titolo: payload.titolo || (payload.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento!'),
-      message_general: payload.message_general || 'Nuova versione applicazione disponibile.',
+      tipo: payload.tipo || 'deploy', // 'deploy' | 'messaggio' | 'guida_pesi'
+      titolo: payload.titolo || (payload.tipo === 'guida_pesi' ? '💡 Consiglio del Coach' : (payload.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento!')),
+      message_general: payload.message_general || (payload.tipo === 'guida_pesi' ? 'Come scrivere i pesi nelle caselle' : 'Nuova versione applicazione disponibile.'),
       target_atleta_id: payload.target_atleta_id || null,
       notes_per_athlete: payload.notes_per_athlete || {}
     };

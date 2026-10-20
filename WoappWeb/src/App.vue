@@ -556,65 +556,152 @@
       <v-card
         class="pa-5 rounded-2xl border text-left overflow-hidden position-relative animate-fade-in update-modal-card"
         :style="{
-          background: deployVersionInfo?.tipo === 'messaggio' 
+          background: deployVersionInfo?.tipo === 'guida_pesi'
+            ? 'linear-gradient(135deg, rgba(11, 17, 30, 0.98) 0%, rgba(20, 25, 45, 0.99) 100%) !important'
+            : deployVersionInfo?.tipo === 'messaggio' 
             ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.98) 100%) !important'
             : 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%) !important',
-          border: deployVersionInfo?.tipo === 'messaggio'
+          border: deployVersionInfo?.tipo === 'guida_pesi'
+            ? '1.5px solid rgba(245, 158, 11, 0.55) !important'
+            : deployVersionInfo?.tipo === 'messaggio'
             ? '2px solid rgba(168, 85, 247, 0.5) !important'
             : '2px solid var(--theme-primary) !important',
           backdropFilter: 'blur(30px) !important',
-          boxShadow: deployVersionInfo?.tipo === 'messaggio'
+          boxShadow: deployVersionInfo?.tipo === 'guida_pesi'
+            ? '0 20px 50px rgba(245, 158, 11, 0.25) !important'
+            : deployVersionInfo?.tipo === 'messaggio'
             ? '0 20px 50px rgba(168, 85, 247, 0.25) !important'
             : '0 20px 50px var(--theme-primary-glow) !important'
         }"
       >
-        <!-- Header Pulito ed Elegante Senza Icona Colorata Circolare -->
-        <div class="d-flex align-center gap-2 mb-3 pb-2.5 border-bottom-soft">
-          <v-icon :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-lighten-2' : 'orange-lighten-2'" size="22" class="flex-shrink-0">
-            {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch-outline' }}
-          </v-icon>
-          <h2 class="text-subtitle-1 font-weight-black text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; color: #ffffff !important;">
-            {{ deployVersionInfo?.titolo ? deployVersionInfo.titolo.replace(/^🚀\s*/, '') : (deployVersionInfo?.tipo === 'messaggio' ? 'Messaggio dal Coach' : 'Nuovo Aggiornamento') }}
-          </h2>
-        </div>
+        <!-- CASO 1: GUIDA SCRITTURA PESI COACH (GRAFICA DEDICATA SMART COACH) -->
+        <template v-if="deployVersionInfo?.tipo === 'guida_pesi'">
+          <div class="d-flex align-center gap-2 mb-3 pb-2.5 border-bottom-soft">
+            <v-avatar size="32" color="amber-darken-4" class="elevation-2 flex-shrink-0">
+              <v-icon color="amber-lighten-2" size="20">mdi-lightbulb-on</v-icon>
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-2 font-weight-black text-white" style="line-height: 1.2;">
+                Consiglio del Coach
+              </div>
+              <div class="text-super-caption text-amber-lighten-3 font-weight-bold" style="font-size: 0.65rem;">
+                COME SCRIVERE I PESI NELLE CASELLE
+              </div>
+            </div>
+          </div>
 
-        <!-- Contenuto del Messaggio (Pulito e Leggibile) -->
-        <div class="pa-4 rounded-xl mb-4 text-left border" style="background: rgba(15, 23, 42, 0.6) !important; border-color: rgba(255, 255, 255, 0.1) !important;">
-          <p class="text-body-1 text-white mb-0" style="font-size: 1.05rem; font-weight: 600; line-height: 1.5; color: #ffffff !important;">
-            {{ deployCustomNoteForMe || deployVersionInfo?.message_general || (deployVersionInfo?.tipo === 'messaggio' ? 'Hai una nuova comunicazione dal tuo Coach.' : 'Nuova versione disponibile con miglioramenti e novità.') }}
-          </p>
-        </div>
+          <!-- Nota Facoltativa del Coach se presente -->
+          <div v-if="deployCustomNoteForMe" class="pa-2.5 rounded-xl mb-3 text-amber-lighten-2 border-soft" style="background: rgba(245, 158, 11, 0.12); font-size: 0.82rem; line-height: 1.4;">
+            <div class="d-flex align-center gap-1 mb-1 font-weight-black text-amber-accent-2" style="font-size: 0.70rem;">
+              <v-icon size="14">mdi-message-text</v-icon>
+              <span>NOTA DEL COACH:</span>
+            </div>
+            {{ deployCustomNoteForMe }}
+          </div>
 
-        <!-- Azione Unica Principale -->
-        <div>
+          <!-- Frase Introduttiva -->
+          <div class="pa-3 rounded-xl mb-3 text-slate-200" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.84rem; line-height: 1.45;">
+            Scrivi i pesi di tutte le serie <strong>separati da uno spazio</strong>, puoi anche andare a capo, tanto le caselle di testo sono intelligenti.
+          </div>
+
+          <!-- Card Esempio 1: Ramping -->
+          <div class="pa-3 rounded-xl mb-3" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.28);">
+            <div class="d-flex align-center gap-1.5 mb-1.5">
+              <v-icon color="amber-accent-3" size="18">mdi-arrow-decision-outline</v-icon>
+              <span class="text-caption font-weight-black text-amber-lighten-2 text-uppercase" style="letter-spacing: 0.03em;">
+                Esempio 1 — Ramping (es. un 4x9)
+              </span>
+            </div>
+            <div class="pa-2 rounded-lg font-mono font-weight-black text-amber-lighten-3 text-center mb-2 tracking-wider" style="background: rgba(0, 0, 0, 0.5); border: 1px dashed rgba(245, 158, 11, 0.4); font-size: 0.95rem;">
+              45 45 47,5 50
+            </div>
+            <p class="text-caption text-slate-300 mb-0" style="font-size: 0.78rem; line-height: 1.4;">
+              Così il sistema capisce anche che hai fatto un ramping. Prenderà poi il peso maggiore come riferimento per calcolarti il carico da utilizzare nella week successiva. I pesi che utilizza come riferimento li trovi <u>sottolineati</u>.
+            </p>
+          </div>
+
+          <!-- Card Esempio 2: Più Ripetizioni -->
+          <div class="pa-3 rounded-xl mb-4" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.28);">
+            <div class="d-flex align-center gap-1.5 mb-1.5">
+              <v-icon color="sky-lighten-2" size="18">mdi-numeric-positive-1</v-icon>
+              <span class="text-caption font-weight-black text-sky-lighten-2 text-uppercase" style="letter-spacing: 0.03em;">
+                Esempio 2 — Più Reps (stesso peso, +2 reps)
+              </span>
+            </div>
+            <div class="pa-2 rounded-lg font-mono font-weight-black text-sky-lighten-3 text-center mb-2 tracking-wider" style="background: rgba(0, 0, 0, 0.5); border: 1px dashed rgba(56, 189, 248, 0.4); font-size: 0.95rem;">
+              42,5x11r
+            </div>
+            <p class="text-caption text-slate-300 mb-0" style="font-size: 0.78rem; line-height: 1.4;">
+              Se invece, per esempio, nella prima serie utilizzi lo stesso peso della week precedente ma fai due ripetizioni in più rispetto a quelle prescritte, scrivi <strong>"42,5x11r"</strong>: così il sistema capisce che sei salito con le reps e ne tiene conto per la progressione successiva.
+            </p>
+          </div>
+
+          <!-- Azione Chiusura Guida -->
           <v-btn
-            v-if="deployVersionInfo?.tipo !== 'messaggio'"
-            color="orange-darken-3"
+            color="amber-darken-3"
             block
             size="large"
             variant="flat"
             rounded="xl"
             class="font-weight-black text-none text-white elevation-6"
-            style="height: 46px; font-size: 0.90rem;"
-            @click="accettaEAggiornaDeploy"
-          >
-            RICARICA ED AGGIORNA ORA
-          </v-btn>
-
-          <v-btn
-            v-else
-            color="purple-darken-3"
-            block
-            size="large"
-            variant="flat"
-            rounded="xl"
-            class="font-weight-black text-none text-white elevation-6"
-            style="height: 46px; font-size: 0.90rem;"
+            style="background: linear-gradient(135deg, #d97706, #f59e0b) !important; height: 44px; font-size: 0.88rem;"
             @click="chiudiBannerNotifica"
           >
-            HO CAPITO / CHIUDI
+            <v-icon start size="18">mdi-check-circle-outline</v-icon>
+            HO CAPITO, GRAZIE COACH!
           </v-btn>
-        </div>
+        </template>
+
+        <!-- CASO 2: DEPLOY O MESSAGGIO STANDARD -->
+        <template v-else>
+          <!-- Header Pulito ed Elegante Senza Icona Colorata Circolare -->
+          <div class="d-flex align-center gap-2 mb-3 pb-2.5 border-bottom-soft">
+            <v-icon :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-lighten-2' : 'orange-lighten-2'" size="22" class="flex-shrink-0">
+              {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch-outline' }}
+            </v-icon>
+            <h2 class="text-subtitle-1 font-weight-black text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; color: #ffffff !important;">
+              {{ deployVersionInfo?.titolo ? deployVersionInfo.titolo.replace(/^🚀\s*/, '') : (deployVersionInfo?.tipo === 'messaggio' ? 'Messaggio dal Coach' : 'Nuovo Aggiornamento') }}
+            </h2>
+          </div>
+
+          <!-- Contenuto del Messaggio (Pulito e Leggibile) -->
+          <div class="pa-4 rounded-xl mb-4 text-left border" style="background: rgba(15, 23, 42, 0.6) !important; border-color: rgba(255, 255, 255, 0.1) !important;">
+            <p class="text-body-1 text-white mb-0" style="font-size: 1.05rem; font-weight: 600; line-height: 1.5; color: #ffffff !important;">
+              {{ deployCustomNoteForMe || deployVersionInfo?.message_general || (deployVersionInfo?.tipo === 'messaggio' ? 'Hai una nuova comunicazione dal tuo Coach.' : 'Nuova versione disponibile con miglioramenti e novità.') }}
+            </p>
+          </div>
+
+          <!-- Azione Unica Principale -->
+          <div>
+            <v-btn
+              v-if="deployVersionInfo?.tipo !== 'messaggio'"
+              color="orange-darken-3"
+              block
+              size="large"
+              variant="flat"
+              rounded="xl"
+              class="font-weight-black text-none text-white elevation-6"
+              style="height: 46px; font-size: 0.90rem;"
+              @click="accettaEAggiornaDeploy"
+            >
+              RICARICA ED AGGIORNA ORA
+            </v-btn>
+
+            <v-btn
+              v-else
+              color="purple-darken-3"
+              block
+              size="large"
+              variant="flat"
+              rounded="xl"
+              class="font-weight-black text-none text-white elevation-6"
+              style="height: 46px; font-size: 0.90rem;"
+              @click="chiudiBannerNotifica"
+            >
+              HO CAPITO / CHIUDI
+            </v-btn>
+          </div>
+        </template>
       </v-card>
     </v-dialog>
 

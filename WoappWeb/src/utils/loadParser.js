@@ -1353,8 +1353,19 @@ export const estraiSerieDaSingolaRiga = (line, options = {}) => {
       finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : (hasZavorra ? (parseFloat(estraiPesoDaInput(l, { isCorpoLibero: true })) || 0) : null);
       finalReps = explicitReps;
     } else {
-      finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : numVal;
-      finalReps = (isCorpoLibero && !hasZavorra && !isExplicit) ? numVal : (isExplicit && explicitReps ? explicitReps : defaultReps);
+      // Controllo speciale per serie x reps (es. "3x6", "4x8"):
+      // Se numVal <= 10, m[3] esiste, rVal <= 50 e non ci sono kg espliciti nel match o nella riga,
+      // numVal rappresenta il NUMERO DI SERIE e rVal le RIPETIZIONI (non un carico in kg!).
+      const hasExplicitKgInMatch = /kg|kgs|kgb|lbs|\+/i.test(rawMatch) || /kg|kgs|kgb|lbs|\+/i.test(l);
+      const isSxRFormat = !hasExplicitKgInMatch && Number.isInteger(numVal) && numVal <= 10 && m[3] !== undefined && m[3] !== null && !String(m[1]).includes('.');
+
+      if (isSxRFormat) {
+        finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : (hasZavorra ? (parseFloat(estraiPesoDaInput(l, { isCorpoLibero: true })) || 0) : null);
+        finalReps = explicitReps || Math.round(parseFloat(m[3])) || defaultReps;
+      } else {
+        finalPeso = (isCorpoLibero && !hasZavorra) ? 0 : numVal;
+        finalReps = (isCorpoLibero && !hasZavorra && !isExplicit) ? numVal : (isExplicit && explicitReps ? explicitReps : defaultReps);
+      }
     }
 
     let e1rm = 0;
@@ -1771,7 +1782,7 @@ export const estraiMigliorPrestazioneInput = (strVal, defaultReps = 10, isCavo =
           isOvershoot: set.isOvershoot
         };
       }
-    } else if (isCorpoLibero && set.reps && set.reps > 0) {
+    } else if (set.reps && set.reps > 0) {
       if (set.reps > maxE1RM) {
         maxE1RM = set.reps;
         bestPerf = {
@@ -1827,6 +1838,9 @@ export const haProgressioneQualitativa = (strVal) => {
         bContent.includes('recupero') ||
         bContent.includes('qualitat') ||
         bContent.includes('fermo') ||
+        bContent.includes('elastico') ||
+        bContent.includes('assistenza') ||
+        bContent.includes('band') ||
         bContent.includes('+1') ||
         bContent.includes('+2') ||
         bContent.includes('+3') ||
@@ -1861,6 +1875,7 @@ export const haProgressioneQualitativa = (strVal) => {
     /\b(?:pausa|fermo|fermo\s+al\s+petto|fermo\s+in\s+buca)\b/i.test(cleanOutside) ||
     /\b(?:recupero\s+ridotto|densità)\b/i.test(cleanOutside) ||
     /\b(?:qualitativ[ao]|qualità)\b/i.test(cleanOutside) ||
+    /\b(?:elastico|assistenza|loop\s*band)\b/i.test(cleanOutside) ||
     /\b(?:reps?\s+in\s+più|più\s+reps?|rep\s+extra|reps\s+extra)\b/i.test(cleanOutside) ||
     /\+(?:1|2|3)\s*(?:rep|colpo|reps)?\b/i.test(cleanOutside)
   );
@@ -2068,5 +2083,148 @@ export const calcolaGhostMaxRepsProgressione = ({
     spiegazioneFisiologica
   };
 };
+
+/**
+ * Mappatura standard di resistenza/tensione stimata (kg di assistenza) per i colori comuni di loop band / elastici
+ */
+export const ELASTICI_COLORI_MAP = {
+  'nero': 35,
+  'nera': 35,
+  'viola': 25,
+  'verde': 20,
+  'arancio': 20,
+  'arancione': 20,
+  'celeste': 10,
+  'blu': 10,
+  'rosso': 5,
+  'rossa': 5,
+  'giallo': 2.5,
+  'gialla': 2.5,
+  'grigio': 30,
+  'grigia': 30
+};
+
+/**
+ * Determina se un esercizio è assistito da elastico (es. Trazioni con elastico, Dip assistite con elastico).
+ * Negli esercizi a corpo libero assistiti, l'elastico riduce il carico corporeo,
+ * quindi un elastico con meno kg di resistenza significa PIÙ carico reale sollevato dall'atleta (logica inversa).
+ *
+ * @param {Object|string} ex Esercizio o nome esercizio
+ * @returns {boolean}
+ */
+export const isEsercizioConAssistenzaElastica = (ex) => {
+  if (!ex) return false;
+  const name = typeof ex === 'string' ? ex.toLowerCase() : String(ex.des_esercizio || ex.des_esercizio_2 || '').toLowerCase();
+  const note = typeof ex === 'object' ? String(ex.des_note_attrezzo || '').toLowerCase() : '';
+  const noteGen = typeof ex === 'object' ? String(ex.des_note_gen_attr || '').toLowerCase() : '';
+  const desNote = typeof ex === 'object' ? String(ex.des_note || '').toLowerCase() : '';
+
+  const fullText = `${name} ${note} ${noteGen} ${desNote}`;
+  const hasElastico = /elastico|elastici|loop\s*band|banda\s*elastica|bande\s*elastiche/i.test(fullText);
+  const isBodyweightMove = /trazion|pull\s*up|chin\s*up|dip\b|piegament|push\s*up|corpo\s*libero|bodyweight/i.test(fullText);
+  const isExplicitAssisted = /assistit|con\s+aiuto/i.test(fullText);
+
+  if (hasElastico && (isBodyweightMove || isExplicitAssisted)) return true;
+  if (isExplicitAssisted && isBodyweightMove) return true;
+
+  // Se nelle prescrizioni delle settimane compare un pattern tipo "20kg arancio" o "10kg celeste" associato ad elastico
+  if (typeof ex === 'object') {
+    for (let w = 1; w <= 6; w++) {
+      const p = String(ex['des_week' + w] || '').toLowerCase();
+      if (/(?:arancio|celeste|rosso|verde|nero|viola|giallo|blu|grigio)\b.*elastico|elastico.*(?:arancio|celeste|rosso|verde|nero|viola|giallo|blu|grigio)|\d+\s*kg\s*(?:arancio|celeste|rosso|verde|nero|viola|giallo|blu)/i.test(p)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Estrae il carico di assistenza (in kg) fornito dall'elastico da una stringa di prescrizione o di input.
+ * (es. "3x6-8 20kg arancio" -> 20 kg; "3x4-6 10kg celeste" -> 10 kg; "elastico celeste" -> 10 kg).
+ *
+ * @param {string} str
+ * @returns {{ kg: number, colore?: string, raw: string }|null}
+ */
+export const estraiCaricoAssistenzaElastico = (str) => {
+  if (!str) return null;
+  const s = String(str).toLowerCase().trim();
+  if (!s || s === '-') return null;
+
+  // 1. Cerca pattern esplicito [kg] + [colore] (es. "20kg arancio", "10 kg celeste", "20kg arancione")
+  const matchKgColore = s.match(/(\d+(?:[.,]\d+)?)\s*kg\s*(?:arancio|arancione|celeste|rosso|rossa|verde|nero|nera|viola|giallo|gialla|blu|grigio|grigia)/i);
+  if (matchKgColore) {
+    const kg = parseFloat(matchKgColore[1].replace(',', '.'));
+    if (!isNaN(kg) && kg > 0) return { kg, raw: matchKgColore[0] };
+  }
+
+  // 2. Cerca pattern [colore] + [kg] (es. "arancio 20kg", "celeste 10kg")
+  const matchColoreKg = s.match(/(?:arancio|arancione|celeste|rosso|rossa|verde|nero|nera|viola|giallo|gialla|blu|grigio|grigia)\s*(\d+(?:[.,]\d+)?)\s*kg/i);
+  if (matchColoreKg) {
+    const kg = parseFloat(matchColoreKg[1].replace(',', '.'));
+    if (!isNaN(kg) && kg > 0) return { kg, raw: matchColoreKg[0] };
+  }
+
+  // 3. Cerca menzione esplicita di elastico con kg (es. "elastico 15kg", "loop band 20kg", "-10kg elastico")
+  const matchElasticoKg = s.match(/(?:elastico|band|loop\s*band)\s*[-+]?\s*(\d+(?:[.,]\d+)?)\s*kg/i) ||
+                          s.match(/[-+]?\s*(\d+(?:[.,]\d+)?)\s*kg\s*(?:elastico|band|loop\s*band)/i);
+  if (matchElasticoKg) {
+    const kg = parseFloat(matchElasticoKg[1].replace(',', '.'));
+    if (!isNaN(kg) && kg > 0) return { kg, raw: matchElasticoKg[0] };
+  }
+
+  // 4. Fallback sui colori noti di elastici
+  for (const [colore, peso] of Object.entries(ELASTICI_COLORI_MAP)) {
+    const regexColore = new RegExp(`\\b${colore}\\b`, 'i');
+    if (regexColore.test(s)) {
+      return { kg: peso, colore, raw: colore };
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Estrae il range di ripetizioni target da una prescrizione (es. "3x4-6 10kg celeste" -> { min: 4, max: 6 }).
+ *
+ * @param {string} prescrizioneStr
+ * @returns {{ min: number, max: number }|null}
+ */
+export const estraiRangeRepsDaPrescrizione = (prescrizioneStr) => {
+  if (!prescrizioneStr) return null;
+  const raw = String(prescrizioneStr).trim();
+  if (!raw || raw === '-') return null;
+
+  // Cerca pattern tipo "3x4-6", "4x6-8", "4-6 reps", "6-8"
+  const matchRangeX = raw.match(/\b(?:\d+\s*[xX]\s*)?(\d+)\s*[-/–]\s*(\d+)\b/);
+  if (matchRangeX) {
+    const min = parseInt(matchRangeX[1], 10);
+    const max = parseInt(matchRangeX[2], 10);
+    if (!isNaN(min) && !isNaN(max) && min > 0 && max >= min) {
+      return { min, max };
+    }
+  }
+
+  // Cerca singolo numero tipo "3x12", "12 reps"
+  const matchSingleX = raw.match(/\b\d+\s*[xX]\s*(\d+)\b/);
+  if (matchSingleX) {
+    const val = parseInt(matchSingleX[1], 10);
+    if (!isNaN(val) && val > 0 && val <= 100) {
+      return { min: val, max: val };
+    }
+  }
+
+  const matchRepsSuffix = raw.match(/\b(\d+)\s*(?:[rR]\b|reps?|rip(?:etizioni)?|colpi)\b/i);
+  if (matchRepsSuffix) {
+    const val = parseInt(matchRepsSuffix[1], 10);
+    if (!isNaN(val) && val > 0 && val <= 100) {
+      return { min: val, max: val };
+    }
+  }
+
+  return null;
+};
+
 
 

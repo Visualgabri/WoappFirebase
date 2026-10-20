@@ -1858,11 +1858,11 @@
                 v-for="chip in chipProgressioneQualitativa"
                 :key="chip.id"
                 size="x-small"
-                :variant="chip.primary ? 'flat' : 'tonal'"
-                :color="chip.primary ? 'amber-accent-3' : 'purple-lighten-3'"
+                :variant="(chip.id === 'elastico' && isEsercizioConAssistenzaElastica(workout)) || chip.primary ? 'flat' : 'tonal'"
+                :color="(chip.id === 'elastico' && isEsercizioConAssistenzaElastica(workout)) || chip.primary ? 'amber-accent-3' : 'purple-lighten-3'"
                 class="font-weight-black cursor-pointer"
-                :class="{'text-black animate-pulse': chip.primary}"
-                :style="{ fontSize: chip.primary ? '0.62rem' : '0.58rem', height: chip.primary ? '24px' : '22px' }"
+                :class="{'text-black animate-pulse': (chip.id === 'elastico' && isEsercizioConAssistenzaElastica(workout)) || chip.primary}"
+                :style="{ fontSize: ((chip.id === 'elastico' && isEsercizioConAssistenzaElastica(workout)) || chip.primary) ? '0.62rem' : '0.58rem', height: ((chip.id === 'elastico' && isEsercizioConAssistenzaElastica(workout)) || chip.primary) ? '24px' : '22px' }"
                 @click="applicaDriverProgressione(sett, chip.label)"
               >
                 {{ chip.icon }} {{ chip.label }}
@@ -1878,7 +1878,7 @@
           >
             <span style="font-size: 0.75rem;">🌟</span>
             <span class="text-super-caption text-purple-lighten-3 font-weight-black" style="font-size: 0.62rem;">
-              Progressione Qualitativa Registrata!
+              {{ getTestoBadgeProgressione(sett) }}
             </span>
           </div>
 
@@ -7419,7 +7419,10 @@ import {
   estraiPesoDaInput as estraiPesoDaInputCentral,
   parseMaxRepsPrescription,
   estraiSerieRepsDaInput,
-  calcolaGhostMaxRepsProgressione
+  calcolaGhostMaxRepsProgressione,
+  isEsercizioConAssistenzaElastica,
+  estraiCaricoAssistenzaElastico,
+  estraiRangeRepsDaPrescrizione
 } from '../utils/loadParser.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
@@ -8263,6 +8266,7 @@ const regolaProgressioneW2 = regolaProgressioneW2Global;
 // --- LOGICA ANTI-STALLO & PROGRESSIONE MULTIDIMENSIONALE (SOLUZIONI 1, 3, 4) ---
 const chipProgressioneQualitativa = [
   { id: 'extra_rep', icon: '📈', label: 'Rep Extra', primary: true },
+  { id: 'elastico', icon: '🎗️', label: 'Elastico più leggero (-Assistenza)' },
   { id: 'tut', icon: '⏱️', label: 'Eccentrica più lenta (TUT)' },
   { id: 'rom', icon: '🧘', label: 'Maggiore ROM/Controllo' },
   { id: 'rir', icon: '📉', label: 'Sforzo Percepito Minore (RIR+1)' },
@@ -8276,13 +8280,21 @@ const haDriverQualitativoAccreditato = (sett) => {
   return haProgressioneQualitativa(val);
 };
 
+const getTestoBadgeProgressione = (sett) => {
+  const val = String(inputSettimane.value[sett]?.ins || '').toLowerCase();
+  if (val.includes('elastico') || val.includes('assistenza')) {
+    return 'Progressione con Minore Assistenza Elastica Registrata!';
+  }
+  return 'Progressione Qualitativa Registrata!';
+};
+
 const isStagnazioneSettimana = (sett) => {
   if (sett <= 1) return false;
   if (isCardio.value || isPostura.value) return false;
 
-  // Se c'è un vincolo esplicito di carico dal coach (es. [KG W5] o ghost.isMandatory), NON è stagnazione!
+  // 1. Se c'è un vincolo esplicito di carico dal coach o il carico è impostato dal coach (es. [KG W5], ghost.isMandatory, ghost.isCoachSet), NON è stagnazione!
   const ghost = getGhostLift(sett);
-  if (ghost && (ghost.isMandatory || ghost.mandatoryLabel)) return false;
+  if (ghost && (ghost.isMandatory || ghost.mandatoryLabel || ghost.isCoachSet)) return false;
 
   // Se la settimana è di scarico (W4 scarico o ghost.isScarico), NON è stagnazione!
   if ((sett === 4 && isWeek4Scarico?.value) || (ghost && ghost.isScarico)) return false;
@@ -8304,6 +8316,55 @@ const isStagnazioneSettimana = (sett) => {
   if (!currentIns || String(currentIns).trim() === '' || String(currentIns).trim() === '-') return false;
   
   if (haDriverQualitativoAccreditato(sett)) return false;
+
+  // --- SOLUZIONE 1: RICONOSCIMENTO AUTOMATICO ESERCIZI ASSISTITI CON ELASTICO (LOGICA INVERSA) ---
+  if (isEsercizioConAssistenzaElastica(workout.value)) {
+    const currPresc = String(workout.value?.['des_week' + sett] || '');
+    const currAst = estraiCaricoAssistenzaElastico(currentIns) || estraiCaricoAssistenzaElastico(currPresc);
+
+    let prevW = sett - 1;
+    let prevAst = null;
+    while (prevW >= 1) {
+      const pIns = inputSettimane.value[prevW]?.ins || workout.value?.['ins_week' + prevW];
+      const pPresc = String(workout.value?.['des_week' + prevW] || '');
+      const found = estraiCaricoAssistenzaElastico(pIns) || estraiCaricoAssistenzaElastico(pPresc);
+      if (found) {
+        prevAst = found;
+        break;
+      }
+      prevW--;
+    }
+
+    if (currAst && prevAst && currAst.kg < prevAst.kg) {
+      // L'assistenza dell'elastico è diminuita (es. da 20kg arancio a 10kg celeste):
+      // il carico corporeo effettivo sollevato è AUMENTATO (+10kg)! Progressione reale.
+      return false;
+    }
+  }
+
+  // --- SOLUZIONE 3: SCUDO PRESCRIZIONE COACH (SMART PRESCRIZIONE SHIELD) ---
+  const prescCurrStr = String(workout.value?.['des_week' + sett] || '');
+  const rangeCurr = estraiRangeRepsDaPrescrizione(prescCurrStr);
+  if (rangeCurr && rangeCurr.min > 0) {
+    const perfCurrCheck = estraiMigliorPrestazioneInput(currentIns, getRepsPerWeek(sett), isCavoOMacchinaEsercizio(workout.value), isCorpoLiberoPuro.value);
+    const rCurrCheck = perfCurrCheck ? perfCurrCheck.reps : (estraiRepsDaInput(currentIns) || getRepsPerWeek(sett));
+    if (rCurrCheck >= rangeCurr.min) {
+      let prevWCheck = sett - 1;
+      while (prevWCheck >= 1) {
+        const pValCheck = inputSettimane.value[prevWCheck]?.ins || workout.value?.['ins_week' + prevWCheck];
+        if (pValCheck && String(pValCheck).trim() !== '' && String(pValCheck).trim() !== '-') break;
+        prevWCheck--;
+      }
+      if (prevWCheck >= 1) {
+        const prescPrevStr = String(workout.value?.['des_week' + prevWCheck] || '');
+        const rangePrev = estraiRangeRepsDaPrescrizione(prescPrevStr);
+        // Se lo schema del coach è variato rispetto alla settimana precedente (reps o testo) ed il target è raggiunto
+        if (rangePrev && (rangePrev.min !== rangeCurr.min || rangePrev.max !== rangeCurr.max || prescCurrStr !== prescPrevStr)) {
+          return false;
+        }
+      }
+    }
+  }
 
   // --- LOGICA SPECIALE PER TECNICA MAX REPS (Progressione su totale reps a cedimento) ---
   if (isMaxRepsExercise.value) {
@@ -8411,6 +8472,16 @@ const applicaDriverProgressione = (sett, labelChip) => {
       salvaDatoSettimanale(sett, 'ins');
       snackbarMessaggio.value = `📈 Progressione di Ripetizioni (+1 Rep Extra) accreditata per W${sett}!`;
       snackbarSalvataggio.value = true;
+      return;
+    }
+
+    if (labelChip.toLowerCase().includes('elastico') || labelChip.toLowerCase().includes('assistenza')) {
+      if (!currentVal.toLowerCase().includes('elastico') && !currentVal.toLowerCase().includes('assistenza')) {
+        targetInput.ins = currentVal ? `${currentVal} [Elastico più leggero (-Assistenza)]` : `[Elastico più leggero (-Assistenza)]`;
+        salvaDatoSettimanale(sett, 'ins');
+        snackbarMessaggio.value = `🎗️ Progressione con minore assistenza elastica accreditata per W${sett}!`;
+        snackbarSalvataggio.value = true;
+      }
       return;
     }
 

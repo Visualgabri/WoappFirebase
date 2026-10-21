@@ -1520,7 +1520,7 @@ const eseguiInvioNotificaDeploy = async () => {
     const payload = {
       tipo: tipoNotificaForm.value,
       titolo: isGuida ? '💡 Consiglio del Coach' : titoloDeployForm.value,
-      message_general: messaggioDeployGeneraleForm.value,
+      message_general: isGuida ? 'Come scrivere i pesi nelle caselle' : messaggioDeployGeneraleForm.value,
       target_atleta_id: targetId,
       notes_per_athlete: {}
     };

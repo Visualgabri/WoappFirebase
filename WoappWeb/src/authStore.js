@@ -1340,9 +1340,14 @@ export const syncDeployVersionListener = () => {
           // Si mostra ESCLUSIVAMENTE se l'utente connesso è un atleta E il suo idCliente corrisponde a target_atleta_id
           const isTargetedAthlete = ruolo.value === 'atleta' && String(idCliente.value) === String(data.target_atleta_id);
           if (isTargetedAthlete) {
-            deployCustomNoteForMe.value = (data.notes_per_athlete && data.notes_per_athlete[idCliente.value]) || data.message_general || data.titolo || '';
             if (data.tipo === 'guida_pesi') {
+              const noteSpecific = data.notes_per_athlete && data.notes_per_athlete[idCliente.value];
+              deployCustomNoteForMe.value = (noteSpecific && noteSpecific.trim() && noteSpecific.trim() !== 'Come scrivere i pesi nelle caselle')
+                ? noteSpecific.trim()
+                : '';
               try { localStorage.removeItem('woapp_educazione_pesi_dismissed'); } catch (e) {}
+            } else {
+              deployCustomNoteForMe.value = (data.notes_per_athlete && data.notes_per_athlete[idCliente.value]) || data.message_general || data.titolo || '';
             }
             showDeployBanner.value = true;
           } else {
@@ -1352,12 +1357,12 @@ export const syncDeployVersionListener = () => {
         } else {
           // Notifica Deploy Generale (Broadcast a tutti)
           const myId = idCliente.value || '';
-          if (myId && data.notes_per_athlete && data.notes_per_athlete[myId]) {
-            deployCustomNoteForMe.value = data.notes_per_athlete[myId];
-          } else {
-            deployCustomNoteForMe.value = '';
-          }
           if (data.tipo === 'guida_pesi') {
+            const noteSpecific = myId && data.notes_per_athlete && data.notes_per_athlete[myId];
+            const noteGeneral = data.message_general && data.message_general.trim() && data.message_general.trim() !== 'Come scrivere i pesi nelle caselle'
+              ? data.message_general.trim()
+              : '';
+            deployCustomNoteForMe.value = (noteSpecific && noteSpecific.trim()) || noteGeneral || '';
             try { localStorage.removeItem('woapp_educazione_pesi_dismissed'); } catch (e) {}
             // Mostra a tutti gli atleti; se è il coach a trasmettere, evita di bloccare la sua schermata impostazioni
             if (ruolo.value === 'atleta') {
@@ -1366,6 +1371,11 @@ export const syncDeployVersionListener = () => {
               showDeployBanner.value = false;
             }
           } else {
+            if (myId && data.notes_per_athlete && data.notes_per_athlete[myId]) {
+              deployCustomNoteForMe.value = data.notes_per_athlete[myId];
+            } else {
+              deployCustomNoteForMe.value = '';
+            }
             showDeployBanner.value = true;
           }
         }
@@ -1377,13 +1387,13 @@ export const syncDeployVersionListener = () => {
 };
 
 export const chiudiBannerNotifica = () => {
-  if (deployVersionInfo.value && deployVersionInfo.value.version_id) {
-    localStorage.setItem('woapp_last_deploy_version', deployVersionInfo.value.version_id);
-    lastSeenDeployVersion.value = deployVersionInfo.value.version_id;
-  } else {
-    const fallbackId = 'v_' + Date.now();
-    localStorage.setItem('woapp_last_deploy_version', fallbackId);
-    lastSeenDeployVersion.value = fallbackId;
+  try {
+    const versionId = deployVersionInfo.value?.version_id || ('v_' + Date.now());
+    localStorage.setItem('woapp_last_deploy_version', versionId);
+    lastSeenDeployVersion.value = versionId;
+    localStorage.setItem('woapp_educazione_pesi_dismissed', 'true');
+  } catch (e) {
+    console.warn("Errore salvataggio localStorage in chiudiBannerNotifica:", e);
   }
   showDeployBanner.value = false;
 };

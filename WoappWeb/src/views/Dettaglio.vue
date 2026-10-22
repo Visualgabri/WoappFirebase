@@ -394,7 +394,7 @@
             @click="dialogGifFullScreen = true"
           >
             <v-img
-              :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
+              :src="currentExerciseImageUrl || getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
               :cover="isGifVertical"
               class="bg-black"
               height="100%"
@@ -402,10 +402,17 @@
               style="cursor: pointer;"
               @click.stop="dialogGifFullScreen = true"
               @load="onGifImageLoad"
+              @error="onExerciseImageError"
             >
               <template v-slot:placeholder>
                 <div class="fill-height d-flex align-center justify-center bg-black">
                   <v-progress-circular indeterminate color="orange" size="16"></v-progress-circular>
+                </div>
+              </template>
+              <template v-slot:error>
+                <div class="fill-height d-flex flex-column align-center justify-center bg-black text-center pa-1">
+                  <v-icon color="grey-darken-1" size="22">mdi-image-off-outline</v-icon>
+                  <span style="font-size: 0.60rem; color: #777;" class="mt-0.5">Nessuna img</span>
                 </div>
               </template>
             </v-img>
@@ -422,7 +429,7 @@
           @click="dialogGifFullScreen = true"
         >
           <v-img
-            :src="getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
+            :src="currentExerciseImageUrl || getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
             :cover="isGifVertical"
             class="bg-black"
             height="100%"
@@ -430,10 +437,17 @@
             style="cursor: pointer;"
             @click.stop="dialogGifFullScreen = true"
             @load="onGifImageLoad"
+            @error="onExerciseImageError"
           >
             <template v-slot:placeholder>
               <div class="fill-height d-flex align-center justify-center bg-black">
                 <v-progress-circular indeterminate color="orange" size="16"></v-progress-circular>
+              </div>
+            </template>
+            <template v-slot:error>
+              <div class="fill-height d-flex flex-column align-center justify-center bg-black text-center pa-2">
+                <v-icon color="grey-darken-1" size="28">mdi-image-off-outline</v-icon>
+                <span style="font-size: 0.65rem; color: #777;" class="mt-1">Immagine non disponibile</span>
               </div>
             </template>
           </v-img>
@@ -3261,12 +3275,23 @@
 
             <v-text-field
               v-model="modificaForm.UrlNormal"
-              label="URL GIF / Esercizio (UrlNormal)"
+              label="URL Immagine / GIF / PNG (UrlNormal)"
               density="comfortable"
               variant="outlined"
               color="orange-darken-3"
               hide-details
             ></v-text-field>
+
+            <!-- Anteprima live immagine esercizio inserita -->
+            <div v-if="modificaForm.UrlNormal && String(modificaForm.UrlNormal).trim().startsWith('http')" class="mt-2 text-center pa-2 rounded-lg" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);">
+              <div class="text-caption text-grey mb-1 font-weight-bold" style="font-size: 0.68rem;">Anteprima immagine / GIF / PNG:</div>
+              <img 
+                :src="getGifUrl(modificaForm.UrlNormal)" 
+                style="max-height: 90px; max-width: 100%; border-radius: 6px; object-fit: contain;" 
+                alt="Anteprima Esercizio" 
+                @error="$event.target.style.display = 'none'"
+              />
+            </div>
 
             <!-- Tipologia / Carico Esercizio: Corpo Libero Sì/No -->
             <div class="d-flex align-center justify-space-between pa-3 rounded-lg my-1" style="background: rgba(255, 255, 255, 0.04); border: 1.5px solid rgba(255, 255, 255, 0.1);">
@@ -6424,12 +6449,25 @@
           @click="dialogGifFullScreen = false"
         ></v-btn>
         <v-img
-          :src="getGifUrl(workout?.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
+          :src="currentExerciseImageUrl || getGifUrl(workout?.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
           alt="Esercizio Full Screen"
           contain
           style="max-height: 90vh; width: 100%; max-width: 100%; cursor: pointer;"
           @click="dialogGifFullScreen = false"
-        ></v-img>
+          @error="onExerciseImageError"
+        >
+          <template v-slot:placeholder>
+            <div class="fill-height d-flex align-center justify-center bg-black" style="min-height: 200px;">
+              <v-progress-circular indeterminate color="orange" size="24"></v-progress-circular>
+            </div>
+          </template>
+          <template v-slot:error>
+            <div class="fill-height d-flex flex-column align-center justify-center bg-black text-center pa-6">
+              <v-icon color="grey-darken-1" size="48">mdi-image-off-outline</v-icon>
+              <span class="text-caption text-grey mt-2">Impossibile caricare l'immagine dell'esercizio</span>
+            </div>
+          </template>
+        </v-img>
       </v-card>
     </v-dialog>
 
@@ -16107,13 +16145,14 @@ const settimaneVisualizzate = computed(() => {
   }
 });
 
-// Funzione per rimappare gli URL delle GIF dal dominio scaduto o vecchio a GitHub Pages con cartelle corrette
+// Funzione per rimappare gli URL delle immagini/GIF dal dominio scaduto o vecchio a GitHub Pages con cartelle corrette
 const getGifUrl = (url) => {
   if (!url) return '';
+  let mapped = typeof url === 'string' ? url.trim() : '';
+  if (!mapped) return '';
   
-  let mapped = url;
-  if (url.includes('definizionemuscolareestrema.com')) {
-    mapped = url.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
+  if (mapped.includes('definizionemuscolareestrema.com')) {
+    mapped = mapped.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
   }
   
   if (mapped.includes('visualgabri.github.io')) {
@@ -16154,12 +16193,44 @@ const getGifUrl = (url) => {
     }
     return mapped;
   }
-  return url;
+  return mapped;
 };
 
-// --- Gestione Adattiva Orientamento GIF (Verticale vs Orizzontale) ---
+// --- Gestione Adattiva Orientamento Immagine / GIF (Verticale vs Orizzontale) e Fallback Formati ---
 const isGifVertical = ref(false);
 const gifAspectRatio = ref(null);
+const currentExerciseImageUrl = ref('');
+const imageFallbackAttempts = ref(0);
+
+const onExerciseImageError = () => {
+  const current = currentExerciseImageUrl.value || getGifUrl(workout.value?.UrlNormal);
+  if (!current) return;
+  
+  // Tentativo 1: Alterna tra .png e .gif (supporto universale entrambi i formati)
+  if (imageFallbackAttempts.value === 0) {
+    imageFallbackAttempts.value++;
+    if (/\.png($|\?)/i.test(current)) {
+      const fallbackUrl = current.replace(/\.png($|\?)/i, '.gif$1');
+      currentExerciseImageUrl.value = fallbackUrl;
+      rilevaOrientamentoGif(fallbackUrl);
+      return;
+    } else if (/\.gif($|\?)/i.test(current)) {
+      const fallbackUrl = current.replace(/\.gif($|\?)/i, '.png$1');
+      currentExerciseImageUrl.value = fallbackUrl;
+      rilevaOrientamentoGif(fallbackUrl);
+      return;
+    }
+  } 
+  // Tentativo 2: Cache-busting per superare vecchie risposte 404 rimaste nella cache o ServiceWorker
+  else if (imageFallbackAttempts.value === 1) {
+    imageFallbackAttempts.value++;
+    const cleanUrl = (getGifUrl(workout.value?.UrlNormal) || current).split('?')[0];
+    const cbUrl = `${cleanUrl}?cb=${Date.now()}`;
+    currentExerciseImageUrl.value = cbUrl;
+    rilevaOrientamentoGif(cbUrl);
+    return;
+  }
+};
 
 const rilevaOrientamentoGif = (url) => {
   if (!url) {
@@ -16167,7 +16238,7 @@ const rilevaOrientamentoGif = (url) => {
     gifAspectRatio.value = null;
     return;
   }
-  const resolvedUrl = getGifUrl(url);
+  const resolvedUrl = currentExerciseImageUrl.value || getGifUrl(url);
   if (!resolvedUrl) {
     isGifVertical.value = false;
     gifAspectRatio.value = null;
@@ -16181,8 +16252,29 @@ const rilevaOrientamentoGif = (url) => {
     }
   };
   img.onerror = () => {
-    isGifVertical.value = false;
-    gifAspectRatio.value = null;
+    // Prova con estensione opposta .png <-> .gif
+    if (/\.png($|\?)/i.test(resolvedUrl)) {
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => {
+        if (fallbackImg.naturalWidth && fallbackImg.naturalHeight) {
+          isGifVertical.value = fallbackImg.naturalHeight > fallbackImg.naturalWidth;
+          gifAspectRatio.value = fallbackImg.naturalWidth / fallbackImg.naturalHeight;
+        }
+      };
+      fallbackImg.src = resolvedUrl.replace(/\.png($|\?)/i, '.gif$1');
+    } else if (/\.gif($|\?)/i.test(resolvedUrl)) {
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => {
+        if (fallbackImg.naturalWidth && fallbackImg.naturalHeight) {
+          isGifVertical.value = fallbackImg.naturalHeight > fallbackImg.naturalWidth;
+          gifAspectRatio.value = fallbackImg.naturalWidth / fallbackImg.naturalHeight;
+        }
+      };
+      fallbackImg.src = resolvedUrl.replace(/\.gif($|\?)/i, '.png$1');
+    } else {
+      isGifVertical.value = false;
+      gifAspectRatio.value = null;
+    }
   };
   img.src = resolvedUrl;
   if (img.complete && img.naturalWidth && img.naturalHeight) {
@@ -16202,6 +16294,8 @@ const onGifImageLoad = (event) => {
 watch(
   () => [workout.value?.UrlNormal, workout.value?.id],
   ([newUrl]) => {
+    imageFallbackAttempts.value = 0;
+    currentExerciseImageUrl.value = getGifUrl(newUrl);
     rilevaOrientamentoGif(newUrl);
   },
   { immediate: true }

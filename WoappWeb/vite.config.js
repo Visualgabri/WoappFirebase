@@ -20,9 +20,9 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/visualgabri\.github\.io\/.*/i,
-            handler: 'CacheFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'external-gifs-cache',
+              cacheName: 'external-media-cache',
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 30 * 24 * 60 * 60 // 30 giorni

@@ -4242,10 +4242,11 @@ const getDensityBoxStyle = (val) => {
 // Funzione per rimappare gli URL delle GIF dal dominio scaduto o vecchio a GitHub Pages con cartelle corrette
 const getGifUrl = (url) => {
   if (!url) return '';
+  let mapped = typeof url === 'string' ? url.trim() : '';
+  if (!mapped) return '';
   
-  let mapped = url;
-  if (url.includes('definizionemuscolareestrema.com')) {
-    mapped = url.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
+  if (mapped.includes('definizionemuscolareestrema.com')) {
+    mapped = mapped.replace('definizionemuscolareestrema.com', 'visualgabri.github.io');
   }
   
   if (mapped.includes('visualgabri.github.io')) {

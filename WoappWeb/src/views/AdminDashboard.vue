@@ -2439,7 +2439,7 @@
                   <v-text-field v-model="selectedRow.des_rec_report" label="Tempo Recupero" variant="outlined" density="comfortable" color="orange-darken-3" rounded="lg"></v-text-field>
                 </v-col>
                 <v-col cols="12">
-                  <v-text-field v-model="selectedRow.UrlNormal" label="Url Immagine / Video GIF" variant="outlined" density="comfortable" color="orange-darken-3" rounded="lg"></v-text-field>
+                  <v-text-field v-model="selectedRow.UrlNormal" label="Url Immagine / GIF / PNG" variant="outlined" density="comfortable" color="orange-darken-3" rounded="lg"></v-text-field>
                 </v-col>
                 <v-col cols="12">
                   <v-checkbox v-model="selectedRow.no_elimina" label="No Elimina (Mantieni la riga durante aggiornamenti)" color="orange-darken-3" hide-details></v-checkbox>

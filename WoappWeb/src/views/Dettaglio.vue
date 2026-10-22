@@ -606,7 +606,10 @@
                 <template v-else-if="isCorpoLiberoPuro">
                   <template v-if="isMaxRepsExercise">
                     <template v-if="settimanaAttiva === 1 || getGhostMaxRepsProgressione(settimanaAttiva)?.isTestWeek">
-                      TEST MAX REPS ({{ getGhostMaxRepsProgressione(settimanaAttiva)?.numSerie || 3 }} SERIE)
+                      {{ isMaxSecExercise ? 'TEST MAX SEC (' + (getGhostMaxRepsProgressione(settimanaAttiva)?.numSerie || 3) + ' SERIE)' : 'TEST MAX REPS (' + (getGhostMaxRepsProgressione(settimanaAttiva)?.numSerie || 3) + ' SERIE)' }}
+                    </template>
+                    <template v-else-if="isMaxSecExercise">
+                      TARGET {{ getGhostMaxRepsProgressione(settimanaAttiva)?.targetMediaPerSerie || getRepsPerWeek(settimanaAttiva) }}" / SERIE
                     </template>
                     <template v-else>
                       TARGET {{ getGhostMaxRepsProgressione(settimanaAttiva)?.targetTotale || getRepsPerWeek(settimanaAttiva) }} REPS
@@ -638,9 +641,11 @@
                 <template v-else-if="isCorpoLiberoPuro">
                   <template v-if="isMaxRepsExercise">
                     <span class="hero-metric-val hero-metric-val-amber">
-                      {{ currentWeekLoggedReps || (getGhostMaxRepsProgressione(settimanaAttiva)?.isTestWeek ? 'MAX' : (getGhostMaxRepsProgressione(settimanaAttiva)?.targetTotale || getRepsPerWeek(settimanaAttiva))) }}
+                      {{ isMaxSecExercise
+                          ? (currentWeekLoggedReps || (getGhostMaxRepsProgressione(settimanaAttiva)?.isTestWeek ? 'MAX' : (getGhostMaxRepsProgressione(settimanaAttiva)?.targetMediaPerSerie || getRepsPerWeek(settimanaAttiva))))
+                          : (currentWeekLoggedReps || (getGhostMaxRepsProgressione(settimanaAttiva)?.isTestWeek ? 'MAX' : (getGhostMaxRepsProgressione(settimanaAttiva)?.targetTotale || getRepsPerWeek(settimanaAttiva)))) }}
                     </span>
-                    <span class="hero-metric-unit">{{ currentWeekLoggedReps ? 'reps' : (getGhostMaxRepsProgressione(settimanaAttiva)?.isTestWeek ? 'cedimento' : 'reps') }}</span>
+                    <span class="hero-metric-unit">{{ isMaxSecExercise ? (currentWeekLoggedReps ? 'sec' : (getGhostMaxRepsProgressione(settimanaAttiva)?.isTestWeek ? 'tenuta' : 'sec')) : (currentWeekLoggedReps ? 'reps' : (getGhostMaxRepsProgressione(settimanaAttiva)?.isTestWeek ? 'cedimento' : 'reps')) }}</span>
                   </template>
                   <template v-else>
                     <span class="hero-metric-val hero-metric-val-amber">
@@ -697,7 +702,15 @@
                 </template>
                 <template v-else-if="isCorpoLiberoPuro">
                   <span class="hero-subcard-label text-truncate">
-                    {{ isMaxRepsExercise ? (currentWeekLoggedReps ? 'totale eseguito' : (settimanaAttiva === 1 ? 'test baseline W1' : 'target progressivo')) : (heroRecordComparison?.isLogged ? 'registrato' : 'target seduta') }}
+                    {{ isMaxRepsExercise
+                        ? (currentWeekLoggedReps
+                            ? (isMaxSecExercise ? 'totale tenuta' : 'totale eseguito')
+                            : (settimanaAttiva === 1
+                                ? 'test baseline W1'
+                                : (isMaxSecExercise && getGhostMaxRepsProgressione(settimanaAttiva)?.targetTotale
+                                    ? `tot. ${getGhostMaxRepsProgressione(settimanaAttiva)?.targetTotale}" previsti`
+                                    : 'target progressivo')))
+                        : (heroRecordComparison?.isLogged ? 'registrato' : 'target seduta') }}
                   </span>
                 </template>
                 <template v-else>
@@ -728,7 +741,7 @@
                   <span class="hero-subcard-provenienza text-truncate">({{ currentWeekLoggedTempo ? ('questa scheda · W' + settimanaAttiva) : ('target W' + settimanaAttiva) }})</span>
                 </template>
                 <template v-else-if="isCorpoLiberoPuro && isMaxRepsExercise">
-                  <span class="hero-subcard-provenienza text-truncate">({{ currentWeekLoggedReps ? ('W' + settimanaAttiva + ' completata') : (settimanaAttiva === 1 ? 'test W1' : 'target ghost W' + settimanaAttiva) }})</span>
+                  <span class="hero-subcard-provenienza text-truncate">({{ currentWeekLoggedReps ? ('W' + settimanaAttiva + ' completata') : (settimanaAttiva === 1 ? (isMaxSecExercise ? 'test sec W1' : 'test W1') : 'target ghost W' + settimanaAttiva) }})</span>
                 </template>
                 <template v-else-if="heroRecordComparison?.todayOrigine">
                   <span class="hero-subcard-provenienza text-truncate">({{ heroRecordComparison.todayOrigine }})</span>
@@ -754,7 +767,7 @@
                 <template v-else-if="isCorpoLiberoPuro">
                   <template v-if="heroRecordComparison?.hasMaxAssoluto || (recordMaxAssolutoInfo && recordMaxAssolutoInfo.reps > 0) || (suggerimentoRecord && (suggerimentoRecord.recordAbsoluteReps > 0 || suggerimentoRecord.recordRepsValue > 0))">
                     <span class="hero-metric-val hero-metric-val-cyan">
-                      {{ String(heroRecordComparison?.maxReps || recordMaxAssolutoInfo?.reps || suggerimentoRecord?.recordAbsoluteReps || suggerimentoRecord?.recordRepsValue).replace(/r$/i, '') }}r
+                      {{ String(heroRecordComparison?.maxReps || recordMaxAssolutoInfo?.reps || suggerimentoRecord?.recordAbsoluteReps || suggerimentoRecord?.recordRepsValue).replace(/r$/i, '') }}{{ isMaxSecExercise ? '"' : 'r' }}
                     </span>
                     <span 
                       v-if="heroRecordComparison?.maxFatica || recordMaxAssolutoInfo?.fatica || suggerimentoRecord?.recordAbsoluteFatica" 
@@ -801,7 +814,9 @@
                   <span v-else class="hero-subcard-label text-muted text-truncate">nessun record</span>
                 </template>
                 <template v-else-if="isCorpoLiberoPuro">
-                  <span v-if="heroRecordComparison?.hasMaxAssoluto || (recordMaxAssolutoInfo && recordMaxAssolutoInfo.reps > 0) || (suggerimentoRecord && (suggerimentoRecord.recordAbsoluteReps > 0 || suggerimentoRecord.recordRepsValue > 0))" class="hero-subcard-label text-truncate">record ripetizioni</span>
+                  <span v-if="heroRecordComparison?.hasMaxAssoluto || (recordMaxAssolutoInfo && recordMaxAssolutoInfo.reps > 0) || (suggerimentoRecord && (suggerimentoRecord.recordAbsoluteReps > 0 || suggerimentoRecord.recordRepsValue > 0))" class="hero-subcard-label text-truncate">
+                    {{ isMaxSecExercise ? 'record tenuta' : 'record ripetizioni' }}
+                  </span>
                   <span v-else class="hero-subcard-label text-muted text-truncate">nessun record</span>
                 </template>
                 <template v-else-if="heroRecordComparison?.hasMaxAssoluto && heroRecordComparison?.maxE1RM > 0">
@@ -1755,7 +1770,7 @@
                 @input="e => onInputWeek(sett, e.target.value)"
                 @focus="onFocusWeek(sett)"
                 @blur="e => onBlurWeek(sett, e.target.value)"
-                :placeholder="isCardio ? 'Tempo o note (es. 7min o 3x7min)' : (isMaxRepsWeek(sett) ? ('Scrivi le singole serie (es. ' + getEsempioSerieMaxReps(sett) + ')') : (isTestMaxRepsWeek(sett) && getTestWeightNum(sett) > 0 ? ('Carico o note (es. ' + formatWeight(getTestWeightNum(sett)) + 'kg x 12r)') : (getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)')))"
+                :placeholder="isCardio ? 'Tempo o note (es. 7min o 3x7min)' : (isMaxRepsWeek(sett) ? (isMaxSecExercise ? ('Scrivi i secondi delle serie (es. ' + getEsempioSerieMaxReps(sett) + ')') : ('Scrivi le singole serie (es. ' + getEsempioSerieMaxReps(sett) + ')')) : (isTestMaxRepsWeek(sett) && getTestWeightNum(sett) > 0 ? ('Carico o note (es. ' + formatWeight(getTestWeightNum(sett)) + 'kg x 12r)') : (getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)')))"
                 class="native-week-textarea flex-grow-1 text-left pr-2 font-weight-black"
                 rows="1"
                 style="background: transparent; border: none; outline: none; resize: none; width: 100%; color: inherit; font-size: 0.92rem; line-height: 1.45; font-family: inherit; box-sizing: border-box; padding: 0; margin: 0; min-height: 24px; field-sizing: content;"
@@ -1813,7 +1828,7 @@
                   mdi-check-circle-outline
                 </v-icon>
                 <span class="font-weight-bold text-truncate flex-grow-1" style="font-size: 0.68rem; color: #86efac;">
-                  <strong>{{ getSerieMaxRepsInfo(sett).numSerie }} {{ getSerieMaxRepsInfo(sett).numSerie === 1 ? 'serie' : 'serie' }}</strong>: {{ getSerieMaxRepsInfo(sett).sets.join(' - ') }} · Totale: <strong>{{ getSerieMaxRepsInfo(sett).totaleReps }} reps</strong> (media: {{ getSerieMaxRepsInfo(sett).mediaReps }})
+                  <strong>{{ getSerieMaxRepsInfo(sett).numSerie }} {{ getSerieMaxRepsInfo(sett).numSerie === 1 ? 'serie' : 'serie' }}</strong>: {{ getSerieMaxRepsInfo(sett).sets.join(isMaxSecExercise ? '" - ' : ' - ') }}{{ isMaxSecExercise ? '"' : '' }} · Totale: <strong>{{ getSerieMaxRepsInfo(sett).totaleReps }}{{ isMaxSecExercise ? ' sec' : ' reps' }}</strong> (media: {{ getSerieMaxRepsInfo(sett).mediaReps }}{{ isMaxSecExercise ? ' sec' : '' }})
                 </span>
               </div>
             </div>
@@ -1843,7 +1858,7 @@
               <div class="d-flex align-center gap-1.5">
                 <v-icon size="16" color="purple-lighten-2">mdi-alert-decagram</v-icon>
                 <span class="font-weight-black text-purple-lighten-2 text-super-caption uppercase" style="letter-spacing: 0.04em; font-size: 0.60rem;">
-                  {{ isMaxRepsExercise ? 'Progressione Non Rilevata su Totale Reps' : 'Progressione Non Rilevata su kg/reps' }}
+                  {{ isMaxRepsExercise ? (isMaxSecExercise ? 'Progressione Non Rilevata su Totale Secondi' : 'Progressione Non Rilevata su Totale Reps') : 'Progressione Non Rilevata su kg/reps' }}
                 </span>
               </div>
               <v-chip color="purple-darken-3" size="x-small" density="compact" class="font-weight-black text-white" style="font-size: 0.5rem; height: 16px;">
@@ -1851,7 +1866,7 @@
               </v-chip>
             </div>
             <p class="text-super-caption text-slate-light mb-2" style="font-size: 0.65rem; line-height: 1.35; color: #cbd5e1 !important;">
-              {{ isMaxRepsExercise ? `Totale ripetizioni pari o inferiore a W${sett - 1} senza incremento. Hai migliorato uno di questi parametri qualitativi oggi?` : `Stesso peso di W${sett - 1} senza ripetizioni in più. Hai migliorato uno di questi parametri qualitativi oggi?` }}
+              {{ isMaxRepsExercise ? (isMaxSecExercise ? `Totale secondi di tenuta pari o inferiore a W${sett - 1} senza incremento. Hai migliorato uno di questi parametri qualitativi oggi?` : `Totale ripetizioni pari o inferiore a W${sett - 1} senza incremento. Hai migliorato uno di questi parametri qualitativi oggi?`) : `Stesso peso di W${sett - 1} senza ripetizioni in più. Hai migliorato uno di questi parametri qualitativi oggi?` }}
             </p>
             <div class="d-flex flex-wrap gap-1">
               <v-chip
@@ -10266,6 +10281,7 @@ const getGhostWeightsRangeForWeek = (sett) => {
 
 function getGhostWeightsRangeForWeekRaw(sett) {
   if (!workout.value) return null;
+  if (isMaxRepsExercise.value) return null;
 
   // Intercettazione per TEST-MAXREPS / AMRAP a carico fisso stabilito dal coach
   if (isTestMaxRepsWeek(sett)) {
@@ -10857,7 +10873,7 @@ function getGhostWeightsRangeForWeekRaw(sett) {
 };
 
 const getGhostWeightsRangeText = (sett) => {
-  if (isTestMaxRepsWeek(sett)) return ''; // Nessun range spurio per test a carico fisso
+  if (isTestMaxRepsWeek(sett) || isMaxRepsExercise.value) return ''; // Nessun range spurio per test o max reps / sec
   const range = getGhostWeightsRangeForWeek(sett);
   if (!range) return '';
   const first = range.prudenziale.display.replace(/\s*kg/gi, '').trim();
@@ -10951,13 +10967,19 @@ const getGhostRenderInfo = (sett) => {
         color,
         label: mrGhost.isRecalibrated ? 'Ricalibrato:' : (mrGhost.isTestWeek ? 'Obiettivo W1:' : 'Consigliato:'),
         valueText: mrGhost.isTestWeek
-          ? `Test massimale (${mrGhost.numSerie} serie a cedimento)`
-          : `${mrGhost.targetTotale} reps totali (~${mrGhost.targetMediaPerSerie} a serie)`,
+          ? (isMaxSecExercise.value ? `Test massimale (${mrGhost.numSerie} serie di tenuta a cedimento)` : `Test massimale (${mrGhost.numSerie} serie a cedimento)`)
+          : (isMaxSecExercise.value
+              ? `${mrGhost.targetMediaPerSerie}" a serie (~${mrGhost.targetTotale}" totali)`
+              : `${mrGhost.targetTotale} reps totali (~${mrGhost.targetMediaPerSerie} a serie)`),
         refText: mrGhost.spiegazioneFisiologica,
         hasReference: Boolean(mrGhost.spiegazioneFisiologica),
         isMaxRepsGhost: true,
         maxEffortNotice: mrGhost.isTestWeek ? '' : (mrGhost.motivoRicalibrazione || ''),
-        sfidanteNotice: mrGhost.breakdownSuggerito ? `Ripartizione: ${mrGhost.breakdownSuggerito.join(' - ')} reps` : ''
+        sfidanteNotice: mrGhost.breakdownSuggerito
+          ? (isMaxSecExercise.value
+              ? `Ripartizione: ${mrGhost.breakdownSuggerito.join('" - ')}"`
+              : `Ripartizione: ${mrGhost.breakdownSuggerito.join(' - ')} reps`)
+          : ''
       };
     }
   }
@@ -15339,6 +15361,28 @@ const isMaxRepsExercise = computed(() => {
   return false;
 });
 
+const isMaxSecExercise = computed(() => {
+  if (!workout.value) return false;
+  if (!isMaxRepsExercise.value) return false;
+
+  for (let w = 1; w <= 6; w++) {
+    const val = workout.value['des_week' + w];
+    if (val) {
+      const parsed = parseMaxRepsPrescription(val);
+      if (parsed?.isTimeBased) return true;
+      if (/MAX\s*(?:SEC(?:ONDI)?|S)\b/i.test(String(val))) return true;
+    }
+  }
+
+  const name = String(workout.value.des_esercizio || '').toLowerCase();
+  if (name.includes('plank') || name.includes('isometr')) return true;
+
+  const note = (String(workout.value.des_estesa_start || '') + ' ' + String(workout.value.des_note || '')).toLowerCase();
+  if (note.includes('secondi') || note.includes('sec in più') || note.includes('max sec')) return true;
+
+  return false;
+});
+
 const isMaxRepsWeek = (sett) => {
   if (!workout.value) return false;
   if (!isMaxRepsExercise.value) return false;
@@ -15356,6 +15400,11 @@ const getMaxRepsPrescriptionForWeek = (sett) => {
 const getEsempioSerieMaxReps = (sett) => {
   const presc = getMaxRepsPrescriptionForWeek(sett);
   const n = presc?.numSerie || 3;
+  if (isMaxSecExercise.value) {
+    if (n === 2) return '45 40';
+    if (n === 4) return '45 40 35 30';
+    return '45 40 35';
+  }
   if (n === 2) return '14 12';
   if (n === 4) return '14 12 10 8';
   return '14 12 10';
@@ -15387,7 +15436,9 @@ const getGhostMaxRepsProgressione = (sett) => {
       isRecalibrated: false,
       motivoRicalibrazione: '',
       tipoVariazioneSerie: 'uguali',
-      spiegazioneFisiologica: `Esegui ${currPresc.numSerie || 3} serie portate al vero cedimento concentrico e scrivi le reps di ciascuna (es. ${getEsempioSerieMaxReps(sett)}).`
+      spiegazioneFisiologica: isMaxSecExercise.value
+        ? `Esegui ${currPresc.numSerie || 3} serie di tenuta isometrica al massimo dei secondi possibili e scrivi la durata di ciascuna (es. ${getEsempioSerieMaxReps(sett)}).`
+        : `Esegui ${currPresc.numSerie || 3} serie portate al vero cedimento concentrico e scrivi le reps di ciascuna (es. ${getEsempioSerieMaxReps(sett)}).`
     };
   }
 
@@ -15425,7 +15476,8 @@ const getGhostMaxRepsProgressione = (sett) => {
         currentMaxPresc: prevPresc,
         prevMaxPresc: prescW1,
         sensibilitaFatica: sensibilitaFaticaGhost.value,
-        autoregolazioneAttiva: ghostAutoregolazioneRepsAttiva.value
+        autoregolazioneAttiva: ghostAutoregolazioneRepsAttiva.value,
+        isTimeBased: isMaxSecExercise.value
       });
       prevTargetTotal = intermediateGhost?.targetTotale || null;
     }
@@ -15437,7 +15489,8 @@ const getGhostMaxRepsProgressione = (sett) => {
     prevMaxPresc: prevPresc,
     prevTargetTotal,
     sensibilitaFatica: sensibilitaFaticaGhost.value,
-    autoregolazioneAttiva: ghostAutoregolazioneRepsAttiva.value
+    autoregolazioneAttiva: ghostAutoregolazioneRepsAttiva.value,
+    isTimeBased: isMaxSecExercise.value
   });
 };
 
@@ -18228,11 +18281,16 @@ function formatWeight(val) {
   return String(result).replace('.', ',');
 }
 
-// Helper to format repetitions with 'r' suffix (using comma for decimals)
+// Helper to format repetitions with 'r' suffix or '"' for time-based exercises (using comma for decimals)
 function formatRepsDisplay(val) {
   if (val === null || val === undefined) return '-';
   const str = String(val).replace('.', ',').trim();
-  if (!str || str === '-' || str === '0' || str === '0r') return '-';
+  if (!str || str === '-' || str === '0' || str === '0r' || str === '0"') return '-';
+  if (isMaxSecExercise.value) {
+    if (str.endsWith('"') || str.toLowerCase().endsWith('s') || str.toLowerCase().endsWith('sec')) return str;
+    const clean = str.replace(/r$/i, '');
+    return clean + '"';
+  }
   if (str.toLowerCase().endsWith('r')) return str;
   return str + 'r';
 }
@@ -21133,6 +21191,7 @@ const valutazioneProgressione = computed(() => {
     if (!currentLogged || bestCurrentReps === 0) {
       if (isMaxRepsExercise.value) {
         const mrGhost = getGhostMaxRepsProgressione(w);
+        const unitLabel = isMaxSecExercise.value ? 'sec' : 'reps';
         if (mrGhost?.isTestWeek) {
           return {
             testo: `Obiettivo W1: Test Massimale (${mrGhost.numSerie} serie)`,
@@ -21141,7 +21200,7 @@ const valutazioneProgressione = computed(() => {
           };
         } else if (mrGhost?.targetTotale) {
           return {
-            testo: `Obiettivo W${w}: ${mrGhost.targetTotale} reps (${mrGhost.isRecalibrated ? 'Ricalibrato' : 'Consigliato'})`,
+            testo: `Obiettivo W${w}: ${mrGhost.targetTotale} ${unitLabel} (${mrGhost.isRecalibrated ? 'Ricalibrato' : 'Consigliato'})`,
             colore: mrGhost.isRecalibrated ? 'text-cyan-lighten-2' : 'text-green-lighten-2',
             icona: null
           };
@@ -21154,10 +21213,11 @@ const valutazioneProgressione = computed(() => {
       };
     }
 
+    const unitLabel = isMaxSecExercise.value ? 'sec' : 'reps';
     const diffReps = bestCurrentReps - recReps;
     if (bestCurrentReps >= recReps) {
       const perc = recReps > 0 ? Math.round((diffReps / recReps) * 100) : 0;
-      const diffRepsDisplay = diffReps > 0 ? `+${diffReps} reps` : `0 reps`;
+      const diffRepsDisplay = diffReps > 0 ? `+${diffReps} ${unitLabel}` : `0 ${unitLabel}`;
       return {
         testo: `In miglioramento (${diffRepsDisplay}/+${perc}%)`,
         colore: 'text-green-lighten-2',
@@ -21173,7 +21233,7 @@ const valutazioneProgressione = computed(() => {
       const diffRepsAbs = Math.abs(diffReps);
       const percAbs = recReps > 0 ? Math.round((diffRepsAbs / recReps) * 100) : 0;
       return {
-        testo: `Sotto al picco storico (-${diffRepsAbs} reps/-${percAbs}%)`,
+        testo: `Sotto al picco storico (-${diffRepsAbs} ${unitLabel}/-${percAbs}%)`,
         colore: 'text-orange-lighten-2',
         icona: null
       };

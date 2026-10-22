@@ -325,14 +325,16 @@ export const parseMaxRepsPrescription = (prescrizioneStr) => {
   const raw = String(prescrizioneStr).split('|')[0].trim();
   const clean = raw.replace(/[()\[\]]/g, '').trim();
 
-  // Pattern: (\d+)\s*[xX]?\s*MAX(?:\s*REPS?)?(?:\s*\+\s*(\d+))?
-  const match = clean.match(/^(\d+)\s*[xX]?\s*MAX(?:\s*REPS?)?(?:\s*\+\s*(\d+))?$/i);
+  // Pattern: (\d+)\s*[xX]?\s*MAX(?:\s*REPS?|\s*SEC(?:ONDI)?|\s*S)?(?:\s*\+\s*(\d+))?
+  const match = clean.match(/^(\d+)\s*[xX]?\s*MAX(?:\s*REPS?|\s*SEC(?:ONDI)?|\s*S)?(?:\s*\+\s*(\d+))?$/i);
   if (match) {
     const numSerie = parseInt(match[1], 10);
     const deltaReps = match[2] ? parseInt(match[2], 10) : 0;
     const isTestWeek = deltaReps === 0;
+    const isTimeBased = /MAX\s*(?:SEC(?:ONDI)?|S)\b/i.test(clean);
     return {
       isMaxReps: true,
+      isTimeBased,
       numSerie: numSerie > 0 ? numSerie : 3,
       deltaReps,
       isTestWeek,
@@ -340,12 +342,14 @@ export const parseMaxRepsPrescription = (prescrizioneStr) => {
     };
   }
 
-  // Pattern generico senza numero serie iniziale (es. "MAXREPS", "MAX+1")
-  const matchNoSerie = clean.match(/^MAX(?:\s*REPS?)?(?:\s*\+\s*(\d+))?$/i);
+  // Pattern generico senza numero serie iniziale (es. "MAXREPS", "MAXSEC", "MAX+1")
+  const matchNoSerie = clean.match(/^MAX(?:\s*REPS?|\s*SEC(?:ONDI)?|\s*S)?(?:\s*\+\s*(\d+))?$/i);
   if (matchNoSerie) {
     const deltaReps = matchNoSerie[1] ? parseInt(matchNoSerie[1], 10) : 0;
+    const isTimeBased = /MAX\s*(?:SEC(?:ONDI)?|S)\b/i.test(clean);
     return {
       isMaxReps: true,
+      isTimeBased,
       numSerie: 3,
       deltaReps,
       isTestWeek: deltaReps === 0,
@@ -1968,12 +1972,17 @@ export const calcolaGhostMaxRepsProgressione = ({
   prevMaxPresc = null,
   prevTargetTotal = null,
   sensibilitaFatica = 'bilanciata',
-  autoregolazioneAttiva = true
+  autoregolazioneAttiva = true,
+  isTimeBased = false
 }) => {
   const currentSets = currentMaxPresc?.numSerie || 3;
   const currentDelta = currentMaxPresc?.deltaReps || 0;
   const prevSets = prevMaxPresc?.numSerie || (prevLog?.numSerie > 0 ? prevLog.numSerie : 3);
   const prevDelta = prevMaxPresc?.deltaReps || 0;
+
+  const isTime = isTimeBased || currentMaxPresc?.isTimeBased;
+  const unitStr = isTime ? 'sec' : 'rep';
+  const unitStrPlural = isTime ? 'sec' : 'reps';
 
   // Step incrementale teorico programmato (es. W1->W2 step=1, W2->W3 step=1, W4->W5 step=1)
   const stepIncremento = Math.max(1, currentDelta - prevDelta);
@@ -2007,29 +2016,29 @@ export const calcolaGhostMaxRepsProgressione = ({
       // Nessun incremento: consolidamento del volume reale
       targetMedia = prevMedia;
       motivoRicalibrazione = 'Consolidamento del volume reale (fatica rilevata)';
-      spiegazioneFisiologica = `Target riallineato a ${Math.round(prevMedia)} reps per serie per consentire pieno recupero neuromuscolare prima di sovraccaricare.`;
+      spiegazioneFisiologica = `Target riallineato a ${Math.round(prevMedia)} ${unitStrPlural} per serie per consentire pieno recupero neuromuscolare prima di sovraccaricare.`;
     } else if (sensibilitaFatica === 'aggressiva') {
       // Secondo tentativo o pareggio target precedente
       const prevTargetMedia = prevTargetTotal ? (prevTargetTotal / prevSets) : prevMedia + stepIncremento;
       targetMedia = prevTargetMedia;
       motivoRicalibrazione = 'Secondo tentativo: pareggio del target';
-      spiegazioneFisiologica = `Oggi punta a pareggiare l'obiettivo non completato la settimana precedente (~${Math.round(targetMedia)} reps/serie).`;
+      spiegazioneFisiologica = `Oggi punta a pareggiare l'obiettivo non completato la settimana precedente (~${Math.round(targetMedia)} ${unitStrPlural}/serie).`;
     } else {
       // Bilanciata: incremento parziale/smorzato sulla performance reale
       const incrementoSmorzato = Math.max(0.5, stepIncremento * 0.5);
       targetMedia = prevMedia + incrementoSmorzato;
       motivoRicalibrazione = 'Incremento smorzato per supercompensazione';
-      spiegazioneFisiologica = `Ricalibrazione fisiologica (+${incrementoSmorzato} rep/set sul reale) per stimolare l'adattamento senza andare in overshoot.`;
+      spiegazioneFisiologica = `Ricalibrazione fisiologica (+${incrementoSmorzato} ${unitStr}/set sul reale) per stimolare l'adattamento senza andare in overshoot.`;
     }
   } else {
     // Target raggiunto o prima progressione normale
     targetMedia = prevMedia + stepIncremento;
     if (tipoVariazioneSerie === 'meno') {
-      spiegazioneFisiologica = `Riduzione a ${currentSets} serie: dissipazione della fatica per esprimere massima intensità (+${stepIncremento} reps/set).`;
+      spiegazioneFisiologica = `Riduzione a ${currentSets} serie: dissipazione della fatica per esprimere massima intensità (+${stepIncremento} ${unitStrPlural}/set).`;
     } else if (tipoVariazioneSerie === 'piu') {
       spiegazioneFisiologica = `Aumento a ${currentSets} serie: stimolo di volume progressivo con compensazione del calo fisiologico.`;
     } else {
-      spiegazioneFisiologica = `Progressione standard (+${stepIncremento} rep per serie rispetto alla prestazione precedente).`;
+      spiegazioneFisiologica = `Progressione standard (+${stepIncremento} ${unitStr} per serie rispetto alla prestazione precedente).`;
     }
   }
 

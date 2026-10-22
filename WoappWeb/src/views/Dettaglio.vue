@@ -9431,6 +9431,8 @@ const getBaseWeekInfo = (sett) => {
     if (baseWNum === null) {
       baseWNum = sett - 1;
     }
+  } else if (matchKgWCurr) {
+    baseWNum = parseInt(matchKgWCurr[1], 10);
   } else if (sett === 2) {
     const baseW = propostaBaseWeek2.value; // "W1" o "W6 Prec."
     if (baseW === 'W6 Prec.') {
@@ -15807,9 +15809,21 @@ const getRepsForWeek = (w, targetEx = null) => {
 };
 
 const isWeek4Scarico = computed(() => {
+  if (!workout.value) return false;
+  const prescW4 = String(workout.value.des_week4 || '');
+
+  // Se la prescrizione contiene esplicitamente la parola "scarico", allora è scarico
+  if (/\bscarico\b/i.test(prescW4)) return true;
+
+  // Se c'è un vincolo esplicito di carico per W4 (es. [Kg W3], [KG W1], [K W3]) o carico fissato dal coach, NON è scarico
+  const hasConstraintW4 = /\[\s*KG?\s*W\s*\d+\s*\]/i.test(prescW4);
+  if (hasConstraintW4 || hasCoachLoad(prescW4)) {
+    return false;
+  }
+
   const repsW4 = getRepsForWeek(4);
   const repsW3 = getRepsForWeek(3);
-  return repsW4 && repsW3 && repsW4 > repsW3;
+  return !!(repsW4 && repsW3 && repsW4 > repsW3);
 });
 
 const getPesoWeek2 = computed(() => {
@@ -18343,7 +18357,23 @@ const getGhostLiftStandard = (sett) => {
     };
   }
 
-  // Rileva si ci sono parentesi quadre in una qualsiasi delle settimane
+  // Rileva vincoli espliciti di carico (es. [K W1], [KG W1] o [Kg W1]) in modo non case-sensitive con massima priorità
+  const matchKgW = prescrizione.match(/\[\s*KG?\s*W\s*(\d+)\s*\]?/i);
+  if (matchKgW) {
+    const targetW = parseInt(matchKgW[1], 10);
+    const targetIns = inputSettimane.value[targetW]?.ins || workout.value?.['ins_week' + targetW] || '';
+    const pesoStr = estraiPesoDaInput(targetIns);
+    const formattedText = pesoStr ? (String(targetIns).toLowerCase().includes('kg') ? targetIns : `${pesoStr} kg`) : '?';
+    return {
+      text: formattedText,
+      peso: pesoStr ? parseFloat(pesoStr) : 0,
+      label: `W${targetW}`,
+      isMandatory: true,
+      mandatoryLabel: `USA LO STESSO PESO DI W${targetW}`
+    };
+  }
+
+  // Rileva se ci sono parentesi quadre in una qualsiasi delle settimane
   let haParentesiQuadre = false;
   for (let w = 1; w <= 6; w++) {
     const presc = String(workout.value['des_week' + w] || '');
@@ -18354,7 +18384,7 @@ const getGhostLiftStandard = (sett) => {
   }
 
   if (haParentesiQuadre) {
-    // CASO 2: Presenza di parentesi quadre (Logica attuale con dicitura overload se reps scendono, mentre per week 4 di scarico propone W2)
+    // CASO 2: Presenza di parentesi quadre (Settimana 4 di scarico reale se non ha vincoli espliciti)
     if (sett === 4 && isWeek4Scarico.value) {
       if (isRepEx) {
         const w3Ins = inputSettimane.value[3]?.ins || workout.value?.ins_week3;
@@ -18381,21 +18411,6 @@ const getGhostLiftStandard = (sett) => {
         }
       }
       return null;
-    }
-
-    // Rileva vincoli espliciti di carico (es. [K W1], [KG W1] o [Kg W1]) in modo non case-sensitive.
-    const matchKgW = prescrizione.match(/\[\s*KG?\s*W\s*(\d+)\s*\]?/i);
-    if (matchKgW) {
-      const targetW = parseInt(matchKgW[1], 10);
-      const targetIns = inputSettimane.value[targetW]?.ins || '';
-      const pesoStr = estraiPesoDaInput(targetIns);
-      return {
-        text: pesoStr ? targetIns : '?', // Se la settimana di riferimento è vuota, mostra un punto di domanda
-        peso: pesoStr ? parseFloat(pesoStr) : 0,
-        label: `W${targetW}`,
-        isMandatory: true,
-        mandatoryLabel: `USA LO STESSO PESO DI W${targetW}`
-      };
     }
 
     // Scansione all'indietro per trovare l'ultima settimana con un input registrato (per coprire tutte le week vuote)
@@ -20771,9 +20786,18 @@ function analizzaRottaProgressione({
   const t3 = adjustVal(p2 + getStepForVal(p2));
   const p3 = l3 || t3;
 
-  // W4 scarico: se l4 è inserito usa l4, altrimenti teorico da p2 se scarico, o progressione da p3 se non scarico
-  const isW4ScaricoRotta = (r4 && r3) ? (r4 > r3) : true;
-  const t4 = isW4ScaricoRotta ? adjustVal(p2) : adjustVal(p3 + getStepForVal(p3));
+  // W4: se c'è un vincolo esplicito (es. [Kg W3]), usa il carico di riferimento; altrimenti se scarico usa p2, oppure progressione da p3
+  const isW4ScaricoRotta = (typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined)
+    ? isWeek4Scarico.value
+    : ((r4 && r3) ? (r4 > r3) : true);
+  const matchW4 = String(workout.value?.des_week4 || '').match(/\[\s*KG?\s*W\s*(\d+)\s*\]/i);
+  let t4;
+  if (matchW4) {
+    const targetW4 = parseInt(matchW4[1], 10);
+    t4 = targetW4 === 1 ? adjustVal(p1) : (targetW4 === 2 ? adjustVal(p2) : adjustVal(p3));
+  } else {
+    t4 = isW4ScaricoRotta ? adjustVal(p2) : adjustVal(p3 + getStepForVal(p3));
+  }
   const p4 = l4 || t4;
 
   // W5: se W4 è scarico, la progressione riparte da W3 (p3); altrimenti riparte da W4 (p4)
@@ -21739,7 +21763,7 @@ const strategiaCoachData = computed(() => {
     buildStepData(1, 'Accumulo & Tecnica', 'cyan', 'RPE 7-8', 'Volume sicuro. Focus su controllo e ritmo esecutivo.', w1Target, `3x${r1} reps`),
     buildStepData(2, 'Progressione Carico', 'amber', 'RPE 8', 'Incremento sostenibile. Mantieni la stessa qualità esecutiva.', w2Target, `3x${r2} reps`),
     buildStepData(3, 'Pareggio PR Storico', 'orange', 'RPE 8.5-9', 'Test di pareggio del tuo record storico passato.', w3Target, `3x${r3} reps`),
-    buildStepData(4, (r4 > r3 ? 'Scarico Rigenerativo' : 'Intensificazione Carico'), (r4 > r3 ? 'blue' : 'amber'), (r4 > r3 ? 'RPE 6-7' : 'RPE 8-8.5'), (r4 > r3 ? 'Riduzione del carico per permettere il recupero neurale.' : 'Aumento del carico su ripetizioni ridotte rispetto a W3.'), w4Target, `3x${r4} reps`),
+    buildStepData(4, (isScaricoW4Roadmap ? 'Scarico Rigenerativo' : 'Consolidamento Volume'), (isScaricoW4Roadmap ? 'blue' : 'amber'), (isScaricoW4Roadmap ? 'RPE 6-7' : 'RPE 8-8.5'), (isScaricoW4Roadmap ? 'Riduzione del carico per permettere il recupero neurale.' : 'Consolidamento o incremento carico su W4.'), w4Target, `3x${r4} reps`),
     buildStepData(5, 'Picco Intensità (Rottura Stallo)', 'purple', 'RPE 9-9.5', 'Supera il tetto dei kg storici lavorando a intensità elevata.', w5Target, `3x${Math.max(r5 - 2, 1)}-${r5} reps`),
     buildStepData(6, 'Test Nuovo Record Assoluto', 'green', 'RPE 10', 'Test finale per consolidare il nuovo PR assoluto.', w6Target, `3x${r6} reps`)
   ];

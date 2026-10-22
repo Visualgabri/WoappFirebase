@@ -9417,6 +9417,9 @@ const getBaseWeekInfo = (sett) => {
   let baseWNum = null;
   let isPreviousWorkoutW6 = false;
 
+  const prescCurr = String(workout.value?.['des_week' + sett] || '');
+  const matchKgWCurr = prescCurr.match(/\[\s*KG?\s*W\s*(\d+)\s*\]/i);
+
   const isComfortAttivo = infortuniAttiviEsercizio.value && infortuniAttiviEsercizio.value.length > 0 && !ghostSbloccato.value;
 
   if (isComfortAttivo && sett > 1) {
@@ -21751,6 +21754,10 @@ const strategiaCoachData = computed(() => {
       isScarico: isScaricoStep
     };
   };
+
+  const isScaricoW4Roadmap = (typeof isWeek4Scarico !== 'undefined' && isWeek4Scarico?.value !== undefined)
+    ? isWeek4Scarico.value
+    : (r4 > r3);
 
   const roadmap = isComfortAttivo ? [
     buildStepData(1, 'Adattamento Protetto', 'cyan', 'RPE 6-7', 'Carico ridotto. Focus su assenza di dolore e massima pulizia tecnica.', w1Target, `3x${r1} reps`),

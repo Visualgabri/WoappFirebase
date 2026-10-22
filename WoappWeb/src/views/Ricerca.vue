@@ -419,19 +419,41 @@ const caricaSchedeAtleta = async () => {
   
   caricamentoSchede.value = true;
   try {
-    const q = query(
-      collection(db, 'STORYBOARD'),
-      where('ID_cliente', '==', atletaSelezionato.value)
-    );
-    const querySnapshot = await getDocs(q);
-    
+    // 1. Prova prima da WORKOUT_T (molto più leggero, ~10-20 documenti contro ~1.000 di STORYBOARD)
     let schedeSet = new Set();
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.num_scheda) {
-        schedeSet.add(data.num_scheda.trim());
+    try {
+      const qWt = query(
+        collection(db, 'WORKOUT_T'),
+        where('ID_cliente', '==', String(atletaSelezionato.value))
+      );
+      let snapWt = await getDocs(qWt);
+      if (snapWt.empty && !isNaN(Number(atletaSelezionato.value))) {
+        snapWt = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', Number(atletaSelezionato.value))));
       }
-    });
+      snapWt.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.num_scheda) {
+          schedeSet.add(String(data.num_scheda).trim());
+        }
+      });
+    } catch (eWt) {
+      console.warn("Recupero schede WORKOUT_T in Ricerca fallito, provo fallback:", eWt);
+    }
+
+    // 2. Fallback su STORYBOARD solo se WORKOUT_T è vuoto
+    if (schedeSet.size === 0) {
+      const q = query(
+        collection(db, 'STORYBOARD'),
+        where('ID_cliente', '==', atletaSelezionato.value)
+      );
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.num_scheda) {
+          schedeSet.add(String(data.num_scheda).trim());
+        }
+      });
+    }
 
     listaSchede.value = Array.from(schedeSet).sort((a, b) => Number(a) - Number(b));
 

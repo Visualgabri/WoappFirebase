@@ -4332,22 +4332,26 @@ const ottieniSchedeAtleta = async () => {
 
   let schedeSet = new Set();
   try {
-    const q = query(
-      collection(db, 'STORYBOARD'),
+    // 1. Prova prima da WORKOUT_T (molto più leggero, ~10-20 documenti contro ~1.000 di STORYBOARD)
+    const qWt = query(
+      collection(db, 'WORKOUT_T'),
       where('ID_cliente', '==', String(currentAthlete))
     );
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach((docSnap) => {
+    let snapWt = await getDocs(qWt);
+    if (snapWt.empty && !isNaN(Number(currentAthlete))) {
+      snapWt = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', Number(currentAthlete))));
+    }
+    snapWt.forEach(docSnap => {
       const data = docSnap.data();
       if (data.num_scheda) {
         schedeSet.add(String(data.num_scheda).trim());
       }
     });
   } catch (err) {
-    console.warn("Recupero schede Firestore fallito, provo con backup locale:", err);
+    console.warn("Recupero schede WORKOUT_T fallito, provo con fallback:", err);
   }
 
-  // Se Firestore è vuoto o fallisce, controlla nel backup offline e in globalStoryboard
+  // 2. Se vuoto o offline, controlla nel backup offline e in globalStoryboard
   if (schedeSet.size === 0) {
     try {
       const allData = await getStoryboardBackup();
@@ -4365,6 +4369,25 @@ const ottieniSchedeAtleta = async () => {
     globalStoryboard.value.filter(item => String(item.ID_cliente) === String(currentAthlete)).forEach(item => {
       if (item.num_scheda) schedeSet.add(String(item.num_scheda).trim());
     });
+  }
+
+  // 3. Fallback su STORYBOARD solo se strettamente necessario
+  if (schedeSet.size === 0) {
+    try {
+      const q = query(
+        collection(db, 'STORYBOARD'),
+        where('ID_cliente', '==', String(currentAthlete))
+      );
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.num_scheda) {
+          schedeSet.add(String(data.num_scheda).trim());
+        }
+      });
+    } catch (err) {
+      console.warn("Recupero schede STORYBOARD fallito:", err);
+    }
   }
 
   return Array.from(schedeSet).sort((a, b) => Number(a) - Number(b));

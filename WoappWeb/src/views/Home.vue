@@ -3472,10 +3472,19 @@ const scaricaReportPDF = () => {
 
 const caricaDatiAtleti = async () => {
   try {
-    const docRef = doc(db, 'METADATA', 'clienti');
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      listaAtleti.value = docSnap.data().lista || [];
+    const cachedLista = localStorage.getItem('lista_atleti_metadata');
+    const cachedTime = parseInt(localStorage.getItem('cache_timestamp_lista_atleti') || '0', 10);
+    if (cachedLista && (Date.now() - cachedTime < 24 * 60 * 60 * 1000)) {
+      listaAtleti.value = JSON.parse(cachedLista);
+    } else {
+      const docRef = doc(db, 'METADATA', 'clienti');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const l = docSnap.data().lista || [];
+        listaAtleti.value = l;
+        localStorage.setItem('lista_atleti_metadata', JSON.stringify(l));
+        localStorage.setItem('cache_timestamp_lista_atleti', String(Date.now()));
+      }
     }
     await caricaNomiAtletiDinamici();
   } catch (error) {
@@ -3503,16 +3512,18 @@ const caricaWorkouts = async () => {
       return data;
     });
 
-    let snapNum = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
-    snapNum.forEach(d => {
-      const data = d.data();
-      if (data.NomeCognomeTM) {
-        impostaNomeAtletaDinamico(athleteIdStr, data.NomeCognomeTM);
-      }
-      if (!tempDocs.some(x => String(x.num_scheda) === String(data.num_scheda))) {
-        tempDocs.push(data);
-      }
-    });
+    if (tempDocs.length === 0 && !isNaN(athleteIdNum) && athleteIdStr !== String(athleteIdNum)) {
+      let snapNum = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
+      snapNum.forEach(d => {
+        const data = d.data();
+        if (data.NomeCognomeTM) {
+          impostaNomeAtletaDinamico(athleteIdStr, data.NomeCognomeTM);
+        }
+        if (!tempDocs.some(x => String(x.num_scheda) === String(data.num_scheda))) {
+          tempDocs.push(data);
+        }
+      });
+    }
 
     // Fallback da backup locale se vuoto
     if (tempDocs.length === 0) {
@@ -3652,44 +3663,47 @@ const caricaDatiWorkoutT = async () => {
     }
   }
 
-  try {
-    let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr)));
-    if (snap.empty) snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
+  // Se i dati sono già presenti in memoria o in cache, evitiamo letture Firestore ridondanti
+  if (!matchLocale) {
+    try {
+      let snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdStr)));
+      if (snap.empty && !isNaN(athleteIdNum) && athleteIdStr !== String(athleteIdNum)) {
+        snap = await getDocs(query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', athleteIdNum)));
+      }
 
-    let targetDocData = null;
-    if (!snap.empty) {
-      for (const d of snap.docs) {
-        const data = d.data();
-        if (String(data.num_scheda).trim() === sheetNumStr || Number(data.num_scheda) === sheetNumNum) {
-          targetDocData = data;
-          break;
+      let targetDocData = null;
+      if (!snap.empty) {
+        for (const d of snap.docs) {
+          const data = d.data();
+          if (String(data.num_scheda).trim() === sheetNumStr || Number(data.num_scheda) === sheetNumNum) {
+            targetDocData = data;
+            break;
+          }
         }
       }
-    }
 
-    if (targetDocData) {
-      workoutTData.value = targetDocData;
-      dataInizio.value = targetDocData.dat_data || '';
-      dataFine.value = targetDocData.dat_scadenza || '';
-      descrizioneMesociclo.value = targetDocData.des_descrizione || '';
-      if (targetDocData.des_note) {
-        coachMessage.value = targetDocData.des_note;
+      if (targetDocData) {
+        workoutTData.value = targetDocData;
+        dataInizio.value = targetDocData.dat_data || '';
+        dataFine.value = targetDocData.dat_scadenza || '';
+        descrizioneMesociclo.value = targetDocData.des_descrizione || '';
+        if (targetDocData.des_note) {
+          coachMessage.value = targetDocData.des_note;
+        }
+        setCachedWorkoutT(athleteIdStr, sheetNumStr, targetDocData);
+      } else {
+        workoutTData.value = null;
+        dataInizio.value = '';
+        dataFine.value = '';
+        descrizioneMesociclo.value = '';
       }
-      setCachedWorkoutT(athleteIdStr, sheetNumStr, targetDocData);
-    } else if (!matchLocale) {
+    } catch (err) {
       workoutTData.value = null;
       dataInizio.value = '';
       dataFine.value = '';
       descrizioneMesociclo.value = '';
+      console.warn("Errore caricamento da WORKOUT_T:", err);
     }
-  } catch (err) {
-    if (!matchLocale) {
-      workoutTData.value = null;
-      dataInizio.value = '';
-      dataFine.value = '';
-      descrizioneMesociclo.value = '';
-    }
-    console.warn("Errore caricamento da WORKOUT_T:", err);
   }
 };
 

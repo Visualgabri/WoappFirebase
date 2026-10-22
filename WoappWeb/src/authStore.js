@@ -45,7 +45,8 @@ export const MAPPA_CLIENTI = {
   '313': { nome: 'Lucia', cognome: 'Gozzi', email: 'Luciagozzi88@hotmail.com', scheda: 3, vista: false, obsoleto: false, sesso: 'F' },
   '312': { nome: 'Rachele', cognome: 'Cucurnia', email: 'Rachele.cucurnia@gmail.com', scheda: 2, vista: false, obsoleto: false, sesso: 'F' },
   '314': { nome: 'Matteo', cognome: 'Delle Fate', email: 'matteodellefate@gmail.com', scheda: 1, vista: false, obsoleto: false, sesso: 'M' },
-  '301': { nome: 'Andrea', cognome: 'Durini', email: 'adurini88@gmail.com', scheda: 6, vista: false, obsoleto: false, sesso: 'M' }
+  '301': { nome: 'Andrea', cognome: 'Durini', email: 'adurini88@gmail.com', scheda: 6, vista: false, obsoleto: false, sesso: 'M' },
+  '321': { nome: 'Michele', cognome: 'Cavalletti', email: '', scheda: 1, vista: false, obsoleto: false, sesso: 'M' }
 };
 
 // Helper per ottenere il sesso dell'atleta (M/F)
@@ -970,57 +971,6 @@ export const getNomeAtleta = (id) => {
   return '';
 };
 
-export const caricaNomiAtletiDinamici = async () => {
-  try {
-    const mappa = { ...MAPPA_CLIENTI_DINAMICI.value };
-    let haCambiamenti = false;
-
-    // 1. Carica nomi da collezione CLIENTI
-    try {
-      const clientiSnap = await getDocs(collection(db, 'CLIENTI'));
-      clientiSnap.forEach(docSnap => {
-        const data = docSnap.data();
-        const id = String(data.ID_cliente || docSnap.id).trim();
-        const nomeP = (data.Nome || data.nome || '').trim();
-        const cognomeP = (data.Cognome || data.cognome || '').trim();
-        const nomeCompleto = (data.NomeCognomeTM || data.des_nome_cognome || `${nomeP} ${cognomeP}`).trim();
-        if (id && nomeCompleto && mappa[id] !== nomeCompleto) {
-          mappa[id] = nomeCompleto;
-          haCambiamenti = true;
-        }
-      });
-    } catch (errClienti) {
-      console.warn("Avviso lettura CLIENTI in caricaNomiAtletiDinamici:", errClienti);
-    }
-
-    // 2. Carica/integra nomi da collezione WORKOUT_T
-    try {
-      const wtSnap = await getDocs(collection(db, 'WORKOUT_T'));
-      wtSnap.forEach(docSnap => {
-        const data = docSnap.data();
-        const id = String(data.ID_cliente || '').trim();
-        const nome = (data.NomeCognomeTM || data.des_nome_cognome || data.des_atleta || '').trim();
-        if (id && nome && mappa[id] !== nome) {
-          mappa[id] = nome;
-          haCambiamenti = true;
-        }
-      });
-    } catch (errWt) {
-      console.warn("Avviso lettura WORKOUT_T in caricaNomiAtletiDinamici:", errWt);
-    }
-
-    if (haCambiamenti) {
-      MAPPA_CLIENTI_DINAMICI.value = mappa;
-      localStorage.setItem('mappa_clienti_dinamici', JSON.stringify(mappa));
-    }
-  } catch (err) {
-    console.error("Errore caricamento nomi atleti dinamici:", err);
-  }
-};
-
-// Avvia subito il caricamento dei nomi atleti da WORKOUT_T in background
-caricaNomiAtletiDinamici();
-
 // --- STATO ATLETI (ATTIVO / DISABILITATO) ---
 export const MAPPA_STATO_CLIENTI = ref(JSON.parse(localStorage.getItem('mappa_stato_clienti') || '{}'));
 
@@ -1061,50 +1011,101 @@ export const toggleStatoAtletaFirestore = async (id, attivo) => {
       flg_attivo: !!attivo,
       flg_obsoleto: !attivo ? 'SI' : 'NO'
     }, { merge: true });
+    localStorage.removeItem('cache_timestamp_clienti_firestore');
   } catch (err) {
     console.error("Errore salvataggio stato atleta su Firestore:", err);
     throw err;
   }
 };
 
-export const caricaStatoClientiDaFirestore = async () => {
-  try {
-    const snap = await getDocs(collection(db, 'CLIENTI'));
-    const mappa = { ...MAPPA_STATO_CLIENTI.value };
-    let cambiato = false;
+// --- CARICAMENTO E SINCRONIZZAZIONE DATI CLIENTI CON CACHE INTELLIGENTE ---
+let caricaDatiClientiPromise = null;
+const CLIENTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 ore
 
-    snap.forEach(docSnap => {
-      const data = docSnap.data();
-      const id = String(data.ID_cliente || docSnap.id).trim();
-      if (!id) return;
-      
-      let attivo = true;
-      if (data.flg_attivo !== undefined) {
-        attivo = Boolean(data.flg_attivo);
-      } else if (data.flg_obsoleto !== undefined) {
-        const obs = String(data.flg_obsoleto).trim().toUpperCase();
-        attivo = !(obs === 'SI' || obs === 'TRUE' || obs === '1');
-      } else if (MAPPA_CLIENTI[id]?.obsoleto !== undefined) {
-        attivo = !MAPPA_CLIENTI[id].obsoleto;
-      }
+export const caricaDatiClientiGlobali = async (force = false) => {
+  if (caricaDatiClientiPromise) return caricaDatiClientiPromise;
 
-      if (mappa[id] !== attivo) {
-        mappa[id] = attivo;
-        cambiato = true;
-      }
-    });
+  const now = Date.now();
+  const lastTime = parseInt(localStorage.getItem('cache_timestamp_clienti_firestore') || '0', 10);
+  const cacheValida = (now - lastTime) < CLIENTS_CACHE_TTL_MS;
+  const hasLocalNomi = Object.keys(MAPPA_CLIENTI_DINAMICI.value || {}).length > 0;
+  const hasLocalStato = Object.keys(MAPPA_STATO_CLIENTI.value || {}).length > 0;
 
-    if (cambiato) {
-      MAPPA_STATO_CLIENTI.value = mappa;
-      localStorage.setItem('mappa_stato_clienti', JSON.stringify(mappa));
-    }
-  } catch (err) {
-    console.error("Errore sync stato clienti da Firestore:", err);
+  // Se la cache in localStorage è valida (meno di 24h) e contiene dati, evitiamo completamente letture Firestore
+  if (!force && cacheValida && hasLocalNomi && hasLocalStato) {
+    return;
   }
+
+  caricaDatiClientiPromise = (async () => {
+    try {
+      // Singola lettura da CLIENTI (soli 22 documenti, anziché scaricare tutti i 370+ documenti di WORKOUT_T)
+      const snap = await getDocs(collection(db, 'CLIENTI'));
+      const mappaNomi = { ...MAPPA_CLIENTI_DINAMICI.value };
+      const mappaStato = { ...MAPPA_STATO_CLIENTI.value };
+      let cambiatiNomi = false;
+      let cambiatiStato = false;
+
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = String(data.ID_cliente || docSnap.id).trim();
+        if (!id) return;
+
+        // Estrai nome dinamico
+        const nomeP = (data.Nome || data.nome || '').trim();
+        const cognomeP = (data.Cognome || data.cognome || '').trim();
+        const nomeCompleto = (data.NomeCognomeTM || data.des_nome_cognome || `${nomeP} ${cognomeP}`).trim();
+        if (nomeCompleto && mappaNomi[id] !== nomeCompleto) {
+          mappaNomi[id] = nomeCompleto;
+          cambiatiNomi = true;
+        }
+
+        // Estrai stato attivo / disabilitato
+        let attivo = true;
+        if (data.flg_attivo !== undefined) {
+          attivo = Boolean(data.flg_attivo);
+        } else if (data.flg_obsoleto !== undefined) {
+          const obs = String(data.flg_obsoleto).trim().toUpperCase();
+          attivo = !(obs === 'SI' || obs === 'TRUE' || obs === '1');
+        } else if (MAPPA_CLIENTI[id]?.obsoleto !== undefined) {
+          attivo = !MAPPA_CLIENTI[id].obsoleto;
+        }
+
+        if (mappaStato[id] !== attivo) {
+          mappaStato[id] = attivo;
+          cambiatiStato = true;
+        }
+      });
+
+      if (cambiatiNomi) {
+        MAPPA_CLIENTI_DINAMICI.value = mappaNomi;
+        localStorage.setItem('mappa_clienti_dinamici', JSON.stringify(mappaNomi));
+      }
+      if (cambiatiStato) {
+        MAPPA_STATO_CLIENTI.value = mappaStato;
+        localStorage.setItem('mappa_stato_clienti', JSON.stringify(mappaStato));
+      }
+
+      localStorage.setItem('cache_timestamp_clienti_firestore', String(Date.now()));
+    } catch (err) {
+      console.warn("Avviso sync dati clienti da Firestore:", err);
+    } finally {
+      caricaDatiClientiPromise = null;
+    }
+  })();
+
+  return caricaDatiClientiPromise;
 };
 
-// Avvia sincronizzazione stato atleti da Firestore
-caricaStatoClientiDaFirestore();
+export const caricaNomiAtletiDinamici = async (force = false) => {
+  return caricaDatiClientiGlobali(force);
+};
+
+export const caricaStatoClientiDaFirestore = async (force = false) => {
+  return caricaDatiClientiGlobali(force);
+};
+
+// Avvia sincronizzazione con cache in background all'avvio solo se la cache è assente o scaduta
+caricaDatiClientiGlobali();
 
 export const getEmailAtleta = (id) => {
   const cleanId = String(id || '').trim();

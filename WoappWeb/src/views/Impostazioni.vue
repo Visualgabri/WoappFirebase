@@ -866,6 +866,37 @@
             ></v-select>
           </div>
 
+          <!-- Modello rapido Promemoria Gradimenti & Feeling -->
+          <div class="mb-2 d-flex align-center justify-space-between flex-wrap gap-1">
+            <span class="text-caption font-weight-bold text-purple-lighten-2" style="font-size: 0.65rem;">Modello Rapido Promemoria</span>
+            <div class="d-flex align-center gap-1">
+              <v-btn
+                size="x-small"
+                variant="tonal"
+                color="amber-accent-3"
+                rounded="pill"
+                class="font-weight-black text-none px-2"
+                style="font-size: 0.64rem; height: 23px; border: 1px solid rgba(251, 191, 36, 0.4); background: rgba(245, 158, 11, 0.12);"
+                @click="impostaTemplateGradimenti"
+                title="Compila automaticamente l'invito a inserire gradimenti e feeling"
+              >
+                <v-icon start size="13" color="amber-accent-2">mdi-star-shooting</v-icon>
+                ⭐ Promemoria Gradimenti & Feeling
+              </v-btn>
+              <v-btn
+                icon
+                size="x-small"
+                variant="text"
+                color="amber-lighten-2"
+                style="width: 23px; height: 23px;"
+                @click="apriListaEserciziGradimenti"
+                title="Apri lista esercizi gradimenti in Home"
+              >
+                <v-icon size="14">mdi-format-list-checks</v-icon>
+              </v-btn>
+            </div>
+          </div>
+
           <div class="mb-2 text-left">
             <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Oggetto</span>
             <v-text-field
@@ -1295,6 +1326,7 @@ import {
   ottimizzaDigitazioneGlobal,
   regolaProgressioneW2Global,
   inviaNotificaDeploy,
+  mostraDialogGradimentiGlobal,
   currentTheme,
   setTheme,
   currentLightStyle,
@@ -1510,6 +1542,16 @@ const getNomeAtletaTarget = (id) => {
   return nome ? nome.toUpperCase() : `ATLETA #${id}`;
 };
 
+const impostaTemplateGradimenti = () => {
+  titoloDeployForm.value = '⭐ Promemoria Gradimenti & Feeling';
+  messaggioDeployGeneraleForm.value = 'Ricordati di inserire i gradimenti e il feeling per gli esercizi svolti! Trovi la lista rapida direttamente nella Home oppure puoi inserire i voti in fondo a ciascun esercizio.';
+};
+
+const apriListaEserciziGradimenti = () => {
+  mostraDialogGradimentiGlobal.value = true;
+  router.push({ path: '/home', query: { openGradimenti: 'true', t: Date.now() } });
+};
+
 const eseguiInvioNotificaDeploy = async () => {
   try {
     inviandoDeployNotifica.value = true;
@@ -1517,12 +1559,18 @@ const eseguiInvioNotificaDeploy = async () => {
     const isSingolo = tipoNotificaForm.value === 'messaggio' || (isGuida && targetGuidaPesiTipo.value === 'singolo');
     const targetId = isSingolo && atletaDeployTargetForm.value !== 'tutti' ? atletaDeployTargetForm.value : null;
 
+    const isGradimenti = tipoNotificaForm.value === 'messaggio' && (
+      (titoloDeployForm.value || '').toLowerCase().includes('gradiment') ||
+      (messaggioDeployGeneraleForm.value || '').toLowerCase().includes('gradiment')
+    );
+
     const payload = {
       tipo: tipoNotificaForm.value,
       titolo: isGuida ? '💡 Consiglio del Coach' : titoloDeployForm.value,
       message_general: isGuida ? 'Come scrivere i pesi nelle caselle' : messaggioDeployGeneraleForm.value,
       target_atleta_id: targetId,
-      notes_per_athlete: {}
+      notes_per_athlete: {},
+      azione: isGradimenti ? 'apri_gradimenti' : null
     };
 
     if (targetId && notaDeployPersonalizzataForm.value?.trim()) {

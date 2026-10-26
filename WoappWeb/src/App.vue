@@ -567,18 +567,20 @@
           background: deployVersionInfo?.tipo === 'guida_pesi'
             ? 'linear-gradient(135deg, rgba(11, 17, 30, 0.98) 0%, rgba(20, 25, 45, 0.99) 100%) !important'
             : deployVersionInfo?.tipo === 'messaggio' 
-            ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.98) 100%) !important'
+            ? (isMessaggioGradimenti 
+                ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(45, 26, 12, 0.99) 100%) !important'
+                : 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.98) 100%) !important')
             : 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%) !important',
           border: deployVersionInfo?.tipo === 'guida_pesi'
             ? '1.5px solid rgba(245, 158, 11, 0.55) !important'
             : deployVersionInfo?.tipo === 'messaggio'
-            ? '2px solid rgba(168, 85, 247, 0.5) !important'
+            ? (isMessaggioGradimenti ? '2px solid rgba(245, 158, 11, 0.7) !important' : '2px solid rgba(168, 85, 247, 0.5) !important')
             : '2px solid var(--theme-primary) !important',
           backdropFilter: 'blur(30px) !important',
           boxShadow: deployVersionInfo?.tipo === 'guida_pesi'
             ? '0 20px 50px rgba(245, 158, 11, 0.25) !important'
             : deployVersionInfo?.tipo === 'messaggio'
-            ? '0 20px 50px rgba(168, 85, 247, 0.25) !important'
+            ? (isMessaggioGradimenti ? '0 20px 50px rgba(245, 158, 11, 0.3) !important' : '0 20px 50px rgba(168, 85, 247, 0.25) !important')
             : '0 20px 50px var(--theme-primary-glow) !important'
         }"
       >
@@ -681,8 +683,8 @@
           <!-- Header Pulito ed Elegante con Tasto Chiudi 'X' -->
           <div class="pa-4 pb-3 d-flex align-center justify-space-between border-bottom-soft flex-shrink-0" style="background: rgba(15, 23, 42, 0.7);">
             <div class="d-flex align-center gap-2">
-              <v-icon :color="deployVersionInfo?.tipo === 'messaggio' ? 'purple-lighten-2' : 'orange-lighten-2'" size="22" class="flex-shrink-0">
-                {{ deployVersionInfo?.tipo === 'messaggio' ? 'mdi-message-text-outline' : 'mdi-rocket-launch-outline' }}
+              <v-icon :color="deployVersionInfo?.tipo === 'messaggio' ? (isMessaggioGradimenti ? 'amber-lighten-2' : 'purple-lighten-2') : 'orange-lighten-2'" size="22" class="flex-shrink-0">
+                {{ deployVersionInfo?.tipo === 'messaggio' ? (isMessaggioGradimenti ? 'mdi-star-shooting' : 'mdi-message-text-outline') : 'mdi-rocket-launch-outline' }}
               </v-icon>
               <h2 class="text-subtitle-1 font-weight-black text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; color: #ffffff !important;">
                 {{ deployVersionInfo?.titolo ? deployVersionInfo.titolo.replace(/^🚀\s*/, '') : (deployVersionInfo?.tipo === 'messaggio' ? 'Messaggio dal Coach' : 'Nuovo Aggiornamento') }}
@@ -723,19 +725,51 @@
               RICARICA ED AGGIORNA ORA
             </v-btn>
 
-            <v-btn
-              v-else
-              color="purple-darken-3"
-              block
-              size="large"
-              variant="flat"
-              rounded="xl"
-              class="font-weight-black text-none text-white elevation-6"
-              style="height: 46px; font-size: 0.90rem;"
-              @click="chiudiBannerNotifica"
-            >
-              HO CAPITO / CHIUDI
-            </v-btn>
+            <template v-else>
+              <!-- SE È UN MESSAGGIO PER GRADIMENTI & FEELING: Tasto primario per aprire direttamente la lista esercizi! -->
+              <div v-if="isMessaggioGradimenti" class="d-flex flex-column gap-2">
+                <v-btn
+                  color="amber-darken-3"
+                  block
+                  size="large"
+                  variant="flat"
+                  rounded="xl"
+                  class="font-weight-black text-none text-white elevation-6"
+                  style="background: linear-gradient(135deg, #d97706, #f59e0b) !important; height: 46px; font-size: 0.90rem;"
+                  @click="vaiAListaGradimenti"
+                >
+                  <v-icon start size="20">mdi-star</v-icon>
+                  ⭐ APRI LISTA ESERCIZI DA VOTARE
+                </v-btn>
+
+                <v-btn
+                  color="grey-darken-3"
+                  block
+                  size="small"
+                  variant="tonal"
+                  rounded="xl"
+                  class="font-weight-bold text-none text-slate-300"
+                  style="height: 34px; font-size: 0.80rem;"
+                  @click="chiudiBannerNotifica"
+                >
+                  HO CAPITO / CHIUDI
+                </v-btn>
+              </div>
+
+              <v-btn
+                v-else
+                color="purple-darken-3"
+                block
+                size="large"
+                variant="flat"
+                rounded="xl"
+                class="font-weight-black text-none text-white elevation-6"
+                style="height: 46px; font-size: 0.90rem;"
+                @click="chiudiBannerNotifica"
+              >
+                HO CAPITO / CHIUDI
+              </v-btn>
+            </template>
           </div>
         </template>
       </v-card>
@@ -763,7 +797,7 @@ import GuidaFlexCoachModal from './components/GuidaFlexCoachModal.vue';
 import InstallBanner from './components/InstallBanner.vue';
 import InstallPromptModal from './components/InstallPromptModal.vue';
 import { initPwaListeners } from './utils/usePwaInstall.js';
-import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, setGlobalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero } from './authStore.js';
+import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, setGlobalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero, mostraDialogGradimentiGlobal } from './authStore.js';
 
 const router = useRouter();
 const vuetifyTheme = useTheme();
@@ -771,6 +805,22 @@ const globalTransition = ref('fade');
 const mostraDialogGuida = ref(false);
 const mostraJulieEasterEgg = ref(false);
 const mostraPannemenEasterEgg = ref(false);
+
+const isMessaggioGradimenti = computed(() => {
+  if (deployVersionInfo.value?.tipo !== 'messaggio') return false;
+  if (deployVersionInfo.value?.azione === 'apri_gradimenti') return true;
+  const tit = (deployVersionInfo.value?.titolo || '').toLowerCase();
+  const msg = (deployCustomNoteForMe.value || deployVersionInfo.value?.message_general || '').toLowerCase();
+  return tit.includes('gradiment') || tit.includes('feeling') || msg.includes('gradiment') || msg.includes('feeling');
+});
+
+const vaiAListaGradimenti = () => {
+  chiudiBannerNotifica();
+  mostraDialogGradimentiGlobal.value = true;
+  if (router.currentRoute.value.path !== '/home') {
+    router.push({ path: '/home', query: { openGradimenti: 'true', t: Date.now() } });
+  }
+};
 
 // Gestione Easter Egg per parole chiave "profiamma" e "pannemen" (Desktop + Smartphone)
 let typedKeysBuffer = '';

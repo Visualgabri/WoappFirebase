@@ -1437,6 +1437,8 @@ export const ignoraBannerDeploy = () => {
   chiudiBannerNotifica();
 };
 
+export const mostraDialogGradimentiGlobal = ref(false);
+
 export const inviaNotificaDeploy = async (payload) => {
   try {
     const docRef = doc(db, 'METADATA', 'deploy_version');
@@ -1448,7 +1450,8 @@ export const inviaNotificaDeploy = async (payload) => {
       titolo: payload.titolo || (payload.tipo === 'guida_pesi' ? '💡 Consiglio del Coach' : (payload.tipo === 'messaggio' ? '💬 Messaggio dal Coach' : '🚀 Nuovo Aggiornamento!')),
       message_general: payload.message_general || (payload.tipo === 'guida_pesi' ? 'Come scrivere i pesi nelle caselle' : 'Nuova versione applicazione disponibile.'),
       target_atleta_id: payload.target_atleta_id || null,
-      notes_per_athlete: payload.notes_per_athlete || {}
+      notes_per_athlete: payload.notes_per_athlete || {},
+      azione: payload.azione || null
     };
     await setDoc(docRef, dataToSave, { merge: true });
     return { success: true, version_id: newVersionId };

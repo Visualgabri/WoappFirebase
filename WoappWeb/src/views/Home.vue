@@ -1544,7 +1544,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import GuidaFlexCoachModal from '../components/GuidaFlexCoachModal.vue';
 import { isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
@@ -1578,11 +1578,13 @@ import {
   impostaNomeAtletaDinamico,
   caricaNomiAtletiDinamici,
   temaHeaderGiornoGlobal,
-  haRecupero
+  haRecupero,
+  mostraDialogGradimentiGlobal
 } from '../authStore.js';
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
+const route = useRoute();
 
 const vibraTattile = (ms = 12) => {
   if (localStorage.getItem('woapp_vibrazione_attiva') === 'false') return;
@@ -2316,6 +2318,20 @@ const getTimestampUte = () => {
 const mostraDialogGradimentiHome = ref(false);
 const filtroGradimentiHome = ref('tutti');
 const salvataggioGradimentoHomeInCorso = ref(null);
+
+// Listener per apertura automatica da notifica coach o deep-link query
+watch(mostraDialogGradimentiGlobal, (val) => {
+  if (val) {
+    mostraDialogGradimentiHome.value = true;
+    mostraDialogGradimentiGlobal.value = false;
+  }
+}, { immediate: true });
+
+watch(() => route.query.openGradimenti, (val) => {
+  if (val === 'true') {
+    mostraDialogGradimentiHome.value = true;
+  }
+}, { immediate: true });
 
 const percentualeVotatiHome = computed(() => {
   const tot = tuttiEserciziMesocicloHome.value.length;

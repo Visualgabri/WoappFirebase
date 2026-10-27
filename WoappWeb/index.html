@@ -11,16 +11,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FlexCoach" />
     <link rel="apple-touch-icon" href="/logo.png" />
-    <meta name="theme-color" content="#0f172a" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f172a" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" content="#ea580c" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ea580c" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ea580c" />
     <script>
       (function() {
         try {
-          var isLight = localStorage.getItem('userTheme') === 'light';
-          var navColor = isLight ? '#ffffff' : '#0f172a';
+          var activeAthlete = localStorage.getItem('selectedAthlete') || '1';
+          var sesso = (activeAthlete === '57' || activeAthlete === '186' || activeAthlete === '219' || activeAthlete === '125' || activeAthlete === '193' || activeAthlete === '196' || activeAthlete === '276' || activeAthlete === '237' || activeAthlete === '249' || activeAthlete === '54' || activeAthlete === '268' || activeAthlete === '269' || activeAthlete === '281' || activeAthlete === '211' || activeAthlete === '175' || activeAthlete === '297' || activeAthlete === '304' || activeAthlete === '313' || activeAthlete === '312' || localStorage.getItem('sesso_cliente_' + activeAthlete) === 'F') ? 'F' : 'M';
+          var defaultTema = sesso === 'F' ? 'fucsia' : 'blu';
+          var saved = localStorage.getItem('woapp_tema_header_giorno_' + activeAthlete);
+          if (!saved && activeAthlete === '1') {
+            saved = localStorage.getItem('woapp_tema_header_giorno');
+          }
+          var colors = { blu: '#1d4ed8', verde: '#059669', fucsia: '#db2777', giallo: '#ca8a04', arancio: '#ea580c' };
+          var chosen = (saved && colors[saved]) ? saved : defaultTema;
+          var hex = colors[chosen] || '#ea580c';
           var metas = document.querySelectorAll('meta[name="theme-color"]');
-          metas.forEach(function(m) { m.setAttribute('content', navColor); });
+          metas.forEach(function(m) { m.setAttribute('content', hex); });
         } catch (e) {}
       })();
     </script>

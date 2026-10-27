@@ -86,35 +86,30 @@ export const getThemeHex = (themeColor) => {
   }
 };
 
-// Aggiorna dinamicamente tutti i meta tag theme-color per smartphone (evita barre arancioni spurie sulla barra di sistema Android)
+// Aggiorna dinamicamente tutti i meta tag theme-color per smartphone (segue fedelmente il colore del tema principale attivo)
 export const updateMetaThemeColor = (colorHex = null) => {
   if (typeof document === 'undefined') return;
   
-  const isLight = (currentTheme?.value === 'light') || (document.documentElement.getAttribute('data-theme') === 'light');
-  const navColor = isLight ? '#ffffff' : '#0f172a';
+  const currentHex = colorHex || getThemeHex(temaHeaderGiornoGlobal?.value || 'arancio');
 
   // 1. Rimuovi tutti i vecchi tag theme-color per forzare il browser (Chrome/Android) a recepire la mutazione DOM
   const oldMetas = document.querySelectorAll('meta[name="theme-color"]');
   oldMetas.forEach((m) => m.remove());
 
-  // 2. Crea il meta tag generico con il colore coerente alla barra inferiore dell'app
+  // 2. Crea il meta tag generico con il colore del tema principale
   const genericMeta = document.createElement('meta');
   genericMeta.name = 'theme-color';
-  genericMeta.content = navColor;
+  genericMeta.content = currentHex;
   document.head.appendChild(genericMeta);
 
-  // 3. Crea i tag con media query (dark / light per status bar e navigation bar di sistema)
-  const darkMeta = document.createElement('meta');
-  darkMeta.name = 'theme-color';
-  darkMeta.setAttribute('media', '(prefers-color-scheme: dark)');
-  darkMeta.content = '#0f172a';
-  document.head.appendChild(darkMeta);
-
-  const lightMeta = document.createElement('meta');
-  lightMeta.name = 'theme-color';
-  lightMeta.setAttribute('media', '(prefers-color-scheme: light)');
-  lightMeta.content = '#ffffff';
-  document.head.appendChild(lightMeta);
+  // 3. Crea i tag con media query (dark / light per status bar e navigation bar di sistema Android)
+  ['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)'].forEach((media) => {
+    const mediaMeta = document.createElement('meta');
+    mediaMeta.name = 'theme-color';
+    mediaMeta.setAttribute('media', media);
+    mediaMeta.content = currentHex;
+    document.head.appendChild(mediaMeta);
+  });
 };
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
@@ -173,9 +168,16 @@ if (typeof document !== 'undefined') {
   const activeAthlete = localStorage.getItem('selectedAthlete') || '1';
   const sesso = getSessoAtleta(activeAthlete);
   const defaultThemeColor = getTemaDefaultPerSesso(sesso);
-  const savedTheme = localStorage.getItem('woapp_tema_header_giorno');
+  const savedThemeAthlete = localStorage.getItem('woapp_tema_header_giorno_' + activeAthlete);
+  const savedThemeGlobal = localStorage.getItem('woapp_tema_header_giorno');
   const validColors = ['arancio', 'blu', 'verde', 'fucsia', 'giallo'];
-  const initThemeColor = validColors.includes(savedTheme) ? savedTheme : (savedTheme || defaultThemeColor || 'arancio');
+  
+  let initThemeColor = defaultThemeColor || 'arancio';
+  if (savedThemeAthlete && validColors.includes(savedThemeAthlete)) {
+    initThemeColor = savedThemeAthlete;
+  } else if (savedThemeGlobal && validColors.includes(savedThemeGlobal) && activeAthlete === '1') {
+    initThemeColor = savedThemeGlobal;
+  }
 
   document.documentElement.setAttribute('data-theme', initTheme);
   document.body.setAttribute('data-theme', initTheme);
@@ -195,6 +197,20 @@ export const selectedSheet = ref(localStorage.getItem('selectedSheet') || '');
 export const setSelectedAthlete = (val) => {
   selectedAthlete.value = val;
   localStorage.setItem('selectedAthlete', val);
+
+  // Allinea subito tema e theme-color per il nuovo atleta selezionato
+  const sesso = getSessoAtleta(val);
+  const defaultColor = getTemaDefaultPerSesso(sesso);
+  const savedAthlete = localStorage.getItem('woapp_tema_header_giorno_' + val);
+  const finalColor = savedAthlete || defaultColor || 'arancio';
+  temaHeaderGiornoGlobal.value = finalColor;
+  localStorage.setItem('woapp_tema_header_giorno', finalColor);
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme-color', finalColor);
+    document.body.setAttribute('data-theme-color', finalColor);
+    updateMetaThemeColor(getThemeHex(finalColor));
+  }
+
   syncStoryboardListener();
   syncInfortuniListener();
   syncClienteConfigListener();
@@ -1159,9 +1175,16 @@ const savedComportamentoPlay = localStorage.getItem('woapp_comportamento_play');
 export const comportamentoPlayGlobal = ref((savedComportamentoPlay && savedComportamentoPlay !== 'auto') ? savedComportamentoPlay : 'evidenzia');
 const activeAthleteInit = localStorage.getItem('selectedAthlete') || '1';
 const defaultThemeColorInit = getTemaDefaultPerSesso(getSessoAtleta(activeAthleteInit));
-const savedThemeInit = localStorage.getItem('woapp_tema_header_giorno');
+const savedThemeAthleteInit = localStorage.getItem('woapp_tema_header_giorno_' + activeAthleteInit);
+const savedThemeGlobalInit = localStorage.getItem('woapp_tema_header_giorno');
 const validThemesList = ['arancio', 'blu', 'verde', 'fucsia', 'giallo'];
-export const temaHeaderGiornoGlobal = ref(validThemesList.includes(savedThemeInit) ? savedThemeInit : (savedThemeInit || defaultThemeColorInit || 'arancio'));
+let initialThemeVal = defaultThemeColorInit || 'arancio';
+if (savedThemeAthleteInit && validThemesList.includes(savedThemeAthleteInit)) {
+  initialThemeVal = savedThemeAthleteInit;
+} else if (savedThemeGlobalInit && validThemesList.includes(savedThemeGlobalInit) && activeAthleteInit === '1') {
+  initialThemeVal = savedThemeGlobalInit;
+}
+export const temaHeaderGiornoGlobal = ref(initialThemeVal);
 
 // Stato di cache globale per lo Storyboard dell'atleta e della scheda selezionata
 export const globalStoryboard = ref([]);
@@ -2084,6 +2107,10 @@ watch(margineBottomGhostNoticeGlobal, (newVal) => {
 watch(temaHeaderGiornoGlobal, (newVal) => {
   const targetColor = (newVal === 'blu' || newVal === 'verde' || newVal === 'fucsia' || newVal === 'giallo' || newVal === 'arancio') ? newVal : 'arancio';
   localStorage.setItem('woapp_tema_header_giorno', targetColor);
+  const curId = getActiveAtletaId();
+  if (curId) {
+    localStorage.setItem('woapp_tema_header_giorno_' + curId, targetColor);
+  }
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme-color', targetColor);
     document.body.setAttribute('data-theme-color', targetColor);
@@ -2334,6 +2361,7 @@ export const syncClienteConfigListener = () => {
       if (ui.temaHeaderGiorno !== undefined) {
         temaHeaderGiornoGlobal.value = ui.temaHeaderGiorno;
         localStorage.setItem('woapp_tema_header_giorno', ui.temaHeaderGiorno);
+        localStorage.setItem('woapp_tema_header_giorno_' + atletaId, ui.temaHeaderGiorno);
         if (typeof document !== 'undefined') {
           document.documentElement.setAttribute('data-theme-color', ui.temaHeaderGiorno);
           document.body.setAttribute('data-theme-color', ui.temaHeaderGiorno);
@@ -2342,10 +2370,11 @@ export const syncClienteConfigListener = () => {
       } else {
         const sesso = getSessoAtleta(atletaId);
         const defaultColor = getTemaDefaultPerSesso(sesso);
-        const currentSaved = localStorage.getItem('woapp_tema_header_giorno');
-        const finalColor = currentSaved || defaultColor || 'arancio';
+        const savedAthlete = localStorage.getItem('woapp_tema_header_giorno_' + atletaId);
+        const finalColor = savedAthlete || defaultColor || 'arancio';
         temaHeaderGiornoGlobal.value = finalColor;
         localStorage.setItem('woapp_tema_header_giorno', finalColor);
+        localStorage.setItem('woapp_tema_header_giorno_' + atletaId, finalColor);
         if (typeof document !== 'undefined') {
           document.documentElement.setAttribute('data-theme-color', finalColor);
           document.body.setAttribute('data-theme-color', finalColor);
@@ -2396,10 +2425,11 @@ export const syncClienteConfigListener = () => {
     } else {
       const sesso = getSessoAtleta(atletaId);
       const defaultColor = getTemaDefaultPerSesso(sesso);
-      const currentSaved = localStorage.getItem('woapp_tema_header_giorno');
-      const finalColor = currentSaved || defaultColor || 'arancio';
+      const savedAthlete = localStorage.getItem('woapp_tema_header_giorno_' + atletaId);
+      const finalColor = savedAthlete || defaultColor || 'arancio';
       temaHeaderGiornoGlobal.value = finalColor;
       localStorage.setItem('woapp_tema_header_giorno', finalColor);
+      localStorage.setItem('woapp_tema_header_giorno_' + atletaId, finalColor);
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute('data-theme-color', finalColor);
         document.body.setAttribute('data-theme-color', finalColor);

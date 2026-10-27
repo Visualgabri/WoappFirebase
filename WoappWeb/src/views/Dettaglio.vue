@@ -6,7 +6,7 @@
       <div class="d-flex align-center justify-space-between appsheet-top-bar mb-0">
         <v-btn
           icon
-          color="orange-darken-3"
+          color="primary"
           variant="text"
           @click="vaiAdEsercizioPrecedente"
           id="btn-dettaglio-indietro"
@@ -40,7 +40,7 @@
             </v-chip>
             <v-chip
               v-else-if="workout?.num_riga_giorno"
-              color="orange-darken-3"
+              color="primary"
               size="x-small"
               class="font-weight-black text-white mr-1.5 px-1.5 py-0 cursor-pointer elevation-1"
               variant="flat"
@@ -52,7 +52,7 @@
             </v-chip>
             <v-chip
               v-if="workout?.des_settore"
-              color="orange-darken-3"
+              color="primary"
               variant="tonal"
               size="x-small"
               class="font-weight-black mr-1.5 px-1.5 py-0"
@@ -73,10 +73,10 @@
             </v-chip>
             <br v-if="workout?.num_riga_giorno || workout?.des_settore || infoSuperset.inSuperset">
             <span v-if="trendFreccia" :class="trendFreccia === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap; vertical-align: middle;">{{ trendFreccia }}</span><span style="vertical-align: middle;">{{ (workout?.flg_ex_mai_fatto === 'false' || workout?.flg_ex_mai_fatto === false) && String(workout?.num_scheda) !== '1' ? '✨' : '' }}{{ workout?.des_esercizio || 'Dettaglio Esercizio' }}</span> <span v-if="workout?.des_esercizio_2 && !parsedTut && !isVolumeString(workout.des_esercizio_2) && !parsedRmt(workout.des_esercizio_2)" class="text-caption text-muted font-weight-regular" style="font-size: 0.78em; opacity: 0.8; vertical-align: middle;">{{ workout.des_esercizio_2 }}</span>
-            <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="orange" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto" style="vertical-align: middle;">mdi-video</v-icon>
+            <v-icon v-if="workout?.flg_video === 'true' || workout?.flg_video === true" color="primary" :size="layoutCorrente === 'super_compatto' ? 14 : (layoutCorrente === 'compatto' ? 16 : 18)" class="ml-1.5 align-center" title="Video richiesto" style="vertical-align: middle;">mdi-video</v-icon>
             <v-chip
               v-if="workout?.des_rec_report"
-              color="orange-darken-3"
+              color="primary"
               variant="flat"
               size="x-small"
               class="font-weight-black text-white ml-1.5 px-2 py-0.5"
@@ -94,7 +94,7 @@
               <template v-slot:activator="{ props }">
                 <v-btn
                   icon
-                  color="orange-darken-3"
+                  color="primary"
                   variant="text"
                   v-bind="props"
                   title="Opzioni Esercizio"

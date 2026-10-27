@@ -38,7 +38,7 @@ export default defineConfig({
         name: 'FlexCoach - La Tua Scheda Palestra',
         short_name: 'FlexCoach',
         description: 'Traccia i tuoi allenamenti, gestisci i carichi e analizza i volumi in palestra',
-        theme_color: '#ea580c',
+        theme_color: '#0f172a',
         background_color: '#030712',
         display: 'standalone',
         orientation: 'portrait',

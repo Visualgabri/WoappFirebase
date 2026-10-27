@@ -652,6 +652,12 @@ export const estraiPesoDaInput = (str, options = {}) => {
       return String(num1);
     }
 
+    const hasExplicitReps = !!matchSxR[3];
+    // Se è specificato esplicitamente 'r'/'reps' (es. "10x6r", "8x10r"), num2 sono le reps e num1 è il carico
+    if (hasExplicitReps && num1 > 0 && num2 > 0) {
+      return String(num1);
+    }
+
     // Se num1 è un intero tipico di serie (1-10) senza indicazione di kg e num2 <= 50:
     // è una prescrizione o indicazione di serie x reps (es. 4x6, 5x5, 6x4, 6x5, 3x4, 3x10, 10x10), NON un carico in kg!
     if (Number.isInteger(num1) && num1 <= 10 && num2 <= 50) {

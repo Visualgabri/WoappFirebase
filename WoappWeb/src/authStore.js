@@ -86,28 +86,35 @@ export const getThemeHex = (themeColor) => {
   }
 };
 
-// Aggiorna dinamicamente tutti i meta tag theme-color (generico e con media query dark/light per smartphone)
-export const updateMetaThemeColor = (colorHex) => {
+// Aggiorna dinamicamente tutti i meta tag theme-color per smartphone (evita barre arancioni spurie sulla barra di sistema Android)
+export const updateMetaThemeColor = (colorHex = null) => {
   if (typeof document === 'undefined') return;
   
+  const isLight = (currentTheme?.value === 'light') || (document.documentElement.getAttribute('data-theme') === 'light');
+  const navColor = isLight ? '#ffffff' : '#0f172a';
+
   // 1. Rimuovi tutti i vecchi tag theme-color per forzare il browser (Chrome/Android) a recepire la mutazione DOM
   const oldMetas = document.querySelectorAll('meta[name="theme-color"]');
   oldMetas.forEach((m) => m.remove());
 
-  // 2. Crea il meta tag generico
+  // 2. Crea il meta tag generico con il colore coerente alla barra inferiore dell'app
   const genericMeta = document.createElement('meta');
   genericMeta.name = 'theme-color';
-  genericMeta.content = colorHex;
+  genericMeta.content = navColor;
   document.head.appendChild(genericMeta);
 
-  // 3. Crea i tag con media query (richiesti da Android in dark mode o light mode per la status bar)
-  ['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)'].forEach((media) => {
-    const mediaMeta = document.createElement('meta');
-    mediaMeta.name = 'theme-color';
-    mediaMeta.setAttribute('media', media);
-    mediaMeta.content = colorHex;
-    document.head.appendChild(mediaMeta);
-  });
+  // 3. Crea i tag con media query (dark / light per status bar e navigation bar di sistema)
+  const darkMeta = document.createElement('meta');
+  darkMeta.name = 'theme-color';
+  darkMeta.setAttribute('media', '(prefers-color-scheme: dark)');
+  darkMeta.content = '#0f172a';
+  document.head.appendChild(darkMeta);
+
+  const lightMeta = document.createElement('meta');
+  lightMeta.name = 'theme-color';
+  lightMeta.setAttribute('media', '(prefers-color-scheme: light)');
+  lightMeta.content = '#ffffff';
+  document.head.appendChild(lightMeta);
 };
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
@@ -151,6 +158,7 @@ export const setTheme = (themeName, vuetifyInstance = null) => {
     document.body.setAttribute('data-theme', targetTheme);
     document.documentElement.setAttribute('data-light-style', currentLightStyle.value);
     document.body.setAttribute('data-light-style', currentLightStyle.value);
+    updateMetaThemeColor();
   }
 
   if (vuetifyInstance && vuetifyInstance.theme && vuetifyInstance.theme.global) {

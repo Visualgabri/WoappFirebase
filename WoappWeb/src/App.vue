@@ -698,8 +698,8 @@
           <!-- Header Pulito ed Elegante con Tasto Chiudi 'X' -->
           <div class="pa-4 pb-3 d-flex align-center justify-space-between border-bottom-soft flex-shrink-0" style="background: rgba(15, 23, 42, 0.7);">
             <div class="d-flex align-center gap-2">
-              <v-icon :color="deployVersionInfo?.tipo === 'messaggio' ? (isMessaggioGradimenti ? 'amber-lighten-2' : 'purple-lighten-2') : 'orange-lighten-2'" size="22" class="flex-shrink-0">
-                {{ deployVersionInfo?.tipo === 'messaggio' ? (isMessaggioGradimenti ? 'mdi-star-shooting' : 'mdi-message-text-outline') : 'mdi-rocket-launch-outline' }}
+              <v-icon :color="deployVersionInfo?.tipo === 'messaggio' ? (isMessaggioGradimenti ? 'amber-lighten-2' : (isMessaggioChiusuraSettimana ? 'green-lighten-2' : 'purple-lighten-2')) : 'orange-lighten-2'" size="22" class="flex-shrink-0">
+                {{ deployVersionInfo?.tipo === 'messaggio' ? (isMessaggioGradimenti ? 'mdi-star-shooting' : (isMessaggioChiusuraSettimana ? 'mdi-check-decagram-outline' : 'mdi-message-text-outline')) : 'mdi-rocket-launch-outline' }}
               </v-icon>
               <h2 class="text-subtitle-1 font-weight-black text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; color: #ffffff !important;">
                 {{ deployVersionInfo?.titolo ? deployVersionInfo.titolo.replace(/^🚀\s*/, '') : (deployVersionInfo?.tipo === 'messaggio' ? 'Messaggio dal Coach' : 'Nuovo Aggiornamento') }}
@@ -755,6 +755,36 @@
                 >
                   <v-icon start size="20">mdi-star</v-icon>
                   ⭐ APRI LISTA ESERCIZI DA VOTARE
+                </v-btn>
+
+                <v-btn
+                  color="grey-darken-3"
+                  block
+                  size="small"
+                  variant="tonal"
+                  rounded="xl"
+                  class="font-weight-bold text-none text-slate-300"
+                  style="height: 34px; font-size: 0.80rem;"
+                  @click="chiudiBannerNotifica"
+                >
+                  HO CAPITO / CHIUDI
+                </v-btn>
+              </div>
+
+              <!-- SE È UN MESSAGGIO PER CHIUSURA SETTIMANA / WORKOUT: Tasto primario per andare al Tab Workout! -->
+              <div v-else-if="isMessaggioChiusuraSettimana" class="d-flex flex-column gap-2">
+                <v-btn
+                  color="green-darken-2"
+                  block
+                  size="large"
+                  variant="flat"
+                  rounded="xl"
+                  class="font-weight-black text-none text-white elevation-6"
+                  style="background: linear-gradient(135deg, #15803d, #22c55e) !important; height: 46px; font-size: 0.90rem;"
+                  @click="vaiAWorkouts"
+                >
+                  <v-icon start size="20">mdi-dumbbell</v-icon>
+                  🏋️ VAI AL TAB WORKOUT
                 </v-btn>
 
                 <v-btn
@@ -829,11 +859,26 @@ const isMessaggioGradimenti = computed(() => {
   return tit.includes('gradiment') || tit.includes('feeling') || msg.includes('gradiment') || msg.includes('feeling');
 });
 
+const isMessaggioChiusuraSettimana = computed(() => {
+  if (deployVersionInfo.value?.tipo !== 'messaggio') return false;
+  if (deployVersionInfo.value?.azione === 'apri_workouts') return true;
+  const tit = (deployVersionInfo.value?.titolo || '').toLowerCase();
+  const msg = (deployCustomNoteForMe.value || deployVersionInfo.value?.message_general || '').toLowerCase();
+  return tit.includes('chius') || tit.includes('workout') || msg.includes('chiudere il workout') || msg.includes('settimana completata');
+});
+
 const vaiAListaGradimenti = () => {
   chiudiBannerNotifica();
   mostraDialogGradimentiGlobal.value = true;
   if (router.currentRoute.value.path !== '/home') {
     router.push({ path: '/home', query: { openGradimenti: 'true', t: Date.now() } });
+  }
+};
+
+const vaiAWorkouts = () => {
+  chiudiBannerNotifica();
+  if (router.currentRoute.value.path !== '/workouts') {
+    router.push('/workouts');
   }
 };
 

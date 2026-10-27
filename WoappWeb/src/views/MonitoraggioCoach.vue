@@ -310,6 +310,18 @@
               <v-list class="card-glass rounded-xl py-1" elevation="4">
                 <v-list-item
                   density="compact"
+                  prepend-icon="mdi-check-circle-outline"
+                  title="Promemoria Chiusura (WhatsApp)"
+                  @click="inviaPromemoriaChiusuraWhatsApp(cliente)"
+                ></v-list-item>
+                <v-list-item
+                  density="compact"
+                  prepend-icon="mdi-bell-ring-outline"
+                  title="Promemoria Chiusura (In-App)"
+                  @click="inviaPromemoriaChiusuraInApp(cliente)"
+                ></v-list-item>
+                <v-list-item
+                  density="compact"
                   prepend-icon="mdi-refresh"
                   title="Ricalcola da STORYBOARD"
                   @click="ricalcolaSingolo(cliente)"
@@ -523,6 +535,27 @@ const apriWhatsAppAtleta = (cliente) => {
 
   const url = `https://wa.me/?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');
+};
+
+// Invio rapido del promemoria di chiusura settimana su WhatsApp
+const inviaPromemoriaChiusuraWhatsApp = (cliente) => {
+  const rawNome = cliente.nome || cliente.nomeCompleto || 'Atleta';
+  const nome = rawNome.trim().split(' ')[0];
+  const messaggio = `Ciao ${nome}! Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo il tuo programma rimarrà sempre sincronizzato e aggiornato!`;
+  const url = `https://wa.me/?text=${encodeURIComponent(messaggio)}`;
+  window.open(url, '_blank');
+};
+
+// Reindirizzamento a Impostazioni per invio notifica in-app con template precompilato
+const inviaPromemoriaChiusuraInApp = (cliente) => {
+  router.push({
+    path: '/impostazioni',
+    query: {
+      action: 'promemoria_chiusura',
+      atletaId: String(cliente.id),
+      t: Date.now()
+    }
+  });
 };
 
 // Filtraggio e Ordinamento Clienti

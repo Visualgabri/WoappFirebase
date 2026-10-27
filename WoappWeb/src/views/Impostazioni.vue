@@ -866,34 +866,77 @@
             ></v-select>
           </div>
 
-          <!-- Modello rapido Promemoria Gradimenti & Feeling -->
-          <div class="mb-2 d-flex align-center justify-space-between flex-wrap gap-1">
-            <span class="text-caption font-weight-bold text-purple-lighten-2" style="font-size: 0.65rem;">Modello Rapido Promemoria</span>
-            <div class="d-flex align-center gap-1">
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                color="amber-accent-3"
-                rounded="pill"
-                class="font-weight-black text-none px-2"
-                style="font-size: 0.64rem; height: 23px; border: 1px solid rgba(251, 191, 36, 0.4); background: rgba(245, 158, 11, 0.12);"
-                @click="impostaTemplateGradimenti"
-                title="Compila automaticamente l'invito a inserire gradimenti e feeling"
-              >
-                <v-icon start size="13" color="amber-accent-2">mdi-star-shooting</v-icon>
-                ⭐ Promemoria Gradimenti & Feeling
-              </v-btn>
-              <v-btn
-                icon
-                size="x-small"
-                variant="text"
-                color="amber-lighten-2"
-                style="width: 23px; height: 23px;"
-                @click="apriListaEserciziGradimenti"
-                title="Apri lista esercizi gradimenti in Home"
-              >
-                <v-icon size="14">mdi-format-list-checks</v-icon>
-              </v-btn>
+          <!-- Modelli Rapidi Promemoria: Gradimenti & Chiusura Settimana -->
+          <div class="mb-2 d-flex flex-column gap-1.5">
+            <span class="text-caption font-weight-bold text-purple-lighten-2" style="font-size: 0.65rem;">Modelli Rapidi Promemoria</span>
+            <div class="d-flex align-center flex-wrap gap-1.5">
+              <!-- 1. Promemoria Gradimenti & Feeling -->
+              <div class="d-flex align-center gap-1">
+                <v-btn
+                  size="x-small"
+                  variant="tonal"
+                  color="amber-accent-3"
+                  rounded="pill"
+                  class="font-weight-black text-none px-2"
+                  style="font-size: 0.64rem; height: 24px; border: 1px solid rgba(251, 191, 36, 0.4); background: rgba(245, 158, 11, 0.12);"
+                  @click="impostaTemplateGradimenti"
+                  title="Compila automaticamente l'invito a inserire gradimenti e feeling"
+                >
+                  <v-icon start size="13" color="amber-accent-2">mdi-star-shooting</v-icon>
+                  ⭐ Promemoria Gradimenti
+                </v-btn>
+                <v-btn
+                  icon
+                  size="x-small"
+                  variant="text"
+                  color="amber-lighten-2"
+                  style="width: 22px; height: 22px;"
+                  @click="apriListaEserciziGradimenti"
+                  title="Apri lista esercizi gradimenti in Home"
+                >
+                  <v-icon size="14">mdi-format-list-checks</v-icon>
+                </v-btn>
+              </div>
+
+              <!-- 2. Promemoria Chiusura Settimana Workout -->
+              <div class="d-flex align-center gap-1">
+                <v-btn
+                  size="x-small"
+                  variant="tonal"
+                  color="green-accent-3"
+                  rounded="pill"
+                  class="font-weight-black text-none px-2"
+                  style="font-size: 0.64rem; height: 24px; border: 1px solid rgba(74, 222, 128, 0.4); background: rgba(34, 197, 94, 0.12);"
+                  @click="impostaTemplateChiusuraSettimana"
+                  title="Compila automaticamente il promemoria per chiudere la settimana completata"
+                >
+                  <v-icon start size="13" color="green-accent-3">mdi-check-circle-outline</v-icon>
+                  ✅ Chiudi Settimana
+                </v-btn>
+                <v-btn
+                  icon
+                  size="x-small"
+                  variant="text"
+                  color="green-lighten-2"
+                  style="width: 22px; height: 22px;"
+                  @click="apriWorkoutsDaImpostazioni"
+                  title="Apri Tab Workouts"
+                >
+                  <v-icon size="14">mdi-dumbbell</v-icon>
+                </v-btn>
+                <v-btn
+                  icon
+                  size="x-small"
+                  variant="text"
+                  color="green-accent-4"
+                  style="width: 22px; height: 22px;"
+                  @click="inviaTemplateChiusuraWhatsApp"
+                  title="Invia messaggio di chiusura settimana su WhatsApp all'atleta selezionato"
+                  :disabled="!atletaDeployTargetForm || atletaDeployTargetForm === 'tutti'"
+                >
+                  <v-icon size="14">mdi-whatsapp</v-icon>
+                </v-btn>
+              </div>
             </div>
           </div>
 
@@ -1299,7 +1342,7 @@
 
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { usePwaInstall } from '../utils/usePwaInstall.js';
 import { useTheme } from 'vuetify';
 import { collection, query, where, getDocs, writeBatch, doc, getDoc } from 'firebase/firestore';
@@ -1361,6 +1404,7 @@ import {
 } from '../authStore.js';
 
 const router = useRouter();
+const route = useRoute();
 const vuetifyTheme = useTheme();
 
 const {
@@ -1476,6 +1520,25 @@ onMounted(async () => {
   if (ruolo.value === 'coach') {
     await caricaDatiAtleti();
   }
+  if (route.query?.action === 'promemoria_chiusura') {
+    activeTab.value = 'generali';
+    tipoNotificaForm.value = 'messaggio';
+    if (route.query.atletaId) {
+      atletaDeployTargetForm.value = String(route.query.atletaId);
+    }
+    impostaTemplateChiusuraSettimana();
+  }
+});
+
+watch(() => route.query, (q) => {
+  if (q?.action === 'promemoria_chiusura') {
+    activeTab.value = 'generali';
+    tipoNotificaForm.value = 'messaggio';
+    if (q.atletaId) {
+      atletaDeployTargetForm.value = String(q.atletaId);
+    }
+    impostaTemplateChiusuraSettimana();
+  }
 });
 
 // Computed per la lista atleti esclusiva dei messaggi individuali (SENZA "Tutti gli Atleti" e solo attivi)
@@ -1542,10 +1605,53 @@ const getNomeAtletaTarget = (id) => {
   return nome ? nome.toUpperCase() : `ATLETA #${id}`;
 };
 
+const getNomeAtletaTargetCapitalized = (id) => {
+  if (!id || id === 'tutti') return '';
+  const raw = getNomeAtleta(id) || '';
+  if (!raw) return '';
+  const primoNome = raw.trim().split(' ')[0];
+  return primoNome.charAt(0).toUpperCase() + primoNome.slice(1).toLowerCase();
+};
+
 const impostaTemplateGradimenti = () => {
   titoloDeployForm.value = '⭐ Promemoria Gradimenti & Feeling';
-  messaggioDeployGeneraleForm.value = 'Ricordati di inserire i gradimenti e il feeling per gli esercizi svolti! Trovi la lista rapida direttamente nella Home oppure puoi inserire i voti in fondo a ciascun esercizio.';
+  const nomeTarget = getNomeAtletaTargetCapitalized(atletaDeployTargetForm.value);
+  const saluto = nomeTarget ? `Ciao ${nomeTarget}! ` : '';
+  messaggioDeployGeneraleForm.value = `${saluto}Ricordati di inserire i gradimenti e il feeling per gli esercizi svolti! Trovi la lista rapida direttamente nella Home oppure puoi inserire i voti in fondo a ciascun esercizio.`;
 };
+
+const impostaTemplateChiusuraSettimana = () => {
+  titoloDeployForm.value = '✅ Promemoria: Chiudi il tuo Workout';
+  const nomeTarget = getNomeAtletaTargetCapitalized(atletaDeployTargetForm.value);
+  const saluto = nomeTarget ? `Ciao ${nomeTarget}!` : 'Ciao!';
+  messaggioDeployGeneraleForm.value = `${saluto} Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo i tuoi progressi saranno sempre registrati e aggiornati!`;
+};
+
+const apriWorkoutsDaImpostazioni = () => {
+  if (atletaDeployTargetForm.value && atletaDeployTargetForm.value !== 'tutti') {
+    selectedAthlete.value = String(atletaDeployTargetForm.value);
+  }
+  router.push('/workouts');
+};
+
+const inviaTemplateChiusuraWhatsApp = () => {
+  if (!messaggioDeployGeneraleForm.value || !messaggioDeployGeneraleForm.value.includes('settimana completata')) {
+    impostaTemplateChiusuraSettimana();
+  }
+  const msgToSend = messaggioDeployGeneraleForm.value;
+  const url = `https://wa.me/?text=${encodeURIComponent(msgToSend)}`;
+  window.open(url, '_blank');
+};
+
+watch(atletaDeployTargetForm, (nuovoId) => {
+  if (tipoNotificaForm.value === 'messaggio' && messaggioDeployGeneraleForm.value) {
+    if (messaggioDeployGeneraleForm.value.includes('settimana completata') && messaggioDeployGeneraleForm.value.includes('Ricordati di chiudere')) {
+      const nomeTarget = getNomeAtletaTargetCapitalized(nuovoId);
+      const saluto = nomeTarget ? `Ciao ${nomeTarget}!` : 'Ciao!';
+      messaggioDeployGeneraleForm.value = messaggioDeployGeneraleForm.value.replace(/^Ciao.*?!/, saluto);
+    }
+  }
+});
 
 const apriListaEserciziGradimenti = () => {
   mostraDialogGradimentiGlobal.value = true;
@@ -1564,13 +1670,24 @@ const eseguiInvioNotificaDeploy = async () => {
       (messaggioDeployGeneraleForm.value || '').toLowerCase().includes('gradiment')
     );
 
+    const isChiusuraSettimana = tipoNotificaForm.value === 'messaggio' && (
+      (titoloDeployForm.value || '').toLowerCase().includes('chius') ||
+      (titoloDeployForm.value || '').toLowerCase().includes('workout') ||
+      (messaggioDeployGeneraleForm.value || '').toLowerCase().includes('chiudere il workout') ||
+      (messaggioDeployGeneraleForm.value || '').toLowerCase().includes('settimana completata')
+    );
+
+    let azione = null;
+    if (isGradimenti) azione = 'apri_gradimenti';
+    else if (isChiusuraSettimana) azione = 'apri_workouts';
+
     const payload = {
       tipo: tipoNotificaForm.value,
       titolo: isGuida ? '💡 Consiglio del Coach' : titoloDeployForm.value,
       message_general: isGuida ? 'Come scrivere i pesi nelle caselle' : messaggioDeployGeneraleForm.value,
       target_atleta_id: targetId,
       notes_per_athlete: {},
-      azione: isGradimenti ? 'apri_gradimenti' : null
+      azione: azione
     };
 
     if (targetId && notaDeployPersonalizzataForm.value?.trim()) {

@@ -413,7 +413,7 @@
                     </h3>
                   </div>
                   <!-- Promemoria Chiusura Settimana -->
-                  <div v-if="mostraPromemoriaChiusura" class="mt-1">
+                  <div v-if="mostraPromemoriaChiusura" class="mt-1 d-flex align-center gap-1.5 flex-wrap">
                     <v-chip
                       size="x-small"
                       class="font-weight-black px-1.5 animate-pulse promemoria-chiusura-chip elevation-1"
@@ -425,6 +425,22 @@
                     >
                       ⚠️ SETTIMANA DA CHIUDERE
                     </v-chip>
+                    <v-btn
+                      v-if="ruolo === 'coach'"
+                      size="x-small"
+                      variant="flat"
+                      color="green-darken-3"
+                      class="font-weight-bold text-white px-1.5 text-none rounded"
+                      :style="{
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem',
+                        height: layoutEsercizi === 'super_compatto' ? '15px' : '18px'
+                      }"
+                      @click.stop="inviaPromemoriaChiusuraWhatsAppCoach"
+                      title="Invia promemoria chiusura workout all'atleta su WhatsApp"
+                    >
+                      <v-icon start size="11" class="mr-0.5">mdi-whatsapp</v-icon>
+                      Ricorda Chiusura
+                    </v-btn>
                   </div>
                   <!-- Progresso Settimane (Tracker Week) -->
                   <div 
@@ -616,7 +632,7 @@
                     </h3>
                   </div>
                   <!-- Promemoria Chiusura Settimana -->
-                  <div v-if="mostraPromemoriaChiusura" class="mt-1">
+                  <div v-if="mostraPromemoriaChiusura" class="mt-1 d-flex align-center gap-1.5 flex-wrap">
                     <v-chip
                       size="x-small"
                       class="font-weight-black px-1.5 animate-pulse promemoria-chiusura-chip elevation-1"
@@ -628,6 +644,22 @@
                     >
                       ⚠️ SETTIMANA DA CHIUDERE
                     </v-chip>
+                    <v-btn
+                      v-if="ruolo === 'coach'"
+                      size="x-small"
+                      variant="flat"
+                      color="green-darken-3"
+                      class="font-weight-bold text-white px-1.5 text-none rounded"
+                      :style="{
+                        fontSize: layoutEsercizi === 'super_compatto' ? '0.52rem' : '0.58rem',
+                        height: layoutEsercizi === 'super_compatto' ? '15px' : '18px'
+                      }"
+                      @click.stop="inviaPromemoriaChiusuraWhatsAppCoach"
+                      title="Invia promemoria chiusura workout all'atleta su WhatsApp"
+                    >
+                      <v-icon start size="11" class="mr-0.5">mdi-whatsapp</v-icon>
+                      Ricorda Chiusura
+                    </v-btn>
                   </div>
                   <!-- Progresso Settimane (Tracker Week) -->
                   <div 
@@ -2118,6 +2150,32 @@
                 </div>
                 <div class="text-caption text-muted mt-0.5 text-truncate">
                   Audit approfondito anomalie, progressioni e carichi
+                </div>
+              </div>
+            </div>
+            <v-icon color="grey-lighten-1" size="20" class="flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+          </div>
+
+          <!-- Promemoria Chiusura Settimana (Coach Only) -->
+          <div 
+            v-if="ruolo === 'coach'"
+            class="action-sheet-row d-flex align-center justify-space-between pa-3 rounded-xl border cursor-pointer"
+            @click="inviaPromemoriaChiusuraWhatsAppCoach"
+            id="btn-sheet-promemoria-chiusura"
+          >
+            <div class="d-flex align-center gap-3 min-width-0">
+              <v-avatar color="green-lighten-5" size="42" class="border-green flex-shrink-0">
+                <v-icon color="green-darken-3" size="22">mdi-whatsapp</v-icon>
+              </v-avatar>
+              <div class="min-width-0">
+                <div class="text-body-2 font-weight-black text-slate-dark d-flex align-center gap-1.5">
+                  <span>Promemoria Chiusura Settimana</span>
+                  <v-chip size="x-small" color="green-darken-3" variant="flat" class="font-weight-bold text-white px-1.5 py-0" style="height: 18px; font-size: 0.58rem;">
+                    WhatsApp
+                  </v-chip>
+                </div>
+                <div class="text-caption text-muted mt-0.5 text-truncate">
+                  Invia promemoria chiusura su WhatsApp all'atleta
                 </div>
               </div>
             </div>
@@ -4442,6 +4500,16 @@ const inviaWhatsAppRichiestaScheda = () => {
   const salutoAtleta = nomeAtleta ? ` (${nomeAtleta})` : '';
   const messaggio = `Ciao Coach Gabriele${salutoAtleta}, ho completato tutte le 6 settimane del mesociclo (Scheda ${nScheda}). Posso chiederti se è pronta la prossima scheda di allenamento? Grazie!`;
   const url = `https://wa.me/${numeroCoach}?text=${encodeURIComponent(messaggio)}`;
+  window.open(url, '_blank');
+};
+
+const inviaPromemoriaChiusuraWhatsAppCoach = () => {
+  vibraTattile(12);
+  const atletaId = selectedAthlete.value || atletaSelezionato.value;
+  const rawNome = getNomeAtleta(atletaId) || '';
+  const nome = rawNome ? (rawNome.trim().split(' ')[0].charAt(0).toUpperCase() + rawNome.trim().split(' ')[0].slice(1).toLowerCase()) : 'Atleta';
+  const messaggio = `Ciao ${nome}! Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo il tuo programma rimarrà sempre sincronizzato e aggiornato!`;
+  const url = `https://wa.me/?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');
 };
 

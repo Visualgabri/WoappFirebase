@@ -86,30 +86,37 @@ export const getThemeHex = (themeColor) => {
   }
 };
 
-// Aggiorna dinamicamente tutti i meta tag theme-color per smartphone (segue fedelmente il colore del tema principale attivo)
-export const updateMetaThemeColor = (colorHex = null) => {
+// Aggiorna dinamicamente tutti i meta tag theme-color per smartphone (neutro e integrato con il tema scuro/chiaro dell'app)
+export const updateMetaThemeColor = () => {
   if (typeof document === 'undefined') return;
-  
-  const currentHex = colorHex || getThemeHex(temaHeaderGiornoGlobal?.value || 'arancio');
+
+  const isLight = (currentTheme?.value === 'light') || 
+                  (document.documentElement.getAttribute('data-theme') === 'light') ||
+                  (localStorage.getItem('userTheme') === 'light');
+  const navColor = isLight ? '#ffffff' : '#030712';
 
   // 1. Rimuovi tutti i vecchi tag theme-color per forzare il browser (Chrome/Android) a recepire la mutazione DOM
   const oldMetas = document.querySelectorAll('meta[name="theme-color"]');
   oldMetas.forEach((m) => m.remove());
 
-  // 2. Crea il meta tag generico con il colore del tema principale
+  // 2. Crea il meta tag generico coerente con lo sfondo dell'app
   const genericMeta = document.createElement('meta');
   genericMeta.name = 'theme-color';
-  genericMeta.content = currentHex;
+  genericMeta.content = navColor;
   document.head.appendChild(genericMeta);
 
   // 3. Crea i tag con media query (dark / light per status bar e navigation bar di sistema Android)
-  ['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)'].forEach((media) => {
-    const mediaMeta = document.createElement('meta');
-    mediaMeta.name = 'theme-color';
-    mediaMeta.setAttribute('media', media);
-    mediaMeta.content = currentHex;
-    document.head.appendChild(mediaMeta);
-  });
+  const darkMeta = document.createElement('meta');
+  darkMeta.name = 'theme-color';
+  darkMeta.setAttribute('media', '(prefers-color-scheme: dark)');
+  darkMeta.content = '#030712';
+  document.head.appendChild(darkMeta);
+
+  const lightMeta = document.createElement('meta');
+  lightMeta.name = 'theme-color';
+  lightMeta.setAttribute('media', '(prefers-color-scheme: light)');
+  lightMeta.content = '#ffffff';
+  document.head.appendChild(lightMeta);
 };
 
 // Inizializza lo stato dal localStorage per mantenere la sessione attiva al refresh
@@ -186,7 +193,7 @@ if (typeof document !== 'undefined') {
   document.documentElement.setAttribute('data-theme-color', initThemeColor);
   document.body.setAttribute('data-theme-color', initThemeColor);
 
-  updateMetaThemeColor(getThemeHex(initThemeColor));
+  updateMetaThemeColor();
 }
 
 // Stato di selezione globale Atleta e Scheda (in stile AppSheet)
@@ -2102,7 +2109,7 @@ watch(temaHeaderGiornoGlobal, (newVal) => {
     document.documentElement.setAttribute('data-theme-color', targetColor);
     document.body.setAttribute('data-theme-color', targetColor);
 
-    updateMetaThemeColor(getThemeHex(targetColor));
+    updateMetaThemeColor();
   }
   salvaClienteConfigFirestore(true);
 });
@@ -2352,7 +2359,7 @@ export const syncClienteConfigListener = () => {
         if (typeof document !== 'undefined') {
           document.documentElement.setAttribute('data-theme-color', ui.temaHeaderGiorno);
           document.body.setAttribute('data-theme-color', ui.temaHeaderGiorno);
-          updateMetaThemeColor(getThemeHex(ui.temaHeaderGiorno));
+          updateMetaThemeColor();
         }
       } else {
         const sesso = getSessoAtleta(atletaId);
@@ -2365,7 +2372,7 @@ export const syncClienteConfigListener = () => {
         if (typeof document !== 'undefined') {
           document.documentElement.setAttribute('data-theme-color', finalColor);
           document.body.setAttribute('data-theme-color', finalColor);
-          updateMetaThemeColor(getThemeHex(finalColor));
+          updateMetaThemeColor();
         }
       }
       if (ui.layoutEsercizi !== undefined) {
@@ -2420,7 +2427,7 @@ export const syncClienteConfigListener = () => {
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute('data-theme-color', finalColor);
         document.body.setAttribute('data-theme-color', finalColor);
-        updateMetaThemeColor(getThemeHex(finalColor));
+        updateMetaThemeColor();
       }
       salvaClienteConfigFirestore();
     }

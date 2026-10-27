@@ -1655,7 +1655,7 @@ const cambiaColoreTemaDaImpostazioni = (val) => {
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme-color', val);
     document.body.setAttribute('data-theme-color', val);
-    updateMetaThemeColor(getThemeHex(val));
+    updateMetaThemeColor();
   }
   salvaClienteConfigFirestore(true);
 };

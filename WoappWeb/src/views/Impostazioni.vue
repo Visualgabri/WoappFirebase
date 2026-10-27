@@ -1648,6 +1648,10 @@ const cambiaColoreTemaDaImpostazioni = (val) => {
   vibraTattile(15);
   temaHeaderGiornoGlobal.value = val;
   localStorage.setItem('woapp_tema_header_giorno', val);
+  const atletaId = selectedAthlete.value || idCliente.value || '1';
+  if (atletaId) {
+    localStorage.setItem('woapp_tema_header_giorno_' + atletaId, val);
+  }
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme-color', val);
     document.body.setAttribute('data-theme-color', val);

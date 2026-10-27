@@ -172,11 +172,11 @@ if (typeof document !== 'undefined') {
   const savedThemeGlobal = localStorage.getItem('woapp_tema_header_giorno');
   const validColors = ['arancio', 'blu', 'verde', 'fucsia', 'giallo'];
   
-  let initThemeColor = defaultThemeColor || 'arancio';
+  let initThemeColor = (activeAthlete === '1') ? 'giallo' : (defaultThemeColor || 'arancio');
   if (savedThemeAthlete && validColors.includes(savedThemeAthlete)) {
     initThemeColor = savedThemeAthlete;
-  } else if (savedThemeGlobal && validColors.includes(savedThemeGlobal) && activeAthlete === '1') {
-    initThemeColor = savedThemeGlobal;
+  } else if (savedThemeGlobal && validColors.includes(savedThemeGlobal)) {
+    initThemeColor = (activeAthlete === '1' && savedThemeGlobal === 'blu') ? 'giallo' : savedThemeGlobal;
   }
 
   document.documentElement.setAttribute('data-theme', initTheme);
@@ -193,24 +193,10 @@ if (typeof document !== 'undefined') {
 export const selectedAthlete = ref(localStorage.getItem('selectedAthlete') || '');
 export const selectedSheet = ref(localStorage.getItem('selectedSheet') || '');
 
-// Aggiorna Atleta selezionato globally
+// Aggiorna Atleta selezionato globally (il tema viene caricato direttamente da Firestore in syncClienteConfigListener)
 export const setSelectedAthlete = (val) => {
   selectedAthlete.value = val;
   localStorage.setItem('selectedAthlete', val);
-
-  // Allinea subito tema e theme-color per il nuovo atleta selezionato
-  const sesso = getSessoAtleta(val);
-  const defaultColor = getTemaDefaultPerSesso(sesso);
-  const savedAthlete = localStorage.getItem('woapp_tema_header_giorno_' + val);
-  const finalColor = savedAthlete || defaultColor || 'arancio';
-  temaHeaderGiornoGlobal.value = finalColor;
-  localStorage.setItem('woapp_tema_header_giorno', finalColor);
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme-color', finalColor);
-    document.body.setAttribute('data-theme-color', finalColor);
-    updateMetaThemeColor(getThemeHex(finalColor));
-  }
-
   syncStoryboardListener();
   syncInfortuniListener();
   syncClienteConfigListener();
@@ -1174,15 +1160,15 @@ export const timerThemeGlobal = ref(localStorage.getItem('woapp_timer_theme') ||
 const savedComportamentoPlay = localStorage.getItem('woapp_comportamento_play');
 export const comportamentoPlayGlobal = ref((savedComportamentoPlay && savedComportamentoPlay !== 'auto') ? savedComportamentoPlay : 'evidenzia');
 const activeAthleteInit = localStorage.getItem('selectedAthlete') || '1';
-const defaultThemeColorInit = getTemaDefaultPerSesso(getSessoAtleta(activeAthleteInit));
+const defaultThemeColorInit = (activeAthleteInit === '1') ? 'giallo' : getTemaDefaultPerSesso(getSessoAtleta(activeAthleteInit));
 const savedThemeAthleteInit = localStorage.getItem('woapp_tema_header_giorno_' + activeAthleteInit);
 const savedThemeGlobalInit = localStorage.getItem('woapp_tema_header_giorno');
 const validThemesList = ['arancio', 'blu', 'verde', 'fucsia', 'giallo'];
-let initialThemeVal = defaultThemeColorInit || 'arancio';
+let initialThemeVal = defaultThemeColorInit || 'giallo';
 if (savedThemeAthleteInit && validThemesList.includes(savedThemeAthleteInit)) {
   initialThemeVal = savedThemeAthleteInit;
-} else if (savedThemeGlobalInit && validThemesList.includes(savedThemeGlobalInit) && activeAthleteInit === '1') {
-  initialThemeVal = savedThemeGlobalInit;
+} else if (savedThemeGlobalInit && validThemesList.includes(savedThemeGlobalInit)) {
+  initialThemeVal = (activeAthleteInit === '1' && savedThemeGlobalInit === 'blu') ? 'giallo' : savedThemeGlobalInit;
 }
 export const temaHeaderGiornoGlobal = ref(initialThemeVal);
 
@@ -2105,6 +2091,7 @@ watch(margineBottomGhostNoticeGlobal, (newVal) => {
   salvaConfigurazioniGlobaliFirestore();
 });
 watch(temaHeaderGiornoGlobal, (newVal) => {
+  if (isSyncingClienteConfigFromFirestore) return;
   const targetColor = (newVal === 'blu' || newVal === 'verde' || newVal === 'fucsia' || newVal === 'giallo' || newVal === 'arancio') ? newVal : 'arancio';
   localStorage.setItem('woapp_tema_header_giorno', targetColor);
   const curId = getActiveAtletaId();

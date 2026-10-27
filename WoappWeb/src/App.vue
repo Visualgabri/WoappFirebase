@@ -30,6 +30,21 @@
         </span>
       </div>
 
+      <!-- Se coach, mostra pulsante Monitoraggio Settimane Clienti -->
+      <v-btn
+        v-if="ruolo === 'coach'"
+        icon
+        color="primary"
+        variant="text"
+        class="rounded-lg mr-1.5 btn-header-compact text-theme-primary"
+        to="/monitoraggio"
+        title="Monitoraggio Settimane e Avanzamento Clienti"
+        id="btn-coach-monitor"
+        @click="vibraTattile(8)"
+      >
+        <v-icon size="20">mdi-chart-timeline-variant-shimmer</v-icon>
+      </v-btn>
+
       <!-- Se coach, mostra pulsante Pannello Controllo -->
       <v-btn
         v-if="ruolo === 'coach'"

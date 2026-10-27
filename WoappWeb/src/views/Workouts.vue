@@ -3459,6 +3459,7 @@ import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, get
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio, isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
+import { aggiornaRiepilogoAtletaLive } from '../utils/riepilogoManager.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -6549,6 +6550,15 @@ const impostaChiusuraGiorno = async (w, val) => {
     const docRef = doc(db, 'STORYBOARD', headerGiorno.value.id);
     await setDoc(docRef, { [campoCmp]: valString, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
     console.log("Completamento giorno sincronizzato con Firebase!");
+
+    // Aggiorna riepilogo workout cliente per dashboard coach (in background, non bloccante)
+    if (selectedAthlete.value) {
+      aggiornaRiepilogoAtletaLive({
+        idCliente: selectedAthlete.value,
+        numScheda: selectedSheet.value || schedaSelezionata.value,
+        settimanaCorrente: settimanaAttiva.value || w || 1
+      });
+    }
   } catch (err) {
     console.warn("Errore salvataggio completamento giorno Firebase:", err);
   }

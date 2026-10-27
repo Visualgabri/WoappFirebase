@@ -7477,6 +7477,7 @@ import {
   estraiCaricoAssistenzaElastico,
   estraiRangeRepsDaPrescrizione
 } from '../utils/loadParser.js';
+import { aggiornaRiepilogoAtletaLive } from '../utils/riepilogoManager.js';
 
 // Chart.js e vue-chartjs per lo storico esercizio
 import { Line } from 'vue-chartjs';
@@ -19440,6 +19441,15 @@ const aggiornaDatoECommit = async (updates) => {
     // Carica su Firestore inviando solo i campi modificati (evita conflitti offline/online)
     await updateDoc(docRef, { ...updates, timestamp, timestamp_ute: timestampUte });
     snackbarSalvataggio.value = true;
+
+    // Aggiorna riepilogo workout cliente per dashboard coach (in background, non bloccante)
+    if (workout.value && workout.value.ID_cliente && workout.value.num_scheda) {
+      aggiornaRiepilogoAtletaLive({
+        idCliente: workout.value.ID_cliente,
+        numScheda: workout.value.num_scheda,
+        settimanaCorrente: settimanaAttiva.value || 1
+      });
+    }
   } catch (error) {
     console.error("Errore salvataggio e commit:", error);
   }

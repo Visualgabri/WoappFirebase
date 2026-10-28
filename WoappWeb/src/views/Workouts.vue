@@ -6618,15 +6618,6 @@ const impostaChiusuraGiorno = async (w, val) => {
     const docRef = doc(db, 'STORYBOARD', headerGiorno.value.id);
     await setDoc(docRef, { [campoCmp]: valString, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
     console.log("Completamento giorno sincronizzato con Firebase!");
-
-    // Aggiorna riepilogo workout cliente per dashboard coach (in background, non bloccante)
-    if (selectedAthlete.value) {
-      aggiornaRiepilogoAtletaLive({
-        idCliente: selectedAthlete.value,
-        numScheda: selectedSheet.value || schedaSelezionata.value,
-        settimanaCorrente: settimanaAttiva.value || w || 1
-      });
-    }
   } catch (err) {
     console.warn("Errore salvataggio completamento giorno Firebase:", err);
   }
@@ -6637,6 +6628,24 @@ const impostaChiusuraGiorno = async (w, val) => {
     settimanaAttiva.value = activeW;
     localStorage.setItem('settimanaAttiva_' + selectedAthlete.value, activeW);
     filtraEserciziPerGiorno();
+  }
+
+  // Aggiorna riepilogo workout cliente per dashboard coach (Zero costo letture: dati già in memoria!)
+  if (selectedAthlete.value) {
+    const isMesoCompletato = mesocicloCompletato.value;
+    const righeZero = listaAllenamenti.value.filter(item => parseInt(item.num_riga_giorno) === 0);
+    const totGiorni = righeZero.length;
+    const chiusiWeek = righeZero.filter(h => isCmpTrue(h['cmp' + activeW])).length;
+    const giorniRim = Math.max(0, totGiorni - chiusiWeek);
+
+    aggiornaRiepilogoAtletaLive({
+      idCliente: selectedAthlete.value,
+      numScheda: selectedSheet.value || schedaSelezionata.value,
+      settimanaCorrente: activeW,
+      programmaCompletato: isMesoCompletato,
+      giorniRimanentiWeek: giorniRim,
+      totaleGiorni: totGiorni
+    });
   }
 
   // Notifica all'utente se ci sono esercizi incompleti da recuperare alla chiusura

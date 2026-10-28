@@ -61,17 +61,23 @@ async function runMigration() {
 
     let maxWeek = 1;
     let latestTimestamp = null;
+    let headerRows = [];
+    let giorniTotali = new Set();
 
     sSnap.forEach((docSnap) => {
       const sData = docSnap.data();
+      const g = (sData.des_giorno || '').trim().toUpperCase();
+      if (g) giorniTotali.add(g);
+
+      const rigaNum = parseInt(sData.num_riga_giorno, 10);
+      if (rigaNum === 0) {
+        headerRows.push(sData);
+      }
+
       for (let w = 1; w <= 6; w++) {
         const ins = sData['ins_week' + w];
         if (ins && String(ins).trim() !== '' && String(ins).trim() !== '-') {
           if (w > maxWeek) maxWeek = w;
-        }
-        const isCmp = sData['cmp' + w] === 'SI' || sData['cmp' + w] === true || sData['cmp' + w] === '1';
-        if (isCmp && w >= maxWeek) {
-          maxWeek = Math.min(6, w + 1);
         }
       }
 
@@ -85,20 +91,65 @@ async function runMigration() {
       }
     });
 
+    const isCmpTrue = (val) => val === 'SI' || val === true || val === '1' || val === 1;
+    const activeDays = [...new Set(headerRows.map(h => (h.des_giorno || '').trim().toUpperCase()).filter(Boolean))];
+    const totaleGiorni = activeDays.length || giorniTotali.size || 1;
+
+    let weekAttiva = 1;
+    let tutteChiuse = false;
+    for (let w = 1; w <= 6; w++) {
+      const isChiusa = activeDays.length > 0 && activeDays.every(g => {
+        const h = headerRows.find(item => (item.des_giorno || '').trim().toUpperCase() === g);
+        return h && isCmpTrue(h['cmp' + w]);
+      });
+      if (!isChiusa) {
+        weekAttiva = Math.max(w, maxWeek);
+        break;
+      }
+      if (w === 6 && isChiusa) {
+        tutteChiuse = true;
+        weekAttiva = 6;
+      }
+    }
+
+    const programmaCompletato = tutteChiuse;
+    const settimanaCorrente = Math.min(6, Math.max(1, weekAttiva));
+
+    const chiusiInSettimana = activeDays.filter(g => {
+      const h = headerRows.find(item => (item.des_giorno || '').trim().toUpperCase() === g);
+      return h && isCmpTrue(h['cmp' + settimanaCorrente]);
+    }).length;
+    const giorniRimanenti = programmaCompletato ? 0 : Math.max(0, totaleGiorni - chiusiInSettimana);
+
+    const settimaneTotali = 6;
+    const settimaneMancanti = programmaCompletato ? 0 : Math.max(0, settimaneTotali - settimanaCorrente);
+
+    let percCompletamento = 0;
+    if (programmaCompletato) {
+      percCompletamento = 100;
+    } else {
+      const weekCompletate = Math.max(0, settimanaCorrente - 1);
+      const quotaGiorno = totaleGiorni > 0 ? (chiusiInSettimana / totaleGiorni) : 0;
+      percCompletamento = Math.min(99, Math.round(((weekCompletate + quotaGiorno) / settimaneTotali) * 100));
+    }
+
     const parsedLatestDate = analizzaData(latestTimestamp);
     const payload = {
       num_scheda: String(scheda),
-      settimana_corrente: maxWeek,
-      settimane_totali: 6,
-      settimane_mancanti: Math.max(0, 6 - maxWeek),
-      perc_completamento: Math.round((maxWeek / 6) * 100),
+      settimana_corrente: settimanaCorrente,
+      settimane_totali: settimaneTotali,
+      settimane_mancanti: settimaneMancanti,
+      perc_completamento: percCompletamento,
+      programma_completato: programmaCompletato,
+      giorni_rimanenti_week: giorniRimanenti,
+      totale_giorni_week: totaleGiorni,
       ultimo_inserimento: parsedLatestDate ? parsedLatestDate.toISOString() : null,
       ultimo_inserimento_ute: latestTimestamp ? String(latestTimestamp) : null,
       aggiornato_il: new Date().toISOString()
     };
 
     await doc.ref.set({ riepilogo_workout: payload }, { merge: true });
-    console.log(` -> Salvato: Week ${maxWeek}/6, Mancanti: ${payload.settimane_mancanti}, Ultimo: ${latestTimestamp}`);
+    console.log(` -> Salvato: Week ${settimanaCorrente}/6 (Completato: ${programmaCompletato}, MancantiW6: ${giorniRimanenti}), Ultimo: ${latestTimestamp}`);
     aggiornati++;
   }
 

@@ -159,25 +159,22 @@ export const ricalcolaESalvaStatoAtleta = async (idCliente, numSchedaInput = nul
     let maxWeek = 1;
     let latestTimestamp = null;
     let giorniTotali = new Set();
-    let giorniChiusiPerWeek = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+    let headerRows = [];
 
     sSnap.forEach((docSnap) => {
       const data = docSnap.data();
       const g = (data.des_giorno || '').trim().toUpperCase();
       if (g) giorniTotali.add(g);
 
+      const rigaNum = parseInt(data.num_riga_giorno, 10);
+      if (rigaNum === 0) {
+        headerRows.push(data);
+      }
+
       for (let w = 1; w <= 6; w++) {
         const ins = data['ins_week' + w];
         if (ins && String(ins).trim() !== '' && String(ins).trim() !== '-') {
           if (w > maxWeek) maxWeek = w;
-        }
-
-        const isCmp = data['cmp' + w] === 'SI' || data['cmp' + w] === true || data['cmp' + w] === '1';
-        if (isCmp) {
-          giorniChiusiPerWeek[w] = (giorniChiusiPerWeek[w] || 0) + 1;
-          if (w >= maxWeek) {
-            maxWeek = Math.min(6, w + 1);
-          }
         }
       }
 
@@ -191,22 +188,67 @@ export const ricalcolaESalvaStatoAtleta = async (idCliente, numSchedaInput = nul
       }
     });
 
+    const isCmpTrue = (val) => val === 'SI' || val === true || val === '1' || val === 1;
+
+    // Giorni attivi della scheda (header rows)
+    const activeDays = [...new Set(headerRows.map(h => (h.des_giorno || '').trim().toUpperCase()).filter(Boolean))];
+    const totaleGiorni = activeDays.length || giorniTotali.size || 1;
+
+    // Identifica la settimana attiva e se l'intero mesociclo di 6 settimane è chiuso
+    let weekAttiva = 1;
+    let tutteChiuse = false;
+    for (let w = 1; w <= 6; w++) {
+      const isChiusa = activeDays.length > 0 && activeDays.every(g => {
+        const h = headerRows.find(item => (item.des_giorno || '').trim().toUpperCase() === g);
+        return h && isCmpTrue(h['cmp' + w]);
+      });
+      if (!isChiusa) {
+        weekAttiva = Math.max(w, maxWeek);
+        break;
+      }
+      if (w === 6 && isChiusa) {
+        tutteChiuse = true;
+        weekAttiva = 6;
+      }
+    }
+
+    const programmaCompletato = tutteChiuse;
+    const settimanaCorrente = Math.min(6, Math.max(1, weekAttiva));
+
+    // Conteggio giorni completati e rimanenti nella settimana corrente
+    const chiusiInSettimana = activeDays.filter(g => {
+      const h = headerRows.find(item => (item.des_giorno || '').trim().toUpperCase() === g);
+      return h && isCmpTrue(h['cmp' + settimanaCorrente]);
+    }).length;
+    const giorniRimanenti = programmaCompletato ? 0 : Math.max(0, totaleGiorni - chiusiInSettimana);
+
     const settimaneTotali = 6;
-    const settimaneMancanti = Math.max(0, settimaneTotali - maxWeek);
-    const percCompletamento = Math.min(100, Math.round((maxWeek / settimaneTotali) * 100));
+    const settimaneMancanti = programmaCompletato ? 0 : Math.max(0, settimaneTotali - settimanaCorrente);
+
+    let percCompletamento = 0;
+    if (programmaCompletato) {
+      percCompletamento = 100;
+    } else {
+      const weekCompletate = Math.max(0, settimanaCorrente - 1);
+      const quotaGiorno = totaleGiorni > 0 ? (chiusiInSettimana / totaleGiorni) : 0;
+      percCompletamento = Math.min(99, Math.round(((weekCompletate + quotaGiorno) / settimaneTotali) * 100));
+    }
 
     const statoPayload = {
       num_scheda: String(scheda),
-      settimana_corrente: maxWeek,
+      settimana_corrente: settimanaCorrente,
       settimane_totali: settimaneTotali,
       settimane_mancanti: settimaneMancanti,
       perc_completamento: percCompletamento,
+      programma_completato: programmaCompletato,
+      giorni_rimanenti_week: giorniRimanenti,
+      totale_giorni_week: totaleGiorni,
       ultimo_inserimento: latestTimestamp ? (analizzaDataInserimento(latestTimestamp)?.toISOString() || latestTimestamp) : null,
       ultimo_inserimento_ute: latestTimestamp ? String(latestTimestamp) : null,
       aggiornato_il: new Date().toISOString()
     };
 
-    // Scrivi su Firestore in CLIENTI/{cleanId} con merge
+    // Scrivi su Firestore in CLIENTI/{cleanId} con merge (1 sola scrittura, 0 letture aggiuntive)
     await setDoc(doc(db, 'CLIENTI', cleanId), { riepilogo_workout: statoPayload }, { merge: true });
 
     return statoPayload;
@@ -219,7 +261,14 @@ export const ricalcolaESalvaStatoAtleta = async (idCliente, numSchedaInput = nul
 /**
  * Aggiorna lo stato in background mentre l'atleta si allena (Zero costo aggiuntivo di lettura).
  */
-export const aggiornaRiepilogoAtletaLive = async ({ idCliente, numScheda, settimanaCorrente }) => {
+export const aggiornaRiepilogoAtletaLive = async ({
+  idCliente,
+  numScheda,
+  settimanaCorrente,
+  programmaCompletato = false,
+  giorniRimanentiWeek = null,
+  totaleGiorni = null
+}) => {
   const cleanId = String(idCliente || '').trim();
   if (!cleanId || !numScheda) return;
 
@@ -235,12 +284,29 @@ export const aggiornaRiepilogoAtletaLive = async ({ idCliente, numScheda, settim
     const ss = String(now.getSeconds()).padStart(2, '0');
     const nowUte = `${gg}/${mm}/${aaaa} ${hh}:${min}:${ss}`;
 
+    const isCompletato = Boolean(programmaCompletato);
+    const settimaneMancanti = isCompletato ? 0 : Math.max(0, 6 - week);
+
+    let perc = 0;
+    if (isCompletato) {
+      perc = 100;
+    } else {
+      const weekCompletate = Math.max(0, week - 1);
+      const quotaGiorno = (totaleGiorni && giorniRimanentiWeek !== null && totaleGiorni > 0)
+        ? Math.max(0, totaleGiorni - giorniRimanentiWeek) / totaleGiorni
+        : 0;
+      perc = Math.min(99, Math.round(((weekCompletate + quotaGiorno) / 6) * 100));
+    }
+
     const payload = {
       num_scheda: String(numScheda),
       settimana_corrente: week,
       settimane_totali: 6,
-      settimane_mancanti: Math.max(0, 6 - week),
-      perc_completamento: Math.round((week / 6) * 100),
+      settimane_mancanti: settimaneMancanti,
+      perc_completamento: perc,
+      programma_completato: isCompletato,
+      giorni_rimanenti_week: giorniRimanentiWeek,
+      totale_giorni_week: totaleGiorni,
       ultimo_inserimento: nowIso,
       ultimo_inserimento_ute: nowUte,
       aggiornato_il: nowIso
@@ -248,7 +314,7 @@ export const aggiornaRiepilogoAtletaLive = async ({ idCliente, numScheda, settim
 
     await setDoc(doc(db, 'CLIENTI', cleanId), { riepilogo_workout: payload }, { merge: true });
 
-    // Invalida cache locale per riflettere le modifiche
+    // Invalida cache locale per riflettere le modifiche al prossimo refresh
     localStorage.removeItem(CACHE_TIMESTAMP_KEY);
   } catch (e) {
     console.warn("Aggiornamento riepilogo live saltato:", e);
@@ -317,10 +383,29 @@ export const caricaRiepilogoClientiPerCoach = async (forceRefresh = false) => {
     const riepilogo = data.riepilogo_workout || null;
     const settimanaCorrente = riepilogo?.settimana_corrente || 1;
     const settimaneTotali = riepilogo?.settimane_totali || 6;
-    const settimaneMancanti = riepilogo?.settimane_mancanti !== undefined 
-      ? riepilogo.settimane_mancanti 
-      : Math.max(0, settimaneTotali - settimanaCorrente);
-    const percCompletamento = riepilogo?.perc_completamento || Math.round((settimanaCorrente / settimaneTotali) * 100);
+    const programmaCompletato = riepilogo?.programma_completato === true;
+    const giorniRimanenti = riepilogo?.giorni_rimanenti_week !== undefined ? riepilogo.giorni_rimanenti_week : null;
+    const totaleGiorni = riepilogo?.totale_giorni_week || null;
+
+    // Se non è esplicitamente completato, le settimane mancanti tengono conto della settimana 6 in corso
+    let settimaneMancanti = 0;
+    if (programmaCompletato) {
+      settimaneMancanti = 0;
+    } else if (settimanaCorrente === 6) {
+      settimaneMancanti = 0; // È nella settimana 6, ma programmaCompletato è false
+    } else {
+      settimaneMancanti = Math.max(1, settimaneTotali - settimanaCorrente);
+    }
+
+    // Percentuale di completamento: se non è completato, salvaguarda da falsi 100% di vecchi record
+    let percCompletamento = riepilogo?.perc_completamento !== undefined 
+      ? riepilogo.perc_completamento 
+      : Math.round(((settimanaCorrente - 1) / settimaneTotali) * 100);
+    if (programmaCompletato) {
+      percCompletamento = 100;
+    } else if (percCompletamento >= 100) {
+      percCompletamento = 90; // Fallback protettivo per vecchi record week 6 salvati prima della patch
+    }
 
     const ultimoInsRaw = riepilogo?.ultimo_inserimento || riepilogo?.ultimo_inserimento_ute || null;
     const recency = calcolaTempoTrascorso(ultimoInsRaw);
@@ -337,6 +422,9 @@ export const caricaRiepilogoClientiPerCoach = async (forceRefresh = false) => {
       settimaneTotali,
       settimaneMancanti,
       percCompletamento,
+      programmaCompletato,
+      giorniRimanenti,
+      totaleGiorni,
       ultimoInserimentoRaw: ultimoInsRaw,
       tempoTrascorso: recency.testo,
       etichettaTempo: recency.etichettaBreve,

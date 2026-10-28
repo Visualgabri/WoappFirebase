@@ -1463,6 +1463,23 @@ export const ignoraBannerDeploy = () => {
 
 export const mostraDialogGradimentiGlobal = ref(false);
 
+// MODALE GLOBALE MESSAGGIO PRIVATO & GUIDA PESI COACH
+export const mostraMessaggioPrivatoModal = ref(false);
+export const messaggioPrivatoTargetAtletaId = ref(null);
+export const messaggioPrivatoTipoIniziale = ref('messaggio'); // 'messaggio' | 'guida_pesi'
+export const messaggioPrivatoTemplateIniziale = ref('libero'); // 'libero' | 'chiusura_settimana' | 'gradimenti'
+
+export const apriMessaggioPrivatoModal = ({ atletaId = null, tipo = 'messaggio', template = 'libero' } = {}) => {
+  messaggioPrivatoTargetAtletaId.value = atletaId ? String(atletaId) : null;
+  messaggioPrivatoTipoIniziale.value = tipo || 'messaggio';
+  messaggioPrivatoTemplateIniziale.value = template || 'libero';
+  mostraMessaggioPrivatoModal.value = true;
+};
+
+export const chiudiMessaggioPrivatoModal = () => {
+  mostraMessaggioPrivatoModal.value = false;
+};
+
 export const inviaNotificaDeploy = async (payload) => {
   try {
     const docRef = doc(db, 'METADATA', 'deploy_version');

@@ -848,10 +848,42 @@
           </v-btn>
         </template>
 
-        <!-- AMBIENTE 2: MESSAGGIO PRIVATO -->
+        <!-- AMBIENTE 2: MESSAGGIO PRIVATO & GUIDA PESI (POP-UP UNIFICATO) -->
         <template v-else-if="tipoNotificaForm === 'messaggio'">
+          <div class="pa-3 rounded-xl mb-2 text-left" style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.28);">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <div class="d-flex align-center gap-1.5">
+                <v-icon color="purple-lighten-2" size="18">mdi-comment-text-outline</v-icon>
+                <span class="text-caption font-weight-black text-purple-lighten-2 text-uppercase" style="font-size: 0.70rem;">
+                  Messaggio Privato Coach
+                </span>
+              </div>
+              <v-chip color="purple-darken-2" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.58rem; height: 18px;">
+                POP-UP UNIFICATO
+              </v-chip>
+            </div>
+            <p class="text-caption text-slate-300 mb-2.5" style="font-size: 0.72rem; line-height: 1.4;">
+              Invia comunicazioni istantanee, promemoria di chiusura workout, gradimenti e feeling o la <strong>Guida Pesi</strong> direttamente all'atleta selezionato tramite il nuovo pop-up unificato.
+            </p>
+            <div class="d-flex align-center gap-2">
+              <v-btn
+                color="purple-darken-2"
+                block
+                size="small"
+                variant="flat"
+                rounded="lg"
+                class="font-weight-black text-none text-white elevation-2"
+                style="height: 36px; font-size: 0.74rem; background: linear-gradient(135deg, #7e22ce, #a855f7) !important;"
+                @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'messaggio' })"
+              >
+                <v-icon start size="16">mdi-open-in-new</v-icon>
+                Apri Dialogo Messaggio Privato
+              </v-btn>
+            </div>
+          </div>
+
           <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Atleta Destinatario</span>
+            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Atleta Rapido</span>
             <v-select
               v-model="atletaDeployTargetForm"
               :items="listaAtletiSoloSingoli"
@@ -866,121 +898,45 @@
             ></v-select>
           </div>
 
-          <!-- Modelli Rapidi Promemoria: Gradimenti & Chiusura Settimana -->
-          <div class="mb-2 d-flex flex-column gap-1.5">
-            <span class="text-caption font-weight-bold text-purple-lighten-2" style="font-size: 0.65rem;">Modelli Rapidi Promemoria</span>
-            <div class="d-flex align-center flex-wrap gap-1.5">
-              <!-- 1. Promemoria Gradimenti & Feeling -->
-              <div class="d-flex align-center gap-1">
-                <v-btn
-                  size="x-small"
-                  variant="tonal"
-                  color="amber-accent-3"
-                  rounded="pill"
-                  class="font-weight-black text-none px-2"
-                  style="font-size: 0.64rem; height: 24px; border: 1px solid rgba(251, 191, 36, 0.4); background: rgba(245, 158, 11, 0.12);"
-                  @click="impostaTemplateGradimenti"
-                  title="Compila automaticamente l'invito a inserire gradimenti e feeling"
-                >
-                  <v-icon start size="13" color="amber-accent-2">mdi-star-shooting</v-icon>
-                  ⭐ Promemoria Gradimenti
-                </v-btn>
-                <v-btn
-                  icon
-                  size="x-small"
-                  variant="text"
-                  color="amber-lighten-2"
-                  style="width: 22px; height: 22px;"
-                  @click="apriListaEserciziGradimenti"
-                  title="Apri lista esercizi gradimenti in Home"
-                >
-                  <v-icon size="14">mdi-format-list-checks</v-icon>
-                </v-btn>
-              </div>
-
-              <!-- 2. Promemoria Chiusura Settimana Workout -->
-              <div class="d-flex align-center gap-1">
-                <v-btn
-                  size="x-small"
-                  variant="tonal"
-                  color="green-accent-3"
-                  rounded="pill"
-                  class="font-weight-black text-none px-2"
-                  style="font-size: 0.64rem; height: 24px; border: 1px solid rgba(74, 222, 128, 0.4); background: rgba(34, 197, 94, 0.12);"
-                  @click="impostaTemplateChiusuraSettimana"
-                  title="Compila automaticamente il promemoria per chiudere la settimana completata"
-                >
-                  <v-icon start size="13" color="green-accent-3">mdi-check-circle-outline</v-icon>
-                  ✅ Chiudi Settimana
-                </v-btn>
-                <v-btn
-                  icon
-                  size="x-small"
-                  variant="text"
-                  color="green-lighten-2"
-                  style="width: 22px; height: 22px;"
-                  @click="apriWorkoutsDaImpostazioni"
-                  title="Apri Tab Workouts"
-                >
-                  <v-icon size="14">mdi-dumbbell</v-icon>
-                </v-btn>
-                <v-btn
-                  icon
-                  size="x-small"
-                  variant="text"
-                  color="green-accent-4"
-                  style="width: 22px; height: 22px;"
-                  @click="inviaTemplateChiusuraWhatsApp"
-                  title="Invia messaggio di chiusura settimana su WhatsApp all'atleta selezionato"
-                  :disabled="!atletaDeployTargetForm || atletaDeployTargetForm === 'tutti'"
-                >
-                  <v-icon size="14">mdi-whatsapp</v-icon>
-                </v-btn>
-              </div>
-            </div>
+          <!-- Modelli Rapidi Diretti 1-Click -->
+          <div class="d-flex align-center flex-wrap gap-1.5 mt-2">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="green-accent-3"
+              rounded="pill"
+              class="font-weight-black text-none px-2"
+              style="font-size: 0.64rem; height: 26px; border: 1px solid rgba(74, 222, 128, 0.4); background: rgba(34, 197, 94, 0.12);"
+              @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'messaggio', template: 'chiusura_settimana' })"
+            >
+              <v-icon start size="13" color="green-accent-3">mdi-check-circle-outline</v-icon>
+              ✅ Promemoria Chiusura
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="amber-accent-3"
+              rounded="pill"
+              class="font-weight-black text-none px-2"
+              style="font-size: 0.64rem; height: 26px; border: 1px solid rgba(251, 191, 36, 0.4); background: rgba(245, 158, 11, 0.12);"
+              @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'messaggio', template: 'gradimenti' })"
+            >
+              <v-icon start size="13" color="amber-accent-2">mdi-star-shooting</v-icon>
+              ⭐ Promemoria Gradimenti
+            </v-btn>
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="amber-lighten-2"
+              rounded="pill"
+              class="font-weight-black text-none px-2"
+              style="font-size: 0.64rem; height: 26px; border: 1px solid rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.12);"
+              @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'guida_pesi' })"
+            >
+              <v-icon start size="13" color="amber-accent-3">mdi-lightbulb-on</v-icon>
+              💡 Invia Guida Pesi
+            </v-btn>
           </div>
-
-          <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Oggetto</span>
-            <v-text-field
-              v-model="titoloDeployForm"
-              placeholder="Oggetto..."
-              variant="outlined"
-              density="compact"
-              color="purple-darken-2"
-              class="custom-compact-field"
-              hide-details
-            ></v-text-field>
-          </div>
-
-          <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Testo Messaggio</span>
-            <v-textarea
-              v-model="messaggioDeployGeneraleForm"
-              placeholder="Scrivi messaggio..."
-              variant="outlined"
-              density="compact"
-              rows="2"
-              color="purple-darken-2"
-              class="custom-compact-field"
-              hide-details
-            ></v-textarea>
-          </div>
-
-          <v-btn
-            color="purple-darken-2"
-            block
-            size="small"
-            variant="flat"
-            rounded="lg"
-            class="font-weight-black text-none text-white mt-2"
-            style="height: 32px; font-size: 0.72rem;"
-            :disabled="!atletaDeployTargetForm || atletaDeployTargetForm === 'tutti'"
-            @click="eseguiInvioNotificaDeploy"
-            :loading="inviandoDeployNotifica"
-          >
-            Invia Messaggio Privato
-          </v-btn>
         </template>
 
         <!-- AMBIENTE 3: GUIDA SCRITTURA PESI COACH -->
@@ -1369,6 +1325,7 @@ import {
   ottimizzaDigitazioneGlobal,
   regolaProgressioneW2Global,
   inviaNotificaDeploy,
+  apriMessaggioPrivatoModal,
   mostraDialogGradimentiGlobal,
   currentTheme,
   setTheme,

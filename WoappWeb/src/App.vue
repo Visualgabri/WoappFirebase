@@ -540,6 +540,9 @@
       @avvia-tour="avviaTourGuidatoApp"
     />
 
+    <!-- MODALE GLOBALE MESSAGGIO PRIVATO & GUIDA PESI COACH -->
+    <MessaggioPrivatoModal />
+
     <!-- OVERLAY SPOTLIGHT TOUR GUIDATO IN APP.VUE -->
     <v-overlay v-model="mostraSpotlightTourApp" class="align-center justify-center" persistent style="z-index: 9999;">
       <v-card class="pa-5 rounded-2xl text-left border card-glass-dark" max-width="360" style="backdrop-filter: blur(20px);">
@@ -839,6 +842,7 @@ import { useTheme } from 'vuetify';
 import JulieEasterEgg from './components/JulieEasterEgg.vue';
 import PannemenEasterEgg from './components/PannemenEasterEgg.vue';
 import GuidaFlexCoachModal from './components/GuidaFlexCoachModal.vue';
+import MessaggioPrivatoModal from './components/MessaggioPrivatoModal.vue';
 import InstallBanner from './components/InstallBanner.vue';
 import InstallPromptModal from './components/InstallPromptModal.vue';
 import { initPwaListeners } from './utils/usePwaInstall.js';

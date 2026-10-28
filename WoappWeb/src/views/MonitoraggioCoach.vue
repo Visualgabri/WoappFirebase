@@ -254,6 +254,18 @@
               aria-label="WhatsApp"
             ></v-btn>
 
+            <!-- Pulsante Messaggio Privato / Guida Pesi In-App (solo icona) -->
+            <v-btn
+              icon="mdi-comment-text-outline"
+              size="small"
+              color="purple-darken-2"
+              variant="flat"
+              class="rounded-xl btn-action-icon text-white"
+              @click="apriMessaggioPrivatoAtleta(cliente, 'messaggio', 'libero')"
+              title="Invia messaggio privato o guida pesi all'atleta"
+              aria-label="Messaggio Privato"
+            ></v-btn>
+
             <!-- Pulsante Apri Scheda (solo icona) -->
             <v-btn
               icon="mdi-dumbbell"
@@ -282,15 +294,27 @@
               <v-list class="card-glass rounded-xl py-1" elevation="4">
                 <v-list-item
                   density="compact"
-                  prepend-icon="mdi-check-circle-outline"
-                  title="Promemoria Chiusura (WhatsApp)"
-                  @click="inviaPromemoriaChiusuraWhatsApp(cliente)"
+                  prepend-icon="mdi-comment-text-outline"
+                  title="Messaggio Privato (In-App)"
+                  @click="apriMessaggioPrivatoAtleta(cliente, 'messaggio', 'libero')"
                 ></v-list-item>
                 <v-list-item
                   density="compact"
                   prepend-icon="mdi-bell-ring-outline"
                   title="Promemoria Chiusura (In-App)"
-                  @click="inviaPromemoriaChiusuraInApp(cliente)"
+                  @click="apriMessaggioPrivatoAtleta(cliente, 'messaggio', 'chiusura_settimana')"
+                ></v-list-item>
+                <v-list-item
+                  density="compact"
+                  prepend-icon="mdi-lightbulb-on"
+                  title="Invia Guida Pesi (In-App)"
+                  @click="apriMessaggioPrivatoAtleta(cliente, 'guida_pesi')"
+                ></v-list-item>
+                <v-list-item
+                  density="compact"
+                  prepend-icon="mdi-check-circle-outline"
+                  title="Promemoria Chiusura (WhatsApp)"
+                  @click="inviaPromemoriaChiusuraWhatsApp(cliente)"
                 ></v-list-item>
                 <v-list-item
                   density="compact"
@@ -426,7 +450,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { setSelectedAthlete, setSelectedSheet } from '../authStore.js';
+import { setSelectedAthlete, setSelectedSheet, apriMessaggioPrivatoModal } from '../authStore.js';
 import {
   caricaRiepilogoClientiPerCoach,
   ricalcolaESalvaStatoAtleta
@@ -576,16 +600,18 @@ const inviaPromemoriaChiusuraWhatsApp = (cliente) => {
   window.open(url, '_blank');
 };
 
-// Reindirizzamento a Impostazioni per invio notifica in-app con template precompilato
-const inviaPromemoriaChiusuraInApp = (cliente) => {
-  router.push({
-    path: '/impostazioni',
-    query: {
-      action: 'promemoria_chiusura',
-      atletaId: String(cliente.id),
-      t: Date.now()
-    }
+// Apertura modale unificata per messaggio privato o guida pesi in-app
+const apriMessaggioPrivatoAtleta = (cliente, tipo = 'messaggio', template = 'libero') => {
+  apriMessaggioPrivatoModal({
+    atletaId: cliente?.id,
+    tipo,
+    template
   });
+};
+
+// Invio rapido del promemoria di chiusura settimana (In-App)
+const inviaPromemoriaChiusuraInApp = (cliente) => {
+  apriMessaggioPrivatoAtleta(cliente, 'messaggio', 'chiusura_settimana');
 };
 
 // Filtraggio e Ordinamento Clienti

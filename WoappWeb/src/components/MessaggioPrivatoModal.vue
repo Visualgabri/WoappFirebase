@@ -430,6 +430,8 @@ import {
   chiudiMessaggioPrivatoModal,
   inviaNotificaDeploy,
   getNomeAtleta,
+  getTelefonoAtleta,
+  formattaTelefonoPerWhatsApp,
   isAtletaAttivo,
   ORDINE_ORIGINALE_ATLETI,
   MAPPA_CLIENTI,
@@ -617,7 +619,9 @@ const inviaWhatsApp = () => {
     return;
   }
   if (!testoMessaggio.value?.trim()) return;
-  const url = `https://wa.me/?text=${encodeURIComponent(testoMessaggio.value.trim())}`;
+  const tel = formattaTelefonoPerWhatsApp(getTelefonoAtleta(targetAtletaId.value));
+  const baseUrl = tel ? `https://wa.me/${tel}` : 'https://wa.me/';
+  const url = `${baseUrl}?text=${encodeURIComponent(testoMessaggio.value.trim())}`;
   window.open(url, '_blank');
 };
 

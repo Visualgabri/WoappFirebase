@@ -4509,7 +4509,9 @@ const inviaPromemoriaChiusuraWhatsAppCoach = () => {
   const rawNome = getNomeAtleta(atletaId) || '';
   const nome = rawNome ? (rawNome.trim().split(' ')[0].charAt(0).toUpperCase() + rawNome.trim().split(' ')[0].slice(1).toLowerCase()) : 'Atleta';
   const messaggio = `Ciao ${nome}! Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo il tuo programma rimarrà sempre sincronizzato e aggiornato!`;
-  const url = `https://wa.me/?text=${encodeURIComponent(messaggio)}`;
+  const tel = formattaTelefonoPerWhatsApp(getTelefonoAtleta(atletaId));
+  const baseUrl = tel ? `https://wa.me/${tel}` : 'https://wa.me/';
+  const url = `${baseUrl}?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');
 };
 

@@ -170,6 +170,7 @@ async function run() {
   // === FASE 0: CARICAMENTO DATI EXTRA DA FILE JSON CON VERIFICA DI SICUREZZA ===
   const extraExerciseMap = {};
   const extraExerciseByCoord = {};
+  let extraNumTelefono = null;
   if (EXTRA_JSON_PATH && fs.existsSync(EXTRA_JSON_PATH)) {
     try {
       console.log(`[Import Ponte] Lettura dati extra JSON: ${EXTRA_JSON_PATH}`);
@@ -184,6 +185,10 @@ async function run() {
         console.warn(`[Import Ponte] ATTENZIONE: Il file JSON extra appartiene a un altro cliente/scheda (ID: ${jsonIdCliente}, Scheda: ${jsonNumScheda}).`);
         console.warn(`[Import Ponte] File extra ignorato per sicurezza per evitare contaminazioni di dati.`);
       } else {
+        if (extraPayload.num_telefono !== undefined && extraPayload.num_telefono !== null) {
+          extraNumTelefono = String(extraPayload.num_telefono).trim();
+          console.log(`[Import Ponte] Telefono rilevato nel JSON extra: '${extraNumTelefono}'`);
+        }
         const extraList = extraPayload.esercizi || [];
         extraList.forEach(item => {
           const exId = String(item.ID_esercizio || item.id_esercizio || '').trim();
@@ -301,6 +306,11 @@ async function run() {
         if (!clientRecord.NomeCognomeTM) clientRecord.NomeCognomeTM = nomeCompleto;
       }
 
+      // Identifica il numero di telefono in ingresso (da JSON extra o da foglio Excel)
+      const incomingPhone = (extraNumTelefono !== null && extraNumTelefono !== '')
+        ? extraNumTelefono
+        : (clientRecord.num_telefono ? String(clientRecord.num_telefono).trim() : '');
+
       const clientDocRef = db.collection('CLIENTI').doc(idClienteStr);
       const clientDocSnap = await clientDocRef.get();
 
@@ -310,6 +320,10 @@ async function run() {
         }
         if (clientRecord.flg_obsoleto === undefined) {
           clientRecord.flg_obsoleto = 'NO';
+        }
+        if (incomingPhone) {
+          clientRecord.num_telefono = incomingPhone;
+          console.log(`[Import Ponte] Nuovo cliente '${idClienteStr}': inserito num_telefono='${incomingPhone}'.`);
         }
         await clientDocRef.set(clientRecord);
         console.log(`[Import Ponte] Record CLIENTE creato per '${idClienteStr}' (nuovo documento abilitato, con email, sesso, data nascita, altezza).`);
@@ -321,6 +335,29 @@ async function run() {
         if (clientRecord.flg_obsoleto === undefined && existingClientData.flg_obsoleto !== undefined) {
           clientRecord.flg_obsoleto = existingClientData.flg_obsoleto;
         }
+
+        // === CONTROLLO NUMERO DI TELEFONO ===
+        // Se c'è già o è uguale non inserirlo, se diverso sostituirlo, se assente inserirlo
+        const existingPhone = String(existingClientData.num_telefono || existingClientData.telefono || '').trim();
+        if (incomingPhone) {
+          if (!existingPhone) {
+            // Non c'era ancora: lo inseriamo
+            clientRecord.num_telefono = incomingPhone;
+            console.log(`[Import Ponte] Telefono per '${idClienteStr}' non presente su Firestore: inserito '${incomingPhone}'.`);
+          } else if (incomingPhone !== existingPhone) {
+            // Diverso: lo sostituiamo con il nuovo
+            clientRecord.num_telefono = incomingPhone;
+            console.log(`[Import Ponte] Telefono per '${idClienteStr}' modificato (precedente: '${existingPhone}'): sostituito con '${incomingPhone}'.`);
+          } else {
+            // Già presente e uguale: manteniamo l'esistente senza forzare variazioni
+            clientRecord.num_telefono = existingPhone;
+            console.log(`[Import Ponte] Telefono per '${idClienteStr}' già presente e identico ('${existingPhone}'): mantenuto inalterato.`);
+          }
+        } else if (existingPhone) {
+          // Se nel nuovo export il telefono non è presente ma su Firestore c'era già, preservalo!
+          clientRecord.num_telefono = existingPhone;
+        }
+
         if (!areRecordsEqual(clientRecord, existingClientData)) {
           await clientDocRef.set(clientRecord, { merge: true });
           console.log(`[Import Ponte] Record CLIENTE aggiornato per '${idClienteStr}' (campi modificati).`);
@@ -342,6 +379,7 @@ async function run() {
           nome: clientRecord.Nome || clientRecord.nome || '',
           cognome: clientRecord.Cognome || clientRecord.cognome || '',
           des_nome_cognome: clientRecord.des_nome_cognome || nomeCompleto || '',
+          num_telefono: clientRecord.num_telefono || '',
           aggiornatoAl: admin.firestore.FieldValue.serverTimestamp()
         };
 

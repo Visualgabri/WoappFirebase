@@ -1100,6 +1100,8 @@ import {
   ruolo, 
   logout, 
   getNomeAtleta,
+  getTelefonoAtleta,
+  formattaTelefonoPerWhatsApp,
   selectedAthlete,
   setSelectedAthlete,
   selectedSheet,
@@ -1387,7 +1389,10 @@ const inviaTemplateChiusuraWhatsApp = () => {
     impostaTemplateChiusuraSettimana();
   }
   const msgToSend = messaggioDeployGeneraleForm.value;
-  const url = `https://wa.me/?text=${encodeURIComponent(msgToSend)}`;
+  const targetId = atletaDeployTargetForm.value;
+  const tel = targetId && targetId !== 'tutti' ? formattaTelefonoPerWhatsApp(getTelefonoAtleta(targetId)) : '';
+  const baseUrl = tel ? `https://wa.me/${tel}` : 'https://wa.me/';
+  const url = `${baseUrl}?text=${encodeURIComponent(msgToSend)}`;
   window.open(url, '_blank');
 };
 

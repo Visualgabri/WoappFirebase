@@ -379,6 +379,10 @@ export const caricaRiepilogoClientiPerCoach = async (forceRefresh = false) => {
     const nomeCompleto = `${nome} ${cognome}`.trim() || getNomeAtleta(id);
     const scheda = String(data.SchedaSelezionata || MAPPA_CLIENTI[id]?.scheda || '').trim();
     const sesso = String(data.flg_sesso || MAPPA_CLIENTI[id]?.sesso || 'M').toUpperCase();
+    const num_telefono = String(data.num_telefono || data.telefono || '').trim();
+    if (num_telefono) {
+      localStorage.setItem('telefono_cliente_' + id, num_telefono);
+    }
 
     const riepilogo = data.riepilogo_workout || null;
     const settimanaCorrente = riepilogo?.settimana_corrente || 1;
@@ -416,6 +420,7 @@ export const caricaRiepilogoClientiPerCoach = async (forceRefresh = false) => {
       cognome,
       nomeCompleto,
       sesso,
+      num_telefono,
       attivo,
       scheda: scheda || (riepilogo?.num_scheda || 'N/D'),
       settimanaCorrente,

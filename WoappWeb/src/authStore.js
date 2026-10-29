@@ -988,6 +988,29 @@ export const getNomeAtleta = (id) => {
   return '';
 };
 
+// Mappa per i numeri di telefono dei clienti sincronizzati da Firestore
+export const MAPPA_TELEFONI_CLIENTI = ref(JSON.parse(localStorage.getItem('mappa_telefoni_clienti') || '{}'));
+
+export const getTelefonoAtleta = (id) => {
+  const cleanId = String(id || '').trim();
+  if (!cleanId) return '';
+  return MAPPA_TELEFONI_CLIENTI.value[cleanId] || localStorage.getItem('telefono_cliente_' + cleanId) || '';
+};
+
+// Helper per formattare qualsiasi numero di telefono per wa.me (es. 3491234567 -> 393491234567)
+export const formattaTelefonoPerWhatsApp = (numero) => {
+  if (!numero) return '';
+  let clean = String(numero).replace(/\D/g, '');
+  if (!clean) return '';
+  if (clean.startsWith('0039')) {
+    clean = clean.substring(4);
+  }
+  if (clean.length === 10 && clean.startsWith('3')) {
+    clean = '39' + clean;
+  }
+  return clean;
+};
+
 // --- STATO ATLETI (ATTIVO / DISABILITATO) ---
 export const MAPPA_STATO_CLIENTI = ref(JSON.parse(localStorage.getItem('mappa_stato_clienti') || '{}'));
 
@@ -1059,8 +1082,10 @@ export const caricaDatiClientiGlobali = async (force = false) => {
       const snap = await getDocs(collection(db, 'CLIENTI'));
       const mappaNomi = { ...MAPPA_CLIENTI_DINAMICI.value };
       const mappaStato = { ...MAPPA_STATO_CLIENTI.value };
+      const mappaTelefoni = { ...MAPPA_TELEFONI_CLIENTI.value };
       let cambiatiNomi = false;
       let cambiatiStato = false;
+      let cambiatiTelefoni = false;
 
       snap.forEach(docSnap => {
         const data = docSnap.data();
@@ -1091,6 +1116,14 @@ export const caricaDatiClientiGlobali = async (force = false) => {
           mappaStato[id] = attivo;
           cambiatiStato = true;
         }
+
+        // Estrai numero di telefono (num_telefono o telefono)
+        const tel = String(data.num_telefono || data.telefono || '').trim();
+        if (tel && mappaTelefoni[id] !== tel) {
+          mappaTelefoni[id] = tel;
+          localStorage.setItem('telefono_cliente_' + id, tel);
+          cambiatiTelefoni = true;
+        }
       });
 
       if (cambiatiNomi) {
@@ -1100,6 +1133,10 @@ export const caricaDatiClientiGlobali = async (force = false) => {
       if (cambiatiStato) {
         MAPPA_STATO_CLIENTI.value = mappaStato;
         localStorage.setItem('mappa_stato_clienti', JSON.stringify(mappaStato));
+      }
+      if (cambiatiTelefoni) {
+        MAPPA_TELEFONI_CLIENTI.value = mappaTelefoni;
+        localStorage.setItem('mappa_telefoni_clienti', JSON.stringify(mappaTelefoni));
       }
 
       localStorage.setItem('cache_timestamp_clienti_firestore', String(Date.now()));

@@ -450,7 +450,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { setSelectedAthlete, setSelectedSheet, apriMessaggioPrivatoModal } from '../authStore.js';
+import { setSelectedAthlete, setSelectedSheet, apriMessaggioPrivatoModal, getTelefonoAtleta, formattaTelefonoPerWhatsApp } from '../authStore.js';
 import {
   caricaRiepilogoClientiPerCoach,
   ricalcolaESalvaStatoAtleta
@@ -587,7 +587,9 @@ const apriWhatsAppAtleta = (cliente) => {
     messaggio = `Ciao ${nome}! Come procede con la Week ${cliente.settimanaCorrente} della scheda #${cliente.scheda}?`;
   }
 
-  const url = `https://wa.me/?text=${encodeURIComponent(messaggio)}`;
+  const tel = formattaTelefonoPerWhatsApp(cliente.num_telefono || getTelefonoAtleta(cliente.id));
+  const baseUrl = tel ? `https://wa.me/${tel}` : 'https://wa.me/';
+  const url = `${baseUrl}?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');
 };
 
@@ -596,7 +598,9 @@ const inviaPromemoriaChiusuraWhatsApp = (cliente) => {
   const rawNome = cliente.nome || cliente.nomeCompleto || 'Atleta';
   const nome = rawNome.trim().split(' ')[0];
   const messaggio = `Ciao ${nome}! Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo il tuo programma rimarrà sempre sincronizzato e aggiornato!`;
-  const url = `https://wa.me/?text=${encodeURIComponent(messaggio)}`;
+  const tel = formattaTelefonoPerWhatsApp(cliente.num_telefono || getTelefonoAtleta(cliente.id));
+  const baseUrl = tel ? `https://wa.me/${tel}` : 'https://wa.me/';
+  const url = `${baseUrl}?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');
 };
 

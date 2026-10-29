@@ -6,36 +6,43 @@
     transition="dialog-bottom-transition"
     class="dialog-messaggio-privato"
   >
-    <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" :style="{ backdropFilter: 'blur(25px)', background: '#0b111e !important', border: tipoInvio === 'guida_pesi' ? '1.5px solid rgba(245, 158, 11, 0.45) !important' : '1.5px solid rgba(168, 85, 247, 0.45) !important' }">
+    <v-card 
+      class="card-glass-dark rounded-2xl border-soft overflow-hidden d-flex flex-column" 
+      :style="{ 
+        backdropFilter: 'blur(25px)', 
+        background: '#0b111e !important', 
+        border: modelloAttivo === 'guida_pesi' ? '1.5px solid rgba(245, 158, 11, 0.45) !important' : '1.5px solid rgba(168, 85, 247, 0.45) !important' 
+      }"
+    >
       
-      <!-- 1. HEADER COMPATTO -->
+      <!-- 1. HEADER UNIFICATO -->
       <div 
         class="pa-3.5 d-flex align-center justify-space-between flex-shrink-0 border-bottom"
-        :style="{ background: tipoInvio === 'guida_pesi' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(147, 51, 234, 0.12)' }"
+        :style="{ background: modelloAttivo === 'guida_pesi' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(147, 51, 234, 0.12)' }"
       >
         <div class="d-flex align-center gap-2.5 min-width-0">
           <v-avatar 
             size="36" 
-            :color="tipoInvio === 'guida_pesi' ? 'amber-darken-4' : 'purple-darken-3'" 
+            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-4' : 'purple-darken-3'" 
             class="elevation-2 flex-shrink-0"
           >
-            <v-icon :color="tipoInvio === 'guida_pesi' ? 'amber-lighten-2' : 'purple-lighten-2'" size="20">
-              {{ tipoInvio === 'guida_pesi' ? 'mdi-lightbulb-on' : 'mdi-comment-text-outline' }}
+            <v-icon :color="modelloAttivo === 'guida_pesi' ? 'amber-lighten-2' : 'purple-lighten-2'" size="20">
+              {{ modelloAttivo === 'guida_pesi' ? 'mdi-lightbulb-on' : 'mdi-comment-text-outline' }}
             </v-icon>
           </v-avatar>
           <div class="text-truncate">
             <h2 class="text-subtitle-1 font-weight-black text-white text-truncate mb-0" style="font-size: 0.95rem;">
-              {{ tipoInvio === 'guida_pesi' ? 'Consiglio del Coach: Guida Pesi' : 'Messaggio Privato Coach' }}
+              {{ modelloAttivo === 'guida_pesi' ? 'Consiglio del Coach: Guida Pesi' : 'Messaggio & Notifiche Coach' }}
             </h2>
-            <div class="text-caption font-weight-bold" :class="tipoInvio === 'guida_pesi' ? 'text-amber-lighten-3' : 'text-purple-lighten-2'" style="font-size: 0.65rem;">
-              Notifica diretta e istantanea all'atleta
+            <div class="text-caption font-weight-bold" :class="modelloAttivo === 'guida_pesi' ? 'text-amber-lighten-3' : 'text-purple-lighten-2'" style="font-size: 0.65rem;">
+              {{ targetAtletaId === 'tutti' ? 'Notifica in tempo reale per tutti gli atleti' : 'Notifica in tempo reale per l\'atleta selezionato' }}
             </div>
           </div>
         </div>
 
         <div class="d-flex align-center gap-1">
           <v-chip 
-            :color="tipoInvio === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'" 
+            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'" 
             size="x-small" 
             variant="flat" 
             class="font-weight-black text-white" 
@@ -49,227 +56,213 @@
         </div>
       </div>
 
-      <!-- 2. BODY SCROLLABILE -->
+      <!-- 2. BODY SCROLLABILE UNICO (SENZA TAB RIPETITIVI) -->
       <v-card-text class="pa-4 text-left" style="max-height: 72vh; overflow-y: auto;">
         
-        <!-- SELEZIONE TIPO COMUNICAZIONE (MESSAGGIO vs GUIDA PESI) -->
-        <div class="mb-3">
-          <span class="text-caption font-weight-bold text-slate-dark uppercase d-block mb-1" style="font-size: 0.64rem;">
-            Tipologia Comunicazione
-          </span>
-          <v-btn-toggle
-            v-model="tipoInvio"
-            mandatory
-            density="compact"
-            rounded="lg"
-            class="w-100 card-glass border overflow-hidden"
-            style="height: 32px;"
-          >
-            <v-btn 
-              value="messaggio" 
-              class="font-weight-black flex-grow-1 text-none"
-              :class="tipoInvio === 'messaggio' ? 'bg-purple-darken-2 text-white' : 'text-slate-dark'"
-              style="font-size: 0.68rem;"
-            >
-              <v-icon start size="14">mdi-comment-text-outline</v-icon>
-              Messaggio / Promemoria
-            </v-btn>
-            <v-btn 
-              value="guida_pesi" 
-              class="font-weight-black flex-grow-1 text-none"
-              :class="tipoInvio === 'guida_pesi' ? 'bg-amber-darken-3 text-white' : 'text-slate-dark'"
-              style="font-size: 0.68rem;"
-            >
-              <v-icon start size="14">mdi-lightbulb-on</v-icon>
-              💡 Guida Pesi Coach
-            </v-btn>
-          </v-btn-toggle>
-        </div>
-
-        <!-- SELEZIONE ATLETA DESTINATARIO -->
+        <!-- SELEZIONE DESTINATARIO (CON OPZIONE "A TUTTI") -->
         <div class="mb-3 pa-2.5 rounded-xl border-soft" style="background: rgba(255, 255, 255, 0.03);">
           <div class="d-flex align-center justify-space-between mb-1.5">
-            <span class="text-caption font-weight-bold d-flex align-center gap-1" :class="tipoInvio === 'guida_pesi' ? 'text-amber-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.65rem;">
-              <v-icon size="13">mdi-account-circle</v-icon>
-              Atleta Destinatario
+            <span class="text-caption font-weight-bold d-flex align-center gap-1" :class="modelloAttivo === 'guida_pesi' ? 'text-amber-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.65rem;">
+              <v-icon size="13">mdi-account-group</v-icon>
+              Destinatario
             </span>
-            <span v-if="atletaSelezionatoNome" class="text-super-caption font-weight-bold text-slate-light" style="font-size: 0.62rem;">
+            <span v-if="targetAtletaId !== 'tutti' && atletaSelezionatoNome" class="text-super-caption font-weight-bold text-slate-light" style="font-size: 0.62rem;">
               ID #{{ targetAtletaId }}
             </span>
+            <v-chip v-else color="purple-darken-3" size="x-small" variant="flat" class="text-white font-weight-bold" style="font-size: 0.56rem; height: 16px;">
+              BROADCAST
+            </v-chip>
           </div>
 
           <v-select
             v-model="targetAtletaId"
-            :items="listaAtletiSoloSingoli"
+            :items="listaDestinatari"
             item-title="title"
             item-value="value"
-            placeholder="Seleziona atleta..."
+            placeholder="Seleziona destinatario..."
             variant="outlined"
             density="compact"
-            :color="tipoInvio === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'"
+            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'"
             class="custom-compact-field"
             hide-details
           >
             <template v-slot:selection="{ item }">
               <div class="d-flex align-center gap-2">
-                <v-avatar size="20" :color="tipoInvio === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'" class="text-white font-weight-bold" style="font-size: 0.55rem;">
-                  {{ item.raw?.iniziali || 'AT' }}
+                <v-avatar 
+                  size="20" 
+                  :color="item.raw?.value === 'tutti' ? 'amber-darken-4' : (modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2')" 
+                  class="text-white font-weight-bold" 
+                  style="font-size: 0.55rem;"
+                >
+                  <v-icon v-if="item.raw?.value === 'tutti'" size="12">mdi-account-multiple</v-icon>
+                  <span v-else>{{ item.raw?.iniziali || 'AT' }}</span>
                 </v-avatar>
                 <span class="font-weight-bold text-white text-truncate" style="font-size: 0.78rem;">
-                  {{ item.raw?.nome || item.title }}
+                  {{ item.raw?.title || item.title }}
                 </span>
               </div>
             </template>
           </v-select>
         </div>
 
-        <!-- AMBIENTE 1: MESSAGGIO PRIVATO CON MODELLI RAPIDI -->
-        <template v-if="tipoInvio === 'messaggio'">
-          <!-- Modelli Rapidi Promemoria -->
-          <div class="mb-3">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1.5" style="font-size: 0.65rem;">
-              Modelli Rapidi Precompilati
-            </span>
-            <div class="d-flex align-center flex-wrap gap-1.5">
-              <!-- 1. Promemoria Chiusura Settimana -->
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                color="green-accent-3"
-                rounded="pill"
-                class="font-weight-black text-none px-2.5"
-                style="font-size: 0.65rem; height: 26px; border: 1px solid rgba(74, 222, 128, 0.4); background: rgba(34, 197, 94, 0.12);"
-                @click="applicaTemplateChiusura"
-              >
-                <v-icon start size="13" color="green-accent-3">mdi-check-circle-outline</v-icon>
-                ✅ Chiudi Settimana
-              </v-btn>
+        <!-- MODELLI RAPIDI PRECOMPILATI (PILLOLE 1-CLICK COMPRESA "GUIDA PESI") -->
+        <div class="mb-3">
+          <span class="text-caption font-weight-bold text-slate-light d-block mb-1.5" style="font-size: 0.65rem;">
+            Modelli Rapidi Precompilati
+          </span>
+          <div class="d-flex align-center flex-wrap gap-1.5">
+            <!-- 1. Chiudi Settimana -->
+            <v-btn
+              size="x-small"
+              :variant="modelloAttivo === 'chiusura_settimana' ? 'flat' : 'tonal'"
+              color="green-accent-3"
+              rounded="pill"
+              class="font-weight-black text-none px-2.5"
+              :class="{ 'text-black': modelloAttivo === 'chiusura_settimana' }"
+              style="font-size: 0.65rem; height: 26px; border: 1px solid rgba(74, 222, 128, 0.4);"
+              @click="selezionaModello('chiusura_settimana')"
+            >
+              <v-icon start size="13" :color="modelloAttivo === 'chiusura_settimana' ? 'black' : 'green-accent-3'">mdi-check-circle-outline</v-icon>
+              ✅ Chiudi Settimana
+            </v-btn>
 
-              <!-- 2. Promemoria Gradimenti & Feeling -->
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                color="amber-accent-3"
-                rounded="pill"
-                class="font-weight-black text-none px-2.5"
-                style="font-size: 0.65rem; height: 26px; border: 1px solid rgba(251, 191, 36, 0.4); background: rgba(245, 158, 11, 0.12);"
-                @click="applicaTemplateGradimenti"
-              >
-                <v-icon start size="13" color="amber-accent-2">mdi-star-shooting</v-icon>
-                ⭐ Gradimenti & Feeling
-              </v-btn>
+            <!-- 2. Gradimenti & Feeling -->
+            <v-btn
+              size="x-small"
+              :variant="modelloAttivo === 'gradimenti' ? 'flat' : 'tonal'"
+              color="amber-accent-3"
+              rounded="pill"
+              class="font-weight-black text-none px-2.5"
+              :class="{ 'text-black': modelloAttivo === 'gradimenti' }"
+              style="font-size: 0.65rem; height: 26px; border: 1px solid rgba(251, 191, 36, 0.4);"
+              @click="selezionaModello('gradimenti')"
+            >
+              <v-icon start size="13" :color="modelloAttivo === 'gradimenti' ? 'black' : 'amber-accent-2'">mdi-star-shooting</v-icon>
+              ⭐ Gradimenti & Feeling
+            </v-btn>
 
-              <!-- 3. Messaggio Libero -->
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                color="purple-accent-2"
-                rounded="pill"
-                class="font-weight-black text-none px-2.5"
-                style="font-size: 0.65rem; height: 26px; border: 1px solid rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.12);"
-                @click="applicaTemplateLibero"
-              >
-                <v-icon start size="13" color="purple-accent-2">mdi-pencil-outline</v-icon>
-                ✍️ Testo Libero
-              </v-btn>
-            </div>
+            <!-- 3. Guida Pesi Coach (Nuova Pillola Integrata) -->
+            <v-btn
+              size="x-small"
+              :variant="modelloAttivo === 'guida_pesi' ? 'flat' : 'tonal'"
+              color="amber-lighten-2"
+              rounded="pill"
+              class="font-weight-black text-none px-2.5"
+              :class="{ 'text-black': modelloAttivo === 'guida_pesi' }"
+              style="font-size: 0.65rem; height: 26px; border: 1px solid rgba(245, 158, 11, 0.5);"
+              @click="selezionaModello('guida_pesi')"
+            >
+              <v-icon start size="13" :color="modelloAttivo === 'guida_pesi' ? 'black' : 'amber-lighten-2'">mdi-lightbulb-on</v-icon>
+              💡 Guida Pesi
+            </v-btn>
+
+            <!-- 4. Testo Libero -->
+            <v-btn
+              size="x-small"
+              :variant="modelloAttivo === 'libero' ? 'flat' : 'tonal'"
+              color="purple-accent-2"
+              rounded="pill"
+              class="font-weight-black text-none px-2.5"
+              :class="{ 'text-black': modelloAttivo === 'libero' }"
+              style="font-size: 0.65rem; height: 26px; border: 1px solid rgba(168, 85, 247, 0.4);"
+              @click="selezionaModello('libero')"
+            >
+              <v-icon start size="13" :color="modelloAttivo === 'libero' ? 'black' : 'purple-accent-2'">mdi-pencil-outline</v-icon>
+              ✍️ Testo Libero
+            </v-btn>
           </div>
+        </div>
 
-          <!-- Oggetto -->
-          <div class="mb-2.5 text-left">
-            <span class="text-caption font-weight-bold text-purple-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
-              Oggetto Messaggio
-            </span>
-            <v-text-field
-              v-model="oggettoMessaggio"
-              placeholder="Es: 💬 Messaggio dal Coach"
-              variant="outlined"
-              density="compact"
-              color="purple-darken-2"
-              class="custom-compact-field"
-              hide-details
-            ></v-text-field>
-          </div>
+        <!-- NOTA INFORMATIVA SULLE AZIONI CHE APPARIRANNO ALL'ATLETA -->
+        <div v-if="modelloAttivo === 'gradimenti'" class="pa-2 rounded-lg mb-3 d-flex align-center gap-1.5" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25);">
+          <v-icon color="amber-accent-3" size="15">mdi-information-outline</v-icon>
+          <span class="text-caption text-amber-lighten-3 font-weight-bold" style="font-size: 0.68rem; line-height: 1.3;">
+            All'atleta apparirà direttamente il pulsante <strong>"⭐ APRI LISTA ESERCIZI DA VOTARE"</strong> per compilare subito i propri voti.
+          </span>
+        </div>
 
-          <!-- Testo Messaggio -->
-          <div class="mb-3 text-left">
-            <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-caption font-weight-bold text-purple-lighten-2" style="font-size: 0.65rem;">
-                Testo del Messaggio
+        <div v-else-if="modelloAttivo === 'chiusura_settimana'" class="pa-2 rounded-lg mb-3 d-flex align-center gap-1.5" style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(74, 222, 128, 0.25);">
+          <v-icon color="green-accent-3" size="15">mdi-information-outline</v-icon>
+          <span class="text-caption text-green-lighten-3 font-weight-bold" style="font-size: 0.68rem; line-height: 1.3;">
+            All'atleta apparirà direttamente il pulsante <strong>"🏋️ VAI AL TAB WORKOUT"</strong> per completare la settimana.
+          </span>
+        </div>
+
+        <!-- BOX ANTEPRIMA GRAFICA PER GUIDA PESI -->
+        <div v-if="modelloAttivo === 'guida_pesi'" class="pa-3 rounded-xl mb-3 text-left" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.28);">
+          <div class="d-flex align-center justify-space-between mb-1.5">
+            <div class="d-flex align-center gap-1.5">
+              <v-icon color="amber-accent-3" size="17">mdi-lightbulb-on</v-icon>
+              <span class="text-caption font-weight-black text-amber-lighten-2 text-uppercase" style="font-size: 0.70rem;">
+                Contenuto Guida Pesi
               </span>
-              <span class="text-super-caption text-slate-dark" style="font-size: 0.60rem;">
-                {{ testoMessaggio.length }} caratteri
-              </span>
             </div>
-            <v-textarea
-              v-model="testoMessaggio"
-              placeholder="Scrivi qui il messaggio per l'atleta..."
-              variant="outlined"
-              density="compact"
-              rows="4"
-              color="purple-darken-2"
-              class="custom-compact-field"
-              hide-details
-            ></v-textarea>
+            <v-btn
+              variant="text"
+              size="x-small"
+              color="amber-accent-2"
+              class="px-1 text-none font-weight-bold"
+              style="height: 22px; font-size: 0.62rem;"
+              @click="mostraAnteprimaGuida = true"
+            >
+              <v-icon size="13" class="mr-1">mdi-eye-outline</v-icon>
+              Vedi Anteprima Completa
+            </v-btn>
           </div>
-        </template>
+          
+          <p class="text-caption text-slate-300 mb-2" style="font-size: 0.72rem; line-height: 1.4;">
+            {{ targetAtletaId === 'tutti' ? 'Tutti gli atleti riceveranno' : `L'atleta ${atletaSelezionatoNome || 'selezionato'} riceverà` }} il pop-up guidato sulle regole di scrittura carichi nelle caselle:
+          </p>
 
-        <!-- AMBIENTE 2: GUIDA SCRITTURA PESI COACH -->
-        <template v-else-if="tipoInvio === 'guida_pesi'">
-          <div class="pa-3 rounded-xl mb-3 text-left" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.28);">
-            <div class="d-flex align-center justify-space-between mb-2">
-              <div class="d-flex align-center gap-1.5">
-                <v-icon color="amber-accent-3" size="18">mdi-lightbulb-on</v-icon>
-                <span class="text-caption font-weight-black text-amber-lighten-2 text-uppercase" style="font-size: 0.70rem;">
-                  Guida Scrittura Pesi
-                </span>
-              </div>
-              <v-btn
-                variant="text"
-                size="x-small"
-                color="amber-accent-2"
-                class="px-1 text-none font-weight-bold"
-                style="height: 22px; font-size: 0.62rem;"
-                @click="mostraAnteprimaGuida = true"
-              >
-                <v-icon size="13" class="mr-1">mdi-eye-outline</v-icon>
-                Anteprima Grafica
-              </v-btn>
-            </div>
-            
-            <p class="text-caption text-slate-300 mb-2" style="font-size: 0.72rem; line-height: 1.4;">
-              L'atleta <strong>{{ atletaSelezionatoNome || 'selezionato' }}</strong> riceverà un pop-up interattivo in tempo reale con le istruzioni illustrate per la corretta scrittura dei pesi nelle caselle:
-            </p>
-
-            <div class="d-flex flex-wrap gap-1 mb-1">
-              <v-chip size="x-small" color="amber-darken-4" variant="flat" class="text-white font-mono font-weight-bold" style="font-size: 0.60rem; height: 20px;">
-                Ramping: 45 45 47,5 50
-              </v-chip>
-              <v-chip size="x-small" color="sky-darken-4" variant="flat" class="text-white font-mono font-weight-bold" style="font-size: 0.60rem; height: 20px;">
-                Reps: 42,5x11r
-              </v-chip>
-            </div>
+          <div class="d-flex flex-wrap gap-1 mb-1">
+            <v-chip size="x-small" color="amber-darken-4" variant="flat" class="text-white font-mono font-weight-bold" style="font-size: 0.60rem; height: 20px;">
+              Ramping: 45 45 47,5 50
+            </v-chip>
+            <v-chip size="x-small" color="sky-darken-4" variant="flat" class="text-white font-mono font-weight-bold" style="font-size: 0.60rem; height: 20px;">
+              Reps: 42,5x11r
+            </v-chip>
           </div>
+        </div>
 
-          <!-- Nota Facoltativa del Coach -->
-          <div class="mb-3 text-left">
-            <span class="text-caption font-weight-bold text-amber-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
-              Nota Personale Facoltativa del Coach (mostrata in cima al pop-up)
+        <!-- CAMPO OGGETTO -->
+        <div class="mb-2.5 text-left">
+          <span class="text-caption font-weight-bold d-block mb-1" :class="modelloAttivo === 'guida_pesi' ? 'text-amber-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.65rem;">
+            Oggetto Comunicazione
+          </span>
+          <v-text-field
+            v-model="oggettoMessaggio"
+            placeholder="Es: 💬 Messaggio dal Coach"
+            variant="outlined"
+            density="compact"
+            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'"
+            class="custom-compact-field"
+            hide-details
+          ></v-text-field>
+        </div>
+
+        <!-- CAMPO TESTO / NOTA COACH -->
+        <div class="mb-3 text-left">
+          <div class="d-flex align-center justify-space-between mb-1">
+            <span class="text-caption font-weight-bold" :class="modelloAttivo === 'guida_pesi' ? 'text-amber-lighten-2' : 'text-purple-lighten-2'" style="font-size: 0.65rem;">
+              {{ modelloAttivo === 'guida_pesi' ? 'Nota Personale Facoltativa del Coach (mostrata in testa alla guida)' : 'Testo del Messaggio' }}
             </span>
-            <v-textarea
-              v-model="notaCoachGuida"
-              placeholder="Es: Ciao! Guarda bene come inserire i pesi prima di cominciare il workout di oggi..."
-              variant="outlined"
-              density="compact"
-              rows="3"
-              color="amber-darken-3"
-              class="custom-compact-field"
-              hide-details
-            ></v-textarea>
+            <span class="text-super-caption text-slate-dark" style="font-size: 0.60rem;">
+              {{ testoMessaggio.length }} caratteri
+            </span>
           </div>
-        </template>
+          <v-textarea
+            v-model="testoMessaggio"
+            :placeholder="modelloAttivo === 'guida_pesi' ? 'Es: Ciao! Guarda bene le regole per segnare i carichi prima di iniziare...' : 'Scrivi qui il messaggio per l\'atleta...'"
+            variant="outlined"
+            density="compact"
+            :rows="modelloAttivo === 'guida_pesi' ? 2 : 4"
+            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'"
+            class="custom-compact-field"
+            hide-details
+          ></v-textarea>
+        </div>
 
-        <!-- Feedback Alert in caso di errore -->
+        <!-- Alert Errore -->
         <v-alert
           v-if="messaggioErrore"
           type="error"
@@ -282,7 +275,7 @@
           {{ messaggioErrore }}
         </v-alert>
 
-        <!-- Feedback di Successo -->
+        <!-- Alert Successo -->
         <v-alert
           v-if="messaggioSuccesso"
           type="success"
@@ -298,9 +291,9 @@
       <div class="pa-3 border-top flex-shrink-0" :style="{ background: '#0b111e' }">
         <div class="d-flex align-center gap-2">
           
-          <!-- Pulsante WhatsApp (solo per tipo messaggio) -->
+          <!-- Pulsante WhatsApp (abilitato solo per singolo atleta con testo messaggio) -->
           <v-btn
-            v-if="tipoInvio === 'messaggio'"
+            v-if="modelloAttivo !== 'guida_pesi'"
             variant="tonal"
             color="green-accent-3"
             size="small"
@@ -308,16 +301,16 @@
             class="font-weight-black text-none flex-shrink-0"
             style="height: 36px; font-size: 0.72rem; border: 1px solid rgba(74, 222, 128, 0.4);"
             @click="inviaWhatsApp"
-            :disabled="!targetAtletaId || !testoMessaggio"
-            title="Invia testo via WhatsApp all'atleta"
+            :disabled="targetAtletaId === 'tutti' || !testoMessaggio.trim()"
+            :title="targetAtletaId === 'tutti' ? 'WhatsApp è disponibile solo selezionando un singolo atleta' : 'Invia testo su WhatsApp all\'atleta'"
           >
             <v-icon start size="16" color="green-accent-3">mdi-whatsapp</v-icon>
             WhatsApp
           </v-btn>
 
-          <!-- Pulsante Invio Notifica In-App Real-Time -->
+          <!-- Pulsante Principale Invio In-App -->
           <v-btn
-            :color="tipoInvio === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'"
+            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'"
             variant="flat"
             size="small"
             rounded="lg"
@@ -325,21 +318,18 @@
             :style="{ 
               height: '36px', 
               fontSize: '0.74rem',
-              background: tipoInvio === 'guida_pesi' 
+              background: modelloAttivo === 'guida_pesi' 
                 ? 'linear-gradient(135deg, #d97706, #f59e0b) !important' 
                 : 'linear-gradient(135deg, #7e22ce, #a855f7) !important' 
             }"
             @click="eseguiInvio"
             :loading="inInvio"
-            :disabled="!targetAtletaId || (tipoInvio === 'messaggio' && !testoMessaggio.trim())"
+            :disabled="modelloAttivo !== 'guida_pesi' && !testoMessaggio.trim()"
           >
             <v-icon start size="16">
-              {{ tipoInvio === 'guida_pesi' ? 'mdi-send' : 'mdi-send-circle-outline' }}
+              {{ modelloAttivo === 'guida_pesi' ? 'mdi-lightbulb-on' : 'mdi-send-circle-outline' }}
             </v-icon>
-            {{ tipoInvio === 'guida_pesi' 
-                ? `INVIA GUIDA A ${atletaSelezionatoNomeUpper || 'ATLETA'}` 
-                : `INVIA NOTIFICA A ${atletaSelezionatoNomeUpper || 'ATLETA'}` 
-            }}
+            {{ etichettaPulsanteInvio }}
           </v-btn>
         </div>
       </div>
@@ -366,12 +356,12 @@
         </div>
 
         <v-card-text class="pa-4 text-left" style="max-height: 70vh; overflow-y: auto;">
-          <div v-if="notaCoachGuida?.trim()" class="pa-2.5 rounded-xl mb-3 text-amber-lighten-2 border-soft" style="background: rgba(245, 158, 11, 0.12); font-size: 0.82rem; line-height: 1.4;">
+          <div v-if="testoMessaggio?.trim() && modelloAttivo === 'guida_pesi'" class="pa-2.5 rounded-xl mb-3 text-amber-lighten-2 border-soft" style="background: rgba(245, 158, 11, 0.12); font-size: 0.82rem; line-height: 1.4;">
             <div class="d-flex align-center gap-1 mb-1 font-weight-black text-amber-accent-2" style="font-size: 0.70rem;">
               <v-icon size="14">mdi-message-text</v-icon>
               <span>NOTA DEL COACH:</span>
             </div>
-            {{ notaCoachGuida }}
+            {{ testoMessaggio }}
           </div>
 
           <div class="pa-3 rounded-xl mb-3 text-slate-200" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.84rem; line-height: 1.45;">
@@ -445,11 +435,10 @@ import {
 } from '../authStore.js';
 
 // Stato locale form
-const tipoInvio = ref('messaggio'); // 'messaggio' | 'guida_pesi'
-const targetAtletaId = ref('');
+const targetAtletaId = ref('tutti');
+const modelloAttivo = ref('libero'); // 'chiusura_settimana' | 'gradimenti' | 'guida_pesi' | 'libero'
 const oggettoMessaggio = ref('💬 Messaggio dal Coach');
 const testoMessaggio = ref('');
-const notaCoachGuida = ref('');
 const inInvio = ref(false);
 const messaggioErrore = ref('');
 const messaggioSuccesso = ref('');
@@ -474,8 +463,17 @@ onMounted(() => {
   caricaListaAtleti();
 });
 
-// Computed lista atleti filtrata per singoli e attivi
-const listaAtletiSoloSingoli = computed(() => {
+// Computed lista destinatari: In cima "👥 A TUTTI", seguito da tutti i singoli attivi
+const listaDestinatari = computed(() => {
+  const items = [
+    {
+      title: '👥 A TUTTI (Tutti gli atleti)',
+      value: 'tutti',
+      nome: 'A TUTTI',
+      iniziali: 'ALL'
+    }
+  ];
+
   const idsSet = new Set([
     ...(listaAtleti.value || []),
     ...(ORDINE_ORIGINALE_ATLETI || []),
@@ -495,24 +493,26 @@ const listaAtletiSoloSingoli = computed(() => {
       return a.localeCompare(b, undefined, { numeric: true });
     });
 
-  return ordinati.map(id => {
+  ordinati.forEach(id => {
     const nome = getNomeAtleta(id) || `Atleta #${id}`;
     const parts = nome.trim().split(' ');
     const iniziali = parts.length >= 2 
       ? `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase()
       : (nome.substring(0, 2) || 'AT').toUpperCase();
-    return {
+    items.push({
       title: `${nome} (ID: ${id})`,
       value: String(id),
       nome,
       iniziali
-    };
+    });
   });
+
+  return items;
 });
 
-// Helper per nome atleta selezionato
+// Helper per nome atleta
 const atletaSelezionatoNome = computed(() => {
-  if (!targetAtletaId.value) return '';
+  if (!targetAtletaId.value || targetAtletaId.value === 'tutti') return '';
   return getNomeAtleta(targetAtletaId.value) || `Atleta #${targetAtletaId.value}`;
 });
 
@@ -521,32 +521,63 @@ const atletaSelezionatoNomeUpper = computed(() => {
   return nome ? nome.toUpperCase() : '';
 });
 
-const atletaSelezionatoPrimoNome = computed(() => {
+// Generazione del saluto: Se "tutti" -> semplice "Ciao!", se singolo -> "Ciao [Nome]!"
+const generaSaluto = () => {
+  if (targetAtletaId.value === 'tutti') {
+    return 'Ciao!';
+  }
   const raw = atletaSelezionatoNome.value;
-  if (!raw) return 'Atleta';
+  if (!raw) return 'Ciao!';
   const primo = raw.trim().split(' ')[0];
-  return primo.charAt(0).toUpperCase() + primo.slice(1).toLowerCase();
+  const nomeCap = primo.charAt(0).toUpperCase() + primo.slice(1).toLowerCase();
+  return `Ciao ${nomeCap}!`;
+};
+
+// Seleziona modello rapido
+const selezionaModello = (modello) => {
+  modelloAttivo.value = modello;
+  const saluto = generaSaluto();
+
+  if (modello === 'chiusura_settimana') {
+    oggettoMessaggio.value = '✅ Promemoria: Chiudi il tuo Workout';
+    testoMessaggio.value = `${saluto} Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo i tuoi progressi saranno sempre registrati e aggiornati!`;
+  } else if (modello === 'gradimenti') {
+    oggettoMessaggio.value = '⭐ Promemoria Gradimenti & Feeling';
+    testoMessaggio.value = `${saluto} Ricordati di inserire i gradimenti e il feeling per gli esercizi svolti! Trovi la lista rapida direttamente nella Home oppure puoi inserire i voti in fondo a ciascun esercizio.`;
+  } else if (modello === 'guida_pesi') {
+    oggettoMessaggio.value = '💡 Consiglio del Coach: Come scrivere i pesi';
+    testoMessaggio.value = ''; // Campo opzionale per la nota personale
+  } else {
+    // Libero
+    oggettoMessaggio.value = '💬 Messaggio dal Coach';
+    testoMessaggio.value = '';
+  }
+};
+
+// Aggiorna dinamicamente il testo quando cambia il destinatario (tra Tutti e singolo atleta)
+watch(targetAtletaId, () => {
+  if (modelloAttivo.value === 'chiusura_settimana' || modelloAttivo.value === 'gradimenti') {
+    const nuovoSaluto = generaSaluto();
+    if (testoMessaggio.value.includes('settimana completata') && testoMessaggio.value.includes('Ricordati di chiudere')) {
+      testoMessaggio.value = testoMessaggio.value.replace(/^Ciao.*?!/, nuovoSaluto);
+    } else if (testoMessaggio.value.includes('gradimenti') && testoMessaggio.value.includes('feeling')) {
+      testoMessaggio.value = testoMessaggio.value.replace(/^Ciao.*?!/, nuovoSaluto);
+    }
+  }
 });
 
-// Template rapidi
-const applicaTemplateChiusura = () => {
-  oggettoMessaggio.value = '✅ Promemoria: Chiudi il tuo Workout';
-  const nome = atletaSelezionatoPrimoNome.value;
-  const saluto = nome ? `Ciao ${nome}!` : 'Ciao!';
-  testoMessaggio.value = `${saluto} Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo i tuoi progressi saranno sempre registrati e aggiornati!`;
-};
+// Etichetta dinamica per il pulsante di invio
+const etichettaPulsanteInvio = computed(() => {
+  const isTutti = targetAtletaId.value === 'tutti';
+  const isGuida = modelloAttivo.value === 'guida_pesi';
 
-const applicaTemplateGradimenti = () => {
-  oggettoMessaggio.value = '⭐ Promemoria Gradimenti & Feeling';
-  const nome = atletaSelezionatoPrimoNome.value;
-  const saluto = nome ? `Ciao ${nome}! ` : '';
-  testoMessaggio.value = `${saluto}Ricordati di inserire i gradimenti e il feeling per gli esercizi svolti! Trovi la lista rapida direttamente nella Home oppure puoi inserire i voti in fondo a ciascun esercizio.`;
-};
-
-const applicaTemplateLibero = () => {
-  oggettoMessaggio.value = '💬 Messaggio dal Coach';
-  testoMessaggio.value = '';
-};
+  if (isTutti) {
+    return isGuida ? 'INVIA GUIDA PESI A TUTTI GLI ATLETI' : 'INVIA NOTIFICA A TUTTI GLI ATLETI';
+  } else {
+    const nome = atletaSelezionatoNomeUpper.value || 'ATLETA';
+    return isGuida ? `INVIA GUIDA A ${nome}` : `INVIA NOTIFICA A ${nome}`;
+  }
+});
 
 // Sincronizzazione all'apertura del modale
 watch(mostraMessaggioPrivatoModal, (visibile) => {
@@ -554,46 +585,35 @@ watch(mostraMessaggioPrivatoModal, (visibile) => {
     messaggioErrore.value = '';
     messaggioSuccesso.value = '';
 
-    // Imposta tipo (messaggio vs guida_pesi)
-    tipoInvio.value = messaggioPrivatoTipoIniziale.value || 'messaggio';
-
-    // Imposta atleta target
+    // Imposta destinatario
     if (messaggioPrivatoTargetAtletaId.value) {
       targetAtletaId.value = String(messaggioPrivatoTargetAtletaId.value);
-    } else if (!targetAtletaId.value && listaAtletiSoloSingoli.value.length > 0) {
-      targetAtletaId.value = String(listaAtletiSoloSingoli.value[0].value);
-    }
-
-    // Imposta eventuale template
-    const tpl = messaggioPrivatoTemplateIniziale.value || 'libero';
-    if (tipoInvio.value === 'messaggio') {
-      if (tpl === 'chiusura_settimana') {
-        applicaTemplateChiusura();
-      } else if (tpl === 'gradimenti') {
-        applicaTemplateGradimenti();
-      } else {
-        applicaTemplateLibero();
-      }
     } else {
-      notaCoachGuida.value = '';
+      targetAtletaId.value = 'tutti';
+    }
+
+    // Imposta modello iniziale
+    const tipo = messaggioPrivatoTipoIniziale.value || 'messaggio';
+    const tpl = messaggioPrivatoTemplateIniziale.value || 'libero';
+
+    if (tipo === 'guida_pesi') {
+      selezionaModello('guida_pesi');
+    } else if (tpl === 'chiusura_settimana') {
+      selezionaModello('chiusura_settimana');
+    } else if (tpl === 'gradimenti') {
+      selezionaModello('gradimenti');
+    } else {
+      selezionaModello('libero');
     }
   }
 });
 
-// Se cambia l'atleta mentre il template di chiusura o gradimenti è selezionato, aggiorna il saluto
-watch(targetAtletaId, (nuovoId) => {
-  if (!nuovoId || tipoInvio.value !== 'messaggio' || !testoMessaggio.value) return;
-  const nome = atletaSelezionatoPrimoNome.value;
-  const saluto = nome ? `Ciao ${nome}!` : 'Ciao!';
-  if (testoMessaggio.value.includes('settimana completata') && testoMessaggio.value.includes('Ricordati di chiudere')) {
-    testoMessaggio.value = testoMessaggio.value.replace(/^Ciao.*?!/, saluto);
-  } else if (testoMessaggio.value.includes('gradimenti') && testoMessaggio.value.includes('feeling')) {
-    testoMessaggio.value = testoMessaggio.value.replace(/^Ciao.*?!/, `${saluto} `);
-  }
-});
-
-// Invio WhatsApp
+// Invio WhatsApp (consentito solo su singolo atleta)
 const inviaWhatsApp = () => {
+  if (targetAtletaId.value === 'tutti') {
+    messaggioErrore.value = "Seleziona un singolo atleta per inviare su WhatsApp.";
+    return;
+  }
   if (!testoMessaggio.value?.trim()) return;
   const url = `https://wa.me/?text=${encodeURIComponent(testoMessaggio.value.trim())}`;
   window.open(url, '_blank');
@@ -601,25 +621,20 @@ const inviaWhatsApp = () => {
 
 // Invio Notifica In-App
 const eseguiInvio = async () => {
-  if (!targetAtletaId.value) {
-    messaggioErrore.value = "Seleziona un atleta destinatario.";
-    return;
-  }
-
   try {
     inInvio.value = true;
     messaggioErrore.value = '';
 
-    const isGuida = tipoInvio.value === 'guida_pesi';
-    const targetId = String(targetAtletaId.value);
+    const isGuida = modelloAttivo.value === 'guida_pesi';
+    const isTutti = targetAtletaId.value === 'tutti';
+    const targetId = isTutti ? null : String(targetAtletaId.value);
 
+    // Azione che si attiverà sul dispositivo dell'atleta
     let azione = null;
     if (!isGuida) {
-      const msgLower = (testoMessaggio.value || '').toLowerCase();
-      const objLower = (oggettoMessaggio.value || '').toLowerCase();
-      if (msgLower.includes('gradiment') || objLower.includes('gradiment')) {
+      if (modelloAttivo.value === 'gradimenti' || (oggettoMessaggio.value || '').toLowerCase().includes('gradiment') || (testoMessaggio.value || '').toLowerCase().includes('gradiment')) {
         azione = 'apri_gradimenti';
-      } else if (msgLower.includes('chiudere il workout') || msgLower.includes('settimana completata') || objLower.includes('chius')) {
+      } else if (modelloAttivo.value === 'chiusura_settimana' || (oggettoMessaggio.value || '').toLowerCase().includes('chius') || (testoMessaggio.value || '').toLowerCase().includes('settimana completata')) {
         azione = 'apri_workouts';
       }
     }
@@ -633,22 +648,34 @@ const eseguiInvio = async () => {
       azione: azione
     };
 
-    if (isGuida && notaCoachGuida.value?.trim()) {
-      payload.notes_per_athlete[targetId] = notaCoachGuida.value.trim();
+    // Se guida pesi con nota personale
+    if (isGuida && testoMessaggio.value?.trim()) {
+      if (targetId) {
+        payload.notes_per_athlete[targetId] = testoMessaggio.value.trim();
+      } else {
+        // Se a tutti, la nota viene mostrata in cima alla guida
+        payload.message_general = testoMessaggio.value.trim();
+      }
     }
 
     await inviaNotificaDeploy(payload);
 
-    messaggioSuccesso.value = isGuida 
-      ? `💡 Guida Pesi inviata in tempo reale a ${atletaSelezionatoNome.value}!`
-      : `💬 Messaggio inviato in tempo reale a ${atletaSelezionatoNome.value}!`;
+    if (isTutti) {
+      messaggioSuccesso.value = isGuida 
+        ? "💡 Guida Pesi inviata in tempo reale a tutti gli atleti!" 
+        : "🚀 Notifica inviata in tempo reale a tutti gli atleti!";
+    } else {
+      messaggioSuccesso.value = isGuida 
+        ? `💡 Guida Pesi inviata in tempo reale a ${atletaSelezionatoNome.value}!` 
+        : `💬 Messaggio inviato in tempo reale a ${atletaSelezionatoNome.value}!`;
+    }
 
     setTimeout(() => {
       chiudi();
     }, 1200);
 
   } catch (err) {
-    console.error("Errore invio messaggio privato:", err);
+    console.error("Errore invio notifica:", err);
     messaggioErrore.value = "Errore durante l'invio: " + (err.message || 'Verifica la connessione');
   } finally {
     inInvio.value = false;

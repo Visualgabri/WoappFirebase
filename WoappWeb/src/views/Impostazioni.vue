@@ -902,7 +902,7 @@
               @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'messaggio', template: 'chiusura_settimana' })"
             >
               <v-icon start size="13" color="green-accent-3">mdi-check-circle-outline</v-icon>
-              ✅ Promemoria Chiusura
+              Promemoria Chiusura
             </v-btn>
             <v-btn
               size="x-small"
@@ -914,7 +914,7 @@
               @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'messaggio', template: 'gradimenti' })"
             >
               <v-icon start size="13" color="amber-accent-2">mdi-star-shooting</v-icon>
-              ⭐ Promemoria Gradimenti
+              Promemoria Gradimenti
             </v-btn>
             <v-btn
               size="x-small"
@@ -926,7 +926,7 @@
               @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'guida_pesi' })"
             >
               <v-icon start size="13" color="amber-accent-3">mdi-lightbulb-on</v-icon>
-              💡 Invia Guida Pesi
+              Invia Guida Pesi
             </v-btn>
           </div>
         </template>
@@ -1364,14 +1364,14 @@ const getNomeAtletaTargetCapitalized = (id) => {
 };
 
 const impostaTemplateGradimenti = () => {
-  titoloDeployForm.value = '⭐ Promemoria Gradimenti & Feeling';
+  titoloDeployForm.value = 'Promemoria Gradimenti & Feeling';
   const nomeTarget = getNomeAtletaTargetCapitalized(atletaDeployTargetForm.value);
   const saluto = nomeTarget ? `Ciao ${nomeTarget}! ` : '';
   messaggioDeployGeneraleForm.value = `${saluto}Ricordati di inserire i gradimenti e il feeling per gli esercizi svolti! Trovi la lista rapida direttamente nella Home oppure puoi inserire i voti in fondo a ciascun esercizio.`;
 };
 
 const impostaTemplateChiusuraSettimana = () => {
-  titoloDeployForm.value = '✅ Promemoria: Chiudi il tuo Workout';
+  titoloDeployForm.value = 'Promemoria: Chiudi il tuo Workout';
   const nomeTarget = getNomeAtletaTargetCapitalized(atletaDeployTargetForm.value);
   const saluto = nomeTarget ? `Ciao ${nomeTarget}!` : 'Ciao!';
   messaggioDeployGeneraleForm.value = `${saluto} Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo i tuoi progressi saranno sempre registrati e aggiornati!`;

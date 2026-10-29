@@ -125,7 +125,7 @@
               @click="selezionaModello('chiusura_settimana')"
             >
               <v-icon start size="13" :color="modelloAttivo === 'chiusura_settimana' ? 'black' : 'green-accent-3'">mdi-check-circle-outline</v-icon>
-              ✅ Chiudi Settimana
+              Chiudi Settimana
             </v-btn>
 
             <!-- 2. Gradimenti & Feeling -->
@@ -140,7 +140,7 @@
               @click="selezionaModello('gradimenti')"
             >
               <v-icon start size="13" :color="modelloAttivo === 'gradimenti' ? 'black' : 'amber-accent-2'">mdi-star-shooting</v-icon>
-              ⭐ Gradimenti & Feeling
+              Gradimenti & Feeling
             </v-btn>
 
             <!-- 3. Guida Pesi Coach (Nuova Pillola Integrata) -->
@@ -155,7 +155,7 @@
               @click="selezionaModello('guida_pesi')"
             >
               <v-icon start size="13" :color="modelloAttivo === 'guida_pesi' ? 'black' : 'amber-lighten-2'">mdi-lightbulb-on</v-icon>
-              💡 Guida Pesi
+              Guida Pesi
             </v-btn>
 
             <!-- 4. Testo Libero -->
@@ -170,7 +170,7 @@
               @click="selezionaModello('libero')"
             >
               <v-icon start size="13" :color="modelloAttivo === 'libero' ? 'black' : 'purple-accent-2'">mdi-pencil-outline</v-icon>
-              ✍️ Testo Libero
+              Testo Libero
             </v-btn>
           </div>
         </div>
@@ -179,14 +179,14 @@
         <div v-if="modelloAttivo === 'gradimenti'" class="pa-2 rounded-lg mb-3 d-flex align-center gap-1.5" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25);">
           <v-icon color="amber-accent-3" size="15">mdi-information-outline</v-icon>
           <span class="text-caption text-amber-lighten-3 font-weight-bold" style="font-size: 0.68rem; line-height: 1.3;">
-            All'atleta apparirà direttamente il pulsante <strong>"⭐ APRI LISTA ESERCIZI DA VOTARE"</strong> per compilare subito i propri voti.
+            All'atleta apparirà direttamente il pulsante <strong>"APRI LISTA ESERCIZI DA VOTARE"</strong> per compilare subito i propri voti.
           </span>
         </div>
 
         <div v-else-if="modelloAttivo === 'chiusura_settimana'" class="pa-2 rounded-lg mb-3 d-flex align-center gap-1.5" style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(74, 222, 128, 0.25);">
           <v-icon color="green-accent-3" size="15">mdi-information-outline</v-icon>
           <span class="text-caption text-green-lighten-3 font-weight-bold" style="font-size: 0.68rem; line-height: 1.3;">
-            All'atleta apparirà direttamente il pulsante <strong>"🏋️ VAI AL TAB WORKOUT"</strong> per completare la settimana.
+            All'atleta apparirà direttamente il pulsante <strong>"VAI AL TAB WORKOUT"</strong> per completare la settimana.
           </span>
         </div>
 
@@ -233,7 +233,7 @@
           </span>
           <v-text-field
             v-model="oggettoMessaggio"
-            placeholder="Es: 💬 Messaggio dal Coach"
+            placeholder="Es: Messaggio dal Coach"
             variant="outlined"
             density="compact"
             :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'"
@@ -543,17 +543,17 @@ const selezionaModello = (modello) => {
   const saluto = generaSaluto();
 
   if (modello === 'chiusura_settimana') {
-    oggettoMessaggio.value = '✅ Promemoria: Chiudi il tuo Workout';
+    oggettoMessaggio.value = 'Promemoria: Chiudi il tuo Workout';
     testoMessaggio.value = `${saluto} Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo i tuoi progressi saranno sempre registrati e aggiornati!`;
   } else if (modello === 'gradimenti') {
-    oggettoMessaggio.value = '⭐ Promemoria Gradimenti & Feeling';
+    oggettoMessaggio.value = 'Promemoria Gradimenti & Feeling';
     testoMessaggio.value = `${saluto} Ricordati di inserire i gradimenti e il feeling per gli esercizi svolti! Trovi la lista rapida direttamente nella Home oppure puoi inserire i voti in fondo a ciascun esercizio.`;
   } else if (modello === 'guida_pesi') {
-    oggettoMessaggio.value = '💡 Consiglio del Coach: Come scrivere i pesi';
+    oggettoMessaggio.value = 'Consiglio del Coach: Come scrivere i pesi';
     testoMessaggio.value = ''; // Campo opzionale per la nota personale
   } else {
     // Libero
-    oggettoMessaggio.value = '📢 Comunicazione dal Coach';
+    oggettoMessaggio.value = 'Comunicazione dal Coach';
     testoMessaggio.value = '';
   }
 };

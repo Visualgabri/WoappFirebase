@@ -705,7 +705,7 @@
                 {{ deployVersionInfo?.tipo === 'messaggio' ? (isMessaggioGradimenti ? 'mdi-star-shooting' : (isMessaggioChiusuraSettimana ? 'mdi-check-decagram-outline' : 'mdi-message-text-outline')) : 'mdi-rocket-launch-outline' }}
               </v-icon>
               <h2 class="text-subtitle-1 font-weight-black text-white mb-0" style="font-size: 0.95rem; line-height: 1.2; color: #ffffff !important;">
-                {{ deployVersionInfo?.titolo ? deployVersionInfo.titolo.replace(/^🚀\s*/, '') : (deployVersionInfo?.tipo === 'messaggio' ? 'Messaggio dal Coach' : 'Nuovo Aggiornamento') }}
+                {{ pulisciTitoloBanner(deployVersionInfo?.titolo) || (deployVersionInfo?.tipo === 'messaggio' ? 'Messaggio dal Coach' : 'Nuovo Aggiornamento') }}
               </h2>
             </div>
             <v-btn
@@ -757,7 +757,7 @@
                   @click="vaiAListaGradimenti"
                 >
                   <v-icon start size="20">mdi-star</v-icon>
-                  ⭐ APRI LISTA ESERCIZI DA VOTARE
+                  APRI LISTA ESERCIZI DA VOTARE
                 </v-btn>
 
                 <v-btn
@@ -787,7 +787,7 @@
                   @click="vaiAWorkouts"
                 >
                   <v-icon start size="20">mdi-dumbbell</v-icon>
-                  🏋️ VAI AL TAB WORKOUT
+                  VAI AL TAB WORKOUT
                 </v-btn>
 
                 <v-btn
@@ -854,6 +854,11 @@ const globalTransition = ref('fade');
 const mostraDialogGuida = ref(false);
 const mostraJulieEasterEgg = ref(false);
 const mostraPannemenEasterEgg = ref(false);
+
+const pulisciTitoloBanner = (titolo) => {
+  if (!titolo) return '';
+  return String(titolo).replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s*#⚠️]+(?:\s*-\s*|\s+)?/u, '').trim();
+};
 
 const isMessaggioGradimenti = computed(() => {
   if (deployVersionInfo.value?.tipo !== 'messaggio') return false;

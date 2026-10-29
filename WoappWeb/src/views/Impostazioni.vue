@@ -755,11 +755,11 @@
     >
       <div class="d-flex align-center justify-space-between mb-2.5">
         <div class="d-flex align-center gap-1.5">
-          <v-icon :color="tipoNotificaForm === 'deploy' ? 'primary' : (tipoNotificaForm === 'guida_pesi' ? 'amber-accent-4' : 'purple-darken-1')" size="17">
-            {{ tipoNotificaForm === 'deploy' ? 'mdi-rocket-launch-outline' : (tipoNotificaForm === 'guida_pesi' ? 'mdi-lightbulb-on' : 'mdi-comment-text-outline') }}
+          <v-icon :color="tipoNotificaForm === 'deploy' ? 'primary' : 'purple-darken-1'" size="17">
+            {{ tipoNotificaForm === 'deploy' ? 'mdi-rocket-launch-outline' : 'mdi-bullhorn-outline' }}
           </v-icon>
-          <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :class="tipoNotificaForm === 'deploy' ? 'text-theme-primary' : (tipoNotificaForm === 'guida_pesi' ? 'text-amber-lighten-2' : 'text-purple-lighten-2')" style="font-size: 0.72rem;">
-            {{ tipoNotificaForm === 'deploy' ? 'Notifica Deploy' : (tipoNotificaForm === 'guida_pesi' ? 'Guida Pesi Coach' : 'Messaggio Privato') }}
+          <span class="text-subtitle-2 font-weight-black uppercase tracking-wide" :class="tipoNotificaForm === 'deploy' ? 'text-theme-primary' : 'text-purple-lighten-2'" style="font-size: 0.72rem;">
+            {{ tipoNotificaForm === 'deploy' ? 'Notifica Deploy App' : 'Comunicazione Coach' }}
           </span>
         </div>
         <v-chip :color="tipoNotificaForm === 'deploy' ? 'primary' : (tipoNotificaForm === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2')" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.55rem; height: 18px;">
@@ -781,25 +781,17 @@
               value="deploy" 
               class="font-weight-black flex-grow-1 text-none"
               :class="tipoNotificaForm === 'deploy' ? 'bg-theme-primary text-white' : 'text-slate-dark'"
-              style="font-size: 0.64rem; padding: 0 4px;"
+              style="font-size: 0.68rem; padding: 0 4px;"
             >
-              Deploy (Tutti)
+              🚀 Deploy App (Tutti)
             </v-btn>
             <v-btn 
               value="messaggio" 
               class="font-weight-black flex-grow-1 text-none"
               :class="tipoNotificaForm === 'messaggio' ? 'bg-purple-darken-2 text-white' : 'text-slate-dark'"
-              style="font-size: 0.64rem; padding: 0 4px;"
+              style="font-size: 0.68rem; padding: 0 4px;"
             >
-              Messaggio Privato
-            </v-btn>
-            <v-btn 
-              value="guida_pesi" 
-              class="font-weight-black flex-grow-1 text-none"
-              :class="tipoNotificaForm === 'guida_pesi' ? 'bg-amber-darken-3 text-white' : 'text-slate-dark'"
-              style="font-size: 0.64rem; padding: 0 4px;"
-            >
-              💡 Guida Pesi
+              📢 Comunicazione Coach
             </v-btn>
           </v-btn-toggle>
         </div>
@@ -855,7 +847,7 @@
               <div class="d-flex align-center gap-1.5">
                 <v-icon color="purple-lighten-2" size="18">mdi-comment-text-outline</v-icon>
                 <span class="text-caption font-weight-black text-purple-lighten-2 text-uppercase" style="font-size: 0.70rem;">
-                  Messaggio Privato Coach
+                  Comunicazione Coach
                 </span>
               </div>
               <v-chip color="purple-darken-2" size="x-small" variant="flat" class="font-weight-black text-white" style="font-size: 0.58rem; height: 18px;">
@@ -877,7 +869,7 @@
                 @click="apriMessaggioPrivatoModal({ atletaId: atletaDeployTargetForm !== 'tutti' ? atletaDeployTargetForm : null, tipo: 'messaggio' })"
               >
                 <v-icon start size="16">mdi-open-in-new</v-icon>
-                Apri Dialogo Messaggio Privato
+                Apri Dialogo Comunicazione Coach
               </v-btn>
             </div>
           </div>
@@ -939,215 +931,14 @@
           </div>
         </template>
 
-        <!-- AMBIENTE 3: GUIDA SCRITTURA PESI COACH -->
-        <template v-else-if="tipoNotificaForm === 'guida_pesi'">
-          <!-- Scelta Destinatario (Tutti vs Singolo) -->
-          <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-amber-lighten-2 d-block mb-1" style="font-size: 0.65rem;">Destinatari Guida</span>
-            <v-btn-toggle
-              v-model="targetGuidaPesiTipo"
-              mandatory
-              density="compact"
-              rounded="lg"
-              class="w-100 card-glass border overflow-hidden mb-2"
-              style="height: 28px;"
-            >
-              <v-btn
-                value="tutti"
-                class="font-weight-bold flex-grow-1 text-none"
-                :class="targetGuidaPesiTipo === 'tutti' ? 'bg-amber-darken-4 text-white' : 'text-slate-dark'"
-                style="font-size: 0.62rem; padding: 0 4px;"
-              >
-                👥 A Tutti gli Atleti
-              </v-btn>
-              <v-btn
-                value="singolo"
-                class="font-weight-bold flex-grow-1 text-none"
-                :class="targetGuidaPesiTipo === 'singolo' ? 'bg-amber-darken-4 text-white' : 'text-slate-dark'"
-                style="font-size: 0.62rem; padding: 0 4px;"
-              >
-                👤 Singolo Atleta
-              </v-btn>
-            </v-btn-toggle>
-
-            <!-- Se singolo, select dell'atleta -->
-            <div v-if="targetGuidaPesiTipo === 'singolo'" class="mt-1 mb-2 animate-fade-in">
-              <span class="text-caption font-weight-bold text-amber-lighten-3 d-block mb-1" style="font-size: 0.62rem;">Seleziona Atleta</span>
-              <v-select
-                v-model="atletaDeployTargetForm"
-                :items="listaAtletiSoloSingoli"
-                item-title="title"
-                item-value="value"
-                placeholder="Scegli atleta..."
-                variant="outlined"
-                density="compact"
-                color="amber-darken-3"
-                class="custom-compact-field"
-                hide-details
-              ></v-select>
-            </div>
-          </div>
-
-          <!-- Card Anteprima / Info -->
-          <div class="pa-2.5 rounded-xl mb-2 text-left" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25);">
-            <div class="d-flex align-center justify-space-between mb-1.5">
-              <div class="d-flex align-center gap-1.5">
-                <v-icon color="amber-accent-3" size="16">mdi-lightbulb-on</v-icon>
-                <span class="text-caption font-weight-black text-amber-lighten-2 text-uppercase" style="font-size: 0.68rem;">
-                  Consiglio del Coach
-                </span>
               </div>
-              <v-btn
-                variant="text"
-                size="x-small"
-                color="amber-accent-2"
-                class="px-1 text-none font-weight-bold"
-                style="height: 20px; font-size: 0.60rem;"
-                @click="dialogAnteprimaGuidaPesi = true"
-              >
-                <v-icon size="13" class="mr-1">mdi-eye-outline</v-icon>
-                Anteprima
-              </v-btn>
-            </div>
-            <p class="text-caption text-slate-300 mb-1" style="font-size: 0.70rem; line-height: 1.35;">
-              Verrà mostrato il popup grafico guidato con le regole di formattazione carichi:
-            </p>
-            <div class="d-flex flex-wrap gap-1">
-              <v-chip size="x-small" color="amber-darken-4" variant="flat" class="text-white font-mono font-weight-bold" style="font-size: 0.60rem; height: 18px;">
-                Ramping: 45 45 47,5 50
-              </v-chip>
-              <v-chip size="x-small" color="sky-darken-4" variant="flat" class="text-white font-mono font-weight-bold" style="font-size: 0.60rem; height: 18px;">
-                Reps: 42,5x11r
-              </v-chip>
-            </div>
-          </div>
-
-          <!-- Nota Facoltativa del Coach -->
-          <div class="mb-2 text-left">
-            <span class="text-caption font-weight-bold text-amber-lighten-2 d-block mb-1" style="font-size: 0.65rem;">
-              Nota personale facoltativa (visibile in testa al popup)
-            </span>
-            <v-textarea
-              v-model="notaDeployPersonalizzataForm"
-              placeholder="Es: Ciao, controlla come inserire i pesi prima del workout..."
-              variant="outlined"
-              density="compact"
-              rows="2"
-              color="amber-darken-3"
-              class="custom-compact-field"
-              hide-details
-            ></v-textarea>
-          </div>
-
-          <!-- Pulsante Invio Guida -->
-          <v-btn
-            color="amber-darken-3"
-            block
-            size="small"
-            variant="flat"
-            rounded="lg"
-            class="font-weight-black text-none text-white mt-2"
-            style="height: 32px; font-size: 0.72rem; background: linear-gradient(135deg, #d97706, #f59e0b) !important;"
-            :disabled="targetGuidaPesiTipo === 'singolo' && (!atletaDeployTargetForm || atletaDeployTargetForm === 'tutti')"
-            @click="eseguiInvioNotificaDeploy"
-            :loading="inviandoDeployNotifica"
-          >
-            <v-icon start size="15">mdi-send</v-icon>
-            {{ targetGuidaPesiTipo === 'tutti' ? 'INVIA GUIDA PESI A TUTTI GLI UTENTI' : ('INVIA GUIDA PESI A ' + (getNomeAtletaTarget(atletaDeployTargetForm) || 'ATLETA')) }}
-          </v-btn>
-        </template>
-      </div>
 
       <v-snackbar v-model="snackbarDeployShow" :color="snackbarDeployColor" timeout="4000" rounded="lg">
         {{ snackbarDeployMessage }}
       </v-snackbar>
     </v-card>
 
-    <!-- Dialog Anteprima Guida Pesi (Coach Preview) -->
-    <v-dialog v-model="dialogAnteprimaGuidaPesi" max-width="480">
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: #0b111e !important; border: 1.5px solid rgba(245, 158, 11, 0.45) !important;">
-        <!-- Header -->
-        <v-card-title class="pa-4 pb-2.5 d-flex align-center justify-space-between bg-slate-900 border-bottom">
-          <div class="d-flex align-center gap-2">
-            <v-avatar size="32" color="amber-darken-4" class="elevation-2">
-              <v-icon color="amber-lighten-2" size="20">mdi-lightbulb-on</v-icon>
-            </v-avatar>
-            <div>
-              <div class="text-subtitle-2 font-weight-black text-white" style="line-height: 1.2;">
-                Consiglio del Coach
-              </div>
-              <div class="text-super-caption text-amber-lighten-3 font-weight-bold" style="font-size: 0.65rem;">
-                COME SCRIVERE I PESI NELLE CASELLE
-              </div>
-            </div>
-          </div>
-          <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="dialogAnteprimaGuidaPesi = false"></v-btn>
-        </v-card-title>
-
-        <v-card-text class="pa-4 text-left" style="max-height: 70vh; overflow-y: auto;">
-          <!-- Nota Facoltativa del Coach se scritta nel form -->
-          <div v-if="notaDeployPersonalizzataForm?.trim()" class="pa-2.5 rounded-xl mb-3 text-amber-lighten-2 border-soft" style="background: rgba(245, 158, 11, 0.12); font-size: 0.82rem; line-height: 1.4;">
-            <div class="d-flex align-center gap-1 mb-1 font-weight-black text-amber-accent-2" style="font-size: 0.70rem;">
-              <v-icon size="14">mdi-message-text</v-icon>
-              <span>NOTA DEL COACH:</span>
-            </div>
-            {{ notaDeployPersonalizzataForm }}
-          </div>
-
-          <!-- Frase Introduttiva -->
-          <div class="pa-3 rounded-xl mb-3 text-slate-200" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.84rem; line-height: 1.45;">
-            Scrivi i pesi di tutte le serie <strong>separati da uno spazio</strong>, puoi anche andare a capo, tanto le caselle di testo sono intelligenti.
-          </div>
-
-          <!-- Card Esempio 1: Ramping -->
-          <div class="pa-3 rounded-xl mb-3" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.28);">
-            <div class="d-flex align-center gap-1.5 mb-1.5">
-              <v-icon color="amber-accent-3" size="18">mdi-arrow-decision-outline</v-icon>
-              <span class="text-caption font-weight-black text-amber-lighten-2 text-uppercase" style="letter-spacing: 0.03em;">
-                Esempio 1 — Ramping (es. un 4x9)
-              </span>
-            </div>
-            <div class="pa-2 rounded-lg font-mono font-weight-black text-amber-lighten-3 text-center mb-2 tracking-wider" style="background: rgba(0, 0, 0, 0.5); border: 1px dashed rgba(245, 158, 11, 0.4); font-size: 0.95rem;">
-              45 45 47,5 50
-            </div>
-            <p class="text-caption text-slate-300 mb-0" style="font-size: 0.78rem; line-height: 1.4;">
-              Così il sistema capisce anche che hai fatto un ramping. Prenderà poi il peso maggiore come riferimento per calcolarti il carico da utilizzare nella week successiva. I pesi che utilizza come riferimento li trovi <u>sottolineati</u>.
-            </p>
-          </div>
-
-          <!-- Card Esempio 2: Più Ripetizioni -->
-          <div class="pa-3 rounded-xl mb-2" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.28);">
-            <div class="d-flex align-center gap-1.5 mb-1.5">
-              <v-icon color="sky-lighten-2" size="18">mdi-numeric-positive-1</v-icon>
-              <span class="text-caption font-weight-black text-sky-lighten-2 text-uppercase" style="letter-spacing: 0.03em;">
-                Esempio 2 — Più Reps (stesso peso, +2 reps)
-              </span>
-            </div>
-            <div class="pa-2 rounded-lg font-mono font-weight-black text-sky-lighten-3 text-center mb-2 tracking-wider" style="background: rgba(0, 0, 0, 0.5); border: 1px dashed rgba(56, 189, 248, 0.4); font-size: 0.95rem;">
-              42,5x11r
-            </div>
-            <p class="text-caption text-slate-300 mb-0" style="font-size: 0.78rem; line-height: 1.4;">
-              Se invece, per esempio, nella prima serie utilizzi lo stesso peso della week precedente ma fai due ripetizioni in più rispetto a quelle prescritte, scrivi <strong>"42,5x11r"</strong>: così il sistema capisce che sei salito con le reps e ne tiene conto per la progressione successiva.
-            </p>
-          </div>
-        </v-card-text>
-
-        <v-card-actions class="pa-3 border-top bg-slate-900">
-          <v-btn
-            variant="flat"
-            color="amber-darken-3"
-            block
-            class="font-weight-black text-none text-white rounded-xl"
-            style="background: linear-gradient(135deg, #d97706, #f59e0b) !important; height: 38px; font-size: 0.82rem;"
-            @click="dialogAnteprimaGuidaPesi = false"
-          >
-            Chiudi Anteprima
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- SEZIONE 6: BACKUP & RIPRISTINO DATI -->
+        <!-- SEZIONE 6: BACKUP & RIPRISTINO DATI -->
     <v-card 
       v-if="atletaSelezionato && schedaSelezionata"
       v-show="activeTab === 'generali'"

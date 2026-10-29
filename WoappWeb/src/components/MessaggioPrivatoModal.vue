@@ -27,28 +27,30 @@
             class="elevation-2 flex-shrink-0"
           >
             <v-icon :color="modelloAttivo === 'guida_pesi' ? 'amber-lighten-2' : 'purple-lighten-2'" size="20">
-              {{ modelloAttivo === 'guida_pesi' ? 'mdi-lightbulb-on' : 'mdi-comment-text-outline' }}
+              {{ modelloAttivo === 'guida_pesi' ? 'mdi-lightbulb-on' : (targetAtletaId === 'tutti' ? 'mdi-bullhorn-outline' : 'mdi-comment-text-outline') }}
             </v-icon>
           </v-avatar>
           <div class="text-truncate">
             <h2 class="text-subtitle-1 font-weight-black text-white text-truncate mb-0" style="font-size: 0.95rem;">
-              {{ modelloAttivo === 'guida_pesi' ? 'Consiglio del Coach: Guida Pesi' : 'Messaggio & Notifiche Coach' }}
+              {{ modelloAttivo === 'guida_pesi' 
+                  ? 'Consiglio del Coach: Guida Pesi' 
+                  : (targetAtletaId === 'tutti' ? 'Comunicazione a Tutti gli Atleti' : (atletaSelezionatoNome ? `Comunicazione per ${atletaSelezionatoNome}` : 'Comunicazione Coach')) }}
             </h2>
             <div class="text-caption font-weight-bold" :class="modelloAttivo === 'guida_pesi' ? 'text-amber-lighten-3' : 'text-purple-lighten-2'" style="font-size: 0.65rem;">
-              {{ targetAtletaId === 'tutti' ? 'Notifica in tempo reale per tutti gli atleti' : 'Notifica in tempo reale per l\'atleta selezionato' }}
+              {{ targetAtletaId === 'tutti' ? 'Notifica in tempo reale per tutti gli atleti' : 'Notifica in tempo reale per l\'atleta' }}
             </div>
           </div>
         </div>
 
         <div class="d-flex align-center gap-1">
           <v-chip 
-            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : 'purple-darken-2'" 
+            :color="modelloAttivo === 'guida_pesi' ? 'amber-darken-3' : (targetAtletaId === 'tutti' ? 'indigo-darken-3' : 'purple-darken-2')" 
             size="x-small" 
             variant="flat" 
             class="font-weight-black text-white" 
             style="font-size: 0.58rem; height: 20px;"
           >
-            COACH
+            {{ targetAtletaId === 'tutti' ? 'A TUTTI' : 'COACH' }}
           </v-chip>
           <v-btn icon variant="text" size="small" color="grey" @click="chiudi">
             <v-icon size="20">mdi-close</v-icon>
@@ -549,7 +551,7 @@ const selezionaModello = (modello) => {
     testoMessaggio.value = ''; // Campo opzionale per la nota personale
   } else {
     // Libero
-    oggettoMessaggio.value = '💬 Messaggio dal Coach';
+    oggettoMessaggio.value = '📢 Comunicazione dal Coach';
     testoMessaggio.value = '';
   }
 };
@@ -572,10 +574,10 @@ const etichettaPulsanteInvio = computed(() => {
   const isGuida = modelloAttivo.value === 'guida_pesi';
 
   if (isTutti) {
-    return isGuida ? 'INVIA GUIDA PESI A TUTTI GLI ATLETI' : 'INVIA NOTIFICA A TUTTI GLI ATLETI';
+    return isGuida ? 'INVIA GUIDA PESI A TUTTI GLI ATLETI' : 'INVIA COMUNICAZIONE A TUTTI GLI ATLETI';
   } else {
     const nome = atletaSelezionatoNomeUpper.value || 'ATLETA';
-    return isGuida ? `INVIA GUIDA A ${nome}` : `INVIA NOTIFICA A ${nome}`;
+    return isGuida ? `INVIA GUIDA A ${nome}` : `INVIA COMUNICAZIONE A ${nome}`;
   }
 });
 
@@ -663,11 +665,11 @@ const eseguiInvio = async () => {
     if (isTutti) {
       messaggioSuccesso.value = isGuida 
         ? "💡 Guida Pesi inviata in tempo reale a tutti gli atleti!" 
-        : "🚀 Notifica inviata in tempo reale a tutti gli atleti!";
+        : "📢 Comunicazione inviata in tempo reale a tutti gli atleti!";
     } else {
       messaggioSuccesso.value = isGuida 
         ? `💡 Guida Pesi inviata in tempo reale a ${atletaSelezionatoNome.value}!` 
-        : `💬 Messaggio inviato in tempo reale a ${atletaSelezionatoNome.value}!`;
+        : `📢 Comunicazione inviata in tempo reale a ${atletaSelezionatoNome.value}!`;
     }
 
     setTimeout(() => {

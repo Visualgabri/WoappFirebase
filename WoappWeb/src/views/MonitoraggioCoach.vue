@@ -254,7 +254,7 @@
               aria-label="WhatsApp"
             ></v-btn>
 
-            <!-- Pulsante Messaggio Privato / Guida Pesi In-App (solo icona) -->
+            <!-- Pulsante Comunicazione Coach / Guida Pesi In-App (solo icona) -->
             <v-btn
               icon="mdi-comment-text-outline"
               size="small"
@@ -262,8 +262,8 @@
               variant="flat"
               class="rounded-xl btn-action-icon text-white"
               @click="apriMessaggioPrivatoAtleta(cliente, 'messaggio', 'libero')"
-              title="Invia messaggio privato o guida pesi all'atleta"
-              aria-label="Messaggio Privato"
+              title="Invia comunicazione o guida pesi all'atleta"
+              aria-label="Comunicazione Coach"
             ></v-btn>
 
             <!-- Pulsante Apri Scheda (solo icona) -->
@@ -294,8 +294,8 @@
               <v-list class="card-glass rounded-xl py-1" elevation="4">
                 <v-list-item
                   density="compact"
-                  prepend-icon="mdi-comment-text-outline"
-                  title="Messaggio Privato (In-App)"
+                  prepend-icon="mdi-bullhorn-outline"
+                  title="Comunicazione (In-App)"
                   @click="apriMessaggioPrivatoAtleta(cliente, 'messaggio', 'libero')"
                 ></v-list-item>
                 <v-list-item

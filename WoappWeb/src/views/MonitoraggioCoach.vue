@@ -451,6 +451,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { setSelectedAthlete, setSelectedSheet, apriMessaggioPrivatoModal, getTelefonoAtleta, formattaTelefonoPerWhatsApp } from '../authStore.js';
+import { db } from '../firebase.js';
+import { doc, getDoc } from 'firebase/firestore';
 import {
   caricaRiepilogoClientiPerCoach,
   ricalcolaESalvaStatoAtleta
@@ -573,7 +575,7 @@ const apriSchedaAtleta = (cliente) => {
 };
 
 // Apertura Chat WhatsApp con messaggio precompilato calibrato
-const apriWhatsAppAtleta = (cliente) => {
+const apriWhatsAppAtleta = async (cliente) => {
   const nome = cliente.nome || cliente.nomeCompleto || 'Atleta';
   let messaggio = '';
 
@@ -587,18 +589,51 @@ const apriWhatsAppAtleta = (cliente) => {
     messaggio = `Ciao ${nome}! Come procede con la Week ${cliente.settimanaCorrente} della scheda #${cliente.scheda}?`;
   }
 
-  const tel = formattaTelefonoPerWhatsApp(cliente.num_telefono || getTelefonoAtleta(cliente.id));
+  let tel = formattaTelefonoPerWhatsApp(cliente.num_telefono || getTelefonoAtleta(cliente.id) || localStorage.getItem('telefono_cliente_' + cliente.id));
+  if (!tel && cliente.id) {
+    try {
+      const snap = await getDoc(doc(db, 'CLIENTI', String(cliente.id)));
+      if (snap.exists()) {
+        const rawT = snap.data().num_telefono || snap.data().telefono || '';
+        if (rawT) {
+          cliente.num_telefono = rawT;
+          localStorage.setItem('telefono_cliente_' + cliente.id, rawT);
+          tel = formattaTelefonoPerWhatsApp(rawT);
+        }
+      }
+    } catch (e) {
+      console.warn("Fallback telefono Firestore:", e);
+    }
+  }
+
   const baseUrl = tel ? `https://wa.me/${tel}` : 'https://wa.me/';
   const url = `${baseUrl}?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');
 };
 
 // Invio rapido del promemoria di chiusura settimana su WhatsApp
-const inviaPromemoriaChiusuraWhatsApp = (cliente) => {
+const inviaPromemoriaChiusuraWhatsApp = async (cliente) => {
   const rawNome = cliente.nome || cliente.nomeCompleto || 'Atleta';
   const nome = rawNome.trim().split(' ')[0];
   const messaggio = `Ciao ${nome}! Ricordati di chiudere il workout quando lo hai completato: entra nel tab Workout e metti la spunta sulla settimana completata premendo 'Completa Giorno' in fondo alla scheda (oppure dal pulsante rapido Play ⚡). In questo modo il tuo programma rimarrà sempre sincronizzato e aggiornato!`;
-  const tel = formattaTelefonoPerWhatsApp(cliente.num_telefono || getTelefonoAtleta(cliente.id));
+  
+  let tel = formattaTelefonoPerWhatsApp(cliente.num_telefono || getTelefonoAtleta(cliente.id) || localStorage.getItem('telefono_cliente_' + cliente.id));
+  if (!tel && cliente.id) {
+    try {
+      const snap = await getDoc(doc(db, 'CLIENTI', String(cliente.id)));
+      if (snap.exists()) {
+        const rawT = snap.data().num_telefono || snap.data().telefono || '';
+        if (rawT) {
+          cliente.num_telefono = rawT;
+          localStorage.setItem('telefono_cliente_' + cliente.id, rawT);
+          tel = formattaTelefonoPerWhatsApp(rawT);
+        }
+      }
+    } catch (e) {
+      console.warn("Fallback telefono Firestore:", e);
+    }
+  }
+
   const baseUrl = tel ? `https://wa.me/${tel}` : 'https://wa.me/';
   const url = `${baseUrl}?text=${encodeURIComponent(messaggio)}`;
   window.open(url, '_blank');

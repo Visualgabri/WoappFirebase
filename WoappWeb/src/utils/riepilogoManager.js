@@ -340,6 +340,7 @@ export const caricaRiepilogoClientiPerCoach = async (forceRefresh = false) => {
           const recency = calcolaTempoTrascorso(item.ultimoInserimentoRaw);
           return {
             ...item,
+            num_telefono: item.num_telefono || localStorage.getItem('telefono_cliente_' + item.id) || '',
             tempoTrascorso: recency.testo,
             etichettaTempo: recency.etichettaBreve,
             giorniInattivita: recency.giorni,

@@ -1881,6 +1881,21 @@ export const haProgressioneQualitativa = (strVal) => {
 };
 
 /**
+ * Verifica se la stringa contiene un'indicazione esplicita di mantenimento o assenza di progressione qualitativa.
+ * Riconosce tag tra parentesi quadre (es. "[Nessuno/Mantenimento]", "[Mantenimento]") o keyword nel testo.
+ *
+ * @param {string} strVal
+ * @returns {boolean}
+ */
+export const haTagMantenimento = (strVal) => {
+  if (!strVal) return false;
+  const raw = String(strVal).trim().toLowerCase();
+  if (!raw || raw === '-') return false;
+  if (/\[\s*(?:nessuno|mantenimento)[^\]]*\]/i.test(raw)) return true;
+  return /\b(?:mantenimento)\b/i.test(raw);
+};
+
+/**
  * Estrae le singole serie di ripetizioni inserite dall'atleta
  * (es. "14 12 10", "14-12-10", "14, 12, 10", "14 / 12 / 10", "36", "14 12 10r").
  *

@@ -1902,13 +1902,45 @@
           <!-- BADGE PROGRESSIONE QUALITATIVA ACCREDITATA -->
           <div 
             v-else-if="!isPostura && !isCardio && haDriverQualitativoAccreditato(sett) && (inputSettimane[sett]?.ins)" 
-            class="my-1.5 px-2.5 py-1 rounded-lg border d-flex align-center gap-1.5 bg-slate-900 text-left"
+            class="my-1.5 px-2.5 py-1 rounded-lg border d-flex align-center gap-1.5 bg-slate-900 text-left animate-fade-in"
             style="border-color: rgba(168, 85, 247, 0.3) !important;"
           >
             <span style="font-size: 0.75rem;">🌟</span>
             <span class="text-super-caption text-purple-lighten-3 font-weight-black" style="font-size: 0.62rem;">
               {{ getTestoBadgeProgressione(sett) }}
             </span>
+            <v-icon size="14" color="purple-lighten-4" class="cursor-pointer ml-auto" @click="rimuoviDriverProgressione(sett)" title="Rimuovi tag">mdi-close-circle-outline</v-icon>
+          </div>
+
+          <!-- BADGE CONSOLIDAMENTO VOLUME ESEGUITO -->
+          <div 
+            v-else-if="!isPostura && !isCardio && isConsolidamentoCompletato(sett) && (inputSettimane[sett]?.ins)" 
+            class="my-1.5 px-2.5 py-1.5 rounded-lg border d-flex align-center gap-1.5 bg-slate-900 text-left animate-fade-in"
+            style="border-color: rgba(56, 189, 248, 0.35) !important; background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0.02) 100%) !important;"
+          >
+            <span style="font-size: 0.8rem;">🛡️</span>
+            <div class="d-flex flex-column flex-grow-1 min-width-0">
+              <span class="text-super-caption font-weight-black text-sky-lighten-2" style="font-size: 0.65rem; line-height: 1.2;">
+                Consolidamento Volume Eseguito ({{ formatWeight(getCaricoConsolidato(sett)) }} kg)
+              </span>
+              <span class="text-super-caption text-slate-light" style="font-size: 0.58rem; line-height: 1.25; color: #94a3b8 !important;">
+                Carico target mantenuto stabile per chiudere il volume senza drop-off.
+              </span>
+            </div>
+            <v-icon size="14" color="sky-lighten-4" class="cursor-pointer ml-auto" @click="rimuoviDriverProgressione(sett)" title="Rimuovi tag" v-if="haStatoMantenimentoAccreditato(sett)">mdi-close-circle-outline</v-icon>
+          </div>
+
+          <!-- BADGE MANTENIMENTO REGISTRATO -->
+          <div 
+            v-else-if="!isPostura && !isCardio && haStatoMantenimentoAccreditato(sett) && (inputSettimane[sett]?.ins)" 
+            class="my-1.5 px-2.5 py-1 rounded-lg border d-flex align-center gap-1.5 bg-slate-900 text-left animate-fade-in"
+            style="border-color: rgba(34, 197, 94, 0.35) !important;"
+          >
+            <span style="font-size: 0.75rem;">🟢</span>
+            <span class="text-super-caption text-green-lighten-3 font-weight-black" style="font-size: 0.62rem;">
+              Sessione di Mantenimento Registrata
+            </span>
+            <v-icon size="14" color="green-lighten-4" class="cursor-pointer ml-auto" @click="rimuoviDriverProgressione(sett)" title="Rimuovi tag">mdi-close-circle-outline</v-icon>
           </div>
 
           <!-- RESOCONTO AUDIT STALLO WEEK 6 - SGRIDATA BONARIA DEL COACH (Soluzione 3) -->
@@ -7444,6 +7476,7 @@ import { db } from '../firebase.js';
 import { startGlobalTimer, ruolo, getStileStoricoAtleta, getModalitaSettimaneAtleta, selectedSheet, apriCalcolatoreDischi, layoutDettaglioGlobal, layoutEserciziGlobal, selectedAthlete, propostaBaseWeek2Global, propostaBaseWeek5Global, propostaBaseWeek6Global, incrementoPesoPostScaricoPctGlobal, sogliaForzaManubriGlobal, incrementoManubriLeggeroGlobal, incrementoManubriForteGlobal, faticaPesanteW1PctGlobal, faticaDevastanteW1PctGlobal, faticaPesanteStoricoPctGlobal, faticaDevastanteStoricoPctGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, integraElementiInIndice, globalStoryboard, globalInfortuni, segnalaInfortunio, aggiornaInfortunio, risolviInfortunio, eliminaInfortunio, calcolaPercentualeConsigliata, ottimizzaDigitazioneGlobal, regolaProgressioneW2Global, deallenamentoSoglia1Global, deallenamentoSoglia2Global, deallenamentoSoglia3Global, deallenamentoSoglia4Global, deallenamentoPct1Global, deallenamentoPct2Global, deallenamentoPct3Global, deallenamentoPct4Global, penalitaMaxInstabiliPctGlobal, penalitaMaxStabiliPctGlobal, stileVisualizzazioneGhost, modalitaIncrementoGhost, ghostPRAttackAttivo, ghostAutoregolazioneRepsAttiva, sfidaRecordWeek1, sensibilitaFaticaGhost, ghostAnalisiNoteAttiva, arrotondamentoCarichiRealisticiGlobal, previsioneStrategicaAttiva, allineamentoRottaGhost, risaltoNumeriInsWeekGlobal, editorNoteEspansoGlobal, smartNoteCleanupGlobal, margineTopInputWeekGlobal, margineBottomInputWeekGlobal, margineTopW6FeedbackGlobal, margineBottomGhostNoticeGlobal, formattaECleanupNota, formattaInsWeekHtml, haContenutoAlfanumericoMisto, getCustomExerciseStep, setCustomExerciseStep, userCustomExerciseSteps, salvaSequenzaNavigabile, caricaSequenzaNavigabile, costruisciSequenzaNavigabilePerGiorno, sequenzaNavigabileWorkout, infoSessioneNavigabile } from '../authStore.js';
 import { 
   haProgressioneQualitativa, 
+  haTagMantenimento, 
   rimuoviContenutoTraParentesi,
   calcolaE1RMSmorzato,
   calcolaE1RM,
@@ -8334,6 +8367,93 @@ const haDriverQualitativoAccreditato = (sett) => {
   return haProgressioneQualitativa(val);
 };
 
+const haStatoMantenimentoAccreditato = (sett) => {
+  const val = typeof sett === 'number' ? (inputSettimane.value[sett]?.ins || '') : sett;
+  return haTagMantenimento(val);
+};
+
+const isConsolidamentoConsigliato = (sett) => {
+  if (sett <= 1) return false;
+  if (!workout.value || isCardio.value || isPostura.value) return false;
+
+  // 1. Drop-off evidente da fatica rilevato nelle settimane base
+  try {
+    const baseInfo = getBaseWeekInfo(sett);
+    if (baseInfo?.hasFatiqueDropOff && sett < 6) return true;
+  } catch (e) {}
+
+  // 2. Render Ghost recante esplicito consiglio di consolidamento o mantenimento
+  try {
+    const renderInfo = getGhostRenderInfo(sett);
+    if (renderInfo) {
+      const lbl = String(renderInfo.label || '').toLowerCase();
+      const notice = String(renderInfo.maxEffortNotice || '').toLowerCase();
+      if (lbl.includes('consolida') || notice.includes('consolidamento')) {
+        return true;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Range carichi Ghost
+  try {
+    const range = getGhostWeightsRangeForWeek(sett);
+    if (range?.consigliato?.label) {
+      const rLbl = String(range.consigliato.label).toLowerCase();
+      if (rLbl.includes('consolida')) return true;
+    }
+  } catch (e) {}
+
+  return false;
+};
+
+const getCaricoConsigliatoTarget = (sett) => {
+  try {
+    const renderInfo = getGhostRenderInfo(sett);
+    if (renderInfo?.valueText) {
+      const p = parseFloat(String(renderInfo.valueText).replace(',', '.'));
+      if (!isNaN(p) && p > 0) return p;
+    }
+  } catch (e) {}
+  try {
+    const baseInfo = getBaseWeekInfo(sett);
+    if (baseInfo?.pesoBase && baseInfo.pesoBase > 0) return baseInfo.pesoBase;
+  } catch (e) {}
+  return 0;
+};
+
+const isConsolidamentoCompletato = (sett) => {
+  if (!isConsolidamentoConsigliato(sett)) return false;
+  const currentIns = inputSettimane.value[sett]?.ins;
+  if (!currentIns || String(currentIns).trim() === '' || String(currentIns).trim() === '-') return false;
+
+  const targetPeso = getCaricoConsigliatoTarget(sett);
+  const perfCurr = estraiMigliorPrestazioneInput(currentIns, getRepsPerWeek(sett), isCavoOMacchinaEsercizio(workout.value), isCorpoLiberoPuro.value);
+  const currentPeso = perfCurr ? perfCurr.peso : (parseFloat(estraiPesoDaInput(currentIns)) || 0);
+
+  if (targetPeso > 0 && currentPeso > 0) {
+    // Carico utilizzato pari o superiore a quello consigliato per consolidare il volume
+    return currentPeso >= (targetPeso - 0.1);
+  }
+  return currentPeso > 0;
+};
+
+const getCaricoConsolidato = (sett) => {
+  const currentIns = inputSettimane.value[sett]?.ins;
+  const perfCurr = estraiMigliorPrestazioneInput(currentIns, getRepsPerWeek(sett), isCavoOMacchinaEsercizio(workout.value), isCorpoLiberoPuro.value);
+  return perfCurr ? perfCurr.peso : (parseFloat(estraiPesoDaInput(currentIns)) || getCaricoConsigliatoTarget(sett));
+};
+
+const rimuoviDriverProgressione = (sett) => {
+  vibraTattile(10);
+  const targetInput = inputSettimane.value[sett];
+  if (targetInput && targetInput.ins) {
+    targetInput.ins = String(targetInput.ins).replace(/\[[^\]]+\]/g, '').trim();
+    salvaDatoSettimanale(sett, 'ins');
+    snackbarMessaggio.value = `Tag rimosso per W${sett}`;
+    snackbarSalvataggio.value = true;
+  }
+};
+
 const getTestoBadgeProgressione = (sett) => {
   const val = String(inputSettimane.value[sett]?.ins || '').toLowerCase();
   if (val.includes('elastico') || val.includes('assistenza')) {
@@ -8369,7 +8489,14 @@ const isStagnazioneSettimana = (sett) => {
   const currentIns = inputSettimane.value[sett]?.ins;
   if (!currentIns || String(currentIns).trim() === '' || String(currentIns).trim() === '-') return false;
   
+  // 1. Se è accreditato un driver qualitativo (TUT, ROM, RIR, Elastico...)
   if (haDriverQualitativoAccreditato(sett)) return false;
+
+  // 2. Se l'utente ha esplicitamente confermato [Nessuno/Mantenimento]: la richiesta è già soddisfatta, NON mostrare il banner di stagnazione!
+  if (haStatoMantenimentoAccreditato(sett)) return false;
+
+  // 3. Se la settimana era un Consolidamento consigliato dal coach e l'utente ha eseguito il carico proposto: NON è stagnazione!
+  if (isConsolidamentoCompletato(sett)) return false;
 
   // --- SOLUZIONE 1: RICONOSCIMENTO AUTOMATICO ESERCIZI ASSISTITI CON ELASTICO (LOGICA INVERSA) ---
   if (isEsercizioConAssistenzaElastica(workout.value)) {
@@ -8478,6 +8605,19 @@ const applicaDriverProgressione = (sett, labelChip) => {
     let currentVal = targetInput.ins ? String(targetInput.ins).trim() : '';
     const isMantenimento = labelChip.toLowerCase().includes('mantenimento');
     const isExtraRep = labelChip.toLowerCase().includes('rep') || labelChip.includes('+');
+
+    // Se il chip selezionato è già presente nel testo, facciamo un toggle (rimozione pulita)
+    if (currentVal.toLowerCase().includes(labelChip.toLowerCase())) {
+      currentVal = currentVal.replace(/\[[^\]]+\]/g, '').trim();
+      targetInput.ins = currentVal;
+      salvaDatoSettimanale(sett, 'ins');
+      snackbarMessaggio.value = `Stato rimosso per W${sett}`;
+      snackbarSalvataggio.value = true;
+      return;
+    }
+
+    // Rimuoviamo eventuali tag precedenti tra parentesi quadre per evitare accumulo
+    currentVal = currentVal.replace(/\[[^\]]+\]/g, '').trim();
 
     if (isExtraRep) {
       if (isMaxRepsExercise.value) {

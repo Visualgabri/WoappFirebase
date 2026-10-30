@@ -738,9 +738,22 @@
             <v-icon size="14" class="mr-1">mdi-help-circle-outline</v-icon>
             Scorciatoie Excel
           </v-btn>
-          <v-btn v-if="activeTab === 'storyboard' && schedaSelezionata" color="blue-darken-3" size="x-small" variant="flat" rounded="lg" @click="esportaCSVLocale" class="text-white font-weight-bold text-none px-2" style="height: 28px; font-size: 0.70rem;">
+          <v-btn v-if="activeTab === 'storyboard' && schedaSelezionata" color="blue-darken-3" size="x-small" variant="flat" rounded="lg" @click="esportaCSVLocale" class="text-white font-weight-bold text-none px-2 mr-1" style="height: 28px; font-size: 0.70rem;">
             <v-icon size="14" class="mr-1">mdi-download</v-icon>
             Download CSV
+          </v-btn>
+          <v-btn
+            color="purple-darken-3"
+            size="x-small"
+            variant="flat"
+            rounded="lg"
+            @click="apriDialogExportJson"
+            class="text-white font-weight-bold text-none px-2"
+            style="height: 28px; font-size: 0.70rem;"
+            title="Scarica tutte le schede e i dati completi di questo atleta da Firestore in formato JSON"
+          >
+            <v-icon size="14" class="mr-1">mdi-code-json</v-icon>
+            Scarica JSON Cliente
           </v-btn>
         </div>
       </div>
@@ -1828,6 +1841,19 @@
                 >
                   {{ clienteRecord.flg_attivo ? 'ATTIVO (Accesso consentito) 🟢' : 'DISABILITATO (Accesso bloccato) 🔴' }}
                 </v-chip>
+                <v-btn
+                  color="purple-darken-3"
+                  size="x-small"
+                  variant="flat"
+                  rounded="lg"
+                  @click="apriDialogExportJson"
+                  class="font-weight-bold text-white text-none ml-2"
+                  style="height: 28px; font-size: 0.70rem;"
+                  title="Esporta tutti i dati Firestore dell'atleta in JSON"
+                >
+                  <v-icon size="14" class="mr-1">mdi-code-json</v-icon>
+                  Backup JSON Atleta
+                </v-btn>
               </div>
             </div>
 
@@ -2576,6 +2602,130 @@
       @applica-correzione="gestisciApplicaCorrezione"
       @seleziona-esercizio="gestisciSelezionaEsercizio"
     />
+
+    <!-- MODALE ESPORTAZIONE JSON COMPLETO CLIENTE -->
+    <v-dialog v-model="mostraDialogExportJson" max-width="520" rounded="xl" :persistent="loadingExportJson">
+      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(25px) !important;">
+        <v-card-title class="font-weight-black text-purple-lighten-2 d-flex align-center px-0 pb-2">
+          <v-icon color="purple-lighten-2" class="mr-2">mdi-code-json</v-icon>
+          Esporta Backup JSON Cliente
+        </v-card-title>
+        
+        <v-card-text class="px-0 py-2 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+          <div class="mb-3 pa-3 rounded-lg border bg-surface-variant d-flex align-center justify-space-between">
+            <div>
+              <span class="text-caption text-slate-dark d-block">Atleta selezionato:</span>
+              <strong class="text-subtitle-1 text-white font-weight-black">
+                {{ getNomeAtleta(atletaSelezionato) || 'Atleta' }}
+              </strong>
+            </div>
+            <v-chip color="purple-darken-3" variant="flat" size="small" class="font-weight-bold">
+              ID: {{ atletaSelezionato }}
+            </v-chip>
+          </div>
+
+          <p class="mb-2">
+            Questa operazione scaricherà un file <strong>.json</strong> contenente <strong>tutti i dati storici</strong> presenti su Firestore per questo cliente:
+          </p>
+
+          <v-list density="compact" class="bg-transparent pa-0 mb-3 text-caption" style="color: #94a3b8 !important;">
+            <v-list-item density="compact" class="px-1 min-h-0">
+              <template #prepend><v-icon size="14" color="orange-lighten-2" class="mr-2">mdi-clipboard-list-outline</v-icon></template>
+              <span><strong>Tutte le schede & esercizi</strong> (collezione <code>STORYBOARD</code>)</span>
+            </v-list-item>
+            <v-list-item density="compact" class="px-1 min-h-0">
+              <template #prepend><v-icon size="14" color="blue-lighten-2" class="mr-2">mdi-calendar-check</v-icon></template>
+              <span><strong>Programmazione mesocicli</strong> (collezione <code>WORKOUT_T</code>)</span>
+            </v-list-item>
+            <v-list-item density="compact" class="px-1 min-h-0">
+              <template #prepend><v-icon size="14" color="green-lighten-2" class="mr-2">mdi-weight-lifter</v-icon></template>
+              <span><strong>Massimali & 1RM</strong> (collezione <code>WOAPP_MASSIMALI_R</code>)</span>
+            </v-list-item>
+            <v-list-item density="compact" class="px-1 min-h-0">
+              <template #prepend><v-icon size="14" color="red-lighten-2" class="mr-2">mdi-bandage</v-icon></template>
+              <span><strong>Storico infortuni</strong> (collezione <code>infortuni</code>)</span>
+            </v-list-item>
+            <v-list-item density="compact" class="px-1 min-h-0">
+              <template #prepend><v-icon size="14" color="purple-lighten-2" class="mr-2">mdi-account-cog</v-icon></template>
+              <span><strong>Anagrafica & Configurazione</strong> (<code>CLIENTI</code> / <code>UTENTI_CONFIG</code>)</span>
+            </v-list-item>
+          </v-list>
+
+          <!-- Avviso Quote Firestore -->
+          <v-alert
+            color="orange-darken-4"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="text-caption mb-3"
+            icon="mdi-alert-circle-outline"
+          >
+            <strong>Avviso Quote Firestore:</strong> L'esportazione interroga direttamente Firestore scaricando tutti i documenti storici (1 lettura per riga/scheda/massimale). Per atleti storici con decine di schede, l'operazione può consumare da qualche decina a oltre 1.000 letture.
+          </v-alert>
+
+          <!-- Stato durante download -->
+          <div v-if="loadingExportJson" class="text-center py-3">
+            <v-progress-circular indeterminate color="purple-lighten-2" size="32" width="3" class="mb-2"></v-progress-circular>
+            <div class="text-caption text-purple-lighten-2 font-weight-bold">{{ statoExportJson }}</div>
+          </div>
+
+          <!-- Risultato download completato -->
+          <v-alert
+            v-if="esitoExportJson"
+            color="green-darken-4"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="text-caption mb-1"
+            icon="mdi-check-circle-outline"
+          >
+            <div class="font-weight-bold mb-1">Download completato con successo! 🎉</div>
+            <div>File: <strong>{{ esitoExportJson.fileName }}</strong></div>
+            <div>Totale letture/documenti: <strong>{{ esitoExportJson.totaleDocumenti }}</strong> ({{ esitoExportJson.sizeKB }} KB)</div>
+            <div class="text-muted" style="font-size: 0.70rem;">(Storyboard: {{ esitoExportJson.storyboardCount }}, Workout_T: {{ esitoExportJson.workoutTCount }}, Massimali: {{ esitoExportJson.massimaliCount }}, Infortuni: {{ esitoExportJson.infortuniCount }})</div>
+          </v-alert>
+
+          <!-- Errore se presente -->
+          <v-alert
+            v-if="erroreExportJson"
+            color="red-darken-4"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="text-caption mb-1"
+            icon="mdi-alert-octagon-outline"
+          >
+            {{ erroreExportJson }}
+          </v-alert>
+        </v-card-text>
+
+        <v-card-actions class="px-0 pb-0 pt-2 d-flex justify-end gap-2">
+          <v-btn
+            color="slate"
+            variant="outlined"
+            rounded="lg"
+            @click="mostraDialogExportJson = false"
+            :disabled="loadingExportJson"
+            class="text-none"
+          >
+            {{ esitoExportJson ? 'Chiudi' : 'Annulla' }}
+          </v-btn>
+          <v-btn
+            v-if="!esitoExportJson"
+            color="purple-darken-3"
+            variant="flat"
+            rounded="lg"
+            @click="eseguiExportJsonCliente"
+            :loading="loadingExportJson"
+            :disabled="!atletaSelezionato || loadingExportJson"
+            class="text-white font-weight-bold text-none px-4"
+          >
+            <v-icon size="16" class="mr-1">mdi-download</v-icon>
+            Conferma & Scarica JSON
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -4108,6 +4258,217 @@ const esportaCSVLocale = () => {
   link.click();
   document.body.removeChild(link);
 };
+
+// ==========================================
+// ESPORTAZIONE BACKUP JSON COMPLETO CLIENTE
+// ==========================================
+const mostraDialogExportJson = ref(false);
+const loadingExportJson = ref(false);
+const statoExportJson = ref('');
+const esitoExportJson = ref(null);
+const erroreExportJson = ref('');
+
+const apriDialogExportJson = () => {
+  if (!atletaSelezionato.value) return;
+  esitoExportJson.value = null;
+  erroreExportJson.value = '';
+  statoExportJson.value = '';
+  mostraDialogExportJson.value = true;
+};
+
+const eseguiExportJsonCliente = async () => {
+  if (!atletaSelezionato.value) return;
+  const atletaId = String(atletaSelezionato.value).trim();
+  loadingExportJson.value = true;
+  erroreExportJson.value = '';
+  esitoExportJson.value = null;
+
+  try {
+    statoExportJson.value = 'Lettura anagrafica e configurazione cliente...';
+    // 1. CLIENTI doc
+    let clienteData = null;
+    try {
+      const cSnap = await getDoc(doc(db, 'CLIENTI', atletaId));
+      if (cSnap.exists()) {
+        clienteData = { _firestoreDocId: cSnap.id, ...cSnap.data() };
+      }
+    } catch (e) {
+      console.warn("CLIENTI doc non trovato o errore:", e);
+    }
+
+    // 2. UTENTI_CONFIG doc
+    let configData = null;
+    try {
+      const confSnap = await getDoc(doc(db, 'UTENTI_CONFIG', atletaId));
+      if (confSnap.exists()) {
+        configData = { _firestoreDocId: confSnap.id, ...confSnap.data() };
+      }
+    } catch (e) {
+      console.warn("UTENTI_CONFIG doc non trovato o errore:", e);
+    }
+
+    statoExportJson.value = 'Lettura storico schede e mesocicli (WORKOUT_T)...';
+    // 3. WORKOUT_T
+    const wtDocsMap = new Map();
+    const qWtStr = query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', atletaId));
+    const wtSnap = await getDocs(qWtStr);
+    wtSnap.forEach(d => wtDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+
+    if (!isNaN(Number(atletaId))) {
+      try {
+        const qWtNum = query(collection(db, 'WORKOUT_T'), where('ID_cliente', '==', Number(atletaId)));
+        const wtSnapNum = await getDocs(qWtNum);
+        wtSnapNum.forEach(d => wtDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+      } catch (e) {
+        // Ignora
+      }
+    }
+    const workoutTArray = Array.from(wtDocsMap.values()).sort((a, b) => Number(a.num_scheda || 0) - Number(b.num_scheda || 0));
+
+    statoExportJson.value = 'Lettura completa storyboard e tutte le schede (STORYBOARD)...';
+    // 4. STORYBOARD
+    const sbDocsMap = new Map();
+    const qSbStr = query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', atletaId));
+    const sbSnap = await getDocs(qSbStr);
+    sbSnap.forEach(d => sbDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+
+    if (!isNaN(Number(atletaId))) {
+      try {
+        const qSbNum = query(collection(db, 'STORYBOARD'), where('ID_cliente', '==', Number(atletaId)));
+        const sbSnapNum = await getDocs(qSbNum);
+        sbSnapNum.forEach(d => sbDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+      } catch (e) {
+        // Ignora
+      }
+    }
+    const storyboardArray = Array.from(sbDocsMap.values()).sort((a, b) => {
+      const schA = Number(a.num_scheda) || 0;
+      const schB = Number(b.num_scheda) || 0;
+      if (schA !== schB) return schA - schB;
+      const rigaA = Number(a.num_riga) || 0;
+      const rigaB = Number(b.num_riga) || 0;
+      return rigaA - rigaB;
+    });
+
+    statoExportJson.value = 'Lettura massimali e 1RM (WOAPP_MASSIMALI_R)...';
+    // 5. WOAPP_MASSIMALI_R
+    const massDocsMap = new Map();
+    const qMassStr = query(collection(db, 'WOAPP_MASSIMALI_R'), where('ID_cliente', '==', atletaId));
+    const massSnap = await getDocs(qMassStr);
+    massSnap.forEach(d => massDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+
+    if (!isNaN(Number(atletaId))) {
+      try {
+        const qMassNum = query(collection(db, 'WOAPP_MASSIMALI_R'), where('ID_cliente', '==', Number(atletaId)));
+        const massSnapNum = await getDocs(qMassNum);
+        massSnapNum.forEach(d => massDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+      } catch (e) {
+        // Ignora
+      }
+    }
+    const massimaliArray = Array.from(massDocsMap.values()).sort((a, b) => {
+      const exA = String(a.des_esercizio || '').toLowerCase();
+      const exB = String(b.des_esercizio || '').toLowerCase();
+      return exA.localeCompare(exB);
+    });
+
+    statoExportJson.value = 'Lettura storico infortuni e fastidi fisici...';
+    // 6. infortuni (id_cliente)
+    const infDocsMap = new Map();
+    const qInfStr = query(collection(db, 'infortuni'), where('id_cliente', '==', atletaId));
+    const infSnap = await getDocs(qInfStr);
+    infSnap.forEach(d => infDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+
+    if (!isNaN(Number(atletaId))) {
+      try {
+        const qInfNum = query(collection(db, 'infortuni'), where('id_cliente', '==', Number(atletaId)));
+        const infSnapNum = await getDocs(qInfNum);
+        infSnapNum.forEach(d => infDocsMap.set(d.id, { _firestoreDocId: d.id, ...d.data() }));
+      } catch (e) {
+        // Ignora
+      }
+    }
+    const infortuniArray = Array.from(infDocsMap.values());
+
+    statoExportJson.value = 'Generazione e assemblaggio file JSON...';
+
+    // Raccoglie i numeri di tutte le schede distinte
+    const setSchedeDistinte = new Set();
+    workoutTArray.forEach(w => { if (w.num_scheda) setSchedeDistinte.add(String(w.num_scheda).trim()); });
+    storyboardArray.forEach(s => { if (s.num_scheda) setSchedeDistinte.add(String(s.num_scheda).trim()); });
+    const listaSchedeOrdinate = Array.from(setSchedeDistinte).sort((a, b) => Number(a) - Number(b));
+
+    const nomeAtleta = getNomeAtleta(atletaId) || workoutTArray[0]?.NomeCognomeTM || `Cliente_${atletaId}`;
+    const totaleDocumenti = (clienteData ? 1 : 0) + (configData ? 1 : 0) + workoutTArray.length + storyboardArray.length + massimaliArray.length + infortuniArray.length;
+
+    const exportPayload = {
+      meta: {
+        applicazione: "WoApp - FlexCoach",
+        dataEsportazione: new Date().toISOString(),
+        atletaId: atletaId,
+        atletaNome: nomeAtleta,
+        totaleDocumentiFirestore: totaleDocumenti,
+        schedePresenti: listaSchedeOrdinate,
+        conteggioDettagliato: {
+          clienti: clienteData ? 1 : 0,
+          utenti_config: configData ? 1 : 0,
+          workout_t: workoutTArray.length,
+          storyboard: storyboardArray.length,
+          massimali: massimaliArray.length,
+          infortuni: infortuniArray.length
+        }
+      },
+      cliente: clienteData,
+      config: configData,
+      workout_t: workoutTArray,
+      storyboard: storyboardArray,
+      massimali: massimaliArray,
+      infortuni: infortuniArray
+    };
+
+    // Serializzazione pulita con gestione date/timestamp
+    const jsonString = JSON.stringify(exportPayload, (key, value) => {
+      if (value && typeof value === 'object' && typeof value.toDate === 'function') {
+        return value.toDate().toISOString();
+      }
+      return value;
+    }, 2);
+
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+    const sizeKB = (blob.size / 1024).toFixed(1);
+
+    const oggi = new Date().toISOString().slice(0, 10);
+    const nomeSicuro = nomeAtleta.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const fileName = `Backup_Cliente_${atletaId}_${nomeSicuro}_${oggi}.json`;
+
+    // Download nel browser
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    esitoExportJson.value = {
+      fileName,
+      totaleDocumenti,
+      sizeKB,
+      storyboardCount: storyboardArray.length,
+      workoutTCount: workoutTArray.length,
+      massimaliCount: massimaliArray.length,
+      infortuniCount: infortuniArray.length
+    };
+  } catch (err) {
+    console.error("Errore durante l'esportazione JSON del cliente:", err);
+    erroreExportJson.value = "Errore durante il download da Firestore: " + (err.message || String(err));
+  } finally {
+    loadingExportJson.value = false;
+  }
+};
+
 </script>
 
 <style scoped>

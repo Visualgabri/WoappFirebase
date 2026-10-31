@@ -17545,7 +17545,19 @@ onBeforeUnmount(() => {
 
 const pulisciParentesiQuadre = (str) => {
   if (!str) return '';
-  return String(str).replace(/\[\s*KG?\s*W\s*\d+\s*\]?/gi, '').trim();
+  let clean = String(str).replace(/\[\s*KG?\s*W\s*\d+\s*\]?/gi, '').trim();
+  // Rimuove la proposta carichi con qualsiasi variante di freccia o separatore
+  const sepMatch = clean.match(/\s*[→➝➔›▸►|~>]\s*\(?([PDM]|\d+[.,]?\d*)/i);
+  if (sepMatch && sepMatch.index !== undefined) {
+    clean = clean.substring(0, sepMatch.index).trim();
+  } else if (clean.includes('→')) {
+    clean = clean.split('→')[0].trim();
+  } else if (clean.includes('->')) {
+    clean = clean.split('->')[0].trim();
+  }
+  // Rimuove eventuale proposta precedente priva di freccia (es. "3x8 (P)57,5 60" o "4x10 (D)15 17,5")
+  clean = clean.replace(/\s*\([PDM]\)[\s\d,.]*$/i, '').trim();
+  return clean;
 };
 
 const getDescrizioneBreve = (testo) => {

@@ -189,7 +189,12 @@
     <v-row class="mb-3 mb-sm-5 g-2 g-sm-3">
       <!-- Card Totale Attivi -->
       <v-col cols="6" sm="3">
-        <v-card class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100" elevation="2">
+        <v-card
+          class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100 cursor-pointer"
+          :class="{ 'kpi-card-active': filtroAttivo === 'tutti' }"
+          elevation="2"
+          @click="impostaFiltro('tutti')"
+        >
           <div class="d-flex justify-space-between align-center mb-0.5">
             <span class="kpi-label text-caption font-weight-bold text-slate uppercase">Atleti Attivi</span>
             <v-icon color="blue-lighten-2" :size="$vuetify.display.xs ? 18 : 20">mdi-account-group</v-icon>
@@ -203,7 +208,12 @@
 
       <!-- Card In Scadenza (W5-6 in corso) -->
       <v-col cols="6" sm="3">
-        <v-card class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100 kpi-card-warning" elevation="2">
+        <v-card
+          class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100 kpi-card-warning cursor-pointer"
+          :class="{ 'kpi-card-active': filtroAttivo === 'in_scadenza' }"
+          elevation="2"
+          @click="impostaFiltro('in_scadenza')"
+        >
           <div class="d-flex justify-space-between align-center mb-0.5">
             <span class="kpi-label text-caption font-weight-bold text-orange-lighten-2 uppercase">In Scadenza (W5-6)</span>
             <v-icon color="orange-lighten-2" :size="$vuetify.display.xs ? 18 : 20" class="animate-pulse">mdi-alert-decagram</v-icon>
@@ -217,7 +227,12 @@
 
       <!-- Card Completati -->
       <v-col cols="6" sm="3">
-        <v-card class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100 kpi-card-success" elevation="2">
+        <v-card
+          class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100 kpi-card-success cursor-pointer"
+          :class="{ 'kpi-card-active': filtroAttivo === 'completati' }"
+          elevation="2"
+          @click="impostaFiltro('completati')"
+        >
           <div class="d-flex justify-space-between align-center mb-0.5">
             <span class="kpi-label text-caption font-weight-bold text-green-lighten-2 uppercase">Completati</span>
             <v-icon color="green-lighten-2" :size="$vuetify.display.xs ? 18 : 20">mdi-trophy</v-icon>
@@ -231,7 +246,12 @@
 
       <!-- Card Inattivi (> 5gg) -->
       <v-col cols="6" sm="3">
-        <v-card class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100 kpi-card-danger" elevation="2">
+        <v-card
+          class="kpi-card card-glass pa-2.5 pa-sm-3 rounded-2xl h-100 kpi-card-danger cursor-pointer"
+          :class="{ 'kpi-card-active': filtroAttivo === 'inattivi' }"
+          elevation="2"
+          @click="impostaFiltro('inattivi')"
+        >
           <div class="d-flex justify-space-between align-center mb-0.5">
             <span class="kpi-label text-caption font-weight-bold text-red-lighten-2 uppercase">Inattivi (>5gg)</span>
             <v-icon color="red-lighten-2" :size="$vuetify.display.xs ? 18 : 20">mdi-clock-alert-outline</v-icon>
@@ -264,7 +284,7 @@
           ></v-text-field>
         </div>
 
-        <!-- Chips Filtro Rapido con Scroll Orizzontale Fluido -->
+        <!-- Chips Filtro Rapido con Scroll Orizzontale Fluido (Solo icone/emoji colorate, niente icone bianche) -->
         <div class="filter-chips-scroll py-0.5">
           <v-chip
             v-for="filtro in listaFiltri"
@@ -272,11 +292,10 @@
             size="small"
             :color="filtroAttivo === filtro.id ? 'primary' : 'default'"
             :variant="filtroAttivo === filtro.id ? 'flat' : 'tonal'"
-            class="font-weight-bold rounded-lg cursor-pointer px-2"
-            @click="filtroAttivo = filtro.id"
+            class="font-weight-bold rounded-lg cursor-pointer px-2.5 text-no-wrap"
+            @click="impostaFiltro(filtro.id)"
           >
-            <v-icon start size="14" v-if="filtro.icon">{{ filtro.icon }}</v-icon>
-            {{ filtro.label }}
+            <span>{{ filtro.label }}</span>
             <span class="ml-1 opacity-75">({{ filtro.conteggio }})</span>
           </v-chip>
         </div>
@@ -750,13 +769,13 @@ const statistiche = computed(() => {
 const listaFiltri = computed(() => {
   const attivi = listaClienti.value.filter(c => c.attivo);
   return [
-    { id: 'tutti', label: 'Tutti', icon: 'mdi-account-group', conteggio: attivi.length },
-    { id: 'online', label: '🟢 Online Ora', icon: 'mdi-circle', conteggio: atletiOnlineSolo.value.length },
-    { id: 'in_scadenza', label: '🚨 In Scadenza (W5-6)', icon: 'mdi-alert-decagram', conteggio: attivi.filter(c => c.settimanaCorrente >= 5 && !c.programmaCompletato).length },
-    { id: 'completati', label: '🏆 Completati', icon: 'mdi-trophy', conteggio: attivi.filter(c => c.programmaCompletato).length },
-    { id: 'inattivi', label: '⚠️ Inattivi (>5gg)', icon: 'mdi-clock-alert', conteggio: attivi.filter(c => c.statoInattivita === 'red').length },
-    { id: 'in_corso', label: '⚡ In Corso (W2-4)', icon: 'mdi-dumbbell', conteggio: attivi.filter(c => c.settimanaCorrente >= 2 && c.settimanaCorrente <= 4 && !c.programmaCompletato).length },
-    { id: 'appena_iniziati', label: '🌱 Nuovi (W1)', icon: 'mdi-seed-outline', conteggio: attivi.filter(c => c.settimanaCorrente === 1 && !c.programmaCompletato).length }
+    { id: 'tutti', label: '👥 Tutti', conteggio: attivi.length },
+    { id: 'online', label: '🟢 Online Ora', conteggio: atletiOnlineSolo.value.length },
+    { id: 'in_scadenza', label: '🚨 In Scadenza (W5-6)', conteggio: attivi.filter(c => c.settimanaCorrente >= 5 && !c.programmaCompletato).length },
+    { id: 'completati', label: '🏆 Completati', conteggio: attivi.filter(c => c.programmaCompletato).length },
+    { id: 'inattivi', label: '⚠️ Inattivi (>5gg)', conteggio: attivi.filter(c => c.statoInattivita === 'red').length },
+    { id: 'in_corso', label: '⚡ In Corso (W2-4)', conteggio: attivi.filter(c => c.settimanaCorrente >= 2 && c.settimanaCorrente <= 4 && !c.programmaCompletato).length },
+    { id: 'appena_iniziati', label: '🌱 Nuovi (W1)', conteggio: attivi.filter(c => c.settimanaCorrente === 1 && !c.programmaCompletato).length }
   ];
 });
 
@@ -764,6 +783,14 @@ const filtroAttivoLabel = computed(() => {
   const f = listaFiltri.value.find(x => x.id === filtroAttivo.value);
   return f ? f.label : 'Tutti';
 });
+
+const impostaFiltro = (nuovoFiltro) => {
+  if (filtroAttivo.value === nuovoFiltro && nuovoFiltro !== 'tutti') {
+    filtroAttivo.value = 'tutti';
+  } else {
+    filtroAttivo.value = nuovoFiltro;
+  }
+};
 
 const resettaFiltri = () => {
   ricercaTesto.value = '';
@@ -1037,12 +1064,38 @@ onUnmounted(() => {
 
 .kpi-card {
   border: 1px solid var(--card-border);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  user-select: none;
 }
 
 .kpi-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.kpi-card:active {
+  transform: scale(0.98);
+}
+
+.kpi-card-active {
+  box-shadow: 0 0 0 2px #3b82f6, 0 8px 20px rgba(59, 130, 246, 0.25) !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.kpi-card-warning.kpi-card-active {
+  box-shadow: 0 0 0 2px #f97316, 0 8px 20px rgba(249, 115, 22, 0.25) !important;
+  background: rgba(249, 115, 22, 0.08) !important;
+}
+
+.kpi-card-success.kpi-card-active {
+  box-shadow: 0 0 0 2px #22c55e, 0 8px 20px rgba(34, 197, 94, 0.25) !important;
+  background: rgba(34, 197, 94, 0.08) !important;
+}
+
+.kpi-card-danger.kpi-card-active {
+  box-shadow: 0 0 0 2px #ef4444, 0 8px 20px rgba(239, 68, 68, 0.25) !important;
+  background: rgba(239, 68, 68, 0.08) !important;
 }
 
 .kpi-card-warning {

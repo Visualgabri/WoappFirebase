@@ -5333,12 +5333,16 @@ const salvaInsW6Rapido = async (ex, nuovoValore) => {
       timestamp_ute: updates['timestamp_ute']
     }, { merge: true });
     console.log(`Miglior Carico num_ins6 per ${ex.des_esercizio} salvato: ${valStr}`);
+    const coordW6 = `${ex.des_giorno || ''}${ex.num_riga_giorno || ''}`.trim();
     aggiornaRiepilogoAtletaLive({
       idCliente: ex.ID_cliente || selectedAthlete.value,
       numScheda: ex.num_scheda || selectedSheet.value,
       settimanaCorrente: 6,
-      azione: 'Ha registrato carico W6 su ' + (ex.des_esercizio || 'Esercizio'),
-      dettagli: String(valStr) + ' kg'
+      azione: ex.des_esercizio || 'Esercizio',
+      dettagli: String(valStr) + ' kg',
+      coordinata: coordW6,
+      carico: String(valStr) + ' kg',
+      esercizio: ex.des_esercizio || 'Esercizio'
     });
   } catch (err) {
     console.warn("Errore salvataggio num_ins6 su Firebase:", err);
@@ -5814,6 +5818,19 @@ const salvaValoreEsercizio = async (ex, w, valore) => {
     const docRef = doc(db, 'STORYBOARD', ex.id);
     await setDoc(docRef, { [campo]: valore, timestamp: updates['timestamp'], timestamp_ute: updates['timestamp_ute'] }, { merge: true });
     console.log("Valore esercizio salvato con successo!");
+    if (campo && campo.startsWith('ins_week')) {
+      const coordEx = `${ex.des_giorno || ''}${ex.num_riga_giorno || ''}`.trim();
+      aggiornaRiepilogoAtletaLive({
+        idCliente: ex.ID_cliente || selectedAthlete.value,
+        numScheda: ex.num_scheda || selectedSheet.value,
+        settimanaCorrente: w,
+        azione: ex.des_esercizio || 'Esercizio',
+        dettagli: String(valore || ''),
+        coordinata: coordEx,
+        carico: String(valore || ''),
+        esercizio: ex.des_esercizio || 'Esercizio'
+      });
+    }
   } catch (err) {
     console.warn("Errore salvataggio esercizio:", err);
   }

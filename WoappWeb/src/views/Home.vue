@@ -116,25 +116,26 @@
         </v-chip>
       </div>
 
-      <!-- Ultima attività atleta live (1 sola riga, solo per atleti, no coach) -->
+      <!-- Ultima attività atleta live (1 sola riga Schema 2A, solo per atleti, no coach) -->
       <div v-if="ultimiEventiLiveHome.length > 0" class="mt-1.5 pt-1 border-t-subtle">
         <div
-          v-for="ev in ultimiEventiLiveHome"
-          :key="ev.key || ev.timestamp"
+          v-for="item in ultimiEventiLiveHome"
+          :key="item.raw.key || item.raw.timestamp"
           class="d-flex align-center justify-space-between text-truncate"
           style="font-size: 0.65rem;"
         >
-          <div class="d-flex align-center gap-1 text-truncate mr-1">
-            <v-icon size="12" :color="ev.tipo === 'peso' ? 'orange-accent-3' : 'cyan-accent-3'">
-              {{ ev.tipo === 'peso' ? 'mdi-dumbbell' : 'mdi-cellphone' }}
-            </v-icon>
-            <span class="font-weight-black text-white flex-shrink-0">{{ ev.nome }}:</span>
-            <span class="text-slate-light text-truncate">{{ ev.azione }}</span>
-            <span v-if="ev.dettagli" class="text-orange-lighten-2 font-weight-bold flex-shrink-0">({{ ev.dettagli }})</span>
+          <div class="d-flex align-center min-w-0 mr-1.5 flex-grow-1 overflow-hidden" style="gap: 4px;">
+            <span class="font-weight-black text-white flex-shrink-0">{{ item.nomeBreve }}</span>
+            <span v-if="item.badge" class="badge-w-coord flex-shrink-0 font-weight-black">[{{ item.badge }}]</span>
+            <span class="text-slate-light text-truncate">{{ item.esercizio }}</span>
+            <span v-if="item.tipo === 'accesso' && item.dettaglioDispositivo" class="text-super-caption text-slate flex-shrink-0" style="font-size: 0.58rem;">{{ item.dettaglioDispositivo }}</span>
           </div>
-          <span class="text-super-caption text-slate flex-shrink-0 font-weight-medium" style="font-size: 0.58rem;">
-            {{ tempoFaHome(ev.timestamp) }}
-          </span>
+          <div class="d-flex align-center flex-shrink-0 ml-auto" style="gap: 5px;">
+            <span v-if="item.carico" class="font-weight-black text-orange-accent-2 flex-shrink-0">{{ item.carico }}</span>
+            <span class="text-super-caption text-slate flex-shrink-0 font-weight-medium" style="font-size: 0.58rem;">
+              {{ item.tempo }}
+            </span>
+          </div>
         </div>
       </div>
     </v-card>
@@ -1618,7 +1619,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
-import { ascoltaPresenzaLive, ascoltaAttivitaLive } from '../utils/presenceService.js';
+import { ascoltaPresenzaLive, ascoltaAttivitaLive, analizzaEventoFeed } from '../utils/presenceService.js';
 import { useRouter, useRoute } from 'vue-router';
 import GuidaFlexCoachModal from '../components/GuidaFlexCoachModal.vue';
 import { isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
@@ -1673,7 +1674,11 @@ const atletiOnlineSoloHome = computed(() => {
 const ultimiEventiLiveHome = computed(() => {
   return feedAttivitaHome.value
     .filter(ev => ev.userId !== 'coach' && !String(ev.nome || '').includes('Coach'))
-    .slice(0, 1);
+    .slice(0, 1)
+    .map(ev => ({
+      raw: ev,
+      ...analizzaEventoFeed(ev)
+    }));
 });
 
 const tempoFaHome = (timestamp) => {
@@ -4531,6 +4536,16 @@ const apriTest = () => {
 </script>
 
 <style scoped>
+.badge-w-coord {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  font-size: 0.58rem;
+  padding: 0px 3px;
+  border-radius: 4px;
+  letter-spacing: 0.2px;
+  line-height: 1.3;
+}
 .max-width-container {
   max-width: 600px;
   margin: 0 auto;

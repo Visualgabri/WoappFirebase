@@ -141,24 +141,44 @@
               Nessun evento registrato al momento nel feed.
             </div>
             <div
-              v-for="ev in feedFiltrato"
-              :key="ev.key || ev.timestamp"
+              v-for="item in feedFiltratoConDati"
+              :key="item.raw.key || item.raw.timestamp"
               class="feed-item d-flex align-center justify-space-between py-1 px-2 mb-1 rounded-lg"
-              :class="{ 'feed-item-peso': ev.tipo === 'peso', 'feed-item-accesso': ev.tipo === 'accesso' }"
+              :class="{ 'feed-item-peso': item.tipo === 'peso', 'feed-item-accesso': item.tipo === 'accesso' }"
             >
-              <div class="d-flex align-center gap-1.5 overflow-hidden mr-2">
-                <v-icon size="15" :color="ev.tipo === 'peso' ? 'orange-accent-3' : 'cyan-accent-3'">
-                  {{ ev.tipo === 'peso' ? 'mdi-dumbbell' : 'mdi-cellphone-arrow-down' }}
-                </v-icon>
-                <div class="text-truncate">
-                  <span class="font-weight-black text-caption mr-1 text-white" style="font-size: 0.72rem;">{{ ev.nome }}:</span>
-                  <span class="text-caption text-slate-light" style="font-size: 0.72rem;">{{ ev.azione }}</span>
-                  <span v-if="ev.dettagli" class="text-caption font-weight-bold text-orange-lighten-2 ml-1" style="font-size: 0.70rem;">({{ ev.dettagli }})</span>
-                </div>
+              <div class="d-flex align-center min-w-0 mr-1.5 flex-grow-1 overflow-hidden" style="gap: 5px;">
+                <span class="font-weight-black text-white flex-shrink-0" style="font-size: 0.72rem;">
+                  {{ item.nomeBreve }}
+                </span>
+                <span
+                  v-if="item.badge"
+                  class="badge-w-coord flex-shrink-0 font-weight-black"
+                >
+                  [{{ item.badge }}]
+                </span>
+                <span class="text-slate-light text-truncate" style="font-size: 0.70rem;">
+                  {{ item.esercizio }}
+                </span>
+                <span
+                  v-if="item.tipo === 'accesso' && item.dettaglioDispositivo"
+                  class="text-super-caption text-slate flex-shrink-0"
+                  style="font-size: 0.62rem;"
+                >
+                  {{ item.dettaglioDispositivo }}
+                </span>
               </div>
-              <span class="text-super-caption text-slate font-weight-bold flex-shrink-0" style="font-size: 0.62rem;">
-                {{ tempoFa(ev.timestamp) }}
-              </span>
+              <div class="d-flex align-center flex-shrink-0 ml-auto" style="gap: 6px;">
+                <span
+                  v-if="item.carico"
+                  class="font-weight-black text-orange-accent-2 flex-shrink-0"
+                  style="font-size: 0.72rem;"
+                >
+                  {{ item.carico }}
+                </span>
+                <span class="text-super-caption text-slate font-weight-bold flex-shrink-0" style="font-size: 0.62rem;">
+                  {{ item.tempo }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -584,7 +604,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { ascoltaPresenzaLive, ascoltaAttivitaLive } from '../utils/presenceService.js';
+import { ascoltaPresenzaLive, ascoltaAttivitaLive, analizzaEventoFeed } from '../utils/presenceService.js';
 import { useRouter } from 'vue-router';
 import { setSelectedAthlete, setSelectedSheet, apriMessaggioPrivatoModal, getTelefonoAtleta, formattaTelefonoPerWhatsApp } from '../authStore.js';
 import { db } from '../firebase.js';
@@ -618,6 +638,13 @@ const feedAccessiCount = computed(() => feedAttivita.value.filter(ev => ev.tipo 
 const feedFiltrato = computed(() => {
   if (filtroFeed.value === 'tutti') return feedAttivita.value;
   return feedAttivita.value.filter(ev => ev.tipo === filtroFeed.value);
+});
+
+const feedFiltratoConDati = computed(() => {
+  return feedFiltrato.value.map(ev => ({
+    raw: ev,
+    ...analizzaEventoFeed(ev)
+  }));
 });
 
 const tempoFa = (timestamp) => {
@@ -982,6 +1009,23 @@ onUnmounted(() => {
 
 .feed-item-accesso {
   border-left: 3px solid #06b6d4;
+}
+
+.badge-w-coord {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  font-size: 0.60rem;
+  padding: 0px 4px;
+  border-radius: 4px;
+  letter-spacing: 0.2px;
+  line-height: 1.3;
+}
+
+.feed-item-accesso .badge-w-coord {
+  background: rgba(6, 182, 212, 0.15);
+  color: #22d3ee;
+  border-color: rgba(6, 182, 212, 0.4);
 }
 .monitoraggio-container {
   min-height: calc(100vh - 120px);

@@ -8,6 +8,124 @@ let connectedUnsubscribe = null;
 let currentPresenceRef = null;
 
 /**
+ * Converte "Nome Cognome" in formato compatto "Nome C."
+ */
+export const formattaNomeBreve = (nomeCompleto) => {
+  if (!nomeCompleto) return '';
+  const pulito = String(nomeCompleto).trim();
+  if (pulito.toLowerCase().includes('coach')) return 'Coach';
+  const parti = pulito.split(/\s+/);
+  if (parti.length <= 1) return parti[0] || '';
+  const primoNome = parti[0];
+  const inizialeCognome = parti[parti.length - 1][0]?.toUpperCase();
+  return inizialeCognome ? `${primoNome} ${inizialeCognome}.` : primoNome;
+};
+
+/**
+ * Calcola etichetta tempo relativo per il feed (es. "Adesso", "3m fa", "2h fa")
+ */
+export const tempoFaRelativo = (timestamp) => {
+  if (!timestamp) return 'Adesso';
+  const diffMs = Date.now() - Number(timestamp);
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return 'Adesso';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m fa`;
+  const diffOre = Math.floor(diffMin / 60);
+  if (diffOre < 24) return `${diffOre}h fa`;
+  return `${Math.floor(diffOre / 24)}g fa`;
+};
+
+/**
+ * Analizza e struttura un evento per la visualizzazione Schema 2A:
+ * [Nome C.] [W2·C3] Esercizio ➔ 35 kg  (Adesso)
+ */
+export const analizzaEventoFeed = (ev) => {
+  if (!ev) return { tipo: 'peso', nomeBreve: '', badge: '', esercizio: '', carico: '', tempo: '' };
+
+  const nomeBreve = formattaNomeBreve(ev.nome);
+  const tipo = ev.tipo || 'peso';
+  const tempo = tempoFaRelativo(ev.timestamp);
+
+  if (tipo === 'accesso') {
+    return {
+      tipo,
+      nomeBreve,
+      badge: ev.settimana ? `W${ev.settimana}` : '',
+      esercizio: ev.azione || "Ha aperto l'app",
+      carico: '',
+      dettaglioDispositivo: ev.dettagli ? `(${ev.dettagli})` : '',
+      tempo
+    };
+  }
+
+  // 1. Settimana
+  let week = ev.settimana || null;
+  if (!week && ev.dettagli) {
+    const mW = String(ev.dettagli).match(/W(\d+)/i);
+    if (mW) week = mW[1];
+  }
+  if (!week && ev.azione) {
+    const mW = String(ev.azione).match(/W(\d+)/i);
+    if (mW) week = mW[1];
+  }
+
+  // 2. Coordinata (es. C3, A1)
+  let coord = ev.coordinata ? String(ev.coordinata).trim().toUpperCase() : '';
+  if (!coord && ev.azione) {
+    const mC = String(ev.azione).match(/\b([A-Fa-f]\d{1,2})\b/);
+    if (mC) coord = mC[1].toUpperCase();
+  }
+
+  // Badge raggruppato Schema 2A: [W2·C3]
+  let badge = '';
+  if (week && coord) {
+    badge = `W${week}·${coord}`;
+  } else if (coord) {
+    badge = coord;
+  } else if (week) {
+    badge = `W${week}`;
+  }
+
+  // 3. Esercizio
+  let esNome = ev.esercizio || '';
+  if (!esNome) {
+    esNome = String(ev.azione || '')
+      .replace(/^✍️\s*/, '')
+      .replace(/^Ha registrato carichi?\s*(?:su\s*)?/i, '')
+      .replace(/^Ha aggiornato\s*/i, '')
+      .trim();
+  }
+
+  // 4. Carico
+  let carico = ev.carico ? String(ev.carico).trim() : '';
+  if (!carico && ev.dettagli) {
+    const parti = String(ev.dettagli).split('|');
+    const ultima = parti[parti.length - 1].trim();
+    const mVal = ultima.match(/(?:W\d+:\s*|:\s*)(.+)/);
+    if (mVal && mVal[1]) {
+      carico = mVal[1].trim();
+    } else {
+      carico = ultima.replace(/^W\d+:\s*/, '').trim();
+    }
+  }
+
+  // Aggiungi unità kg se è solo un valore numerico
+  if (carico && !carico.toLowerCase().includes('kg') && !carico.toLowerCase().includes('lb') && !carico.includes('x') && !isNaN(Number(carico))) {
+    carico = `${carico} kg`;
+  }
+
+  return {
+    tipo,
+    nomeBreve,
+    badge,
+    esercizio: esNome || 'Esercizio',
+    carico: carico ? `➔ ${carico}` : '',
+    tempo
+  };
+};
+
+/**
  * Risolve ID e Nome dell'utente attivo corrente
  */
 export const getDatiUtenteCorrente = () => {
@@ -125,7 +243,17 @@ export const cleanupPresence = async () => {
  * @param {string} [param.customId]
  * @param {string} [param.customNome]
  */
-export const logAttivitaRealtime = async ({ tipo = 'peso', azione, dettagli = '', customId = null, customNome = null }) => {
+export const logAttivitaRealtime = async ({
+  tipo = 'peso',
+  azione,
+  dettagli = '',
+  customId = null,
+  customNome = null,
+  settimana = null,
+  coordinata = null,
+  carico = null,
+  esercizio = null
+}) => {
   if (!rtdb || !azione) return;
 
   try {
@@ -134,14 +262,20 @@ export const logAttivitaRealtime = async ({ tipo = 'peso', azione, dettagli = ''
     const nome = customNome || dati.nome;
 
     const logRef = ref(rtdb, 'attivita_live');
-    await push(logRef, {
+    const payload = {
       userId: String(userId),
       nome,
       tipo,
       azione,
       dettagli: String(dettagli || ''),
       timestamp: Date.now()
-    });
+    };
+    if (settimana !== null && settimana !== undefined) payload.settimana = Number(settimana);
+    if (coordinata) payload.coordinata = String(coordinata);
+    if (carico) payload.carico = String(carico);
+    if (esercizio) payload.esercizio = String(esercizio);
+
+    await push(logRef, payload);
   } catch (err) {
     console.warn('[Presence] Errore scrittura log attività live:', err);
   }

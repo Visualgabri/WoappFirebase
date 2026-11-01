@@ -270,7 +270,10 @@ export const aggiornaRiepilogoAtletaLive = async ({
   giorniRimanentiWeek = null,
   totaleGiorni = null,
   azione = null,
-  dettagli = null
+  dettagli = null,
+  coordinata = null,
+  carico = null,
+  esercizio = null
 }) => {
   const cleanId = String(idCliente || '').trim();
   if (!cleanId || !numScheda) return;
@@ -287,7 +290,11 @@ export const aggiornaRiepilogoAtletaLive = async ({
         azione: azione || `Ha aggiornato la Scheda #${numScheda} (W${week})`,
         dettagli: dettagli || '',
         customId: cleanId,
-        customNome: getNomeAtleta(cleanId)
+        customNome: getNomeAtleta(cleanId),
+        settimana: week,
+        coordinata: coordinata || '',
+        carico: carico || '',
+        esercizio: esercizio || ''
       });
     } catch (logErr) {
       console.warn("Log attività realtime err:", logErr);

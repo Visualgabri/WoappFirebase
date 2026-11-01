@@ -19589,18 +19589,29 @@ const aggiornaDatoECommit = async (updates) => {
     // Aggiorna riepilogo workout cliente per dashboard coach (in background, non bloccante)
     if (workout.value && workout.value.ID_cliente && workout.value.num_scheda) {
       let dett = [];
+      let pesoInserito = '';
       for (const [k, v] of Object.entries(updates)) {
         if (v && k !== 'timestamp' && k !== 'timestamp_ute') {
           const shortK = k.replace('ins_week', 'W').replace('num_ins6', 'Max W6').replace('num_faticaw6', 'Fatica W6');
           dett.push(shortK + ': ' + v);
+          if (!pesoInserito && (k.startsWith('ins_week') || k.startsWith('num_ins'))) {
+            pesoInserito = String(v).trim();
+          }
         }
       }
+      const coord = `${workout.value.des_giorno || ''}${workout.value.num_riga_giorno || ''}`.trim();
+      const currentWeek = settimanaAttiva.value || 1;
+      const esNome = workout.value.des_esercizio || 'Esercizio';
+
       aggiornaRiepilogoAtletaLive({
         idCliente: workout.value.ID_cliente,
         numScheda: workout.value.num_scheda,
-        settimanaCorrente: settimanaAttiva.value || 1,
-        azione: '✍️ ' + (workout.value.des_esercizio || 'Esercizio'),
-        dettagli: dett.join(' | ')
+        settimanaCorrente: currentWeek,
+        azione: esNome,
+        dettagli: dett.join(' | '),
+        coordinata: coord,
+        carico: pesoInserito,
+        esercizio: esNome
       });
     }
   } catch (error) {

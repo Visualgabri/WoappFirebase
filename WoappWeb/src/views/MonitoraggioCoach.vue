@@ -40,6 +40,131 @@
       </div>
     </div>
 
+    <!-- CARD LIVE FEED & UTENTI ATTIVI IN TEMPO REALE (RTDB A QUOTA 0) -->
+    <v-card class="card-glass pa-2.5 pa-sm-3 rounded-2xl mb-3 mb-sm-4 elevation-2 live-monitor-card" border>
+      <div class="d-flex flex-wrap justify-space-between align-center gap-2 mb-2">
+        <div class="d-flex align-center gap-2">
+          <span class="live-pulse-dot"></span>
+          <span class="font-weight-black text-caption text-sm-body-2 uppercase tracking-wider text-theme-primary">
+            Attività Live & Presenza
+          </span>
+          <v-chip size="x-small" color="green-darken-3" variant="flat" class="font-weight-bold text-white px-2" style="font-size: 0.58rem; height: 18px;">
+            <v-icon start size="11">mdi-broadcast</v-icon>
+            Quota 0
+          </v-chip>
+        </div>
+        <div class="d-flex align-center gap-1.5">
+          <v-btn
+            variant="text"
+            density="compact"
+            size="small"
+            class="rounded-lg text-caption font-weight-bold text-slate px-1.5"
+            @click="feedEspanso = !feedEspanso"
+          >
+            <v-icon size="16" class="mr-0.5">{{ feedEspanso ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+            {{ feedEspanso ? 'Comprimi' : 'Espandi' }}
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- UTENTI ONLINE ADESSO -->
+      <div class="mb-2 pb-2 border-b-subtle">
+        <div class="d-flex align-center gap-1.5 mb-1.5">
+          <span class="text-caption font-weight-black text-slate uppercase" style="font-size: 0.62rem;">
+            Atleti connessi ora:
+          </span>
+          <span class="font-weight-bold text-caption text-green-accent-3">
+            {{ atletiOnlineSolo.length }} {{ atletiOnlineSolo.length === 1 ? 'atleta' : 'atleti' }}
+          </span>
+        </div>
+        
+        <div v-if="atletiOnlineSolo.length > 0" class="d-flex flex-wrap gap-1.5 align-center">
+          <v-chip
+            v-for="u in atletiOnlineSolo"
+            :key="u.id"
+            size="small"
+            color="green-darken-4"
+            variant="flat"
+            class="chip-online-user font-weight-bold text-white px-2 py-0.5"
+            @click="filtraPerAtletaOnline(u.id)"
+            title="Clicca per filtrare questo atleta"
+          >
+            <span class="online-indicator-dot mr-1.5"></span>
+            <span class="mr-1">{{ u.nome }}</span>
+            <v-icon size="12" class="opacity-75 mr-1">{{ u.device === 'Mobile' ? 'mdi-cellphone' : 'mdi-laptop' }}</v-icon>
+            <span class="text-super-caption opacity-75 font-weight-regular" style="font-size: 0.58rem;">{{ tempoFa(u.ultimo_accesso) }}</span>
+          </v-chip>
+        </div>
+        <div v-else class="text-caption text-slate font-italic py-0.5" style="font-size: 0.72rem;">
+          Nessun atleta con l'app aperta in questo momento.
+        </div>
+      </div>
+
+      <!-- FEED ULTIME AZIONI IN TEMPO REALE -->
+      <v-expand-transition>
+        <div v-if="feedEspanso">
+          <div class="d-flex justify-space-between align-center mb-1.5 pt-1">
+            <span class="text-caption font-weight-black text-slate uppercase" style="font-size: 0.62rem;">
+              Log in tempo reale:
+            </span>
+            <div class="d-flex gap-1">
+              <v-btn
+                size="x-small"
+                variant="flat"
+                :color="filtroFeed === 'tutti' ? 'primary' : 'default'"
+                class="rounded px-1.5 text-super-caption"
+                style="font-size: 0.60rem; height: 20px;"
+                @click="filtroFeed = 'tutti'"
+              >Tutti ({{ feedAttivita.length }})</v-btn>
+              <v-btn
+                size="x-small"
+                variant="flat"
+                :color="filtroFeed === 'peso' ? 'primary' : 'default'"
+                class="rounded px-1.5 text-super-caption"
+                style="font-size: 0.60rem; height: 20px;"
+                @click="filtroFeed = 'peso'"
+              >🏋️ Pesi ({{ feedPesiCount }})</v-btn>
+              <v-btn
+                size="x-small"
+                variant="flat"
+                :color="filtroFeed === 'accesso' ? 'primary' : 'default'"
+                class="rounded px-1.5 text-super-caption"
+                style="font-size: 0.60rem; height: 20px;"
+                @click="filtroFeed = 'accesso'"
+              >📱 Accessi ({{ feedAccessiCount }})</v-btn>
+            </div>
+          </div>
+
+          <!-- LISTA SCROLLABILE DEL FEED -->
+          <div class="feed-scroll-container">
+            <div v-if="feedFiltrato.length === 0" class="text-center text-caption text-slate py-2" style="font-size: 0.72rem;">
+              Nessun evento registrato al momento nel feed.
+            </div>
+            <div
+              v-for="ev in feedFiltrato"
+              :key="ev.key || ev.timestamp"
+              class="feed-item d-flex align-center justify-space-between py-1 px-2 mb-1 rounded-lg"
+              :class="{ 'feed-item-peso': ev.tipo === 'peso', 'feed-item-accesso': ev.tipo === 'accesso' }"
+            >
+              <div class="d-flex align-center gap-1.5 overflow-hidden mr-2">
+                <v-icon size="15" :color="ev.tipo === 'peso' ? 'orange-accent-3' : 'cyan-accent-3'">
+                  {{ ev.tipo === 'peso' ? 'mdi-dumbbell' : 'mdi-cellphone-arrow-down' }}
+                </v-icon>
+                <div class="text-truncate">
+                  <span class="font-weight-black text-caption mr-1 text-white" style="font-size: 0.72rem;">{{ ev.nome }}:</span>
+                  <span class="text-caption text-slate-light" style="font-size: 0.72rem;">{{ ev.azione }}</span>
+                  <span v-if="ev.dettagli" class="text-caption font-weight-bold text-orange-lighten-2 ml-1" style="font-size: 0.70rem;">({{ ev.dettagli }})</span>
+                </div>
+              </div>
+              <span class="text-super-caption text-slate font-weight-bold flex-shrink-0" style="font-size: 0.62rem;">
+                {{ tempoFa(ev.timestamp) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </v-expand-transition>
+    </v-card>
+
     <!-- METRICHE KPI COMPATTE (PREMIUM 2x2 SU MOBILE, 4 IN RIGA SU DESKTOP) -->
     <v-row class="mb-3 mb-sm-5 g-2 g-sm-3">
       <!-- Card Totale Attivi -->
@@ -212,6 +337,16 @@
                 >
                   {{ cliente.nomeCompleto }}
                 </span>
+                <v-chip
+                  v-if="idsOnline.has(String(cliente.id))"
+                  size="x-small"
+                  color="green-accent-4"
+                  variant="flat"
+                  class="font-weight-black text-black ml-1 px-1.5 pulse-online-chip"
+                  style="font-size: 0.55rem; height: 16px;"
+                >
+                  ● ONLINE
+                </v-chip>
                 
                 <!-- Badge Scheda Attiva -->
                 <v-chip
@@ -448,7 +583,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ascoltaPresenzaLive, ascoltaAttivitaLive } from '../utils/presenceService.js';
 import { useRouter } from 'vue-router';
 import { setSelectedAthlete, setSelectedSheet, apriMessaggioPrivatoModal, getTelefonoAtleta, formattaTelefonoPerWhatsApp } from '../authStore.js';
 import { db } from '../firebase.js';
@@ -459,6 +595,47 @@ import {
 } from '../utils/riepilogoManager.js';
 
 const router = useRouter();
+
+// Stato Realtime Live (Presenza & Feed Pesi a Quota 0)
+const utentiOnline = ref([]);
+const feedAttivita = ref([]);
+const filtroFeed = ref('tutti'); // 'tutti' | 'peso' | 'accesso'
+const feedEspanso = ref(true);
+let unsubPresenza = null;
+let unsubAttivita = null;
+
+const atletiOnlineSolo = computed(() => {
+  return utentiOnline.value.filter(u => u && u.id !== 'coach' && u.ruolo !== 'coach');
+});
+
+const idsOnline = computed(() => {
+  return new Set(atletiOnlineSolo.value.map(u => String(u.id)));
+});
+
+const feedPesiCount = computed(() => feedAttivita.value.filter(ev => ev.tipo === 'peso').length);
+const feedAccessiCount = computed(() => feedAttivita.value.filter(ev => ev.tipo === 'accesso').length);
+
+const feedFiltrato = computed(() => {
+  if (filtroFeed.value === 'tutti') return feedAttivita.value;
+  return feedAttivita.value.filter(ev => ev.tipo === filtroFeed.value);
+});
+
+const tempoFa = (timestamp) => {
+  if (!timestamp) return 'Adesso';
+  const diffMs = Date.now() - Number(timestamp);
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return 'Adesso';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m fa`;
+  const diffOre = Math.floor(diffMin / 60);
+  if (diffOre < 24) return `${diffOre}h fa`;
+  return `${Math.floor(diffOre / 24)}g fa`;
+};
+
+const filtraPerAtletaOnline = (atletaId) => {
+  ricercaTesto.value = String(atletaId);
+  filtroAttivo.value = 'tutti';
+};
 
 // Stato principale
 const listaClienti = ref([]);
@@ -547,6 +724,7 @@ const listaFiltri = computed(() => {
   const attivi = listaClienti.value.filter(c => c.attivo);
   return [
     { id: 'tutti', label: 'Tutti', icon: 'mdi-account-group', conteggio: attivi.length },
+    { id: 'online', label: '🟢 Online Ora', icon: 'mdi-circle', conteggio: atletiOnlineSolo.value.length },
     { id: 'in_scadenza', label: '🚨 In Scadenza (W5-6)', icon: 'mdi-alert-decagram', conteggio: attivi.filter(c => c.settimanaCorrente >= 5 && !c.programmaCompletato).length },
     { id: 'completati', label: '🏆 Completati', icon: 'mdi-trophy', conteggio: attivi.filter(c => c.programmaCompletato).length },
     { id: 'inattivi', label: '⚠️ Inattivi (>5gg)', icon: 'mdi-clock-alert', conteggio: attivi.filter(c => c.statoInattivita === 'red').length },
@@ -669,7 +847,9 @@ const clientiFiltrati = computed(() => {
   }
 
   // Filtro Categoria
-  if (filtroAttivo.value === 'in_scadenza') {
+  if (filtroAttivo.value === 'online') {
+    list = list.filter(c => idsOnline.value.has(String(c.id)));
+  } else if (filtroAttivo.value === 'in_scadenza') {
     list = list.filter(c => c.settimanaCorrente >= 5 && !c.programmaCompletato);
   } else if (filtroAttivo.value === 'completati') {
     list = list.filter(c => c.programmaCompletato);
@@ -706,10 +886,103 @@ const clientiFiltrati = computed(() => {
 
 onMounted(() => {
   ricaricaDati(false);
+  unsubPresenza = ascoltaPresenzaLive((online) => {
+    utentiOnline.value = online || [];
+  });
+  unsubAttivita = ascoltaAttivitaLive((events) => {
+    feedAttivita.value = events || [];
+  }, 40);
+});
+
+onUnmounted(() => {
+  if (unsubPresenza) unsubPresenza();
+  if (unsubAttivita) unsubAttivita();
 });
 </script>
 
 <style scoped>
+.live-monitor-card {
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(3, 7, 18, 0.6) 100%);
+}
+
+.live-pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: pulse-green 1.8s infinite;
+  display: inline-block;
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 7px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.chip-online-user {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.chip-online-user:hover {
+  transform: translateY(-1px);
+}
+
+.online-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #4ade80;
+  display: inline-block;
+}
+
+.pulse-online-chip {
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+.border-b-subtle {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feed-scroll-container {
+  max-height: 140px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.feed-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease;
+}
+
+.feed-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.feed-item-peso {
+  border-left: 3px solid #f97316;
+}
+
+.feed-item-accesso {
+  border-left: 3px solid #06b6d4;
+}
 .monitoraggio-container {
   min-height: calc(100vh - 120px);
 }

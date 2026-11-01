@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue';
 import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc, getDocs, getDoc, updateDoc, deleteField } from 'firebase/firestore';
 import { db } from './firebase.js';
+import { initPresenceTracking, cleanupPresence } from './utils/presenceService.js';
 
 // Ordine originale degli atleti (estratto dal foglio Google)
 export const ORDINE_ORIGINALE_ATLETI = [
@@ -135,6 +136,13 @@ export const idCliente = ref(initialIdCliente);
 export const ruolo = ref(initialRuolo); // 'atleta' o 'coach'
 export const loadingAuth = ref(false); // Immediatamente pronto nel sistema passwordless
 
+// Avvia presenza real-time se l'utente è già loggato (RTDB a quota 0)
+if (emailSalvata) {
+  setTimeout(() => {
+    try { initPresenceTracking(); } catch (e) {}
+  }, 100);
+}
+
 // Stato del tema utente (scuro di default, 'light' o 'dark')
 export const currentTheme = ref(localStorage.getItem('userTheme') || 'dark');
 export const currentLightStyle = ref(localStorage.getItem('userLightStyle') || 'slate');
@@ -246,10 +254,23 @@ export const inizializzaSessione = (email, idCli, rlo) => {
       setSelectedAthlete('1'); // Di default Gabriele Belmonte
     }
   }
+
+  // Traccia la presenza in tempo reale (RTDB a quota 0)
+  try {
+    initPresenceTracking();
+  } catch (e) {
+    console.warn("initPresenceTracking err:", e);
+  }
 };
 
 // Chiude la sessione e pulisce il localStorage
 export const logout = async () => {
+  try {
+    await cleanupPresence();
+  } catch (e) {
+    console.warn("cleanupPresence err:", e);
+  }
+
   utente.value = null;
   idCliente.value = '';
   ruolo.value = 'atleta';

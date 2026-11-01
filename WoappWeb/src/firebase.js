@@ -1,6 +1,7 @@
 // src/firebase.js
 import { initializeApp, getApps } from "firebase/app";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 
 // Configurazione reale di Firebase per WoappWeb
 const firebaseConfig = {
@@ -30,6 +31,15 @@ try {
 }
 
 export const db = firestoreDb;
+
+// Inizializza ed esporta Realtime Database (RTDB per Presenza Live e Attività a quota 0)
+let realtimeDb;
+try {
+  realtimeDb = getDatabase(app);
+} catch (e) {
+  console.warn("Realtime Database non inizializzato:", e);
+}
+export const rtdb = realtimeDb;
 
 // Inizializza ed esporta Firebase Auth
 import { getAuth, GoogleAuthProvider } from "firebase/auth";

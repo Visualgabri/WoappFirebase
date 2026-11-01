@@ -5333,6 +5333,13 @@ const salvaInsW6Rapido = async (ex, nuovoValore) => {
       timestamp_ute: updates['timestamp_ute']
     }, { merge: true });
     console.log(`Miglior Carico num_ins6 per ${ex.des_esercizio} salvato: ${valStr}`);
+    aggiornaRiepilogoAtletaLive({
+      idCliente: ex.ID_cliente || selectedAthlete.value,
+      numScheda: ex.num_scheda || selectedSheet.value,
+      settimanaCorrente: 6,
+      azione: 'Ha registrato carico W6 su ' + (ex.des_esercizio || 'Esercizio'),
+      dettagli: String(valStr) + ' kg'
+    });
   } catch (err) {
     console.warn("Errore salvataggio num_ins6 su Firebase:", err);
   } finally {

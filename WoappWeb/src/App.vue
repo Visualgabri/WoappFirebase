@@ -42,7 +42,17 @@
         id="btn-coach-monitor"
         @click="vibraTattile(8)"
       >
-        <v-icon size="20">mdi-chart-timeline-variant-shimmer</v-icon>
+        <v-badge
+          v-if="utentiOnlineCount > 0"
+          :content="utentiOnlineCount"
+          color="green-accent-4"
+          floating
+          offset-x="2"
+          offset-y="2"
+        >
+          <v-icon size="20">mdi-chart-timeline-variant-shimmer</v-icon>
+        </v-badge>
+        <v-icon v-else size="20">mdi-chart-timeline-variant-shimmer</v-icon>
       </v-btn>
 
       <!-- Se coach, mostra pulsante Pannello Controllo -->
@@ -846,9 +856,12 @@ import MessaggioPrivatoModal from './components/MessaggioPrivatoModal.vue';
 import InstallBanner from './components/InstallBanner.vue';
 import InstallPromptModal from './components/InstallPromptModal.vue';
 import { initPwaListeners } from './utils/usePwaInstall.js';
+import { initPresenceTracking, ascoltaPresenzaLive } from './utils/presenceService.js';
 import { utente, idCliente, ruolo, logout, activeTimer, pauseGlobalTimer, resumeGlobalTimer, stopGlobalTimer, selectedAthlete, selectedSheet, getNomeAtleta, globalHaEserciziDaFare, setGlobalHaEserciziDaFare, globalSettimanaDaChiudere, setGlobalSettimanaDaChiudere, triggerPlayClick, mostraDialogCalcolatoreDischi, targetPesoTotale, targetPesoLato, modalitaCalcolo, tipoBilanciere, nascondiLato, caricoMonolaterale, nomeEsercizioCalcolatore, timerThemeGlobal, layoutEserciziGlobal, chiudiSettimanaAttivaGiornoAttivo, globalStoryboard, showDeployBanner, deployVersionInfo, deployCustomNoteForMe, accettaEAggiornaDeploy, ignoraBannerDeploy, chiudiBannerNotifica, currentTheme, setTheme, haRecupero, mostraDialogGradimentiGlobal } from './authStore.js';
 
 const router = useRouter();
+const utentiOnlineList = ref([]);
+const utentiOnlineCount = computed(() => utentiOnlineList.value.filter(u => u.id !== 'coach' && u.ruolo !== 'coach').length);
 const vuetifyTheme = useTheme();
 const globalTransition = ref('fade');
 const mostraDialogGuida = ref(false);
@@ -1023,6 +1036,12 @@ const toggleTema = () => {
 
 onMounted(() => {
   initPwaListeners();
+  initPresenceTracking();
+  if (ruolo.value === 'coach') {
+    ascoltaPresenzaLive((online) => {
+      utentiOnlineList.value = online || [];
+    });
+  }
   setTheme(currentTheme.value, vuetifyTheme);
   window.addEventListener('keydown', handleGlobalKeydown);
   window.addEventListener('input', handleGlobalInput, true);

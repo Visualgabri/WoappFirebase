@@ -1,6 +1,7 @@
 import { collection, doc, getDocs, getDoc, setDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { MAPPA_CLIENTI, getNomeAtleta, isAtletaAttivo } from '../authStore.js';
+import { logAttivitaRealtime } from './presenceService.js';
 
 const CACHE_KEY = 'woapp_riepilogo_clienti_cache';
 const CACHE_TIMESTAMP_KEY = 'woapp_riepilogo_clienti_timestamp';
@@ -267,7 +268,9 @@ export const aggiornaRiepilogoAtletaLive = async ({
   settimanaCorrente,
   programmaCompletato = false,
   giorniRimanentiWeek = null,
-  totaleGiorni = null
+  totaleGiorni = null,
+  azione = null,
+  dettagli = null
 }) => {
   const cleanId = String(idCliente || '').trim();
   if (!cleanId || !numScheda) return;
@@ -276,6 +279,19 @@ export const aggiornaRiepilogoAtletaLive = async ({
     const week = Math.min(6, Math.max(1, parseInt(settimanaCorrente, 10) || 1));
     const now = new Date();
     const nowIso = now.toISOString();
+
+    // Log Attività in Tempo Reale su Realtime Database (Quota Firestore: 0)
+    try {
+      logAttivitaRealtime({
+        tipo: 'peso',
+        azione: azione || `Ha aggiornato la Scheda #${numScheda} (W${week})`,
+        dettagli: dettagli || '',
+        customId: cleanId,
+        customNome: getNomeAtleta(cleanId)
+      });
+    } catch (logErr) {
+      console.warn("Log attività realtime err:", logErr);
+    }
     const gg = String(now.getDate()).padStart(2, '0');
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const aaaa = now.getFullYear();

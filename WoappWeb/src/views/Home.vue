@@ -121,8 +121,10 @@
         <div
           v-for="item in ultimiEventiLiveHome"
           :key="item.raw.key || item.raw.timestamp"
-          class="d-flex align-center justify-space-between text-truncate"
+          class="d-flex align-center justify-space-between text-truncate cursor-pointer hover-feed-item"
           style="font-size: 0.65rem;"
+          @click="apriDettaglioDaFeedHome(item)"
+          title="Clicca per aprire l'esercizio in dettaglio"
         >
           <div class="d-flex align-center min-w-0 mr-1.5 flex-grow-1 overflow-hidden" style="gap: 4px;">
             <span class="font-weight-black text-white flex-shrink-0">{{ item.nomeBreve }}</span>
@@ -1691,6 +1693,82 @@ const tempoFaHome = (timestamp) => {
   const diffOre = Math.floor(diffMin / 60);
   if (diffOre < 24) return `${diffOre}h fa`;
   return `${Math.floor(diffOre / 24)}g fa`;
+};
+
+const apriDettaglioDaFeedHome = async (item) => {
+  if (!item) return;
+  const raw = item.raw || {};
+  const userId = raw.userId;
+  if (!userId || userId === 'coach') return;
+
+  vibraTattile(12);
+
+  try {
+    setSelectedAthlete(String(userId));
+    if (item.tipo === 'accesso') {
+      return;
+    }
+
+    let targetWeek = raw.settimana;
+    if (!targetWeek && item.badge) {
+      const mW = String(item.badge).match(/W(\d+)/i);
+      if (mW) targetWeek = parseInt(mW[1], 10);
+    }
+    targetWeek = targetWeek || 1;
+
+    let numScheda = raw.scheda || selectedSheet.value;
+    if (numScheda) setSelectedSheet(String(numScheda));
+
+    if (raw.docId) {
+      router.push({
+        name: 'DettaglioWorkout',
+        params: { id: String(raw.docId) },
+        query: { targetWeek: String(targetWeek), scrollWeek: String(targetWeek), week: String(targetWeek) }
+      });
+      return;
+    }
+
+    const coord = (raw.coordinata || '').toUpperCase().trim();
+    let desGiorno = '';
+    let numRigaGiorno = null;
+    if (coord) {
+      const matchC = coord.match(/^([A-Z])(\d+)$/);
+      if (matchC) {
+        desGiorno = matchC[1];
+        numRigaGiorno = parseInt(matchC[2], 10);
+      }
+    }
+
+    const colRef = collection(db, 'STORYBOARD');
+    const qConstraints = [where('ID_cliente', '==', String(userId))];
+    if (numScheda) qConstraints.push(where('num_scheda', '==', String(numScheda)));
+    if (desGiorno) qConstraints.push(where('des_giorno', '==', desGiorno));
+
+    const q = query(colRef, ...qConstraints);
+    const snap = await getDocs(q);
+    let docTrovato = null;
+    if (!snap.empty) {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (numRigaGiorno !== null) {
+        docTrovato = docs.find(d => parseInt(d.num_riga_giorno, 10) === numRigaGiorno);
+      }
+      if (!docTrovato && item.esercizio) {
+        const queryEs = item.esercizio.toLowerCase().trim();
+        docTrovato = docs.find(d => (d.des_esercizio || '').toLowerCase().includes(queryEs));
+      }
+      if (!docTrovato) docTrovato = docs[0];
+    }
+
+    if (docTrovato) {
+      router.push({
+        name: 'DettaglioWorkout',
+        params: { id: docTrovato.id },
+        query: { targetWeek: String(targetWeek), scrollWeek: String(targetWeek), week: String(targetWeek) }
+      });
+    }
+  } catch (err) {
+    console.warn("Errore navigazione feed home:", err);
+  }
 };
 const route = useRoute();
 
@@ -4545,6 +4623,12 @@ const apriTest = () => {
   border-radius: 4px;
   letter-spacing: 0.2px;
   line-height: 1.3;
+}
+.hover-feed-item {
+  transition: opacity 0.2s ease;
+}
+.hover-feed-item:hover {
+  opacity: 0.85;
 }
 .max-width-container {
   max-width: 600px;

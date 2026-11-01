@@ -252,7 +252,9 @@ export const logAttivitaRealtime = async ({
   settimana = null,
   coordinata = null,
   carico = null,
-  esercizio = null
+  esercizio = null,
+  docId = null,
+  scheda = null
 }) => {
   if (!rtdb || !azione) return;
 
@@ -274,6 +276,8 @@ export const logAttivitaRealtime = async ({
     if (coordinata) payload.coordinata = String(coordinata);
     if (carico) payload.carico = String(carico);
     if (esercizio) payload.esercizio = String(esercizio);
+    if (docId) payload.docId = String(docId);
+    if (scheda) payload.scheda = String(scheda);
 
     await push(logRef, payload);
   } catch (err) {

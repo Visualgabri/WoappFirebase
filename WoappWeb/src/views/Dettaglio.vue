@@ -19611,7 +19611,8 @@ const aggiornaDatoECommit = async (updates) => {
         dettagli: dett.join(' | '),
         coordinata: coord,
         carico: pesoInserito,
-        esercizio: esNome
+        esercizio: esNome,
+        docId: routeIdLocal.value || workout.value.id || workout.value.num_riga
       });
     }
   } catch (error) {

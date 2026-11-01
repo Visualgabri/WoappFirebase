@@ -5342,7 +5342,8 @@ const salvaInsW6Rapido = async (ex, nuovoValore) => {
       dettagli: String(valStr) + ' kg',
       coordinata: coordW6,
       carico: String(valStr) + ' kg',
-      esercizio: ex.des_esercizio || 'Esercizio'
+      esercizio: ex.des_esercizio || 'Esercizio',
+      docId: ex.id || ex.num_riga
     });
   } catch (err) {
     console.warn("Errore salvataggio num_ins6 su Firebase:", err);
@@ -5828,7 +5829,8 @@ const salvaValoreEsercizio = async (ex, w, valore) => {
         dettagli: String(valore || ''),
         coordinata: coordEx,
         carico: String(valore || ''),
-        esercizio: ex.des_esercizio || 'Esercizio'
+        esercizio: ex.des_esercizio || 'Esercizio',
+        docId: ex.id || ex.num_riga
       });
     }
   } catch (err) {

@@ -143,8 +143,10 @@
             <div
               v-for="item in feedFiltratoConDati"
               :key="item.raw.key || item.raw.timestamp"
-              class="feed-item d-flex align-center justify-space-between py-1 px-2 mb-1 rounded-lg"
+              class="feed-item d-flex align-center justify-space-between py-1 px-2 mb-1 rounded-lg cursor-pointer"
               :class="{ 'feed-item-peso': item.tipo === 'peso', 'feed-item-accesso': item.tipo === 'accesso' }"
+              @click="apriDettaglioDaFeed(item)"
+              title="Clicca per aprire l'esercizio in dettaglio"
             >
               <div class="d-flex align-center min-w-0 mr-1.5 flex-grow-1 overflow-hidden" style="gap: 5px;">
                 <span class="font-weight-black text-white flex-shrink-0" style="font-size: 0.72rem;">
@@ -797,6 +799,122 @@ const resettaFiltri = () => {
   filtroAttivo.value = 'tutti';
 };
 
+// Navigazione diretta all'esercizio dal Feed Live (apre proprio quell'esercizio di quell'utente in quella settimana)
+const apriDettaglioDaFeed = async (item) => {
+  if (!item) return;
+  const raw = item.raw || {};
+  const userId = raw.userId;
+  if (!userId || userId === 'coach') return;
+
+  if (navigator.vibrate) navigator.vibrate(15);
+
+  try {
+    // 1. Imposta atleta attivo
+    setSelectedAthlete(String(userId));
+
+    // Se è un evento di solo accesso (nessun esercizio specifico)
+    if (item.tipo === 'accesso') {
+      const cliente = listaClienti.value.find(c => String(c.id) === String(userId));
+      if (cliente?.scheda && cliente.scheda !== 'N/D') {
+        setSelectedSheet(String(cliente.scheda));
+      }
+      router.push('/');
+      return;
+    }
+
+    // 2. Determina la settimana target
+    let targetWeek = raw.settimana;
+    if (!targetWeek && item.badge) {
+      const mW = String(item.badge).match(/W(\d+)/i);
+      if (mW) targetWeek = parseInt(mW[1], 10);
+    }
+    targetWeek = targetWeek || 1;
+
+    // 3. Determina la scheda dell'atleta
+    let numScheda = raw.scheda;
+    if (!numScheda) {
+      const cliente = listaClienti.value.find(c => String(c.id) === String(userId));
+      if (cliente?.scheda && cliente.scheda !== 'N/D') {
+        numScheda = cliente.scheda;
+      }
+    }
+    if (numScheda) {
+      setSelectedSheet(String(numScheda));
+    }
+
+    // 4. Se abbiamo già il docId esatto in STORYBOARD
+    if (raw.docId) {
+      router.push({
+        name: 'DettaglioWorkout',
+        params: { id: String(raw.docId) },
+        query: {
+          targetWeek: String(targetWeek),
+          scrollWeek: String(targetWeek),
+          week: String(targetWeek)
+        }
+      });
+      return;
+    }
+
+    // 5. Fallback dinamico su STORYBOARD per coordinata o nome esercizio
+    const coord = (raw.coordinata || '').toUpperCase().trim();
+    let desGiorno = '';
+    let numRigaGiorno = null;
+    if (coord) {
+      const matchC = coord.match(/^([A-Z])(\d+)$/);
+      if (matchC) {
+        desGiorno = matchC[1];
+        numRigaGiorno = parseInt(matchC[2], 10);
+      }
+    }
+
+    const { collection, query: firestoreQuery, where, getDocs } = await import('firebase/firestore');
+    const colRef = collection(db, 'STORYBOARD');
+    const qConstraints = [where('ID_cliente', '==', String(userId))];
+    if (numScheda) {
+      qConstraints.push(where('num_scheda', '==', String(numScheda)));
+    }
+    if (desGiorno) {
+      qConstraints.push(where('des_giorno', '==', desGiorno));
+    }
+
+    const q = firestoreQuery(colRef, ...qConstraints);
+    const snap = await getDocs(q);
+
+    let docTrovato = null;
+    if (!snap.empty) {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (numRigaGiorno !== null) {
+        docTrovato = docs.find(d => parseInt(d.num_riga_giorno, 10) === numRigaGiorno);
+      }
+      if (!docTrovato && item.esercizio) {
+        const queryEs = item.esercizio.toLowerCase().trim();
+        docTrovato = docs.find(d => (d.des_esercizio || '').toLowerCase().includes(queryEs));
+      }
+      if (!docTrovato) {
+        docTrovato = docs[0];
+      }
+    }
+
+    if (docTrovato) {
+      router.push({
+        name: 'DettaglioWorkout',
+        params: { id: docTrovato.id },
+        query: {
+          targetWeek: String(targetWeek),
+          scrollWeek: String(targetWeek),
+          week: String(targetWeek)
+        }
+      });
+    } else {
+      router.push('/');
+    }
+  } catch (err) {
+    console.warn("Errore navigazione feed:", err);
+    router.push('/');
+  }
+};
+
 // Navigazione e Apertura Scheda
 const apriSchedaAtleta = (cliente) => {
   setSelectedAthlete(String(cliente.id));
@@ -1026,8 +1144,19 @@ onUnmounted(() => {
   transition: background 0.2s ease;
 }
 
+.feed-item {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
 .feed-item:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateX(2px);
+}
+
+.feed-item:active {
+  transform: scale(0.99);
 }
 
 .feed-item-peso {

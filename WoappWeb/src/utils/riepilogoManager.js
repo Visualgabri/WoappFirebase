@@ -273,7 +273,8 @@ export const aggiornaRiepilogoAtletaLive = async ({
   dettagli = null,
   coordinata = null,
   carico = null,
-  esercizio = null
+  esercizio = null,
+  docId = null
 }) => {
   const cleanId = String(idCliente || '').trim();
   if (!cleanId || !numScheda) return;
@@ -294,7 +295,9 @@ export const aggiornaRiepilogoAtletaLive = async ({
         settimana: week,
         coordinata: coordinata || '',
         carico: carico || '',
-        esercizio: esercizio || ''
+        esercizio: esercizio || '',
+        docId: docId || '',
+        scheda: numScheda || ''
       });
     } catch (logErr) {
       console.warn("Log attività realtime err:", logErr);

@@ -65,75 +65,76 @@
       </div>
     </div>
 
-    <!-- COACH LIVE MONITOR WIDGET (RTDB A QUOTA 0) -->
+    <!-- COACH LIVE BAR (MINIMAL & MOBILE-FIRST) -->
     <v-card
       v-if="ruolo === 'coach'"
-      class="card-glass pa-2.5 pa-sm-3 rounded-2xl mb-4 border elevation-1"
-      style="border-color: rgba(34, 197, 94, 0.35) !important; background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(3, 7, 18, 0.6) 100%) !important;"
+      class="card-glass pa-2 px-2.5 rounded-xl mb-3 elevation-1"
+      style="border: 1px solid rgba(34, 197, 94, 0.25) !important; background: rgba(3, 7, 18, 0.45) !important;"
     >
-      <div class="d-flex flex-wrap justify-space-between align-center gap-2 mb-2">
-        <div class="d-flex align-center gap-2">
-          <span class="live-pulse-dot"></span>
-          <span class="text-caption font-weight-black text-green-accent-3 uppercase tracking-wider" style="font-size: 0.68rem;">
-            Atleti Attivi & Feed Live (Quota 0)
+      <div class="d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-1.5 overflow-hidden">
+          <span class="live-pulse-dot flex-shrink-0"></span>
+          <span class="font-weight-black text-green-accent-3 uppercase" style="font-size: 0.60rem; letter-spacing: 0.4px;">
+            Live
           </span>
-          <v-chip size="x-small" color="green-darken-4" variant="flat" class="text-green-accent-3 font-weight-bold px-1.5" style="font-size: 0.58rem; height: 18px;">
-            {{ atletiOnlineSoloHome.length }} Online Ora
+          <v-chip
+            size="x-small"
+            :color="atletiOnlineSoloHome.length > 0 ? 'green-accent-4' : 'grey-darken-3'"
+            :class="atletiOnlineSoloHome.length > 0 ? 'text-black font-weight-black' : 'text-slate-light'"
+            variant="flat"
+            class="px-1.5"
+            style="font-size: 0.58rem; height: 18px;"
+          >
+            {{ atletiOnlineSoloHome.length }} online
           </v-chip>
         </div>
-        <v-btn
+
+        <router-link
           to="/monitoraggio"
-          size="x-small"
-          color="primary"
-          variant="flat"
-          class="font-weight-bold text-none rounded-lg px-2"
-          style="height: 22px; font-size: 0.65rem;"
+          class="text-decoration-none text-orange-lighten-2 font-weight-bold d-flex align-center"
+          style="font-size: 0.65rem;"
         >
-          <v-icon start size="13">mdi-chart-timeline-variant-shimmer</v-icon>
-          Apri Monitor Completo
-        </v-btn>
+          <span>Monitor</span>
+          <v-icon size="13">mdi-chevron-right</v-icon>
+        </router-link>
       </div>
 
-      <!-- Atleti online in questo secondo -->
-      <div v-if="atletiOnlineSoloHome.length > 0" class="d-flex flex-wrap gap-1.5 align-center mb-2">
+      <!-- Chip atleti online (solo se presenti) -->
+      <div v-if="atletiOnlineSoloHome.length > 0" class="d-flex flex-wrap gap-1 align-center mt-1.5 pt-1.5 border-t-subtle">
         <v-chip
           v-for="u in atletiOnlineSoloHome"
           :key="u.id"
-          size="small"
+          size="x-small"
           color="green-darken-4"
           variant="flat"
-          class="font-weight-bold text-white px-2 py-0.5"
-          style="cursor: pointer;"
+          class="font-weight-bold text-white px-1.5 py-0"
+          style="height: 18px; font-size: 0.58rem; cursor: pointer;"
           @click="setSelectedAthlete(String(u.id))"
-          title="Seleziona questo atleta"
         >
           <span class="online-indicator-dot mr-1"></span>
-          <span class="mr-1">{{ u.nome }}</span>
-          <v-icon size="12" class="opacity-75 mr-1">{{ u.device === 'Mobile' ? 'mdi-cellphone' : 'mdi-laptop' }}</v-icon>
-          <span class="text-super-caption opacity-75 font-weight-regular" style="font-size: 0.58rem;">{{ tempoFaHome(u.ultimo_accesso) }}</span>
+          {{ u.nome }}
         </v-chip>
       </div>
-      <div v-else class="text-caption text-slate font-italic mb-2" style="font-size: 0.70rem;">
-        Nessun atleta con l'app aperta in questo secondo. Riceverai aggiornamenti in diretta quando un atleta accede o scrive un peso.
-      </div>
 
-      <!-- Ultimi eventi live registrati -->
-      <div v-if="ultimiEventiLiveHome.length > 0" class="feed-mini-container">
+      <!-- Ultima attività atleta live (1 sola riga, solo per atleti, no coach) -->
+      <div v-if="ultimiEventiLiveHome.length > 0" class="mt-1.5 pt-1 border-t-subtle">
         <div
           v-for="ev in ultimiEventiLiveHome"
           :key="ev.key || ev.timestamp"
-          class="d-flex align-center justify-space-between py-1 px-2 mb-1 rounded"
-          style="background: rgba(255,255,255,0.03); font-size: 0.70rem; border-left: 2px solid #22c55e;"
+          class="d-flex align-center justify-space-between text-truncate"
+          style="font-size: 0.65rem;"
         >
-          <div class="d-flex align-center gap-1.5 text-truncate mr-2">
-            <v-icon size="14" :color="ev.tipo === 'peso' ? 'orange-accent-3' : 'cyan-accent-3'">
-              {{ ev.tipo === 'peso' ? 'mdi-dumbbell' : 'mdi-cellphone-arrow-down' }}
+          <div class="d-flex align-center gap-1 text-truncate mr-1">
+            <v-icon size="12" :color="ev.tipo === 'peso' ? 'orange-accent-3' : 'cyan-accent-3'">
+              {{ ev.tipo === 'peso' ? 'mdi-dumbbell' : 'mdi-cellphone' }}
             </v-icon>
-            <strong class="text-white">{{ ev.nome }}:</strong>
+            <span class="font-weight-black text-white flex-shrink-0">{{ ev.nome }}:</span>
             <span class="text-slate-light text-truncate">{{ ev.azione }}</span>
-            <span v-if="ev.dettagli" class="text-orange-lighten-2 font-weight-bold">({{ ev.dettagli }})</span>
+            <span v-if="ev.dettagli" class="text-orange-lighten-2 font-weight-bold flex-shrink-0">({{ ev.dettagli }})</span>
           </div>
-          <span class="text-super-caption text-slate font-weight-bold flex-shrink-0" style="font-size: 0.60rem;">{{ tempoFaHome(ev.timestamp) }}</span>
+          <span class="text-super-caption text-slate flex-shrink-0 font-weight-medium" style="font-size: 0.58rem;">
+            {{ tempoFaHome(ev.timestamp) }}
+          </span>
         </div>
       </div>
     </v-card>
@@ -1670,7 +1671,9 @@ const atletiOnlineSoloHome = computed(() => {
 });
 
 const ultimiEventiLiveHome = computed(() => {
-  return feedAttivitaHome.value.slice(0, 3);
+  return feedAttivitaHome.value
+    .filter(ev => ev.userId !== 'coach' && !String(ev.nome || '').includes('Coach'))
+    .slice(0, 1);
 });
 
 const tempoFaHome = (timestamp) => {
@@ -2040,6 +2043,7 @@ const chiudiTour = () => {
 
 onMounted(() => {
   if (ruolo.value === 'coach') {
+    caricaDatiAtleti(true).catch(() => {});
     unsubHomePresenza = ascoltaPresenzaLive((online) => {
       utentiOnlineHome.value = online || [];
     });
@@ -3599,11 +3603,11 @@ const scaricaReportPDF = () => {
   doc.save(`FlexCoach_Report_${(nomeAtleta.value || 'Atleta').replace(/\s+/g, '_')}_Scheda_${schedaSelezionata.value}.pdf`);
 };
 
-const caricaDatiAtleti = async () => {
+const caricaDatiAtleti = async (force = false) => {
   try {
     const cachedLista = localStorage.getItem('lista_atleti_metadata');
     const cachedTime = parseInt(localStorage.getItem('cache_timestamp_lista_atleti') || '0', 10);
-    if (cachedLista && (Date.now() - cachedTime < 24 * 60 * 60 * 1000)) {
+    if (!force && cachedLista && (Date.now() - cachedTime < 5 * 60 * 1000)) {
       listaAtleti.value = JSON.parse(cachedLista);
     } else {
       const docRef = doc(db, 'METADATA', 'clienti');
@@ -3615,7 +3619,7 @@ const caricaDatiAtleti = async () => {
         localStorage.setItem('cache_timestamp_lista_atleti', String(Date.now()));
       }
     }
-    await caricaNomiAtletiDinamici();
+    await caricaNomiAtletiDinamici(force);
   } catch (error) {
     console.error("Errore caricamento lista atleti in Home:", error);
   }
@@ -3839,6 +3843,9 @@ const caricaDatiWorkoutT = async () => {
 
 // Caricamento
 const caricaDatiScheda = async () => {
+  if (ruolo.value === 'coach') {
+    caricaDatiAtleti(true).catch(() => {});
+  }
   if (!selectedAthlete.value || !selectedSheet.value) return;
 
   atletaSelezionato.value = selectedAthlete.value;

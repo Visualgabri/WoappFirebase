@@ -33,28 +33,26 @@
       <!-- Se coach, mostra pulsante Monitoraggio Settimane Clienti -->
       <v-btn
         v-if="ruolo === 'coach'"
+        icon
         color="primary"
-        variant="tonal"
-        class="rounded-lg mr-1.5 px-2 btn-header-compact text-theme-primary d-flex align-center"
+        variant="text"
+        class="rounded-lg mr-1 btn-header-compact text-theme-primary position-relative"
         to="/monitoraggio"
         title="Monitoraggio Settimane e Avanzamento Clienti"
         id="btn-coach-monitor"
         @click="vibraTattile(8)"
-        style="height: 32px;"
       >
-        <span class="live-pulse-dot mr-1"></span>
-        <v-icon size="17" class="mr-1">mdi-broadcast</v-icon>
-        <span class="text-caption font-weight-black d-none d-sm-inline mr-1">Live</span>
-        <v-chip
-          size="x-small"
-          :color="utentiOnlineCount > 0 ? 'green-accent-4' : 'grey-darken-3'"
-          :class="utentiOnlineCount > 0 ? 'text-black font-weight-black' : 'text-slate-light'"
-          variant="flat"
-          class="px-1"
-          style="font-size: 0.60rem; height: 18px;"
+        <v-badge
+          v-if="utentiOnlineCount > 0"
+          :content="utentiOnlineCount"
+          color="green-accent-4"
+          floating
+          offset-x="2"
+          offset-y="2"
         >
-          {{ utentiOnlineCount }} online
-        </v-chip>
+          <v-icon size="20">mdi-chart-timeline-variant-shimmer</v-icon>
+        </v-badge>
+        <v-icon v-else size="20">mdi-chart-timeline-variant-shimmer</v-icon>
       </v-btn>
 
       <!-- Se coach, mostra pulsante Pannello Controllo -->

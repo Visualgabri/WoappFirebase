@@ -1081,10 +1081,14 @@ export const toggleStatoAtletaFirestore = async (id, attivo) => {
 
 // --- CARICAMENTO E SINCRONIZZAZIONE DATI CLIENTI CON CACHE INTELLIGENTE ---
 let caricaDatiClientiPromise = null;
-const CLIENTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 ore
+const CLIENTS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minuti (così le attivazioni/modifiche clienti si riflettono subito su tutti i dispositivi)
 
 export const caricaDatiClientiGlobali = async (force = false) => {
-  if (caricaDatiClientiPromise) return caricaDatiClientiPromise;
+  if (force) {
+    caricaDatiClientiPromise = null;
+  } else if (caricaDatiClientiPromise) {
+    return caricaDatiClientiPromise;
+  }
 
   const now = Date.now();
   const lastTime = parseInt(localStorage.getItem('cache_timestamp_clienti_firestore') || '0', 10);
@@ -1092,7 +1096,7 @@ export const caricaDatiClientiGlobali = async (force = false) => {
   const hasLocalNomi = Object.keys(MAPPA_CLIENTI_DINAMICI.value || {}).length > 0;
   const hasLocalStato = Object.keys(MAPPA_STATO_CLIENTI.value || {}).length > 0;
 
-  // Se la cache in localStorage è valida (meno di 24h) e contiene dati, evitiamo completamente letture Firestore
+  // Se la cache in localStorage è valida (< 5 min) e contiene dati, evitiamo letture Firestore
   if (!force && cacheValida && hasLocalNomi && hasLocalStato) {
     return;
   }

@@ -78,19 +78,21 @@ export const initPresenceTracking = () => {
           console.warn('[Presence] set error:', e);
         });
 
-        // Registra il log di accesso (massimo 1 volta ogni 15 minuti per sessione)
-        const sessionKey = `woapp_access_logged_${id}`;
-        const lastLog = sessionStorage.getItem(sessionKey);
-        const adesso = Date.now();
-        if (!lastLog || (adesso - parseInt(lastLog, 10)) > 15 * 60 * 1000) {
-          sessionStorage.setItem(sessionKey, String(adesso));
-          logAttivitaRealtime({
-            tipo: 'accesso',
-            azione: 'Ha aperto l\'app',
-            dettagli: isMobile ? 'Smartphone' : 'Computer',
-            customId: id,
-            customNome: nome
-          });
+        // Registra il log di accesso SOLO per gli atleti (evita di intasare il feed con gli accessi del coach stesso)
+        if (userRuolo !== 'coach' && id !== 'coach' && email !== 'visualgabri@gmail.com') {
+          const sessionKey = `woapp_access_logged_${id}`;
+          const lastLog = sessionStorage.getItem(sessionKey);
+          const adesso = Date.now();
+          if (!lastLog || (adesso - parseInt(lastLog, 10)) > 15 * 60 * 1000) {
+            sessionStorage.setItem(sessionKey, String(adesso));
+            logAttivitaRealtime({
+              tipo: 'accesso',
+              azione: 'Ha aperto l\'app',
+              dettagli: isMobile ? 'Smartphone' : 'Computer',
+              customId: id,
+              customNome: nome
+            });
+          }
         }
       }
     });

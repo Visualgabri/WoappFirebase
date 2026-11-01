@@ -65,6 +65,79 @@
       </div>
     </div>
 
+    <!-- COACH LIVE MONITOR WIDGET (RTDB A QUOTA 0) -->
+    <v-card
+      v-if="ruolo === 'coach'"
+      class="card-glass pa-2.5 pa-sm-3 rounded-2xl mb-4 border elevation-1"
+      style="border-color: rgba(34, 197, 94, 0.35) !important; background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(3, 7, 18, 0.6) 100%) !important;"
+    >
+      <div class="d-flex flex-wrap justify-space-between align-center gap-2 mb-2">
+        <div class="d-flex align-center gap-2">
+          <span class="live-pulse-dot"></span>
+          <span class="text-caption font-weight-black text-green-accent-3 uppercase tracking-wider" style="font-size: 0.68rem;">
+            Atleti Attivi & Feed Live (Quota 0)
+          </span>
+          <v-chip size="x-small" color="green-darken-4" variant="flat" class="text-green-accent-3 font-weight-bold px-1.5" style="font-size: 0.58rem; height: 18px;">
+            {{ atletiOnlineSoloHome.length }} Online Ora
+          </v-chip>
+        </div>
+        <v-btn
+          to="/monitoraggio"
+          size="x-small"
+          color="primary"
+          variant="flat"
+          class="font-weight-bold text-none rounded-lg px-2"
+          style="height: 22px; font-size: 0.65rem;"
+        >
+          <v-icon start size="13">mdi-chart-timeline-variant-shimmer</v-icon>
+          Apri Monitor Completo
+        </v-btn>
+      </div>
+
+      <!-- Atleti online in questo secondo -->
+      <div v-if="atletiOnlineSoloHome.length > 0" class="d-flex flex-wrap gap-1.5 align-center mb-2">
+        <v-chip
+          v-for="u in atletiOnlineSoloHome"
+          :key="u.id"
+          size="small"
+          color="green-darken-4"
+          variant="flat"
+          class="font-weight-bold text-white px-2 py-0.5"
+          style="cursor: pointer;"
+          @click="setSelectedAthlete(String(u.id))"
+          title="Seleziona questo atleta"
+        >
+          <span class="online-indicator-dot mr-1"></span>
+          <span class="mr-1">{{ u.nome }}</span>
+          <v-icon size="12" class="opacity-75 mr-1">{{ u.device === 'Mobile' ? 'mdi-cellphone' : 'mdi-laptop' }}</v-icon>
+          <span class="text-super-caption opacity-75 font-weight-regular" style="font-size: 0.58rem;">{{ tempoFaHome(u.ultimo_accesso) }}</span>
+        </v-chip>
+      </div>
+      <div v-else class="text-caption text-slate font-italic mb-2" style="font-size: 0.70rem;">
+        Nessun atleta con l'app aperta in questo secondo. Riceverai aggiornamenti in diretta quando un atleta accede o scrive un peso.
+      </div>
+
+      <!-- Ultimi eventi live registrati -->
+      <div v-if="ultimiEventiLiveHome.length > 0" class="feed-mini-container">
+        <div
+          v-for="ev in ultimiEventiLiveHome"
+          :key="ev.key || ev.timestamp"
+          class="d-flex align-center justify-space-between py-1 px-2 mb-1 rounded"
+          style="background: rgba(255,255,255,0.03); font-size: 0.70rem; border-left: 2px solid #22c55e;"
+        >
+          <div class="d-flex align-center gap-1.5 text-truncate mr-2">
+            <v-icon size="14" :color="ev.tipo === 'peso' ? 'orange-accent-3' : 'cyan-accent-3'">
+              {{ ev.tipo === 'peso' ? 'mdi-dumbbell' : 'mdi-cellphone-arrow-down' }}
+            </v-icon>
+            <strong class="text-white">{{ ev.nome }}:</strong>
+            <span class="text-slate-light text-truncate">{{ ev.azione }}</span>
+            <span v-if="ev.dettagli" class="text-orange-lighten-2 font-weight-bold">({{ ev.dettagli }})</span>
+          </div>
+          <span class="text-super-caption text-slate font-weight-bold flex-shrink-0" style="font-size: 0.60rem;">{{ tempoFaHome(ev.timestamp) }}</span>
+        </div>
+      </div>
+    </v-card>
+
     <!-- Selettore Atleta e Workout (Cerca Wo) -->
     <v-card
       class="premium-card rounded-2xl text-left border pa-4 mb-5 animate-slide-down"
@@ -1543,7 +1616,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
+import { ascoltaPresenzaLive, ascoltaAttivitaLive } from '../utils/presenceService.js';
 import { useRouter, useRoute } from 'vue-router';
 import GuidaFlexCoachModal from '../components/GuidaFlexCoachModal.vue';
 import { isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
@@ -1584,6 +1658,32 @@ import {
 import { jsPDF } from 'jspdf';
 
 const router = useRouter();
+
+// Stato Monitoraggio Live per Coach (Quota 0)
+const utentiOnlineHome = ref([]);
+const feedAttivitaHome = ref([]);
+let unsubHomePresenza = null;
+let unsubHomeAttivita = null;
+
+const atletiOnlineSoloHome = computed(() => {
+  return utentiOnlineHome.value.filter(u => u && u.id !== 'coach' && u.ruolo !== 'coach');
+});
+
+const ultimiEventiLiveHome = computed(() => {
+  return feedAttivitaHome.value.slice(0, 3);
+});
+
+const tempoFaHome = (timestamp) => {
+  if (!timestamp) return 'Adesso';
+  const diffMs = Date.now() - Number(timestamp);
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return 'Adesso';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m fa`;
+  const diffOre = Math.floor(diffMin / 60);
+  if (diffOre < 24) return `${diffOre}h fa`;
+  return `${Math.floor(diffOre / 24)}g fa`;
+};
 const route = useRoute();
 
 const vibraTattile = (ms = 12) => {
@@ -1939,6 +2039,19 @@ const chiudiTour = () => {
 };
 
 onMounted(() => {
+  if (ruolo.value === 'coach') {
+    unsubHomePresenza = ascoltaPresenzaLive((online) => {
+      utentiOnlineHome.value = online || [];
+    });
+    unsubHomeAttivita = ascoltaAttivitaLive((events) => {
+      feedAttivitaHome.value = events || [];
+    }, 15);
+  }
+onUnmounted(() => {
+  if (unsubHomePresenza) unsubHomePresenza();
+  if (unsubHomeAttivita) unsubHomeAttivita();
+});
+
   if (!localStorage.getItem('woapp_tour_completato')) {
     setTimeout(() => {
       mostraSpotlightTour.value = true;

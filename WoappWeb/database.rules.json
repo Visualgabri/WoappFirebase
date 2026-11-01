@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "presenza": {
+      ".read": true,
+      ".write": true
+    },
+    "attivita_live": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

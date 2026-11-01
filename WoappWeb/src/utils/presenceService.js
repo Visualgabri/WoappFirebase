@@ -192,3 +192,4 @@ export const ascoltaAttivitaLive = (callback, limit = 30) => {
 
   return unsubscribe;
 };
+

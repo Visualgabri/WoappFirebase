@@ -30,30 +30,30 @@
         </span>
       </div>
 
-      <!-- Se coach, mostra pulsante Monitoraggio Settimane Clienti -->
-      <v-btn
+      <!-- Se coach, mostra pulsante Monitoraggio Settimane Clienti con badge utenti online -->
+      <v-badge
         v-if="ruolo === 'coach'"
-        icon
-        color="primary"
-        variant="text"
-        class="rounded-lg mr-1 btn-header-compact text-theme-primary position-relative"
-        to="/monitoraggio"
-        title="Monitoraggio Settimane e Avanzamento Clienti"
-        id="btn-coach-monitor"
-        @click="vibraTattile(8)"
+        :model-value="utentiOnlineCount > 0"
+        :content="utentiOnlineCount"
+        color="green-accent-4"
+        location="top end"
+        :offset-x="4"
+        :offset-y="4"
+        class="badge-coach-monitor mr-1"
       >
-        <v-badge
-          v-if="utentiOnlineCount > 0"
-          :content="utentiOnlineCount"
-          color="green-accent-4"
-          floating
-          offset-x="2"
-          offset-y="2"
+        <v-btn
+          icon
+          color="primary"
+          variant="text"
+          class="rounded-lg btn-header-compact text-theme-primary"
+          to="/monitoraggio"
+          title="Monitoraggio Settimane e Avanzamento Clienti"
+          id="btn-coach-monitor"
+          @click="vibraTattile(8)"
         >
           <v-icon size="20">mdi-chart-timeline-variant-shimmer</v-icon>
-        </v-badge>
-        <v-icon v-else size="20">mdi-chart-timeline-variant-shimmer</v-icon>
-      </v-btn>
+        </v-btn>
+      </v-badge>
 
       <!-- Se coach, mostra pulsante Pannello Controllo -->
       <v-btn
@@ -1916,5 +1916,20 @@ const elencoDischiGrafica = computed(() => {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
+}
+
+.badge-coach-monitor .v-badge__badge {
+  font-size: 0.60rem !important;
+  font-weight: 900 !important;
+  color: #030712 !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  border-radius: 8px !important;
+  padding: 0 3px !important;
+  border: 1.5px solid #030712 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
 }
 </style>

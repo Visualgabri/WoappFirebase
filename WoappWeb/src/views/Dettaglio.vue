@@ -19599,7 +19599,7 @@ const aggiornaDatoECommit = async (updates) => {
         idCliente: workout.value.ID_cliente,
         numScheda: workout.value.num_scheda,
         settimanaCorrente: settimanaAttiva.value || 1,
-        azione: 'Ha registrato carichi su ' + (workout.value.des_esercizio || 'Esercizio'),
+        azione: '✍️ ' + (workout.value.des_esercizio || 'Esercizio'),
         dettagli: dett.join(' | ')
       });
     }

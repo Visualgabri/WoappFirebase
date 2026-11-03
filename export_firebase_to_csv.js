@@ -170,10 +170,8 @@ async function run() {
       // Converte in stringa
       val = String(val);
 
-      // Sostituisce eventuali a capo con uno spazio per tutti i campi che iniziano con "ins_"
-      if (header.startsWith('ins_')) {
-        val = val.replace(/[\r\n]+/g, ' ');
-      }
+      // Sostituisce eventuali a capo con uno spazio per tutti i campi per preservare l'integrità del tracciato CSV
+      val = val.replace(/[\r\n]+/g, ' ');
 
       // Rimuove spazi superflui a inizio/fine stringa
       val = val.trim();

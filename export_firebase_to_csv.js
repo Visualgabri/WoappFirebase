@@ -28,7 +28,8 @@ const headers = [
   "num_scheda_ult_ex", "dat_scheda_ult_ex", "num_buffer", "ID_scheda", "num_peso_bilanciere",
   "des_commenti", "des_note_immagine", "num_ins6", "start_wo", "end_wo", "start2_wo",
   "end2_wo", "start3_wo", "end3_wo", "start4_wo", "end4_wo", "start5_wo", "end5_wo",
-  "start6_wo", "end6_wo", "num_faticaw6", "UrlNormal", "timestamp_ute"
+  "start6_wo", "end6_wo", "num_faticaw6", "UrlNormal", "timestamp_ute",
+  "des_progr_result"
 ];
 
 // Parsing argomenti da riga di comando per il filtraggio
@@ -73,6 +74,7 @@ function ottieniArticolazioneSuggerita(record) {
 
 async function run() {
   console.log(`[Firebase Export] Avvio esportazione...`);
+  const { calcolaDesProgrResult } = await import('./WoappWeb/src/utils/progressionResultEvaluator.js');
   
   // Impedisce l'esportazione totale se non ci sono filtri, per evitare consumi di quota eccessivi
   if (!filterCliente && !filterScheda) {
@@ -152,7 +154,14 @@ async function run() {
     }
 
     const rowCells = headers.map(header => {
-      let val = record[header];
+      let val;
+      if (header === 'des_progr_result') {
+        const hasActiveInjury = matchingInjuries.length > 0;
+        const activeInjuryDetail = hasActiveInjury ? String(matchingInjuries[0].articolazione_coinvolta || '') : '';
+        val = calcolaDesProgrResult(record, { hasActiveInjury, activeInjuryDetail });
+      } else {
+        val = record[header];
+      }
       if (val === undefined || val === null) {
         val = '';
       }

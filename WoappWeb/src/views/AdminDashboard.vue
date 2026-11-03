@@ -2782,6 +2782,7 @@ import {
   caricaStatoClientiDaFirestore
 } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
+import { calcolaDesProgrResult } from '../utils/progressionResultEvaluator.js';
 
 // Stato Controllo Qualità Scheda
 const mostraDialogControlloQualita = ref(false);
@@ -4219,7 +4220,8 @@ const esportaCSVLocale = () => {
     "num_scheda_ult_ex", "dat_scheda_ult_ex", "num_buffer", "ID_scheda", "num_peso_bilanciere",
     "des_commenti", "des_note_immagine", "num_ins6", "start_wo", "end_wo", "start2_wo",
     "end2_wo", "start3_wo", "end3_wo", "start4_wo", "end4_wo", "start5_wo", "end5_wo",
-    "start6_wo", "end6_wo", "num_faticaw6", "UrlNormal", "timestamp_ute"
+    "start6_wo", "end6_wo", "num_faticaw6", "UrlNormal", "timestamp_ute",
+    "des_progr_result"
   ];
   
   // Header line
@@ -4235,7 +4237,17 @@ const esportaCSVLocale = () => {
   
   for (const row of sorted) {
     const cells = headersList.map(h => {
-      let val = row[h];
+      let val;
+      if (h === 'des_progr_result') {
+        const exName = String(row.des_esercizio || '').trim().toLowerCase();
+        const hasInjury = infortuniRecords.value && infortuniRecords.value.some(inf => {
+          const matchesEx = inf.esercizi_originari && inf.esercizi_originari.some(e => String(e).toLowerCase().trim() === exName);
+          return (inf.stato === 'attivo' || !inf.stato) && matchesEx;
+        });
+        val = calcolaDesProgrResult(row, { hasActiveInjury: !!hasInjury });
+      } else {
+        val = row[h];
+      }
       if (val === undefined || val === null) {
         val = '';
       }

@@ -135,11 +135,12 @@ async function run() {
   for (const record of records) {
     // Calcola se l'esercizio ha infortuni attivi corrispondenti
     let prefissoInfortunio = "";
+    let matchingInjuries = [];
     if (infortuni.length > 0) {
       const currentExName = String(record.des_esercizio || '').trim().toLowerCase();
       const suggestedJoint = ottieniArticolazioneSuggerita(record).toLowerCase();
       
-      const matchingInjuries = infortuni.filter(inf => {
+      matchingInjuries = infortuni.filter(inf => {
         const matchesExName = inf.esercizi_originari && inf.esercizi_originari.some(ex => String(ex).toLowerCase().trim() === currentExName);
         const matchesJoint = inf.articolazione_coinvolta && (
           String(inf.articolazione_coinvolta).toLowerCase().includes(suggestedJoint) ||

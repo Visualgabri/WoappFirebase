@@ -239,3 +239,4 @@ export const calcolaDesProgrResult = (record, options = {}) => {
   // 11. Se la progressione è andata a buon fine (o nessun'anomalia rilevata)
   return '';
 };
+

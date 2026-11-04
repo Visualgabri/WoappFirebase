@@ -8985,6 +8985,21 @@ const stepCaricoEsercizioEffettivo = computed(() => {
     if (!pRef && suggerimentoRecord.value?.recordAbsolute) pRef = suggerimentoRecord.value.recordAbsolute;
     return pRef > 9 ? 2.0 : 1.0;
   }
+  const exName = String(workout.value.des_esercizio || '').toLowerCase();
+  const attr = String(workout.value.des_note_attrezzo || '').toLowerCase();
+  const noteGen = String(workout.value.des_note_gen_attr || '').toLowerCase();
+  const allName = `${exName} ${attr} ${noteGen}`;
+
+  // 1.5 Pressa / Hack Squat (Macchinari pesanti gambe)
+  if (allName.includes('pressa') || allName.includes('leg press') || allName.includes('hack squat')) {
+    return 5.0;
+  }
+
+  // 1.8 Macchine Gambe (Leg Extension, Leg Curl, Calf, Adductor, Abductor) -> SEMPRE 2.5 kg
+  if (allName.includes('extension') || allName.includes('leg curl') || allName.includes('femorali') || allName.includes('calf') || allName.includes('adductor') || allName.includes('abductor')) {
+    return 2.5;
+  }
+
   if (isCavo) return 1.25;
   return 2.5;
 });
@@ -14783,9 +14798,18 @@ function getWeightStep(isManubri, baseWeight, exObj = null) {
     return p > 9 ? 2.0 : 1.0;
   }
 
-  // 1.5 Pressa (Macchinario Pesante)
-  if (exName && (exName.toLowerCase().includes('pressa') || exName.toLowerCase().includes('leg press'))) {
+  const attr = targetEx ? (targetEx.des_note_attrezzo || '') : '';
+  const noteGen = targetEx ? (targetEx.des_note_gen_attr || '') : '';
+  const allName = `${exName || ''} ${attr} ${noteGen}`.toLowerCase();
+
+  // 1.5 Pressa / Hack Squat (Macchinario Pesante Gambe)
+  if (allName.includes('pressa') || allName.includes('leg press') || allName.includes('hack squat')) {
     return 5.0;
+  }
+
+  // 1.8 Macchine Gambe (Leg Extension, Leg Curl, Calf, Adductor, Abductor) -> SEMPRE 2.5 kg
+  if (allName.includes('extension') || allName.includes('leg curl') || allName.includes('femorali') || allName.includes('calf') || allName.includes('adductor') || allName.includes('abductor')) {
+    return 2.5;
   }
 
   // 2. Cavi / Macchine / Isolamento piccoli muscoli
@@ -21104,6 +21128,7 @@ function analizzaRottaProgressione({
   
   const getStepForVal = (val) => {
     if (isCustomStep) return stepPersonalizzatoEsercizio.value;
+    if (stepKg > 0) return stepKg;
     if (isManubri) return val > 9 ? 2.0 : 1.0;
     if (isCavo) return 1.25;
     return 2.5;

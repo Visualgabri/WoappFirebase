@@ -5370,9 +5370,14 @@ const modificaKgW6Rapido = async (ex, direction) => {
   } else if (ex.step_kg && parseFloat(ex.step_kg) > 0) {
     step = parseFloat(ex.step_kg);
   } else {
-    const exName = ex.des_esercizio || '';
-    if (exName.toLowerCase().includes('pressa') || exName.toLowerCase().includes('leg press')) {
+    const exName = (ex.des_esercizio || '').toLowerCase();
+    const attr = (ex.des_note_attrezzo || '').toLowerCase();
+    const noteGen = (ex.des_note_gen_attr || '').toLowerCase();
+    const allName = `${exName} ${attr} ${noteGen}`;
+    if (allName.includes('pressa') || allName.includes('leg press') || allName.includes('hack squat')) {
       step = 5.0;
+    } else if (allName.includes('extension') || allName.includes('leg curl') || allName.includes('femorali') || allName.includes('calf') || allName.includes('adductor') || allName.includes('abductor')) {
+      step = 2.5;
     } else {
       const isManubri = isManubriEsercizio(ex);
       if (isManubri) {

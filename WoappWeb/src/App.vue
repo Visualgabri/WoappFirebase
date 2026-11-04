@@ -291,27 +291,27 @@
     </v-fade-transition>
 
     <!-- Dialog Avviso Chiusura Settimana -->
-    <v-dialog v-model="mostraDialogAvvisoChiusura" max-width="420" rounded="xl">
-      <v-card class="pa-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
+    <v-dialog v-model="mostraDialogAvvisoChiusura" max-width="400" width="94%" rounded="2xl">
+      <v-card class="pa-4 pa-sm-5 rounded-2xl card-glass border text-left" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
         
         <!-- Caso A: Presenti esercizi da recuperare in questa seduta -->
         <template v-if="infoGiornoDaChiudere.eserciziRecupero && infoGiornoDaChiudere.eserciziRecupero.length > 0">
-          <v-card-title class="font-weight-black text-orange-lighten-2 d-flex align-center px-0 text-wrap mb-1">
-            <v-icon color="orange-darken-3" class="mr-2 animate-bounce flex-shrink-0" size="24">mdi-alert-circle-outline</v-icon>
-            Esercizio da Recuperare! ⚠️
+          <v-card-title class="font-weight-black text-orange-lighten-2 d-flex align-center px-0 text-wrap mb-1" style="white-space: normal !important; word-break: break-word !important; font-size: 1.15rem !important; line-height: 1.25 !important;">
+            <v-icon color="orange-darken-3" class="mr-2 animate-bounce flex-shrink-0" size="22">mdi-alert-circle-outline</v-icon>
+            <span>Esercizio da Recuperare! ⚠️</span>
           </v-card-title>
 
-          <v-card-text class="px-0 py-3 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+          <v-card-text class="px-0 py-2.5 text-body-2" style="color: #cbd5e1 !important; line-height: 1.45; font-size: 0.88rem !important;">
             In questa seduta (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>) c'è {{ infoGiornoDaChiudere.eserciziRecupero.length === 1 ? 'un esercizio da recuperare' : 'degli esercizi da recuperare' }}:
             
-            <div class="my-3 pa-3 rounded-xl border" style="background: rgba(15, 23, 42, 0.7); border-color: rgba(249, 115, 22, 0.35) !important;">
+            <div class="my-2.5 pa-2.5 rounded-xl border" style="background: rgba(15, 23, 42, 0.7); border-color: rgba(249, 115, 22, 0.35) !important;">
               <div 
                 v-for="ex in infoGiornoDaChiudere.eserciziRecupero" 
                 :key="ex.id" 
-                class="d-flex align-center gap-2 text-caption font-weight-black text-orange-lighten-2 py-0.5"
+                class="d-flex align-center gap-1.5 text-caption font-weight-black text-orange-lighten-2 py-0.5 min-width-0"
               >
-                <v-icon size="16" color="orange-darken-3">mdi-dumbbell</v-icon>
-                <span class="text-truncate">
+                <v-icon size="16" color="orange-darken-3" class="flex-shrink-0">mdi-dumbbell</v-icon>
+                <span class="text-truncate" style="font-size: 0.82rem !important;">
                   {{ ex.des_esercizio || ex.des_settore || 'Esercizio incompleto' }}
                   <span v-if="ex.isRecupero || (ex.des_giorno && ex.des_giorno.trim().toUpperCase() !== infoGiornoDaChiudere.giorno)" class="text-caption font-weight-medium text-orange-lighten-3 ml-1" style="font-size: 0.70rem !important;">
                     (da Giorno {{ ex.originGiorno || ex.des_giorno }} • W{{ ex.weekRecupero || ex.targetWeek || infoGiornoDaChiudere.week }})
@@ -330,11 +330,17 @@
               variant="flat" 
               rounded="lg" 
               @click="vaiAlRecuperoDaDialog" 
-              class="text-white font-weight-black text-none w-100 mx-0 shadow-md"
-              height="44"
+              class="text-white font-weight-black text-none w-100 mx-0 shadow-md px-2"
+              min-height="44"
+              height="auto"
+              style="padding: 10px 8px !important; white-space: normal !important; line-height: 1.25 !important; font-size: 0.88rem !important;"
             >
-              <v-icon class="mr-1.5">mdi-sync</v-icon> 
-              Recupera {{ infoGiornoDaChiudere.eserciziRecupero.length === 1 ? infoGiornoDaChiudere.eserciziRecupero[0].des_esercizio : 'Esercizio Ora' }} ⚠️
+              <div class="d-flex align-center justify-center w-100 text-center gap-1.5 min-width-0">
+                <v-icon class="flex-shrink-0" size="18">mdi-sync</v-icon> 
+                <span class="text-truncate">
+                  Recupera {{ infoGiornoDaChiudere.eserciziRecupero.length === 1 ? infoGiornoDaChiudere.eserciziRecupero[0].des_esercizio : 'Esercizio Ora' }} ⚠️
+                </span>
+              </div>
             </v-btn>
 
             <v-btn 
@@ -343,11 +349,16 @@
               variant="tonal" 
               rounded="lg" 
               @click="chiudiRapido" 
-              class="text-white font-weight-black text-none w-100 mx-0"
-              height="44"
+              class="text-white font-weight-black text-none w-100 mx-0 px-2"
+              min-height="42"
+              height="auto"
+              style="padding: 8px !important; white-space: normal !important; line-height: 1.2 !important; font-size: 0.84rem !important;"
               :loading="caricamentoChiusuraRapida"
             >
-              <v-icon class="mr-1">mdi-flash</v-icon> Chiudi Comunque Sessione Ora ⚡
+              <div class="d-flex align-center justify-center w-100 text-center gap-1">
+                <v-icon class="flex-shrink-0" size="16">mdi-flash</v-icon>
+                <span>Chiudi Comunque Sessione Ora ⚡</span>
+              </div>
             </v-btn>
 
             <v-btn 
@@ -356,21 +367,23 @@
               variant="text" 
               rounded="lg" 
               @click="vaiADettaglioEChiudi" 
-              class="text-slate-light font-weight-bold text-none w-100 mx-0"
+              class="text-slate-light font-weight-bold text-none w-100 mx-0 px-2"
               height="38"
+              style="font-size: 0.82rem !important;"
             >
-              <v-icon class="mr-1">mdi-pencil-outline</v-icon> Aggiungi Note e Chiudi ⏱️
+              <v-icon class="mr-1 flex-shrink-0" size="16">mdi-pencil-outline</v-icon>
+              <span>Aggiungi Note e Chiudi ⏱️</span>
             </v-btn>
           </v-card-actions>
         </template>
 
         <!-- Caso B: Standard - Nessun esercizio da recuperare -->
         <template v-else>
-          <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0">
-            <v-icon color="orange-darken-3" class="mr-2 animate-bounce">mdi-trophy-outline</v-icon>
-            Allenamento Completato! ⚡
+          <v-card-title class="font-weight-black text-orange-darken-3 d-flex align-center px-0 text-wrap mb-1" style="white-space: normal !important; word-break: break-word !important; font-size: 1.15rem !important; line-height: 1.25 !important;">
+            <v-icon color="orange-darken-3" class="mr-2 animate-bounce flex-shrink-0" size="22">mdi-trophy-outline</v-icon>
+            <span>Allenamento Completato! ⚡</span>
           </v-card-title>
-          <v-card-text class="px-0 py-4 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
+          <v-card-text class="px-0 py-3 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5; font-size: 0.88rem !important;">
             Ottimo lavoro! Hai completato tutti gli esercizi per l'allenamento di oggi (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>).
             <br><br>
             Scegli come vuoi procedere per registrare i tuoi progressi:
@@ -382,11 +395,16 @@
               variant="flat" 
               rounded="lg" 
               @click="chiudiRapido" 
-              class="text-white font-weight-black text-none w-100 mx-0"
-              height="44"
+              class="text-white font-weight-black text-none w-100 mx-0 px-2"
+              min-height="44"
+              height="auto"
+              style="padding: 10px 8px !important; font-size: 0.90rem !important; white-space: normal !important;"
               :loading="caricamentoChiusuraRapida"
             >
-              <v-icon class="mr-1">mdi-flash</v-icon> Chiudi Sessione Ora ⚡
+              <div class="d-flex align-center justify-center w-100 text-center gap-1.5">
+                <v-icon class="flex-shrink-0" size="18">mdi-flash</v-icon>
+                <span>Chiudi Sessione Ora ⚡</span>
+              </div>
             </v-btn>
             <v-btn 
               color="orange-darken-3" 
@@ -394,10 +412,15 @@
               variant="tonal" 
               rounded="lg" 
               @click="vaiADettaglioEChiudi" 
-              class="text-white font-weight-bold text-none w-100 mx-0"
-              height="44"
+              class="text-white font-weight-bold text-none w-100 mx-0 px-2"
+              min-height="44"
+              height="auto"
+              style="padding: 10px 8px !important; font-size: 0.88rem !important; white-space: normal !important;"
             >
-              <v-icon class="mr-1">mdi-pencil-outline</v-icon> Aggiungi Note e Durata ⏱️
+              <div class="d-flex align-center justify-center w-100 text-center gap-1.5">
+                <v-icon class="flex-shrink-0" size="18">mdi-pencil-outline</v-icon>
+                <span>Aggiungi Note e Durata ⏱️</span>
+              </div>
             </v-btn>
           </v-card-actions>
         </template>
@@ -2033,5 +2056,22 @@ const elencoDischiGrafica = computed(() => {
   align-items: center;
   justify-content: center;
   line-height: 1 !important;
+}
+
+/* Ottimizzazione Mobile & Smartphone per Titoli e Dialoghi */
+.v-dialog .v-card-title {
+  white-space: normal !important;
+  word-break: break-word !important;
+  text-overflow: clip !important;
+}
+
+@media (max-width: 600px) {
+  .v-dialog .v-card-title {
+    font-size: 1.15rem !important;
+    line-height: 1.3 !important;
+  }
+  .v-dialog .v-card-title .v-icon {
+    font-size: 1.25rem !important;
+  }
 }
 </style>

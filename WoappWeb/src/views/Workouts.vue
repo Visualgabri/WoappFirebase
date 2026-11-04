@@ -3196,11 +3196,11 @@
     </v-dialog>
 
     <!-- Dialog di Avviso Esercizi Incompleti al Completamento -->
-    <v-dialog v-model="dialogRecuperiAvviso" max-width="450">
-      <v-card class="card-glass rounded-2xl border pa-5 text-center" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
-        <v-icon color="orange-darken-3" size="56" class="mb-4 animate-pulse">mdi-sync</v-icon>
-        <h3 class="text-h6 font-weight-black text-slate-dark mb-2">Allenamento Completato!</h3>
-        <p class="text-body-2 text-slate mb-5" style="line-height: 1.5;">
+    <v-dialog v-model="dialogRecuperiAvviso" max-width="420" width="92%">
+      <v-card class="card-glass rounded-2xl border pa-4 pa-sm-5 text-center" style="background: var(--card-bg-dark) !important; border-color: var(--card-border) !important; backdrop-filter: blur(20px) !important;">
+        <v-icon color="orange-darken-3" size="48" class="mb-3 animate-pulse">mdi-sync</v-icon>
+        <h3 class="text-h6 font-weight-black text-slate-dark mb-2" style="font-size: 1.15rem !important; line-height: 1.3;">Allenamento Completato!</h3>
+        <p class="text-body-2 text-slate mb-4" style="line-height: 1.45; font-size: 0.88rem !important;">
           Ci sono alcuni esercizi saltati o incompleti in questa seduta. Li abbiamo salvati e verranno riproposti automaticamente nella tua prossima sessione per essere recuperati.
         </p>
         <v-btn color="orange-darken-3" block rounded="xl" class="font-weight-black text-none py-2 text-white" height="44" @click="dialogRecuperiAvviso = false">

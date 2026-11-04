@@ -4251,7 +4251,11 @@ const esportaCSVLocale = () => {
       if (val === undefined || val === null) {
         val = '';
       }
-      val = String(val).replace(/[\r\n]+/g, ' ').trim().replace(/"/g, '""');
+      val = String(val).replace(/[\r\n]+/g, ' ').trim();
+      if (h === 'des_progr_result' && !val) {
+        return '';
+      }
+      val = val.replace(/"/g, '""');
       return `"${val}"`;
     });
     lines.push(cells.join(';'));

@@ -151,11 +151,16 @@ export const calcolaDesProgrResult = (record, options = {}) => {
   }
 
   // 6. Verifica "Programma in corso":
-  // Se mancano i risultati sulle ultime settimane (W5 e W6 sono entrambe non compilate),
-  // l'utente non ha finito il mesociclo -> non scriviamo nulla ("").
+  // Se mancano i risultati sulle ultime settimane, l'utente non ha finito il mesociclo -> non scriviamo nulla ("").
   const w5 = settimane[4]; // indice 4 = W5
   const w6 = settimane[5]; // indice 5 = W6
   if (!w5.compilato && !w6.compilato) {
+    return '';
+  }
+
+  // Se la settimana 6 era prevista dal coach (des_week6 compilata e diversa da "NO") ma non è ancora eseguita, la scheda è in corso
+  const w6Prevista = !!(w6.prescrizione && !/\b(?:no|assente|-)\b/i.test(w6.prescrizione));
+  if (w6Prevista && !w6.compilato) {
     return '';
   }
 

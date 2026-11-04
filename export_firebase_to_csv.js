@@ -180,6 +180,11 @@ async function run() {
       if (header === 'des_note' && prefissoInfortunio) {
         val = prefissoInfortunio + val;
       }
+
+      // Se des_progr_result non ha segnalazioni, esporta senza apici per consentire a MS Access di importarlo come vero NULL
+      if (header === 'des_progr_result' && !val) {
+        return '';
+      }
       
       // Escapa i doppi apici raddoppiandoli per conformità allo standard CSV
       const escapedVal = val.replace(/"/g, '""');

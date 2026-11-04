@@ -840,36 +840,97 @@
 
           <!-- Tabella Excel (Desktop + Mobile) -->
           <div v-else class="table-container" @paste="handlePaste">
-            <table class="excel-table">
+            <table class="excel-table" :style="tableColStyles">
               <thead>
                 <tr>
-                  <th class="sticky-col col-actions">Azioni</th>
-                  <th class="sticky-col col-giorno">Giorno</th>
-                  <th class="sticky-col col-riga">Riga</th>
-                  <th class="sticky-col col-esercizio">Esercizio</th>
-                  <th class="col-settore">Settore</th>
-                  <th class="col-settore-princ">Settore Princ</th>
-                  <th class="col-superserie">SS</th>
-                  <th class="col-qta">Q.tà</th>
-                  <th class="col-rec">Rec.</th>
-                  <th class="col-note">Note Esercizio</th>
-                  <th class="col-week">W1</th>
-                  <th class="col-week">W2</th>
-                  <th class="col-week">W3</th>
-                  <th class="col-week">W4</th>
-                  <th class="col-week">W5</th>
-                  <th class="col-week">W6</th>
-                  <th class="col-ins6">Ins 6</th>
-                  <th class="col-fatica">Fatica W6</th>
-                  <th class="col-peso-bil">Peso Bil.</th>
-                  <th class="col-commenti">Commenti</th>
-                  <th class="col-note-attr">Note Attrezzo</th>
-                  <th class="col-note-gen-attr">Note Gen. Attrezzo</th>
-                  <th class="col-url">Url Video/GIF</th>
-                  <th class="col-video">Video Req.</th>
-                  <th class="col-elimina">No Elimina</th>
-                  <th class="col-id">Riga ID</th>
-                  <th class="col-timestamp-ute">Aggiornato Utente</th>
+                  <th class="sticky-col col-actions">
+                    <span class="col-header-label">Azioni</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'actions')" @dblclick.prevent.stop="resetColWidth('actions')"></span>
+                  </th>
+                  <th class="sticky-col col-giorno">
+                    <span class="col-header-label">Giorno</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_giorno')" @dblclick.prevent.stop="resetColWidth('des_giorno')"></span>
+                  </th>
+                  <th class="sticky-col col-riga">
+                    <span class="col-header-label">Riga</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'num_riga_giorno')" @dblclick.prevent.stop="resetColWidth('num_riga_giorno')"></span>
+                  </th>
+                  <th class="sticky-col col-esercizio">
+                    <span class="col-header-label">Esercizio</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_esercizio')" @dblclick.prevent.stop="resetColWidth('des_esercizio')"></span>
+                  </th>
+                  <th class="col-settore">
+                    <span class="col-header-label">Settore</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_settore')" @dblclick.prevent.stop="resetColWidth('des_settore')"></span>
+                  </th>
+                  <th class="col-settore-princ">
+                    <span class="col-header-label">Settore Princ</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_settore_princ')" @dblclick.prevent.stop="resetColWidth('des_settore_princ')"></span>
+                  </th>
+                  <th class="col-superserie">
+                    <span class="col-header-label">SS</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'alf_superserie')" @dblclick.prevent.stop="resetColWidth('alf_superserie')"></span>
+                  </th>
+                  <th class="col-qta">
+                    <span class="col-header-label">Q.tà</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_qta_report')" @dblclick.prevent.stop="resetColWidth('des_qta_report')"></span>
+                  </th>
+                  <th class="col-rec">
+                    <span class="col-header-label">Rec.</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_rec_report')" @dblclick.prevent.stop="resetColWidth('des_rec_report')"></span>
+                  </th>
+                  <th class="col-note">
+                    <span class="col-header-label">Note Esercizio</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_note')" @dblclick.prevent.stop="resetColWidth('des_note')"></span>
+                  </th>
+                  <th v-for="w in 6" :key="'th-w' + w" :class="['col-week', 'col-w' + w]">
+                    <span class="col-header-label">W{{ w }}</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'ins_week' + w)" @dblclick.prevent.stop="resetColWidth('ins_week' + w)"></span>
+                  </th>
+                  <th class="col-ins6">
+                    <span class="col-header-label">Ins 6</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'num_ins6')" @dblclick.prevent.stop="resetColWidth('num_ins6')"></span>
+                  </th>
+                  <th class="col-fatica">
+                    <span class="col-header-label">Fatica W6</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'num_faticaw6')" @dblclick.prevent.stop="resetColWidth('num_faticaw6')"></span>
+                  </th>
+                  <th class="col-peso-bil">
+                    <span class="col-header-label">Peso Bil.</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'num_peso_bilanciere')" @dblclick.prevent.stop="resetColWidth('num_peso_bilanciere')"></span>
+                  </th>
+                  <th class="col-commenti">
+                    <span class="col-header-label">Commenti</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_commenti')" @dblclick.prevent.stop="resetColWidth('des_commenti')"></span>
+                  </th>
+                  <th class="col-note-attr">
+                    <span class="col-header-label">Note Attrezzo</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_note_attrezzo')" @dblclick.prevent.stop="resetColWidth('des_note_attrezzo')"></span>
+                  </th>
+                  <th class="col-note-gen-attr">
+                    <span class="col-header-label">Note Gen. Attrezzo</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'des_note_gen_attr')" @dblclick.prevent.stop="resetColWidth('des_note_gen_attr')"></span>
+                  </th>
+                  <th class="col-url">
+                    <span class="col-header-label">Url Video/GIF</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'UrlNormal')" @dblclick.prevent.stop="resetColWidth('UrlNormal')"></span>
+                  </th>
+                  <th class="col-video">
+                    <span class="col-header-label">Video Req.</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'flg_video')" @dblclick.prevent.stop="resetColWidth('flg_video')"></span>
+                  </th>
+                  <th class="col-elimina">
+                    <span class="col-header-label">No Elimina</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'no_elimina')" @dblclick.prevent.stop="resetColWidth('no_elimina')"></span>
+                  </th>
+                  <th class="col-id">
+                    <span class="col-header-label">Riga ID</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'num_riga')" @dblclick.prevent.stop="resetColWidth('num_riga')"></span>
+                  </th>
+                  <th class="col-timestamp-ute">
+                    <span class="col-header-label">Aggiornato Utente</span>
+                    <span class="col-resizer" title="Trascina per ridimensionare, doppio clic per ripristinare" @mousedown.prevent.stop="startColResize($event, 'timestamp_ute')" @dblclick.prevent.stop="resetColWidth('timestamp_ute')"></span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1029,7 +1090,7 @@
                     />
                   </td>
                   <!-- Weeks (1 to 6) -->
-                  <td v-for="w in 6" :key="'w' + w" class="col-week">
+                  <td v-for="w in 6" :key="'w' + w" :class="['col-week', 'col-w' + w]">
                     <input
                       v-model="row['ins_week' + w]"
                       type="text"
@@ -1174,13 +1235,19 @@
           </div>
 
           <!-- Pulsanti di azione rapidi sotto-tabella Storyboard -->
-          <div class="d-flex flex-wrap justify-space-between align-center mt-4 pt-3 border-top-soft">
-            <v-btn color="orange-darken-3" variant="text" rounded="lg" @click="aggiungiRiga" :disabled="loadingData">
-              <v-icon class="mr-1">mdi-plus</v-icon>
-              AGGIUNGI RIGA
-            </v-btn>
+          <div class="d-flex flex-wrap justify-space-between align-center mt-4 pt-3 border-top-soft gap-2">
+            <div class="d-flex align-center gap-2">
+              <v-btn color="orange-darken-3" variant="text" rounded="lg" @click="aggiungiRiga" :disabled="loadingData">
+                <v-icon class="mr-1">mdi-plus</v-icon>
+                AGGIUNGI RIGA
+              </v-btn>
+              <v-btn color="grey-lighten-1" variant="text" size="small" rounded="lg" @click="resetAllColWidths" title="Ripristina le larghezze predefinite di tutte le colonne">
+                <v-icon size="16" class="mr-1">mdi-table-column-width</v-icon>
+                Resetta Larghezze Colonne
+              </v-btn>
+            </div>
             <span class="text-caption text-muted font-italic">
-              * Fai doppio clic su una riga o clicca sulla matita per modificare i campi secondari dell'esercizio.
+              * Fai doppio clic su una riga o clicca sulla matita per modificare i campi secondari. Trascina i bordi delle colonne per ridimensionarle.
             </span>
           </div>
         </div>
@@ -2730,7 +2797,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { doc, getDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -3206,6 +3273,146 @@ const editColumns = [
   'ins_week5', 'ins_week6', 'num_ins6', 'num_faticaw6', 'num_peso_bilanciere',
   'des_commenti', 'des_note_attrezzo', 'des_note_gen_attr', 'UrlNormal', 'flg_video', 'no_elimina', 'num_riga', 'timestamp_ute'
 ];
+
+// ==========================================
+// Gestione Ridimensionamento Colonne Storyboard
+// ==========================================
+const defaultStoryboardColWidths = {
+  actions: 80,
+  des_giorno: 50,
+  num_riga_giorno: 50,
+  des_esercizio: 300,
+  des_settore: 120,
+  des_settore_princ: 120,
+  alf_superserie: 40,
+  des_qta_report: 90,
+  des_rec_report: 90,
+  des_note: 200,
+  ins_week1: 80,
+  ins_week2: 80,
+  ins_week3: 80,
+  ins_week4: 80,
+  ins_week5: 80,
+  ins_week6: 80,
+  num_ins6: 65,
+  num_faticaw6: 85,
+  num_peso_bilanciere: 75,
+  des_commenti: 250,
+  des_note_attrezzo: 250,
+  des_note_gen_attr: 250,
+  UrlNormal: 180,
+  flg_video: 70,
+  no_elimina: 70,
+  num_riga: 80,
+  timestamp_ute: 140
+};
+
+const loadSavedColWidths = () => {
+  try {
+    const saved = localStorage.getItem('woapp_admin_storyboard_col_widths');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...defaultStoryboardColWidths, ...parsed };
+    }
+  } catch (e) {
+    console.warn("Impossibile caricare le larghezze colonne da localStorage:", e);
+  }
+  return { ...defaultStoryboardColWidths };
+};
+
+const storyboardColWidths = ref(loadSavedColWidths());
+
+const saveColWidths = () => {
+  try {
+    localStorage.setItem('woapp_admin_storyboard_col_widths', JSON.stringify(storyboardColWidths.value));
+  } catch (e) {
+    console.warn("Impossibile salvare le larghezze colonne in localStorage:", e);
+  }
+};
+
+const tableColStyles = computed(() => {
+  const styles = {};
+  const widths = storyboardColWidths.value;
+  for (const [key, w] of Object.entries(widths)) {
+    styles[`--col-${key}-w`] = `${w}px`;
+  }
+  
+  const actW = Number(widths.actions) || 80;
+  const giornoW = Number(widths.des_giorno) || 50;
+  const rigaW = Number(widths.num_riga_giorno) || 50;
+  const esW = Number(widths.des_esercizio) || 300;
+
+  styles['--col-actions-w'] = `${actW}px`;
+  styles['--col-actions-left'] = `0px`;
+
+  styles['--col-des_giorno-w'] = `${giornoW}px`;
+  styles['--col-giorno-left'] = `${actW}px`;
+
+  styles['--col-num_riga_giorno-w'] = `${rigaW}px`;
+  styles['--col-riga-left'] = `${actW + giornoW}px`;
+
+  styles['--col-des_esercizio-w'] = `${esW}px`;
+  styles['--col-esercizio-left'] = `${actW + giornoW + rigaW}px`;
+
+  return styles;
+});
+
+let resizeState = null;
+
+const startColResize = (event, colKey) => {
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+  const initialWidth = Number(storyboardColWidths.value[colKey]) || defaultStoryboardColWidths[colKey] || 80;
+  
+  resizeState = {
+    colKey,
+    startX: clientX,
+    initialWidth
+  };
+
+  document.body.classList.add('is-col-resizing');
+
+  const onMouseMove = (moveEvent) => {
+    if (!resizeState) return;
+    const currentX = moveEvent.touches ? moveEvent.touches[0].clientX : moveEvent.clientX;
+    const delta = currentX - resizeState.startX;
+    const minW = ['alf_superserie', 'num_riga_giorno', 'des_giorno'].includes(resizeState.colKey) ? 35 : 45;
+    const newWidth = Math.max(minW, Math.round(resizeState.initialWidth + delta));
+    storyboardColWidths.value[resizeState.colKey] = newWidth;
+  };
+
+  const onMouseUp = () => {
+    if (resizeState) {
+      saveColWidths();
+      resizeState = null;
+    }
+    document.body.classList.remove('is-col-resizing');
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+    window.removeEventListener('touchmove', onMouseMove);
+    window.removeEventListener('touchend', onMouseUp);
+  };
+
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('touchmove', onMouseMove, { passive: true });
+  window.addEventListener('touchend', onMouseUp);
+};
+
+const resetColWidth = (colKey) => {
+  if (defaultStoryboardColWidths[colKey]) {
+    storyboardColWidths.value[colKey] = defaultStoryboardColWidths[colKey];
+    saveColWidths();
+  }
+};
+
+const resetAllColWidths = () => {
+  storyboardColWidths.value = { ...defaultStoryboardColWidths };
+  saveColWidths();
+};
+
+onUnmounted(() => {
+  document.body.classList.remove('is-col-resizing');
+});
 
 // Configurazione Atleti per dropdown (solo atleti attivi)
 const itemsAtleti = computed(() => {
@@ -4069,35 +4276,26 @@ const salvaModifiche = async () => {
   }
 };
 
-// Gestione navigazione Excel con tasti freccia
+// Gestione navigazione Excel con tasti freccia: solo ArrowUp e ArrowDown per spostarsi tra le righe
+// ArrowLeft e ArrowRight sono lasciati liberi per consentire lo scorrimento del cursore tra i caratteri nel campo di testo senza cambiare colonna
 const handleKeydown = (event, rowIndex, fieldName) => {
   const key = event.key;
-  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) return;
+  if (!['ArrowUp', 'ArrowDown'].includes(key)) return;
   
-  const colIndex = editColumns.indexOf(fieldName);
   let targetRowIndex = rowIndex;
-  let targetColIndex = colIndex;
-  
   if (key === 'ArrowUp') {
     targetRowIndex = rowIndex - 1;
   } else if (key === 'ArrowDown') {
     targetRowIndex = rowIndex + 1;
-  } else if (key === 'ArrowLeft') {
-    targetColIndex = colIndex - 1;
-  } else if (key === 'ArrowRight') {
-    targetColIndex = colIndex + 1;
   }
   
   // Verifica i limiti della griglia
   if (targetRowIndex >= 0 && targetRowIndex < sortedRecords.value.length) {
-    if (targetColIndex >= 0 && targetColIndex < editColumns.length) {
-      event.preventDefault();
-      const targetFieldName = editColumns[targetColIndex];
-      const targetRef = inputRefs.value[targetRowIndex]?.[targetFieldName];
-      if (targetRef) {
-        targetRef.focus();
-        targetRef.select(); // Seleziona il testo per editare in stile Excel
-      }
+    event.preventDefault();
+    const targetRef = inputRefs.value[targetRowIndex]?.[fieldName];
+    if (targetRef) {
+      targetRef.focus();
+      targetRef.select(); // Seleziona il testo per editare in stile Excel
     }
   }
 };
@@ -4561,10 +4759,11 @@ const eseguiExportJsonCliente = async () => {
 
 .excel-table {
   border-collapse: collapse;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   font-size: 0.8rem;
   background-color: var(--card-bg-soft);
-  table-layout: auto;
+  table-layout: fixed;
 }
 
 .excel-table th, 
@@ -4573,6 +4772,7 @@ const eseguiExportJsonCliente = async () => {
   padding: 0;
   vertical-align: middle;
   height: 38px;
+  box-sizing: border-box;
 }
 
 .excel-table th {
@@ -4580,11 +4780,47 @@ const eseguiExportJsonCliente = async () => {
   color: #cbd5e1;
   font-weight: 800;
   text-align: center;
-  padding: 6px 8px;
+  padding: 6px 12px;
   position: sticky;
   top: 0;
   z-index: 10;
   white-space: nowrap;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* Col Resizer & Headers */
+.col-header-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 25;
+  background-color: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.col-resizer:hover,
+.col-resizer.is-active {
+  background-color: rgba(249, 115, 22, 0.4) !important;
+  border-right: 2px solid #f97316 !important;
+}
+
+body.is-col-resizing,
+body.is-col-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
 }
 
 /* Input in griglia stile Excel */
@@ -4599,7 +4835,8 @@ const eseguiExportJsonCliente = async () => {
   font-size: inherit;
   outline: none;
   border-radius: 0;
-  transition: all 0.15s ease;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease;
 }
 
 .excel-input:focus {
@@ -4641,48 +4878,153 @@ const eseguiExportJsonCliente = async () => {
 }
 
 .col-actions {
-  left: 0;
-  width: 80px;
-  min-width: 80px;
+  left: var(--col-actions-left, 0px) !important;
+  width: var(--col-actions-w, 80px) !important;
+  min-width: var(--col-actions-w, 80px) !important;
+  max-width: var(--col-actions-w, 80px) !important;
   text-align: center;
 }
 
 .col-giorno {
-  left: 80px;
-  width: 50px;
-  min-width: 50px;
+  left: var(--col-giorno-left, 80px) !important;
+  width: var(--col-des_giorno-w, 50px) !important;
+  min-width: var(--col-des_giorno-w, 50px) !important;
+  max-width: var(--col-des_giorno-w, 50px) !important;
   text-align: center;
 }
 
 /* Colori e larghezze delle colonne */
 .col-riga {
-  width: 50px;
-  min-width: 50px;
-  left: 130px;
+  left: var(--col-riga-left, 130px) !important;
+  width: var(--col-num_riga_giorno-w, 50px) !important;
+  min-width: var(--col-num_riga_giorno-w, 50px) !important;
+  max-width: var(--col-num_riga_giorno-w, 50px) !important;
 }
 .col-esercizio {
-  width: 300px;
-  min-width: 300px;
-  left: 180px;
+  left: var(--col-esercizio-left, 180px) !important;
+  width: var(--col-des_esercizio-w, 300px) !important;
+  min-width: var(--col-des_esercizio-w, 300px) !important;
+  max-width: var(--col-des_esercizio-w, 300px) !important;
 }
-.col-settore { min-width: 120px; }
-.col-settore-princ { min-width: 120px; }
-.col-superserie { width: 40px; min-width: 40px; }
-.col-qta { min-width: 90px; }
-.col-rec { min-width: 90px; }
-.col-note { min-width: 200px; }
-.col-week { width: 80px; min-width: 80px; }
-.col-ins6 { width: 65px; min-width: 65px; }
-.col-fatica { width: 85px; min-width: 85px; }
-.col-peso-bil { width: 75px; min-width: 75px; }
-.col-commenti { min-width: 200px; width: 250px; }
-.col-note-attr { min-width: 200px; width: 250px; }
-.col-note-gen-attr { min-width: 200px; width: 250px; }
-.col-url { min-width: 180px; }
-.col-video { width: 70px; min-width: 70px; }
-.col-elimina { width: 70px; min-width: 70px; }
-.col-id { width: 80px; min-width: 80px; }
-.col-timestamp-ute { width: 140px; min-width: 140px; }
+.col-settore {
+  width: var(--col-des_settore-w, 120px) !important;
+  min-width: var(--col-des_settore-w, 120px) !important;
+  max-width: var(--col-des_settore-w, 120px) !important;
+}
+.col-settore-princ {
+  width: var(--col-des_settore_princ-w, 120px) !important;
+  min-width: var(--col-des_settore_princ-w, 120px) !important;
+  max-width: var(--col-des_settore_princ-w, 120px) !important;
+}
+.col-superserie {
+  width: var(--col-alf_superserie-w, 40px) !important;
+  min-width: var(--col-alf_superserie-w, 40px) !important;
+  max-width: var(--col-alf_superserie-w, 40px) !important;
+}
+.col-qta {
+  width: var(--col-des_qta_report-w, 90px) !important;
+  min-width: var(--col-des_qta_report-w, 90px) !important;
+  max-width: var(--col-des_qta_report-w, 90px) !important;
+}
+.col-rec {
+  width: var(--col-des_rec_report-w, 90px) !important;
+  min-width: var(--col-des_rec_report-w, 90px) !important;
+  max-width: var(--col-des_rec_report-w, 90px) !important;
+}
+.col-note {
+  width: var(--col-des_note-w, 200px) !important;
+  min-width: var(--col-des_note-w, 200px) !important;
+  max-width: var(--col-des_note-w, 200px) !important;
+}
+.col-week {
+  width: 80px;
+  min-width: 80px;
+}
+.col-w1 {
+  width: var(--col-ins_week1-w, 80px) !important;
+  min-width: var(--col-ins_week1-w, 80px) !important;
+  max-width: var(--col-ins_week1-w, 80px) !important;
+}
+.col-w2 {
+  width: var(--col-ins_week2-w, 80px) !important;
+  min-width: var(--col-ins_week2-w, 80px) !important;
+  max-width: var(--col-ins_week2-w, 80px) !important;
+}
+.col-w3 {
+  width: var(--col-ins_week3-w, 80px) !important;
+  min-width: var(--col-ins_week3-w, 80px) !important;
+  max-width: var(--col-ins_week3-w, 80px) !important;
+}
+.col-w4 {
+  width: var(--col-ins_week4-w, 80px) !important;
+  min-width: var(--col-ins_week4-w, 80px) !important;
+  max-width: var(--col-ins_week4-w, 80px) !important;
+}
+.col-w5 {
+  width: var(--col-ins_week5-w, 80px) !important;
+  min-width: var(--col-ins_week5-w, 80px) !important;
+  max-width: var(--col-ins_week5-w, 80px) !important;
+}
+.col-w6 {
+  width: var(--col-ins_week6-w, 80px) !important;
+  min-width: var(--col-ins_week6-w, 80px) !important;
+  max-width: var(--col-ins_week6-w, 80px) !important;
+}
+.col-ins6 {
+  width: var(--col-num_ins6-w, 65px) !important;
+  min-width: var(--col-num_ins6-w, 65px) !important;
+  max-width: var(--col-num_ins6-w, 65px) !important;
+}
+.col-fatica {
+  width: var(--col-num_faticaw6-w, 85px) !important;
+  min-width: var(--col-num_faticaw6-w, 85px) !important;
+  max-width: var(--col-num_faticaw6-w, 85px) !important;
+}
+.col-peso-bil {
+  width: var(--col-num_peso_bilanciere-w, 75px) !important;
+  min-width: var(--col-num_peso_bilanciere-w, 75px) !important;
+  max-width: var(--col-num_peso_bilanciere-w, 75px) !important;
+}
+.col-commenti {
+  width: var(--col-des_commenti-w, 250px) !important;
+  min-width: var(--col-des_commenti-w, 250px) !important;
+  max-width: var(--col-des_commenti-w, 250px) !important;
+}
+.col-note-attr {
+  width: var(--col-des_note_attrezzo-w, 250px) !important;
+  min-width: var(--col-des_note_attrezzo-w, 250px) !important;
+  max-width: var(--col-des_note_attrezzo-w, 250px) !important;
+}
+.col-note-gen-attr {
+  width: var(--col-des_note_gen_attr-w, 250px) !important;
+  min-width: var(--col-des_note_gen_attr-w, 250px) !important;
+  max-width: var(--col-des_note_gen_attr-w, 250px) !important;
+}
+.col-url {
+  width: var(--col-UrlNormal-w, 180px) !important;
+  min-width: var(--col-UrlNormal-w, 180px) !important;
+  max-width: var(--col-UrlNormal-w, 180px) !important;
+}
+.col-video {
+  width: var(--col-flg_video-w, 70px) !important;
+  min-width: var(--col-flg_video-w, 70px) !important;
+  max-width: var(--col-flg_video-w, 70px) !important;
+}
+.col-elimina {
+  width: var(--col-no_elimina-w, 70px) !important;
+  min-width: var(--col-no_elimina-w, 70px) !important;
+  max-width: var(--col-no_elimina-w, 70px) !important;
+}
+.col-id {
+  width: var(--col-num_riga-w, 80px) !important;
+  min-width: var(--col-num_riga-w, 80px) !important;
+  max-width: var(--col-num_riga-w, 80px) !important;
+}
+.col-timestamp-ute {
+  width: var(--col-timestamp_ute-w, 140px) !important;
+  min-width: var(--col-timestamp_ute-w, 140px) !important;
+  max-width: var(--col-timestamp_ute-w, 140px) !important;
+}
 
 /* Barra azioni fluttuante in basso */
 .action-bar-floating {

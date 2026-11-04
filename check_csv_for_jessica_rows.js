@@ -6,7 +6,9 @@ const endRiga = 63155;
 
 const results = [];
 
-fs.createReadStream('WOAPP_STORYBOARD.csv')
+const GDRIVE_CSV_PATH = "C:\\Users\\visua\\Google Drive\\WOAPP_STORYBOARD.csv";
+const CSV_PATH = fs.existsSync(GDRIVE_CSV_PATH) ? GDRIVE_CSV_PATH : 'WOAPP_STORYBOARD.csv';
+fs.createReadStream(CSV_PATH)
   .pipe(csv({ separator: ';' }))
   .on('data', (row) => {
     let numRiga = null;

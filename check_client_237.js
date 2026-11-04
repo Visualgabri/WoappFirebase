@@ -97,9 +97,11 @@ async function checkClient237() {
   });
 
   // 3. Check CSV WOAPP_STORYBOARD.csv
-  console.log('\n--- 3. VERIFICA NEL FILE CSV (WOAPP_STORYBOARD.csv) ---');
-  if (fs.existsSync('WOAPP_STORYBOARD.csv')) {
-    const fileStream = fs.createReadStream('WOAPP_STORYBOARD.csv');
+  const GDRIVE_CSV_PATH = "C:\\Users\\visua\\Google Drive\\WOAPP_STORYBOARD.csv";
+  const CSV_PATH = fs.existsSync(GDRIVE_CSV_PATH) ? GDRIVE_CSV_PATH : path.join(__dirname, "WOAPP_STORYBOARD.csv");
+  console.log(`\n--- 3. VERIFICA NEL FILE CSV (${CSV_PATH}) ---`);
+  if (fs.existsSync(CSV_PATH)) {
+    const fileStream = fs.createReadStream(CSV_PATH);
     const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
     let headers = null;

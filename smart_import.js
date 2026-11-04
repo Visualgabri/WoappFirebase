@@ -58,8 +58,10 @@ async function smartImport() {
     }
   });
 
-  console.log(`\n--- FASE 3: Lettura e validazione di WOAPP_STORYBOARD.csv...`);
-  const content = fs.readFileSync('WOAPP_STORYBOARD.csv', 'utf8');
+  const GDRIVE_CSV_PATH = "C:\\Users\\visua\\Google Drive\\WOAPP_STORYBOARD.csv";
+  const CSV_PATH = fs.existsSync(GDRIVE_CSV_PATH) ? GDRIVE_CSV_PATH : path.join(__dirname, "WOAPP_STORYBOARD.csv");
+  console.log(`\n--- FASE 3: Lettura e validazione di WOAPP_STORYBOARD.csv da ${CSV_PATH}...`);
+  const content = fs.readFileSync(CSV_PATH, 'utf8');
   const lines = content.split('\n');
   
   const headers = lines[0].replace(/"/g, '').split(';').map(h => h.replace(/^\uFEFF/, '').trim());

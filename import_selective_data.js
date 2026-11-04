@@ -265,14 +265,16 @@ async function run() {
   const indexedCount = Object.values(fsMultiMap).reduce((acc, arr) => acc + arr.length, 0);
   console.log(`Indicizzati ${indexedCount} record Firestore per i clienti in scope.`);
 
-  // Fase 2: Lettura e analisi del file CSV STORYBOARD
-  console.log("\nFase 2: Lettura e analisi del file WOAPP_STORYBOARD.csv...");
-  if (!fs.existsSync('WOAPP_STORYBOARD.csv')) {
-    console.error("Errore: Il file 'WOAPP_STORYBOARD.csv' non esiste nella directory corrente.");
+  // Fase 2: Lettura e analisi del file CSV STORYBOARD (da Google Drive root)
+  const GDRIVE_CSV_PATH = "C:\\Users\\visua\\Google Drive\\WOAPP_STORYBOARD.csv";
+  const CSV_PATH = fs.existsSync(GDRIVE_CSV_PATH) ? GDRIVE_CSV_PATH : path.join(__dirname, "WOAPP_STORYBOARD.csv");
+  console.log(`\nFase 2: Lettura e analisi del file WOAPP_STORYBOARD.csv da: ${CSV_PATH}...`);
+  if (!fs.existsSync(CSV_PATH)) {
+    console.error(`Errore: Il file 'WOAPP_STORYBOARD.csv' non esiste in '${CSV_PATH}'.`);
     process.exit(1);
   }
 
-  const content = fs.readFileSync('WOAPP_STORYBOARD.csv', 'utf8');
+  const content = fs.readFileSync(CSV_PATH, 'utf8');
   const lines = content.split('\n');
   const headers = lines[0].replace(/"/g, '').split(';').map(h => h.replace(/^\uFEFF/, '').trim());
 

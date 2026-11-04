@@ -46,7 +46,9 @@ async function run() {
   // FASE 1: STORYBOARD Scheda 29 da WOAPP_STORYBOARD.csv
   // ----------------------------------------------------
   console.log("\n1. Lettura WOAPP_STORYBOARD.csv per Scheda 29...");
-  const content = fs.readFileSync('WOAPP_STORYBOARD.csv', 'utf8');
+  const GDRIVE_CSV_PATH = "C:\\Users\\visua\\Google Drive\\WOAPP_STORYBOARD.csv";
+  const CSV_PATH = fs.existsSync(GDRIVE_CSV_PATH) ? GDRIVE_CSV_PATH : 'WOAPP_STORYBOARD.csv';
+  const content = fs.readFileSync(CSV_PATH, 'utf8');
   const lines = content.split('\n');
   const headers = lines[0].replace(/"/g, '').split(';').map(h => h.replace(/^\uFEFF/, '').trim());
   const clientIdx = headers.indexOf('ID_cliente');

@@ -6832,7 +6832,10 @@ const haEserciziDaFare = computed(() => {
   // 1. Controllo prioritario globale: ci sono esercizi da fare o recuperare in qualsiasi giorno o settimana?
   if (trovaProssimoEsercizioDaFareGlobale() !== null) return true;
   
-  // 2. Fallback sul giorno attualmente visualizzato
+  // 2. Controllo se ci sono esercizi da recuperare integrati nel giorno corrente
+  if (eserciziDaRecuperare.value && eserciziDaRecuperare.value.length > 0) return true;
+  
+  // 3. Fallback sul giorno attualmente visualizzato
   if (eserciziFiltrati.value.length === 0) return false;
   const w = settimanaAttivaGiorno.value;
   return eserciziFiltrati.value.some(ex => {
@@ -6921,22 +6924,36 @@ const vaiAlPrimoEsercizioDaFare = () => {
   });
 
   // Priorità 2: Cerca esercizio non ancora compilato
-  const targetEx = daRecuperare || eserciziFiltrati.value.find(ex => {
+  let targetEx = daRecuperare || eserciziFiltrati.value.find(ex => {
     const val = ex['ins_week' + w];
     return !val || val.trim() === '';
   });
+
+  // Priorità 3: Se tutti gli esercizi standard del giorno sono compilati, verifica se c'è un esercizio da recuperare integrato
+  let isRecuperoTarget = false;
+  let recBlockTarget = null;
+  if (!targetEx && eserciziDaRecuperare.value && eserciziDaRecuperare.value.length > 0) {
+    recBlockTarget = blocchiEsercizi.value.find(b => b.type === 'recupero') || { exercise: eserciziDaRecuperare.value[0].exercise, week: eserciziDaRecuperare.value[0].week };
+    targetEx = recBlockTarget.exercise;
+    isRecuperoTarget = true;
+  }
 
   if (targetEx) {
     const navigaDettaglio = comportamentoPlay.value === 'dettaglio' || 
       (comportamentoPlay.value === 'auto' && (layoutEsercizi.value === 'super_compatto' || layoutEsercizi.value === 'compatto'));
     
     if (navigaDettaglio) {
-      vaiAlDettaglio(targetEx.id, w);
+      if (isRecuperoTarget && recBlockTarget) {
+        vaiAlRecupero(recBlockTarget);
+      } else {
+        vaiAlDettaglio(targetEx.id, w);
+      }
     } else {
       // Loop di retry robusto per attendere il rendering della scheda nel DOM ed eventuali cambi scheda
       let retries = 0;
+      const targetDomId = isRecuperoTarget ? ('recupero-' + targetEx.id) : ('esercizio-' + targetEx.id);
       const tryScroll = () => {
-        const el = document.getElementById('esercizio-' + targetEx.id);
+        const el = document.getElementById(targetDomId) || document.getElementById('esercizio-' + targetEx.id);
         if (el) {
           console.log(`[Play - Evidenzia] Elemento esercizio-${targetEx.id} trovato al tentativo ${retries}. Scorrimento in corso...`);
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });

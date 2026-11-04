@@ -30,10 +30,9 @@
         </span>
       </div>
 
-      <!-- Se coach, mostra pulsante Monitoraggio Settimane Clienti con badge utenti online -->
+      <!-- Se coach, mostra pulsante Monitoraggio Settimane Clienti con badge utenti online solo se > 0 -->
       <v-badge
-        v-if="ruolo === 'coach'"
-        :model-value="utentiOnlineCount > 0"
+        v-if="ruolo === 'coach' && utentiOnlineCount > 0"
         :content="utentiOnlineCount"
         color="green-accent-4"
         location="top end"
@@ -54,6 +53,19 @@
           <v-icon size="20">mdi-chart-timeline-variant-shimmer</v-icon>
         </v-btn>
       </v-badge>
+      <v-btn
+        v-else-if="ruolo === 'coach'"
+        icon
+        color="primary"
+        variant="text"
+        class="rounded-lg mr-1 btn-header-compact text-theme-primary"
+        to="/monitoraggio"
+        title="Monitoraggio Settimane e Avanzamento Clienti"
+        id="btn-coach-monitor"
+        @click="vibraTattile(8)"
+      >
+        <v-icon size="20">mdi-chart-timeline-variant-shimmer</v-icon>
+      </v-btn>
 
       <!-- Se coach, mostra pulsante Pannello Controllo -->
       <v-btn
@@ -290,7 +302,7 @@
           </v-card-title>
 
           <v-card-text class="px-0 py-3 text-body-2" style="color: #cbd5e1 !important; line-height: 1.5;">
-            In questa seduta (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>) c'è un esercizio contrassegnato con <strong class="text-red-lighten-2">RECUPERA</strong>:
+            In questa seduta (<strong class="text-orange-lighten-2">Giorno {{ infoGiornoDaChiudere.giorno }} • Week {{ infoGiornoDaChiudere.week }}</strong>) c'è {{ infoGiornoDaChiudere.eserciziRecupero.length === 1 ? 'un esercizio da recuperare' : 'degli esercizi da recuperare' }}:
             
             <div class="my-3 pa-3 rounded-xl border" style="background: rgba(15, 23, 42, 0.7); border-color: rgba(249, 115, 22, 0.35) !important;">
               <div 
@@ -299,7 +311,12 @@
                 class="d-flex align-center gap-2 text-caption font-weight-black text-orange-lighten-2 py-0.5"
               >
                 <v-icon size="16" color="orange-darken-3">mdi-dumbbell</v-icon>
-                <span class="text-truncate">{{ ex.des_esercizio || ex.des_settore || 'Esercizio incompleto' }}</span>
+                <span class="text-truncate">
+                  {{ ex.des_esercizio || ex.des_settore || 'Esercizio incompleto' }}
+                  <span v-if="ex.isRecupero || (ex.des_giorno && ex.des_giorno.trim().toUpperCase() !== infoGiornoDaChiudere.giorno)" class="text-caption font-weight-medium text-orange-lighten-3 ml-1" style="font-size: 0.70rem !important;">
+                    (da Giorno {{ ex.originGiorno || ex.des_giorno }} • W{{ ex.weekRecupero || ex.targetWeek || infoGiornoDaChiudere.week }})
+                  </span>
+                </span>
               </div>
             </div>
 
@@ -1230,9 +1247,37 @@ const getGiornoDaChiudereGlobale = () => {
            String(item.num_scheda) === String(sheet);
   });
 
-  for (const header of headers) {
-    const day = (header.des_giorno || '').trim().toUpperCase();
-    if (!day) continue;
+  const giorniOrdinati = Array.from(new Set(
+    headers.map(h => (h.des_giorno || '').trim().toUpperCase()).filter(Boolean)
+  )).sort();
+
+  // Dai priorità al giorno attualmente selezionato dall'utente se presente
+  const giornoAttivoCorrente = localStorage.getItem('giornoAttivo_' + athlete);
+  let giorniDaControllare = [...giorniOrdinati];
+  if (giornoAttivoCorrente && giorniDaControllare.includes(giornoAttivoCorrente.toUpperCase())) {
+    giorniDaControllare = [
+      giornoAttivoCorrente.toUpperCase(),
+      ...giorniDaControllare.filter(g => g !== giornoAttivoCorrente.toUpperCase())
+    ];
+  }
+
+  const headersMap = {};
+  headers.forEach(h => {
+    const g = (h.des_giorno || '').trim().toUpperCase();
+    if (g) headersMap[g] = h;
+  });
+
+  const tuttiEserciziScheda = globalStoryboard.value.filter(item => {
+    const riga = parseInt(item.num_riga_giorno);
+    const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    return riga > 0 &&
+           String(item[keyIdCliente]) === String(athlete) &&
+           String(item.num_scheda) === String(sheet);
+  });
+
+  for (const day of giorniDaControllare) {
+    const header = headersMap[day];
+    if (!header) continue;
 
     // Trova la prima settimana non chiusa per questo giorno
     let activeW = null;
@@ -1251,13 +1296,8 @@ const getGiornoDaChiudereGlobale = () => {
     }
 
     // Verifica se tutti gli esercizi di questo giorno per activeW sono compilati
-    const eserciziDelGiorno = globalStoryboard.value.filter(item => {
-      const riga = parseInt(item.num_riga_giorno);
-      const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
-      return riga > 0 &&
-             (item.des_giorno || '').trim().toUpperCase() === day &&
-             String(item[keyIdCliente]) === String(athlete) &&
-             String(item.num_scheda) === String(sheet);
+    const eserciziDelGiorno = tuttiEserciziScheda.filter(item => {
+      return (item.des_giorno || '').trim().toUpperCase() === day;
     });
 
     if (eserciziDelGiorno.length === 0) continue;
@@ -1268,16 +1308,57 @@ const getGiornoDaChiudereGlobale = () => {
     });
 
     if (tuttiCompilati) {
+      // 1. Esercizi del giorno corrente contrassegnati con RECUPERA
       const eserciziConRecupero = eserciziDelGiorno.filter(ex => {
         const val = ex['ins_week' + activeW];
         return haRecupero(val);
+      }).map(ex => ({
+        ...ex,
+        isRecupero: false,
+        targetWeek: activeW
+      }));
+
+      // 2. Esercizi da recuperare integrati in questa seduta provenienti da giorni precedenti
+      const idxCorrente = giorniOrdinati.indexOf(day);
+      const recuperiPrecedenti = [];
+      tuttiEserciziScheda.forEach(ex => {
+        const giornoEx = (ex.des_giorno || '').trim().toUpperCase();
+        const idxEx = giorniOrdinati.indexOf(giornoEx);
+        const exHeader = headersMap[giornoEx];
+        if (!exHeader) return;
+
+        for (let w = 1; w <= 6; w++) {
+          let isPastSession = false;
+          if (w < activeW) {
+            isPastSession = true;
+          } else if (w === activeW && idxEx >= 0 && idxEx < idxCorrente) {
+            isPastSession = true;
+          }
+
+          if (isPastSession) {
+            if (isCmpTrue(exHeader['cmp' + w])) {
+              const val = ex['ins_week' + w] || '';
+              if (haRecupero(val)) {
+                recuperiPrecedenti.push({
+                  ...ex,
+                  isRecupero: true,
+                  originGiorno: giornoEx,
+                  targetWeek: w,
+                  weekRecupero: w
+                });
+              }
+            }
+          }
+        }
       });
+
+      const listaCompletaRecuperi = [...eserciziConRecupero, ...recuperiPrecedenti];
 
       return {
         giorno: day,
         week: activeW,
         headerId: header.id,
-        eserciziRecupero: eserciziConRecupero
+        eserciziRecupero: listaCompletaRecuperi
       };
     }
   }
@@ -1303,20 +1384,32 @@ const getHaEserciziDaFareGlobaleApp = () => {
 
   const giorni = headers.map(h => (h.des_giorno || '').trim().toUpperCase()).filter(Boolean);
 
+  const tuttiEsercizi = globalStoryboard.value.filter(item => {
+    const riga = parseInt(item.num_riga_giorno);
+    const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
+    return riga > 0 &&
+           String(item[keyIdCliente]) === String(athlete) &&
+           String(item.num_scheda) === String(sheet);
+  });
+
   for (let w = 1; w <= 6; w++) {
     for (const g of giorni) {
       const header = headers.find(h => (h.des_giorno || '').trim().toUpperCase() === g);
       const isChiuso = header && isCmpTrue(header['cmp' + w]);
-      if (isChiuso) continue;
 
-      const eserciziDelGiorno = globalStoryboard.value.filter(item => {
-        const riga = parseInt(item.num_riga_giorno);
-        const keyIdCliente = Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente';
-        return riga > 0 &&
-               (item.des_giorno || '').trim().toUpperCase() === g &&
-               String(item[keyIdCliente]) === String(athlete) &&
-               String(item.num_scheda) === String(sheet);
+      const eserciziDelGiorno = tuttiEsercizi.filter(item => {
+        return (item.des_giorno || '').trim().toUpperCase() === g;
       });
+
+      if (isChiuso) {
+        // Se il giorno è chiuso, controlla se ha esercizi lasciati da recuperare non ancora fatti
+        const haRecuperiSospesi = eserciziDelGiorno.some(ex => {
+          const val = ex['ins_week' + w];
+          return haRecupero(val);
+        });
+        if (haRecuperiSospesi) return true;
+        continue;
+      }
 
       const haIncompleti = eserciziDelGiorno.some(ex => {
         const val = ex['ins_week' + w];
@@ -1376,18 +1469,28 @@ const vaiAlRecuperoDaDialog = () => {
   localStorage.removeItem('settimanaDaChiudereTemporanea_' + athlete);
 
   if (exRec && exRec.id) {
-    const week = infoGiornoDaChiudere.value.week;
+    const week = exRec.targetWeek || exRec.weekRecupero || infoGiornoDaChiudere.value.week;
     if (typeof vibraTattile === 'function') vibraTattile(12);
     
-    if (router.currentRoute.value.name === 'Workouts') {
-      triggerPlayClick();
-    } else {
-      router.push({
-        name: 'DettaglioWorkout',
-        params: { id: exRec.id },
-        query: { targetWeek: week }
-      });
+    // Se siamo già sul dettaglio di questo esercizio
+    if (router.currentRoute.value.name === 'DettaglioWorkout' && String(router.currentRoute.value.params.id) === String(exRec.id)) {
+      return;
     }
+    
+    const query = {
+      giornoSessione: infoGiornoDaChiudere.value.giorno,
+      targetWeek: week
+    };
+    if (exRec.isRecupero) {
+      query.isRecupero = 'true';
+      query.originGiorno = exRec.originGiorno || exRec.des_giorno;
+    }
+    
+    router.push({
+      name: 'DettaglioWorkout',
+      params: { id: exRec.id },
+      query
+    });
   } else {
     eseguiAzionePlay();
   }
@@ -1927,9 +2030,8 @@ const elencoDischiGrafica = computed(() => {
   border-radius: 8px !important;
   padding: 0 3px !important;
   border: 1.5px solid #030712 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  align-items: center;
+  justify-content: center;
   line-height: 1 !important;
 }
 </style>

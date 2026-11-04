@@ -1573,8 +1573,8 @@
                   {{ getGhostRenderInfo(sett).sfidanteNotice }}
                 </div>
 
-                <!-- RIGA 2: Range Proposto (Subito sotto al Carico Consigliato / Avvisi per qualsiasi settimana; omesso in scarico per evitare ridondanze) -->
-                <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett) && !getGhostLiftSmart(sett)?.isScarico" class="text-left mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem', paddingLeft: '16px' }">
+                <!-- RIGA 2: Range Proposto (Subito sotto al Carico Consigliato / Avvisi per qualsiasi settimana; omesso in scarico e vincoli mandatory per evitare ridondanze o contraddizioni) -->
+                <div v-if="stileVisualizzazioneGhost === 'range' && getGhostWeightsRangeText(sett) && !getGhostLiftSmart(sett)?.isScarico && !getGhostLiftSmart(sett)?.isMandatory" class="text-left mt-0.5" :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.54rem' : '0.62rem', paddingLeft: '16px' }">
                   <span class="text-green-accent-3 font-weight-bold">↔ {{ getGhostWeightsRangeText(sett) }}</span>
                 </div>
 
@@ -1784,7 +1784,7 @@
                 @input="e => onInputWeek(sett, e.target.value)"
                 @focus="onFocusWeek(sett)"
                 @blur="e => onBlurWeek(sett, e.target.value)"
-                :placeholder="isCardio ? 'Tempo o note (es. 7min o 3x7min)' : (isMaxRepsWeek(sett) ? (isMaxSecExercise ? ('Scrivi i secondi delle serie (es. ' + getEsempioSerieMaxReps(sett) + ')') : ('Scrivi le singole serie (es. ' + getEsempioSerieMaxReps(sett) + ')')) : (isTestMaxRepsWeek(sett) && getTestWeightNum(sett) > 0 ? ('Carico o note (es. ' + formatWeight(getTestWeightNum(sett)) + 'kg x 12r)') : (getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)')))"
+                :placeholder="isCardio ? 'Tempo o note (es. 7min o 3x7min)' : (isMaxRepsWeek(sett) ? (isMaxSecExercise ? ('Scrivi i secondi delle serie (es. ' + getEsempioSerieMaxReps(sett) + ')') : ('Scrivi le singole serie (es. ' + getEsempioSerieMaxReps(sett) + ')')) : (isTestMaxRepsWeek(sett) && getTestWeightNum(sett) > 0 ? ('Carico o note (es. ' + formatWeight(getTestWeightNum(sett)) + 'kg x 12r)') : (getGhostLiftSmart(sett)?.isMandatory && getGhostLiftSmart(sett)?.peso > 0 ? ('Carico o note (es. ' + formatWeight(getGhostLiftSmart(sett).peso) + 'kg)') : (getGhostLiftSmart(sett)?.isRepExercise ? 'Ripetizioni eseguite (es. 12r o 3x12r)' : 'Carico o note (es. 45kg)'))))"
                 class="native-week-textarea flex-grow-1 text-left pr-2 font-weight-black"
                 rows="1"
                 style="background: transparent; border: none; outline: none; resize: none; width: 100%; color: inherit; font-size: 0.92rem; line-height: 1.45; font-family: inherit; box-sizing: border-box; padding: 0; margin: 0; min-height: 24px; field-sizing: content;"
@@ -10314,7 +10314,7 @@ const getGhostLiftSmart = (sett) => {
   const smartWeight = getCaricoConsigliatoViaDiMezzoForWeek(sett);
   
   if (smartWeight !== null && smartWeight !== undefined && smartWeight > 0) {
-    if (!smartGhost.isScarico) {
+    if (!smartGhost.isScarico && !smartGhost.isMandatory) {
       smartGhost.peso = smartWeight;
     }
     if (smartGhost.isPostScarico) {
@@ -10522,6 +10522,34 @@ function getGhostWeightsRangeForWeekRaw(sett) {
   if (!ghost) return null;
   
   if (ghost.isWeek2Scritta || ghost.isCoachSet) return null;
+
+  // Se c'è un vincolo esplicito di carico del coach (es. [Kg W1]), il carico è bloccato e non deve salire di kg
+  if (ghost.isMandatory) {
+    const pVal = ghost.peso || (ghost.text ? parseFloat(estraiPesoDaInput(ghost.text)) : 0) || 0;
+    if (pVal > 0) {
+      const valStr = String(pVal);
+      const dispStr = `${formatWeight(pVal)} kg`;
+      const targetReps = getRepsPerWeek(sett);
+      return {
+        prudenziale: {
+          value: valStr,
+          display: dispStr,
+          label: ghost.mandatoryLabel || 'Stesso peso'
+        },
+        consigliato: {
+          value: valStr,
+          display: dispStr,
+          label: targetReps ? `${targetReps} reps` : (ghost.mandatoryLabel || 'Consigliato')
+        },
+        sfidante: {
+          value: targetReps ? `${pVal}x${targetReps + 1}r` : valStr,
+          display: targetReps ? `${formatWeight(pVal)}x${targetReps + 1}r` : dispStr,
+          label: targetReps ? '+1 rep (stesso peso)' : (ghost.mandatoryLabel || 'Stesso peso')
+        }
+      };
+    }
+    return null;
+  }
   
   if (ghost.isRepExercise) {
     const info = getBaseWeekInfo(sett);
@@ -11053,6 +11081,7 @@ function getGhostWeightsRangeForWeekRaw(sett) {
 
 const getGhostWeightsRangeText = (sett) => {
   if (isTestMaxRepsWeek(sett) || isMaxRepsExercise.value) return ''; // Nessun range spurio per test o max reps / sec
+  if (getGhostLiftSmart(sett)?.isMandatory) return ''; // Nessun range spurio quando il carico è bloccato dal vincolo coach
   const range = getGhostWeightsRangeForWeek(sett);
   if (!range) return '';
   const first = range.prudenziale.display.replace(/\s*kg/gi, '').trim();
@@ -11389,7 +11418,7 @@ const getGhostRenderInfo = (sett) => {
   }
 
   // Costruisce la descrizione storica (Riga 2)
-  if (ghost.isCoachSet) {
+  if (ghost.isCoachSet || ghost.isMandatory) {
     hasReference = false;
   } else if (ghost.isWeek1 && !ghost.erroreCarichi) {
     hasReference = true;
@@ -11397,7 +11426,7 @@ const getGhostRenderInfo = (sett) => {
     hasReference = true;
   } else if (ghost.isPostScarico) {
     hasReference = true;
-  } else if (ghost.isOverload || ghost.isMetodo || ghost.isMandatory || ghost.isGhostInfortunio) {
+  } else if (ghost.isOverload || ghost.isMetodo || ghost.isGhostInfortunio) {
     hasReference = true;
   } else if (ghost.text) {
     hasReference = true;

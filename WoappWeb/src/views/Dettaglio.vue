@@ -387,7 +387,8 @@
             class="image-premium-frame overflow-hidden elevation-2 bg-black w-100 position-relative cursor-pointer" 
             :class="[
               layoutCorrente === 'super_compatto' ? 'rounded-sm' : 'rounded-lg',
-              { 'gif-frame-vertical': isGifVertical }
+              { 'gif-frame-vertical': isGifVertical },
+              { 'has-image-note': Boolean(workout?.des_note_immagine) }
             ]"
             :style="gifCardStyle"
             style="cursor: pointer;"
@@ -417,41 +418,101 @@
               </template>
             </v-img>
           </v-card>
+
+          <!-- Sub-bar Nota Immagine (Soluzione 2: Didascalia rapida) -->
+          <div 
+            v-if="workout?.des_note_immagine" 
+            class="gif-subbar-note mt-1.5 w-100 d-flex align-center justify-space-between cursor-pointer"
+            :class="[
+              layoutCorrente === 'super_compatto' ? 'px-1 py-0.5 rounded-sm' : 'px-1.5 py-1 rounded-md',
+              haVideoNota(workout.des_note_immagine) ? 'subbar-video' : (haNotaImportante(workout.des_note_immagine) ? 'subbar-warning' : 'subbar-info')
+            ]"
+            @click.stop="vibraTattile(15); apriModalNoteImmagine()"
+            title="Tocca per leggere la nota della figura"
+          >
+            <div class="d-flex align-center text-truncate min-width-0 flex-grow-1">
+              <v-icon 
+                :icon="haVideoNota(workout.des_note_immagine) ? 'mdi-youtube' : (haNotaImportante(workout.des_note_immagine) ? 'mdi-alert-circle' : 'mdi-information')"
+                :size="layoutCorrente === 'super_compatto' ? 11 : 13"
+                :class="haVideoNota(workout.des_note_immagine) ? 'text-red-lighten-1 mr-1' : (haNotaImportante(workout.des_note_immagine) ? 'text-amber-lighten-2 mr-1' : 'text-cyan-lighten-2 mr-1')"
+                class="flex-shrink-0"
+              />
+              <span 
+                class="text-truncate font-weight-bold" 
+                :style="{ fontSize: layoutCorrente === 'super_compatto' ? '0.56rem' : '0.62rem', lineHeight: '1.1' }"
+              >
+                {{ estraiSnippetNotaImmagine(workout.des_note_immagine) }}
+              </span>
+            </div>
+            <v-icon icon="mdi-chevron-right" :size="layoutCorrente === 'super_compatto' ? 10 : 11" class="text-slate-400 flex-shrink-0 ml-0.5" />
+          </div>
         </div>
 
         <!-- GIF dell'Esercizio Standard (per layout normale, adattiva) -->
-        <v-card 
+        <div 
           v-else
-          class="image-premium-frame overflow-hidden elevation-2 bg-black flex-shrink-0 mx-auto mb-3 rounded-xl position-relative cursor-pointer" 
-          :class="{ 'gif-frame-vertical': isGifVertical }"
-          :style="gifStandardCardStyle"
-          style="cursor: pointer;"
-          @click="dialogGifFullScreen = true"
+          class="d-flex flex-column align-center flex-shrink-0 mx-auto mb-3" 
+          :style="[gifStandardCardStyle, { height: 'auto' }]"
         >
-          <v-img
-            :src="currentExerciseImageUrl || getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
-            :cover="isGifVertical"
-            class="bg-black"
-            height="100%"
-            width="100%"
+          <v-card 
+            class="image-premium-frame overflow-hidden elevation-2 bg-black w-100 rounded-xl position-relative cursor-pointer" 
+            :class="[
+              { 'gif-frame-vertical': isGifVertical },
+              { 'has-image-note': Boolean(workout?.des_note_immagine) }
+            ]"
+            :style="gifStandardCardStyle"
             style="cursor: pointer;"
-            @click.stop="dialogGifFullScreen = true"
-            @load="onGifImageLoad"
-            @error="onExerciseImageError"
+            @click="dialogGifFullScreen = true"
           >
-            <template v-slot:placeholder>
-              <div class="fill-height d-flex align-center justify-center bg-black">
-                <v-progress-circular indeterminate color="orange" size="16"></v-progress-circular>
-              </div>
-            </template>
-            <template v-slot:error>
-              <div class="fill-height d-flex flex-column align-center justify-center bg-black text-center pa-2">
-                <v-icon color="grey-darken-1" size="28">mdi-image-off-outline</v-icon>
-                <span style="font-size: 0.65rem; color: #777;" class="mt-1">Immagine non disponibile</span>
-              </div>
-            </template>
-          </v-img>
-        </v-card>
+            <v-img
+              :src="currentExerciseImageUrl || getGifUrl(workout.UrlNormal) || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600'"
+              :cover="isGifVertical"
+              class="bg-black"
+              height="100%"
+              width="100%"
+              style="cursor: pointer;"
+              @click.stop="dialogGifFullScreen = true"
+              @load="onGifImageLoad"
+              @error="onExerciseImageError"
+            >
+              <template v-slot:placeholder>
+                <div class="fill-height d-flex align-center justify-center bg-black">
+                  <v-progress-circular indeterminate color="orange" size="16"></v-progress-circular>
+                </div>
+              </template>
+              <template v-slot:error>
+                <div class="fill-height d-flex flex-column align-center justify-center bg-black text-center pa-2">
+                  <v-icon color="grey-darken-1" size="28">mdi-image-off-outline</v-icon>
+                  <span style="font-size: 0.65rem; color: #777;" class="mt-1">Immagine non disponibile</span>
+                </div>
+              </template>
+            </v-img>
+          </v-card>
+
+          <!-- Sub-bar Soluzione 2: Didascalia rapida sotto la GIF Standard -->
+          <div 
+            v-if="workout?.des_note_immagine" 
+            class="gif-subbar-note mt-1.5 w-100 d-flex align-center justify-space-between cursor-pointer px-2.5 py-1.5 rounded-lg"
+            :class="[
+              haVideoNota(workout.des_note_immagine) ? 'subbar-video' : (haNotaImportante(workout.des_note_immagine) ? 'subbar-warning' : 'subbar-info')
+            ]"
+            @click.stop="vibraTattile(15); apriModalNoteImmagine()"
+            title="Tocca per leggere la nota della figura"
+          >
+            <div class="d-flex align-center text-truncate min-width-0 flex-grow-1">
+              <v-icon 
+                :icon="haVideoNota(workout.des_note_immagine) ? 'mdi-youtube' : (haNotaImportante(workout.des_note_immagine) ? 'mdi-alert-circle' : 'mdi-information')"
+                size="15"
+                :class="haVideoNota(workout.des_note_immagine) ? 'text-red-lighten-1 mr-1.5' : (haNotaImportante(workout.des_note_immagine) ? 'text-amber-lighten-2 mr-1.5' : 'text-cyan-lighten-2 mr-1.5')"
+                class="flex-shrink-0"
+              />
+              <span class="text-truncate font-weight-bold" style="font-size: 0.70rem; line-height: 1.2;">
+                {{ estraiSnippetNotaImmagine(workout.des_note_immagine) }}
+              </span>
+            </div>
+            <v-icon icon="mdi-chevron-right" size="13" class="text-slate-400 flex-shrink-0 ml-1" />
+          </div>
+        </div>
 
         <!-- 2. Intestazione Principale con Massimale / RMT -->
         <div class="mb-2 text-left flex-grow-1" style="min-width: 0;">
@@ -3355,6 +3416,17 @@
             <v-textarea
               v-model="modificaForm.des_note"
               label="Note Coach (des_note)"
+              density="comfortable"
+              variant="outlined"
+              color="orange-darken-3"
+              rows="2"
+              auto-grow
+              hide-details
+            ></v-textarea>
+
+            <v-textarea
+              v-model="modificaForm.des_note_immagine"
+              label="Note Immagine / Didascalia Figura (des_note_immagine)"
               density="comfortable"
               variant="outlined"
               color="orange-darken-3"
@@ -6500,6 +6572,89 @@
             </div>
           </template>
         </v-img>
+
+        <!-- Banner Nota Immagine in Fullscreen (Soluzione 2) -->
+        <div 
+          v-if="workout?.des_note_immagine"
+          class="position-absolute px-3 py-2 text-left rounded-xl d-flex align-center justify-space-between cursor-pointer"
+          style="bottom: 12px; left: 12px; right: 12px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1.5px solid rgba(245, 158, 11, 0.45); z-index: 10;"
+          @click.stop="apriModalNoteImmagine"
+        >
+          <div class="d-flex align-center min-width-0 flex-grow-1 mr-2 text-truncate">
+            <v-icon 
+              :icon="haVideoNota(workout.des_note_immagine) ? 'mdi-youtube' : (haNotaImportante(workout.des_note_immagine) ? 'mdi-alert-circle' : 'mdi-information')" 
+              size="18" 
+              :class="haVideoNota(workout.des_note_immagine) ? 'text-red-lighten-1 mr-2' : 'text-amber-lighten-2 mr-2'" 
+              class="flex-shrink-0"
+            />
+            <span class="text-caption font-weight-bold text-white text-truncate" style="font-size: 0.72rem;">
+              {{ estraiSnippetNotaImmagine(workout.des_note_immagine) }}
+            </span>
+          </div>
+          <v-chip size="x-small" color="orange-darken-3" variant="flat" class="font-weight-black text-none flex-shrink-0">
+            Leggi note
+          </v-chip>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Dettaglio Note Immagine ed Esecuzione (Soluzione 2) -->
+    <v-dialog v-model="dialogNoteImmagine" max-width="480" rounded="xl">
+      <v-card class="card-glass border border-soft text-slate-dark rounded-xl elevation-24" style="background: rgba(15, 23, 42, 0.96) !important; backdrop-filter: blur(16px); border: 1.5px solid rgba(255,255,255,0.1) !important;">
+        <v-card-title class="font-weight-black d-flex align-center justify-space-between pt-3 pb-2 border-bottom-soft" style="border-color: rgba(255,255,255,0.08) !important;">
+          <div class="d-flex align-center gap-1.5 text-truncate pr-2">
+            <span style="font-size: 1.15rem;">{{ haVideoNota(workout?.des_note_immagine) ? '🎬' : (haNotaImportante(workout?.des_note_immagine) ? '⚠️' : '💡') }}</span>
+            <span class="text-subtitle-2 font-weight-black text-white text-truncate">
+              {{ haNotaImportante(workout?.des_note_immagine) ? 'Avvertenza Esecuzione' : 'Note Figura & Esecuzione' }}
+            </span>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey-lighten-1" @click="dialogNoteImmagine = false" />
+        </v-card-title>
+
+        <v-card-text class="pt-3 pb-4 px-4 text-left">
+          <div class="text-caption font-weight-black text-amber-lighten-2 mb-2 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.70rem !important;">
+            {{ workout?.des_esercizio }}
+          </div>
+
+          <!-- Pulsante Video YouTube Diretto se rilevato -->
+          <div v-if="estraiVideoUrl(workout?.des_note_immagine)" class="mb-3">
+            <v-btn
+              color="red-darken-2"
+              variant="flat"
+              block
+              rounded="lg"
+              class="font-weight-black text-white text-none py-2 elevation-4 d-flex align-center justify-center"
+              :href="estraiVideoUrl(workout?.des_note_immagine)?.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click="vibraTattile(20)"
+            >
+              <v-icon icon="mdi-youtube" size="20" class="mr-2" />
+              Guarda Tutorial su YouTube
+              <v-icon icon="mdi-open-in-new" size="14" class="ml-1.5 opacity-80" />
+            </v-btn>
+          </div>
+
+          <!-- Contenuto Nota Formattato -->
+          <div 
+            class="note-immagine-content pa-3 rounded-lg text-body-2"
+            style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); line-height: 1.5; color: #f1f5f9; font-size: 0.85rem;"
+            v-html="formattaHtmlNotaImmagine(workout?.des_note_immagine)"
+          ></div>
+        </v-card-text>
+
+        <v-card-actions class="px-4 pb-3 pt-0">
+          <v-btn
+            color="orange-darken-3"
+            variant="flat"
+            block
+            rounded="xl"
+            class="font-weight-black text-none text-white py-2"
+            @click="dialogNoteImmagine = false"
+          >
+            Ho capito
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -11704,6 +11859,7 @@ const modificaForm = ref({
   alf_superserie: '',
   UrlNormal: '',
   des_note: '',
+  des_note_immagine: '',
   des_note_attrezzo: '',
   des_note_gen_attr: '',
   des_estesa_start: '',
@@ -13504,6 +13660,54 @@ const parseRepsLocal = (val) => {
 };
 
 const dialogGifFullScreen = ref(false);
+const dialogNoteImmagine = ref(false);
+
+const apriModalNoteImmagine = () => {
+  vibraTattile(15);
+  dialogNoteImmagine.value = true;
+};
+
+const haVideoNota = (raw) => {
+  if (!raw) return false;
+  return /youtu\.?be|vimeo/i.test(String(raw));
+};
+
+const haNotaImportante = (raw) => {
+  if (!raw) return false;
+  return /nb|diverso|figura|divers[ao]|attenzione|attent|occhio|cautela/i.test(String(raw));
+};
+
+const estraiSnippetNotaImmagine = (raw) => {
+  if (!raw) return '';
+  let clean = String(raw).replace(/""/g, '"').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+  if (clean.includes('http') && /youtu\.?be/i.test(clean)) {
+    const prefix = clean.split(/https?:\/\//i)[0].trim();
+    return prefix ? `${prefix} (Video)` : 'Guarda video tutorial';
+  }
+  return clean;
+};
+
+const estraiVideoUrl = (raw) => {
+  if (!raw) return null;
+  const match = String(raw).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/i);
+  if (match && match[1]) {
+    return {
+      videoId: match[1],
+      url: `https://www.youtube.com/watch?v=${match[1]}`
+    };
+  }
+  return null;
+};
+
+const formattaHtmlNotaImmagine = (html) => {
+  if (!html) return '';
+  let res = String(html).trim();
+  res = res.replace(/""/g, '"');
+  res = res.replace(/color=['"]?(black|#000|#000000)['"]?/gi, 'color="#f1f5f9"');
+  res = res.replace(/<a\s+(?!.*?target=)/gi, '<a target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline; word-break: break-all;" ');
+  res = res.replace(/BACKGROUND-COLOR:\s*#FF0000/gi, 'background-color: #dc2626; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-weight: bold;');
+  return res;
+};
 const eliminandoEsercizio = ref(false);
 const caricandoStorico = ref(false);
 const storicoTableContainer = ref(null);
@@ -20164,6 +20368,7 @@ const apriDialogModifica = () => {
     alf_superserie: workout.value.alf_superserie || '',
     UrlNormal: workout.value.UrlNormal || '',
     des_note: workout.value.des_note || '',
+    des_note_immagine: workout.value.des_note_immagine || '',
     des_note_attrezzo: workout.value.des_note_attrezzo || '',
     des_note_gen_attr: workout.value.des_note_gen_attr || '',
     des_estesa_start: workout.value.des_estesa_start || '',
@@ -20216,6 +20421,7 @@ const salvaModificheEsercizio = async () => {
       alf_superserie: modificaForm.value.alf_superserie,
       UrlNormal: modificaForm.value.UrlNormal,
       des_note: modificaForm.value.des_note,
+      des_note_immagine: modificaForm.value.des_note_immagine,
       des_note_attrezzo: modificaForm.value.des_note_attrezzo,
       des_note_gen_attr: modificaForm.value.des_note_gen_attr,
       des_estesa_start: modificaForm.value.des_estesa_start,
@@ -24545,6 +24751,57 @@ const tornaIndietro = () => {
 .image-premium-frame.gif-frame-vertical {
   border: 2.5px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6) !important;
+}
+
+.image-premium-frame.has-image-note {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Sub-bar Note Immagine / Didascalia Soluzione 2 */
+.gif-subbar-note {
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  user-select: none;
+  min-height: 20px;
+}
+
+.gif-subbar-note:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.gif-subbar-note:active {
+  transform: scale(0.98);
+}
+
+.subbar-warning {
+  background: rgba(245, 158, 11, 0.16) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  color: #fef3c7 !important;
+}
+
+.subbar-video {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border: 1px solid rgba(239, 68, 68, 0.45) !important;
+  color: #fee2e2 !important;
+}
+
+.subbar-info {
+  background: rgba(14, 165, 233, 0.16) !important;
+  border: 1px solid rgba(14, 165, 233, 0.42) !important;
+  color: #e0f2fe !important;
+}
+
+.note-immagine-content :deep(a) {
+  color: #38bdf8 !important;
+  text-decoration: underline !important;
+  word-break: break-all;
+}
+
+.note-immagine-content :deep(font[color="black"]),
+.note-immagine-content :deep(font[color="#000"]),
+.note-immagine-content :deep(font[color="#000000"]) {
+  color: #f1f5f9 !important;
 }
 
 /* Cartellino note del Coach (stile AppSheet originale) */

@@ -4251,41 +4251,98 @@
           </div>
         </div>
 
-        <!-- Box Risultato Grande ed Essenziale -->
+        <!-- Box Risultato Dinamico A + B -->
         <div 
-          class="pa-3 rounded-2xl border text-center mb-3" 
-          style="background: linear-gradient(135deg, rgba(22, 101, 52, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%); border-color: rgba(34, 197, 94, 0.5);"
+          class="pa-3 rounded-2xl border text-center mb-3 transition-all" 
+          :style="{
+            background: calcolatoreStalloRisultati.livelloReps === 'troppe'
+              ? 'linear-gradient(135deg, rgba(153, 27, 27, 0.35) 0%, rgba(15, 23, 42, 0.95) 100%)'
+              : (calcolatoreStalloRisultati.livelloReps === 'attenzione'
+                ? 'linear-gradient(135deg, rgba(180, 83, 9, 0.3) 0%, rgba(15, 23, 42, 0.95) 100%)'
+                : 'linear-gradient(135deg, rgba(22, 101, 52, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%)'),
+            borderColor: calcolatoreStalloRisultati.livelloReps === 'troppe'
+              ? 'rgba(239, 68, 68, 0.55)'
+              : (calcolatoreStalloRisultati.livelloReps === 'attenzione'
+                ? 'rgba(245, 158, 11, 0.5)'
+                : 'rgba(34, 197, 94, 0.5)')
+          }"
         >
-          <span class="text-super-caption font-weight-black text-green-accent-3 uppercase d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.08em;">
-            🎯 FAI ALMENO
+          <!-- Titolo Stato Semaforico -->
+          <span 
+            class="text-super-caption font-weight-black uppercase d-block mb-1" 
+            :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-red-lighten-2' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? 'text-amber-lighten-2' : 'text-green-accent-3')"
+            style="font-size: 0.65rem; letter-spacing: 0.08em;"
+          >
+            {{ calcolatoreStalloRisultati.livelloReps === 'troppe' ? '⚠️ TROPPE REPS (>24)' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? '⚡ ALTE REPS (21-24)' : '🎯 FAI ALMENO') }}
           </span>
 
+          <!-- Numero Reps Grande Dinamico -->
           <div class="d-flex align-center justify-center gap-1.5 my-1">
-            <span class="font-weight-black text-white" style="font-size: 2.3rem; line-height: 1;">
+            <span 
+              class="font-weight-black" 
+              :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-red-lighten-2' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? 'text-amber-lighten-1' : 'text-white')"
+              style="font-size: 2.3rem; line-height: 1;"
+            >
               {{ calcolatoreStalloRisultati.repsSuperaRecord }}
             </span>
-            <span class="font-weight-bold text-green-accent-2" style="font-size: 1.05rem;">reps</span>
+            <span 
+              class="font-weight-bold" 
+              :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-red-lighten-3' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? 'text-amber-lighten-2' : 'text-green-accent-2')"
+              style="font-size: 1.05rem;"
+            >reps</span>
           </div>
 
-          <span class="text-slate-300 font-weight-medium d-block mt-1" style="font-size: 0.72rem;">
-            🏆 Nuovo Record <span class="text-slate-400">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmSupera }} kg)</span>
-          </span>
+          <!-- Sottotitolo Dinamico -->
+          <template v-if="calcolatoreStalloRisultati.livelloReps === 'troppe'">
+            <span class="text-red-lighten-3 font-weight-medium d-block mt-0.5" style="font-size: 0.70rem;">
+              Carico troppo basso: oltre 24 reps perdi efficacia!
+            </span>
+          </template>
+          <template v-else-if="calcolatoreStalloRisultati.livelloReps === 'attenzione'">
+            <span class="text-amber-lighten-2 font-weight-medium d-block mt-0.5" style="font-size: 0.70rem;">
+              🏆 Nuovo Record • Valuta Rest-Pause (es. 15+{{ calcolatoreStalloRisultati.repsSuperaRecord - 15 }})
+            </span>
+          </template>
+          <template v-else>
+            <span class="text-slate-300 font-weight-medium d-block mt-0.5" style="font-size: 0.72rem;">
+              🏆 Nuovo Record <span class="text-slate-400">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmSupera }} kg)</span>
+            </span>
+          </template>
         </div>
 
-        <!-- Tasto Inserisci Unico -->
+        <!-- Soluzione B: Tasto Fix Rapido Peso (solo se troppe reps) -->
+        <div v-if="calcolatoreStalloRisultati.livelloReps === 'troppe' && calcolatoreStalloRisultati.pesoConsigliato > 0" class="mb-2">
+          <v-btn 
+            block 
+            variant="flat" 
+            color="orange-darken-3" 
+            class="rounded-xl font-weight-black text-none text-white py-2" 
+            style="font-size: 0.82rem; height: 42px;" 
+            @click="impostaPesoConsigliato(calcolatoreStalloRisultati.pesoConsigliato)"
+          >
+            ⚡ Passa a {{ calcolatoreStalloRisultati.pesoConsigliato }} kg (bastano {{ calcolatoreStalloRisultati.repsPesoConsigliato }} reps)
+          </v-btn>
+        </div>
+
+        <!-- Tasto Inserisci -->
         <v-btn 
           block 
-          variant="flat" 
-          color="green-darken-2" 
-          class="rounded-xl font-weight-black text-none text-white py-2 mb-2" 
-          style="font-size: 0.88rem; height: 44px;" 
+          :variant="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'outlined' : 'flat'" 
+          :color="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'grey-lighten-1' : 'green-darken-2'" 
+          class="rounded-xl font-weight-black text-none py-2 mb-2" 
+          :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-slate-300' : 'text-white'"
+          :style="{
+            fontSize: calcolatoreStalloRisultati.livelloReps === 'troppe' ? '0.74rem' : '0.88rem',
+            height: calcolatoreStalloRisultati.livelloReps === 'troppe' ? '36px' : '44px'
+          }" 
           @click="applicaRepsStallo(calcolatoreStalloRisultati.repsSuperaRecord, 'overload')"
         >
-          ⚡ Inserisci {{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsSuperaRecord }}r
+          {{ calcolatoreStalloRisultati.livelloReps === 'troppe' ? `Inserisci comunque ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsSuperaRecord}r` : `⚡ Inserisci ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsSuperaRecord}r` }}
         </v-btn>
 
-        <!-- Opzione Secondaria per Pareggiare (Unica riga) -->
+        <!-- Opzione Secondaria per Pareggiare (Unica riga, visibile se reps accettabili) -->
         <button 
+          v-if="calcolatoreStalloRisultati.livelloReps !== 'troppe'"
           type="button" 
           class="text-slate-400 font-weight-bold text-center w-100 py-1 transition-all" 
           style="font-size: 0.70rem; background: transparent; border: none; cursor: pointer;"
@@ -11977,18 +12034,50 @@ const calcolatoreStalloRisultati = computed(() => {
   }
 
   const deltaSupera = Math.round((resRecord.e1rmSupera - targetRecE1RM) * 10) / 10;
+  const repsSupera = resRecord.repsSupera;
+
+  // Livello reps (Combinazione A + B)
+  // <= 20: ottimale | 21-24: attenzione (alte reps/rest-pause) | >= 25: troppe reps (suggerisci carico)
+  let livelloReps = 'ottimale';
+  if (repsSupera >= 25) {
+    livelloReps = 'troppe';
+  } else if (repsSupera >= 21) {
+    livelloReps = 'attenzione';
+  }
+
+  // Calcolo peso consigliato per riportarsi a circa 12-14 reps
+  let pesoConsigliato = 0;
+  let repsPesoConsigliato = 12;
+  if (livelloReps === 'troppe' && targetRecE1RM > 0) {
+    const step = (stepCaricoEsercizioEffettivo && stepCaricoEsercizioEffettivo.value) ? stepCaricoEsercizioEffettivo.value : 1.0;
+    // Calcola peso per fare 12 reps con targetRecE1RM
+    const rawP = calcolaPesoDaE1RMSmorzato(targetRecE1RM + 0.1, 12, isCavo);
+    pesoConsigliato = Math.ceil(rawP / step) * step;
+    if (pesoConsigliato <= p) pesoConsigliato = p + step;
+    const calcP = calcolaRepsPerE1RMTarget(pesoConsigliato, targetRecE1RM, isCavo);
+    repsPesoConsigliato = calcP.repsSupera;
+  }
 
   return {
     repsEguagliaRecord: resRecord.repsEguaglia,
-    repsSuperaRecord: resRecord.repsSupera,
+    repsSuperaRecord: repsSupera,
     e1rmEguaglia: resRecord.e1rmEguaglia,
     e1rmSupera: resRecord.e1rmSupera,
     deltaRecordSupera: deltaSupera > 0 ? deltaSupera : 0.2,
     repsCoach,
     e1rmCoach,
-    hasCoachTarget
+    hasCoachTarget,
+    livelloReps,
+    pesoConsigliato,
+    repsPesoConsigliato
   };
 });
+
+const impostaPesoConsigliato = (peso) => {
+  if (!peso || peso <= 0) return;
+  vibraTattile(12);
+  calcolatoreStalloPeso.value = peso;
+};
 
 const applicaRepsStallo = (reps, tipo = 'overload') => {
   vibraTattile(15);

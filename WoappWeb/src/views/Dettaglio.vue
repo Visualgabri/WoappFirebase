@@ -4285,63 +4285,73 @@
             <span class="text-amber-lighten-2 font-weight-bold d-block" style="font-size: 0.68rem;">⚡ ALTE REPS (21-24) • Valuta serie rest-pause</span>
           </div>
 
-          <!-- Lista Scaglioni (Soluzione 2) -->
-          <div class="d-flex flex-column gap-1.5">
+          <!-- Lista Scaglioni (Soluzione 2 - Allineamento Perfetto Reps) -->
+          <div class="d-flex flex-column gap-2">
             <!-- Scaglione 1: Pareggia W-base -->
             <div 
-              class="d-flex align-center justify-space-between px-3 py-1.5 rounded-xl transition-all cursor-pointer"
-              style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);"
+              class="d-flex align-center justify-space-between px-3 py-2 rounded-xl transition-all cursor-pointer"
+              style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07);"
               @click="applicaRepsStallo(calcolatoreStalloRisultati.repsPareggia, 'pareggio')"
             >
-              <div class="d-flex align-center gap-1.5">
-                <span class="text-slate-400" style="font-size: 0.76rem;">• Pareggia W{{ calcolatoreStalloRisultati.baseWNum }}:</span>
+              <div class="d-flex align-center gap-1.5 min-w-0 flex-wrap">
+                <span class="text-slate-300 font-weight-medium" style="font-size: 0.78rem;">• Pareggia W{{ calcolatoreStalloRisultati.baseWNum }}</span>
+                <span class="text-slate-500 font-mono" style="font-size: 0.65rem;">(≈ {{ calcolatoreStalloRisultati.e1rmPareggia }} kg)</span>
               </div>
-              <div class="d-flex align-center gap-1.5">
-                <span class="font-weight-black text-slate-200" style="font-size: 0.88rem;">{{ calcolatoreStalloRisultati.repsPareggia }} reps</span>
-                <span class="text-slate-500" style="font-size: 0.62rem;">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmPareggia }} kg)</span>
+              <div 
+                class="px-2.5 py-1 rounded-lg text-center font-weight-black flex-shrink-0 ml-2"
+                style="min-width: 74px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.88rem; color: #e2e8f0;"
+              >
+                {{ calcolatoreStalloRisultati.repsPareggia }} reps
               </div>
             </div>
 
             <!-- Scaglione 2: PROGREDISCI (🎯 OBIETTIVO PRINCIPALE) -->
             <div 
               class="d-flex align-center justify-space-between px-3 py-2 rounded-xl transition-all cursor-pointer"
-              style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.55);"
+              style="background: rgba(16, 185, 129, 0.14); border: 1.5px solid rgba(16, 185, 129, 0.55); box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);"
               @click="applicaRepsStallo(calcolatoreStalloRisultati.repsProgredisci, 'progressione')"
             >
-              <div class="d-flex align-center gap-1.5">
-                <span class="font-weight-black text-emerald-300" style="font-size: 0.85rem;">• Progredisci:</span>
-                <span class="px-1.5 py-0.5 rounded-pill text-super-caption font-weight-black" style="background: rgba(16, 185, 129, 0.3); color: #6ee7b7; font-size: 0.58rem; letter-spacing: 0.04em;">
+              <div class="d-flex align-center gap-1.5 min-w-0 flex-wrap">
+                <span class="font-weight-black text-emerald-300" style="font-size: 0.82rem;">• Progredisci</span>
+                <span class="px-1.5 py-0.5 rounded-pill text-super-caption font-weight-black" style="background: rgba(16, 185, 129, 0.25); color: #6ee7b7; font-size: 0.58rem; letter-spacing: 0.04em;">
                   🟢 OBIETTIVO
                 </span>
+                <span class="text-emerald-400/70 font-mono" style="font-size: 0.65rem;">(≈ {{ calcolatoreStalloRisultati.e1rmProgredisci }} kg)</span>
               </div>
-              <div class="d-flex align-center gap-1">
-                <span class="font-weight-black text-green-accent-3" style="font-size: 1.22rem; line-height: 1;">{{ calcolatoreStalloRisultati.repsProgredisci }}</span>
-                <span class="font-weight-bold text-green-accent-2" style="font-size: 0.80rem;">reps</span>
+              <div 
+                class="px-2.5 py-1 rounded-lg text-center font-weight-black flex-shrink-0 ml-2"
+                style="min-width: 74px; background: rgba(16, 185, 129, 0.28); border: 1.5px solid rgba(52, 211, 153, 0.6); font-size: 1.02rem; color: #6ee7b7;"
+              >
+                {{ calcolatoreStalloRisultati.repsProgredisci }} reps
               </div>
             </div>
 
             <!-- Scaglione 3: Supera Record Assoluto / PR (Discreto) -->
             <div 
               v-if="calcolatoreStalloRisultati.hasRecordSuperiore"
-              class="d-flex align-center justify-space-between px-3 py-1.5 rounded-xl transition-all cursor-pointer"
-              style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);"
+              class="d-flex align-center justify-space-between px-3 py-2 rounded-xl transition-all cursor-pointer"
+              style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);"
               @click="applicaRepsStallo(calcolatoreStalloRisultati.repsPR, 'pr')"
             >
-              <div class="d-flex align-center gap-1.5">
-                <span class="text-slate-400" style="font-size: 0.74rem;">• Supera Record:</span>
-                <span class="text-amber-400/80" style="font-size: 0.65rem;">🏆 Storico</span>
+              <div class="d-flex align-center gap-1.5 min-w-0 flex-wrap">
+                <span class="text-slate-300 font-weight-medium" style="font-size: 0.76rem;">• Supera Record</span>
+                <span class="text-amber-400/90 font-weight-bold" style="font-size: 0.62rem;">🏆 Storico</span>
+                <span class="text-slate-500 font-mono" style="font-size: 0.65rem;">(≈ {{ calcolatoreStalloRisultati.e1rmPR }} kg)</span>
               </div>
-              <div class="d-flex align-center gap-1.5">
-                <span class="font-weight-bold text-amber-200" style="font-size: 0.85rem;">{{ calcolatoreStalloRisultati.repsPR }} reps</span>
-                <span class="text-slate-500" style="font-size: 0.62rem;">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmPR }} kg)</span>
+              <div 
+                class="px-2.5 py-1 rounded-lg text-center font-weight-black flex-shrink-0 ml-2"
+                style="min-width: 74px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.88rem; color: #fde68a;"
+              >
+                {{ calcolatoreStalloRisultati.repsPR }} reps
               </div>
             </div>
             <div 
               v-else
-              class="text-center py-0.5"
+              class="text-center py-1 rounded-lg"
+              style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.08);"
             >
-              <span class="text-slate-400 font-weight-medium" style="font-size: 0.65rem;">
-                🏆 Con {{ calcolatoreStalloRisultati.repsProgredisci }} reps stabilisci anche il nuovo record assoluto!
+              <span class="text-slate-400 font-weight-medium" style="font-size: 0.66rem;">
+                🏆 Con <b class="text-emerald-300">{{ calcolatoreStalloRisultati.repsProgredisci }} reps</b> stabilisci anche il nuovo record assoluto!
               </span>
             </div>
           </div>
@@ -4366,7 +4376,7 @@
           block 
           :variant="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'outlined' : 'flat'" 
           :color="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'grey-lighten-1' : 'green-darken-2'" 
-          class="rounded-xl font-weight-black text-none py-2 mb-2" 
+          class="rounded-xl font-weight-black text-none py-2" 
           :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-slate-300' : 'text-white'"
           :style="{
             fontSize: calcolatoreStalloRisultati.livelloReps === 'troppe' ? '0.74rem' : '0.88rem',
@@ -4376,17 +4386,6 @@
         >
           {{ calcolatoreStalloRisultati.livelloReps === 'troppe' ? `Inserisci comunque ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsProgredisci}r` : `⚡ Inserisci ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsProgredisci}r (Progressione)` }}
         </v-btn>
-
-        <!-- Opzione Secondaria per Pareggiare (Unica riga sotto) -->
-        <button 
-          v-if="calcolatoreStalloRisultati.livelloReps !== 'troppe' && calcolatoreStalloRisultati.repsPareggia < calcolatoreStalloRisultati.repsProgredisci"
-          type="button" 
-          class="text-slate-400 font-weight-bold text-center w-100 py-1 transition-all" 
-          style="font-size: 0.70rem; background: transparent; border: none; cursor: pointer;"
-          @click="applicaRepsStallo(calcolatoreStalloRisultati.repsPareggia, 'pareggio')"
-        >
-          Oppure inserisci <span class="text-amber-lighten-2 underline">{{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsPareggia }}r</span> per pareggiare W{{ calcolatoreStalloRisultati.baseWNum }}
-        </button>
       </v-card>
     </v-dialog>
 

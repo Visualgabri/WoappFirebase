@@ -4305,7 +4305,8 @@
           </template>
           <template v-else>
             <span class="text-slate-300 font-weight-medium d-block mt-0.5" style="font-size: 0.72rem;">
-              🏆 Nuovo Record <span class="text-slate-400">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmSupera }} kg)</span>
+              {{ calcolatoreStalloRisultati.isTargetCoachAttivo ? `🏆 Nuovo Record • Supera il target W${calcolatoreStalloRisultati.settimanaNum}` : '🏆 Nuovo Record' }} 
+              <span class="text-slate-400 font-weight-normal">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmSupera }} kg)</span>
             </span>
           </template>
         </div>
@@ -4340,15 +4341,15 @@
           {{ calcolatoreStalloRisultati.livelloReps === 'troppe' ? `Inserisci comunque ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsSuperaRecord}r` : `⚡ Inserisci ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsSuperaRecord}r` }}
         </v-btn>
 
-        <!-- Opzione Secondaria per Pareggiare (Unica riga, visibile se reps accettabili) -->
+        <!-- Opzione Secondaria per Pareggiare (Unica riga con numero differente) -->
         <button 
-          v-if="calcolatoreStalloRisultati.livelloReps !== 'troppe'"
+          v-if="calcolatoreStalloRisultati.livelloReps !== 'troppe' && calcolatoreStalloRisultati.repsEguagliaRecord < calcolatoreStalloRisultati.repsSuperaRecord"
           type="button" 
           class="text-slate-400 font-weight-bold text-center w-100 py-1 transition-all" 
           style="font-size: 0.70rem; background: transparent; border: none; cursor: pointer;"
           @click="applicaRepsStallo(calcolatoreStalloRisultati.repsEguagliaRecord, 'pareggio')"
         >
-          Oppure inserisci <span class="text-amber-lighten-2 underline">{{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsEguagliaRecord }}r</span> per pareggiare
+          Oppure inserisci <span class="text-amber-lighten-2 underline">{{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsEguagliaRecord }}r</span> {{ calcolatoreStalloRisultati.isTargetCoachAttivo ? `per centrare il target (W${calcolatoreStalloRisultati.settimanaNum})` : 'per pareggiare' }}
         </button>
       </v-card>
     </v-dialog>
@@ -11985,8 +11986,24 @@ const calcolatoreStalloRecordInfo = computed(() => {
 const calcolatoreStalloCoachInfo = computed(() => {
   const sett = calcolatoreStalloWeek.value || settimanaAttiva.value || 1;
   const targetReps = estraiRepsDaPrescrizione(workout.value?.['des_week' + sett]) || getRepsPerWeek(sett) || 10;
-  const coachW = caricoConsigliatoGhostAttivo.value || 0;
-  const e1rm = (coachW > 0 && targetReps > 0) ? Math.round(calcolaE1RM(coachW, targetReps) * 10) / 10 : 0;
+  
+  let coachW = 0;
+  if (sett === settimanaAttiva.value && caricoConsigliatoGhostAttivo.value > 0) {
+    coachW = caricoConsigliatoGhostAttivo.value;
+  } else if (sett === settimanaAttiva.value && heroRecordComparison.value?.todayWeight > 0) {
+    coachW = heroRecordComparison.value.todayWeight;
+  } else {
+    const smart = getGhostLiftSmart(sett);
+    if (smart && (smart.valore > 0 || smart.peso > 0)) {
+      coachW = smart.valore || smart.peso;
+    } else {
+      const mezzo = typeof getCaricoConsigliatoViaDiMezzoForWeek === 'function' ? getCaricoConsigliatoViaDiMezzoForWeek(sett) : null;
+      if (mezzo > 0) coachW = mezzo;
+    }
+  }
+
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const e1rm = (coachW > 0 && targetReps > 0) ? Math.round(calcolaE1RMSmorzato(coachW, targetReps, isCavo) * 100) / 100 : 0;
 
   return {
     peso: coachW,
@@ -12014,30 +12031,51 @@ const calcolatoreStalloPesiRapidi = computed(() => {
 const calcolatoreStalloRisultati = computed(() => {
   const p = Number(calcolatoreStalloPeso.value) || 0;
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  const sett = calcolatoreStalloWeek.value || settimanaAttiva.value || 1;
   const rec = calcolatoreStalloRecordInfo.value;
   const coach = calcolatoreStalloCoachInfo.value;
 
-  const targetRecE1RM = rec.e1rm > 0 ? rec.e1rm : (rec.peso > 0 ? calcolaE1RM(rec.peso, rec.reps || 10) : 0);
-  
-  // Calcolo reps per eguagliare e superare il record
-  const resRecord = calcolaRepsPerE1RMTarget(p, targetRecE1RM, isCavo);
-  
-  // Calcolo reps per target coach (se presente e differente)
-  let repsCoach = 0;
-  let e1rmCoach = 0;
-  let hasCoachTarget = false;
-  if (coach.e1rm > 0 && Math.abs(coach.e1rm - targetRecE1RM) > 0.2) {
-    const resCoach = calcolaRepsPerE1RMTarget(p, coach.e1rm, isCavo);
-    repsCoach = resCoach.repsEguaglia;
-    e1rmCoach = resCoach.e1rmEguaglia;
-    hasCoachTarget = true;
+  const targetCoachW = coach.peso > 0 ? coach.peso : 0;
+  const targetCoachReps = coach.reps > 0 ? coach.reps : 10;
+  const targetCoachE1RM = coach.e1rm > 0 ? coach.e1rm : (targetCoachW > 0 ? calcolaE1RMSmorzato(targetCoachW, targetCoachReps, isCavo) : 0);
+  const targetRecE1RM = rec.e1rm > 0 ? rec.e1rm : (rec.peso > 0 ? calcolaE1RMSmorzato(rec.peso, rec.reps || 10, isCavo) : 0);
+
+  // Benchmark di riferimento: se la settimana ha un obiettivo programmato dal coach (es. 65 kg x 5r = e1RM 75.8 kg),
+  // l'obiettivo dell'atleta è raggiungere o superare lo stimolo di questa settimana!
+  const benchmarkE1RM = Math.max(targetCoachE1RM, targetRecE1RM);
+
+  let repsPareggia = 1;
+  let repsSupera = 2;
+  let isTargetCoachAttivo = false;
+
+  if (targetCoachW > 0 && p >= targetCoachW) {
+    // CASO 1: L'utente usa il carico consigliato o superiore (es. 65 kg con target 65 kg x 5r)
+    // Per pareggiare l'obiettivo della scheda fa le reps prescritte (es. 5 reps)
+    // Per superare/sfondare fa almeno 1 rep in più (es. 6 reps!)
+    isTargetCoachAttivo = true;
+    repsPareggia = targetCoachReps;
+    repsSupera = targetCoachReps + 1;
+  } else if (p > 0 && benchmarkE1RM > 0) {
+    // CASO 2: L'utente ha scalato il peso per stallo/manubri leggeri (es. 60 kg invece di 65 kg)
+    // Calcola quante reps servono con p per raggiungere o superare l'e1RM benchmark della seduta
+    const rawReps = 30 * ((benchmarkE1RM / p) - 1);
+    repsPareggia = Math.max(1, Math.round(rawReps));
+    repsSupera = repsPareggia + 1;
+    isTargetCoachAttivo = targetCoachE1RM >= targetRecE1RM;
+  } else {
+    repsPareggia = targetCoachReps;
+    repsSupera = targetCoachReps + 1;
   }
 
-  const deltaSupera = Math.round((resRecord.e1rmSupera - targetRecE1RM) * 10) / 10;
-  const repsSupera = resRecord.repsSupera;
+  // Garantisce SEMPRE repsSupera > repsPareggia (mai doppioni!)
+  if (repsSupera <= repsPareggia) {
+    repsSupera = repsPareggia + 1;
+  }
+
+  const e1rmPareggia = Math.round(calcolaE1RMSmorzato(p, repsPareggia, isCavo) * 10) / 10;
+  const e1rmSupera = Math.round(calcolaE1RMSmorzato(p, repsSupera, isCavo) * 10) / 10;
 
   // Livello reps (Combinazione A + B)
-  // <= 20: ottimale | 21-24: attenzione (alte reps/rest-pause) | >= 25: troppe reps (suggerisci carico)
   let livelloReps = 'ottimale';
   if (repsSupera >= 25) {
     livelloReps = 'troppe';
@@ -12045,28 +12083,27 @@ const calcolatoreStalloRisultati = computed(() => {
     livelloReps = 'attenzione';
   }
 
-  // Calcolo peso consigliato per riportarsi a circa 12-14 reps
+  // Calcolo peso consigliato per riportarsi a circa 10-12 reps se troppe
   let pesoConsigliato = 0;
-  let repsPesoConsigliato = 12;
-  if (livelloReps === 'troppe' && targetRecE1RM > 0) {
+  let repsPesoConsigliato = 10;
+  if (livelloReps === 'troppe' && benchmarkE1RM > 0) {
     const step = (stepCaricoEsercizioEffettivo && stepCaricoEsercizioEffettivo.value) ? stepCaricoEsercizioEffettivo.value : 1.0;
-    // Calcola peso per fare 12 reps con targetRecE1RM
-    const rawP = calcolaPesoDaE1RMSmorzato(targetRecE1RM + 0.1, 12, isCavo);
+    const rawP = calcolaPesoDaE1RMSmorzato(benchmarkE1RM, 10, isCavo);
     pesoConsigliato = Math.ceil(rawP / step) * step;
     if (pesoConsigliato <= p) pesoConsigliato = p + step;
-    const calcP = calcolaRepsPerE1RMTarget(pesoConsigliato, targetRecE1RM, isCavo);
-    repsPesoConsigliato = calcP.repsSupera;
+    const rawR = 30 * ((benchmarkE1RM / pesoConsigliato) - 1);
+    repsPesoConsigliato = Math.max(1, Math.round(rawR) + 1);
   }
 
   return {
-    repsEguagliaRecord: resRecord.repsEguaglia,
+    repsEguagliaRecord: repsPareggia,
     repsSuperaRecord: repsSupera,
-    e1rmEguaglia: resRecord.e1rmEguaglia,
-    e1rmSupera: resRecord.e1rmSupera,
-    deltaRecordSupera: deltaSupera > 0 ? deltaSupera : 0.2,
-    repsCoach,
-    e1rmCoach,
-    hasCoachTarget,
+    e1rmEguaglia: e1rmPareggia,
+    e1rmSupera: e1rmSupera,
+    targetCoachW,
+    targetCoachReps,
+    isTargetCoachAttivo,
+    settimanaNum: sett,
     livelloReps,
     pesoConsigliato,
     repsPesoConsigliato

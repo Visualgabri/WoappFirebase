@@ -4188,279 +4188,111 @@
       </v-card>
     </v-dialog>
 
-    <!-- Dialog Popover Calcolatore Reps da Carico (Stallo & Manubri Leggeri - Trick Lampadina Long-Press) -->
+    <!-- Dialog Popover Calcolatore Reps da Carico (Stallo & Manubri Leggeri - Form Minimale) -->
     <v-dialog 
       v-model="dialogCalcolatoreRepsStallo" 
-      :max-width="isMobileScreen ? '96%' : 460"
-      scrollable
+      :max-width="isMobileScreen ? '92%' : 380"
       transition="dialog-bottom-transition"
     >
-      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden" style="backdrop-filter: blur(25px); background: #0f172a !important; border: 1px solid rgba(245, 158, 11, 0.35) !important;">
-        <!-- Header con badge Trick Lampadina -->
-        <v-card-title class="pa-3 border-bottom d-flex align-center justify-space-between flex-shrink-0" style="background: rgba(15, 23, 42, 0.95); min-height: 52px;">
-          <div class="d-flex align-center gap-2 text-truncate" style="max-width: 84%;">
-            <v-avatar size="30" color="amber-darken-3" class="elevation-2 flex-shrink-0">
-              <span style="font-size: 15px;">💡</span>
-            </v-avatar>
-            <div class="d-flex flex-column text-left text-truncate">
-              <div class="d-flex align-center gap-1.5">
-                <span class="font-weight-black text-amber-lighten-2 uppercase" style="font-size: 0.60rem; letter-spacing: 0.06em;">TRICK LAMPADINA</span>
-                <v-chip size="x-small" color="amber" variant="flat" class="font-weight-black text-black px-1" style="height: 15px; font-size: 0.50rem;">STALLO & ALTE REPS</v-chip>
-              </div>
-              <span class="font-weight-black text-white text-truncate" style="font-size: 0.82rem; line-height: 1.2;">
-                Calcolo Reps da Carico: W{{ calcolatoreStalloWeek }}
-              </span>
-            </div>
+      <v-card class="card-glass-dark rounded-2xl border-soft overflow-hidden pa-4" style="backdrop-filter: blur(25px); background: #0f172a !important; border: 1px solid rgba(245, 158, 11, 0.4) !important;">
+        <!-- Header compatto -->
+        <div class="d-flex align-center justify-space-between mb-3">
+          <div class="d-flex align-center gap-1.5">
+            <span style="font-size: 18px;">💡</span>
+            <span class="font-weight-black text-white" style="font-size: 0.95rem;">Calcolo Reps</span>
           </div>
           <v-btn icon variant="text" width="28" height="28" color="grey" @click="dialogCalcolatoreRepsStallo = false">
             <v-icon size="20">mdi-close</v-icon>
           </v-btn>
-        </v-card-title>
+        </div>
 
-        <v-card-text class="pa-3 text-left overflow-y-auto" style="max-height: 80vh;">
-          <!-- Banner Riferimenti (Record e Coach) -->
-          <div class="pa-2.5 rounded-xl border mb-3" style="background: rgba(30, 41, 59, 0.6); border-color: rgba(255, 255, 255, 0.08);">
-            <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-super-caption font-weight-bold text-slate-400" style="font-size: 0.60rem;">🏆 RECORD ATTUALE (e1RM):</span>
-              <span class="font-weight-black text-amber-accent-2" style="font-size: 0.74rem;">
-                <template v-if="calcolatoreStalloRecordInfo.peso > 0">
-                  {{ calcolatoreStalloRecordInfo.peso }} kg × {{ calcolatoreStalloRecordInfo.reps }}r
-                  <span class="text-slate-400 font-weight-medium" style="font-size: 0.64rem;">(e1RM ≈ {{ calcolatoreStalloRecordInfo.e1rm }} kg)</span>
-                </template>
-                <template v-else>
-                  --
-                </template>
-              </span>
-            </div>
-            <div v-if="calcolatoreStalloCoachInfo.e1rm > 0" class="d-flex align-center justify-space-between">
-              <span class="text-super-caption font-weight-bold text-slate-400" style="font-size: 0.60rem;">🎯 TARGET W{{ calcolatoreStalloWeek }} DEL COACH:</span>
-              <span class="font-weight-black text-cyan-accent-2" style="font-size: 0.72rem;">
-                {{ calcolatoreStalloCoachInfo.peso }} kg × {{ calcolatoreStalloCoachInfo.reps }}r
-                <span class="text-slate-400 font-weight-medium" style="font-size: 0.64rem;">(e1RM ≈ {{ calcolatoreStalloCoachInfo.e1rm }} kg)</span>
-              </span>
-            </div>
-          </div>
-
-          <!-- Selettore Peso Touch-Friendly per Smartphone -->
-          <div class="pa-3 rounded-xl border mb-3" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%); border-color: rgba(245, 158, 11, 0.25);">
-            <div class="d-flex align-center justify-space-between mb-1.5">
-              <span class="font-weight-black text-uppercase text-slate-300" style="font-size: 0.64rem; letter-spacing: 0.04em;">
-                ⚖️ CARICO CHE HAI IN MANO:
-              </span>
-              <span class="text-super-caption text-amber-lighten-2 font-weight-bold" style="font-size: 0.58rem;">
-                {{ calcolatoreStalloPeso < calcolatoreStalloRecordInfo.peso ? 'Carico ridotto • alte reps' : 'Carico pieno' }}
-              </span>
-            </div>
-
-            <div class="d-flex align-center justify-center gap-2 mb-2">
-              <v-btn 
-                icon 
-                variant="flat" 
-                color="slate-800" 
-                class="rounded-xl border border-soft text-white" 
-                width="42" 
-                height="42" 
-                @click="decrementaPesoStallo"
-                :disabled="calcolatoreStalloPeso <= 1"
-              >
-                <v-icon size="20">mdi-minus</v-icon>
-              </v-btn>
-
-              <div class="d-flex align-center justify-center px-4 py-1.5 rounded-xl border" style="background: rgba(15, 23, 42, 0.95); border-color: rgba(245, 158, 11, 0.4); min-width: 135px;">
-                <input 
-                  v-model.number="calcolatoreStalloPeso" 
-                  type="number" 
-                  step="0.5" 
-                  min="0.5" 
-                  class="font-weight-black text-center text-white" 
-                  style="font-size: 1.45rem; width: 75px; background: transparent; border: none; outline: none; line-height: 1;"
-                />
-                <span class="font-weight-bold text-amber-lighten-2 ml-1" style="font-size: 1.05rem;">kg</span>
-              </div>
-
-              <v-btn 
-                icon 
-                variant="flat" 
-                color="slate-800" 
-                class="rounded-xl border border-soft text-white" 
-                width="42" 
-                height="42" 
-                @click="incrementaPesoStallo"
-              >
-                <v-icon size="20">mdi-plus</v-icon>
-              </v-btn>
-            </div>
-
-            <!-- Chips rapide dei carichi alternativi -->
-            <div class="d-flex align-center justify-center gap-1.5 flex-wrap">
-              <button 
-                v-for="p in calcolatoreStalloPesiRapidi" 
-                :key="p" 
-                type="button" 
-                class="px-2 py-1 rounded-lg font-weight-bold transition-all" 
-                :style="{
-                  fontSize: '0.62rem',
-                  background: calcolatoreStalloPeso === p ? 'var(--theme-btn-gradient, linear-gradient(135deg, #ea580c, #f97316))' : 'rgba(255,255,255,0.06)',
-                  color: calcolatoreStalloPeso === p ? '#fff' : '#cbd5e1',
-                  border: calcolatoreStalloPeso === p ? '1px solid #f97316' : '1px solid rgba(255,255,255,0.1)'
-                }"
-                @click="calcolatoreStalloPeso = p"
-              >
-                {{ p }} kg
-              </button>
-            </div>
-          </div>
-
-          <!-- Cards dei Risultati Calcolati Dinamicamente -->
-          <div class="d-flex flex-column gap-2 mb-3">
-            <!-- 1. BATTI IL RECORD (+1 rep / Overload) - CONSIGLIATO -->
-            <div 
-              class="pa-3 rounded-xl border position-relative" 
-              style="background: linear-gradient(135deg, rgba(22, 101, 52, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%); border-color: rgba(34, 197, 94, 0.4);"
+        <!-- Selettore Peso Semplice -->
+        <div class="d-flex flex-column align-center mb-3">
+          <span class="text-super-caption text-slate-400 font-weight-bold uppercase mb-1.5" style="font-size: 0.65rem; letter-spacing: 0.05em;">
+            PESO SCELTO
+          </span>
+          <div class="d-flex align-center justify-center gap-3">
+            <v-btn 
+              icon 
+              variant="flat" 
+              color="slate-800" 
+              class="rounded-xl border border-soft text-white" 
+              width="44" 
+              height="44" 
+              @click="decrementaPesoStallo"
+              :disabled="calcolatoreStalloPeso <= 0.5"
             >
-              <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-center gap-1.5">
-                  <v-icon size="16" color="green-accent-3">mdi-trophy</v-icon>
-                  <span class="font-weight-black text-uppercase text-green-accent-3" style="font-size: 0.68rem; letter-spacing: 0.04em;">
-                    BATTI IL RECORD (NUOVO PR)
-                  </span>
-                </div>
-                <v-chip size="x-small" color="green-darken-1" variant="flat" class="font-weight-black text-white px-1.5" style="height: 18px; font-size: 0.54rem;">
-                  CONSIGLIATO
-                </v-chip>
-              </div>
+              <v-icon size="22">mdi-minus</v-icon>
+            </v-btn>
 
-              <div class="d-flex align-baseline gap-2 my-1">
-                <span class="font-weight-black text-white" style="font-size: 1.65rem; line-height: 1;">
-                  {{ calcolatoreStalloRisultati.repsSuperaRecord }}
-                </span>
-                <span class="font-weight-bold text-green-accent-2" style="font-size: 0.88rem;">ripetizioni</span>
-                <span class="text-slate-400 font-weight-medium ml-auto" style="font-size: 0.66rem;">
-                  e1RM ≈ <strong class="text-white">{{ calcolatoreStalloRisultati.e1rmSupera }} kg</strong>
-                  <span class="text-green-accent-3 ml-0.5">(+{{ calcolatoreStalloRisultati.deltaRecordSupera }} kg)</span>
-                </span>
-              </div>
-
-              <p class="text-slate-300 mb-2" style="font-size: 0.64rem; line-height: 1.35;">
-                Con <strong>{{ calcolatoreStalloPeso }} kg</strong>, facendo <strong>{{ calcolatoreStalloRisultati.repsSuperaRecord }} reps</strong> stabilisci un nuovo record assoluto su questo esercizio mantenendo il sovraccarico progressivo!
-              </p>
-
-              <v-btn 
-                block 
-                variant="flat" 
-                color="green-darken-2" 
-                class="rounded-xl font-weight-black text-none text-white py-1.5" 
-                style="font-size: 0.74rem; height: 36px;" 
-                @click="applicaRepsStallo(calcolatoreStalloRisultati.repsSuperaRecord, 'overload')"
-              >
-                ⚡ Applica {{ calcolatoreStalloPeso }}x{{ calcolatoreStalloRisultati.repsSuperaRecord }}r (Nuovo PR)
-              </v-btn>
+            <div class="d-flex align-center justify-center px-4 py-1.5 rounded-xl border" style="background: rgba(15, 23, 42, 0.95); border-color: rgba(245, 158, 11, 0.45); min-width: 130px;">
+              <input 
+                v-model.number="calcolatoreStalloPeso" 
+                type="number" 
+                step="0.5" 
+                min="0.5" 
+                class="font-weight-black text-center text-white" 
+                style="font-size: 1.6rem; width: 80px; background: transparent; border: none; outline: none; line-height: 1;"
+              />
+              <span class="font-weight-bold text-amber-lighten-2 ml-1" style="font-size: 1.05rem;">kg</span>
             </div>
 
-            <!-- 2. PAREGGIA IL RECORD (Mantenimento / Stesso Stimolo) -->
-            <div 
-              class="pa-2.5 rounded-xl border" 
-              style="background: rgba(30, 41, 59, 0.4); border-color: rgba(255, 255, 255, 0.08);"
+            <v-btn 
+              icon 
+              variant="flat" 
+              color="slate-800" 
+              class="rounded-xl border border-soft text-white" 
+              width="44" 
+              height="44" 
+              @click="incrementaPesoStallo"
             >
-              <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-center gap-1.5">
-                  <v-icon size="14" color="amber-lighten-2">mdi-equal</v-icon>
-                  <span class="font-weight-bold text-uppercase text-slate-300" style="font-size: 0.64rem;">
-                    PAREGGIA IL RECORD ATTUALE
-                  </span>
-                </div>
-                <span class="text-slate-400" style="font-size: 0.60rem;">100% del massimale</span>
-              </div>
+              <v-icon size="22">mdi-plus</v-icon>
+            </v-btn>
+          </div>
+        </div>
 
-              <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-baseline gap-1.5">
-                  <span class="font-weight-black text-amber-lighten-2" style="font-size: 1.20rem; line-height: 1;">
-                    {{ calcolatoreStalloRisultati.repsEguagliaRecord }}
-                  </span>
-                  <span class="text-slate-300 font-weight-medium" style="font-size: 0.72rem;">reps</span>
-                  <span class="text-slate-400 font-weight-medium ml-2" style="font-size: 0.62rem;">
-                    (e1RM ≈ {{ calcolatoreStalloRisultati.e1rmEguaglia }} kg)
-                  </span>
-                </div>
-                <v-btn 
-                  size="x-small" 
-                  variant="outlined" 
-                  color="amber-lighten-2" 
-                  class="rounded-lg text-none font-weight-bold px-2" 
-                  style="font-size: 0.64rem; height: 26px;" 
-                  @click="applicaRepsStallo(calcolatoreStalloRisultati.repsEguagliaRecord, 'pareggio')"
-                >
-                  Applica {{ calcolatoreStalloPeso }}x{{ calcolatoreStalloRisultati.repsEguagliaRecord }}r
-                </v-btn>
-              </div>
-            </div>
+        <!-- Box Risultato Grande ed Essenziale -->
+        <div 
+          class="pa-3 rounded-2xl border text-center mb-3" 
+          style="background: linear-gradient(135deg, rgba(22, 101, 52, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%); border-color: rgba(34, 197, 94, 0.5);"
+        >
+          <span class="text-super-caption font-weight-black text-green-accent-3 uppercase d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.08em;">
+            🎯 FAI ALMENO
+          </span>
 
-            <!-- 3. TARGET SETTIMANA COACH (Se presente) -->
-            <div 
-              v-if="calcolatoreStalloRisultati.hasCoachTarget" 
-              class="pa-2.5 rounded-xl border" 
-              style="background: rgba(8, 145, 178, 0.12); border-color: rgba(6, 182, 212, 0.25);"
-            >
-              <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-center gap-1.5">
-                  <v-icon size="14" color="cyan-lighten-2">mdi-target</v-icon>
-                  <span class="font-weight-bold text-uppercase text-cyan-lighten-2" style="font-size: 0.64rem;">
-                    EQUIVALENTE TARGET W{{ calcolatoreStalloWeek }} DEL COACH
-                  </span>
-                </div>
-                <span class="text-cyan-lighten-3" style="font-size: 0.60rem;">Stimolo previsto</span>
-              </div>
-
-              <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-baseline gap-1.5">
-                  <span class="font-weight-black text-cyan-lighten-1" style="font-size: 1.20rem; line-height: 1;">
-                    {{ calcolatoreStalloRisultati.repsCoach }}
-                  </span>
-                  <span class="text-slate-300 font-weight-medium" style="font-size: 0.72rem;">reps</span>
-                  <span class="text-slate-400 font-weight-medium ml-2" style="font-size: 0.62rem;">
-                    (e1RM ≈ {{ calcolatoreStalloRisultati.e1rmCoach }} kg)
-                  </span>
-                </div>
-                <v-btn 
-                  size="x-small" 
-                  variant="outlined" 
-                  color="cyan-lighten-2" 
-                  class="rounded-lg text-none font-weight-bold px-2" 
-                  style="font-size: 0.64rem; height: 26px;" 
-                  @click="applicaRepsStallo(calcolatoreStalloRisultati.repsCoach, 'coach')"
-                >
-                  Applica {{ calcolatoreStalloPeso }}x{{ calcolatoreStalloRisultati.repsCoach }}r
-                </v-btn>
-              </div>
-            </div>
+          <div class="d-flex align-center justify-center gap-1.5 my-1">
+            <span class="font-weight-black text-white" style="font-size: 2.3rem; line-height: 1;">
+              {{ calcolatoreStalloRisultati.repsSuperaRecord }}
+            </span>
+            <span class="font-weight-bold text-green-accent-2" style="font-size: 1.05rem;">reps</span>
           </div>
 
-          <!-- Avviso Fisiologico Smart per Alte Ripetizioni -->
-          <div 
-            v-if="calcolatoreStalloRisultati.repsSuperaRecord >= 20" 
-            class="pa-2.5 rounded-xl border mb-3" 
-            style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35);"
-          >
-            <div class="d-flex align-center gap-1.5 mb-1">
-              <v-icon size="15" color="amber-lighten-1">mdi-alert-circle-outline</v-icon>
-              <span class="font-weight-black text-amber-lighten-2" style="font-size: 0.68rem;">CONSIGLIO FISIOLOGICO (>20 REPS)</span>
-            </div>
-            <p class="text-slate-300 mb-0" style="font-size: 0.64rem; line-height: 1.38;">
-              Oltre le 20 ripetizioni subentra molto acido lattico. Se non riesci a farle tutte di fila, puoi eseguirle in <strong>Rest-Pause</strong> (es. 15r + 15'' pausa + 4r + 3r) oppure salire al manubrio successivo per fare meno reps a cedimento.
-            </p>
-          </div>
+          <span class="text-slate-300 font-weight-medium d-block mt-1" style="font-size: 0.72rem;">
+            🏆 Nuovo Record <span class="text-slate-400">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmSupera }} kg)</span>
+          </span>
+        </div>
 
-          <!-- Mini Guida Metodologica -->
-          <div class="pa-2.5 rounded-lg text-slate-400" style="background: rgba(15, 23, 42, 0.5); font-size: 0.62rem; line-height: 1.35; border: 1px dashed rgba(255,255,255,0.1);">
-            💡 <strong>Perché questo trick?</strong> Negli esercizi con manubri, passare da 7 a 8 kg è un salto enorme (+14%). In caso di stallo, l'ipertrofia è equivalente aumentando le ripetizioni a basso carico mantenendo il sovraccarico progressivo sull'1RM stimato (formula di Epley).
-          </div>
-        </v-card-text>
+        <!-- Tasto Inserisci Unico -->
+        <v-btn 
+          block 
+          variant="flat" 
+          color="green-darken-2" 
+          class="rounded-xl font-weight-black text-none text-white py-2 mb-2" 
+          style="font-size: 0.88rem; height: 44px;" 
+          @click="applicaRepsStallo(calcolatoreStalloRisultati.repsSuperaRecord, 'overload')"
+        >
+          ⚡ Inserisci {{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsSuperaRecord }}r
+        </v-btn>
 
-        <v-card-actions class="pa-2.5 border-top d-flex justify-end" style="background: rgba(15, 23, 42, 0.95);">
-          <v-btn variant="text" size="small" color="grey" class="text-none font-weight-bold" @click="dialogCalcolatoreRepsStallo = false">
-            Chiudi
-          </v-btn>
-        </v-card-actions>
+        <!-- Opzione Secondaria per Pareggiare (Unica riga) -->
+        <button 
+          type="button" 
+          class="text-slate-400 font-weight-bold text-center w-100 py-1 transition-all" 
+          style="font-size: 0.70rem; background: transparent; border: none; cursor: pointer;"
+          @click="applicaRepsStallo(calcolatoreStalloRisultati.repsEguagliaRecord, 'pareggio')"
+        >
+          Oppure inserisci <span class="text-amber-lighten-2 underline">{{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsEguagliaRecord }}r</span> per pareggiare
+        </button>
       </v-card>
     </v-dialog>
 

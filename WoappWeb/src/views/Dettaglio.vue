@@ -4251,64 +4251,100 @@
           </div>
         </div>
 
-        <!-- Box Risultato Dinamico A + B -->
+        <!-- Card Scaglioni: Soluzione 2 (Pareggia, Progredisci, Supera PR) -->
         <div 
-          class="pa-3 rounded-2xl border text-center mb-3 transition-all" 
+          class="pa-3 rounded-2xl border mb-3 transition-all" 
           :style="{
             background: calcolatoreStalloRisultati.livelloReps === 'troppe'
-              ? 'linear-gradient(135deg, rgba(153, 27, 27, 0.35) 0%, rgba(15, 23, 42, 0.95) 100%)'
+              ? 'linear-gradient(135deg, rgba(153, 27, 27, 0.25) 0%, rgba(15, 23, 42, 0.95) 100%)'
               : (calcolatoreStalloRisultati.livelloReps === 'attenzione'
-                ? 'linear-gradient(135deg, rgba(180, 83, 9, 0.3) 0%, rgba(15, 23, 42, 0.95) 100%)'
-                : 'linear-gradient(135deg, rgba(22, 101, 52, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%)'),
+                ? 'linear-gradient(135deg, rgba(180, 83, 9, 0.2) 0%, rgba(15, 23, 42, 0.95) 100%)'
+                : 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'),
             borderColor: calcolatoreStalloRisultati.livelloReps === 'troppe'
               ? 'rgba(239, 68, 68, 0.55)'
               : (calcolatoreStalloRisultati.livelloReps === 'attenzione'
                 ? 'rgba(245, 158, 11, 0.5)'
-                : 'rgba(34, 197, 94, 0.5)')
+                : 'rgba(51, 65, 85, 0.7)')
           }"
         >
-          <!-- Titolo Stato Semaforico -->
-          <span 
-            class="text-super-caption font-weight-black uppercase d-block mb-1" 
-            :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-red-lighten-2' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? 'text-amber-lighten-2' : 'text-green-accent-3')"
-            style="font-size: 0.65rem; letter-spacing: 0.08em;"
-          >
-            {{ calcolatoreStalloRisultati.livelloReps === 'troppe' ? '⚠️ TROPPE REPS (>24)' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? '⚡ ALTE REPS (21-24)' : '🎯 FAI ALMENO') }}
-          </span>
-
-          <!-- Numero Reps Grande Dinamico -->
-          <div class="d-flex align-center justify-center gap-1.5 my-1">
-            <span 
-              class="font-weight-black" 
-              :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-red-lighten-2' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? 'text-amber-lighten-1' : 'text-white')"
-              style="font-size: 2.3rem; line-height: 1;"
-            >
-              {{ calcolatoreStalloRisultati.repsSuperaRecord }}
-            </span>
-            <span 
-              class="font-weight-bold" 
-              :class="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'text-red-lighten-3' : (calcolatoreStalloRisultati.livelloReps === 'attenzione' ? 'text-amber-lighten-2' : 'text-green-accent-2')"
-              style="font-size: 1.05rem;"
-            >reps</span>
+          <!-- Intestazione Riferimento Scorsa Sessione / Settimana Base -->
+          <div class="d-flex align-center justify-space-between pb-2 mb-2 border-b" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+            <div class="d-flex align-center gap-1.5">
+              <span class="text-slate-400" style="font-size: 0.70rem;">📅 RIFERIMENTO W{{ calcolatoreStalloRisultati.baseWNum }}:</span>
+              <span class="font-weight-black text-white" style="font-size: 0.76rem;">{{ calcolatoreStalloRisultati.basePeso }} kg × {{ calcolatoreStalloRisultati.baseReps }}r</span>
+            </div>
+            <span class="text-slate-500 font-weight-medium" style="font-size: 0.65rem;">e1RM ≈ {{ calcolatoreStalloRisultati.baseE1RM }} kg</span>
           </div>
 
-          <!-- Sottotitolo Dinamico -->
-          <template v-if="calcolatoreStalloRisultati.livelloReps === 'troppe'">
-            <span class="text-red-lighten-3 font-weight-medium d-block mt-0.5" style="font-size: 0.70rem;">
-              Carico troppo basso: oltre 24 reps perdi efficacia!
-            </span>
-          </template>
-          <template v-else-if="calcolatoreStalloRisultati.livelloReps === 'attenzione'">
-            <span class="text-amber-lighten-2 font-weight-medium d-block mt-0.5" style="font-size: 0.70rem;">
-              🏆 Nuovo Record • Valuta Rest-Pause (es. 15+{{ calcolatoreStalloRisultati.repsSuperaRecord - 15 }})
-            </span>
-          </template>
-          <template v-else>
-            <span class="text-slate-300 font-weight-medium d-block mt-0.5" style="font-size: 0.72rem;">
-              {{ calcolatoreStalloRisultati.isTargetCoachAttivo ? `🏆 Nuovo Record • Supera il target W${calcolatoreStalloRisultati.settimanaNum}` : '🏆 Nuovo Record' }} 
-              <span class="text-slate-400 font-weight-normal">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmSupera }} kg)</span>
-            </span>
-          </template>
+          <!-- Alert Semaforico (Troppe Reps o Attenzione) -->
+          <div v-if="calcolatoreStalloRisultati.livelloReps === 'troppe'" class="pa-2 rounded-xl bg-red-950/50 border border-red-500/40 text-center mb-2">
+            <span class="text-red-lighten-2 font-weight-black d-block" style="font-size: 0.72rem;">⚠️ TROPPE REPS (&gt;24)</span>
+            <span class="text-red-lighten-3 d-block" style="font-size: 0.65rem;">Oltre 24 reps perdi efficacia ipertrofica!</span>
+          </div>
+          <div v-else-if="calcolatoreStalloRisultati.livelloReps === 'attenzione'" class="pa-1.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-center mb-2">
+            <span class="text-amber-lighten-2 font-weight-bold d-block" style="font-size: 0.68rem;">⚡ ALTE REPS (21-24) • Valuta serie rest-pause</span>
+          </div>
+
+          <!-- Lista Scaglioni (Soluzione 2) -->
+          <div class="d-flex flex-column gap-1.5">
+            <!-- Scaglione 1: Pareggia W-base -->
+            <div 
+              class="d-flex align-center justify-space-between px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+              style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);"
+              @click="applicaRepsStallo(calcolatoreStalloRisultati.repsPareggia, 'pareggio')"
+            >
+              <div class="d-flex align-center gap-1.5">
+                <span class="text-slate-400" style="font-size: 0.76rem;">• Pareggia W{{ calcolatoreStalloRisultati.baseWNum }}:</span>
+              </div>
+              <div class="d-flex align-center gap-1.5">
+                <span class="font-weight-black text-slate-200" style="font-size: 0.88rem;">{{ calcolatoreStalloRisultati.repsPareggia }} reps</span>
+                <span class="text-slate-500" style="font-size: 0.62rem;">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmPareggia }} kg)</span>
+              </div>
+            </div>
+
+            <!-- Scaglione 2: PROGREDISCI (🎯 OBIETTIVO PRINCIPALE) -->
+            <div 
+              class="d-flex align-center justify-space-between px-3 py-2 rounded-xl transition-all cursor-pointer"
+              style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.55);"
+              @click="applicaRepsStallo(calcolatoreStalloRisultati.repsProgredisci, 'progressione')"
+            >
+              <div class="d-flex align-center gap-1.5">
+                <span class="font-weight-black text-emerald-300" style="font-size: 0.85rem;">• Progredisci:</span>
+                <span class="px-1.5 py-0.5 rounded-pill text-super-caption font-weight-black" style="background: rgba(16, 185, 129, 0.3); color: #6ee7b7; font-size: 0.58rem; letter-spacing: 0.04em;">
+                  🟢 OBIETTIVO
+                </span>
+              </div>
+              <div class="d-flex align-center gap-1">
+                <span class="font-weight-black text-green-accent-3" style="font-size: 1.22rem; line-height: 1;">{{ calcolatoreStalloRisultati.repsProgredisci }}</span>
+                <span class="font-weight-bold text-green-accent-2" style="font-size: 0.80rem;">reps</span>
+              </div>
+            </div>
+
+            <!-- Scaglione 3: Supera Record Assoluto / PR (Discreto) -->
+            <div 
+              v-if="calcolatoreStalloRisultati.hasRecordSuperiore"
+              class="d-flex align-center justify-space-between px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+              style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);"
+              @click="applicaRepsStallo(calcolatoreStalloRisultati.repsPR, 'pr')"
+            >
+              <div class="d-flex align-center gap-1.5">
+                <span class="text-slate-400" style="font-size: 0.74rem;">• Supera Record:</span>
+                <span class="text-amber-400/80" style="font-size: 0.65rem;">🏆 Storico</span>
+              </div>
+              <div class="d-flex align-center gap-1.5">
+                <span class="font-weight-bold text-amber-200" style="font-size: 0.85rem;">{{ calcolatoreStalloRisultati.repsPR }} reps</span>
+                <span class="text-slate-500" style="font-size: 0.62rem;">(e1RM ≈ {{ calcolatoreStalloRisultati.e1rmPR }} kg)</span>
+              </div>
+            </div>
+            <div 
+              v-else
+              class="text-center py-0.5"
+            >
+              <span class="text-slate-400 font-weight-medium" style="font-size: 0.65rem;">
+                🏆 Con {{ calcolatoreStalloRisultati.repsProgredisci }} reps stabilisci anche il nuovo record assoluto!
+              </span>
+            </div>
+          </div>
         </div>
 
         <!-- Soluzione B: Tasto Fix Rapido Peso (solo se troppe reps) -->
@@ -4325,7 +4361,7 @@
           </v-btn>
         </div>
 
-        <!-- Tasto Inserisci -->
+        <!-- Tasto Principale CTA (Inserisci Progressione) -->
         <v-btn 
           block 
           :variant="calcolatoreStalloRisultati.livelloReps === 'troppe' ? 'outlined' : 'flat'" 
@@ -4336,20 +4372,20 @@
             fontSize: calcolatoreStalloRisultati.livelloReps === 'troppe' ? '0.74rem' : '0.88rem',
             height: calcolatoreStalloRisultati.livelloReps === 'troppe' ? '36px' : '44px'
           }" 
-          @click="applicaRepsStallo(calcolatoreStalloRisultati.repsSuperaRecord, 'overload')"
+          @click="applicaRepsStallo(calcolatoreStalloRisultati.repsProgredisci, 'progressione')"
         >
-          {{ calcolatoreStalloRisultati.livelloReps === 'troppe' ? `Inserisci comunque ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsSuperaRecord}r` : `⚡ Inserisci ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsSuperaRecord}r` }}
+          {{ calcolatoreStalloRisultati.livelloReps === 'troppe' ? `Inserisci comunque ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsProgredisci}r` : `⚡ Inserisci ${calcolatoreStalloPeso} × ${calcolatoreStalloRisultati.repsProgredisci}r (Progressione)` }}
         </v-btn>
 
-        <!-- Opzione Secondaria per Pareggiare (Unica riga con numero differente) -->
+        <!-- Opzione Secondaria per Pareggiare (Unica riga sotto) -->
         <button 
-          v-if="calcolatoreStalloRisultati.livelloReps !== 'troppe' && calcolatoreStalloRisultati.repsEguagliaRecord < calcolatoreStalloRisultati.repsSuperaRecord"
+          v-if="calcolatoreStalloRisultati.livelloReps !== 'troppe' && calcolatoreStalloRisultati.repsPareggia < calcolatoreStalloRisultati.repsProgredisci"
           type="button" 
           class="text-slate-400 font-weight-bold text-center w-100 py-1 transition-all" 
           style="font-size: 0.70rem; background: transparent; border: none; cursor: pointer;"
-          @click="applicaRepsStallo(calcolatoreStalloRisultati.repsEguagliaRecord, 'pareggio')"
+          @click="applicaRepsStallo(calcolatoreStalloRisultati.repsPareggia, 'pareggio')"
         >
-          Oppure inserisci <span class="text-amber-lighten-2 underline">{{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsEguagliaRecord }}r</span> {{ calcolatoreStalloRisultati.isTargetCoachAttivo ? `per centrare il target (W${calcolatoreStalloRisultati.settimanaNum})` : 'per pareggiare' }}
+          Oppure inserisci <span class="text-amber-lighten-2 underline">{{ calcolatoreStalloPeso }} × {{ calcolatoreStalloRisultati.repsPareggia }}r</span> per pareggiare W{{ calcolatoreStalloRisultati.baseWNum }}
         </button>
       </v-card>
     </v-dialog>
@@ -4488,7 +4524,7 @@
                     Sei in stallo o manubri troppo pesanti?
                   </span>
                   <span class="text-slate-400 text-truncate" style="font-size: 0.58rem;">
-                    Trick Lampadina: calcola le reps per superare il record a basso carico
+                    Trick Lampadina (pressione prolungata): calcola le reps per progredire da settimana precedente
                   </span>
                 </div>
               </div>
@@ -11983,6 +12019,54 @@ const calcolatoreStalloRecordInfo = computed(() => {
   };
 });
 
+const calcolatoreStalloBaseInfo = computed(() => {
+  const sett = calcolatoreStalloWeek.value || settimanaAttiva.value || 1;
+  const isCavo = isCavoOMacchinaEsercizio(workout.value);
+  
+  // 1. Usa getBaseWeekInfo(sett) per prendere la vera settimana di riferimento (es. W3 se W4 era scarico, oppure W4, o W1)
+  const baseInfo = typeof getBaseWeekInfo === 'function' ? getBaseWeekInfo(sett) : null;
+  const baseWNum = baseInfo?.baseWNum || (sett > 1 ? sett - 1 : 1);
+  
+  let pesoBase = baseInfo?.pesoBase || 0;
+  let repsBase = baseInfo?.repsBase || 0;
+
+  // Se getBaseWeekInfo non ha un peso loggato valido, proviamo a estrarlo direttamente dall'input di quella settimana
+  if (!pesoBase || pesoBase <= 0) {
+    const rawPrev = inputSettimane.value?.[baseWNum]?.ins || workout.value?.['ins_week' + baseWNum];
+    if (rawPrev) {
+      pesoBase = parseFloat(estraiPesoDaInputCentral(rawPrev, { fallback: 0 })) || 0;
+      repsBase = parseInt(estraiRepsDaInputCentral(rawPrev) || 0, 10);
+    }
+  }
+
+  // Fallback: se neanche lì c'è, guarda se c'è un previousWorkout (W6 del mesociclo precedente)
+  if (!pesoBase || pesoBase <= 0) {
+    if (previousWorkout.value) {
+      const prevW6Text = previousWorkout.value.num_ins6 || previousWorkout.value.ins_week6;
+      if (prevW6Text) {
+        pesoBase = parseFloat(estraiPesoDaInputCentral(prevW6Text, { fallback: 0 })) || 0;
+        repsBase = parseInt(estraiRepsDaInputCentral(prevW6Text) || 0, 10);
+      }
+    }
+  }
+
+  // Fallback estremo su heroRecordComparison
+  if (!pesoBase || pesoBase <= 0) {
+    pesoBase = heroRecordComparison.value?.todayWeight || heroRecordComparison.value?.maxWeight || 10;
+    repsBase = heroRecordComparison.value?.targetReps || 10;
+  }
+
+  if (!repsBase || repsBase <= 0) repsBase = 10;
+  const e1rm = Math.round(calcolaE1RMSmorzato(pesoBase, repsBase, isCavo) * 100) / 100;
+
+  return {
+    baseWNum,
+    peso: pesoBase,
+    reps: repsBase,
+    e1rm
+  };
+});
+
 const calcolatoreStalloCoachInfo = computed(() => {
   const sett = calcolatoreStalloWeek.value || settimanaAttiva.value || 1;
   const targetReps = estraiRepsDaPrescrizione(workout.value?.['des_week' + sett]) || getRepsPerWeek(sett) || 10;
@@ -12022,7 +12106,7 @@ const calcolatoreStalloPesiRapidi = computed(() => {
     if (val > 0) set.add(val);
   });
 
-  if (calcolatoreStalloRecordInfo.value?.peso > 0) set.add(calcolatoreStalloRecordInfo.value.peso);
+  if (calcolatoreStalloBaseInfo.value?.peso > 0) set.add(calcolatoreStalloBaseInfo.value.peso);
   if (calcolatoreStalloCoachInfo.value?.peso > 0) set.add(calcolatoreStalloCoachInfo.value.peso);
 
   return Array.from(set).sort((a, b) => a - b).slice(0, 6);
@@ -12032,77 +12116,94 @@ const calcolatoreStalloRisultati = computed(() => {
   const p = Number(calcolatoreStalloPeso.value) || 0;
   const isCavo = isCavoOMacchinaEsercizio(workout.value);
   const sett = calcolatoreStalloWeek.value || settimanaAttiva.value || 1;
+  const base = calcolatoreStalloBaseInfo.value;
   const rec = calcolatoreStalloRecordInfo.value;
   const coach = calcolatoreStalloCoachInfo.value;
 
+  const pBase = base.peso > 0 ? base.peso : 0;
+  const rBase = base.reps > 0 ? base.reps : 10;
+  const e1rmBase = base.e1rm > 0 ? base.e1rm : (pBase > 0 ? calcolaE1RMSmorzato(pBase, rBase, isCavo) : 0);
+  
+  const targetRepsWeek = coach.reps > 0 ? coach.reps : 10;
   const targetCoachW = coach.peso > 0 ? coach.peso : 0;
-  const targetCoachReps = coach.reps > 0 ? coach.reps : 10;
-  const targetCoachE1RM = coach.e1rm > 0 ? coach.e1rm : (targetCoachW > 0 ? calcolaE1RMSmorzato(targetCoachW, targetCoachReps, isCavo) : 0);
-  const targetRecE1RM = rec.e1rm > 0 ? rec.e1rm : (rec.peso > 0 ? calcolaE1RMSmorzato(rec.peso, rec.reps || 10, isCavo) : 0);
+  const e1rmRecordAssoluto = rec.e1rm > 0 ? rec.e1rm : e1rmBase;
 
-  // Benchmark di riferimento: se la settimana ha un obiettivo programmato dal coach (es. 65 kg x 5r = e1RM 75.8 kg),
-  // l'obiettivo dell'atleta è raggiungere o superare lo stimolo di questa settimana!
-  const benchmarkE1RM = Math.max(targetCoachE1RM, targetRecE1RM);
-
+  // 1. SCAGLIONE PAREGGIO (Mantenimento vs Settimana Precedente / Base)
   let repsPareggia = 1;
-  let repsSupera = 2;
-  let isTargetCoachAttivo = false;
-
-  if (targetCoachW > 0 && p >= targetCoachW) {
-    // CASO 1: L'utente usa il carico consigliato o superiore (es. 65 kg con target 65 kg x 5r)
-    // Per pareggiare l'obiettivo della scheda fa le reps prescritte (es. 5 reps)
-    // Per superare/sfondare fa almeno 1 rep in più (es. 6 reps!)
-    isTargetCoachAttivo = true;
-    repsPareggia = targetCoachReps;
-    repsSupera = targetCoachReps + 1;
-  } else if (p > 0 && benchmarkE1RM > 0) {
-    // CASO 2: L'utente ha scalato il peso per stallo/manubri leggeri (es. 60 kg invece di 65 kg)
-    // Calcola quante reps servono con p per raggiungere o superare l'e1RM benchmark della seduta
-    const rawReps = 30 * ((benchmarkE1RM / p) - 1);
-    repsPareggia = Math.max(1, Math.round(rawReps));
-    repsSupera = repsPareggia + 1;
-    isTargetCoachAttivo = targetCoachE1RM >= targetRecE1RM;
+  if (p === pBase) {
+    repsPareggia = rBase;
+  } else if (p > 0 && e1rmBase > 0) {
+    const rawP = 30 * ((e1rmBase / p) - 1);
+    repsPareggia = Math.max(1, Math.round(rawP));
   } else {
-    repsPareggia = targetCoachReps;
-    repsSupera = targetCoachReps + 1;
+    repsPareggia = targetRepsWeek;
   }
 
-  // Garantisce SEMPRE repsSupera > repsPareggia (mai doppioni!)
-  if (repsSupera <= repsPareggia) {
-    repsSupera = repsPareggia + 1;
+  // 2. SCAGLIONE PROGREDISCI (🎯 OBIETTIVO PRINCIPALE: fare meglio della scorsa sessione!)
+  let repsProgredisci = repsPareggia + 1;
+  if (p > pBase) {
+    // Se ha aumentato il carico rispetto alla base:
+    // Se fa le reps della settimana (es. 5 reps per il 3x5) e supera già l'e1rm di base, centriamo il target della scheda!
+    const e1rmTargetWeek = calcolaE1RMSmorzato(p, targetRepsWeek, isCavo);
+    if (e1rmTargetWeek > e1rmBase) {
+      repsProgredisci = targetRepsWeek;
+    } else {
+      repsProgredisci = repsPareggia + 1;
+    }
+  } else {
+    repsProgredisci = repsPareggia + 1;
+  }
+
+  // Garantisce SEMPRE repsProgredisci > repsPareggia
+  if (repsProgredisci <= repsPareggia) {
+    repsProgredisci = repsPareggia + 1;
+  }
+
+  // 3. SCAGLIONE RECORD ASSOLUTO / PR (Discreto / Secondario)
+  let repsPR = repsProgredisci;
+  if (e1rmRecordAssoluto > e1rmBase) {
+    const rawPR = 30 * ((e1rmRecordAssoluto / p) - 1);
+    repsPR = Math.max(repsProgredisci, Math.round(rawPR) + 1);
+  } else {
+    repsPR = repsProgredisci;
   }
 
   const e1rmPareggia = Math.round(calcolaE1RMSmorzato(p, repsPareggia, isCavo) * 10) / 10;
-  const e1rmSupera = Math.round(calcolaE1RMSmorzato(p, repsSupera, isCavo) * 10) / 10;
+  const e1rmProgredisci = Math.round(calcolaE1RMSmorzato(p, repsProgredisci, isCavo) * 10) / 10;
+  const e1rmPR = Math.round(calcolaE1RMSmorzato(p, repsPR, isCavo) * 10) / 10;
 
-  // Livello reps (Combinazione A + B)
+  // Livello reps semaforico
   let livelloReps = 'ottimale';
-  if (repsSupera >= 25) {
+  if (repsProgredisci >= 25) {
     livelloReps = 'troppe';
-  } else if (repsSupera >= 21) {
+  } else if (repsProgredisci >= 21) {
     livelloReps = 'attenzione';
   }
 
-  // Calcolo peso consigliato per riportarsi a circa 10-12 reps se troppe
+  // Fix rapido peso per riportarsi a reps gestibili se troppe
   let pesoConsigliato = 0;
   let repsPesoConsigliato = 10;
-  if (livelloReps === 'troppe' && benchmarkE1RM > 0) {
+  if (livelloReps === 'troppe' && e1rmBase > 0) {
     const step = (stepCaricoEsercizioEffettivo && stepCaricoEsercizioEffettivo.value) ? stepCaricoEsercizioEffettivo.value : 1.0;
-    const rawP = calcolaPesoDaE1RMSmorzato(benchmarkE1RM, 10, isCavo);
+    const rawP = calcolaPesoDaE1RMSmorzato(e1rmBase * 1.025, 10, isCavo);
     pesoConsigliato = Math.ceil(rawP / step) * step;
     if (pesoConsigliato <= p) pesoConsigliato = p + step;
-    const rawR = 30 * ((benchmarkE1RM / pesoConsigliato) - 1);
+    const rawR = 30 * ((e1rmBase / pesoConsigliato) - 1);
     repsPesoConsigliato = Math.max(1, Math.round(rawR) + 1);
   }
 
   return {
-    repsEguagliaRecord: repsPareggia,
-    repsSuperaRecord: repsSupera,
-    e1rmEguaglia: e1rmPareggia,
-    e1rmSupera: e1rmSupera,
-    targetCoachW,
-    targetCoachReps,
-    isTargetCoachAttivo,
+    baseWNum: base.baseWNum,
+    basePeso: pBase,
+    baseReps: rBase,
+    baseE1RM: e1rmBase,
+    repsPareggia,
+    repsProgredisci,
+    repsPR,
+    e1rmPareggia,
+    e1rmProgredisci,
+    e1rmPR,
+    hasRecordSuperiore: repsPR > repsProgredisci,
     settimanaNum: sett,
     livelloReps,
     pesoConsigliato,
@@ -12116,7 +12217,7 @@ const impostaPesoConsigliato = (peso) => {
   calcolatoreStalloPeso.value = peso;
 };
 
-const applicaRepsStallo = (reps, tipo = 'overload') => {
+const applicaRepsStallo = (reps, tipo = 'progressione') => {
   vibraTattile(15);
   const w = calcolatoreStalloPeso.value;
   const sett = calcolatoreStalloWeek.value;
@@ -12129,7 +12230,7 @@ const applicaRepsStallo = (reps, tipo = 'overload') => {
   }
   dialogCalcolatoreRepsStallo.value = false;
 
-  const labelTipo = tipo === 'overload' ? '🏆 Nuovo Record PR' : (tipo === 'coach' ? '🎯 Target Coach' : '🟡 Pareggio');
+  const labelTipo = tipo === 'progressione' ? '🟢 Progressione' : (tipo === 'pareggio' ? '🟡 Pareggio' : (tipo === 'pr' ? '🏆 Record Storico' : 'Target'));
   snackbarMessaggio.value = `Applicato ${testo} per W${sett} (${labelTipo})!`;
   snackbarSalvataggio.value = true;
 };

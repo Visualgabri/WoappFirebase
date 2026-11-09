@@ -97,6 +97,20 @@
                     Tocca l'icona della <strong>lampadina 💡</strong> nel box di intestazione dell'esercizio per aprire la modale interattiva della <em>Strategia Coach</em>, con tutti i target week per week, RIR prescritto e note tecniche.
                   </p>
                 </div>
+
+                <!-- TRICK POWER USER: Pressione Continua Lampadina -->
+                <div class="guida-callout mt-2" style="background: rgba(245, 158, 11, 0.12); border-left: 3px solid #f59e0b;">
+                  <div class="d-flex align-center gap-1.5 mb-1">
+                    <v-icon size="15" color="amber-darken-2">mdi-gesture-tap-hold</v-icon>
+                    <span class="callout-title font-weight-black text-amber-darken-2" style="font-size: 0.73rem;">💡 TRICK: Pressione Prolungata sulla Lampadina</span>
+                  </div>
+                  <p class="callout-body mb-1" style="font-size: 0.70rem; line-height: 1.4;">
+                    <strong>Tieni premuta la lampadina 💡</strong> per 1 secondo su qualsiasi settimana: si apre il <strong>Calcolatore Reps da Carico (Stallo & Manubri Leggeri)</strong>.
+                  </p>
+                  <p class="callout-body mb-0 text-slate-300" style="font-size: 0.68rem; line-height: 1.35;">
+                    Se i manubri della palestra hanno salti troppo grandi (es. da 7 a 8 kg = +14%) o la progressione è troppo dura, l'algoritmo calcola le ripetizioni esatte da fare con il peso che hai scritto per <strong>pareggiare</strong> o <strong>battere il record (+1 rep)</strong> mantenendo il sovraccarico progressivo sull'e1RM!
+                  </p>
+                </div>
               </div>
 
               <!-- Calcolatore Interattivo e1RM -->
@@ -282,7 +296,35 @@
                 </div>
               </div>
 
-              <!-- 4. Sintassi Reps con 'r' e Suffissi Tecnici -->
+              <!-- 4. Gestione Stalli & Manubri con Alte Reps (Trick Lampadina Long-Press) -->
+              <div class="guida-card mb-3" style="border-color: rgba(245, 158, 11, 0.35);">
+                <div class="guida-card-title mb-1.5 d-flex align-center justify-space-between">
+                  <div class="d-flex align-center gap-1.5">
+                    <v-icon size="16" color="amber-darken-2">mdi-gesture-tap-hold</v-icon>
+                    <span>Stallo & Manubri Leggeri: Calcolo Reps da Kg</span>
+                  </div>
+                  <v-chip size="x-small" color="amber" variant="flat" class="font-weight-black text-black px-1.5" style="height: 17px; font-size: 0.54rem;">TRICK 💡</v-chip>
+                </div>
+                <p class="guida-card-body mb-2" style="font-size: 0.71rem; line-height: 1.42;">
+                  Negli esercizi con manubri (come curl bicipiti o alzate laterali), salire anche solo di 1 o 2 kg rappresenta spesso un balzo del <strong>+14% fino al +28%</strong>, rendendo la progressione impraticabile.
+                </p>
+                <div class="guida-callout mb-2" style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b;">
+                  <div class="callout-body" style="font-size: 0.69rem; line-height: 1.4;">
+                    👉 <strong>Come attivare il Calcolatore:</strong> <strong>Tieni premuta la lampadina 💡</strong> per 1 secondo accanto al carico consigliato della settimana.
+                  </div>
+                </div>
+                <div class="d-flex flex-column gap-1.5">
+                  <div class="guida-callout guida-callout-green">
+                    <div class="callout-body" style="font-size: 0.69rem; line-height: 1.38;">
+                      • <strong>Batti il Record (Nuovo PR):</strong> L'algoritmo legge il carico che hai in mano e calcola le ripetizioni esatte per stabilire un nuovo record di massimale stimato (e1RM), permettendo di progredire anche con un carico più basso ad alte reps.<br>
+                      • <strong>1-Tap Insert:</strong> Tocca il bottone per autocompilare la serie (es. <code class="px-1 py-0.5 rounded font-weight-bold">7x17r</code>) senza dover fare calcoli a mente.<br>
+                      • <strong>Avviso >20 reps:</strong> Se le reps diventano elevate, l'app ti suggerisce strategie di densità come il <em>Rest-Pause</em> per non cedere sull'acido lattico.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. Sintassi Reps con 'r' e Suffissi Tecnici -->
               <div class="guida-card mb-3">
                 <div class="guida-card-title mb-1.5">
                   <v-icon size="16" color="orange-darken-2">mdi-pencil-outline</v-icon>

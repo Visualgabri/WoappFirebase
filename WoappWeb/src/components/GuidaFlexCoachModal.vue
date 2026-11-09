@@ -105,10 +105,10 @@
                     <span class="callout-title font-weight-black text-amber-darken-2" style="font-size: 0.73rem;">💡 TRICK: Pressione Prolungata sulla Lampadina</span>
                   </div>
                   <p class="callout-body mb-1" style="font-size: 0.70rem; line-height: 1.4;">
-                    <strong>Tieni premuta la lampadina 💡</strong> per 1 secondo su qualsiasi settimana: si apre il <strong>Calcolatore Reps da Carico (Stallo & Manubri Leggeri)</strong>.
+                    <strong>Tieni premuta la lampadina 💡</strong> per 1 secondo su qualsiasi settimana: si apre il <strong>Calcolatore Reps da Carico (Stallo & Alte Reps)</strong>.
                   </p>
                   <p class="callout-body mb-0 text-slate-300" style="font-size: 0.68rem; line-height: 1.35;">
-                    Se i manubri della palestra hanno salti troppo grandi (es. da 7 a 8 kg = +14%) o la progressione è troppo dura, l'algoritmo calcola le ripetizioni esatte da fare con il peso che hai scritto per <strong>pareggiare</strong> o <strong>battere il record (+1 rep)</strong> mantenendo il sovraccarico progressivo sull'e1RM!
+                    Se i manubri della palestra hanno salti troppo grandi (es. da 7 a 8 kg = +14%) o incontri uno stallo, l'algoritmo calcola a scaglioni le ripetizioni esatte per <strong>progredire rispetto alla settimana precedente</strong> (+1 rep o stimolo superiore su e1RM), permettendo di sovraccaricare anche scalando il peso ad alte reps.
                   </p>
                 </div>
               </div>
@@ -306,19 +306,22 @@
                   <v-chip size="x-small" color="amber" variant="flat" class="font-weight-black text-black px-1.5" style="height: 17px; font-size: 0.54rem;">TRICK 💡</v-chip>
                 </div>
                 <p class="guida-card-body mb-2" style="font-size: 0.71rem; line-height: 1.42;">
-                  Negli esercizi con manubri (come curl bicipiti o alzate laterali), salire anche solo di 1 o 2 kg rappresenta spesso un balzo del <strong>+14% fino al +28%</strong>, rendendo la progressione impraticabile.
+                  Negli esercizi con manubri o quando un carico stalla, aumentare i kg è spesso impossibile o rischioso. Il calcolatore permette di continuare la progressione con un peso gestibile ad alte ripetizioni.
                 </p>
                 <div class="guida-callout mb-2" style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b;">
                   <div class="callout-body" style="font-size: 0.69rem; line-height: 1.4;">
-                    👉 <strong>Come attivare il Calcolatore:</strong> <strong>Tieni premuta la lampadina 💡</strong> per 1 secondo accanto al carico consigliato della settimana.
+                    👉 <strong>Come attivare il Calcolatore:</strong> <strong>Tieni premuta la lampadina 💡</strong> accanto al carico consigliato della settimana (oppure tocca il banner nella modale Strategia).
                   </div>
                 </div>
                 <div class="d-flex flex-column gap-1.5">
                   <div class="guida-callout guida-callout-green">
                     <div class="callout-body" style="font-size: 0.69rem; line-height: 1.38;">
-                      • <strong>Batti il Record (Nuovo PR):</strong> L'algoritmo legge il carico che hai in mano e calcola le ripetizioni esatte per stabilire un nuovo record di massimale stimato (e1RM), permettendo di progredire anche con un carico più basso ad alte reps.<br>
-                      • <strong>1-Tap Insert:</strong> Tocca il bottone per autocompilare la serie (es. <code class="px-1 py-0.5 rounded font-weight-bold">7x17r</code>) senza dover fare calcoli a mente.<br>
-                      • <strong>Avviso >20 reps:</strong> Se le reps diventano elevate, l'app ti suggerisce strategie di densità come il <em>Rest-Pause</em> per non cedere sull'acido lattico.
+                      • <strong>Target a Scaglioni vs Settimana Precedente:</strong><br>
+                      &nbsp;&nbsp;– <strong>Pareggia:</strong> le reps per eguagliare lo stimolo della scorsa seduta.<br>
+                      &nbsp;&nbsp;– <strong>Progredisci 🟢 (Obiettivo):</strong> le reps esatte per progredire (+1 rep o stimolo superiore su e1RM).<br>
+                      &nbsp;&nbsp;– <strong>Supera Record 🏆:</strong> la soglia per battere anche il record storico assoluto.<br>
+                      • <strong>1-Tap Insert:</strong> Tocca il bottone verde per inserire la progressione (es. <code class="px-1 py-0.5 rounded font-weight-bold">60x6r</code>), oppure tocca direttamente una delle righe.<br>
+                      • <strong>Protezione Troppe Reps (>24):</strong> Se il peso è troppo basso per stimolare ipertrofia efficace, l'app ti avvisa e con 1 tap calcola il carico minimo ottimale.
                     </div>
                   </div>
                 </div>

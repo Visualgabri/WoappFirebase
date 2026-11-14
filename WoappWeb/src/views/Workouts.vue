@@ -3511,7 +3511,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, caricaStoricoSchedeAtletaFirestore, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
+import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, caricaStoricoSchedeAtletaFirestore, backupIndexVersion, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio, isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
@@ -5445,7 +5445,7 @@ const vaiADettaglioEsercizio = (ex) => {
 // Funzione che rileva se l'esercizio proviene dalla scheda precedente e da quale giorno ('stesso_giorno' | 'giorno_diverso' | null)
 const getProvenienzaSchedaPrecedente = (ex) => {
   if (!ex) return null;
-  const _ = triggerReattivitaSchedaPrecedente.value;
+  const _ = triggerReattivitaSchedaPrecedente.value + backupIndexVersion.value;
   
   const currentNumScheda = parseInt(ex.num_scheda || selectedSheet.value);
   if (isNaN(currentNumScheda) || currentNumScheda <= 1) return null;

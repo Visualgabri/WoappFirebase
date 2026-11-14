@@ -2580,6 +2580,33 @@ watch([
 let backupDataPromise = null;
 let backupDataCache = null;
 let backupExerciseMap = null;
+let firestoreAthleteItemsMap = new Map();
+export const backupIndexVersion = ref(0);
+
+const mergeItemsIntoExerciseMap = (targetMap, items) => {
+  if (!targetMap || !items || !Array.isArray(items)) return;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const keyCliente = item.ID_cliente !== undefined ? 'ID_cliente' : (Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente');
+    const atletaId = String(item[keyCliente] !== undefined ? item[keyCliente] : '').trim();
+    const nomeNorm = String(item.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    if (atletaId && nomeNorm && parseInt(item.num_riga_giorno) > 0) {
+      const mapKey = `${atletaId}_${nomeNorm}`;
+      let arr = targetMap.get(mapKey);
+      if (!arr) {
+        arr = [];
+        targetMap.set(mapKey, arr);
+      }
+      const sNum = parseInt(item.num_scheda);
+      const existingIdx = arr.findIndex(x => parseInt(x.num_scheda) === sNum && String(x.des_giorno) === String(item.des_giorno) && String(x.num_riga_giorno) === String(item.num_riga_giorno));
+      if (existingIdx >= 0) {
+        arr[existingIdx] = { ...arr[existingIdx], ...item };
+      } else {
+        arr.push(item);
+      }
+    }
+  }
+};
 
 export const popolaIndiceBackup = (items) => {
   if (!items || !Array.isArray(items)) return;
@@ -2600,6 +2627,12 @@ export const popolaIndiceBackup = (items) => {
     }
   }
   backupExerciseMap = map;
+  if (firestoreAthleteItemsMap.size > 0) {
+    for (const fsItems of firestoreAthleteItemsMap.values()) {
+      mergeItemsIntoExerciseMap(backupExerciseMap, fsItems);
+    }
+  }
+  backupIndexVersion.value++;
 };
 
 export const integraElementiInIndice = (items) => {
@@ -2608,27 +2641,8 @@ export const integraElementiInIndice = (items) => {
     if (backupDataCache) popolaIndiceBackup(backupDataCache);
     else backupExerciseMap = new Map();
   }
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    const keyCliente = item.ID_cliente !== undefined ? 'ID_cliente' : (Object.keys(item).find(k => k.includes('ID_cliente')) || 'ID_cliente');
-    const atletaId = String(item[keyCliente] !== undefined ? item[keyCliente] : '').trim();
-    const nomeNorm = String(item.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
-    if (atletaId && nomeNorm && parseInt(item.num_riga_giorno) > 0) {
-      const mapKey = `${atletaId}_${nomeNorm}`;
-      let arr = backupExerciseMap.get(mapKey);
-      if (!arr) {
-        arr = [];
-        backupExerciseMap.set(mapKey, arr);
-      }
-      const sNum = parseInt(item.num_scheda);
-      const existingIdx = arr.findIndex(x => parseInt(x.num_scheda) === sNum && String(x.des_giorno) === String(item.des_giorno) && String(x.num_riga_giorno) === String(item.num_riga_giorno));
-      if (existingIdx >= 0) {
-        arr[existingIdx] = { ...arr[existingIdx], ...item };
-      } else {
-        arr.push(item);
-      }
-    }
-  }
+  mergeItemsIntoExerciseMap(backupExerciseMap, items);
+  backupIndexVersion.value++;
 };
 
 export const caricaStoricoSchedeAtletaFirestore = async (athleteId) => {
@@ -2645,6 +2659,7 @@ export const caricaStoricoSchedeAtletaFirestore = async (athleteId) => {
       items.push({ id: docSnap.id, ...docSnap.data() });
     });
     if (items.length > 0) {
+      firestoreAthleteItemsMap.set(String(athleteId).trim(), items);
       integraElementiInIndice(items);
     }
     return items;

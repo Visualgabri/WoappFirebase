@@ -409,7 +409,7 @@
                       class="font-weight-black header-title-text mb-0"
                       :class="layoutEsercizi === 'super_compatto' ? 'text-caption' : (layoutEsercizi === 'compatto' ? 'text-body-2' : 'text-subtitle-2')"
                     >
-                      Workout Giorno {{ giornoSelezionato }}
+                      Workout Giorno {{ giornoSelezionato }}<span v-if="headerGiorno?.des_settore && headerGiorno.des_settore.trim()" class="ml-1 font-weight-bold" style="opacity: 0.9;">({{ headerGiorno.des_settore.trim() }})</span>
                     </h3>
                   </div>
                   <!-- Promemoria Chiusura Settimana -->
@@ -436,9 +436,8 @@
                         height: layoutEsercizi === 'super_compatto' ? '15px' : '18px'
                       }"
                       @click.stop="inviaPromemoriaChiusuraWhatsAppCoach"
-                      title="Invia promemoria chiusura workout all'atleta su WhatsApp"
+                      title="Invia promemoria chiusura workout all'atleta"
                     >
-                      <v-icon start size="11" class="mr-0.5">mdi-whatsapp</v-icon>
                       Ricorda Chiusura
                     </v-btn>
                   </div>
@@ -628,7 +627,7 @@
                       class="font-weight-black header-title-text text-truncate mb-0"
                       :class="layoutEsercizi === 'super_compatto' ? 'text-body-2' : (layoutEsercizi === 'compatto' ? 'text-subtitle-2' : 'text-subtitle-1')"
                     >
-                      {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}
+                      {{ headerGiorno.des_esercizio || 'Sessione di Allenamento' }}<span v-if="headerGiorno?.des_settore && headerGiorno.des_settore.trim()" class="ml-1 font-weight-bold" style="opacity: 0.9;">({{ headerGiorno.des_settore.trim() }})</span>
                     </h3>
                   </div>
                   <!-- Promemoria Chiusura Settimana -->
@@ -655,9 +654,8 @@
                         height: layoutEsercizi === 'super_compatto' ? '15px' : '18px'
                       }"
                       @click.stop="inviaPromemoriaChiusuraWhatsAppCoach"
-                      title="Invia promemoria chiusura workout all'atleta su WhatsApp"
+                      title="Invia promemoria chiusura workout all'atleta"
                     >
-                      <v-icon start size="11" class="mr-0.5">mdi-whatsapp</v-icon>
                       Ricorda Chiusura
                     </v-btn>
                   </div>
@@ -862,7 +860,7 @@
                       <v-chip color="primary" size="x-small" variant="flat" class="font-weight-black text-white mr-1 flex-shrink-0 px-1" style="height: 14px; font-size: 0.48rem; border-radius: 2px;">
                         REC • G.{{ block.exercise.des_giorno }}
                       </v-chip>
-                      <span class="text-caption font-weight-bold text-slate-dark text-truncate mr-1" style="font-size: 0.75rem !important; line-height: 1.25;">
+                      <span class="text-caption font-weight-bold text-truncate mr-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
                         {{ block.exercise.des_esercizio }}
                       </span>
                       <!-- Selettore Posizione Rapido -->
@@ -977,7 +975,7 @@
                 <!-- Dettagli Centrali Estesi -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                   <!-- Riga 1: Titolo Esercizio (Pieno spazio per massima leggibilità su smartphone) -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 text-slate-dark text-truncate" style="font-size: 0.80rem !important; line-height: 1.25 !important; padding-right: 64px;">
+                  <h4 class="font-weight-black leading-tight mb-0.5 text-truncate" :class="esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark'" style="font-size: 0.80rem !important; line-height: 1.25 !important; padding-right: 64px;">
                     {{ block.exercise.des_esercizio || 'Esercizio da recuperare' }}
                   </h4>
 
@@ -1120,7 +1118,7 @@
                 <div class="flex-grow-1 text-left min-width-0 position-relative">
                   <!-- Titolo Esercizio Standard -->
                   <div class="d-flex align-center min-width-0 mb-1">
-                    <h4 class="font-weight-black leading-tight text-slate-dark text-truncate mr-2 flex-grow-1" style="font-size: 0.88rem !important;">
+                    <h4 class="font-weight-black leading-tight text-truncate mr-2 flex-grow-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark'" style="font-size: 0.88rem !important;">
                       {{ block.exercise.des_esercizio }}
                     </h4>
                   </div>
@@ -1296,7 +1294,7 @@
                         <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                           {{ ex.num_riga_giorno }}.
                         </span>
-                        <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
+                        <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
                           <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(ex) }}</span>
                           {{ ex.des_esercizio }}
                         </span>
@@ -1402,7 +1400,7 @@
                     <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                       <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                      <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                      <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         <span v-if="(ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                         <span class="text-truncate">{{ ex.des_esercizio || 'Esercizio' }}</span>
@@ -1542,7 +1540,7 @@
                     <!-- Dettagli Centrali -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
@@ -1657,7 +1655,7 @@
                       <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                         {{ block.exercise.num_riga_giorno }}.
                       </span>
-                      <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'text-red-lighten-3' : 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
+                      <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
                         <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(block.exercise) }}</span>
                         {{ block.exercise.des_esercizio }}
                       </span>
@@ -1764,7 +1762,7 @@
                 <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                   <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-slate-dark text-truncate d-flex align-center" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                  <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     <span v-if="(block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                     <span class="text-truncate">{{ block.exercise.des_esercizio || 'Esercizio' }}</span>
@@ -1904,7 +1902,7 @@
                 <!-- Dettagli Centrali -->
                 <div class="flex-grow-1 text-left min-width-0">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
+                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
@@ -3513,7 +3511,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
+import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio, isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
@@ -4357,7 +4355,7 @@ const caricamento = ref(true);
 const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
-const allExercisesBackup = ref([]);
+const allExercisesBackup = ref(getStoryboardBackupSync() || []);
 
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
@@ -5443,28 +5441,72 @@ const vaiADettaglioEsercizio = (ex) => {
   router.push({ name: 'DettaglioWorkout', params: { id: ex.id } });
 };
 
-// Funzione infallibile che controlla se l'esercizio esisteva ESATTAMENTE nella scheda - 1
+// Funzione infallibile che controlla se l'esercizio esisteva nella scheda precedente
 const esisteInSchedaPrecedente = (ex) => {
-  if (!ex || !allExercisesBackup.value.length) return false;
+  if (!ex) return false;
   
-  const currentNumScheda = parseInt(ex.num_scheda);
+  const currentNumScheda = parseInt(ex.num_scheda || selectedSheet.value);
   if (isNaN(currentNumScheda) || currentNumScheda <= 1) return false;
   
-  const targetScheda = currentNumScheda - 1;
-  const nomeEx = String(ex.des_esercizio || '').trim().toLowerCase();
   const keyIdCliente = Object.keys(ex).find(k => k.includes('ID_cliente')) || 'ID_cliente';
-  const atletaId = ex[keyIdCliente] || '';
+  const atletaId = ex[keyIdCliente] || ex.ID_cliente || ex.id_cliente || selectedAthlete.value || '';
+  if (!atletaId) return false;
 
-  if (!nomeEx || !atletaId) return false;
+  const rawNome = ex.des_esercizio || '';
+  const nomeEx = String(rawNome).trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!nomeEx) return false;
 
-  // Cerca nel backup locale l'esercizio con la scheda ESATTAMENTE uguale a quella precedente
-  return allExercisesBackup.value.some(b => {
-    const bAtletaId = b[keyIdCliente] || b['ID_cliente'] || '';
-    return String(bAtletaId) === String(atletaId) &&
-           String(b.des_esercizio || '').trim().toLowerCase() === nomeEx &&
-           parseInt(b.num_scheda) === targetScheda &&
-           parseInt(b.num_riga_giorno) > 0;
-  });
+  const targetScheda = currentNumScheda - 1;
+
+  // 1. Prova ricerca rapida con indice sync
+  const storico = getStoricoEsercizioFromBackupSync(atletaId, nomeEx);
+  if (storico && storico.length > 0) {
+    const trovato = storico.some(b => {
+      const sNum = parseInt(b.num_scheda);
+      return (sNum === targetScheda || (targetScheda <= 0 && sNum < currentNumScheda)) &&
+             parseInt(b.num_riga_giorno) > 0;
+    });
+    if (trovato) return true;
+  }
+
+  // 2. Controllo su allExercisesBackup
+  const backupList = (allExercisesBackup.value && allExercisesBackup.value.length) ? allExercisesBackup.value : getStoryboardBackupSync();
+  if (backupList && backupList.length > 0) {
+    const trovatoBackup = backupList.some(b => {
+      const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
+      if (String(bAtletaId) !== String(atletaId)) return false;
+      const bScheda = parseInt(b.num_scheda);
+      if (bScheda !== targetScheda) return false;
+      if (parseInt(b.num_riga_giorno) <= 0) return false;
+      const bNome = String(b.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
+      return bNome === nomeEx;
+    });
+    if (trovatoBackup) return true;
+
+    // 3. Fallback per eventuale salto di numerazione schede: cerca la scheda precedente più recente (< currentNumScheda)
+    let maxPrevScheda = -1;
+    backupList.forEach(b => {
+      const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
+      if (String(bAtletaId) === String(atletaId)) {
+        const s = parseInt(b.num_scheda);
+        if (s < currentNumScheda && s > maxPrevScheda) {
+          maxPrevScheda = s;
+        }
+      }
+    });
+    if (maxPrevScheda > 0 && maxPrevScheda !== targetScheda) {
+      return backupList.some(b => {
+        const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
+        if (String(bAtletaId) !== String(atletaId)) return false;
+        if (parseInt(b.num_scheda) !== maxPrevScheda) return false;
+        if (parseInt(b.num_riga_giorno) <= 0) return false;
+        const bNome = String(b.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        return bNome === nomeEx;
+      });
+    }
+  }
+
+  return false;
 };
 
 // Funzione che rileva lo STALLO (nessuna progressione tra W1 e W6) nel mesociclo precedente
@@ -6336,9 +6378,12 @@ const caricaAllenamenti = async () => {
 
   caricamento.value = true;
   
-  // 1. Carica preventivamente il backup JSON per le patch di sicurezza GIF
+  // 1. Carica preventivamente il backup JSON per le patch di sicurezza GIF e storico scheda precedente
   try {
-    allExercisesBackup.value = await getStoryboardBackup();
+    const backup = await getStoryboardBackup();
+    if (backup && backup.length) {
+      allExercisesBackup.value = backup;
+    }
   } catch (errBackup) {
     console.warn("Impossibile caricare backup locale in anticipo:", errBackup);
   }
@@ -8165,6 +8210,14 @@ const ripristinaMesociclo = async () => {
 
 .text-slate-dark {
   color: #f8fafc !important;
+}
+
+.titolo-esercizio-scheda-precedente {
+  color: #ef4444 !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente {
+  color: #dc2626 !important;
 }
 
 .text-slate {

@@ -1165,6 +1165,15 @@
   color: var(--text-muted) !important;
 }
 
+.titolo-esercizio-scheda-precedente {
+  color: #ef4444 !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente,
+[data-theme="light"] .workout-item-card .titolo-esercizio-scheda-precedente {
+  color: #dc2626 !important;
+}
+
 [data-theme="light"] .coaching-notes-card {
   background: linear-gradient(135deg, #fffbe6 0%, var(--card-bg-glass) 100%) !important;
   border: 1px solid #fde047 !important;

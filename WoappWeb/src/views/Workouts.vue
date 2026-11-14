@@ -8213,11 +8213,11 @@ const ripristinaMesociclo = async () => {
 }
 
 .titolo-esercizio-scheda-precedente {
-  color: #ef4444 !important;
+  color: var(--variation-red-color, #f87171) !important;
 }
 
 [data-theme="light"] .titolo-esercizio-scheda-precedente {
-  color: #dc2626 !important;
+  color: var(--color-red-700, #b91c1c) !important;
 }
 
 .text-slate {

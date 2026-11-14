@@ -17,7 +17,7 @@
           <h3 
             class="font-weight-black mb-0 text-center" 
             :class="[
-              (previousWorkout && parseInt(previousWorkout.num_scheda) === parseInt(workout?.num_scheda) - 1) ? 'text-red-lighten-3' : 'text-slate-dark'
+              classeTitoloSchedaPrecedente
             ]"
             :style="{
               fontSize: getTitoloFontSize(workout?.des_esercizio),
@@ -17004,6 +17004,54 @@ function tempoTrascorso(dateStr) {
   }
 }
 
+const classeTitoloSchedaPrecedente = computed(() => {
+  if (!workout.value) return 'text-slate-dark';
+  const currentScheda = parseInt(workout.value.num_scheda);
+  if (isNaN(currentScheda) || currentScheda <= 1) return 'text-slate-dark';
+
+  const currGiorno = String(workout.value.des_giorno || '').trim().toUpperCase();
+
+  // 1. Controlla previousWorkout
+  if (previousWorkout.value) {
+    const prevScheda = parseInt(previousWorkout.value.num_scheda);
+    if (!isNaN(prevScheda) && prevScheda === currentScheda - 1) {
+      const prevGiorno = String(previousWorkout.value.des_giorno || '').trim().toUpperCase();
+      if (prevGiorno && currGiorno && prevGiorno === currGiorno) {
+        return 'titolo-esercizio-scheda-precedente-stesso-giorno';
+      }
+      return 'titolo-esercizio-scheda-precedente-giorno-diverso';
+    }
+  }
+
+  // 2. Controlla backup indicizzato
+  try {
+    const { id: atletaId } = getAtletaInfo(workout.value);
+    const rawNome = workout.value.des_esercizio || '';
+    const nomeEx = normalizzaNomeEsercizio(rawNome);
+    if (atletaId && nomeEx) {
+      const targetScheda = currentScheda - 1;
+      const backupMatches = getStoricoEsercizioFromBackupSync(atletaId, nomeEx);
+      if (backupMatches && backupMatches.length > 0) {
+        const match = backupMatches.find(b => {
+          const sNum = parseInt(b.num_scheda);
+          return sNum === targetScheda && (parseInt(b.num_riga_giorno) > 0 || !b.num_riga_giorno);
+        });
+        if (match) {
+          const prevGiorno = String(match.des_giorno || '').trim().toUpperCase();
+          if (prevGiorno && currGiorno && prevGiorno === currGiorno) {
+            return 'titolo-esercizio-scheda-precedente-stesso-giorno';
+          }
+          return 'titolo-esercizio-scheda-precedente-giorno-diverso';
+        }
+      }
+    }
+  } catch (e) {
+    // silent
+  }
+
+  return 'text-slate-dark';
+});
+
 const getTitoloFontSize = (nomeEsercizio) => {
   const nome = String(nomeEsercizio || '').trim();
   const len = nome.length;
@@ -25239,6 +25287,22 @@ const tornaIndietro = () => {
 .appsheet-top-bar {
   border-bottom: 2px solid var(--theme-primary) !important;
   padding-bottom: 4px; /* Was 8px, reduced to tighten header height */
+}
+
+.titolo-esercizio-scheda-precedente-stesso-giorno {
+  color: var(--variation-red-color, #f87171) !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente-stesso-giorno {
+  color: #ef4444 !important;
+}
+
+.titolo-esercizio-scheda-precedente-giorno-diverso {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente-giorno-diverso {
+  color: var(--color-red-700, #991b1b) !important;
 }
 
 .text-slate-dark {

@@ -1165,6 +1165,25 @@
   color: var(--text-muted) !important;
 }
 
+/* Esercizi provenienti dalla scheda precedente: stesso giorno (rosso più chiaro) vs giorno diverso (rosso più scuro) */
+.titolo-esercizio-scheda-precedente-stesso-giorno {
+  color: var(--variation-red-color, #f87171) !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente-stesso-giorno,
+[data-theme="light"] .workout-item-card .titolo-esercizio-scheda-precedente-stesso-giorno {
+  color: #ef4444 !important;
+}
+
+.titolo-esercizio-scheda-precedente-giorno-diverso {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente-giorno-diverso,
+[data-theme="light"] .workout-item-card .titolo-esercizio-scheda-precedente-giorno-diverso {
+  color: var(--color-red-700, #991b1b) !important;
+}
+
 .titolo-esercizio-scheda-precedente {
   color: var(--variation-red-color, #f87171) !important;
 }

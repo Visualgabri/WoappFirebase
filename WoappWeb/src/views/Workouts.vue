@@ -860,7 +860,7 @@
                       <v-chip color="primary" size="x-small" variant="flat" class="font-weight-black text-white mr-1 flex-shrink-0 px-1" style="height: 14px; font-size: 0.48rem; border-radius: 2px;">
                         REC • G.{{ block.exercise.des_giorno }}
                       </v-chip>
-                      <span class="text-caption font-weight-bold text-truncate mr-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
+                      <span class="text-caption font-weight-bold text-truncate mr-1" :class="getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
                         {{ block.exercise.des_esercizio }}
                       </span>
                       <!-- Selettore Posizione Rapido -->
@@ -975,7 +975,7 @@
                 <!-- Dettagli Centrali Estesi -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                   <!-- Riga 1: Titolo Esercizio (Pieno spazio per massima leggibilità su smartphone) -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 text-truncate" :class="esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark'" style="font-size: 0.80rem !important; line-height: 1.25 !important; padding-right: 64px;">
+                  <h4 class="font-weight-black leading-tight mb-0.5 text-truncate" :class="getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark'" style="font-size: 0.80rem !important; line-height: 1.25 !important; padding-right: 64px;">
                     {{ block.exercise.des_esercizio || 'Esercizio da recuperare' }}
                   </h4>
 
@@ -1118,7 +1118,7 @@
                 <div class="flex-grow-1 text-left min-width-0 position-relative">
                   <!-- Titolo Esercizio Standard -->
                   <div class="d-flex align-center min-width-0 mb-1">
-                    <h4 class="font-weight-black leading-tight text-truncate mr-2 flex-grow-1" :class="esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark'" style="font-size: 0.88rem !important;">
+                    <h4 class="font-weight-black leading-tight text-truncate mr-2 flex-grow-1" :class="getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark'" style="font-size: 0.88rem !important;">
                       {{ block.exercise.des_esercizio }}
                     </h4>
                   </div>
@@ -1294,7 +1294,7 @@
                         <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                           {{ ex.num_riga_giorno }}.
                         </span>
-                        <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
+                        <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
                           <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(ex) }}</span>
                           {{ ex.des_esercizio }}
                         </span>
@@ -1400,7 +1400,7 @@
                     <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                       <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                      <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                      <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         <span v-if="(ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                         <span class="text-truncate">{{ ex.des_esercizio || 'Esercizio' }}</span>
@@ -1540,7 +1540,7 @@
                     <!-- Dettagli Centrali -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(ex) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
+                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
@@ -1655,7 +1655,7 @@
                       <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                         {{ block.exercise.num_riga_giorno }}.
                       </span>
-                      <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
+                      <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
                         <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(block.exercise) }}</span>
                         {{ block.exercise.des_esercizio }}
                       </span>
@@ -1762,7 +1762,7 @@
                 <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                   <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                  <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     <span v-if="(block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                     <span class="text-truncate">{{ block.exercise.des_esercizio || 'Esercizio' }}</span>
@@ -1902,7 +1902,7 @@
                 <!-- Dettagli Centrali -->
                 <div class="flex-grow-1 text-left min-width-0">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (esisteInSchedaPrecedente(block.exercise) ? 'titolo-esercizio-scheda-precedente' : 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
+                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
@@ -5441,38 +5441,45 @@ const vaiADettaglioEsercizio = (ex) => {
   router.push({ name: 'DettaglioWorkout', params: { id: ex.id } });
 };
 
-// Funzione infallibile che controlla se l'esercizio esisteva nella scheda precedente
-const esisteInSchedaPrecedente = (ex) => {
-  if (!ex) return false;
+// Funzione che rileva se l'esercizio proviene dalla scheda precedente e da quale giorno ('stesso_giorno' | 'giorno_diverso' | null)
+const getProvenienzaSchedaPrecedente = (ex) => {
+  if (!ex) return null;
   
   const currentNumScheda = parseInt(ex.num_scheda || selectedSheet.value);
-  if (isNaN(currentNumScheda) || currentNumScheda <= 1) return false;
+  if (isNaN(currentNumScheda) || currentNumScheda <= 1) return null;
   
   const keyIdCliente = Object.keys(ex).find(k => k.includes('ID_cliente')) || 'ID_cliente';
   const atletaId = ex[keyIdCliente] || ex.ID_cliente || ex.id_cliente || selectedAthlete.value || '';
-  if (!atletaId) return false;
+  if (!atletaId) return null;
 
   const rawNome = ex.des_esercizio || '';
   const nomeEx = String(rawNome).trim().toLowerCase().replace(/\s+/g, ' ');
-  if (!nomeEx) return false;
+  if (!nomeEx) return null;
 
+  const currentGiorno = String(ex.des_giorno || giornoSelezionato.value || '').trim().toUpperCase();
   const targetScheda = currentNumScheda - 1;
 
   // 1. Prova ricerca rapida con indice sync
   const storico = getStoricoEsercizioFromBackupSync(atletaId, nomeEx);
   if (storico && storico.length > 0) {
-    const trovato = storico.some(b => {
+    const match = storico.find(b => {
       const sNum = parseInt(b.num_scheda);
       return (sNum === targetScheda || (targetScheda <= 0 && sNum < currentNumScheda)) &&
              parseInt(b.num_riga_giorno) > 0;
     });
-    if (trovato) return true;
+    if (match) {
+      const prevGiorno = String(match.des_giorno || '').trim().toUpperCase();
+      if (prevGiorno && currentGiorno && prevGiorno === currentGiorno) {
+        return 'stesso_giorno';
+      }
+      return 'giorno_diverso';
+    }
   }
 
   // 2. Controllo su allExercisesBackup
   const backupList = (allExercisesBackup.value && allExercisesBackup.value.length) ? allExercisesBackup.value : getStoryboardBackupSync();
   if (backupList && backupList.length > 0) {
-    const trovatoBackup = backupList.some(b => {
+    const matchBackup = backupList.find(b => {
       const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
       if (String(bAtletaId) !== String(atletaId)) return false;
       const bScheda = parseInt(b.num_scheda);
@@ -5481,9 +5488,15 @@ const esisteInSchedaPrecedente = (ex) => {
       const bNome = String(b.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
       return bNome === nomeEx;
     });
-    if (trovatoBackup) return true;
+    if (matchBackup) {
+      const prevGiorno = String(matchBackup.des_giorno || '').trim().toUpperCase();
+      if (prevGiorno && currentGiorno && prevGiorno === currentGiorno) {
+        return 'stesso_giorno';
+      }
+      return 'giorno_diverso';
+    }
 
-    // 3. Fallback per eventuale salto di numerazione schede: cerca la scheda precedente più recente (< currentNumScheda)
+    // 3. Fallback per eventuale salto di numerazione schede
     let maxPrevScheda = -1;
     backupList.forEach(b => {
       const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
@@ -5495,7 +5508,7 @@ const esisteInSchedaPrecedente = (ex) => {
       }
     });
     if (maxPrevScheda > 0 && maxPrevScheda !== targetScheda) {
-      return backupList.some(b => {
+      const matchMax = backupList.find(b => {
         const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
         if (String(bAtletaId) !== String(atletaId)) return false;
         if (parseInt(b.num_scheda) !== maxPrevScheda) return false;
@@ -5503,10 +5516,26 @@ const esisteInSchedaPrecedente = (ex) => {
         const bNome = String(b.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
         return bNome === nomeEx;
       });
+      if (matchMax) {
+        const prevGiorno = String(matchMax.des_giorno || '').trim().toUpperCase();
+        if (prevGiorno && currentGiorno && prevGiorno === currentGiorno) {
+          return 'stesso_giorno';
+        }
+        return 'giorno_diverso';
+      }
     }
   }
 
-  return false;
+  return null;
+};
+
+const esisteInSchedaPrecedente = (ex) => !!getProvenienzaSchedaPrecedente(ex);
+
+const getClassProvenienzaSchedaPrecedente = (ex) => {
+  const prov = getProvenienzaSchedaPrecedente(ex);
+  if (prov === 'stesso_giorno') return 'titolo-esercizio-scheda-precedente-stesso-giorno';
+  if (prov === 'giorno_diverso') return 'titolo-esercizio-scheda-precedente-giorno-diverso';
+  return '';
 };
 
 // Funzione che rileva lo STALLO (nessuna progressione tra W1 e W6) nel mesociclo precedente
@@ -8210,6 +8239,22 @@ const ripristinaMesociclo = async () => {
 
 .text-slate-dark {
   color: #f8fafc !important;
+}
+
+.titolo-esercizio-scheda-precedente-stesso-giorno {
+  color: var(--variation-red-color, #f87171) !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente-stesso-giorno {
+  color: #ef4444 !important;
+}
+
+.titolo-esercizio-scheda-precedente-giorno-diverso {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .titolo-esercizio-scheda-precedente-giorno-diverso {
+  color: var(--color-red-700, #991b1b) !important;
 }
 
 .titolo-esercizio-scheda-precedente {

@@ -1294,7 +1294,7 @@
                         <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                           {{ ex.num_riga_giorno }}.
                         </span>
-                        <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
+                        <span class="text-caption font-weight-bold text-truncate" :class="getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
                           <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(ex) }}</span>
                           {{ ex.des_esercizio }}
                         </span>
@@ -1400,7 +1400,7 @@
                     <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                       <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                      <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                      <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark'" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         <span v-if="(ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                         <span class="text-truncate">{{ ex.des_esercizio || 'Esercizio' }}</span>
@@ -1540,7 +1540,7 @@
                     <!-- Dettagli Centrali -->
                     <div class="flex-grow-1 text-left min-width-0 position-relative" style="z-index: 2;">
                       <!-- Titolo Esercizio -->
-                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(ex['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
+                      <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="getClassProvenienzaSchedaPrecedente(ex) || 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
                         <span v-if="getTrendFreccia(ex)" :class="getTrendFreccia(ex) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(ex) }}</span>
                         {{ (ex.flg_ex_mai_fatto === 'false' || ex.flg_ex_mai_fatto === false) && String(ex.num_scheda) !== '1' ? '✨' : '' }}
                         {{ ex.des_esercizio || 'Esercizio' }}
@@ -1655,7 +1655,7 @@
                       <span class="text-caption font-weight-black text-orange-lighten-1 mr-1.5 flex-shrink-0" style="font-size: 0.75rem !important;">
                         {{ block.exercise.num_riga_giorno }}.
                       </span>
-                      <span class="text-caption font-weight-bold text-truncate" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark')" style="font-size: 0.75rem !important; line-height: 1.25;">
+                      <span class="text-caption font-weight-bold text-truncate" :class="getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark'" style="font-size: 0.75rem !important; line-height: 1.25;">
                         <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5">{{ getTrendFreccia(block.exercise) }}</span>
                         {{ block.exercise.des_esercizio }}
                       </span>
@@ -1762,7 +1762,7 @@
                 <!-- Dettagli Centrali Estesi (Occupa tutta la larghezza della card) -->
                 <div class="flex-grow-1 text-left min-width-0 position-relative mt-0.5 pr-1 pb-1" style="z-index: 2;">
                   <!-- Titolo Esercizio (Sfrutta l'intera larghezza in alto a destra) -->
-                  <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark')" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
+                  <h4 class="font-weight-black leading-tight mb-0.5 pr-0 text-truncate d-flex align-center" :class="getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark'" style="font-size: 0.78rem !important; line-height: 1.25 !important;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-2' : 'text-blue-lighten-2'" class="font-weight-black mr-1 flex-shrink-0" style="display: inline-block; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     <span v-if="(block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1'" class="flex-shrink-0 mr-0.5">✨</span>
                     <span class="text-truncate">{{ block.exercise.des_esercizio || 'Esercizio' }}</span>
@@ -1902,7 +1902,7 @@
                 <!-- Dettagli Centrali -->
                 <div class="flex-grow-1 text-left min-width-0">
                   <!-- Titolo Esercizio -->
-                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="haRecupero(block.exercise['ins_week' + settimanaAttivaGiorno]) ? 'text-red-lighten-2' : (getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark')" style="white-space: normal; word-break: break-word;">
+                  <h4 class="font-weight-black leading-tight mb-1 text-body-1" :class="getClassProvenienzaSchedaPrecedente(block.exercise) || 'text-slate-dark'" style="white-space: normal; word-break: break-word;">
                     <span v-if="getTrendFreccia(block.exercise)" :class="getTrendFreccia(block.exercise) === '▲' ? 'text-red-lighten-3' : 'text-blue-lighten-2'" class="font-weight-black mr-0.5" style="display: inline; white-space: nowrap;">{{ getTrendFreccia(block.exercise) }}</span>
                     {{ (block.exercise.flg_ex_mai_fatto === 'false' || block.exercise.flg_ex_mai_fatto === false) && String(block.exercise.num_scheda) !== '1' ? '✨' : '' }}
                     {{ block.exercise.des_esercizio || 'Esercizio' }}
@@ -5464,22 +5464,10 @@ const getProvenienzaSchedaPrecedente = (ex) => {
   // 1. Prova ricerca rapida con indice sync
   const storico = getStoricoEsercizioFromBackupSync(atletaId, nomeEx);
   if (storico && storico.length > 0) {
-    let match = storico.find(b => {
+    const match = storico.find(b => {
       const sNum = parseInt(b.num_scheda);
-      return sNum === targetScheda && parseInt(b.num_riga_giorno) > 0;
+      return sNum === targetScheda && (parseInt(b.num_riga_giorno) > 0 || !b.num_riga_giorno);
     });
-    if (!match) {
-      let maxPrev = -1;
-      storico.forEach(b => {
-        const s = parseInt(b.num_scheda);
-        if (s < currentNumScheda && parseInt(b.num_riga_giorno) > 0 && s > maxPrev) {
-          maxPrev = s;
-        }
-      });
-      if (maxPrev > 0) {
-        match = storico.find(b => parseInt(b.num_scheda) === maxPrev && parseInt(b.num_riga_giorno) > 0);
-      }
-    }
     if (match) {
       const prevGiorno = String(match.des_giorno || '').trim().toUpperCase();
       if (prevGiorno && currentGiorno && prevGiorno === currentGiorno) {
@@ -5497,7 +5485,7 @@ const getProvenienzaSchedaPrecedente = (ex) => {
       if (String(bAtletaId) !== String(atletaId)) return false;
       const bScheda = parseInt(b.num_scheda);
       if (bScheda !== targetScheda) return false;
-      if (parseInt(b.num_riga_giorno) <= 0) return false;
+      if (!(parseInt(b.num_riga_giorno) > 0 || !b.num_riga_giorno)) return false;
       const bNome = String(b.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
       return bNome === nomeEx;
     });
@@ -5507,35 +5495,6 @@ const getProvenienzaSchedaPrecedente = (ex) => {
         return 'stesso_giorno';
       }
       return 'giorno_diverso';
-    }
-
-    // 3. Fallback per eventuale salto di numerazione schede
-    let maxPrevScheda = -1;
-    backupList.forEach(b => {
-      const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
-      if (String(bAtletaId) === String(atletaId)) {
-        const s = parseInt(b.num_scheda);
-        if (s < currentNumScheda && s > maxPrevScheda) {
-          maxPrevScheda = s;
-        }
-      }
-    });
-    if (maxPrevScheda > 0 && maxPrevScheda !== targetScheda) {
-      const matchMax = backupList.find(b => {
-        const bAtletaId = b[keyIdCliente] || b.ID_cliente || b.id_cliente || '';
-        if (String(bAtletaId) !== String(atletaId)) return false;
-        if (parseInt(b.num_scheda) !== maxPrevScheda) return false;
-        if (parseInt(b.num_riga_giorno) <= 0) return false;
-        const bNome = String(b.des_esercizio || '').trim().toLowerCase().replace(/\s+/g, ' ');
-        return bNome === nomeEx;
-      });
-      if (matchMax) {
-        const prevGiorno = String(matchMax.des_giorno || '').trim().toUpperCase();
-        if (prevGiorno && currentGiorno && prevGiorno === currentGiorno) {
-          return 'stesso_giorno';
-        }
-        return 'giorno_diverso';
-      }
     }
   }
 

@@ -25298,11 +25298,11 @@ const tornaIndietro = () => {
 }
 
 .titolo-esercizio-scheda-precedente-giorno-diverso {
-  color: #dc2626 !important;
+  color: #c0395b !important;
 }
 
 [data-theme="light"] .titolo-esercizio-scheda-precedente-giorno-diverso {
-  color: var(--color-red-700, #991b1b) !important;
+  color: #701a35 !important;
 }
 
 .text-slate-dark {

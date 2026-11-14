@@ -3511,7 +3511,7 @@ import { ref, onMounted, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { collection, getDocs, query, where, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
+import { selectedAthlete, selectedSheet, setSelectedSheet, startGlobalTimer, getNomeAtleta, utente, playClickTrigger, setGlobalHaEserciziDaFare, setGlobalSettimanaDaChiudere, apriCalcolatoreDischi, globalStoryboard, loadingStoryboard, layoutEserciziGlobal, layoutDettaglioGlobal, posizioneRecuperiGlobal, timerThemeGlobal, comportamentoPlayGlobal, temaHeaderGiornoGlobal, dimensioneGifCompattaGlobal, getStoryboardBackup, getStoryboardBackupSync, getStoricoEsercizioFromBackupSync, caricaStoricoSchedeAtletaFirestore, risaltoNumeriInsWeekGlobal, formattaInsWeekHtml, ruolo, haRecupero, getCustomExerciseStep, salvaSequenzaNavigabile, caricaSequenzaNavigabile, classificaComplessitaEsercizio } from '../authStore.js';
 import ControlloQualitaModal from '../components/ControlloQualitaModal.vue';
 import { jsPDF } from 'jspdf';
 import { rimuoviContenutoTraParentesi, isManubriEsercizio, isCavoOMacchinaEsercizio, isCorpoLiberoEsercizio, isCardioEsercizio, isPosturaEsercizio } from '../utils/loadParser.js';
@@ -4356,6 +4356,7 @@ const listaAllenamenti = ref([]);
 const headerGiorno = ref(null);
 const eserciziFiltrati = ref([]);
 const allExercisesBackup = ref(getStoryboardBackupSync() || []);
+const triggerReattivitaSchedaPrecedente = ref(0);
 
 // Settimana Attiva importata da localStorage (placeholder iniziale)
 const settimanaAttiva = ref(parseInt(localStorage.getItem('settimanaAttiva_' + selectedAthlete.value)) || 2);
@@ -5444,6 +5445,7 @@ const vaiADettaglioEsercizio = (ex) => {
 // Funzione che rileva se l'esercizio proviene dalla scheda precedente e da quale giorno ('stesso_giorno' | 'giorno_diverso' | null)
 const getProvenienzaSchedaPrecedente = (ex) => {
   if (!ex) return null;
+  const _ = triggerReattivitaSchedaPrecedente.value;
   
   const currentNumScheda = parseInt(ex.num_scheda || selectedSheet.value);
   if (isNaN(currentNumScheda) || currentNumScheda <= 1) return null;
@@ -5462,11 +5464,22 @@ const getProvenienzaSchedaPrecedente = (ex) => {
   // 1. Prova ricerca rapida con indice sync
   const storico = getStoricoEsercizioFromBackupSync(atletaId, nomeEx);
   if (storico && storico.length > 0) {
-    const match = storico.find(b => {
+    let match = storico.find(b => {
       const sNum = parseInt(b.num_scheda);
-      return (sNum === targetScheda || (targetScheda <= 0 && sNum < currentNumScheda)) &&
-             parseInt(b.num_riga_giorno) > 0;
+      return sNum === targetScheda && parseInt(b.num_riga_giorno) > 0;
     });
+    if (!match) {
+      let maxPrev = -1;
+      storico.forEach(b => {
+        const s = parseInt(b.num_scheda);
+        if (s < currentNumScheda && parseInt(b.num_riga_giorno) > 0 && s > maxPrev) {
+          maxPrev = s;
+        }
+      });
+      if (maxPrev > 0) {
+        match = storico.find(b => parseInt(b.num_scheda) === maxPrev && parseInt(b.num_riga_giorno) > 0);
+      }
+    }
     if (match) {
       const prevGiorno = String(match.des_giorno || '').trim().toUpperCase();
       if (prevGiorno && currentGiorno && prevGiorno === currentGiorno) {
@@ -6407,11 +6420,20 @@ const caricaAllenamenti = async () => {
 
   caricamento.value = true;
   
-  // 1. Carica preventivamente il backup JSON per le patch di sicurezza GIF e storico scheda precedente
+  // 1. Carica preventivamente lo storico dell'atleta da Firestore per la scheda precedente
+  try {
+    await caricaStoricoSchedeAtletaFirestore(selectedAthlete.value);
+    triggerReattivitaSchedaPrecedente.value++;
+  } catch (errFs) {
+    console.warn("Impossibile caricare storico atleta da Firestore:", errFs);
+  }
+
+  // 2. Carica preventivamente il backup JSON per le patch di sicurezza GIF e storico scheda precedente
   try {
     const backup = await getStoryboardBackup();
     if (backup && backup.length) {
       allExercisesBackup.value = backup;
+      triggerReattivitaSchedaPrecedente.value++;
     }
   } catch (errBackup) {
     console.warn("Impossibile caricare backup locale in anticipo:", errBackup);
@@ -8250,11 +8272,11 @@ const ripristinaMesociclo = async () => {
 }
 
 .titolo-esercizio-scheda-precedente-giorno-diverso {
-  color: #dc2626 !important;
+  color: #c0395b !important;
 }
 
 [data-theme="light"] .titolo-esercizio-scheda-precedente-giorno-diverso {
-  color: var(--color-red-700, #991b1b) !important;
+  color: #701a35 !important;
 }
 
 .titolo-esercizio-scheda-precedente {

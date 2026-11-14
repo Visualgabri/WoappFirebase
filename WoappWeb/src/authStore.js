@@ -1280,6 +1280,8 @@ export const syncStoryboardListener = () => {
     });
     globalStoryboard.value = data;
     loadingStoryboard.value = false;
+    // Carica preventivamente lo storico delle schede dell'atleta su Firestore per l'indice rapido
+    caricaStoricoSchedeAtletaFirestore(athlete);
   }, (error) => {
     console.error("Errore nel listener in tempo reale dello Storyboard:", error);
     loadingStoryboard.value = false;
@@ -2626,6 +2628,29 @@ export const integraElementiInIndice = (items) => {
         arr.push(item);
       }
     }
+  }
+};
+
+export const caricaStoricoSchedeAtletaFirestore = async (athleteId) => {
+  if (!athleteId) return [];
+  try {
+    const athleteVal = !isNaN(Number(athleteId)) ? Number(athleteId) : athleteId;
+    const q = query(
+      collection(db, 'STORYBOARD'),
+      where('ID_cliente', 'in', [String(athleteId), athleteVal])
+    );
+    const snap = await getDocs(q);
+    const items = [];
+    snap.forEach((docSnap) => {
+      items.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    if (items.length > 0) {
+      integraElementiInIndice(items);
+    }
+    return items;
+  } catch (err) {
+    console.warn("Errore caricamento storico schede atleta da Firestore:", err);
+    return [];
   }
 };
 

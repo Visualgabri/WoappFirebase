@@ -115,11 +115,11 @@
       <!-- FEED ULTIME AZIONI IN TEMPO REALE -->
       <v-expand-transition>
         <div v-if="feedEspanso">
-          <div class="d-flex justify-space-between align-center mb-1.5 pt-1">
+          <div class="d-flex flex-wrap justify-space-between align-center gap-1 mb-1.5 pt-1">
             <span class="text-caption font-weight-black text-slate uppercase" style="font-size: 0.62rem;">
               Log in tempo reale:
             </span>
-            <div class="d-flex gap-1">
+            <div class="d-flex flex-wrap gap-1">
               <v-btn
                 size="x-small"
                 variant="flat"
@@ -144,6 +144,15 @@
                 style="font-size: 0.60rem; height: 20px;"
                 @click="filtroFeed = 'accesso'"
               >📱 Accessi ({{ feedAccessiCount }})</v-btn>
+              <v-btn
+                size="x-small"
+                variant="flat"
+                :color="soloClientiUniciFeed ? 'teal-darken-1' : 'default'"
+                class="rounded px-1.5 text-super-caption"
+                style="font-size: 0.60rem; height: 20px;"
+                @click="soloClientiUniciFeed = !soloClientiUniciFeed"
+                title="Mostra ciascun cliente una sola volta"
+              >👥 Unici ({{ feedClientiUniciCount }})</v-btn>
             </div>
           </div>
 
@@ -163,6 +172,13 @@
               <div class="d-flex align-center min-w-0 mr-1.5 flex-grow-1 overflow-hidden" style="gap: 5px;">
                 <span class="font-weight-black text-white flex-shrink-0" style="font-size: 0.72rem;">
                   {{ item.nomeBreve }}
+                </span>
+                <span
+                  v-if="soloClientiUniciFeed && item.feedCountCliente > 1"
+                  class="storico-scheda-badge flex-shrink-0 font-weight-bold"
+                  title="Numero di log di questo cliente nel feed recente"
+                >
+                  {{ item.feedCountCliente }}x
                 </span>
                 <span
                   v-if="item.badge"
@@ -648,7 +664,10 @@
                   Storico Completo Log in Tempo Reale
                 </span>
                 <v-chip size="x-small" color="primary" variant="flat" class="font-weight-black text-white px-2" style="height: 19px; font-size: 0.62rem;">
-                  {{ storicoFiltratoFinale.length }} {{ storicoFiltratoFinale.length === 1 ? 'evento' : 'eventi' }}
+                  {{ storicoFiltratoPerTipo.length }} {{ storicoFiltratoPerTipo.length === 1 ? 'evento' : 'eventi' }}
+                </v-chip>
+                <v-chip size="x-small" color="teal-darken-1" variant="flat" class="font-weight-black text-white px-2" style="height: 19px; font-size: 0.62rem;">
+                  👥 {{ storicoClientiUniciTotale }} {{ storicoClientiUniciTotale === 1 ? 'cliente attivo' : 'clienti attivi' }}
                 </v-chip>
               </div>
               <span class="text-caption text-slate d-block" style="font-size: 0.68rem;">
@@ -687,7 +706,7 @@
         <div class="storico-log-filters pa-3">
           <!-- Riga 1: Tipo + Atleta + Ricerca -->
           <div class="d-flex flex-wrap align-center gap-2 mb-2">
-            <div class="d-flex align-center gap-1 flex-shrink-0">
+            <div class="d-flex align-center gap-1 flex-wrap flex-shrink-0">
               <v-btn
                 size="x-small"
                 :variant="filtroStoricoTipo === 'tutti' ? 'flat' : 'tonal'"
@@ -712,6 +731,15 @@
                 style="height: 28px; font-size: 0.68rem;"
                 @click="filtroStoricoTipo = 'accesso'"
               >📱 Accessi ({{ storicoCountAccessi }})</v-btn>
+              <v-btn
+                size="x-small"
+                :variant="soloClientiUniciStorico ? 'flat' : 'tonal'"
+                :color="soloClientiUniciStorico ? 'teal-darken-1' : 'default'"
+                class="rounded font-weight-bold px-2"
+                style="height: 28px; font-size: 0.68rem;"
+                @click="soloClientiUniciStorico = !soloClientiUniciStorico"
+                title="Mostra ciascun cliente una sola volta per giorno"
+              >👥 1x Cliente ({{ storicoClientiUniciTotale }})</v-btn>
             </div>
 
             <v-autocomplete
@@ -811,14 +839,17 @@
           <div v-else class="d-flex flex-column gap-3">
             <div v-for="gruppo in storicoRaggruppatoPerGiorno" :key="gruppo.dataKey">
               <!-- Intestazione Giorno -->
-              <div class="storico-day-header d-flex align-center justify-space-between px-2.5 py-1.5 rounded-lg mb-1.5">
+              <div class="storico-day-header d-flex flex-wrap align-center justify-space-between gap-1.5 px-2.5 py-1.5 rounded-lg mb-1.5">
                 <div class="d-flex align-center gap-2">
                   <v-icon size="15" color="primary">mdi-calendar-today</v-icon>
                   <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.74rem;">
                     {{ gruppo.dataLabel }}
                   </span>
                 </div>
-                <div class="d-flex align-center gap-1.5 text-super-caption text-slate font-weight-bold" style="font-size: 0.64rem;">
+                <div class="d-flex align-center gap-1.5 flex-wrap text-super-caption text-slate font-weight-bold" style="font-size: 0.64rem;">
+                  <v-chip size="x-small" color="teal-darken-1" variant="flat" class="font-weight-black text-white px-2" style="height: 18px; font-size: 0.62rem;">
+                    👥 {{ gruppo.clientiUniciCount }} {{ gruppo.clientiUniciCount === 1 ? 'cliente' : 'clienti' }}
+                  </v-chip>
                   <span>{{ gruppo.totaleGiorno }} log</span>
                   <span v-if="gruppo.pesiCount > 0">• 🏋️ {{ gruppo.pesiCount }}</span>
                   <span v-if="gruppo.accessiCount > 0">• 📱 {{ gruppo.accessiCount }}</span>
@@ -841,6 +872,13 @@
                     </span>
                     <span class="font-weight-black text-slate-dark flex-shrink-0" style="font-size: 0.74rem;">
                       {{ item.nomeCompleto || item.nomeBreve }}
+                    </span>
+                    <span
+                      v-if="soloClientiUniciStorico && item.statClienteGiorno"
+                      class="storico-cliente-stats-badge flex-shrink-0 font-weight-bold"
+                      :title="`Prima azione: ${item.statClienteGiorno.primaOra} • Ultima: ${item.statClienteGiorno.ultimaOra}`"
+                    >
+                      {{ item.statClienteGiorno.tot }} op ({{ item.statClienteGiorno.pesi }}🏋️ · {{ item.statClienteGiorno.accessi }}📱)
                     </span>
                     <span
                       v-if="item.scheda"
@@ -877,6 +915,19 @@
                     <span class="text-super-caption text-slate font-weight-medium d-none d-sm-inline flex-shrink-0" style="font-size: 0.62rem;">
                       {{ item.tempo }}
                     </span>
+                    <v-btn
+                      v-if="soloClientiUniciStorico && item.statClienteGiorno && item.statClienteGiorno.tot > 1"
+                      icon
+                      variant="text"
+                      size="x-small"
+                      density="compact"
+                      color="teal-lighten-2"
+                      class="flex-shrink-0"
+                      @click.stop="espandiLogClienteGiorno(item)"
+                      title="Vedi tutti i log di questo cliente in questo giorno"
+                    >
+                      <v-icon size="15">mdi-format-list-bulleted</v-icon>
+                    </v-btn>
                     <v-icon size="14" color="grey" class="flex-shrink-0">mdi-chevron-right</v-icon>
                   </div>
                 </div>
@@ -920,9 +971,16 @@ const router = useRouter();
 const utentiOnline = ref([]);
 const feedAttivita = ref([]);
 const filtroFeed = ref('tutti'); // 'tutti' | 'peso' | 'accesso'
+const soloClientiUniciFeed = ref(false);
 const feedEspanso = ref(true);
 let unsubPresenza = null;
 let unsubAttivita = null;
+
+const getChiaveClienteLog = (item) => {
+  return String(item?.userId || item?.nomeCompleto || item?.nomeBreve || item?.raw?.userId || item?.raw?.nome || 'sconosciuto')
+    .trim()
+    .toLowerCase();
+};
 
 const atletiOnlineSolo = computed(() => {
   return utentiOnline.value.filter(u => u && u.id !== 'coach' && u.ruolo !== 'coach');
@@ -940,11 +998,40 @@ const feedFiltrato = computed(() => {
   return feedAttivita.value.filter(ev => ev.tipo === filtroFeed.value);
 });
 
-const feedFiltratoConDati = computed(() => {
+const feedFiltratoAnalizzato = computed(() => {
   return feedFiltrato.value.map(ev => ({
     raw: ev,
     ...analizzaEventoFeed(ev)
   }));
+});
+
+const feedConteggiPerCliente = computed(() => {
+  const counts = new Map();
+  for (const item of feedFiltratoAnalizzato.value) {
+    const key = getChiaveClienteLog(item);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return counts;
+});
+
+const feedClientiUniciCount = computed(() => feedConteggiPerCliente.value.size);
+
+const feedFiltratoConDati = computed(() => {
+  if (!soloClientiUniciFeed.value) return feedFiltratoAnalizzato.value;
+  const visti = new Set();
+  const counts = feedConteggiPerCliente.value;
+  const result = [];
+  for (const item of feedFiltratoAnalizzato.value) {
+    const key = getChiaveClienteLog(item);
+    if (!visti.has(key)) {
+      visti.add(key);
+      result.push({
+        ...item,
+        feedCountCliente: counts.get(key) || 1
+      });
+    }
+  }
+  return result;
 });
 
 // Stato e Logica Modale Storico Completo Log (/attivita_live)
@@ -953,6 +1040,7 @@ const storicoLogRaw = ref([]);
 const caricamentoStoricoLog = ref(false);
 const limiteCaricamentoStorico = ref(300); // 300 | 1000 | 0 (Tutti)
 const filtroStoricoTipo = ref('tutti'); // 'tutti' | 'peso' | 'accesso'
+const soloClientiUniciStorico = ref(false);
 const filtroStoricoAtleta = ref(null);
 const filtroStoricoPeriodo = ref('tutti'); // 'tutti' | 'oggi' | 'ieri' | '7gg' | '30gg' | 'data'
 const filtroStoricoData = ref('');
@@ -994,7 +1082,7 @@ const selezionaPeriodoStorico = (periodo) => {
   }
 };
 
-watch([filtroStoricoTipo, filtroStoricoAtleta, filtroStoricoPeriodo, filtroStoricoData, ricercaStoricoTesto], () => {
+watch([filtroStoricoTipo, soloClientiUniciStorico, filtroStoricoAtleta, filtroStoricoPeriodo, filtroStoricoData, ricercaStoricoTesto], () => {
   limiteRenderStorico.value = 150;
 });
 
@@ -1076,28 +1164,91 @@ const storicoCountTutti = computed(() => storicoFiltratoSenzaTipo.value.length);
 const storicoCountPesi = computed(() => storicoFiltratoSenzaTipo.value.filter(i => i.tipo === 'peso').length);
 const storicoCountAccessi = computed(() => storicoFiltratoSenzaTipo.value.filter(i => i.tipo === 'accesso').length);
 
-const storicoFiltratoFinale = computed(() => {
+const storicoFiltratoPerTipo = computed(() => {
   if (filtroStoricoTipo.value === 'tutti') return storicoFiltratoSenzaTipo.value;
   return storicoFiltratoSenzaTipo.value.filter(i => i.tipo === filtroStoricoTipo.value);
 });
 
-const storicoVisibile = computed(() => storicoFiltratoFinale.value.slice(0, limiteRenderStorico.value));
-const storicoHaAltri = computed(() => storicoFiltratoFinale.value.length > limiteRenderStorico.value);
-
 const conteggiPerGiornoStorico = computed(() => {
   const counts = new Map();
-  for (const item of storicoFiltratoFinale.value) {
+  for (const item of storicoFiltratoPerTipo.value) {
     let entry = counts.get(item.dataKey);
     if (!entry) {
-      entry = { totaleGiorno: 0, pesiCount: 0, accessiCount: 0 };
+      entry = {
+        totaleGiorno: 0,
+        pesiCount: 0,
+        accessiCount: 0,
+        clientiSet: new Set(),
+        clientiUniciCount: 0,
+        perCliente: new Map()
+      };
       counts.set(item.dataKey, entry);
     }
     entry.totaleGiorno++;
     if (item.tipo === 'accesso') entry.accessiCount++;
     else entry.pesiCount++;
+
+    const cKey = getChiaveClienteLog(item);
+    entry.clientiSet.add(cKey);
+    entry.clientiUniciCount = entry.clientiSet.size;
+
+    let cEntry = entry.perCliente.get(cKey);
+    if (!cEntry) {
+      cEntry = {
+        tot: 0,
+        pesi: 0,
+        accessi: 0,
+        primaOra: item.oraPrecisa || '',
+        ultimaOra: item.oraPrecisa || ''
+      };
+      entry.perCliente.set(cKey, cEntry);
+    }
+    cEntry.tot++;
+    if (item.tipo === 'accesso') cEntry.accessi++;
+    else cEntry.pesi++;
+    if (item.oraPrecisa) {
+      if (!cEntry.ultimaOra) cEntry.ultimaOra = item.oraPrecisa;
+      cEntry.primaOra = item.oraPrecisa;
+    }
   }
   return counts;
 });
+
+const storicoClientiUniciTotale = computed(() => {
+  const visti = new Set();
+  for (const item of storicoFiltratoPerTipo.value) {
+    visti.add(getChiaveClienteLog(item));
+  }
+  return visti.size;
+});
+
+const storicoFiltratoFinale = computed(() => {
+  const giornalieri = conteggiPerGiornoStorico.value;
+  if (!soloClientiUniciStorico.value) {
+    return storicoFiltratoPerTipo.value.map(item => ({
+      ...item,
+      statClienteGiorno: giornalieri.get(item.dataKey)?.perCliente.get(getChiaveClienteLog(item)) || null
+    }));
+  }
+
+  const vistiPerGiorno = new Set();
+  const result = [];
+  for (const item of storicoFiltratoPerTipo.value) {
+    const cKey = getChiaveClienteLog(item);
+    const dedupKey = `${item.dataKey}::${cKey}`;
+    if (!vistiPerGiorno.has(dedupKey)) {
+      vistiPerGiorno.add(dedupKey);
+      result.push({
+        ...item,
+        statClienteGiorno: giornalieri.get(item.dataKey)?.perCliente.get(cKey) || null
+      });
+    }
+  }
+  return result;
+});
+
+const storicoVisibile = computed(() => storicoFiltratoFinale.value.slice(0, limiteRenderStorico.value));
+const storicoHaAltri = computed(() => storicoFiltratoFinale.value.length > limiteRenderStorico.value);
 
 const storicoRaggruppatoPerGiorno = computed(() => {
   const gruppi = [];
@@ -1107,13 +1258,14 @@ const storicoRaggruppatoPerGiorno = computed(() => {
   for (const item of storicoVisibile.value) {
     let gruppo = gruppiMap.get(item.dataKey);
     if (!gruppo) {
-      const totals = totalsMap.get(item.dataKey) || { totaleGiorno: 0, pesiCount: 0, accessiCount: 0 };
+      const totals = totalsMap.get(item.dataKey) || { totaleGiorno: 0, pesiCount: 0, accessiCount: 0, clientiUniciCount: 0 };
       gruppo = {
         dataKey: item.dataKey,
         dataLabel: item.dataLabel,
         totaleGiorno: totals.totaleGiorno,
         pesiCount: totals.pesiCount,
         accessiCount: totals.accessiCount,
+        clientiUniciCount: totals.clientiUniciCount,
         items: []
       };
       gruppiMap.set(item.dataKey, gruppo);
@@ -1126,6 +1278,7 @@ const storicoRaggruppatoPerGiorno = computed(() => {
 
 const haFiltriStoricoAttivi = computed(() => {
   return filtroStoricoTipo.value !== 'tutti'
+    || soloClientiUniciStorico.value
     || filtroStoricoAtleta.value !== null
     || filtroStoricoPeriodo.value !== 'tutti'
     || Boolean(filtroStoricoData.value)
@@ -1134,11 +1287,26 @@ const haFiltriStoricoAttivi = computed(() => {
 
 const resetFiltriStorico = () => {
   filtroStoricoTipo.value = 'tutti';
+  soloClientiUniciStorico.value = false;
   filtroStoricoAtleta.value = null;
   filtroStoricoPeriodo.value = 'tutti';
   filtroStoricoData.value = '';
   ricercaStoricoTesto.value = '';
   limiteRenderStorico.value = 150;
+};
+
+const espandiLogClienteGiorno = (item) => {
+  if (item.userId) {
+    filtroStoricoAtleta.value = item.userId;
+  } else {
+    filtroStoricoAtleta.value = null;
+    ricercaStoricoTesto.value = item.nomeCompleto || item.nomeBreve || '';
+  }
+  if (item.dataKey && item.dataKey !== 'senza-data') {
+    filtroStoricoData.value = item.dataKey;
+    filtroStoricoPeriodo.value = 'data';
+  }
+  soloClientiUniciStorico.value = false;
 };
 
 const apriDettaglioDaStorico = (item) => {
@@ -1997,6 +2165,22 @@ onUnmounted(() => {
   padding: 0 4px;
   border-radius: 4px;
   line-height: 1.3;
+}
+
+.storico-cliente-stats-badge {
+  background: rgba(20, 184, 166, 0.15);
+  border: 1px solid rgba(20, 184, 166, 0.4);
+  color: #2dd4bf;
+  font-size: 0.61rem;
+  padding: 1px 6px;
+  border-radius: 5px;
+  line-height: 1.3;
+}
+
+[data-theme='light'] .storico-cliente-stats-badge {
+  background: rgba(13, 148, 136, 0.12);
+  border-color: rgba(13, 148, 136, 0.35);
+  color: #0f766e;
 }
 
 .storico-date-input {

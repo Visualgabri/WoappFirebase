@@ -169,7 +169,7 @@
               @click="apriDettaglioDaFeed(item)"
               title="Clicca per aprire l'esercizio in dettaglio"
             >
-              <div class="d-flex align-center min-w-0 mr-1.5 flex-grow-1 overflow-hidden" style="gap: 5px;">
+              <div class="d-flex align-center mr-1.5 flex-grow-1 overflow-hidden" style="gap: 5px; min-width: 0;">
                 <span class="font-weight-black text-white flex-shrink-0" style="font-size: 0.72rem;">
                   {{ item.nomeBreve }}
                 </span>
@@ -186,7 +186,7 @@
                 >
                   [{{ item.badge }}]
                 </span>
-                <span class="text-slate-light text-truncate" style="font-size: 0.70rem;">
+                <span class="text-slate-light text-truncate" style="font-size: 0.70rem; min-width: 0;" :title="item.esercizio">
                   {{ item.esercizio }}
                 </span>
                 <span
@@ -200,8 +200,9 @@
               <div class="d-flex align-center flex-shrink-0 ml-auto" style="gap: 6px;">
                 <span
                   v-if="item.carico"
-                  class="font-weight-black text-orange-accent-2 flex-shrink-0"
+                  class="feed-carico-truncate text-truncate font-weight-black text-orange-accent-2"
                   style="font-size: 0.72rem;"
+                  :title="item.carico"
                 >
                   {{ item.carico }}
                 </span>
@@ -866,7 +867,7 @@
                   @click="apriDettaglioDaStorico(item)"
                   title="Clicca per aprire l'esercizio o la scheda dell'atleta"
                 >
-                  <div class="d-flex align-center min-w-0 mr-2 flex-grow-1 overflow-hidden" style="gap: 6px;">
+                  <div class="d-flex align-center mr-2 flex-grow-1 overflow-hidden" style="gap: 6px; min-width: 0;">
                     <span class="storico-ora-badge flex-shrink-0 font-weight-bold text-slate">
                       {{ item.oraPrecisa || '--:--' }}
                     </span>
@@ -892,7 +893,7 @@
                     >
                       [{{ item.badge }}]
                     </span>
-                    <span class="text-slate text-truncate" style="font-size: 0.72rem;">
+                    <span class="text-slate text-truncate" style="font-size: 0.72rem; min-width: 40px;" :title="item.esercizio">
                       {{ item.esercizio }}
                     </span>
                     <span
@@ -907,8 +908,9 @@
                   <div class="d-flex align-center flex-shrink-0 ml-auto" style="gap: 8px;">
                     <span
                       v-if="item.carico"
-                      class="font-weight-black text-orange-accent-2 flex-shrink-0"
+                      class="storico-carico-truncate text-truncate font-weight-black text-orange-accent-2"
                       style="font-size: 0.74rem;"
+                      :title="item.carico"
                     >
                       {{ item.carico }}
                     </span>
@@ -2181,6 +2183,29 @@ onUnmounted(() => {
   background: rgba(13, 148, 136, 0.12);
   border-color: rgba(13, 148, 136, 0.35);
   color: #0f766e;
+}
+
+.storico-feed-row {
+  overflow: hidden;
+}
+
+.storico-carico-truncate {
+  max-width: 190px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.feed-carico-truncate {
+  max-width: 150px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .storico-carico-truncate,
+  .feed-carico-truncate {
+    max-width: 110px;
+  }
 }
 
 .storico-date-input {

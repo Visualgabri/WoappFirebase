@@ -53,7 +53,19 @@
             Quota 0
           </v-chip>
         </div>
-        <div class="d-flex align-center gap-1.5">
+        <div class="d-flex align-center gap-1.5 flex-wrap">
+          <v-btn
+            variant="tonal"
+            color="primary"
+            density="compact"
+            size="small"
+            class="rounded-lg text-caption font-weight-bold px-2"
+            @click="apriStoricoCompleto"
+            title="Consulta tutto lo storico log salvato in tempo reale"
+          >
+            <v-icon size="15" class="mr-1">mdi-history</v-icon>
+            Storico Completo
+          </v-btn>
           <v-btn
             variant="text"
             density="compact"
@@ -620,12 +632,279 @@
         </div>
       </v-card>
     </div>
+
+    <!-- MODALE STORICO COMPLETO LOG IN TEMPO REALE (/attivita_live) -->
+    <v-dialog v-model="dialogStoricoLog" max-width="860px" scrollable>
+      <v-card class="storico-log-card rounded-2xl border overflow-hidden elevation-12">
+        <!-- Header Modale -->
+        <v-card-title class="storico-log-header pa-3 pa-sm-4 d-flex flex-wrap align-center justify-space-between gap-2">
+          <div class="d-flex align-center gap-2.5 min-width-0">
+            <v-avatar color="primary" size="34" class="elevation-2 flex-shrink-0">
+              <v-icon size="18" color="white">mdi-history</v-icon>
+            </v-avatar>
+            <div class="min-width-0">
+              <div class="d-flex align-center gap-2 flex-wrap">
+                <span class="text-subtitle-1 font-weight-black text-slate-dark leading-tight">
+                  Storico Completo Log in Tempo Reale
+                </span>
+                <v-chip size="x-small" color="primary" variant="flat" class="font-weight-black text-white px-2" style="height: 19px; font-size: 0.62rem;">
+                  {{ storicoFiltratoFinale.length }} {{ storicoFiltratoFinale.length === 1 ? 'evento' : 'eventi' }}
+                </v-chip>
+              </div>
+              <span class="text-caption text-slate d-block" style="font-size: 0.68rem;">
+                Archivio RTDB attivita_live • Quota Firestore 0 • Scaricati {{ storicoLogRaw.length }} record
+              </span>
+            </div>
+          </div>
+
+          <div class="d-flex align-center gap-1.5">
+            <!-- Profondità caricamento -->
+            <div class="d-flex align-center gap-1 mr-1">
+              <v-btn
+                v-for="opz in [
+                  { label: 'Ultimi 300', val: 300 },
+                  { label: 'Ultimi 1000', val: 1000 },
+                  { label: 'Tutti', val: 0 }
+                ]"
+                :key="opz.val"
+                size="x-small"
+                :variant="limiteCaricamentoStorico === opz.val ? 'flat' : 'tonal'"
+                :color="limiteCaricamentoStorico === opz.val ? 'primary' : 'default'"
+                class="rounded font-weight-bold text-none px-2"
+                style="height: 24px; font-size: 0.64rem;"
+                @click="cambiaProfonditaStorico(opz.val)"
+              >
+                {{ opz.label }}
+              </v-btn>
+            </div>
+            <v-btn icon variant="text" size="small" density="compact" color="grey" @click="dialogStoricoLog = false" aria-label="Chiudi">
+              <v-icon size="20">mdi-close</v-icon>
+            </v-btn>
+          </div>
+        </v-card-title>
+
+        <!-- Barra Filtri -->
+        <div class="storico-log-filters pa-3">
+          <!-- Riga 1: Tipo + Atleta + Ricerca -->
+          <div class="d-flex flex-wrap align-center gap-2 mb-2">
+            <div class="d-flex align-center gap-1 flex-shrink-0">
+              <v-btn
+                size="x-small"
+                :variant="filtroStoricoTipo === 'tutti' ? 'flat' : 'tonal'"
+                :color="filtroStoricoTipo === 'tutti' ? 'primary' : 'default'"
+                class="rounded font-weight-bold px-2"
+                style="height: 28px; font-size: 0.68rem;"
+                @click="filtroStoricoTipo = 'tutti'"
+              >Tutti ({{ storicoCountTutti }})</v-btn>
+              <v-btn
+                size="x-small"
+                :variant="filtroStoricoTipo === 'peso' ? 'flat' : 'tonal'"
+                :color="filtroStoricoTipo === 'peso' ? 'primary' : 'default'"
+                class="rounded font-weight-bold px-2"
+                style="height: 28px; font-size: 0.68rem;"
+                @click="filtroStoricoTipo = 'peso'"
+              >🏋️ Pesi ({{ storicoCountPesi }})</v-btn>
+              <v-btn
+                size="x-small"
+                :variant="filtroStoricoTipo === 'accesso' ? 'flat' : 'tonal'"
+                :color="filtroStoricoTipo === 'accesso' ? 'primary' : 'default'"
+                class="rounded font-weight-bold px-2"
+                style="height: 28px; font-size: 0.68rem;"
+                @click="filtroStoricoTipo = 'accesso'"
+              >📱 Accessi ({{ storicoCountAccessi }})</v-btn>
+            </div>
+
+            <v-autocomplete
+              v-model="filtroStoricoAtleta"
+              :items="atletiStoricoOptions"
+              item-title="title"
+              item-value="value"
+              placeholder="Tutti gli atleti"
+              prepend-inner-icon="mdi-account-filter"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+              class="storico-filter-input flex-grow-1"
+              style="min-width: 185px; max-width: 280px;"
+            ></v-autocomplete>
+
+            <v-text-field
+              v-model="ricercaStoricoTesto"
+              placeholder="Cerca esercizio, A1, kg, device..."
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+              class="storico-filter-input flex-grow-1"
+              style="min-width: 190px;"
+            ></v-text-field>
+          </div>
+
+          <!-- Riga 2: Periodo + Data Specifica + Reset -->
+          <div class="d-flex flex-wrap align-center justify-space-between gap-2">
+            <div class="d-flex align-center gap-1 flex-wrap">
+              <span class="text-caption text-slate font-weight-bold mr-1" style="font-size: 0.66rem;">Periodo:</span>
+              <v-chip
+                v-for="p in [
+                  { label: 'Tutti', val: 'tutti' },
+                  { label: 'Oggi', val: 'oggi' },
+                  { label: 'Ieri', val: 'ieri' },
+                  { label: 'Ultimi 7gg', val: '7gg' },
+                  { label: 'Ultimi 30gg', val: '30gg' }
+                ]"
+                :key="p.val"
+                size="x-small"
+                :variant="filtroStoricoPeriodo === p.val ? 'flat' : 'tonal'"
+                :color="filtroStoricoPeriodo === p.val ? 'primary' : 'default'"
+                class="font-weight-bold cursor-pointer"
+                style="height: 22px; font-size: 0.64rem;"
+                @click="selezionaPeriodoStorico(p.val)"
+              >
+                {{ p.label }}
+              </v-chip>
+
+              <div class="d-flex align-center gap-1 ml-1">
+                <input
+                  type="date"
+                  v-model="filtroStoricoData"
+                  @change="filtroStoricoPeriodo = filtroStoricoData ? 'data' : 'tutti'"
+                  class="storico-date-input rounded-lg px-2 py-0.5 text-caption"
+                  title="Filtra per data esatta"
+                />
+              </div>
+            </div>
+
+            <v-btn
+              v-if="haFiltriStoricoAttivi"
+              size="x-small"
+              variant="text"
+              color="orange-lighten-2"
+              class="font-weight-bold text-none"
+              @click="resetFiltriStorico"
+            >
+              <v-icon size="14" class="mr-1">mdi-filter-remove</v-icon>
+              Reset filtri
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- Corpo Scrollabile Raggruppato per Giorno -->
+        <v-card-text class="pa-3" style="max-height: 62vh; overflow-y: auto;">
+          <div v-if="caricamentoStoricoLog && storicoLogRaw.length === 0" class="text-center py-8">
+            <v-progress-circular indeterminate color="primary" size="32" class="mb-2"></v-progress-circular>
+            <div class="text-caption text-slate font-weight-bold">Caricamento storico log da Realtime Database...</div>
+          </div>
+
+          <div v-else-if="storicoRaggruppatoPerGiorno.length === 0" class="text-center py-8">
+            <v-icon size="42" color="grey" class="mb-2">mdi-clipboard-text-search-outline</v-icon>
+            <div class="text-subtitle-2 font-weight-bold text-slate-dark">Nessun log trovato</div>
+            <p class="text-caption text-slate mt-1 mb-3">Prova a modificare i filtri o aumentare la profondità (es. "Tutti").</p>
+            <v-btn v-if="haFiltriStoricoAttivi" size="small" color="primary" variant="tonal" class="text-none font-weight-bold" @click="resetFiltriStorico">
+              Reset filtri
+            </v-btn>
+          </div>
+
+          <div v-else class="d-flex flex-column gap-3">
+            <div v-for="gruppo in storicoRaggruppatoPerGiorno" :key="gruppo.dataKey">
+              <!-- Intestazione Giorno -->
+              <div class="storico-day-header d-flex align-center justify-space-between px-2.5 py-1.5 rounded-lg mb-1.5">
+                <div class="d-flex align-center gap-2">
+                  <v-icon size="15" color="primary">mdi-calendar-today</v-icon>
+                  <span class="text-caption font-weight-black text-slate-dark" style="font-size: 0.74rem;">
+                    {{ gruppo.dataLabel }}
+                  </span>
+                </div>
+                <div class="d-flex align-center gap-1.5 text-super-caption text-slate font-weight-bold" style="font-size: 0.64rem;">
+                  <span>{{ gruppo.totaleGiorno }} log</span>
+                  <span v-if="gruppo.pesiCount > 0">• 🏋️ {{ gruppo.pesiCount }}</span>
+                  <span v-if="gruppo.accessiCount > 0">• 📱 {{ gruppo.accessiCount }}</span>
+                </div>
+              </div>
+
+              <!-- Eventi del Giorno -->
+              <div class="d-flex flex-column gap-1">
+                <div
+                  v-for="item in gruppo.items"
+                  :key="item.raw.key || `${item.raw.timestamp}_${item.userId}`"
+                  class="feed-item storico-feed-row d-flex align-center justify-space-between py-1.5 px-2.5 rounded-lg cursor-pointer"
+                  :class="{ 'feed-item-peso': item.tipo === 'peso', 'feed-item-accesso': item.tipo === 'accesso' }"
+                  @click="apriDettaglioDaStorico(item)"
+                  title="Clicca per aprire l'esercizio o la scheda dell'atleta"
+                >
+                  <div class="d-flex align-center min-w-0 mr-2 flex-grow-1 overflow-hidden" style="gap: 6px;">
+                    <span class="storico-ora-badge flex-shrink-0 font-weight-bold text-slate">
+                      {{ item.oraPrecisa || '--:--' }}
+                    </span>
+                    <span class="font-weight-black text-slate-dark flex-shrink-0" style="font-size: 0.74rem;">
+                      {{ item.nomeCompleto || item.nomeBreve }}
+                    </span>
+                    <span
+                      v-if="item.scheda"
+                      class="storico-scheda-badge flex-shrink-0 font-weight-bold"
+                    >
+                      #{{ item.scheda }}
+                    </span>
+                    <span
+                      v-if="item.badge"
+                      class="badge-w-coord flex-shrink-0 font-weight-black"
+                    >
+                      [{{ item.badge }}]
+                    </span>
+                    <span class="text-slate text-truncate" style="font-size: 0.72rem;">
+                      {{ item.esercizio }}
+                    </span>
+                    <span
+                      v-if="item.tipo === 'accesso' && item.dettaglioDispositivo"
+                      class="text-super-caption text-slate flex-shrink-0"
+                      style="font-size: 0.64rem;"
+                    >
+                      {{ item.dettaglioDispositivo }}
+                    </span>
+                  </div>
+
+                  <div class="d-flex align-center flex-shrink-0 ml-auto" style="gap: 8px;">
+                    <span
+                      v-if="item.carico"
+                      class="font-weight-black text-orange-accent-2 flex-shrink-0"
+                      style="font-size: 0.74rem;"
+                    >
+                      {{ item.carico }}
+                    </span>
+                    <span class="text-super-caption text-slate font-weight-medium d-none d-sm-inline flex-shrink-0" style="font-size: 0.62rem;">
+                      {{ item.tempo }}
+                    </span>
+                    <v-icon size="14" color="grey" class="flex-shrink-0">mdi-chevron-right</v-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mostra Altri -->
+            <div v-if="storicoHaAltri" class="text-center pt-2 pb-1">
+              <v-btn
+                size="small"
+                variant="tonal"
+                color="primary"
+                class="rounded-xl font-weight-bold text-none px-4"
+                @click="limiteRenderStorico += 150"
+              >
+                Mostra altri (+150) • Visualizzati {{ storicoVisibile.length }} di {{ storicoFiltratoFinale.length }}
+              </v-btn>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { ascoltaPresenzaLive, ascoltaAttivitaLive, analizzaEventoFeed } from '../utils/presenceService.js';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ascoltaPresenzaLive, ascoltaAttivitaLive, analizzaEventoFeed, formattaDataKeyLocale } from '../utils/presenceService.js';
 import { useRouter } from 'vue-router';
 import { setSelectedAthlete, setSelectedSheet, apriMessaggioPrivatoModal, getTelefonoAtleta, formattaTelefonoPerWhatsApp } from '../authStore.js';
 import { db } from '../firebase.js';
@@ -667,6 +946,205 @@ const feedFiltratoConDati = computed(() => {
     ...analizzaEventoFeed(ev)
   }));
 });
+
+// Stato e Logica Modale Storico Completo Log (/attivita_live)
+const dialogStoricoLog = ref(false);
+const storicoLogRaw = ref([]);
+const caricamentoStoricoLog = ref(false);
+const limiteCaricamentoStorico = ref(300); // 300 | 1000 | 0 (Tutti)
+const filtroStoricoTipo = ref('tutti'); // 'tutti' | 'peso' | 'accesso'
+const filtroStoricoAtleta = ref(null);
+const filtroStoricoPeriodo = ref('tutti'); // 'tutti' | 'oggi' | 'ieri' | '7gg' | '30gg' | 'data'
+const filtroStoricoData = ref('');
+const ricercaStoricoTesto = ref('');
+const limiteRenderStorico = ref(150);
+let unsubStoricoCompleto = null;
+
+const avviaListenerStoricoCompleto = (limite = limiteCaricamentoStorico.value) => {
+  if (unsubStoricoCompleto) {
+    unsubStoricoCompleto();
+    unsubStoricoCompleto = null;
+  }
+  caricamentoStoricoLog.value = true;
+  unsubStoricoCompleto = ascoltaAttivitaLive((events) => {
+    storicoLogRaw.value = events || [];
+    caricamentoStoricoLog.value = false;
+  }, limite);
+};
+
+const apriStoricoCompleto = () => {
+  dialogStoricoLog.value = true;
+  limiteRenderStorico.value = 150;
+  if (!unsubStoricoCompleto) {
+    avviaListenerStoricoCompleto(limiteCaricamentoStorico.value);
+  }
+};
+
+const cambiaProfonditaStorico = (nuovoLimite) => {
+  if (limiteCaricamentoStorico.value === nuovoLimite && unsubStoricoCompleto) return;
+  limiteCaricamentoStorico.value = nuovoLimite;
+  limiteRenderStorico.value = 150;
+  avviaListenerStoricoCompleto(nuovoLimite);
+};
+
+const selezionaPeriodoStorico = (periodo) => {
+  filtroStoricoPeriodo.value = periodo;
+  if (periodo !== 'data') {
+    filtroStoricoData.value = '';
+  }
+};
+
+watch([filtroStoricoTipo, filtroStoricoAtleta, filtroStoricoPeriodo, filtroStoricoData, ricercaStoricoTesto], () => {
+  limiteRenderStorico.value = 150;
+});
+
+const storicoAnalizzato = computed(() => {
+  return storicoLogRaw.value.map(ev => ({
+    raw: ev,
+    ...analizzaEventoFeed(ev)
+  }));
+});
+
+const atletiStoricoOptions = computed(() => {
+  const mappa = new Map();
+  for (const c of listaClienti.value) {
+    if (c?.id) {
+      mappa.set(String(c.id), c.nomeCompleto || `Atleta #${c.id}`);
+    }
+  }
+  for (const item of storicoAnalizzato.value) {
+    if (item.userId && !mappa.has(item.userId)) {
+      mappa.set(item.userId, item.nomeCompleto || `Atleta #${item.userId}`);
+    }
+  }
+  return Array.from(mappa.entries())
+    .map(([id, nome]) => ({ title: `${nome} (#${id})`, value: id }))
+    .sort((a, b) => a.title.localeCompare(b.title));
+});
+
+const storicoFiltratoSenzaTipo = computed(() => {
+  const now = new Date();
+  const oggiKey = formattaDataKeyLocale(now);
+  const ieri = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const ieriKey = formattaDataKeyLocale(ieri);
+  const cutoff7gg = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).getTime();
+  const cutoff30gg = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29).getTime();
+
+  const qText = (ricercaStoricoTesto.value || '').trim().toLowerCase();
+  const targetAtleta = filtroStoricoAtleta.value ? String(filtroStoricoAtleta.value) : null;
+  const periodo = filtroStoricoPeriodo.value;
+  const dataEsatta = filtroStoricoData.value;
+
+  return storicoAnalizzato.value.filter(item => {
+    if (targetAtleta && item.userId !== targetAtleta) {
+      return false;
+    }
+
+    if (periodo === 'oggi' && item.dataKey !== oggiKey) {
+      return false;
+    } else if (periodo === 'ieri' && item.dataKey !== ieriKey) {
+      return false;
+    } else if (periodo === '7gg' && Number(item.raw.timestamp || 0) < cutoff7gg) {
+      return false;
+    } else if (periodo === '30gg' && Number(item.raw.timestamp || 0) < cutoff30gg) {
+      return false;
+    } else if (periodo === 'data' && dataEsatta && item.dataKey !== dataEsatta) {
+      return false;
+    }
+
+    if (qText) {
+      const testo = [
+        item.nomeCompleto,
+        item.esercizio,
+        item.badge,
+        item.carico,
+        item.dettaglioDispositivo,
+        item.scheda ? `#${item.scheda}` : '',
+        item.raw?.azione,
+        item.raw?.dettagli
+      ].filter(Boolean).join(' ').toLowerCase();
+      if (!testo.includes(qText)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+});
+
+const storicoCountTutti = computed(() => storicoFiltratoSenzaTipo.value.length);
+const storicoCountPesi = computed(() => storicoFiltratoSenzaTipo.value.filter(i => i.tipo === 'peso').length);
+const storicoCountAccessi = computed(() => storicoFiltratoSenzaTipo.value.filter(i => i.tipo === 'accesso').length);
+
+const storicoFiltratoFinale = computed(() => {
+  if (filtroStoricoTipo.value === 'tutti') return storicoFiltratoSenzaTipo.value;
+  return storicoFiltratoSenzaTipo.value.filter(i => i.tipo === filtroStoricoTipo.value);
+});
+
+const storicoVisibile = computed(() => storicoFiltratoFinale.value.slice(0, limiteRenderStorico.value));
+const storicoHaAltri = computed(() => storicoFiltratoFinale.value.length > limiteRenderStorico.value);
+
+const conteggiPerGiornoStorico = computed(() => {
+  const counts = new Map();
+  for (const item of storicoFiltratoFinale.value) {
+    let entry = counts.get(item.dataKey);
+    if (!entry) {
+      entry = { totaleGiorno: 0, pesiCount: 0, accessiCount: 0 };
+      counts.set(item.dataKey, entry);
+    }
+    entry.totaleGiorno++;
+    if (item.tipo === 'accesso') entry.accessiCount++;
+    else entry.pesiCount++;
+  }
+  return counts;
+});
+
+const storicoRaggruppatoPerGiorno = computed(() => {
+  const gruppi = [];
+  const gruppiMap = new Map();
+  const totalsMap = conteggiPerGiornoStorico.value;
+
+  for (const item of storicoVisibile.value) {
+    let gruppo = gruppiMap.get(item.dataKey);
+    if (!gruppo) {
+      const totals = totalsMap.get(item.dataKey) || { totaleGiorno: 0, pesiCount: 0, accessiCount: 0 };
+      gruppo = {
+        dataKey: item.dataKey,
+        dataLabel: item.dataLabel,
+        totaleGiorno: totals.totaleGiorno,
+        pesiCount: totals.pesiCount,
+        accessiCount: totals.accessiCount,
+        items: []
+      };
+      gruppiMap.set(item.dataKey, gruppo);
+      gruppi.push(gruppo);
+    }
+    gruppo.items.push(item);
+  }
+  return gruppi;
+});
+
+const haFiltriStoricoAttivi = computed(() => {
+  return filtroStoricoTipo.value !== 'tutti'
+    || filtroStoricoAtleta.value !== null
+    || filtroStoricoPeriodo.value !== 'tutti'
+    || Boolean(filtroStoricoData.value)
+    || (ricercaStoricoTesto.value || '').trim() !== '';
+});
+
+const resetFiltriStorico = () => {
+  filtroStoricoTipo.value = 'tutti';
+  filtroStoricoAtleta.value = null;
+  filtroStoricoPeriodo.value = 'tutti';
+  filtroStoricoData.value = '';
+  ricercaStoricoTesto.value = '';
+  limiteRenderStorico.value = 150;
+};
+
+const apriDettaglioDaStorico = (item) => {
+  dialogStoricoLog.value = false;
+  apriDettaglioDaFeed(item);
+};
 
 const tempoFa = (timestamp) => {
   if (!timestamp) return 'Adesso';
@@ -1069,6 +1547,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubPresenza) unsubPresenza();
   if (unsubAttivita) unsubAttivita();
+  if (unsubStoricoCompleto) unsubStoricoCompleto();
 });
 </script>
 
@@ -1477,5 +1956,64 @@ onUnmounted(() => {
     font-size: 0.58rem !important;
     border-radius: 5px !important;
   }
+}
+.storico-log-card {
+  background: var(--card-bg-dark, rgba(15, 23, 42, 0.96)) !important;
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1)) !important;
+  backdrop-filter: blur(18px);
+}
+
+.storico-log-header {
+  border-bottom: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+  background: var(--card-bg-soft, rgba(30, 41, 59, 0.45));
+}
+
+.storico-log-filters {
+  border-bottom: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+  background: rgba(15, 23, 42, 0.25);
+}
+
+[data-theme='light'] .storico-log-filters {
+  background: rgba(241, 245, 249, 0.85);
+}
+
+.storico-day-header {
+  background: var(--card-bg-soft, rgba(30, 41, 59, 0.55));
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+}
+
+.storico-ora-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.64rem;
+  min-width: 52px;
+  opacity: 0.9;
+}
+
+.storico-scheda-badge {
+  background: rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: var(--text-slate, #cbd5e1);
+  font-size: 0.60rem;
+  padding: 0 4px;
+  border-radius: 4px;
+  line-height: 1.3;
+}
+
+.storico-date-input {
+  background: var(--v-field-bg, rgba(30, 41, 59, 0.5));
+  border: 1px solid var(--v-field-border, rgba(255, 255, 255, 0.14));
+  color: var(--text-dark, #f8fafc);
+  font-size: 0.68rem;
+  height: 24px;
+  outline: none;
+}
+
+[data-theme='light'] .feed-item {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+[data-theme='light'] .feed-item:hover {
+  background: rgba(15, 23, 42, 0.07);
 }
 </style>

@@ -36,26 +36,94 @@ export const tempoFaRelativo = (timestamp) => {
   return `${Math.floor(diffOre / 24)}g fa`;
 };
 
+const MESI_BREVE = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+const GIORNI_BREVE = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+
+export const formattaDataKeyLocale = (dateObj) => {
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const dd = String(dateObj.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const formattaMetadatiTimestamp = (timestamp) => {
+  const tsNum = Number(timestamp);
+  if (!timestamp || Number.isNaN(tsNum)) {
+    return { oraPrecisa: '', dataKey: 'senza-data', dataLabel: 'Data non disponibile' };
+  }
+  const d = new Date(tsNum);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  const oraPrecisa = `${hh}:${min}:${ss}`;
+  const dataKey = formattaDataKeyLocale(d);
+
+  const now = new Date();
+  const oggiKey = formattaDataKeyLocale(now);
+  const ieri = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const ieriKey = formattaDataKeyLocale(ieri);
+
+  const corpoData = `${d.getDate()} ${MESI_BREVE[d.getMonth()]} ${d.getFullYear()}`;
+  let dataLabel = `${GIORNI_BREVE[d.getDay()]} ${corpoData}`;
+  if (dataKey === oggiKey) {
+    dataLabel = `Oggi — ${corpoData}`;
+  } else if (dataKey === ieriKey) {
+    dataLabel = `Ieri — ${corpoData}`;
+  }
+
+  return { oraPrecisa, dataKey, dataLabel };
+};
+
 /**
  * Analizza e struttura un evento per la visualizzazione Schema 2A:
  * [Nome C.] [W2·C3] Esercizio ➔ 35 kg  (Adesso)
  */
 export const analizzaEventoFeed = (ev) => {
-  if (!ev) return { tipo: 'peso', nomeBreve: '', badge: '', esercizio: '', carico: '', tempo: '' };
+  if (!ev) {
+    return {
+      tipo: 'peso',
+      nomeBreve: '',
+      nomeCompleto: '',
+      userId: '',
+      scheda: '',
+      badge: '',
+      esercizio: '',
+      carico: '',
+      dettaglioDispositivo: '',
+      tempo: '',
+      oraPrecisa: '',
+      dataKey: 'senza-data',
+      dataLabel: 'Data non disponibile'
+    };
+  }
 
   const nomeBreve = formattaNomeBreve(ev.nome);
+  const nomeCompleto = String(ev.nome || nomeBreve || '').trim();
+  const userId = ev.userId !== undefined && ev.userId !== null ? String(ev.userId) : '';
+  const scheda = ev.scheda ? String(ev.scheda) : '';
   const tipo = ev.tipo || 'peso';
   const tempo = tempoFaRelativo(ev.timestamp);
+  const { oraPrecisa, dataKey, dataLabel } = formattaMetadatiTimestamp(ev.timestamp);
+
+  const metaBase = {
+    tipo,
+    nomeBreve,
+    nomeCompleto,
+    userId,
+    scheda,
+    tempo,
+    oraPrecisa,
+    dataKey,
+    dataLabel
+  };
 
   if (tipo === 'accesso') {
     return {
-      tipo,
-      nomeBreve,
+      ...metaBase,
       badge: ev.settimana ? `W${ev.settimana}` : '',
       esercizio: ev.azione || "Ha aperto l'app",
       carico: '',
-      dettaglioDispositivo: ev.dettagli ? `(${ev.dettagli})` : '',
-      tempo
+      dettaglioDispositivo: ev.dettagli ? `(${ev.dettagli})` : ''
     };
   }
 
@@ -116,12 +184,11 @@ export const analizzaEventoFeed = (ev) => {
   }
 
   return {
-    tipo,
-    nomeBreve,
+    ...metaBase,
     badge,
     esercizio: esNome || 'Esercizio',
     carico: carico ? `➔ ${carico}` : '',
-    tempo
+    dettaglioDispositivo: ''
   };
 };
 
@@ -307,16 +374,20 @@ export const ascoltaPresenzaLive = (callback) => {
 };
 
 /**
- * Ascolta il feed delle ultime attività live (/attivita_live)
+ * Ascolta il feed delle attività live (/attivita_live)
  * ATTENZIONE: Da invocare SOLO nella vista Coach.
  * @param {Function} callback - Riceve array ordinato dal più recente al meno recente
- * @param {number} [limit=30]
+ * @param {number|null} [limit=30] - Numero di ultimi eventi o null/0 per l'intero storico
  * @returns {Function} unsubscribe
  */
 export const ascoltaAttivitaLive = (callback, limit = 30) => {
   if (!rtdb) return () => {};
 
-  const liveQuery = query(ref(rtdb, 'attivita_live'), limitToLast(limit));
+  const baseRef = ref(rtdb, 'attivita_live');
+  const liveQuery = (typeof limit === 'number' && limit > 0)
+    ? query(baseRef, limitToLast(limit))
+    : baseRef;
+
   const unsubscribe = onValue(liveQuery, (snap) => {
     const val = snap.val() || {};
     const list = Object.keys(val).map(key => ({
